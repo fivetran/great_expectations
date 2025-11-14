@@ -261,10 +261,7 @@ First, partition your data.
 
 1. Define the Data Asset to batch and the DATE or DATETIME column to partition on.
 
-   ```Python title="Python"
-   data_source_name = "my_data_source" 
-   data_asset_name = "my_data_asset" 
-   column_name = "my_date_or_datetime_column"
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_sql.py - define asset"
    ```
 
 2. Decide how you want to batch your data. Reference the table below to determine the partitioner and method to use to achieve your goal.
@@ -277,48 +274,19 @@ First, partition your data.
 
 3. Partition your data. This example demonstrates daily Batches with the `ColumnPartitionerDaily` partitioner and the `partition_on_year_and_month_and_day` method. Refer to the above table for partitioners and methods for other types of Batches.
 
-   ```Python title="Python"
-   import great_expectations as gx
-   from great_expectations.core.partitioners import ColumnPartitionerDaily
-
-   context = gx.get_context()
-   ds = context.data_sources.get(data_source_name)
-   asset = ds.get_asset(data_asset_name)
-
-   for bd in asset.batch_definitions:
-       if "GX-Managed" in bd.name:
-           bd.partitioner = ColumnPartitionerDaily(
-               method_name="partition_on_year_and_month_and_day",
-               column_name=column_name,
-               sort_ascending=True,
-           )
-
-   context.update_datasource(ds)
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_sql.py - partition data"
    ```
 
 Then, you can validate a Batch of data. To help you validate GX-managed Expectations with the Cloud API, GX Cloud provides a GX-managed [Checkpoint](/docs/reference/api/Checkpoint_class) you can run. 
 
 1. Retrieve the name of the GX-managed Checkpoint for your Data Asset.
 
-   ```Python title="Python" 
-   import great_expectations as gx
-   context = gx.get_context()
-
-   data_asset_name = "my_data_asset"
-
-   checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
-   for name in checkpoint_names:
-       if "GX-Managed" in name and data_asset_name in name:
-           my_checkpoint=name
-    ```
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_sql.py - retrieve checkpoint name"
+   ```
 
 2. Run the Checkpoint with Batch Parameters passed as integers.
 
-   ```Python title="Python"
-   checkpoint = context.checkpoints.get(my_checkpoint)
-   batch_parameters_daily = {"year": 2019, "month": 1, "day": 30}
-
-   checkpoint.run(batch_parameters=batch_parameters_daily)
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_sql.py - run checkpoint"
    ```
 
 </TabItem>
@@ -331,9 +299,7 @@ First, partition your data.
 
 1. Define the Data Asset to batch.
 
-   ```Python title="Python" 
-   data_source_name = "my_data_source" 
-   data_asset_name = "my_data_asset" 
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_filesystem.py - define asset"
    ```
 
 2. Decide how you want to batch your data. Reference the table below to determine the partitioner and parameters to use to achieve your goal.
@@ -346,54 +312,19 @@ First, partition your data.
 
 3. Partition your data. This example demonstrates daily Batches with the `FileNamePartitionerDaily` partitioner and the `year`, `month`, and `day` parameter names. Refer to the above table for partitioners and parameters for other types of Batches.
 
-   ```Python title="Python"
-   import re
-
-   # Update this regex to match the pattern of your date-based filenames
-   # This example matches a name like my_filename_2019-01-30.csv
-   batching_regex = re.compile(r"my_filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}).csv")
-
-   import great_expectations as gx
-   from great_expectations.core.partitioners import FileNamePartitionerDaily
-
-   context = gx.get_context()
-   ds = context.data_sources.get(data_source_name)
-   asset = ds.get_asset(data_asset_name)
-
-   for bd in asset.batch_definitions:
-       if "GX-Managed" in bd.name:
-           bd.partitioner = FileNamePartitionerDaily(
-               regex=batching_regex,
-               sort_ascending=True,
-               param_names=("year", "month", "day")
-           )
-
-   context.update_datasource(ds)
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_filesystem.py - partition data"
    ```
 
 Then, you can validate a Batch of data. To help you validate GX-managed Expectations with the Cloud API, GX Cloud provides a GX-managed [Checkpoint](/docs/reference/api/Checkpoint_class) you can run. 
 
 1. Retrieve the name of the GX-managed Checkpoint for your Data Asset.
 
-   ```Python title="Python" 
-   import great_expectations as gx
-   context = gx.get_context()
-
-   data_asset_name = "my_data_asset"
-
-   checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
-   for name in checkpoint_names:
-       if "GX-Managed" in name and data_asset_name in name:
-           my_checkpoint=name
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_filesystem.py - retrieve checkpoint name"
     ```
 
 2. Run the Checkpoint with Batch Parameters passed as strings.
 
-   ```Python title="Python"
-   checkpoint = context.checkpoints.get(my_checkpoint)
-   batch_parameters_daily = {"year": "2019", "month": "01", "day": "30"}
-
-   checkpoint.run(batch_parameters=batch_parameters_daily)
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_filesystem.py - run checkpoint"
    ```
 
 </TabItem>
@@ -430,56 +361,26 @@ To help you validate API-managed Expectations on an entire Data Asset with the C
 
 1. Retrieve your Data Asset’s GX-managed Batch Definition.
 
-   ```Python title="Python"
-   import great_expectations as gx
-   context = gx.get_context()
-
-   data_source_name = "my_data_source" 
-   data_asset_name = "my_data_asset" 
-   batch_definition_name = f"{data_asset_name} - GX-Managed Batch Definition"
-
-   batch_definition = (
-       context.data_sources.get(data_source_name)
-       .get_asset(data_asset_name)
-       .get_batch_definition(batch_definition_name)
-   )
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - retrieve batch definition"
    ```
+
 2. Retrieve your API-managed Expectation Suite.
 
-   ```Python title="Python"
-   suite_name = "my_expectation_suite"
-   suite = context.suites.get(name=suite_name)
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - retrieve suite"
    ```
 
 3. Create a Validation Definition that associates the Batch Definition with the Expectation Suite.
 
-   ```Python title="Python"
-   definition_name = "my_validation_definition"
-   validation_definition = gx.ValidationDefinition(
-       data=batch_definition, suite=suite, name=definition_name
-   )
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - create validation definition"
    ```
 4. Run the Validation Definition.
 
-   ```Python title="Python"
-   validation_definition.run()
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - run validation definition"
    ```
 
 5. Optional. Create a Checkpoint so you can [trigger Actions](/docs/cloud/alerts/trigger_actions) based on the Validation Results of your API-managed Expectations.  
 
-    ```Python title="Python"
-    # Retrieve the Validation Definition
-    validation_definition = context.validation_definitions.get("my_validation_definition")
-
-    # Create a Checkpoint
-    checkpoint_name = "my_checkpoint"
-    checkpoint_config = gx.Checkpoint(name=checkpoint_name, validation_definitions=[validation_definition])
-
-    # Save the Checkpoint to the data context
-    checkpoint = context.checkpoints.add(checkpoint_config)
-
-    # Run the Checkpoint
-    checkpoint.run()
+    ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - create checkpoint"
     ```
 
 
@@ -528,15 +429,7 @@ To validate your data incrementally, you will first define how to partition your
 
 1. Retrieve your Data Asset.
 
-   ```Python title="Python" 
-   data_source_name = "my_data_source" 
-   data_asset_name = "my_data_asset"
-
-   import great_expectations as gx
-
-   context = gx.get_context()
-   ds = context.data_sources.get(data_source_name)
-   data_asset = ds.get_asset(data_asset_name)
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - retrieve data asset" 
    ```
 
 2. Decide how you want to batch your data. Reference the table below to determine the method to use to achieve your goal.
@@ -549,24 +442,19 @@ To validate your data incrementally, you will first define how to partition your
 
 3. Partition your data. This example demonstrates daily Batches with the `add_batch_definition_daily` method. Refer to the above table for methods for other types of Batches.
 
-   ```Python title="Python"
-   batch_definition_name = "my_daily_batch_definition"
-   date_column = "my_date_or_datetime_column"
-   daily_batch_definition = data_asset.add_batch_definition_daily(
-       name=batch_definition_name, column=date_column
-   )
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - partition data" 
    ```
 
 4. Retrieve your API-managed Expectation Suite.
 
-   ```Python title="Python"
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - retrieve suite" 
    suite_name = "my_expectation_suite"
    suite = context.suites.get(name=suite_name)
    ```
 
 5. Create a Validation Definition that associates your time-based Batch Definition with your API-managed Expectation Suite.
 
-   ```Python title="Python"
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - create checkpoint" 
    definition_name = "my_validation_definition"
    validation_definition = gx.ValidationDefinition(
        data=daily_batch_definition, suite=suite, name=definition_name
@@ -578,7 +466,7 @@ To validate your data incrementally, you will first define how to partition your
 
 6. Run the Validation Definition with Batch Parameters passed as integers.
 
-   ```Python title="Python" 
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - create checkpoint" 
    batch_parameters_daily = {"year": 2019, "month": 1, "day": 30}
 
    validation_definition.run(batch_parameters=batch_parameters_daily)
@@ -586,7 +474,7 @@ To validate your data incrementally, you will first define how to partition your
 
 7. Optional. Create a Checkpoint so you can [trigger Actions](/docs/cloud/alerts/trigger_actions) based on the Validation Results of your API-managed Expectations.  
 
-    ```Python title="Python"
+    ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - create checkpoint" 
     # Retrieve the Validation Definition
     validation_definition = context.validation_definitions.get("my_validation_definition")
 

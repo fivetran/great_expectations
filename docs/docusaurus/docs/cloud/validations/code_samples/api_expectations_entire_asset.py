@@ -6,6 +6,48 @@ pytest --docs-tests -k "cloud_docs_api_expectations_entire_asset" tests/integrat
 """
 
 # EXAMPLE SCRIPT STARTS HERE:
-# <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - full code example">
+# <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - retrieve batch definition">
+import great_expectations as gx
+context = gx.get_context()
 
+data_source_name = "my_data_source" 
+data_asset_name = "my_data_asset" 
+batch_definition_name = f"{data_asset_name} - GX-Managed Batch Definition"
+
+batch_definition = (
+    context.data_sources.get(data_source_name)
+    .get_asset(data_asset_name)
+    .get_batch_definition(batch_definition_name)
+)
+# </snippet>
+
+# <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - retrieve suite">
+suite_name = "my_expectation_suite"
+suite = context.suites.get(name=suite_name)
+# </snippet>
+
+# <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - create validation definition">
+definition_name = "my_validation_definition"
+validation_definition = gx.ValidationDefinition(
+    data=batch_definition, suite=suite, name=definition_name
+)
+# </snippet>
+
+# <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - run validation definition">
+validation_definition.run()
+# </snippet>
+
+# <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - create checkpoint">
+# Retrieve the Validation Definition
+validation_definition = context.validation_definitions.get("my_validation_definition")
+
+# Create a Checkpoint
+checkpoint_name = "my_checkpoint"
+checkpoint_config = gx.Checkpoint(name=checkpoint_name, validation_definitions=[validation_definition])
+
+# Save the Checkpoint to the data context
+checkpoint = context.checkpoints.add(checkpoint_config)
+
+# Run the Checkpoint
+checkpoint.run()
 # </snippet>
