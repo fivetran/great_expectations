@@ -18,7 +18,6 @@ data_asset = ds.get_asset(data_asset_name)
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_filesystem.py - partition data">
-import re
 
 # Update this regex to match the pattern of your date-based filenames
 # This example matches a name like my_filename_2019-01-30.csv
