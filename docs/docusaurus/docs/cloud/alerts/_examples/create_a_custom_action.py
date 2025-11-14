@@ -69,7 +69,6 @@ class MyCustomAction(ValidationAction):
         #     token = "MyPersonalAccessToken"
         # )
         # try:
-
         #     jira.issue_create(
         #         fields={
         #             'project': {
@@ -80,7 +79,6 @@ class MyCustomAction(ValidationAction):
         #             'issuetype': {
         #                 "name": "Task"
         #             },
-
         #         }
         #     )
         # except HTTPError as e:
