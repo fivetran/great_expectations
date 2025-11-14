@@ -18,6 +18,7 @@ data_asset = ds.get_asset(data_asset_name)
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_filesystem.py - partition data">
+import re
 
 batch_definition_name = "my_daily_batch_definition"
 
