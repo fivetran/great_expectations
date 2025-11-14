@@ -7,7 +7,7 @@ description: Run custom logic based on Validation Results.
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
-Great Expectations provides [Actions for common workflows](cloud/alerts/trigger_actions.md) such as sending emails and sending Microsoft Teams notifications. If these don't meet your needs, you can create a custom Action to integrate with different tools or apply custom business logic based on Validation Results. Example use cases for custom Actions include:
+Great Expectations provides [Actions for common workflows](cloud/alerts/trigger_actions.md) such as sending emails and sending Microsoft Teams notifications. If these don't meet your needs, you can create a custom Action to integrate with different tools, such as Atlassian Jira, or apply custom business logic based on Validation Results. Example use cases for custom Actions include:
 
 - Opening tickets in an issue tracker when Validation runs fail.
 - Triggering different webhooks depending on which Expectations fail.
@@ -43,12 +43,12 @@ To create a custom Action, you subclass the `ValidationAction` class, overriding
    ```python title="Python" name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_custom_action.py - set type" 
    ```
 
-3.  Optional. Add any additional fields your Action requires at runtime. Actions are built on Pydantic models. Define the field name as a class-level attribute on your Action, and annotate it with the correct type. When you instantiate the Action, pass the field value into the Action `init` method. Your Action will have access to these values within your custom `run` method through `self.<MY_FIELD_NAME>`.
+3.  Optional. Add any additional fields your Action requires at runtime. Actions are built on Pydantic models. Define the field name as a class-level attribute on your Action, and annotate it with the correct type. When you instantiate the Action, pass the field value into the Action `init` method. Your Action will have access to these values within your custom `run` method through `self.<MY_FIELD_NAME>`. The example below shows how to include a field for accessing a Jira API.
 
       ```python title="Python" name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_custom_action.py - add custom fields"
       ```
 
-4. Override the `run()` method with the logic for the Action.
+4. Override the `run()` method with the logic for the Action. The example below shows how to create a Jira ticket using the additional field you added in the previous step.
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_custom_action.py - override run" 
    ```
@@ -64,4 +64,4 @@ To create a custom Action, you subclass the `ValidationAction` class, overriding
 
 </Tabs>
 
-Now you can use your custom Action like you would any built-in Action. [Trigger actions](cloud/alerts/trigger_actions.md) to start automating responses to Validation Results.
+Now you can use your custom Action like you would any built-in Action. [Trigger your custom Action](cloud/alerts/trigger_actions.md) to start automating responses to Validation Results.

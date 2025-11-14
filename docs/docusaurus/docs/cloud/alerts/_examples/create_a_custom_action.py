@@ -33,6 +33,8 @@ class MyCustomAction(ValidationAction):
     # 3. Optional. Add any additional fields your Action requires at runtime.
     # <snippet name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_custom_action.py - add custom fields">
     my_custom_str_field: str
+    # For example, you could declare a custom field here for a Jira API URL, which you could later access in the run() method.
+    jira_api_url: str
     # </snippet>
 
     # 4. Override the `run()` method to perform the desired task.
@@ -49,13 +51,38 @@ class MyCustomAction(ValidationAction):
         self._do_my_custom_action(checkpoint_result)
         # Optional. Access custom fields you provide the Action at runtime.
         extra_context = self.my_custom_str_field
+        jira_api_url = self.jira_api_url
         # Return information about the Action
         return {"some": "info", "extra_context": extra_context}
 
     def _do_my_custom_action(self, checkpoint_result: CheckpointResult):
-        # Perform custom logic based on the validation results.
-        ...
+        # Perform custom logic based on the validation results. For example, you can create a Jira ticket using this method to initiate an investigation into a potential data transformation issue.
+        # 
+        # from atlassian import Jira
+        # from requests import HTTPError
 
+        # jira = Jira(
+        #     url   = self.jira_api_url,
+        #     token = "MyPersonalAccessToken"
+        # )
+        # try:
+
+        #     jira.issue_create(
+        #         fields={
+        #             'project': {
+        #                 'key': 'key' 
+        #             },
+        #             'summary': 'Testing JIRA python API',
+        #             'description': 'testing',
+        #             'issuetype': {
+        #                 "name": "Task"
+        #             },
+            
+        #         }
+        #     )
+        # except HTTPError as e:
+        #     print(e.response.text)
+        ...
     # </snippet>
 
 
