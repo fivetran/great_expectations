@@ -7,7 +7,7 @@ pytest --docs-tests -k "cloud_docs_api_expectations_batch_filesystem" tests/inte
 
 # EXAMPLE SCRIPT STARTS HERE:
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_filesystem.py - retrieve data asset">
-data_source_name = "my_data_source" 
+data_source_name = "my_data_source"
 data_asset_name = "my_data_asset"
 
 import great_expectations as gx
@@ -18,13 +18,14 @@ data_asset = ds.get_asset(data_asset_name)
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_filesystem.py - partition data">
-import re
 
 batch_definition_name = "my_daily_batch_definition"
 
 # Update this regex to match the pattern of your date-based filenames
 # This example matches a name like my_filename_2019-01-30.csv
-batch_definition_regex = r"my_filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.csv"
+batch_definition_regex = (
+    r"my_filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.csv"
+)
 
 batch_definition = data_asset.add_batch_definition_daily(
     name=batch_definition_name, regex=batch_definition_regex
@@ -57,7 +58,9 @@ validation_definition = context.validation_definitions.get("my_validation_defini
 
 # Create a Checkpoint
 checkpoint_name = "my_checkpoint"
-checkpoint_config = gx.Checkpoint(name=checkpoint_name, validation_definitions=[validation_definition])
+checkpoint_config = gx.Checkpoint(
+    name=checkpoint_name, validation_definitions=[validation_definition]
+)
 
 # Save the Checkpoint to the data context
 checkpoint = context.checkpoints.add(checkpoint_config)

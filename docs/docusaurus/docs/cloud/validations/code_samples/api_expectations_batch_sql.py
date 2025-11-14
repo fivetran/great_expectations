@@ -7,7 +7,7 @@ pytest --docs-tests -k "cloud_docs_api_expectations_batch_sql" tests/integration
 
 # EXAMPLE SCRIPT STARTS HERE:
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - retrieve data asset">
-data_source_name = "my_data_source" 
+data_source_name = "my_data_source"
 data_asset_name = "my_data_asset"
 
 import great_expectations as gx
@@ -51,7 +51,9 @@ validation_definition = context.validation_definitions.get("my_validation_defini
 
 # Create a Checkpoint
 checkpoint_name = "my_checkpoint"
-checkpoint_config = gx.Checkpoint(name=checkpoint_name, validation_definitions=[validation_definition])
+checkpoint_config = gx.Checkpoint(
+    name=checkpoint_name, validation_definitions=[validation_definition]
+)
 
 # Save the Checkpoint to the data context
 checkpoint = context.checkpoints.add(checkpoint_config)

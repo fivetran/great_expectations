@@ -7,8 +7,8 @@ pytest --docs-tests -k "cloud_docs_gx_expectations_batch_filesystem" tests/integ
 
 # EXAMPLE SCRIPT STARTS HERE:
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_filesystem.py - define asset">
-data_source_name = "my_data_source" 
-data_asset_name = "my_data_asset" 
+data_source_name = "my_data_source"
+data_asset_name = "my_data_asset"
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_filesystem.py - partition data">
@@ -16,7 +16,9 @@ import re
 
 # Update this regex to match the pattern of your date-based filenames
 # This example matches a name like my_filename_2019-01-30.csv
-batching_regex = re.compile(r"my_filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}).csv")
+batching_regex = re.compile(
+    r"my_filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}).csv"
+)
 
 import great_expectations as gx
 from great_expectations.core.partitioners import FileNamePartitionerDaily
@@ -30,7 +32,7 @@ for bd in asset.batch_definitions:
         bd.partitioner = FileNamePartitionerDaily(
             regex=batching_regex,
             sort_ascending=True,
-            param_names=("year", "month", "day")
+            param_names=("year", "month", "day"),
         )
 
 context.update_datasource(ds)
@@ -38,6 +40,7 @@ context.update_datasource(ds)
 
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_filesystem.py - retrieve checkpoint name">
 import great_expectations as gx
+
 context = gx.get_context()
 
 data_asset_name = "my_data_asset"
@@ -45,7 +48,7 @@ data_asset_name = "my_data_asset"
 checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
 for name in checkpoint_names:
     if "GX-Managed" in name and data_asset_name in name:
-        my_checkpoint=name
+        my_checkpoint = name
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_filesystem.py - run checkpoint">
