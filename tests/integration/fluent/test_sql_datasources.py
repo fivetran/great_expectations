@@ -25,6 +25,13 @@ from pytest import param
 import great_expectations.expectations.core as gxe
 from great_expectations.checkpoint.checkpoint import Checkpoint
 from great_expectations.compatibility.sqlalchemy import (
+    Connection,
+    TextClause,
+    engine,
+    inspect,
+    quoted_name,
+)
+from great_expectations.compatibility.sqlalchemy import (
     DatabaseError as SqlAlchemyDatabaseError,
 )
 from great_expectations.compatibility.sqlalchemy import (
@@ -32,12 +39,6 @@ from great_expectations.compatibility.sqlalchemy import (
 )
 from great_expectations.compatibility.sqlalchemy import (
     ProgrammingError as SqlAlchemyProgrammingError,
-)
-from great_expectations.compatibility.sqlalchemy import (
-    TextClause,
-    engine,
-    inspect,
-    quoted_name,
 )
 from great_expectations.compatibility.sqlalchemy import (
     __version__ as sqlalchemy_version,
@@ -353,6 +354,17 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
     all_created_tables: dict[str, list[dict[Literal["table_name", "schema"], str | None]]] = {}
     engines: dict[str, engine.Engine] = {}
 
+    def _connection_has_transaction(conn: Connection) -> bool:
+        """Check if a connection has an active transaction (SQLAlchemy 1.x and 2.x compatible)."""
+        from great_expectations.compatibility.not_imported import is_version_greater_or_equal
+        from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
+
+        # Only in SQLAlchemy 2.0+ do we need to check due to autobegin behavior
+        if sa and is_version_greater_or_equal(sa.__version__, "2.0.0"):
+            return conn.in_transaction()
+        # For SQLAlchemy < 2.0, we always commit since we're in explicit transaction
+        return True
+
     def _table_factory(
         gx_engine: SqlAlchemyExecutionEngine,
         table_names: set[str],
@@ -374,7 +386,7 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
             quoted_lower_col: str = quote_str(QUOTED_LOWER_COL, dialect=dialect)
             quoted_w_dots: str = quote_str(QUOTED_W_DOTS, dialect=dialect)
             quoted_mixed_case: str = quote_str(QUOTED_MIXED_CASE, dialect=dialect)
-            transaction = conn.begin()
+
             if schema:
                 conn.execute(TextClause(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
             for name in table_names:
@@ -401,7 +413,10 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
                     conn.execute(TextClause(insert_data), data)
 
                 created_tables.append(dict(table_name=name, schema=schema))
-            transaction.commit()
+
+            # Commit transaction if one is active (handles both SQLAlchemy 1.x and 2.x)
+            if _connection_has_transaction(conn):
+                conn.commit()
         all_created_tables[sa_engine.dialect.name] = created_tables
         engines[sa_engine.dialect.name] = sa_engine
 
@@ -415,7 +430,6 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
             continue
         engine = engines[dialect]
         with engine.connect() as conn:
-            transaction = conn.begin()
             schema: str | None = None
             for table in tables:
                 name = table["table_name"]
@@ -424,7 +438,10 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
                 conn.execute(TextClause(f"DROP TABLE IF EXISTS {qualified_table_name}"))
             if schema:
                 conn.execute(TextClause(f"DROP SCHEMA IF EXISTS {schema}"))
-            transaction.commit()
+
+            # Commit transaction if one is active (handles both SQLAlchemy 1.x and 2.x)
+            if _connection_has_transaction(conn):
+                conn.commit()
 
 
 @pytest.fixture

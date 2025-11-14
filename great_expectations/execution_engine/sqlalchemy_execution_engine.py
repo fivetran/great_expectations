@@ -1449,6 +1449,27 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
 
         return result
 
+    @staticmethod
+    def _connection_has_transaction(connection: sqlalchemy.Connection) -> bool:
+        """Check if a connection has an active transaction.
+
+        This is specifically for SQLAlchemy 2.0+ autobegin behavior where connections
+        might not have an active transaction if the database is in autocommit mode.
+
+        Args:
+            connection: SQLAlchemy connection to check
+
+        Returns:
+            True if there's an active transaction, False otherwise
+        """
+        # This method is only called in the SQLAlchemy 2.0+ code path
+        # The in_transaction() method was added in 1.4, but we check for 2.0+
+        # because that's when autobegin behavior was introduced
+        if is_version_greater_or_equal(sqlalchemy.sqlalchemy.__version__, "2.0.0"):
+            return connection.in_transaction()
+        # For SQLAlchemy < 2.0, we use explicit connection.begin(), so always in transaction
+        return True
+
     @new_method_or_class(version="0.16.14")
     def execute_query_in_transaction(
         self, query: sqlalchemy.Selectable
@@ -1469,7 +1490,10 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                 and not connection.closed
             ):
                 result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
-                connection.commit()
+                # Some databases auto-commit and don't support explicit transaction management
+                # Only commit if there's an active transaction to avoid errors
+                if self._connection_has_transaction(connection):
+                    connection.commit()
             else:
                 with connection.begin():
                     result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad

@@ -41,7 +41,7 @@ def generate_large_table_for_metrics(sa):
         metadata = MetaData()
         table_name = f"test_table_{uuid.uuid4().hex[:8]}"
 
-        with execution_engine.get_connection() as conn, conn.begin():
+        with execution_engine.get_connection() as conn:
             conn.execute(sa.text(f"CREATE SCHEMA IF NOT EXISTS {schema_name}"))
 
             columns = []
@@ -52,6 +52,17 @@ def generate_large_table_for_metrics(sa):
             metadata.create_all(execution_engine.engine)
 
             conn.execute(insert(table), list(df.to_dict("index").values()))
+
+            # Commit transaction if one is active (handles both SQLAlchemy 1.x and 2.x)
+            from great_expectations.compatibility.not_imported import is_version_greater_or_equal
+
+            # Only in SQLAlchemy 2.0+ do we need to check due to autobegin behavior
+            if is_version_greater_or_equal(sa.__version__, "2.0.0"):
+                if conn.in_transaction():
+                    conn.commit()
+            else:
+                # For SQLAlchemy < 2.0, always commit (we're in explicit transaction)
+                conn.commit()
 
         batch_spec = SqlAlchemyDatasourceBatchSpec(
             table_name=table_name,

@@ -150,6 +150,27 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             return engine, engine.dispose
 
     @staticmethod
+    def _connection_has_transaction(conn: sa.Connection) -> bool:
+        """Check if a connection has an active transaction (SQLAlchemy 1.x and 2.x compatible).
+
+        In SQLAlchemy 2.0+, autobegin behavior means some databases (like Databricks)
+        might not have an active transaction. In 1.x, we use explicit transactions.
+
+        Args:
+            conn: SQLAlchemy connection to check
+
+        Returns:
+            True if there's an active transaction, False otherwise
+        """
+        from great_expectations.compatibility.not_imported import is_version_greater_or_equal
+
+        # Only in SQLAlchemy 2.0+ do we need to check due to autobegin behavior
+        if is_version_greater_or_equal(sa.__version__, "2.0.0"):
+            return conn.in_transaction()
+        # For SQLAlchemy < 2.0, we always commit since we're in explicit transaction
+        return True
+
+    @staticmethod
     def _safe_bulk_insert(
         conn: sa.Connection, table: Table, values: list[tuple], max_params: int | None = None
     ) -> None:
@@ -180,9 +201,8 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         engine, cleanup = self._get_engine()
         dialect = engine.dialect.name.lower()
 
-        with engine.connect() as conn, conn.begin():
+        with engine.connect() as conn:
             # create schema if needed
-
             if self.schema:
                 logger.info(f"CREATING SCHEMA {self.schema}")
                 conn.execute(TextClause(f"CREATE SCHEMA {self.schema}"))
@@ -193,15 +213,15 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
             # insert data
             for table_data in all_table_data:
-                # pd.DataFrame(...).to_dict("index") returns a dictionary where the keys are the row
-                # index and the values are a dict of column names mapped to column values.
-                # Then we pass that list of dicts in as parameters to our insert statement.
-                #   INSERT INTO test_table (my_int_column, my_str_column) VALUES (?, ?)
-                #   [...] [('1', 'foo'), ('2', 'bar')]
                 df = table_data.df.replace(np.nan, None)
                 values = list(df.to_dict("index").values())
+                # Databricks has a lower parameter limit
                 max_params = 250 if dialect == GXSqlDialect.DATABRICKS else None
                 self._safe_bulk_insert(conn, table_data.table, values, max_params)  # type: ignore[arg-type] # FIXME
+
+            # Commit transaction if one is active (handles both SQLAlchemy 1.x and 2.x)
+            if self._connection_has_transaction(conn):
+                conn.commit()
         cleanup()
 
     @override
@@ -210,9 +230,12 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         for table in self.tables:
             table.drop(engine)
         if self.schema:
-            with engine.connect() as conn, conn.begin():
+            with engine.connect() as conn:
                 logger.info(f"DROPPING SCHEMA {self.schema}")
                 conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
+                # Commit transaction if one is active (handles both SQLAlchemy 1.x and 2.x)
+                if self._connection_has_transaction(conn):
+                    conn.commit()
         cleanup()
 
     def _create_table_name(self, label: Optional[str] = None) -> str:
