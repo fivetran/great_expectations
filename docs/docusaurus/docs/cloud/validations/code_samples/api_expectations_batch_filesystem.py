@@ -18,14 +18,15 @@ data_asset = ds.get_asset(data_asset_name)
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_filesystem.py - partition data">
-
-batch_definition_name = "my_daily_batch_definition"
+import re
 
 # Update this regex to match the pattern of your date-based filenames
 # This example matches a name like my_filename_2019-01-30.csv
 batch_definition_regex = (
     r"my_filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.csv"
 )
+
+batch_definition_name = "my_daily_batch_definition"
 
 batch_definition = data_asset.add_batch_definition_daily(
     name=batch_definition_name, regex=batch_definition_regex
