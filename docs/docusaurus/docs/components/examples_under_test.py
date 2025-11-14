@@ -432,7 +432,7 @@ example_scripts_for_define_expectations = [
     ),
 ]
 
-docs_examples_cloud_validations= [
+docs_examples_cloud_validations = [
     # Validate GX-managed Expectations for an entire Data Asset.
     IntegrationTestFixture(
         # To test, run:
