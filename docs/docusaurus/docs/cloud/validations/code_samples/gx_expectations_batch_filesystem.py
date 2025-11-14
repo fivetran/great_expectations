@@ -12,12 +12,10 @@ data_asset_name = "my_data_asset"
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_filesystem.py - partition data">
-import re
-
 # Update this regex to match the pattern of your date-based filenames
 # This example matches a name like my_filename_2019-01-30.csv
-batching_regex = re.compile(
-    r"my_filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}).csv"
+batch_definition_regex = (
+    r"my_filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.csv"
 )
 
 import great_expectations as gx
