@@ -14,7 +14,7 @@ data_asset_name = "my_data_asset"
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_filesystem.py - partition data">
 # Update this regex to match the pattern of your date-based filenames
 # This example matches a name like my_filename_2019-01-30.csv
-batch_definition_regex = (
+batching_regex = (
     r"my_filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.csv"
 )
 
