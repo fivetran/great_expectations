@@ -52,7 +52,11 @@ class MyCustomAction(ValidationAction):
         extra_context = self.my_custom_str_field
         jira_api_url = self.jira_api_url
         # Return information about the Action
-        return {"some": "info", "extra_context": extra_context, "jira_api_url": jira_api_url}
+        return {
+            "some": "info",
+            "extra_context": extra_context,
+            "jira_api_url": jira_api_url,
+        }
 
     def _do_my_custom_action(self, checkpoint_result: CheckpointResult):
         # Perform custom logic based on the validation results. For example, you can create a Jira ticket using this method to initiate an investigation into a potential data transformation issue.
