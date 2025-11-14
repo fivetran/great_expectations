@@ -454,7 +454,7 @@ To validate your data incrementally, you will first define how to partition your
 
 5. Create a Validation Definition that associates your time-based Batch Definition with your API-managed Expectation Suite.
 
-   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - create checkpoint" 
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - create validation definition" 
    definition_name = "my_validation_definition"
    validation_definition = gx.ValidationDefinition(
        data=daily_batch_definition, suite=suite, name=definition_name
@@ -466,29 +466,12 @@ To validate your data incrementally, you will first define how to partition your
 
 6. Run the Validation Definition with Batch Parameters passed as integers.
 
-   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - create checkpoint" 
-   batch_parameters_daily = {"year": 2019, "month": 1, "day": 30}
-
-   validation_definition.run(batch_parameters=batch_parameters_daily)
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - run validation definition" 
     ```
 
 7. Optional. Create a Checkpoint so you can [trigger Actions](/docs/cloud/alerts/trigger_actions) based on the Validation Results of your API-managed Expectations.  
 
     ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - create checkpoint" 
-    # Retrieve the Validation Definition
-    validation_definition = context.validation_definitions.get("my_validation_definition")
-
-    # Create a Checkpoint
-    checkpoint_name = "my_checkpoint"
-    checkpoint_config = gx.Checkpoint(name=checkpoint_name, validation_definitions=[validation_definition])
-
-    # Save the Checkpoint to the data context
-    checkpoint = context.checkpoints.add(checkpoint_config)
-
-    # When you run the Checkpoint, pass Batch Parameters as integers
-    batch_parameters_daily = {"year": 2019, "month": 1, "day": 30}
-
-    checkpoint.run(batch_parameters=batch_parameters_daily)
     ```
 
 </TabItem>
@@ -499,15 +482,7 @@ To validate your data incrementally, you will first define how to partition your
 
 1. Retrieve your Data Asset.
 
-   ```Python title="Python" 
-   data_source_name = "my_data_source" 
-   data_asset_name = "my_data_asset"
-
-   import great_expectations as gx
-
-   context = gx.get_context()
-   ds = context.data_sources.get(data_source_name)
-   data_asset = ds.get_asset(data_asset_name)
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_filesystem.py - retrieve data asset" 
    ```
 
 2. Decide how you want to batch your data. Reference the table below to determine the method and parameters to use to achieve your goal.
@@ -520,63 +495,29 @@ To validate your data incrementally, you will first define how to partition your
 
 3. Partition your data. This example demonstrates daily Batches with the `add_batch_definition_daily` method. Refer to the above table for methods and parameters for other types of Batches.
 
-   ```Python title="Python"
-   import re
-
-   batch_definition_name = "my_daily_batch_definition"
-
-   # Update this regex to match the pattern of your date-based filenames
-   # This example matches a name like my_filename_2019-01-30.csv
-   batch_definition_regex = r"my_filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.csv"
-
-   batch_definition = data_asset.add_batch_definition_daily(
-       name=batch_definition_name, regex=batch_definition_regex
-   )
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_filesystem.py - partition data" 
    ```
 
 4. Retrieve your API-managed Expectation Suite.
 
-   ```Python title="Python"
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_filesystem.py - retrieve suite" 
    suite_name = "my_expectation_suite"
    suite = context.suites.get(name=suite_name)
    ```
 
 5. Create a Validation Definition that associates your time-based Batch Definition with your API-managed Expectation Suite.
 
-   ```Python title="Python"
-   definition_name = "my_validation_definition"
-   validation_definition = gx.ValidationDefinition(
-       data=batch_definition, suite=suite, name=definition_name
-   )
-
-   validation_definition = context.validation_definitions.add(validation_definition)
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_filesystem.py - create validation definition" 
    ``` 
 
 6. Run the Validation Definition with Batch Parameters passed as strings.
 
-   ```Python title="Python" 
-   batch_parameters_daily = {"year": "2019", "month": "01", "day": "30"}
-
-   validation_definition.run(batch_parameters=batch_parameters_daily)
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_filesystem.py - run validation definition"" 
    ```
 
-7. Optional. Create a Checkpoint so you can [trigger Actions](/docs/cloud/alerts/trigger_actions) based on the Validation Results of your API-managed Expectations.  
+7. Optional. Create a Checkpoint so you can [trigger Actions](/docs/cloud/alerts/trigger_actions) based on the Validation Results of your API-managed Expectations.
 
-    ```Python title="Python"
-    # Retrieve the Validation Definition
-    validation_definition = context.validation_definitions.get("my_validation_definition")
-
-    # Create a Checkpoint
-    checkpoint_name = "my_checkpoint"
-    checkpoint_config = gx.Checkpoint(name=checkpoint_name, validation_definitions=[validation_definition])
-
-    # Save the Checkpoint to the data context
-    checkpoint = context.checkpoints.add(checkpoint_config)
-
-    # When you run the Checkpoint, pass Batch Parameters as strings
-    batch_parameters_daily = {"year": "2019", "month": "01", "day": "30"}
-
-    checkpoint.run(batch_parameters=batch_parameters_daily)
+    ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_filesystem.py - checkpoint" 
     ```
 </TabItem>
 </Tabs>
