@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pd
 from typing_extensions import override
 
-from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.compatibility.sqlalchemy import (
     Column,
     MetaData,
@@ -151,23 +150,21 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             return engine, engine.dispose
 
     @staticmethod
-    def _connection_has_transaction(conn: sa.Connection) -> bool:
-        """Check if a connection has an active transaction (SQLAlchemy 1.x and 2.x compatible).
+    def _safe_commit(conn: sa.Connection) -> None:
+        """Safely commit a connection, handling databases that don't support transactions.
 
-        In SQLAlchemy 2.0+, autobegin behavior means some databases (like Databricks)
-        might not have an active transaction. In 1.x, we use explicit transactions.
+        Some databases like Databricks auto-commit and don't support explicit transactions.
+        This method attempts to commit and ignores errors about missing transactions.
 
         Args:
-            conn: SQLAlchemy connection to check
-
-        Returns:
-            True if there's an active transaction, False otherwise
+            conn: SQLAlchemy connection to commit
         """
-        # Only in SQLAlchemy 2.0+ do we need to check due to autobegin behavior
-        if is_version_greater_or_equal(sa.__version__, "2.0.0"):
-            return conn.in_transaction()
-        # For SQLAlchemy < 2.0, we always commit since we're in explicit transaction
-        return True
+        try:
+            conn.commit()
+        except Exception as e:
+            # Databricks and other auto-commit databases may not have an active transaction
+            if "no active transaction" not in str(e).lower():
+                raise
 
     @staticmethod
     def _safe_bulk_insert(
@@ -218,9 +215,8 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
                 max_params = 250 if dialect == GXSqlDialect.DATABRICKS else None
                 self._safe_bulk_insert(conn, table_data.table, values, max_params)  # type: ignore[arg-type] # FIXME
 
-            # Commit transaction if one is active (handles both SQLAlchemy 1.x and 2.x)
-            if self._connection_has_transaction(conn):
-                conn.commit()
+            # Commit transaction (safe for databases without transaction support)
+            self._safe_commit(conn)
         cleanup()
 
     @override
@@ -232,9 +228,8 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             with engine.connect() as conn:
                 logger.info(f"DROPPING SCHEMA {self.schema}")
                 conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
-                # Commit transaction if one is active (handles both SQLAlchemy 1.x and 2.x)
-                if self._connection_has_transaction(conn):
-                    conn.commit()
+                # Commit transaction (safe for databases without transaction support)
+                self._safe_commit(conn)
         cleanup()
 
     def _create_table_name(self, label: Optional[str] = None) -> str:

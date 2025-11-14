@@ -24,7 +24,6 @@ from pytest import param
 
 import great_expectations.expectations.core as gxe
 from great_expectations.checkpoint.checkpoint import Checkpoint
-from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.compatibility.sqlalchemy import (
     Connection,
     TextClause,
@@ -44,7 +43,6 @@ from great_expectations.compatibility.sqlalchemy import (
 from great_expectations.compatibility.sqlalchemy import (
     __version__ as sqlalchemy_version,
 )
-from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context import EphemeralDataContext
@@ -356,13 +354,14 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
     all_created_tables: dict[str, list[dict[Literal["table_name", "schema"], str | None]]] = {}
     engines: dict[str, engine.Engine] = {}
 
-    def _connection_has_transaction(conn: Connection) -> bool:
-        """Check if a connection has an active transaction (SQLAlchemy 1.x and 2.x compatible)."""
-        # Only in SQLAlchemy 2.0+ do we need to check due to autobegin behavior
-        if sa and is_version_greater_or_equal(sa.__version__, "2.0.0"):
-            return conn.in_transaction()
-        # For SQLAlchemy < 2.0, we always commit since we're in explicit transaction
-        return True
+    def _safe_commit(conn: Connection) -> None:
+        """Safely commit a connection, handling databases that don't support transactions."""
+        try:
+            conn.commit()
+        except Exception as e:
+            # Databricks and other auto-commit databases may not have an active transaction
+            if "no active transaction" not in str(e).lower():
+                raise
 
     def _table_factory(
         gx_engine: SqlAlchemyExecutionEngine,
@@ -413,9 +412,8 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
 
                 created_tables.append(dict(table_name=name, schema=schema))
 
-            # Commit transaction if one is active (handles both SQLAlchemy 1.x and 2.x)
-            if _connection_has_transaction(conn):
-                conn.commit()
+            # Commit transaction (safe for databases without transaction support)
+            _safe_commit(conn)
         all_created_tables[sa_engine.dialect.name] = created_tables
         engines[sa_engine.dialect.name] = sa_engine
 
@@ -438,9 +436,8 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
             if schema:
                 conn.execute(TextClause(f"DROP SCHEMA IF EXISTS {schema}"))
 
-            # Commit transaction if one is active (handles both SQLAlchemy 1.x and 2.x)
-            if _connection_has_transaction(conn):
-                conn.commit()
+            # Commit transaction (safe for databases without transaction support)
+            _safe_commit(conn)
 
 
 @pytest.fixture
