@@ -22,9 +22,7 @@ batching_regex = "my_daily_batch_definition"
 
 # Update this regex to match the pattern of your date-based filenames
 # This example matches a name like my_filename_2019-01-30.csv
-batching_regex = (
-    r"my_filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.csv"
-)
+batching_regex = r"my_filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.csv"
 
 batch_definition = data_asset.add_batch_definition_daily(
     name=batch_definition_name, regex=batching_regex
