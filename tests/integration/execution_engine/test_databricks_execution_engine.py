@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 from sqlalchemy import VARCHAR, Column, MetaData, Table, insert
 
+from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.core.batch_spec import SqlAlchemyDatasourceBatchSpec
 from great_expectations.core.metric_function_types import (
     MetricPartialFunctionTypes,
@@ -54,8 +55,6 @@ def generate_large_table_for_metrics(sa):
             conn.execute(insert(table), list(df.to_dict("index").values()))
 
             # Commit transaction if one is active (handles both SQLAlchemy 1.x and 2.x)
-            from great_expectations.compatibility.not_imported import is_version_greater_or_equal
-
             # Only in SQLAlchemy 2.0+ do we need to check due to autobegin behavior
             if is_version_greater_or_equal(sa.__version__, "2.0.0"):
                 if conn.in_transaction():

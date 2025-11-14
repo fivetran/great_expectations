@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from typing_extensions import override
 
+from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.compatibility.sqlalchemy import (
     Column,
     MetaData,
@@ -162,8 +163,6 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         Returns:
             True if there's an active transaction, False otherwise
         """
-        from great_expectations.compatibility.not_imported import is_version_greater_or_equal
-
         # Only in SQLAlchemy 2.0+ do we need to check due to autobegin behavior
         if is_version_greater_or_equal(sa.__version__, "2.0.0"):
             return conn.in_transaction()

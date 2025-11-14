@@ -24,6 +24,7 @@ from pytest import param
 
 import great_expectations.expectations.core as gxe
 from great_expectations.checkpoint.checkpoint import Checkpoint
+from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.compatibility.sqlalchemy import (
     Connection,
     TextClause,
@@ -43,6 +44,7 @@ from great_expectations.compatibility.sqlalchemy import (
 from great_expectations.compatibility.sqlalchemy import (
     __version__ as sqlalchemy_version,
 )
+from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context import EphemeralDataContext
@@ -356,9 +358,6 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
 
     def _connection_has_transaction(conn: Connection) -> bool:
         """Check if a connection has an active transaction (SQLAlchemy 1.x and 2.x compatible)."""
-        from great_expectations.compatibility.not_imported import is_version_greater_or_equal
-        from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
-
         # Only in SQLAlchemy 2.0+ do we need to check due to autobegin behavior
         if sa and is_version_greater_or_equal(sa.__version__, "2.0.0"):
             return conn.in_transaction()
