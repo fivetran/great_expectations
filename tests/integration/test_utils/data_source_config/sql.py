@@ -199,6 +199,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
         with engine.connect() as conn:
             # create schema if needed
+
             if self.schema:
                 logger.info(f"CREATING SCHEMA {self.schema}")
                 conn.execute(TextClause(f"CREATE SCHEMA {self.schema}"))
@@ -209,9 +210,13 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
             # insert data
             for table_data in all_table_data:
+                # pd.DataFrame(...).to_dict("index") returns a dictionary where the keys are the row
+                # index and the values are a dict of column names mapped to column values.
+                # Then we pass that list of dicts in as parameters to our insert statement.
+                #   INSERT INTO test_table (my_int_column, my_str_column) VALUES (?, ?)
+                #   [...] [('1', 'foo'), ('2', 'bar')]
                 df = table_data.df.replace(np.nan, None)
                 values = list(df.to_dict("index").values())
-                # Databricks has a lower parameter limit
                 max_params = 250 if dialect == GXSqlDialect.DATABRICKS else None
                 self._safe_bulk_insert(conn, table_data.table, values, max_params)  # type: ignore[arg-type] # FIXME
 
