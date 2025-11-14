@@ -206,7 +206,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
             # create tables
             all_table_data = self._ensure_all_table_data_created()
-            self.metadata.create_all(engine)
+            self.metadata.create_all(conn)
 
             # insert data
             for table_data in all_table_data:
@@ -227,14 +227,14 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
     @override
     def teardown(self) -> None:
         engine, cleanup = self._get_engine()
-        for table in self.tables:
-            table.drop(engine)
-        if self.schema:
-            with engine.connect() as conn:
+        with engine.connect() as conn:
+            for table in self.tables:
+                table.drop(conn)
+            if self.schema:
                 logger.info(f"DROPPING SCHEMA {self.schema}")
                 conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
-                # Commit transaction (safe for databases without transaction support)
-                self._safe_commit(conn)
+            # Commit transaction (safe for databases without transaction support)
+            self._safe_commit(conn)
         cleanup()
 
     def _create_table_name(self, label: Optional[str] = None) -> str:

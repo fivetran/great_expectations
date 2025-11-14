@@ -49,7 +49,7 @@ def generate_large_table_for_metrics(sa):
                 columns.append(Column(col_name, VARCHAR(255)))
 
             table = Table(table_name, metadata, *columns, schema=schema_name)
-            metadata.create_all(execution_engine.engine)
+            metadata.create_all(conn)
 
             conn.execute(insert(table), list(df.to_dict("index").values()))
 
