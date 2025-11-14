@@ -59,7 +59,7 @@ class MyCustomAction(ValidationAction):
         }
 
     def _do_my_custom_action(self, checkpoint_result: CheckpointResult):
-        # Perform custom logic based on the validation results. For example, you can create a Jira ticket using this method to initiate an investigation into a potential data transformation issue.
+        # Perform custom logic based on the validation results. 
         #
         # from atlassian import Jira
         # from requests import HTTPError
