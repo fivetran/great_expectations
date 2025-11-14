@@ -447,20 +447,12 @@ To validate your data incrementally, you will first define how to partition your
 
 4. Retrieve your API-managed Expectation Suite.
 
-   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - retrieve suite" 
-   suite_name = "my_expectation_suite"
-   suite = context.suites.get(name=suite_name)
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - retrieve suite"
    ```
 
 5. Create a Validation Definition that associates your time-based Batch Definition with your API-managed Expectation Suite.
 
-   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - create validation definition" 
-   definition_name = "my_validation_definition"
-   validation_definition = gx.ValidationDefinition(
-       data=daily_batch_definition, suite=suite, name=definition_name
-   )
-
-   validation_definition = context.validation_definitions.add(validation_definition)
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - create validation definition"
    ``` 
 
 
@@ -500,9 +492,7 @@ To validate your data incrementally, you will first define how to partition your
 
 4. Retrieve your API-managed Expectation Suite.
 
-   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_filesystem.py - retrieve suite" 
-   suite_name = "my_expectation_suite"
-   suite = context.suites.get(name=suite_name)
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_filesystem.py - retrieve suite"
    ```
 
 5. Create a Validation Definition that associates your time-based Batch Definition with your API-managed Expectation Suite.
