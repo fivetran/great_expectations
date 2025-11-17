@@ -1450,12 +1450,12 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             CursorResult for sqlalchemy 2.0+ or LegacyCursorResult for earlier versions.
         """
         try:
-            return connection.execute(query)  # type: ignore[arg-type,call-overload] # Selectable union type too broad
+            return connection.execute(query)  # type: ignore[arg-type] # Selectable union type too broad
         except PendingRollbackError:
             # Connection has an invalid transaction from a previous failed operation
             # Roll back and retry with the same connection
             connection.rollback()
-            return connection.execute(query)  # type: ignore[arg-type,call-overload] # Selectable union type too broad
+            return connection.execute(query)  # type: ignore[arg-type] # Selectable union type too broad
 
     @new_method_or_class(version="0.16.14")
     def execute_query(
