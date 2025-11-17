@@ -1485,44 +1485,16 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
         Returns:
             CursorResult for sqlalchemy 2.0+ or LegacyCursorResult for earlier versions.
         """
-        # Get a connection and check if it's in a valid state
         with self.get_connection() as connection:
             if (
                 is_version_greater_or_equal(sqlalchemy.sqlalchemy.__version__, "2.0.0")
                 and not connection.closed
             ):
-                # For SQLAlchemy 2.0+, check if connection is in an invalid transaction state
-                # This can happen if a previous operation failed and left the connection dirty
-                try:
-                    # Check connection state - this will raise if transaction is invalid
-                    _ = connection.in_transaction()
-                except Exception:
-                    # Connection is in invalid state, invalidate and get a new one
-                    connection.invalidate()
-                    # Close this context and get a fresh connection
-                    connection.close()
-                    # Recurse with a fresh connection
-                    return self.execute_query_in_transaction(query)
-
-                # Connection is valid, proceed with query execution
-                try:
-                    result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
-                    # Some databases auto-commit and don't support explicit transaction management
-                    # Only commit if there's an active transaction to avoid errors
-                    if self._connection_has_transaction(connection):
-                        connection.commit()
-                except Exception:
-                    # Rollback the transaction if query execution fails
-                    # For safety, always invalidate the connection
-                    # on error to prevent pool pollution
-                    try:
-                        if self._connection_has_transaction(connection):
-                            connection.rollback()
-                    except Exception:
-                        pass  # Ignore rollback errors
-                    # Always invalidate to ensure bad connections aren't reused from the pool
-                    connection.invalidate()
-                    raise
+                result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
+                # Some databases auto-commit and don't support explicit transaction management
+                # Only commit if there's an active transaction to avoid errors
+                if self._connection_has_transaction(connection):
+                    connection.commit()
             else:
                 with connection.begin():
                     result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad

@@ -22,6 +22,8 @@ from tests.integration.test_utils.data_source_config.databricks import (
 
 @pytest.fixture
 def generate_large_table_for_metrics(sa):
+    engines = []
+
     def _generate_large_table_for_metrics(num_columns, num_rows):
         data = {}
         for i in range(num_columns):
@@ -37,6 +39,7 @@ def generate_large_table_for_metrics(sa):
         connection_string = config.connection_string(schema_name)
 
         execution_engine = SqlAlchemyExecutionEngine(connection_string=connection_string)
+        engines.append(execution_engine)
 
         metadata = MetaData()
         table_name = f"test_table_{uuid.uuid4().hex[:8]}"
@@ -71,7 +74,11 @@ def generate_large_table_for_metrics(sa):
 
         return execution_engine, df
 
-    return _generate_large_table_for_metrics
+    yield _generate_large_table_for_metrics
+
+    # Cleanup: dispose of all engine connection pools to prevent connection reuse
+    for engine in engines:
+        engine.engine.dispose()
 
 
 @pytest.fixture
