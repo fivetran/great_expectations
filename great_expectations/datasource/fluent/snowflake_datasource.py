@@ -744,6 +744,7 @@ class SnowflakeDatasource(SQLDatasource):
                     "See https://docs.greatexpectations.io/docs/reference/datasources/"
                     "snowflake for more information."
                 )
+                # deprecated-v1.8.0
                 warnings.warn(
                     msg,
                     category=DeprecationWarning,
