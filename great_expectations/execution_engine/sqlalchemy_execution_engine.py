@@ -1500,9 +1500,15 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                     result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
 
                 # Some databases auto-commit and don't support explicit transaction management
-                # Only commit if there's an active transaction to avoid errors
+                # Try to commit, but ignore errors from databases that auto-commit
                 if self._connection_has_transaction(connection):
-                    connection.commit()
+                    try:
+                        connection.commit()
+                    except Exception as e:
+                        # Databricks and other auto-commit databases may not have
+                        # an active transaction even though in_transaction() returns True
+                        if "no active transaction" not in str(e).lower():
+                            raise
             else:
                 with connection.begin():
                     result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
