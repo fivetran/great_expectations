@@ -1497,12 +1497,15 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                         connection.commit()
                 except Exception:
                     # Rollback the transaction if query execution fails
-                    if self._connection_has_transaction(connection):
-                        try:
+                    # For safety, always invalidate the connection
+                    # on error to prevent pool pollution
+                    try:
+                        if self._connection_has_transaction(connection):
                             connection.rollback()
-                        except Exception:
-                            # If rollback fails, invalidate the connection to prevent reuse
-                            connection.invalidate()
+                    except Exception:
+                        pass  # Ignore rollback errors
+                    # Always invalidate to ensure bad connections aren't reused from the pool
+                    connection.invalidate()
                     raise
             else:
                 with connection.begin():
