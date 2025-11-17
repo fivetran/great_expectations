@@ -22,8 +22,6 @@ from tests.integration.test_utils.data_source_config.databricks import (
 
 @pytest.fixture
 def generate_large_table_for_metrics(sa):
-    engines = []
-
     def _generate_large_table_for_metrics(num_columns, num_rows):
         data = {}
         for i in range(num_columns):
@@ -39,46 +37,46 @@ def generate_large_table_for_metrics(sa):
         connection_string = config.connection_string(schema_name)
 
         execution_engine = SqlAlchemyExecutionEngine(connection_string=connection_string)
-        engines.append(execution_engine)
 
         metadata = MetaData()
         table_name = f"test_table_{uuid.uuid4().hex[:8]}"
 
-        with execution_engine.get_connection() as conn:
-            conn.execute(sa.text(f"CREATE SCHEMA IF NOT EXISTS {schema_name}"))
+        try:
+            with execution_engine.get_connection() as conn:
+                conn.execute(sa.text(f"CREATE SCHEMA IF NOT EXISTS {schema_name}"))
 
-            columns = []
-            for col_name in df.columns:
-                columns.append(Column(col_name, VARCHAR(255)))
+                columns = []
+                for col_name in df.columns:
+                    columns.append(Column(col_name, VARCHAR(255)))
 
-            table = Table(table_name, metadata, *columns, schema=schema_name)
-            metadata.create_all(conn)
+                table = Table(table_name, metadata, *columns, schema=schema_name)
+                metadata.create_all(conn)
 
-            conn.execute(insert(table), list(df.to_dict("index").values()))
+                conn.execute(insert(table), list(df.to_dict("index").values()))
 
-            # Commit transaction (safe for databases without transaction support)
-            try:
-                conn.commit()
-            except Exception as e:
-                # Databricks and other auto-commit databases may not have an active transaction
-                if "no active transaction" not in str(e).lower():
-                    raise
+                # Commit transaction (safe for databases without transaction support)
+                try:
+                    conn.commit()
+                except Exception as e:
+                    # Databricks and other auto-commit databases may not have an active transaction
+                    if "no active transaction" not in str(e).lower():
+                        raise
 
-        batch_spec = SqlAlchemyDatasourceBatchSpec(
-            table_name=table_name,
-            sampling_method="_sample_using_limit",
-            sampling_kwargs={"n": num_rows},
-        )
-        batch_data, _ = execution_engine.get_batch_data_and_markers(batch_spec=batch_spec)
-        execution_engine.load_batch_data("test_batch_id", batch_data)
+            batch_spec = SqlAlchemyDatasourceBatchSpec(
+                table_name=table_name,
+                sampling_method="_sample_using_limit",
+                sampling_kwargs={"n": num_rows},
+            )
+            batch_data, _ = execution_engine.get_batch_data_and_markers(batch_spec=batch_spec)
+            execution_engine.load_batch_data("test_batch_id", batch_data)
 
-        return execution_engine, df
+            return execution_engine, df
+        finally:
+            # Always dispose the engine's connection pool immediately after use
+            # This prevents poisoned connections from being reused by subsequent tests
+            execution_engine.engine.dispose()
 
-    yield _generate_large_table_for_metrics
-
-    # Cleanup: dispose of all engine connection pools to prevent connection reuse
-    for engine in engines:
-        engine.engine.dispose()
+    return _generate_large_table_for_metrics
 
 
 @pytest.fixture
