@@ -1493,7 +1493,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                 # Check if connection is in an invalid transaction state and recover
                 try:
                     result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
-                except sqlalchemy.exc.PendingRollbackError:
+                except sqlalchemy.PendingRollbackError:
                     # Connection has an invalid transaction from a previous failed operation
                     # Roll back and retry with the same connection
                     connection.rollback()
