@@ -1445,7 +1445,14 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             CursorResult for sqlalchemy 2.0+ or LegacyCursorResult for earlier versions.
         """
         with self.get_connection() as connection:
-            result = connection.execute(query)  # type: ignore[arg-type] # FIXME:Selectable overly broad
+            # Check if connection is in an invalid transaction state and recover
+            try:
+                result = connection.execute(query)  # type: ignore[arg-type] # FIXME:Selectable overly broad
+            except sqlalchemy.PendingRollbackError:
+                # Connection has an invalid transaction from a previous failed operation
+                # Roll back and retry with the same connection
+                connection.rollback()
+                result = connection.execute(query)  # type: ignore[arg-type] # FIXME:Selectable overly broad
 
         return result
 
