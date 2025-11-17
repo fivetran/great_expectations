@@ -38,7 +38,7 @@ __version__ = get_versions()["version"]  # isort:skip
 from great_expectations._docs_decorators import new_method_or_class
 from great_expectations.compatibility import snowflake, sqlalchemy
 from great_expectations.compatibility.not_imported import is_version_greater_or_equal
-from great_expectations.compatibility.sqlalchemy import Subquery
+from great_expectations.compatibility.sqlalchemy import PendingRollbackError, Subquery
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
@@ -1432,6 +1432,31 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             with self.engine.connect() as connection:
                 yield connection
 
+    @staticmethod
+    def _execute_query_with_recovery(
+        connection: sqlalchemy.Connection,
+        query: sqlalchemy.Selectable | sqlalchemy.TextClause,
+    ) -> sqlalchemy.CursorResult | sqlalchemy.LegacyCursorResult:
+        """Execute a query with automatic recovery from invalid transaction state.
+
+        This handles PendingRollbackError which was introduced in SQLAlchemy 2.0.
+        For SQLAlchemy 1.x, this error doesn't exist and won't be raised.
+
+        Args:
+            connection: SQLAlchemy connection to use
+            query: Sqlalchemy selectable query.
+
+        Returns:
+            CursorResult for sqlalchemy 2.0+ or LegacyCursorResult for earlier versions.
+        """
+        try:
+            return connection.execute(query)  # type: ignore[arg-type,call-overload] # Selectable union type too broad
+        except PendingRollbackError:
+            # Connection has an invalid transaction from a previous failed operation
+            # Roll back and retry with the same connection
+            connection.rollback()
+            return connection.execute(query)  # type: ignore[arg-type,call-overload] # Selectable union type too broad
+
     @new_method_or_class(version="0.16.14")
     def execute_query(
         self, query: sqlalchemy.Selectable | sqlalchemy.TextClause
@@ -1445,14 +1470,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             CursorResult for sqlalchemy 2.0+ or LegacyCursorResult for earlier versions.
         """
         with self.get_connection() as connection:
-            # Check if connection is in an invalid transaction state and recover
-            try:
-                result = connection.execute(query)  # type: ignore[arg-type] # FIXME:Selectable overly broad
-            except sqlalchemy.PendingRollbackError:
-                # Connection has an invalid transaction from a previous failed operation
-                # Roll back and retry with the same connection
-                connection.rollback()
-                result = connection.execute(query)  # type: ignore[arg-type] # FIXME:Selectable overly broad
+            result = self._execute_query_with_recovery(connection, query)
 
         return result
 
@@ -1497,14 +1515,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                 is_version_greater_or_equal(sqlalchemy.sqlalchemy.__version__, "2.0.0")
                 and not connection.closed
             ):
-                # Check if connection is in an invalid transaction state and recover
-                try:
-                    result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
-                except sqlalchemy.PendingRollbackError:
-                    # Connection has an invalid transaction from a previous failed operation
-                    # Roll back and retry with the same connection
-                    connection.rollback()
-                    result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
+                result = self._execute_query_with_recovery(connection, query)
 
                 # Some databases auto-commit and don't support explicit transaction management
                 # Try to commit, but ignore errors from databases that auto-commit
@@ -1518,7 +1529,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                             raise
             else:
                 with connection.begin():
-                    result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
+                    result = self._execute_query_with_recovery(connection, query)
 
         return result
 
