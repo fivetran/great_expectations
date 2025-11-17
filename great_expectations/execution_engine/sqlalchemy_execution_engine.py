@@ -1474,7 +1474,8 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
     def execute_query_in_transaction(
         self, query: sqlalchemy.Selectable
     ) -> sqlalchemy.CursorResult | sqlalchemy.LegacyCursorResult:
-        """Execute a query using the underlying database engine within a transaction that will auto commit.
+        """Execute a query using the underlying database engine within a transaction
+        that will auto commit.
 
         Begin once: https://docs.sqlalchemy.org/en/20/core/connections.html#begin-once
 
@@ -1483,12 +1484,27 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
 
         Returns:
             CursorResult for sqlalchemy 2.0+ or LegacyCursorResult for earlier versions.
-        """  # noqa: E501 # FIXME CoP
+        """
+        # Get a connection and check if it's in a valid state
         with self.get_connection() as connection:
             if (
                 is_version_greater_or_equal(sqlalchemy.sqlalchemy.__version__, "2.0.0")
                 and not connection.closed
             ):
+                # For SQLAlchemy 2.0+, check if connection is in an invalid transaction state
+                # This can happen if a previous operation failed and left the connection dirty
+                try:
+                    # Check connection state - this will raise if transaction is invalid
+                    _ = connection.in_transaction()
+                except Exception:
+                    # Connection is in invalid state, invalidate and get a new one
+                    connection.invalidate()
+                    # Close this context and get a fresh connection
+                    connection.close()
+                    # Recurse with a fresh connection
+                    return self.execute_query_in_transaction(query)
+
+                # Connection is valid, proceed with query execution
                 try:
                     result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
                     # Some databases auto-commit and don't support explicit transaction management
