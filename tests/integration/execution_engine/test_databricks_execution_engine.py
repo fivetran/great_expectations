@@ -41,40 +41,35 @@ def generate_large_table_for_metrics(sa):
         metadata = MetaData()
         table_name = f"test_table_{uuid.uuid4().hex[:8]}"
 
-        try:
-            with execution_engine.get_connection() as conn:
-                conn.execute(sa.text(f"CREATE SCHEMA IF NOT EXISTS {schema_name}"))
+        with execution_engine.get_connection() as conn:
+            conn.execute(sa.text(f"CREATE SCHEMA IF NOT EXISTS {schema_name}"))
 
-                columns = []
-                for col_name in df.columns:
-                    columns.append(Column(col_name, VARCHAR(255)))
+            columns = []
+            for col_name in df.columns:
+                columns.append(Column(col_name, VARCHAR(255)))
 
-                table = Table(table_name, metadata, *columns, schema=schema_name)
-                metadata.create_all(conn)
+            table = Table(table_name, metadata, *columns, schema=schema_name)
+            metadata.create_all(conn)
 
-                conn.execute(insert(table), list(df.to_dict("index").values()))
+            conn.execute(insert(table), list(df.to_dict("index").values()))
 
-                # Commit transaction (safe for databases without transaction support)
-                try:
-                    conn.commit()
-                except Exception as e:
-                    # Databricks and other auto-commit databases may not have an active transaction
-                    if "no active transaction" not in str(e).lower():
-                        raise
+            # Commit transaction (safe for databases without transaction support)
+            try:
+                conn.commit()
+            except Exception as e:
+                # Databricks and other auto-commit databases may not have an active transaction
+                if "no active transaction" not in str(e).lower():
+                    raise
 
-            batch_spec = SqlAlchemyDatasourceBatchSpec(
-                table_name=table_name,
-                sampling_method="_sample_using_limit",
-                sampling_kwargs={"n": num_rows},
-            )
-            batch_data, _ = execution_engine.get_batch_data_and_markers(batch_spec=batch_spec)
-            execution_engine.load_batch_data("test_batch_id", batch_data)
+        batch_spec = SqlAlchemyDatasourceBatchSpec(
+            table_name=table_name,
+            sampling_method="_sample_using_limit",
+            sampling_kwargs={"n": num_rows},
+        )
+        batch_data, _ = execution_engine.get_batch_data_and_markers(batch_spec=batch_spec)
+        execution_engine.load_batch_data("test_batch_id", batch_data)
 
-            return execution_engine, df
-        finally:
-            # Always dispose the engine's connection pool immediately after use
-            # This prevents poisoned connections from being reused by subsequent tests
-            execution_engine.engine.dispose()
+        return execution_engine, df
 
     return _generate_large_table_for_metrics
 

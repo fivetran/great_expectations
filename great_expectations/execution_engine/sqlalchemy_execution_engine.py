@@ -1490,7 +1490,15 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                 is_version_greater_or_equal(sqlalchemy.sqlalchemy.__version__, "2.0.0")
                 and not connection.closed
             ):
-                result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
+                # Check if connection is in an invalid transaction state and recover
+                try:
+                    result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
+                except sqlalchemy.exc.PendingRollbackError:
+                    # Connection has an invalid transaction from a previous failed operation
+                    # Roll back and retry with the same connection
+                    connection.rollback()
+                    result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
+
                 # Some databases auto-commit and don't support explicit transaction management
                 # Only commit if there's an active transaction to avoid errors
                 if self._connection_has_transaction(connection):
