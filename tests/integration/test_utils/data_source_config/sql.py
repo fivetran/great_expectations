@@ -13,6 +13,7 @@ from typing_extensions import override
 
 from great_expectations.compatibility.sqlalchemy import (
     Column,
+    DatabaseError,
     MetaData,
     Table,
     TextClause,
@@ -161,7 +162,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         """
         try:
             conn.commit()
-        except Exception as e:
+        except DatabaseError as e:
             # Databricks and other auto-commit databases may not have an active transaction
             if "no active transaction" not in str(e).lower():
                 raise

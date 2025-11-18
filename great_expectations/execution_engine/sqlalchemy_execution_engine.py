@@ -38,7 +38,11 @@ __version__ = get_versions()["version"]  # isort:skip
 from great_expectations._docs_decorators import new_method_or_class
 from great_expectations.compatibility import snowflake, sqlalchemy
 from great_expectations.compatibility.not_imported import is_version_greater_or_equal
-from great_expectations.compatibility.sqlalchemy import PendingRollbackError, Subquery
+from great_expectations.compatibility.sqlalchemy import (
+    DatabaseError,
+    PendingRollbackError,
+    Subquery,
+)
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
@@ -1522,7 +1526,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                 if self._connection_has_transaction(connection):
                     try:
                         connection.commit()
-                    except Exception as e:
+                    except DatabaseError as e:
                         # Databricks and other auto-commit databases may not have
                         # an active transaction even though in_transaction() returns True
                         if "no active transaction" not in str(e).lower():
