@@ -48,7 +48,7 @@ class TableEvaluateBinaryLabelModelBias(TableMetricProvider):
 
         # Group() class evaluates biases across all subgroups in dataset by assembling a confusion matrix
         # of each subgroup, calculating used metrics such as false positive rate and false omission rate,
-        # as well as counts by group and group prevelance among the sample population.
+        # as well as counts by group and group prevalence among the sample population.
         g = Group()
         # The get_crosstabs() method expects a dataframe with predefined columns score, and label_value
         # and treats other columns as attributes against which to test for disparities. Requires attributes
@@ -106,7 +106,7 @@ class ExpectTableBinaryLabelModelBias(BatchExpectation):
 
     Args:
         y_true (str): \
-            The column name of the actual y vlaue. Must be binary
+            The column name of the actual y value. Must be binary
         y_pred (str): \
             The column name of the modeled y value. Must be binary or continuous
 
