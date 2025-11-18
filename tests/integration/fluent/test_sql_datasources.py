@@ -58,6 +58,7 @@ from great_expectations.execution_engine.sqlalchemy_dialect import (
 )
 from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
 from tests.integration.fluent.conftest import TEST_TABLE_NAME
+from tests.integration.test_utils.data_source_config.sql import _AUTO_COMMIT_DIALECTS
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
@@ -353,9 +354,6 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
     """
     all_created_tables: dict[str, list[dict[Literal["table_name", "schema"], str | None]]] = {}
     engines: dict[str, engine.Engine] = {}
-
-    # Dialects that auto-commit and may not have active transactions
-    _AUTO_COMMIT_DIALECTS = {GXSqlDialect.DATABRICKS}
 
     def _safe_commit(conn: Connection) -> None:
         """Safely commit a connection, skipping auto-commit databases.
