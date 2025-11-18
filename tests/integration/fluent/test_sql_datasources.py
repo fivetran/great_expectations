@@ -358,7 +358,7 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
         """Safely commit a connection, handling databases that don't support transactions."""
         try:
             conn.commit()
-        except Exception as e:
+        except SqlAlchemyDatabaseError as e:
             # Databricks and other auto-commit databases may not have an active transaction
             if "no active transaction" not in str(e).lower():
                 raise
