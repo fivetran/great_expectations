@@ -13,7 +13,6 @@ from typing_extensions import override
 
 from great_expectations.compatibility.sqlalchemy import (
     Column,
-    DatabaseError,
     MetaData,
     Table,
     TextClause,
@@ -36,6 +35,9 @@ if TYPE_CHECKING:
     import sqlalchemy as sa
 
 logger = logging.getLogger(__name__)
+
+# Dialects that auto-commit and may not have active transactions
+_AUTO_COMMIT_DIALECTS = {GXSqlDialect.DATABRICKS}
 
 
 @dataclass(frozen=True)
@@ -152,20 +154,19 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @staticmethod
     def _safe_commit(conn: sa.Connection) -> None:
-        """Safely commit a connection, handling databases that don't support transactions.
+        """Safely commit a connection, skipping auto-commit databases.
 
         Some databases like Databricks auto-commit and don't support explicit transactions.
-        This method attempts to commit and ignores errors about missing transactions.
+        For these dialects, we skip the commit call entirely.
 
         Args:
             conn: SQLAlchemy connection to commit
         """
-        try:
+        dialect_name = GXSqlDialect(conn.dialect.name)
+
+        # Skip commit for auto-commit databases (they commit automatically)
+        if dialect_name not in _AUTO_COMMIT_DIALECTS:
             conn.commit()
-        except DatabaseError as e:
-            # Databricks and other auto-commit databases may not have an active transaction
-            if "no active transaction" not in str(e).lower():
-                raise
 
     @staticmethod
     def _safe_bulk_insert(

@@ -354,14 +354,20 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
     all_created_tables: dict[str, list[dict[Literal["table_name", "schema"], str | None]]] = {}
     engines: dict[str, engine.Engine] = {}
 
+    # Dialects that auto-commit and may not have active transactions
+    _AUTO_COMMIT_DIALECTS = {GXSqlDialect.DATABRICKS}
+
     def _safe_commit(conn: Connection) -> None:
-        """Safely commit a connection, handling databases that don't support transactions."""
-        try:
+        """Safely commit a connection, skipping auto-commit databases.
+
+        Some databases like Databricks auto-commit and don't support explicit transactions.
+        For these dialects, we skip the commit call entirely.
+        """
+        dialect_name = GXSqlDialect(conn.dialect.name)
+
+        # Skip commit for auto-commit databases (they commit automatically)
+        if dialect_name not in _AUTO_COMMIT_DIALECTS:
             conn.commit()
-        except SqlAlchemyDatabaseError as e:
-            # Databricks and other auto-commit databases may not have an active transaction
-            if "no active transaction" not in str(e).lower():
-                raise
 
     def _table_factory(
         gx_engine: SqlAlchemyExecutionEngine,
