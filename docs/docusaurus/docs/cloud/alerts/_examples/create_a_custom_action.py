@@ -60,29 +60,29 @@ class MyCustomAction(ValidationAction):
 
     def _do_my_custom_action(self, checkpoint_result: CheckpointResult):
         # Perform custom logic based on the validation results.
-        #
-        # from atlassian import Jira
-        # from requests import HTTPError
+        # from jira import JIRA
 
-        # jira = Jira(
-        #     url   = self.jira_api_url,
-        #     token = "MyPersonalAccessToken"
-        # )
+        # Replace with your Jira instance URL and Jira Personal Access Token (PAT)
+        # host = "<JIRA_BASE_URL>"
+        # pat = "<YOUR-PERSONAL-ACCESS-TOKEN>"
+
+        # Create a Jira connection using the JIRA library
+        # headers = JIRA.DEFAULT_OPTIONS["headers"].copy()
+        # headers["Authorization"] = f"Bearer {pat}"
+        # jira = JIRA(server=host, options={"headers": headers})
+
+        # Issue data (replace with your own data)
+        # issue_data = {
+        #     "project": {"key": "<YOUR_PROJECT_KEY>"},
+        #     "summary": "New issue created for GX Cloud Validation result",
+        #     "description": "This issue has been created based on the result of a Validation in GX Cloud.",
+        #     "issuetype": {"name": "Task"},
+        # }
+
         # try:
-        #     jira.issue_create(
-        #         fields={
-        #             'project': {
-        #                 'key': 'key'
-        #             },
-        #             'summary': 'Testing JIRA python API',
-        #             'description': 'testing',
-        #             'issuetype': {
-        #                 "name": "Task"
-        #             },
-        #         }
-        #     )
-        # except HTTPError as e:
-        #     print(e.response.text)
+        #     new_issue = jira.create_issue(fields=issue_data)
+        # except Exception as e:
+        #     print("Failed to create issue:", str(e))
         ...
 
     # </snippet>
