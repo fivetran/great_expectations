@@ -483,7 +483,6 @@ docs_examples_trigger_actions_based_on_validation_results = [
         # data_context_dir="",
         backend_dependencies=[],
     ),
-
     # Create a custom Action for a Cloud Checkpoint
     IntegrationTestFixture(
         # To test, run:
