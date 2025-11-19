@@ -14,8 +14,6 @@ data_asset_name = "my_data_asset"
 import great_expectations as gx
 
 context = gx.get_context(mode="cloud")
-# Hide this
-set_up_context_for_example(context)
 
 checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
 for name in checkpoint_names:
