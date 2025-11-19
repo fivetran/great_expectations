@@ -6,6 +6,30 @@ pytest --docs-tests -k "cloud_docs_api_expectations_entire_asset" tests/integrat
 """
 
 # EXAMPLE SCRIPT STARTS HERE:
+import pandas as pd
+
+import great_expectations as gx
+
+# Setup test entities (outside snippet for testing)
+context = gx.get_context(mode="cloud")
+data_source_name = "my_data_source"
+data_asset_name = "my_data_asset"
+batch_definition_name = f"{data_asset_name} - GX-Managed Batch Definition"
+
+# Create datasource
+ds = context.data_sources.add_pandas(name=data_source_name)
+
+# Create asset with test data
+test_df = pd.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]})
+asset = ds.add_dataframe_asset(name=data_asset_name)
+
+# Create batch definition
+asset.add_batch_definition_whole_dataframe(batch_definition_name)
+
+# Create expectation suite
+suite_name = "my_expectation_suite"
+context.suites.add(gx.ExpectationSuite(name=suite_name))
+
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - retrieve batch definition">
 import great_expectations as gx
 

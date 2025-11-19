@@ -6,6 +6,34 @@ pytest --docs-tests -k "cloud_docs_api_expectations_batch_filesystem" tests/inte
 """
 
 # EXAMPLE SCRIPT STARTS HERE:
+import tempfile
+from pathlib import Path
+
+import pandas as pd
+
+import great_expectations as gx
+
+# Setup test entities (outside snippet for testing)
+context = gx.get_context(mode="cloud")
+data_source_name = "my_data_source"
+data_asset_name = "my_data_asset"
+
+# Create test files with date-based naming
+temp_dir = Path(tempfile.mkdtemp())
+test_df = pd.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]})
+test_df.to_csv(temp_dir / "my_filename_2019-01-30.csv", index=False)
+
+# Create filesystem datasource
+ds = context.data_sources.add_pandas_filesystem(
+    name=data_source_name, base_directory=temp_dir
+)
+
+# Add CSV asset
+ds.add_csv_asset(name=data_asset_name)
+
+# Create expectation suite
+suite_name = "my_expectation_suite"
+context.suites.add(gx.ExpectationSuite(name=suite_name))
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_filesystem.py - retrieve data asset">
 data_source_name = "my_data_source"
 data_asset_name = "my_data_asset"

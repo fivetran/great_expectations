@@ -6,6 +6,48 @@ pytest --docs-tests -k "cloud_docs_api_expectations_batch_sql" tests/integration
 """
 
 # EXAMPLE SCRIPT STARTS HERE:
+import sqlite3
+import tempfile
+from pathlib import Path
+
+import pandas as pd
+
+import great_expectations as gx
+
+# Setup test entities (outside snippet for testing)
+context = gx.get_context(mode="cloud")
+data_source_name = "my_data_source"
+data_asset_name = "my_data_asset"
+
+# Create a temporary SQLite database
+temp_dir = Path(tempfile.mkdtemp())
+db_path = temp_dir / "test.db"
+conn = sqlite3.connect(str(db_path))
+
+# Create table with datetime column
+test_df = pd.DataFrame(
+    {
+        "id": [1, 2, 3],
+        "my_date_or_datetime_column": pd.to_datetime(
+            ["2019-01-15", "2019-01-20", "2019-01-30"]
+        ),
+        "value": [10, 20, 30],
+    }
+)
+test_df.to_sql("organizations", conn, index=False, if_exists="replace")
+conn.close()
+
+# Create SQL datasource
+ds = context.data_sources.add_sqlite(
+    name=data_source_name, connection_string=f"sqlite:///{db_path}"
+)
+
+# Add table asset
+ds.add_table_asset(name=data_asset_name, table_name="organizations")
+
+# Create expectation suite
+suite_name = "my_expectation_suite"
+context.suites.add(gx.ExpectationSuite(name=suite_name))
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - retrieve data asset">
 data_source_name = "my_data_source"
 data_asset_name = "my_data_asset"
