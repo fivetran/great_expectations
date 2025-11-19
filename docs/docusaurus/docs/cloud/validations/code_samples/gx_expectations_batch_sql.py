@@ -16,7 +16,7 @@ column_name = "my_date_or_datetime_column"
 import great_expectations as gx
 from great_expectations.core.partitioners import ColumnPartitionerDaily
 
-context = gx.get_context()
+context = gx.get_context(mode="cloud")
 ds = context.data_sources.get(data_source_name)
 asset = ds.get_asset(data_asset_name)
 

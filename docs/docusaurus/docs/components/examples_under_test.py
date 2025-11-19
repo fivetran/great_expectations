@@ -449,9 +449,9 @@ docs_examples_cloud_validations = [
         # pytest --docs-tests -k "cloud_docs_gx_expectations_batch_sql" tests/integration/test_script_runner.py
         name="cloud_docs_gx_expectations_batch_sql",
         user_flow_script="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_sql.py",
-        # data_dir="",
+        data_dir="docs/docusaurus/docs/components/_testing/test_data_sets/single_test_file",
         # data_context_dir="",
-        backend_dependencies=[],
+        backend_dependencies=[BackendDependencies.CLOUD],
     ),
     # Validate GX-managed Expectations for a time-based subset of a filesystem Data Asset.
     IntegrationTestFixture(
@@ -461,7 +461,7 @@ docs_examples_cloud_validations = [
         user_flow_script="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_filesystem.py",
         # data_dir="",
         # data_context_dir="",
-        backend_dependencies=[],
+        backend_dependencies=[BackendDependencies.CLOUD],
     ),
     # Validate API-managed Expectations for an entire Data Asset.
     IntegrationTestFixture(
@@ -469,9 +469,9 @@ docs_examples_cloud_validations = [
         # pytest --docs-tests -k "cloud_docs_api_expectations_entire_asset" tests/integration/test_script_runner.py
         name="cloud_docs_api_expectations_entire_asset",
         user_flow_script="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py",
-        # data_dir="",
+        data_dir="docs/docusaurus/docs/components/_testing/test_data_sets/single_test_file",
         # data_context_dir="",
-        backend_dependencies=[],
+        backend_dependencies=[BackendDependencies.CLOUD],
     ),
     # Validate API-managed Expectations for a time-based subset of a SQL Data Asset.
     IntegrationTestFixture(
@@ -479,9 +479,9 @@ docs_examples_cloud_validations = [
         # pytest --docs-tests -k "cloud_docs_api_expectations_batch_sql" tests/integration/test_script_runner.py
         name="cloud_docs_api_expectations_batch_sql",
         user_flow_script="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py",
-        # data_dir="",
+        data_dir="docs/docusaurus/docs/components/_testing/test_data_sets/single_test_file",
         # data_context_dir="",
-        backend_dependencies=[],
+        backend_dependencies=[BackendDependencies.CLOUD],
     ),
     # Validate API-managed Expectations for a time-based subset of a filesystem Data Asset.
     IntegrationTestFixture(
@@ -491,7 +491,7 @@ docs_examples_cloud_validations = [
         user_flow_script="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_filesystem.py",
         # data_dir="",
         # data_context_dir="",
-        backend_dependencies=[],
+        backend_dependencies=[BackendDependencies.CLOUD],
     ),
 ]
 

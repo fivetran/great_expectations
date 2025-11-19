@@ -12,7 +12,7 @@ data_asset_name = "my_data_asset"
 
 import great_expectations as gx
 
-context = gx.get_context()
+context = gx.get_context(mode="cloud")
 ds = context.data_sources.get(data_source_name)
 data_asset = ds.get_asset(data_asset_name)
 # </snippet>

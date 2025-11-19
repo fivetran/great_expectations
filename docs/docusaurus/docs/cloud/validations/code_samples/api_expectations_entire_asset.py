@@ -9,7 +9,7 @@ pytest --docs-tests -k "cloud_docs_api_expectations_entire_asset" tests/integrat
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - retrieve batch definition">
 import great_expectations as gx
 
-context = gx.get_context()
+context = gx.get_context(mode="cloud")
 
 data_source_name = "my_data_source"
 data_asset_name = "my_data_asset"

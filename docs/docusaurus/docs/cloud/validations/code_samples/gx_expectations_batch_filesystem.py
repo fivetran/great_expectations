@@ -19,7 +19,7 @@ batching_regex = r"my_filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.
 import great_expectations as gx
 from great_expectations.core.partitioners import FileNamePartitionerDaily
 
-context = gx.get_context()
+context = gx.get_context(mode="cloud")
 ds = context.data_sources.get(data_source_name)
 asset = ds.get_asset(data_asset_name)
 
