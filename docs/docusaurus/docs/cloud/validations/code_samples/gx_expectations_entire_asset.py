@@ -20,6 +20,7 @@ def set_up_context_for_example(context):
     data_asset = data_source.add_csv_asset(name=asset_name)
     assert data_asset.name == asset_name
 
+
 # EXAMPLE SCRIPT STARTS HERE:
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_entire_asset.py - define asset">
 data_asset_name = "my_data_asset"
