@@ -29,7 +29,7 @@ data_asset_name = "my_data_asset"
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_entire_asset.py - retrieve checkpoint">
 import great_expectations as gx
 
-context = gx.get_context()
+context = gx.get_context(mode="cloud")
 # Hide this
 set_up_context_for_example(context)
 
