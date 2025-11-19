@@ -441,7 +441,7 @@ docs_examples_cloud_validations = [
         user_flow_script="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_entire_asset.py",
         data_dir="docs/docusaurus/docs/components/_testing/test_data_sets/single_test_file",
         # data_context_dir="",
-        backend_dependencies=[],
+        backend_dependencies=[BackendDependencies.CLOUD],
     ),
     # Validate GX-managed Expectations for a time-based subset of a SQL Data Asset.
     IntegrationTestFixture(
