@@ -20,11 +20,6 @@ def set_up_context_for_example(context):
     data_asset = data_source.add_csv_asset(name=asset_name)
     assert data_asset.name == asset_name
 
-
-context = gx.get_context(mode="cloud")
-
-set_up_context_for_example(context)
-
 # EXAMPLE SCRIPT STARTS HERE:
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_entire_asset.py - define asset">
 data_asset_name = "my_data_asset"
@@ -34,6 +29,8 @@ data_asset_name = "my_data_asset"
 import great_expectations as gx
 
 context = gx.get_context()
+# Hide this
+set_up_context_for_example(context)
 
 checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
 for name in checkpoint_names:
