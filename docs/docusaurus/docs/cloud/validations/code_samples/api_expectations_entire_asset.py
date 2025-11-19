@@ -17,7 +17,9 @@ data_asset_name = "my_data_asset"
 batch_definition_name = f"{data_asset_name} - GX-Managed Batch Definition"
 
 # Create datasource
-ds = context.data_sources.add_pandas(name=data_source_name)
+ds = context.data_sources.add_or_update_pandas(
+    gx.datasources.PandasDatasource(name=data_source_name)
+)
 
 # Create asset with test data
 test_df = pd.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]})
@@ -28,7 +30,7 @@ asset.add_batch_definition_whole_dataframe(batch_definition_name)
 
 # Create expectation suite
 suite_name = "my_expectation_suite"
-context.suites.add(gx.ExpectationSuite(name=suite_name))
+context.suites.add_or_update(gx.ExpectationSuite(name=suite_name))
 
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - retrieve batch definition">
 import great_expectations as gx
@@ -78,3 +80,9 @@ checkpoint = context.checkpoints.add(checkpoint_config)
 # Run the Checkpoint
 checkpoint.run()
 # </snippet>
+
+# Cleanup test entities (outside snippet for testing)
+context.checkpoints.delete(name=checkpoint_name)
+context.validation_definitions.delete(name=definition_name)
+context.suites.delete(name=suite_name)
+context.data_sources.delete(name=data_source_name)

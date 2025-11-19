@@ -38,8 +38,10 @@ test_df.to_sql("organizations", conn, index=False, if_exists="replace")
 conn.close()
 
 # Create SQL datasource
-ds = context.data_sources.add_sqlite(
-    name=data_source_name, connection_string=f"sqlite:///{db_path}"
+ds = context.data_sources.add_or_update_sqlite(
+    gx.datasources.SqliteDatasource(
+        name=data_source_name, connection_string=f"sqlite:///{db_path}"
+    )
 )
 
 # Add table asset
@@ -47,7 +49,7 @@ ds.add_table_asset(name=data_asset_name, table_name="organizations")
 
 # Create expectation suite
 suite_name = "my_expectation_suite"
-context.suites.add(gx.ExpectationSuite(name=suite_name))
+context.suites.add_or_update(gx.ExpectationSuite(name=suite_name))
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - retrieve data asset">
 data_source_name = "my_data_source"
 data_asset_name = "my_data_asset"
@@ -105,3 +107,14 @@ batch_parameters_daily = {"year": 2019, "month": 1, "day": 30}
 
 checkpoint.run(batch_parameters=batch_parameters_daily)
 # </snippet>
+
+# Cleanup test entities (outside snippet for testing)
+context.checkpoints.delete(name=checkpoint_name)
+context.validation_definitions.delete(name=definition_name)
+context.suites.delete(name=suite_name)
+context.data_sources.delete(name=data_source_name)
+
+# Cleanup temporary database
+import shutil
+
+shutil.rmtree(temp_dir, ignore_errors=True)

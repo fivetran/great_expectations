@@ -24,8 +24,10 @@ test_df = pd.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]})
 test_df.to_csv(temp_dir / "my_filename_2019-01-30.csv", index=False)
 
 # Create filesystem datasource
-ds = context.data_sources.add_pandas_filesystem(
-    name=data_source_name, base_directory=temp_dir
+ds = context.data_sources.add_or_update_pandas_filesystem(
+    gx.datasources.PandasFilesystemDatasource(
+        name=data_source_name, base_directory=temp_dir
+    )
 )
 
 # Add CSV asset
@@ -33,7 +35,7 @@ ds.add_csv_asset(name=data_asset_name)
 
 # Create expectation suite
 suite_name = "my_expectation_suite"
-context.suites.add(gx.ExpectationSuite(name=suite_name))
+context.suites.add_or_update(gx.ExpectationSuite(name=suite_name))
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_filesystem.py - retrieve data asset">
 data_source_name = "my_data_source"
 data_asset_name = "my_data_asset"
@@ -95,3 +97,14 @@ batch_parameters_daily = {"year": "2019", "month": "01", "day": "30"}
 
 checkpoint.run(batch_parameters=batch_parameters_daily)
 # </snippet>
+
+# Cleanup test entities (outside snippet for testing)
+context.checkpoints.delete(name=checkpoint_name)
+context.validation_definitions.delete(name=definition_name)
+context.suites.delete(name=suite_name)
+context.data_sources.delete(name=data_source_name)
+
+# Cleanup temporary directory
+import shutil
+
+shutil.rmtree(temp_dir, ignore_errors=True)
