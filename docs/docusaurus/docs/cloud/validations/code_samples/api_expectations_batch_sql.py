@@ -13,6 +13,7 @@ from pathlib import Path
 import pandas as pd
 
 import great_expectations as gx
+from great_expectations.datasource.fluent import SqliteDatasource
 
 # Setup test entities (outside snippet for testing)
 context = gx.get_context(mode="cloud")
@@ -39,9 +40,7 @@ conn.close()
 
 # Create SQL datasource
 ds = context.data_sources.add_or_update_sqlite(
-    gx.datasources.SqliteDatasource(
-        name=data_source_name, connection_string=f"sqlite:///{db_path}"
-    )
+    SqliteDatasource(name=data_source_name, connection_string=f"sqlite:///{db_path}")
 )
 
 # Add table asset

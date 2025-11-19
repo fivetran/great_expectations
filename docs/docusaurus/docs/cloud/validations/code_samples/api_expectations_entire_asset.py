@@ -9,6 +9,7 @@ pytest --docs-tests -k "cloud_docs_api_expectations_entire_asset" tests/integrat
 import pandas as pd
 
 import great_expectations as gx
+from great_expectations.datasource.fluent import PandasDatasource
 
 # Setup test entities (outside snippet for testing)
 context = gx.get_context(mode="cloud")
@@ -17,9 +18,7 @@ data_asset_name = "my_data_asset"
 batch_definition_name = f"{data_asset_name} - GX-Managed Batch Definition"
 
 # Create datasource
-ds = context.data_sources.add_or_update_pandas(
-    gx.datasources.PandasDatasource(name=data_source_name)
-)
+ds = context.data_sources.add_or_update_pandas(PandasDatasource(name=data_source_name))
 
 # Create asset with test data
 test_df = pd.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]})

@@ -12,6 +12,7 @@ from pathlib import Path
 import pandas as pd
 
 import great_expectations as gx
+from great_expectations.datasource.fluent import PandasFilesystemDatasource
 
 # Setup test entities (outside snippet for testing)
 context = gx.get_context(mode="cloud")
@@ -25,9 +26,7 @@ test_df.to_csv(temp_dir / "my_filename_2019-01-30.csv", index=False)
 
 # Create filesystem datasource
 ds = context.data_sources.add_or_update_pandas_filesystem(
-    gx.datasources.PandasFilesystemDatasource(
-        name=data_source_name, base_directory=temp_dir
-    )
+    PandasFilesystemDatasource(name=data_source_name, base_directory=temp_dir)
 )
 
 # Add CSV asset
