@@ -5,6 +5,18 @@ To test, run:
 pytest --docs-tests -k "cloud_docs_gx_expectations_entire_asset" tests/integration/test_script_runner.py
 """
 
+
+def set_up_context_for_example(context):
+        context.data_sources.add_pandas_filesystem(
+            name="my_data_source", base_directory="./data/folder_with_data"
+        )
+        .add_csv_asset(name="my_data_asset")
+
+
+context = gx.get_context(mode="cloud")
+
+set_up_context_for_example(context)
+
 # EXAMPLE SCRIPT STARTS HERE:
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_entire_asset.py - define asset">
 data_asset_name = "my_data_asset"
