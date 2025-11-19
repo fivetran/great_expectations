@@ -7,10 +7,18 @@ pytest --docs-tests -k "cloud_docs_gx_expectations_entire_asset" tests/integrati
 
 
 def set_up_context_for_example(context):
-        context.data_sources.add_pandas_filesystem(
-            name="my_data_source", base_directory="./data/folder_with_data"
-        )
-        .add_csv_asset(name="my_data_asset")
+    # Create the Data Source
+    source_folder = "./data/folder_with_data"
+    data_source_name = "my_data_source"
+    data_source = context.data_sources.add_pandas_filesystem(
+        name=data_source_name, base_directory=source_folder
+    )
+    assert data_source.name == data_source_name
+
+    # Add a Data Asset
+    asset_name = "my_data_asset"
+    data_asset = data_source.add_csv_asset(name=asset_name)
+    assert data_asset.name == asset_name
 
 
 context = gx.get_context(mode="cloud")
