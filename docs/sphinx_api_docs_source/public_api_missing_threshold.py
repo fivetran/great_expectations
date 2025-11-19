@@ -71,7 +71,14 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
         file=pathlib.Path("great_expectations/core/factory/factory.py"), name="add"
     ),
     PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/factory/factory.py"),
+        name="add_or_update",
+    ),
+    PrintableDefinition(
         file=pathlib.Path("great_expectations/core/factory/factory.py"), name="all"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/factory/factory.py"), name="delete"
     ),
     PrintableDefinition(
         file=pathlib.Path("great_expectations/core/factory/factory.py"), name="get"
@@ -171,6 +178,10 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     ),
     PrintableDefinition(
         file=pathlib.Path("great_expectations/data_context/store/_store_backend.py"),
+        name="add_or_update",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/data_context/store/_store_backend.py"),
         name="update",
     ),
     PrintableDefinition(
@@ -199,6 +210,10 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     ),
     PrintableDefinition(
         file=pathlib.Path("great_expectations/data_context/store/store.py"), name="add"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/data_context/store/store.py"),
+        name="add_or_update",
     ),
     PrintableDefinition(
         file=pathlib.Path("great_expectations/data_context/store/store.py"),
