@@ -38,6 +38,12 @@ test_df = pd.DataFrame(
 test_df.to_sql("organizations", conn, index=False, if_exists="replace")
 conn.close()
 
+# Delete existing datasource if it exists
+try:
+    context.data_sources.delete(name=data_source_name)
+except (LookupError, KeyError):
+    pass
+
 # Create SQL datasource
 ds = context.data_sources.add_or_update_sqlite(
     SqliteDatasource(name=data_source_name, connection_string=f"sqlite:///{db_path}")

@@ -24,6 +24,12 @@ temp_dir = Path(tempfile.mkdtemp())
 test_df = pd.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]})
 test_df.to_csv(temp_dir / "my_filename_2019-01-30.csv", index=False)
 
+# Delete existing datasource if it exists
+try:
+    context.data_sources.delete(name=data_source_name)
+except (LookupError, KeyError):
+    pass
+
 # Create filesystem datasource
 ds = context.data_sources.add_or_update_pandas_filesystem(
     PandasFilesystemDatasource(name=data_source_name, base_directory=temp_dir)

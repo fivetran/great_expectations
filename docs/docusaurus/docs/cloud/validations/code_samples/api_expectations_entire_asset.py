@@ -17,6 +17,12 @@ data_source_name = "my_data_source"
 data_asset_name = "my_data_asset"
 batch_definition_name = f"{data_asset_name} - GX-Managed Batch Definition"
 
+# Delete existing datasource if it exists
+try:
+    context.data_sources.delete(name=data_source_name)
+except (LookupError, KeyError):
+    pass
+
 # Create datasource
 ds = context.data_sources.add_or_update_pandas(PandasDatasource(name=data_source_name))
 
