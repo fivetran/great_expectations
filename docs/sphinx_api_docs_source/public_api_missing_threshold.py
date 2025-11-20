@@ -74,6 +74,9 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
         file=pathlib.Path("great_expectations/core/factory/factory.py"), name="all"
     ),
     PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/factory/factory.py"), name="delete"
+    ),
+    PrintableDefinition(
         file=pathlib.Path("great_expectations/core/factory/factory.py"), name="get"
     ),
     PrintableDefinition(
