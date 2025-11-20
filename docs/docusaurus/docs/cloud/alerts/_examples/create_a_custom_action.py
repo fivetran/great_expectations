@@ -34,6 +34,7 @@ class MyCustomAction(ValidationAction):
     # <snippet name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_custom_action.py - add custom fields">
     my_custom_str_field: str
     jira_api_url: str
+    jira_project_key: str
     # </snippet>
 
     # 4. Override the `run()` method to perform the desired task.
@@ -51,11 +52,13 @@ class MyCustomAction(ValidationAction):
         # Optional. Access custom fields you provide the Action at runtime.
         extra_context = self.my_custom_str_field
         jira_api_url = self.jira_api_url
+        jira_project_key = self.jira_project_key
         # Return information about the Action
         return {
             "some": "info",
             "extra_context": extra_context,
             "jira_api_url": jira_api_url,
+            "jira_project_key": jira_project_key
         }
 
     def _do_my_custom_action(self, checkpoint_result: CheckpointResult):
@@ -63,7 +66,7 @@ class MyCustomAction(ValidationAction):
         # from jira import JIRA
 
         # Replace with your Jira instance URL and Jira Personal Access Token (PAT)
-        # host = "<JIRA_BASE_URL>"
+        # host = self.jira_api_url
         # pat = "<YOUR-PERSONAL-ACCESS-TOKEN>"
 
         # Create a Jira connection using the JIRA library
@@ -73,7 +76,7 @@ class MyCustomAction(ValidationAction):
 
         # Issue data (replace with your own data)
         # issue_data = {
-        #     "project": {"key": "<YOUR_PROJECT_KEY>"},
+        #     "project": {"key": self.jira_project_key},
         #     "summary": "New issue created for GX Cloud Validation result",
         #     "description": "This issue has been created based on the result of a Validation in GX Cloud.",
         #     "issuetype": {"name": "Task"},
