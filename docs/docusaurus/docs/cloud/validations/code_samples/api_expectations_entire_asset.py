@@ -44,7 +44,7 @@ asset.add_batch_definition_whole_dataframe(batch_definition_name)
 
 # Create expectation suite
 suite_name = "my_expectation_suite"
-context.suites.add_or_update(gx.ExpectationSuite(name=suite_name))
+context.suites.add(gx.ExpectationSuite(name=suite_name))
 
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - retrieve batch definition">
 import great_expectations as gx
@@ -75,7 +75,8 @@ validation_definition = gx.ValidationDefinition(
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - run validation definition">
-validation_definition.run()
+batch_parameters = {"dataframe": test_df}
+validation_definition.run(batch_parameters=batch_parameters)
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - create checkpoint">
@@ -92,7 +93,7 @@ checkpoint_config = gx.Checkpoint(
 checkpoint = context.checkpoints.add(checkpoint_config)
 
 # Run the Checkpoint
-checkpoint.run()
+checkpoint.run(batch_parameters=batch_parameters)
 # </snippet>
 
 # Cleanup test entities (outside snippet for testing)

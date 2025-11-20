@@ -63,7 +63,7 @@ ds.add_table_asset(name=data_asset_name, table_name="organizations")
 
 # Create expectation suite
 suite_name = "my_expectation_suite"
-context.suites.add_or_update(gx.ExpectationSuite(name=suite_name))
+context.suites.add(gx.ExpectationSuite(name=suite_name))
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py - retrieve data asset">
 data_source_name = "my_data_source"
 data_asset_name = "my_data_asset"
