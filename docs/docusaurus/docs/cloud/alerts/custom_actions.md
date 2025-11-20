@@ -64,4 +64,11 @@ To create a custom Action, you subclass the `ValidationAction` class, overriding
 
 </Tabs>
 
-Now you can use your custom Action like you would any built-in Action. [Trigger your custom Action](cloud/alerts/trigger_actions.md) to start automating responses to Validation Results.
+Now you can use your custom Action like you would any built-in Action through the GX Cloud API. [Trigger your custom Action](cloud/alerts/trigger_actions.md) to start automating responses to Validation Results.
+
+## Limitations
+
+Keep the following limitations in mind when using custom Actions.
+
+- When using a [fully hosted deployment](cloud/deploy/deployment_patterns.md#fully-hosted-deployment), custom Actions cannot be executed through the UI
+- When using a [agent-enabled deployment](cloud/deploy/deployment_patterns#agent-enabled-deployment), custom Actions can be executed through the UI by [adding custom commands to GX Agent image](cloud/deploy/deploy_gx_agent.md#deploy-the-gx-agent)
