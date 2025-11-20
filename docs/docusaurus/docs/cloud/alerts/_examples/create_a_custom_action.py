@@ -58,7 +58,7 @@ class MyCustomAction(ValidationAction):
             "some": "info",
             "extra_context": extra_context,
             "jira_api_url": jira_api_url,
-            "jira_project_key": jira_project_key
+            "jira_project_key": jira_project_key,
         }
 
     def _do_my_custom_action(self, checkpoint_result: CheckpointResult):
