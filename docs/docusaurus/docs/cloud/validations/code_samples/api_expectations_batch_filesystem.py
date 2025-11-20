@@ -19,16 +19,25 @@ context = gx.get_context(mode="cloud")
 data_source_name = "my_data_source"
 data_asset_name = "my_data_asset"
 
+
+# Helper to delete entities if they exist
+def safe_delete(collection, name):
+    try:
+        collection.delete(name=name)
+    except Exception:
+        pass
+
+
+# Delete any existing entities from previous runs (in dependency order)
+safe_delete(context.checkpoints, "my_checkpoint")
+safe_delete(context.validation_definitions, "my_validation_definition")
+safe_delete(context.suites, "my_expectation_suite")
+safe_delete(context.data_sources, data_source_name)
+
 # Create test files with date-based naming
 temp_dir = Path(tempfile.mkdtemp())
 test_df = pd.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]})
 test_df.to_csv(temp_dir / "my_filename_2019-01-30.csv", index=False)
-
-# Delete existing datasource if it exists
-try:
-    context.data_sources.delete(name=data_source_name)
-except (LookupError, KeyError):
-    pass
 
 # Create filesystem datasource
 ds = context.data_sources.add_or_update_pandas_filesystem(

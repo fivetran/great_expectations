@@ -17,11 +17,20 @@ data_source_name = "my_data_source"
 data_asset_name = "my_data_asset"
 batch_definition_name = f"{data_asset_name} - GX-Managed Batch Definition"
 
-# Delete existing datasource if it exists
-try:
-    context.data_sources.delete(name=data_source_name)
-except (LookupError, KeyError):
-    pass
+
+# Helper to delete entities if they exist
+def safe_delete(collection, name):
+    try:
+        collection.delete(name=name)
+    except Exception:
+        pass
+
+
+# Delete any existing entities from previous runs (in dependency order)
+safe_delete(context.checkpoints, "my_checkpoint")
+safe_delete(context.validation_definitions, "my_validation_definition")
+safe_delete(context.suites, "my_expectation_suite")
+safe_delete(context.data_sources, data_source_name)
 
 # Create datasource
 ds = context.data_sources.add_or_update_pandas(PandasDatasource(name=data_source_name))
