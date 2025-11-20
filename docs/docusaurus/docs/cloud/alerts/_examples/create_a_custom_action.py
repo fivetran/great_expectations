@@ -27,7 +27,7 @@ class MyCustomAction(ValidationAction):
 
     # 2. Set the `type` attribute to a unique string that identifies the Action.
     # <snippet name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_custom_action.py - set type">
-    type: Literal["my_custom_action"] = "my_custom_action"
+    type: Literal["my_custom_action"] = "my_custom_cloud_action"
     # </snippet>
 
     # 3. Optional. Add any additional fields your Action requires at runtime.
