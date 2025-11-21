@@ -70,9 +70,8 @@ class MyCustomAction(ValidationAction):
         # pat = "<YOUR-PERSONAL-ACCESS-TOKEN>"
 
         # Create a Jira connection using the JIRA library
-        # headers = JIRA.DEFAULT_OPTIONS["headers"].copy()
-        # headers["Authorization"] = f"Bearer {pat}"
-        # jira = JIRA(server=host, options={"headers": headers})
+        # jira_email_address = "<YOUR_JIRA_EMAIL_ADDRESS>"
+        # jira = JIRA(server=host, basic_auth=(jira_email_address, pat))
 
         # Issue data (replace with your own data)
         # issue_data = {
