@@ -42,7 +42,7 @@ When you apply an entity filter, all metrics are calculated from just the matchi
 Keep the following limitations in mind when working with column filters:
 
 - If a Data Asset has not been [profiled](/docs/cloud/data_assets/manage_data_assets/#view-data-asset-metrics), its columns won’t be available to the entity filter. 
-- The following Expectations are not associated with any specific columns so they will be excluded from calculations when a column filter is applied. 
+- The following Expectations are not associated with any specific columns, so they will be excluded from calculations when a column filter is applied. 
 
    - Expect query results to match comparison
    - Expect table column count to be between
@@ -52,7 +52,7 @@ Keep the following limitations in mind when working with column filters:
    - Expect table row count to equal other table
    - Custom SQL Expectation
 
-## Data quality issue filters
+### Data quality issue filters
 
 When you apply a data quality issue filter, such as **Completeness**, the metrics shown are impacted as follows:
 
