@@ -75,6 +75,8 @@ validation_definition = gx.ValidationDefinition(
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py - run validation definition">
+# The following is an example of running a Validation Definition for an in-memory dataframe Data Asset.
+# If you are working with a SQL or filesystem Data Asset, omit the batch_parameters.
 batch_parameters = {"dataframe": test_df}
 validation_definition.run(batch_parameters=batch_parameters)
 # </snippet>
@@ -93,6 +95,8 @@ checkpoint_config = gx.Checkpoint(
 checkpoint = context.checkpoints.add(checkpoint_config)
 
 # Run the Checkpoint
+# The following is an example of running a Checkpoint for an in-memory dataframe Data Asset.
+# If you are working with a SQL or filesystem Data Asset, omit the batch_parameters.
 checkpoint.run(batch_parameters=batch_parameters)
 # </snippet>
 

@@ -85,6 +85,8 @@ for name in checkpoint_names:
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_entire_asset.py - run checkpoint">
 checkpoint = context.checkpoints.get(my_checkpoint)
 
+# The following is an example of running a Checkpoint for an in-memory dataframe Data Asset.
+# If you are working with a SQL or filesystem Data Asset, omit the batch_parameters.
 checkpoint.run(batch_parameters={"dataframe": test_df})
 # </snippet>
 
