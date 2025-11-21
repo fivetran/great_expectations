@@ -56,7 +56,7 @@ Keep the following limitations in mind when working with column filters:
 
 When you apply a data quality issue filter, such as **Completeness**, the metrics shown are impacted as follows:
 
-- For **Data Health**, **Daily distinct Expectations**, **Daily Data Health**, **Failed Expectations**, and **Most frequently failed Expectations** in the last 30 days, only Expectations belonging to the selected data quality issue will be considered in calculations.
+- For **Data Health**, **Daily distinct Expectations**, **Daily Data Health**, **Failed Expectations**, and **Most frequently failed Expectations**, only Expectations belonging to the selected data quality issue will be considered in calculations.
 - The **Active Coverage** percentage will be scoped to Data Assets that have been validated with at least one Expectation for the selected data quality issue in the last 30 days. 
 - The number of **Total Data Assets** will not change. This continues to show the number of Data Assets in your GX Cloud workspace that match any entity filters you’ve applied, regardless of what data quality issues you are testing on those Data Assets. 
 
@@ -70,6 +70,6 @@ If **Active Coverage** is low, drill into it for a list of **Inactive Data Asset
 
 ![The Inactive Data Assets table has the following columns: Data Asset, Data Source name, and last validated.](/img/data_health_active_coverage.png)
 
-If **Failed Expectations** are high, drill into **Critical**, **Warning**, or **Info** for a severity-specific list of the **Most frequently failed Expectations in the last 30 days**. Then click on Expectations of interest to explore their Validation results so you can determine what action to take. You may find that there are issues in your data pipeline that need to be resolved, or you may find that you need to adjust your Expectations.
+If **Failed Expectations** are high, drill into **Critical**, **Warning**, or **Info** for a severity-specific list of the **Most frequently failed Expectations**. Then click on Expectations of interest to explore their Validation results so you can determine what action to take. You may find that there are issues in your data pipeline that need to be resolved, or you may find that you need to adjust your Expectations.
 
-![The Most frequently failed Expectations in the last 30 days table has the following columns: Expectation, Data Asset, Failures in the last 30 days.](/img/data_health_failed_expectations.png)
+![The Most frequently failed Expectations table has the following columns: Expectation, Data Asset, Failures in the last 30 days.](/img/data_health_failed_expectations.png)
