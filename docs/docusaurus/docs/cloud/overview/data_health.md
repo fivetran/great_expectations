@@ -29,15 +29,40 @@ Days as used in these metrics are segmented by midnight UTC.
 
 Only current Data Assets and Expectations are considered in these metrics. Deleted Data Assets and Expectations are excluded from the calculations even if they've had Validations within the last 30 days.
 
+## Filters
+
+For a more nuanced understanding of the health of your data, you can filter the **Data Health** dashboard to focus on specific entities (**Data Sources**, **Data Assets**, or **Columns**) and/or a specific data quality issue (such as **Schema** or **Volume**). 
+
+### Entity filters
+
+An entity filter can be an exact match or a partial match. For example, you can filter the dashboard to calculate metrics from a single specific Data Source or from all Data Sources that contain a given string in their names.
+
+When you apply an entity filter, all metrics are calculated from just the matching entities. For example, if you filter to **Columns** containing a given string in their names, then **Active Coverage** will be the percentage of Data Assets with at least one matching column that have been validated with at least one Expectation on a matching column in the last 30 days. 
+
+Keep the following limitations in mind when working with column filters:
+
+- If a Data Asset has not been [profiled](/docs/cloud/data_assets/manage_data_assets/#view-data-asset-metrics), its columns won’t be available to the entity filter. 
+- The following Expectations are not associated with any specific columns so they will be excluded from calculations when a column filter is applied. 
+
+   - Expect query results to match comparison
+   - Expect table column count to be between
+   - Expect table column count to equal
+   - Expect table row count to be between
+   - Expect table row count to equal
+   - Expect table row count to equal other table
+   - Custom SQL Expectation
+
 ## Data quality issue filters
 
-For a more nuanced understanding of what you’re testing, you can filter the **Data Health** dashboard to focus on different data quality issues such as **Schema** or **Volume**. When you apply a filter, the metrics shown are impacted as follows:
+When you apply a data quality issue filter, such as **Completeness**, the metrics shown are impacted as follows:
 
-- For **Data Health**, **Daily distinct Expectations**, **Daily Data Health**, **Failed Expectations**, and **Most frequently failed Expectations in the last 30 days**, only Expectations belonging to the selected data quality issue will be considered in calculations.
+- For **Data Health**, **Daily distinct Expectations**, **Daily Data Health**, **Failed Expectations**, and **Most frequently failed Expectations** in the last 30 days, only Expectations belonging to the selected data quality issue will be considered in calculations.
+- The **Active Coverage** percentage will be scoped to Data Assets that have been validated with at least one Expectation for the selected data quality issue in the last 30 days. 
+- The number of **Total Data Assets** will not change. This continues to show the number of Data Assets in your GX Cloud workspace that match any entity filters you’ve applied, regardless of what data quality issues you are testing on those Data Assets. 
 
-- The **Active Coverage** percentage will be scoped to Data Assets that have been validated with at least one Expectation for the selected data quality issue in the last 30 days.
-
-- The number of **Total Data Assets** will not change. This always shows the current number of Data Assets in your GX Cloud workspace regardless of what if any Expectations they have.
+:::note Compound filters
+If you apply both an entity filter and a data quality issue filter, the filters will be compounded. For example, if you apply a **Column** filter and select the **Schema** data quality issue, then **Active Coverage** will indicate the percentage of Data Assets with matching columns that have been validated with at least one schema Expectation on a matching column in the last 30 days. 
+:::
 
 ## Next steps for improving data health
 
