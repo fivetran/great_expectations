@@ -1292,6 +1292,18 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             else:
                 partition_clause = sa.true()
 
+        # If the data_source_query_asset query needs no partitioning or sampling, we don't need to wrap it 
+        # in another select statement with _subselectable. We just trust and execute the query provided. 
+        # At this point, query has already been verified as a valid "SELECT " statement in sql_datasource.py:970.
+        # This will prevent FROM DUAL being tacked on to the end of the intended query by sqlalchemy when using the OracleCX dialect. 
+        if (
+            batch_spec.get("query") is not None
+            and batch_spec.get("sampling_method") is None
+            and "partitioner_method" not in batch_spec
+            and partition_clause is sa.true()
+        ):
+            return sa.text(batch_spec["query"])
+
         selectable: sqlalchemy.Selectable = self._subselectable(batch_spec)
         sampling_method: Optional[str] = batch_spec.get("sampling_method")
         if sampling_method is not None:
