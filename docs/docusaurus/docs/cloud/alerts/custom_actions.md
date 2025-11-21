@@ -64,7 +64,7 @@ To create a custom Action, you subclass the `ValidationAction` class, overriding
 
 </Tabs>
 
-Now you can use your custom Action like you would any built-in Action through the GX Cloud API. [Trigger your custom Action](cloud/alerts/trigger_actions.md) to start automating responses to Validation Results.
+Now you can use your custom Action through the GX Cloud API like you would any built-in Action. [Trigger your custom Action](cloud/alerts/trigger_actions.md) to start automating responses to Validation Results.
 
 ## Limitations
 
