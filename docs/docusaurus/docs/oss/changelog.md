@@ -15,6 +15,13 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.9.1
+* [DOCS] clarify language on deploy the GX agent ([#11518](https://github.com/great-expectations/great_expectations/pull/11518))
+* [MAINTENANCE] Update exclude list ([#11517](https://github.com/great-expectations/great_expectations/pull/11517))
+* [MAINTENANCE] Deprecate string-style `row_condition`s ([#11515](https://github.com/great-expectations/great_expectations/pull/11515))
+* [MAINTENANCE] Databricks SQLAlchemy 2.0 transaction handling and connection recovery ([#11524](https://github.com/great-expectations/great_expectations/pull/11524))
+* [MAINTENANCE] [pre-commit.ci] pre-commit autoupdate ([#11502](https://github.com/great-expectations/great_expectations/pull/11502))
+
 ### 1.9.0
 * [MINORBUMP] row conditions ([#11478](https://github.com/great-expectations/great_expectations/pull/11478))
 * [MINORBUMP] Drop support for Python 3.9 ([#11501](https://github.com/great-expectations/great_expectations/pull/11501))
