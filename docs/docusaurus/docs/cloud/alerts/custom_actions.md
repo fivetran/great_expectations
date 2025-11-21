@@ -70,5 +70,5 @@ Now you can use your custom Action like you would any built-in Action through th
 
 Keep the following limitations in mind when using custom Actions.
 
-- When using a [fully hosted deployment](cloud/deploy/deployment_patterns.md#fully-hosted-deployment), custom Actions cannot be executed through the UI
-- When using a [agent-enabled deployment](cloud/deploy/deployment_patterns.md#agent-enabled-deployment), custom Actions can be executed through the UI by [adding custom commands to GX Agent image](cloud/deploy/deploy_gx_agent.md#deploy-the-gx-agent)
+- When using a [fully-hosted deployment](cloud/deploy/deployment_patterns.md#fully-hosted-deployment), if you add a custom Action to your GX-managed checkpoint, you will no longer be able to use the **Validation schedule** or the **Validate** button in the UI. 
+- When using an [agent-enabled deployment](cloud/deploy/deployment_patterns.md#agent-enabled-deployment),  if you add a custom Action to your GX-managed checkpoint, you will no longer be able to use the **Validation schedule** or the **Validate** button in the UI unless you [customize the GX Agent image](cloud/deploy/deploy_gx_agent.md#deploy-the-gx-agent) with a command for your custom Action.
