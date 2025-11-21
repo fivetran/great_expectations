@@ -487,7 +487,7 @@ docs_examples_trigger_actions_based_on_validation_results = [
     IntegrationTestFixture(
         # To test, run:
         # pytest --docs-tests -k "cloud_docs_example_create_a_custom_action" tests/integration/test_script_runner.py
-        name="cloud_docs_example_create_a_checkpoint",
+        name="cloud_docs_example_create_a_custom_action",
         user_flow_script="docs/docusaurus/docs/cloud/alerts/_examples/create_a_custom_action.py",
         data_dir="docs/docusaurus/docs/components/_testing/test_data_sets/single_test_file",
         # data_context_dir="",
