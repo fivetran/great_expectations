@@ -28,9 +28,9 @@ All of these Data Sources have the following limitations, regardless of your GX 
 
 Azure Blob Storage, BigQuery, Google Cloud Storage, Pandas, and Spark have the following additional limitations:
 - Data Asset metrics are not supported.
-- You cannot define a batch in the UI. You can use the GX Cloud API to create a [Batch Definition](/docs/reference/api/core/batch_definition/BatchDefinition_class.mdx).
+- You cannot use the UI to define a Batch for validating a time-based subset of your data. Use the GX Cloud API to [define a Batch](/docs/cloud/validations/manage_validations.md).
 - When you add an Expectation, you cannot generate Expectations for [Anomaly Detection](/docs/cloud/expectations/expectations_overview.md#anomaly-detection). You can manually configure Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
-- Ad hoc Validations cannot be triggered through the GX Cloud UI. Use the UI to [generate a Validation code snippet](/docs/cloud/validations/manage_validations.md) that you can use to run an ad hoc Validation through the GX Cloud API.
+- Ad hoc Validations cannot be triggered through the GX Cloud UI. Use the GX Cloud API to [run an ad hoc Validation](/docs/cloud/validations/manage_validations.md).
 - Recurring Validations cannot be scheduled in GX Cloud. Use an [orchestrator](/docs/reference/learn/integrations/data_pipeline_tutorial) to run recurring Validations. 
 
 ## Edit Data Source settings

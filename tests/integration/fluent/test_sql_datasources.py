@@ -25,6 +25,13 @@ from pytest import param
 import great_expectations.expectations.core as gxe
 from great_expectations.checkpoint.checkpoint import Checkpoint
 from great_expectations.compatibility.sqlalchemy import (
+    Connection,
+    TextClause,
+    engine,
+    inspect,
+    quoted_name,
+)
+from great_expectations.compatibility.sqlalchemy import (
     DatabaseError as SqlAlchemyDatabaseError,
 )
 from great_expectations.compatibility.sqlalchemy import (
@@ -32,12 +39,6 @@ from great_expectations.compatibility.sqlalchemy import (
 )
 from great_expectations.compatibility.sqlalchemy import (
     ProgrammingError as SqlAlchemyProgrammingError,
-)
-from great_expectations.compatibility.sqlalchemy import (
-    TextClause,
-    engine,
-    inspect,
-    quoted_name,
 )
 from great_expectations.compatibility.sqlalchemy import (
     __version__ as sqlalchemy_version,
@@ -57,6 +58,7 @@ from great_expectations.execution_engine.sqlalchemy_dialect import (
 )
 from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
 from tests.integration.fluent.conftest import TEST_TABLE_NAME
+from tests.integration.test_utils.data_source_config.sql import _AUTO_COMMIT_DIALECTS
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
@@ -353,6 +355,18 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
     all_created_tables: dict[str, list[dict[Literal["table_name", "schema"], str | None]]] = {}
     engines: dict[str, engine.Engine] = {}
 
+    def _safe_commit(conn: Connection) -> None:
+        """Safely commit a connection, skipping auto-commit databases.
+
+        Some databases like Databricks auto-commit and don't support explicit transactions.
+        For these dialects, we skip the commit call entirely.
+        """
+        dialect_name = GXSqlDialect(conn.dialect.name)
+
+        # Skip commit for auto-commit databases (they commit automatically)
+        if dialect_name not in _AUTO_COMMIT_DIALECTS:
+            conn.commit()
+
     def _table_factory(
         gx_engine: SqlAlchemyExecutionEngine,
         table_names: set[str],
@@ -374,7 +388,7 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
             quoted_lower_col: str = quote_str(QUOTED_LOWER_COL, dialect=dialect)
             quoted_w_dots: str = quote_str(QUOTED_W_DOTS, dialect=dialect)
             quoted_mixed_case: str = quote_str(QUOTED_MIXED_CASE, dialect=dialect)
-            transaction = conn.begin()
+
             if schema:
                 conn.execute(TextClause(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
             for name in table_names:
@@ -401,7 +415,9 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
                     conn.execute(TextClause(insert_data), data)
 
                 created_tables.append(dict(table_name=name, schema=schema))
-            transaction.commit()
+
+            # Commit transaction (safe for databases without transaction support)
+            _safe_commit(conn)
         all_created_tables[sa_engine.dialect.name] = created_tables
         engines[sa_engine.dialect.name] = sa_engine
 
@@ -415,7 +431,6 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
             continue
         engine = engines[dialect]
         with engine.connect() as conn:
-            transaction = conn.begin()
             schema: str | None = None
             for table in tables:
                 name = table["table_name"]
@@ -424,7 +439,9 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
                 conn.execute(TextClause(f"DROP TABLE IF EXISTS {qualified_table_name}"))
             if schema:
                 conn.execute(TextClause(f"DROP SCHEMA IF EXISTS {schema}"))
-            transaction.commit()
+
+            # Commit transaction (safe for databases without transaction support)
+            _safe_commit(conn)
 
 
 @pytest.fixture

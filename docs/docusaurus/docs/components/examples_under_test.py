@@ -432,6 +432,69 @@ example_scripts_for_define_expectations = [
     ),
 ]
 
+docs_examples_cloud_validations = [
+    # Validate GX-managed Expectations for an entire Data Asset.
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "cloud_docs_gx_expectations_entire_asset" tests/integration/test_script_runner.py
+        name="cloud_docs_gx_expectations_entire_asset",
+        user_flow_script="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_entire_asset.py",
+        data_dir="docs/docusaurus/docs/components/_testing/test_data_sets/single_test_file",
+        # data_context_dir="",
+        backend_dependencies=[BackendDependencies.CLOUD],
+    ),
+    # Validate GX-managed Expectations for a time-based subset of a SQL Data Asset.
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "cloud_docs_gx_expectations_batch_sql" tests/integration/test_script_runner.py
+        name="cloud_docs_gx_expectations_batch_sql",
+        user_flow_script="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_sql.py",
+        data_dir="docs/docusaurus/docs/components/_testing/test_data_sets/single_test_file",
+        # data_context_dir="",
+        backend_dependencies=[BackendDependencies.CLOUD],
+    ),
+    # Validate GX-managed Expectations for a time-based subset of a filesystem Data Asset.
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "cloud_docs_gx_expectations_batch_filesystem" tests/integration/test_script_runner.py
+        name="cloud_docs_gx_expectations_batch_filesystem",
+        user_flow_script="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_batch_filesystem.py",
+        # data_dir="",
+        # data_context_dir="",
+        backend_dependencies=[BackendDependencies.CLOUD],
+    ),
+    # Validate API-managed Expectations for an entire Data Asset.
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "cloud_docs_api_expectations_entire_asset" tests/integration/test_script_runner.py
+        name="cloud_docs_api_expectations_entire_asset",
+        user_flow_script="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_entire_asset.py",
+        data_dir="docs/docusaurus/docs/components/_testing/test_data_sets/single_test_file",
+        # data_context_dir="",
+        backend_dependencies=[BackendDependencies.CLOUD],
+    ),
+    # Validate API-managed Expectations for a time-based subset of a SQL Data Asset.
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "cloud_docs_api_expectations_batch_sql" tests/integration/test_script_runner.py
+        name="cloud_docs_api_expectations_batch_sql",
+        user_flow_script="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_sql.py",
+        data_dir="docs/docusaurus/docs/components/_testing/test_data_sets/single_test_file",
+        # data_context_dir="",
+        backend_dependencies=[BackendDependencies.CLOUD],
+    ),
+    # Validate API-managed Expectations for a time-based subset of a filesystem Data Asset.
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "cloud_docs_api_expectations_batch_filesystem" tests/integration/test_script_runner.py
+        name="cloud_docs_api_expectations_batch_filesystem",
+        user_flow_script="docs/docusaurus/docs/cloud/validations/code_samples/api_expectations_batch_filesystem.py",
+        # data_dir="",
+        # data_context_dir="",
+        backend_dependencies=[BackendDependencies.CLOUD],
+    ),
+]
+
 docs_examples_trigger_actions_based_on_validation_results = [
     # Create a Checkpoint
     IntegrationTestFixture(
@@ -689,6 +752,7 @@ docs_tests.extend(connect_to_dataframe_data)
 docs_tests.extend(docs_example_scripts_run_validations)
 docs_tests.extend(example_scripts_for_define_expectations)
 docs_tests.extend(docs_examples_customize_expectations)
+docs_tests.extend(docs_examples_cloud_validations)
 docs_tests.extend(docs_examples_trigger_actions_based_on_validation_results)
 docs_tests.extend(docs_example_configure_project_settings)
 docs_tests.extend(docs_examples_configure_data_docs)

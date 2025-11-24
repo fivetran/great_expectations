@@ -36,7 +36,7 @@ This page provides instructions for working with Expectations. To learn about Ex
 
 7. Click **Save** or click **Save & Add More** and then repeat steps 4 through 7 to add additional Expectations.
 
-8. Optional. Run an ad hoc Validation. See [Run a Validation](/cloud/validations/manage_validations.md#run-a-validation).
+8. Optional. [Run an ad hoc Validation](/cloud/validations/manage_validations.md).
 
 9. Optional. Configure recurring Validations. See [Manage schedules](/docs/cloud/schedules/manage_schedules).
 
@@ -62,7 +62,7 @@ To add AI-recommended Expectations:
    ExpectAI may take a few minutes to analyze your data and recommend personalized Expectations. You can navigate away from the page while ExpectAI works in the background. GX will send an [email alert](/cloud/alerts/manage_email_alerts.md) when your recommended Expectations are ready for review.
    :::
 4. Review the recommended Expectations and **Approve** (✓) or **Reject** (✗) them within 48 hours. After 48 hours, any remaining recommendations will be discarded.
-5. Optional. Run a Validation. See [Run a Validation](/cloud/validations/manage_validations.md#run-a-validation).
+5. Optional. [Run an ad hoc Validation](/cloud/validations/manage_validations.md).
 6. Optional. [Edit](#edit-an-expectation) AI-generated Expectations based on the insights you get from running a Validation and your data quality needs.
 
 ### Generate SQL
@@ -85,21 +85,6 @@ AND passenger_count > 4
 Keep the following requirements in mind when working with ExpectAI:
 - Your organization must be using a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
 - The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake.
-
-
-## Optional. Define a Batch
-
-If your Data Asset has at least one DATE or DATETIME column and has been [profiled](/docs/cloud/data_assets/manage_data_assets.md#view-data-asset-metrics), you can define a Batch to validate your data incrementally.
-
-1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
-
-2. In the **Data Assets** list, click the Data Asset name.
-
-3. Next to the current batch configuration, click <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/> **Edit batch**.
-
-4. Choose how to **Validate by**. Select the **Entire Asset** tab to provide all Data Asset records to your Expectations and validations, or select one of the **Year**/**Month**/**Day** tabs to use subsets of Data Asset records for your Expectations and validations. **Year** partitions Data Asset records by year, **Month** partitions Data Asset records by year and month, **Day** partitions Data Asset records by year, month, and day.
-
-5. Select the **Batch column** that contains the DATE or DATETIME data to partition on.
 
 ## Edit an Expectation
 
