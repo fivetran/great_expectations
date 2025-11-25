@@ -43,12 +43,12 @@ To create a custom Action, you subclass the `ValidationAction` class, overriding
    ```python title="Python" name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_custom_action.py - set type" 
    ```
 
-3.  Optional. Add any additional fields your Action requires at runtime. Actions are built on Pydantic models. Define the field name as a class-level attribute on your Action, and annotate it with the correct type. When you instantiate the Action, pass the field value into the Action `init` method. Your Action will have access to these values within your custom `run` method through `self.<MY_FIELD_NAME>`. The example below shows how to include a field for accessing a Jira API.
+3.  Optional. Add any additional fields your Action requires at runtime. Actions are built on Pydantic models. Define the field name as a class-level attribute on your Action, and annotate it with the correct type. When you instantiate the Action, pass the field value into the Action `init` method. Your Action will have access to these values within your custom `run` method through `self.<MY_FIELD_NAME>`. The example below shows how to include fields for accessing a Jira API.
 
       ```python title="Python" name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_custom_action.py - add custom fields"
       ```
 
-4. Override the `run()` method with the logic for the Action. The example below shows how to create a Jira ticket using the additional field you added in the previous step.
+4. Override the `run()` method with the logic for the Action. The example below shows how to create a Jira ticket using the additional fields you added in the previous step.
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_custom_action.py - override run" 
    ```

@@ -65,13 +65,12 @@ class MyCustomAction(ValidationAction):
         # Perform custom logic based on the validation results.
         # from jira import JIRA
 
-        # Replace with your Jira instance URL and Jira Personal Access Token (PAT)
-        # host = self.jira_api_url
+        # Replace with your Jira email address and Jira Personal Access Token (PAT)
         # jira_email_address = "<YOUR_JIRA_EMAIL_ADDRESS>"
         # pat = "<YOUR-PERSONAL-ACCESS-TOKEN>"
 
         # Create a Jira connection using the JIRA library
-        # jira = JIRA(server=host, basic_auth=(jira_email_address, pat))
+        # jira = JIRA(server=self.jira_api_url, basic_auth=(jira_email_address, pat))
 
         # Issue data (replace with your own data)
         # issue_data = {
