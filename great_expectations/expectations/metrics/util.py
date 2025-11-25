@@ -386,6 +386,12 @@ def get_sqlalchemy_column_metadata(  # noqa: C901 # FIXME CoP
 
         engine = execution_engine.engine
         inspector = execution_engine.get_inspector()
+
+        logger.debug(
+            f"get_sqlalchemy_column_metadata called with table_selectable={table_selectable}, "
+            f"schema_name={schema_name}, dialect={execution_engine.dialect.name}"
+        )
+
         try:
             # if a custom query was passed
             if sqlalchemy.TextClause and isinstance(table_selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function]
@@ -407,6 +413,8 @@ def get_sqlalchemy_column_metadata(  # noqa: C901 # FIXME CoP
                     table_name=str(table_selectable),
                     schema=schema_name,
                 )
+
+            logger.debug(f"inspector.get_columns returned {len(columns)} columns")
         except (
             KeyError,
             AttributeError,
@@ -421,15 +429,21 @@ def get_sqlalchemy_column_metadata(  # noqa: C901 # FIXME CoP
                 selectable=table_selectable,
                 dialect=engine.dialect,
                 sqlalchemy_engine=engine,
+                schema_name=schema_name,
             )
 
         # Use fallback because for mssql and trino reflection mechanisms do not throw an error but return an empty list  # noqa: E501 # FIXME CoP
         if len(columns) == 0:
+            logger.info(
+                "inspector.get_columns returned empty list, trying reflection fallback"
+            )
             columns = column_reflection_fallback(
                 selectable=table_selectable,
                 dialect=engine.dialect,
                 sqlalchemy_engine=engine,
+                schema_name=schema_name,
             )
+            logger.debug(f"fallback returned {len(columns)} columns")
 
         dialect_name = execution_engine.dialect.name
         if dialect_name in [
@@ -461,6 +475,7 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     selectable: sqlalchemy.Select,
     dialect: sqlalchemy.Dialect,
     sqlalchemy_engine: sqlalchemy.Engine,
+    schema_name: Optional[str] = None,
 ) -> List[Dict[str, str]]:
     """If we can't reflect the table, use a query to at least get column names."""
     if isinstance(sqlalchemy_engine.engine, sqlalchemy.Engine):

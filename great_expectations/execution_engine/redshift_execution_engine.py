@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any, NamedTuple, Optional, cast
 
 from great_expectations.compatibility import aws
@@ -18,6 +19,8 @@ from great_expectations.expectations.metrics.table_metrics.table_column_types im
 
 if TYPE_CHECKING:
     from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
+
+logger = logging.getLogger(__name__)
 
 
 class RedshiftColumnSchema(NamedTuple):
@@ -97,6 +100,9 @@ class ColumnTypes(BaseColumnTypes):
         result = []
         table_name, schema_name = cls._get_table_schema(execution_engine, metric_domain_kwargs)
         schema_filter: str = f"and table_schema = '{schema_name}'" if schema_name else ""
+        logger.debug(
+            f"Retrieving columns for table: {table_name}, schema: {schema_name}"
+        )
         query = sa.text(
             f"""
             SELECT
@@ -111,14 +117,18 @@ class ColumnTypes(BaseColumnTypes):
             ORDER BY ordinal_position;
             """
         )
-        rows: sa.CursorResult[RedshiftColumnSchema] = execution_engine.execute_query(query)
 
-        for row in rows:
+        rows: sa.CursorResult[RedshiftColumnSchema] = execution_engine.execute_query(query)
+        rows_list = list(rows)
+        logger.debug(f"information_schema query returned {len(rows_list)} rows")
+
+        for row in rows_list:
             redshift_type = REDSHIFT_TYPES.get(row.data_type)
             if redshift_type is None:
-                raise RedshiftExecutionEngineError(
-                    message=f"Unknown Redshift column type: {row.data_type}"
+                logger.warning(
+                    f"Unknown Redshift column type: {row.data_type}, using VARCHAR as fallback"
                 )
+                redshift_type = sa.VARCHAR
 
             kwargs = cls._get_sqla_column_type_kwargs(row)
 
@@ -129,6 +139,28 @@ class ColumnTypes(BaseColumnTypes):
                 column_type = redshift_type()
 
             result.append({"name": row.column_name, "type": column_type})
+
+        # If information_schema returned no rows, fall back to SELECT * LIMIT 0
+        if not result:
+            logger.info(
+                "information_schema returned 0 columns, falling back to SELECT * LIMIT 0"
+            )
+            table_ref = f"{schema_name}.{table_name}" if schema_name else table_name
+            fallback_query = sa.text(f"SELECT * FROM {table_ref} LIMIT 0")
+            try:
+                fallback_result = execution_engine.execute_query(fallback_query)
+                result = [
+                    {"name": col_name, "type": sa.VARCHAR()}
+                    for col_name in fallback_result.keys()
+                ]
+                logger.info(
+                    f"Fallback retrieved {len(result)} columns from {table_ref}"
+                )
+            except Exception as e:
+                logger.error(f"Fallback SELECT * LIMIT 0 failed for {table_ref}: {e}")
+                raise RedshiftExecutionEngineError(
+                    message=f"Failed to retrieve columns for {table_ref} using both information_schema and SELECT * LIMIT 0"
+                )
 
         return result
 
@@ -156,19 +188,43 @@ class ColumnTypes(BaseColumnTypes):
             )
         batch_data: SqlAlchemyBatchData = cast("SqlAlchemyBatchData", possible_batch_data)
 
+        # Derive table/schema from batch metadata.
+        # Many GX Redshift configs encode "schema.table" in source_table_name with
+        # source_schema_name left as None, so we need to normalize this into
+        # separate schema/table components for information_schema queries.
         table_selectable: str | sa.TextClause
+        schema_name: Optional[str]
 
         if isinstance(batch_data.selectable, sa.Table):
-            table_selectable = batch_data.source_table_name or batch_data.selectable.name
+            table_selectable = (
+                batch_data.source_table_name or batch_data.selectable.name or ""
+            )
             schema_name = batch_data.source_schema_name or batch_data.selectable.schema
         elif isinstance(batch_data.selectable, sa.TextClause):
+            # Custom query: pass through as‑is and skip schema filter
             table_selectable = batch_data.selectable
             schema_name = None
+            return table_selectable, schema_name
         else:
-            table_selectable = batch_data.source_table_name or batch_data.selectable.name
+            table_selectable = batch_data.source_table_name or batch_data.selectable.name or ""
             schema_name = batch_data.source_schema_name or batch_data.selectable.schema
 
-        return table_selectable, schema_name
+        table_name: str | sa.TextClause
+
+        # If schema is still None but table looks like "schema.table", split it.
+        if (
+            isinstance(table_selectable, str)
+            and schema_name is None
+            and "." in table_selectable
+        ):
+            # split on first dot only: "schema.table" or "db.schema.table"
+            parts = table_selectable.split(".", 1)
+            schema_name = parts[0]
+            table_name = parts[1]
+        else:
+            table_name = table_selectable
+
+        return table_name, schema_name
 
     @classmethod
     def _get_sqla_column_type_kwargs(cls, row: sa.Row[RedshiftColumnSchema]) -> dict:
