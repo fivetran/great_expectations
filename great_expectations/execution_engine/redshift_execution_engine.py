@@ -100,9 +100,7 @@ class ColumnTypes(BaseColumnTypes):
         result = []
         table_name, schema_name = cls._get_table_schema(execution_engine, metric_domain_kwargs)
         schema_filter: str = f"and table_schema = '{schema_name}'" if schema_name else ""
-        logger.debug(
-            f"Retrieving columns for table: {table_name}, schema: {schema_name}"
-        )
+        logger.debug(f"Retrieving columns for table: {table_name}, schema: {schema_name}")
         query = sa.text(
             f"""
             SELECT
@@ -142,20 +140,15 @@ class ColumnTypes(BaseColumnTypes):
 
         # If information_schema returned no rows, fall back to SELECT * LIMIT 0
         if not result:
-            logger.info(
-                "information_schema returned 0 columns, falling back to SELECT * LIMIT 0"
-            )
+            logger.info("information_schema returned 0 columns, falling back to SELECT * LIMIT 0")
             table_ref = f"{schema_name}.{table_name}" if schema_name else table_name
             fallback_query = sa.text(f"SELECT * FROM {table_ref} LIMIT 0")
             try:
                 fallback_result = execution_engine.execute_query(fallback_query)
                 result = [
-                    {"name": col_name, "type": sa.VARCHAR()}
-                    for col_name in fallback_result.keys()
+                    {"name": col_name, "type": sa.VARCHAR()} for col_name in fallback_result.keys()
                 ]
-                logger.info(
-                    f"Fallback retrieved {len(result)} columns from {table_ref}"
-                )
+                logger.info(f"Fallback retrieved {len(result)} columns from {table_ref}")
             except Exception as e:
                 logger.error(f"Fallback SELECT * LIMIT 0 failed for {table_ref}: {e}")
                 raise RedshiftExecutionEngineError(
@@ -196,9 +189,7 @@ class ColumnTypes(BaseColumnTypes):
         schema_name: Optional[str]
 
         if isinstance(batch_data.selectable, sa.Table):
-            table_selectable = (
-                batch_data.source_table_name or batch_data.selectable.name or ""
-            )
+            table_selectable = batch_data.source_table_name or batch_data.selectable.name or ""
             schema_name = batch_data.source_schema_name or batch_data.selectable.schema
         elif isinstance(batch_data.selectable, sa.TextClause):
             # Custom query: pass through as‑is and skip schema filter
@@ -212,11 +203,7 @@ class ColumnTypes(BaseColumnTypes):
         table_name: str | sa.TextClause
 
         # If schema is still None but table looks like "schema.table", split it.
-        if (
-            isinstance(table_selectable, str)
-            and schema_name is None
-            and "." in table_selectable
-        ):
+        if isinstance(table_selectable, str) and schema_name is None and "." in table_selectable:
             # split on first dot only: "schema.table" or "db.schema.table"
             parts = table_selectable.split(".", 1)
             schema_name = parts[0]

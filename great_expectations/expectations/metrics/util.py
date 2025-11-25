@@ -434,9 +434,7 @@ def get_sqlalchemy_column_metadata(  # noqa: C901 # FIXME CoP
 
         # Use fallback because for mssql and trino reflection mechanisms do not throw an error but return an empty list  # noqa: E501 # FIXME CoP
         if len(columns) == 0:
-            logger.info(
-                "inspector.get_columns returned empty list, trying reflection fallback"
-            )
+            logger.info("inspector.get_columns returned empty list, trying reflection fallback")
             columns = column_reflection_fallback(
                 selectable=table_selectable,
                 dialect=engine.dialect,

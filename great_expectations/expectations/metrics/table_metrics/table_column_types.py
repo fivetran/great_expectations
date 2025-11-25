@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
 
 logger = logging.getLogger(__name__)
+
+
 class ColumnTypes(TableMetricProvider):
     metric_name = "table.column_types"
     value_keys = ("include_nested",)
@@ -117,11 +119,7 @@ def _get_sqlalchemy_column_metadata(
         raw_table_name = batch_data.source_table_name or batch_data.selectable.name
         schema_name = batch_data.source_schema_name or batch_data.selectable.schema
 
-        if (
-            isinstance(raw_table_name, str)
-            and schema_name is None
-            and "." in raw_table_name
-        ):
+        if isinstance(raw_table_name, str) and schema_name is None and "." in raw_table_name:
             schema_name, table_name = raw_table_name.split(".", 1)
             logger.debug(
                 f"Split '{raw_table_name}' into schema='{schema_name}', table='{table_name}'"
