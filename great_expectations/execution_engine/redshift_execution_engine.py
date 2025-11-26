@@ -145,7 +145,8 @@ class ColumnTypes(BaseColumnTypes):
             fallback_query = sa.text(f"SELECT * FROM {table_ref} LIMIT 0")
             try:
                 fallback_result = execution_engine.execute_query(fallback_query)
-                result = [{"name": col_name, "type": sa.VARCHAR()} for col_name in fallback_result]
+                column_names = list(fallback_result.keys())
+                result = [{"name": col_name, "type": sa.VARCHAR()} for col_name in column_names]
                 logger.info(f"Fallback retrieved {len(result)} columns from {table_ref}")
             except Exception:
                 logger.exception(f"Fallback SELECT * LIMIT 0 failed for {table_ref}")
