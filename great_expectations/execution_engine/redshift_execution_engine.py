@@ -146,13 +146,16 @@ class ColumnTypes(BaseColumnTypes):
             try:
                 fallback_result = execution_engine.execute_query(fallback_query)
                 result = [
-                    {"name": col_name, "type": sa.VARCHAR()} for col_name in fallback_result.keys()
+                    {"name": col_name, "type": sa.VARCHAR()} for col_name in fallback_result
                 ]
                 logger.info(f"Fallback retrieved {len(result)} columns from {table_ref}")
-            except Exception as e:
-                logger.error(f"Fallback SELECT * LIMIT 0 failed for {table_ref}: {e}")
+            except Exception:
+                logger.exception(f"Fallback SELECT * LIMIT 0 failed for {table_ref}")
                 raise RedshiftExecutionEngineError(
-                    message=f"Failed to retrieve columns for {table_ref} using both information_schema and SELECT * LIMIT 0"
+                    message=(
+                        f"Failed to retrieve columns for {table_ref} using both "
+                        "information_schema and SELECT * LIMIT 0"
+                    )
                 )
 
         return result
@@ -192,7 +195,7 @@ class ColumnTypes(BaseColumnTypes):
             table_selectable = batch_data.source_table_name or batch_data.selectable.name or ""
             schema_name = batch_data.source_schema_name or batch_data.selectable.schema
         elif isinstance(batch_data.selectable, sa.TextClause):
-            # Custom query: pass through as‑is and skip schema filter
+            # Custom query: pass through as-is and skip schema filter
             table_selectable = batch_data.selectable
             schema_name = None
             return table_selectable, schema_name

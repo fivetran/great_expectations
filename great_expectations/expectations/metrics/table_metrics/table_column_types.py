@@ -108,7 +108,8 @@ def _get_sqlalchemy_column_metadata(
 
     logger.debug(f"_get_sqlalchemy_column_metadata called for dialect: {dialect_name}")
     logger.debug(
-        f"  source_table_name: {batch_data.source_table_name}, source_schema_name: {batch_data.source_schema_name}"
+        f"  source_table_name: {batch_data.source_table_name}, "
+        f"source_schema_name: {batch_data.source_schema_name}"
     )
 
     # Special handling for Redshift: normalize "schema.table" into separate parts.
