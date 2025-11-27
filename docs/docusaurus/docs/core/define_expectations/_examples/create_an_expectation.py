@@ -11,13 +11,13 @@ def set_up_context_for_example(context):
 
 
 # EXAMPLE SCRIPT STARTS HERE:
-# <snippet name="docs/docusaurus/docs/core/define_expectations/_examples/create_an_expectation.py - full code example">
+
 import great_expectations as gx
 
 context = gx.get_context()
 # Hide this
 set_up_context_for_example(context)
-
+# <snippet name="docs/docusaurus/docs/core/define_expectations/_examples/create_an_expectation.py - full code example">
 # All Expectations are found in the `gx.expectations` module.
 # This Expectation has all values set in advance:
 # <snippet name="docs/docusaurus/docs/core/define_expectations/_examples/create_an_expectation.py - preset expectation">
