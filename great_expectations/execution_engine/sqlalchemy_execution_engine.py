@@ -1293,7 +1293,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                 partition_clause = sa.true()
 
         # If the data_source_query_asset query needs no partitioning or sampling, we don't need to wrap it in another select statement with _subselectable. # noqa: E501
-        # We just trust and execute the query provided. # noqa: E501
+        # We just trust and execute the query provided.
         # At this point, query has already been verified as a valid "SELECT " statement in sql_datasource.py:970. # noqa: E501
         # This will prevent FROM DUAL being tacked on to the end of the intended query by sqlalchemy when using the OracleCX dialect. # noqa: E501
         if (
