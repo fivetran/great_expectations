@@ -21,6 +21,7 @@ from great_expectations.expectations.core.expect_column_values_to_be_of_type imp
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
+    _style_row_condition,
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
@@ -37,7 +38,7 @@ from great_expectations.render.renderer_configuration import (
 )
 from great_expectations.render.util import (
     num_to_str,
-    parse_row_condition_string_pandas_engine,
+    parse_row_condition_string,
     substitute_none_for_missing,
 )
 from great_expectations.validator.metric_configuration import MetricConfiguration
@@ -378,12 +379,14 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
                 template_str = "value types may be any value, but observed value will be reported"
 
         if params["row_condition"] is not None:
-            (
+            conditional_template_str = parse_row_condition_string(params["row_condition"])
+
+            template_str, styling = _style_row_condition(
                 conditional_template_str,
-                conditional_params,
-            ) = parse_row_condition_string_pandas_engine(params["row_condition"])
-            template_str = f"{conditional_template_str}, then {template_str}"
-            params.update(conditional_params)
+                template_str,
+                params,
+                styling,
+            )
 
         return [
             RenderedStringTemplateContent(

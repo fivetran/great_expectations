@@ -55,6 +55,16 @@ from great_expectations.execution_engine.partition_and_sample.pandas_data_sample
     PandasDataSampler,
 )
 from great_expectations.expectations.model_field_types import CONDITION_PARSER_PANDAS
+from great_expectations.expectations.row_conditions import (
+    AndCondition,
+    ComparisonCondition,
+    Condition,
+    NullityCondition,
+    Operator,
+    OrCondition,
+    PassThroughCondition,
+    deserialize_row_condition,
+)
 
 if TYPE_CHECKING:
     from botocore.client import BaseClient
@@ -70,7 +80,7 @@ HASH_THRESHOLD = 1e9
 DataFrameFactoryFn: TypeAlias = Callable[..., pd.DataFrame]
 
 
-class PandasExecutionEngine(ExecutionEngine):
+class PandasExecutionEngine(ExecutionEngine[str]):
     """PandasExecutionEngine instantiates the ExecutionEngine API to support computations using Pandas.
 
     Constructor builds a PandasExecutionEngine, using provided configuration options.
@@ -489,6 +499,44 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
         """Resolve a bundle of metrics with the same compute Domain as part of a single trip to the compute engine."""  # noqa: E501 # FIXME CoP
         return {}  # This is NO-OP for "PandasExecutionEngine" (no bundling for direct execution computational backend).  # noqa: E501 # FIXME CoP
 
+    def _apply_row_condition_filter(
+        self, data: pd.DataFrame, row_condition: Any, domain_kwargs: dict
+    ) -> pd.DataFrame:
+        """Apply row condition filter to DataFrame.
+
+        Args:
+            data: The DataFrame to filter
+            row_condition: The condition to apply (can be Condition object, dict, or string)
+            domain_kwargs: Domain kwargs containing condition_parser if needed
+
+        Returns:
+            Filtered DataFrame
+        """
+        # Convert dict to Condition object if needed
+        if isinstance(row_condition, dict):
+            row_condition = deserialize_row_condition(row_condition)
+
+        if isinstance(row_condition, PassThroughCondition):
+            # Use pass_through_filter for pandas query syntax
+            # Uses DataFrame.query() directly with the pass-through string
+            return data.query(row_condition.pass_through_filter)
+        elif isinstance(row_condition, Condition):
+            # Handle other Condition objects using condition_to_filter_clause
+            return data.query(self.condition_to_filter_clause(row_condition))
+        else:
+            # Legacy string-based conditions
+            condition_parser = domain_kwargs.get("condition_parser", None)
+            if (
+                condition_parser
+                and condition_parser == CONDITION_PARSER_PANDAS
+                and isinstance(row_condition, str)
+            ):
+                return data.query(row_condition, parser=condition_parser)
+            else:
+                raise gx_exceptions.ValidationError(  # noqa: TRY003 # FIXME CoP
+                    "condition_parser for Pandas is required when setting a row_condition."
+                )
+
     @override
     def get_domain_records(  # noqa: C901, PLR0912 # FIXME CoP
         self,
@@ -530,14 +578,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
         # Filtering by row condition.
         row_condition = domain_kwargs.get("row_condition", None)
         if row_condition:
-            condition_parser = domain_kwargs.get("condition_parser", None)
-
-            if condition_parser == CONDITION_PARSER_PANDAS:
-                data = data.query(row_condition, parser=condition_parser)
-            else:
-                raise ValueError(  # noqa: TRY003 # FIXME CoP
-                    "condition_parser for Pandas is required when setting a row_condition."
-                )
+            data = self._apply_row_condition_filter(data, row_condition, domain_kwargs)
 
         if "column" in domain_kwargs:
             return data
@@ -636,6 +677,30 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
         )
 
         return data, partition_domain_kwargs.compute, partition_domain_kwargs.accessor
+
+    @override
+    def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> str:
+        col, op, val = condition.column.name, condition.operator, condition.parameter
+        if op in (Operator.IN, Operator.NOT_IN):
+            values = ", ".join(map(repr, val))
+            connector = "in" if op == Operator.IN else "not in"
+            return f"{col} {connector} [{values}]"
+        return f"{col} {op} {val!r}"
+
+    @override
+    def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> str:
+        col = condition.column.name
+        return f"{col}.isnull()" if condition.is_null else f"~{col}.isnull()"
+
+    @override
+    def _and_condition_to_filter_clause(self, condition: AndCondition) -> str:
+        parts = [self.condition_to_filter_clause(c) for c in condition.conditions]
+        return "(" + " and ".join(parts) + ")"
+
+    @override
+    def _or_condition_to_filter_clause(self, condition: OrCondition) -> str:
+        parts = [self.condition_to_filter_clause(c) for c in condition.conditions]
+        return "(" + " or ".join(parts) + ")"
 
 
 def hash_pandas_dataframe(df):

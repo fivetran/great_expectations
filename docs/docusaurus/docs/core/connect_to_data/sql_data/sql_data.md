@@ -33,7 +33,7 @@ All other SQL dialects are handled through the python module `SQLAlchemy`.  You 
 
 ## Create a SQL Data Source
 
-Data Sources tell GX where your data is located and how to connect to it.  With SQL databases this is done through a connection string you will provide.
+Data Sources tell GX where your data is located and how to connect to it.
 
 <CreateSqlDataSource/>
 

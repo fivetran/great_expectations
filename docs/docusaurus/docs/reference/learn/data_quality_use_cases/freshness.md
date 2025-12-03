@@ -84,8 +84,8 @@ The examples in this section showcase how to use available features in GX Cloud 
 Use the GX Cloud UI to walk through the following steps:
 
 1. Using the following connection string to create a Postgres Data Source, create a Data Asset for the `freshness_sensor_readings` table:
-   ```
-   postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality
+   ```python title="Connection string"
+   postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality?options=-csearch_path%3Dpublic
    ```
 
 2. Using the query below, create a custom SQL Expectation on the `freshness_sensor_readings` Data Asset which expects that sensor readings are available in the database no more than 10 minutes after they are initially captured on the sensor.

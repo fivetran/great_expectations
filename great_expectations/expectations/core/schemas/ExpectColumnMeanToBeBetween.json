@@ -83,7 +83,26 @@
         },
         "row_condition": {
             "title": "Row Condition",
-            "type": "string"
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "$ref": "#/definitions/ComparisonCondition"
+                },
+                {
+                    "$ref": "#/definitions/NullityCondition"
+                },
+                {
+                    "$ref": "#/definitions/AndCondition"
+                },
+                {
+                    "$ref": "#/definitions/OrCondition"
+                },
+                {
+                    "$ref": "#/definitions/PassThroughCondition"
+                }
+            ]
         },
         "condition_parser": {
             "title": "Condition Parser",
@@ -311,6 +330,168 @@
                 "offset"
             ],
             "additionalProperties": false
+        },
+        "Column": {
+            "title": "Column",
+            "description": "--Public API--\nSpecify the column in a condition statement.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ]
+        },
+        "Operator": {
+            "title": "Operator",
+            "description": "An enumeration.",
+            "enum": [
+                "==",
+                "!=",
+                "<",
+                "<=",
+                ">",
+                ">=",
+                "IN",
+                "NOT_IN"
+            ],
+            "type": "string"
+        },
+        "ComparisonCondition": {
+            "title": "ComparisonCondition",
+            "description": "--Public API--Condition representing the comparison of a column with a parameter.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "comparison",
+                    "enum": [
+                        "comparison"
+                    ],
+                    "type": "string"
+                },
+                "column": {
+                    "$ref": "#/definitions/Column"
+                },
+                "operator": {
+                    "$ref": "#/definitions/Operator"
+                },
+                "parameter": {
+                    "title": "Parameter"
+                }
+            },
+            "required": [
+                "column",
+                "operator",
+                "parameter"
+            ]
+        },
+        "NullityCondition": {
+            "title": "NullityCondition",
+            "description": "--Public API--Condition representing the whether or not a column is null.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "nullity",
+                    "enum": [
+                        "nullity"
+                    ],
+                    "type": "string"
+                },
+                "column": {
+                    "$ref": "#/definitions/Column"
+                },
+                "is_null": {
+                    "title": "Is Null",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "column",
+                "is_null"
+            ]
+        },
+        "Condition": {
+            "title": "Condition",
+            "description": "Base class for conditions.",
+            "type": "object",
+            "properties": {}
+        },
+        "AndCondition": {
+            "title": "AndCondition",
+            "description": "--Public API--Represents an AND condition composed of multiple conditions.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "and",
+                    "enum": [
+                        "and"
+                    ],
+                    "type": "string"
+                },
+                "conditions": {
+                    "title": "Conditions",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Condition"
+                    }
+                }
+            },
+            "required": [
+                "conditions"
+            ]
+        },
+        "OrCondition": {
+            "title": "OrCondition",
+            "description": "--Public API--Represents an OR condition composed of multiple conditions.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "or",
+                    "enum": [
+                        "or"
+                    ],
+                    "type": "string"
+                },
+                "conditions": {
+                    "title": "Conditions",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Condition"
+                    }
+                }
+            },
+            "required": [
+                "conditions"
+            ]
+        },
+        "PassThroughCondition": {
+            "title": "PassThroughCondition",
+            "description": "Condition that passes a filter string directly to the execution engine.\n\nThis is used for legacy pandas/spark condition_parser syntax where the\nrow_condition string is passed directly to DataFrame.query() or DataFrame.filter().",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "pass_through",
+                    "enum": [
+                        "pass_through"
+                    ],
+                    "type": "string"
+                },
+                "pass_through_filter": {
+                    "title": "Pass Through Filter",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "pass_through_filter"
+            ]
         }
     }
 }

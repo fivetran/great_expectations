@@ -51,11 +51,11 @@ except ImportError:
     # Types may not exist on earlier version of pandas (current min ver is v.1.1.0)
     # https://github.com/pandas-dev/pandas/blob/v1.1.0/pandas/_typing.py
     CompressionDict = Dict[str, Any]
-    CompressionOptions = Optional[  # type: ignore[misc] # FIXME CoP
+    CompressionOptions = Optional[  # type: ignore[assignment, misc] # FIXME
         Union[Literal["infer", "gzip", "bz2", "zip", "xz", "zstd", "tar"], CompressionDict]
     ]
     CSVEngine = Literal["c", "python", "pyarrow", "python-fwf"]  # type: ignore[misc] # FIXME CoP
-    StorageOptions = Optional[Dict[str, Any]]  # type: ignore[misc] # FIXME CoP
+    StorageOptions = Optional[Dict[str, Any]]  # type: ignore[assignment, misc] # FIXME
 
 try:
     from pandas._libs.lib import _NoDefault

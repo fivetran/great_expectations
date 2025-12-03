@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Uni
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
+    _style_row_condition,
     parse_value_to_observed_type,
     render_suite_parameter_string,
 )
@@ -31,7 +32,7 @@ from great_expectations.render.renderer_configuration import (
     RendererValueType,
 )
 from great_expectations.render.util import (
-    parse_row_condition_string_pandas_engine,
+    parse_row_condition_string,
     substitute_none_for_missing,
 )
 
@@ -336,15 +337,17 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         if renderer_configuration.include_column_name:
             template_str = f"$column {template_str}"
 
-        if params["row_condition"] is not None:
-            (
-                conditional_template_str,
-                conditional_params,
-            ) = parse_row_condition_string_pandas_engine(params["row_condition"])
-            template_str = f"{conditional_template_str}, then {template_str}"
-            params.update(conditional_params)
-
         styling = runtime_configuration.get("styling", {}) if runtime_configuration else {}
+
+        if params["row_condition"] is not None:
+            conditional_template_str = parse_row_condition_string(params["row_condition"])
+
+            template_str, styling = _style_row_condition(
+                conditional_template_str,
+                template_str,
+                params,
+                styling,
+            )
 
         return [
             RenderedStringTemplateContent(

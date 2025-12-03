@@ -27,7 +27,9 @@ class SnowflakeConnectionConfig(BaseSettings):
 
 # Regex to match uppercase schema names
 # (Snowflake converts unquoted identifiers to uppercase)
-SCHEMA_FORMAT = "^TEST_[A-Z]{10}$"
+SCHEMA_PATTERN_TEST = "^TEST_[A-Z]{10}$"  # General SQL testing framework
+SCHEMA_PATTERN_PY_VERSION = "^PY3[0-9]{1,2}_I[A-F0-9]{32}$"  # Python version-specific test schemas
+SCHEMA_FORMAT = f"{SCHEMA_PATTERN_TEST}|{SCHEMA_PATTERN_PY_VERSION}"
 
 
 def cleanup_snowflake(config: SnowflakeConnectionConfig) -> None:
@@ -38,7 +40,7 @@ def cleanup_snowflake(config: SnowflakeConnectionConfig) -> None:
                 f"SELECT 'DROP SCHEMA IF EXISTS ' || schema_name || ' CASCADE;' as drop_statement "
                 f"FROM INFORMATION_SCHEMA.SCHEMATA "
                 f"WHERE REGEXP_LIKE(schema_name, '{SCHEMA_FORMAT}') "
-                f"AND created < DATEADD(hour, -2, CURRENT_TIMESTAMP())"
+                f"AND created < DATEADD(hour, -1, CURRENT_TIMESTAMP())"
             )
         ).fetchall()
 

@@ -115,6 +115,11 @@ except (ImportError, AttributeError):
     OperationalError = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment] # FIXME CoP
 
 try:
+    from sqlalchemy.exc import PendingRollbackError
+except (ImportError, AttributeError):
+    PendingRollbackError = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment] # FIXME CoP
+
+try:
     from sqlalchemy.exc import ProgrammingError
 except (ImportError, AttributeError):
     ProgrammingError = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment] # FIXME CoP
@@ -228,6 +233,16 @@ try:
     from sqlalchemy.sql.expression import WithinGroup
 except (ImportError, AttributeError):
     WithinGroup = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment] # FIXME CoP
+
+try:
+    from sqlalchemy.sql.compiler import Compiled
+except (ImportError, AttributeError):
+    Compiled = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment] # FIXME CoP
+
+try:
+    from sqlalchemy.sql.compiler import SQLCompiler
+except (ImportError, AttributeError):
+    SQLCompiler = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment] # FIXME CoP
 
 try:
     from sqlalchemy.sql.operators import custom_op

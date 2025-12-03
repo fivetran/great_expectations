@@ -41,7 +41,7 @@ def generate_large_table_for_metrics(sa):
         metadata = MetaData()
         table_name = f"test_table_{uuid.uuid4().hex[:8]}"
 
-        with execution_engine.get_connection() as conn, conn.begin():
+        with execution_engine.get_connection() as conn:
             conn.execute(sa.text(f"CREATE SCHEMA IF NOT EXISTS {schema_name}"))
 
             columns = []
@@ -49,9 +49,17 @@ def generate_large_table_for_metrics(sa):
                 columns.append(Column(col_name, VARCHAR(255)))
 
             table = Table(table_name, metadata, *columns, schema=schema_name)
-            metadata.create_all(execution_engine.engine)
+            metadata.create_all(conn)
 
             conn.execute(insert(table), list(df.to_dict("index").values()))
+
+            # Commit transaction (safe for databases without transaction support)
+            try:
+                conn.commit()
+            except Exception as e:
+                # Databricks and other auto-commit databases may not have an active transaction
+                if "no active transaction" not in str(e).lower():
+                    raise
 
         batch_spec = SqlAlchemyDatasourceBatchSpec(
             table_name=table_name,

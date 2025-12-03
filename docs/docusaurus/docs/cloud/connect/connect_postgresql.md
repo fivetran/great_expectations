@@ -13,32 +13,8 @@ import Tabs from '@theme/Tabs';
 
 - You have a PostgreSQL database, schema, and table or view.
 
-- Optional. To improve data security, GX recommends creating a separate PostgreSQL user for your GX Cloud connection.
-
 - Optional. [pgAdmin](https://www.pgadmin.org/download/).
 
-## Optional. Create a separate PostgreSQL user
-
-1. In pgAdmin, select a database.
-
-2. Click **Tools** > **Query Tool**.
-
-3. Paste the following code into the **Query** pane to create and assign the `gx_role` role and allow GX Cloud to access all `public` schemas, tables, and views on a specific database.
-
-   ```sql title="pgAdmin"
-    -- Create and assign the gx_role role and allow GX Cloud 
-    -- to access all public schemas, tables, and views on a specific database
-    CREATE ROLE gx_role WITH LOGIN PASSWORD '<your_password>';
-    GRANT CONNECT ON DATABASE <your_database> TO gx_role;
-    GRANT USAGE ON SCHEMA public TO gx_role;
-    GRANT SELECT ON ALL TABLES in SCHEMA public TO gx_role;
-    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO gx_role
-   ```
-
-   - Replace `<your_password>` and `<your_database>` with your own values.
-   - `ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO gx_role;` is optional and gives the `gx_role` user access to all future tables and views in the defined schema.
-
-4. Click **Execute/Refresh**.
 
 ## Connect to a PostgreSQL Data Source and add a Data Asset
 
@@ -49,10 +25,8 @@ import Tabs from '@theme/Tabs';
 3. Enter a connection string in the **Connection string** field. The connection string format is:
    
    ```python title="PostgreSQL connection string"
-   postgresql+psycopg2://YourUserName:YourPassword@YourHostName:5432/YourDatabaseName
+   postgresql+psycopg2://YourUserName:YourPassword@YourHostName:5432/YourDatabaseName?options=-csearch_path%3DYourSchemaName
    ```
-   
-   If you created a separate PostgreSQL user for your GX Cloud connection as recommended above, use those credentials in the connection string.
 
 4. Click **Connect**.
 

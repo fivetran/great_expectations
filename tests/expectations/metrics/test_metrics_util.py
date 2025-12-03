@@ -2,14 +2,21 @@ from __future__ import annotations
 
 import random
 from types import ModuleType
-from typing import TYPE_CHECKING, Final, List, Union
+from typing import TYPE_CHECKING, Callable, Final, List, Union
 from unittest.mock import create_autospec, patch
 
 import pytest
 from _pytest import monkeypatch
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility import sqlalchemy
+from great_expectations.compatibility.sqlalchemy import (
+    Dialect,
+    Engine,
+)
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
@@ -22,7 +29,7 @@ from great_expectations.expectations.metrics.util import (
     get_dialect_like_pattern_expression,
     get_unexpected_indices_for_multiple_pandas_named_indices,
     get_unexpected_indices_for_single_pandas_named_index,
-    sql_statement_with_post_compile_to_string,
+    sqlalchemy_select_to_sql_string,
 )
 from tests.test_utils import (
     get_awsathena_connection_url,
@@ -57,12 +64,13 @@ def select_with_post_compile_statements() -> sqlalchemy.Select:
 
 def _compare_select_statement_with_converted_string(engine) -> None:
     """
-    Helper method used to do the call to sql_statement_with_post_compile_to_string() and compare with expected val
+    Helper method used to do the call to sqlalchemy_select_to_sql_string()
+    and compare with expected value.
     Args:
         engine (ExecutionEngine): SqlAlchemyExecutionEngine with connection to backend under test
-    """  # noqa: E501 # FIXME CoP
+    """
     select_statement: sqlalchemy.Select = select_with_post_compile_statements()
-    returned_string = sql_statement_with_post_compile_to_string(
+    returned_string = sqlalchemy_select_to_sql_string(
         engine=engine, select_statement=select_statement
     )
     assert returned_string == ("SELECT a.id, a.data \nFROM a \nWHERE a.data = '00000000';")
@@ -158,7 +166,7 @@ def test_sql_statement_conversion_to_string_bigquery(test_backends):
         connection_string = get_bigquery_connection_url()
         engine = SqlAlchemyExecutionEngine(connection_string=connection_string)
         select_statement: sqlalchemy.Select = select_with_post_compile_statements()
-        returned_string = sql_statement_with_post_compile_to_string(
+        returned_string = sqlalchemy_select_to_sql_string(
             engine=engine, select_statement=select_statement
         )
         assert returned_string == (
@@ -647,3 +655,258 @@ def test_get_dialect_like_pattern_expression_is_resilient_to_missing_dialects(mo
 
     # assert
     assert expression is None
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "dialect_name,select_statement_factory,expected_sql,mock_params,should_fail_substitution",
+    [
+        pytest.param(
+            "sqlite",
+            lambda: sa.select(A.id, A.data).where(A.data == "test_value"),
+            "SELECT a.id, a.data FROM a WHERE a.data = 'test_value'",
+            {"data_1": "test_value"},
+            False,
+            id="string_param-sqlite",
+        ),
+        pytest.param(
+            "postgresql",
+            lambda: sa.select(A.id, A.data).where(A.data == "test_value"),
+            "SELECT a.id, a.data FROM a WHERE a.data = 'test_value'",
+            {"data_1": "test_value"},
+            False,
+            id="string_param-postgresql",
+        ),
+        pytest.param(
+            "databricks",
+            lambda: sa.select(A.id, A.data).where(A.data == "test_value"),
+            "SELECT a.id, a.data FROM a WHERE a.data = 'test_value'",
+            {"data_1": "test_value"},
+            False,
+            id="string_param-databricks",
+        ),
+        pytest.param(
+            "sqlite",
+            lambda: sa.select(A.id, A.data).where(A.id == 42),
+            "SELECT a.id, a.data FROM a WHERE a.id = 42",
+            {"id_1": 42},
+            False,
+            id="int_param-sqlite",
+        ),
+        pytest.param(
+            "postgresql",
+            lambda: sa.select(A.id, A.data).where(A.id == 42),
+            "SELECT a.id, a.data FROM a WHERE a.id = 42",
+            {"id_1": 42},
+            False,
+            id="int_param-postgresql",
+        ),
+        pytest.param(
+            "sqlite",
+            lambda: sa.select(A.id, A.data).where(A.id == 3.14),
+            "SELECT a.id, a.data FROM a WHERE a.id = 3.14",
+            {"id_1": 3.14},
+            False,
+            id="float_param-sqlite",
+        ),
+        pytest.param(
+            "postgresql",
+            lambda: sa.select(A.id, A.data).where(A.id == 3.14),
+            "SELECT a.id, a.data FROM a WHERE a.id = 3.14",
+            {"id_1": 3.14},
+            False,
+            id="float_param-postgresql",
+        ),
+        pytest.param(
+            "sqlite",
+            lambda: sa.select(A.id, A.data).where(A.id.is_(True)),
+            "SELECT a.id, a.data FROM a WHERE a.id = True",
+            {"id_1": True},
+            False,
+            id="bool_param-sqlite",
+        ),
+        pytest.param(
+            "postgresql",
+            lambda: sa.select(A.id, A.data).where(A.id.is_(True)),
+            "SELECT a.id, a.data FROM a WHERE a.id = True",
+            {"id_1": True},
+            False,
+            id="bool_param-postgresql",
+        ),
+        pytest.param(
+            "sqlite",
+            lambda: sa.select(A.id, A.data).where(A.data.is_(None)),
+            "SELECT a.id, a.data FROM a WHERE a.data = None",
+            {"data_1": None},
+            False,
+            id="none_param-sqlite",
+        ),
+        pytest.param(
+            "postgresql",
+            lambda: sa.select(A.id, A.data).where(A.data.is_(None)),
+            "SELECT a.id, a.data FROM a WHERE a.data = None",
+            {"data_1": None},
+            False,
+            id="none_param-postgresql",
+        ),
+        pytest.param(
+            "databricks",
+            lambda: sa.select(A.id, A.data).where(
+                sa.or_(A.data == "value1", sa.and_(A.id > 10, A.data.like("%end%")))
+            ),
+            "SELECT a.id, a.data FROM a WHERE a.data = 'value1' "
+            "OR (a.id > 10 AND a.data LIKE '%end%')",
+            {"data_1": "value1", "id_1": 10, "data_2": "%end%"},
+            False,
+            id="multiple_params-databricks",
+        ),
+        pytest.param(
+            "postgresql",
+            lambda: sa.select(A.id, A.data).where(
+                sa.or_(A.data == "value1", sa.and_(A.id > 10, A.data.like("%end%")))
+            ),
+            "SELECT a.id, a.data FROM a WHERE a.data = 'value1' "
+            "OR (a.id > 10 AND a.data LIKE '%end%')",
+            {"data_1": "value1", "id_1": 10, "data_2": "%end%"},
+            False,
+            id="multiple_params-postgresql",
+        ),
+        pytest.param(
+            "postgresql",
+            lambda: sa.select(A.id, A.data).where(A.data.like("%test%")),
+            "SELECT a.id, a.data FROM a WHERE a.data LIKE '%test%'",
+            {"data_1": "%test%"},
+            True,
+            id="like_pattern-postgresql-fallback",
+        ),
+        pytest.param(
+            "mysql",
+            lambda: sa.select(A.id, A.data).where(A.data.like("%test%")),
+            "SELECT a.id, a.data FROM a WHERE a.data LIKE '%test%'",
+            {"data_1": "%test%"},
+            True,
+            id="like_pattern-mysql-fallback",
+        ),
+        pytest.param(
+            "redshift",
+            lambda: sa.select(A.id, A.data).where(A.data.like("%test%")),
+            "SELECT a.id, a.data FROM a WHERE a.data LIKE '%test%'",
+            {"data_1": "%test%"},
+            True,
+            id="like_pattern-redshift-fallback",
+        ),
+        pytest.param(
+            "snowflake",
+            lambda: sa.select(A.id, A.data).where(A.data.like("%test%")),
+            "SELECT a.id, a.data FROM a WHERE a.data LIKE '%test%'",
+            {"data_1": "%test%"},
+            False,
+            id="like_pattern-snowflake",
+        ),
+        pytest.param(
+            "sqlite",
+            lambda: sa.select(A.id, A.data),
+            "SELECT a.id, a.data FROM a",
+            {},
+            False,
+            id="no_params-sqlite",
+        ),
+        pytest.param(
+            "postgresql",
+            lambda: sa.select(A.id, A.data),
+            "SELECT a.id, a.data FROM a",
+            {},
+            False,
+            id="no_params-postgresql",
+        ),
+    ],
+)
+def test_sqlalchemy_select_to_sql_string_parameter_styles(
+    dialect_name: str,
+    select_statement_factory: Callable[[], sa.Select],
+    expected_sql: str,
+    mock_params: dict,
+    should_fail_substitution: bool,
+    mocker: MockerFixture,
+) -> None:
+    """
+    Test sqlalchemy_select_to_sql_string with to verify
+    different parameter styles work correctly.
+
+    Args:
+        should_fail_substitution: If True, the render_postcompile path will return
+            unsubstituted placeholders, forcing fallback to literal_binds. This tests
+            the dialect_name usage for %% unescaping.
+    """
+    # Arrange
+    select_statement = select_statement_factory()
+
+    # Track which compile call we're on
+    compile_call_count = [0]
+
+    def mock_compile(engine, compile_kwargs=None):
+        """Mock compile that returns different results based on compile_kwargs."""
+        compile_call_count[0] += 1
+
+        mock_compiled = mocker.MagicMock()
+        mock_compiled.params = mock_params
+
+        if compile_kwargs and compile_kwargs.get("render_postcompile"):
+            # First call with render_postcompile=True
+            if should_fail_substitution and mock_params:
+                # Return query with placeholder to force fallback
+                placeholder_query = expected_sql
+                for param_name, param_value in mock_params.items():
+                    # Replace first param value with placeholder to trigger fallback
+                    param_value_repr = repr(param_value)
+                    if param_value_repr in placeholder_query:
+                        placeholder_query = placeholder_query.replace(
+                            param_value_repr, f":{param_name}", 1
+                        )
+                        break
+                mock_compiled.__str__ = lambda self: placeholder_query
+            else:
+                # Successful render_postcompile - return fully substituted SQL
+                mock_compiled.__str__ = lambda self: expected_sql
+        # Second call with literal_binds=True (only happens on fallback)
+        # For dialects that escape %, return with %% to test unescaping
+        elif dialect_name in ("postgresql", "mysql", "redshift") and "%" in expected_sql:
+            escaped_sql = expected_sql.replace("%", "%%")
+            mock_compiled.__str__ = lambda self: escaped_sql
+        else:
+            mock_compiled.__str__ = lambda self: expected_sql
+
+        return mock_compiled
+
+    # Patch select_statement.compile
+    with patch.object(select_statement, "compile", side_effect=mock_compile):
+        # Create a mock engine with the specified dialect
+        mock_engine = create_autospec(SqlAlchemyExecutionEngine)
+        mock_engine.dialect_name = dialect_name
+
+        # Create a mock dialect and engine
+        mock_dialect = create_autospec(Dialect)
+        mock_dialect.name = dialect_name
+        mock_engine.dialect = mock_dialect
+
+        mock_sqlalchemy_engine = create_autospec(Engine)
+        mock_sqlalchemy_engine.dialect = mock_dialect
+        mock_engine.engine = mock_sqlalchemy_engine
+
+        # Act
+        result = sqlalchemy_select_to_sql_string(mock_engine, select_statement)
+
+        # Assert
+        assert result == expected_sql + ";"
+
+        # Verify compile call count based on whether fallback was expected
+        if should_fail_substitution:
+            assert compile_call_count[0] == 2, (
+                f"Expected 2 compile calls (render_postcompile + literal_binds fallback) "
+                f"but got {compile_call_count[0]}"
+            )
+        else:
+            assert compile_call_count[0] == 1, (
+                f"Expected 1 compile call (successful render_postcompile) "
+                f"but got {compile_call_count[0]}"
+            )

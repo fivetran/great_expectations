@@ -16,9 +16,9 @@ import OverviewCard from '@site/src/components/OverviewCard';
 <LinkCardGrid>
   <LinkCard 
     topIcon 
-    label="Restrict an Expectation with row conditions"
-    description="Use `row_conditions` to restrict the data an Expectation evaluates"
-    to="/core/customize_expectations/expectation_conditions" 
+    label="Restrict an Expectation to specific rows"
+    description="Filter your data so that only a subset of rows are validated for a given Expectation."
+    to="/core/customize_expectations/row_conditions" 
     icon="/img/expectation_icon.svg" 
   />
   <LinkCard 

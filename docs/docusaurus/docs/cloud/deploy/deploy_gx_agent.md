@@ -10,7 +10,7 @@ import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
 
-The GX Agent is used to run an [agent-enabled deployment](/cloud/deploy/deployment_patterns.md#agent-enabled-deployment) of GX Cloud. If you are running a fully-hosted or read-only deployment, you do not need to deploy the GX Agent.
+The GX Agent is used to run an [agent-enabled deployment](/cloud/deploy/deployment_patterns.md#agent-enabled-deployment) of GX Cloud. If you are running a fully-hosted deployment or using the GX Cloud API, you do not need to deploy the GX Agent.
 
 The GX Agent serves as an intermediary between GX Cloud and your organization's data stores. GX Cloud does not connect directly to your data in an agent-enabled deployment, and all data access occurs within the GX Agent. GX Cloud sends jobs to the GX Agent, the GX Agent executes these jobs against your data, and then sends the job results to GX Cloud.
 
@@ -18,7 +18,10 @@ A local deployment of the GX Agent will allow you to test GX Cloud setup or proc
 
 ## Limitations
 
-Agent-enabled deployments do not support [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai-beta). To be able to generate AI-recommended Expectations or custom SQL, use a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
+- Agent-enabled deployments do not support [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai-beta). To be able to generate AI-recommended Expectations or generate custom SQL Expectations from natural language prompts, use a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
+- [Agent versions](#gx-agent-versioning) prior to 20251103.0 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your agent is version 20251103.0 or later.
+   - multiple condition statements
+   - **is in**, **is not in**, or **is null** operators
 
 ## Prerequisites
 
