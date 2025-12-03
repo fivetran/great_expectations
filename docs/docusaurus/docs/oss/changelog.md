@@ -15,6 +15,19 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.9.2
+* [DOCS] validations with the Cloud API ([#11400](https://github.com/great-expectations/great_expectations/pull/11400))
+* [DOCS] remove "read-only" deployment pattern as a misnomer ([#11533](https://github.com/great-expectations/great_expectations/pull/11533))
+* [DOCS] DOC-1180 - Add documentation for Custom Actions in GX Cloud ([#11521](https://github.com/great-expectations/great_expectations/pull/11521))
+* [DOCS] add dependencies to compatibility reference ([#11530](https://github.com/great-expectations/great_expectations/pull/11530))
+* [MAINTENANCE] Warn when snowflake pkey exists in kwargs ([#11520](https://github.com/great-expectations/great_expectations/pull/11520))
+* [MAINTENANCE] pin posthog-docusaurus ([#11531](https://github.com/great-expectations/great_expectations/pull/11531))
+* [MAINTENANCE] Bump node-forge from 1.3.1 to 1.3.2 in /docs/docusaurus ([#11536](https://github.com/great-expectations/great_expectations/pull/11536))
+* [MAINTENANCE] Reenable stale bot for PRs ([#11544](https://github.com/great-expectations/great_expectations/pull/11544))
+* [MAINTENANCE] Bump mdast-util-to-hast from 13.2.0 to 13.2.1 in /docs/docusaurus ([#11541](https://github.com/great-expectations/great_expectations/pull/11541))
+* [MAINTENANCE] Bump express from 4.21.2 to 4.22.1 in /docs/docusaurus ([#11540](https://github.com/great-expectations/great_expectations/pull/11540))
+* [MAINTENANCE] pre-commit autoupdate ([#11539](https://github.com/great-expectations/great_expectations/pull/11539))
+
 ### 1.9.1
 * [DOCS] clarify language on deploy the GX agent ([#11518](https://github.com/great-expectations/great_expectations/pull/11518))
 * [MAINTENANCE] Update exclude list ([#11517](https://github.com/great-expectations/great_expectations/pull/11517))
