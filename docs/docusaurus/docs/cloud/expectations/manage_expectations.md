@@ -6,7 +6,7 @@ description: Create and manage Expectations in GX Cloud.
 
 You can manually create Expecatations and use several different GX Cloud features to generate Expecations.
 
-This page provides instructions for working with Expectations. To learn about Expectation types and options, see the [Expectations overview](/cloud/expectations/expectations_overview.md). To learn about the asset-level Expectation changelog, visit [Manage Data Assets](/cloud/data_assets/manage_data_assets.md#view-data-asset-history).
+This page provides instructions for working with Expectations. To learn about Expectation types and options, see the [Expectations overview](/cloud/expectations/expectations_overview.md). To learn about the Expectation changelog at the Data Asset level, visit [Manage Data Assets](/cloud/data_assets/manage_data_assets.md#view-data-asset-history).
 
 ## Prerequisites
 
