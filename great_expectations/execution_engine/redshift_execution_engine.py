@@ -105,9 +105,7 @@ class ColumnTypes(BaseColumnTypes):
         # and go directly to fallback method since we can't query information_schema
         # for custom queries
         if isinstance(table_name, sa.TextClause):
-            logger.info(
-                "Custom SQL query (TextClause) detected, skipping information_schema query"
-            )
+            logger.info("Custom SQL query (TextClause) detected, skipping information_schema query")
         else:
             # Use parameterized queries to prevent SQL injection
             # For information_schema queries, we use bindparam for safe parameterization
