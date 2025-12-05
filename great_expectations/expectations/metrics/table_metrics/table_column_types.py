@@ -116,9 +116,39 @@ def _get_sqlalchemy_column_metadata(
     if dialect_name == "redshift":
         table_selectable: str | sqlalchemy.TextClause
 
-        # Prefer explicit source_table_name if present, otherwise fall back to selectable.name.
-        raw_table_name = batch_data.source_table_name or batch_data.selectable.name
-        schema_name = batch_data.source_schema_name or batch_data.selectable.schema
+        # Check selectable type before accessing .name attribute
+        # TextClause objects don't have .name attribute
+        if sqlalchemy.TextClause and isinstance(batch_data.selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function] # FIXME CoP
+            # Custom query: pass through as-is
+            table_selectable = batch_data.selectable
+            schema_name = None
+            result = get_sqlalchemy_column_metadata(
+                execution_engine=execution_engine,
+                table_selectable=table_selectable,  # type: ignore[arg-type]
+                schema_name=schema_name,
+            )
+            logger.debug(
+                f"Returned {len(result) if result else 0} columns for Redshift TextClause query"
+            )
+            return result
+
+        # For Table or other selectable types, safely access .name
+        if sqlalchemy.Table and isinstance(batch_data.selectable, sqlalchemy.Table):  # type: ignore[truthy-function] # FIXME CoP
+            raw_table_name = batch_data.source_table_name or batch_data.selectable.name
+            schema_name = batch_data.source_schema_name or batch_data.selectable.schema
+        else:
+            # Fallback for other selectable types
+            raw_table_name = batch_data.source_table_name or (
+                batch_data.selectable.name if hasattr(batch_data.selectable, "name") else None
+            )
+            schema_name = batch_data.source_schema_name or (
+                batch_data.selectable.schema if hasattr(batch_data.selectable, "schema") else None
+            )
+
+        if raw_table_name is None:
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                "Could not determine table name from batch_data for Redshift dialect"
+            )
 
         if isinstance(raw_table_name, str) and schema_name is None and "." in raw_table_name:
             schema_name, table_name = raw_table_name.split(".", 1)
