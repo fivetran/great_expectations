@@ -921,7 +921,7 @@ def _create_table_rendered_atomic_content(
     params: dict[str, Any],
     col_names: list[str],
     col_types: list[RendererValueType],
-    rows: list[list[str]],
+    rows: list[list[Any]],
 ) -> RenderedAtomicContent:
     return RenderedAtomicContent(
         name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
@@ -948,6 +948,182 @@ def _create_table_rendered_atomic_content(
         ),
         value_type="TableType",
     )
+
+
+@multi_source_batch_setup(
+    multi_source_test_configs=SQLITE_ONLY,
+    base_data=pd.DataFrame({"col1": [1, 2], "col2": [None, 4], "col3": [5, None]}),
+    comparison_data=pd.DataFrame({"col1": [1, 3], "col2": [None, 6], "col3": [5, None]}),
+)
+def test_rendering_table_with_null_values(multi_source_batch: MultiSourceBatch):
+    """Test that tables with null values are rendered correctly with proper schema types."""
+    source_table = multi_source_batch.comparison_table_name
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=f"SELECT col1, col2, col3 FROM {source_table}",
+            base_query="SELECT col1, col2, col3 FROM {batch}",
+        )
+    )
+    result.render()
+
+    # Expected: row with col1=1, col2=None, col3=5 matches
+    # Unexpected rows: [2, 4, None] (from base)
+    # Missing rows: [3, 6, None] (from comparison)
+    assert result.rendered_content == [
+        _create_table_rendered_atomic_content(
+            template="Unexpected rows found in current table: $row_count",
+            params={
+                "row_count": {
+                    "schema": RendererSchema(type=RendererValueType.NUMBER),
+                    "value": 1,
+                }
+            },
+            col_names=["col1", "col2", "col3"],
+            col_types=[
+                RendererValueType.NUMBER,
+                RendererValueType.NUMBER,
+                RendererValueType.STRING,
+            ],
+            rows=[
+                [2, 4, None],
+            ],
+        ),
+        _create_table_rendered_atomic_content(
+            template="Expected rows not found in current table: $row_count",
+            params={
+                "row_count": {
+                    "schema": RendererSchema(type=RendererValueType.NUMBER),
+                    "value": 1,
+                }
+            },
+            col_names=["col1", "col2", "col3"],
+            col_types=[
+                RendererValueType.NUMBER,
+                RendererValueType.NUMBER,
+                RendererValueType.STRING,
+            ],
+            rows=[
+                [3, 6, None],
+            ],
+        ),
+    ]
+
+
+@multi_source_batch_setup(
+    multi_source_test_configs=SQLITE_ONLY,
+    base_data=pd.DataFrame({"name": ["Alice", "Bob", "Charlie"], "age": [25, None, 30]}),
+    comparison_data=pd.DataFrame({"name": ["Alice", "Dave", "Eve"], "age": [25, 28, None]}),
+)
+def test_rendering_table_with_mixed_null_values(multi_source_batch: MultiSourceBatch):
+    """Test that tables with mixed null and non-null values render correctly."""
+    source_table = multi_source_batch.comparison_table_name
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=f"SELECT name, age FROM {source_table}",
+            base_query="SELECT name, age FROM {batch}",
+        )
+    )
+    result.render()
+
+    # Expected: row ["Alice", 25] matches
+    # Unexpected rows: ["Bob", None], ["Charlie", 30] (from base)
+    # Missing rows: ["Dave", 28], ["Eve", None] (from comparison)
+    # Note: When null values are present, the actual rendering determines type per cell,
+    # not per column, so we manually construct the expected content
+    assert result.rendered_content == [
+        RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=RenderedAtomicValue(
+                template="Unexpected rows found in current table: $row_count",
+                params={
+                    "row_count": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "value": 2,
+                    }
+                },
+                header_row=[
+                    RendererTableValue(
+                        schema=RendererSchema(type=RendererValueType.STRING),
+                        value="name",
+                    ),
+                    RendererTableValue(
+                        schema=RendererSchema(type=RendererValueType.STRING),
+                        value="age",
+                    ),
+                ],
+                table=[
+                    [
+                        RendererTableValue(
+                            schema=RendererSchema(type=RendererValueType.STRING),
+                            value="Bob",
+                        ),
+                        RendererTableValue(
+                            schema=RendererSchema(type=RendererValueType.STRING),
+                            value=None,
+                        ),
+                    ],
+                    [
+                        RendererTableValue(
+                            schema=RendererSchema(type=RendererValueType.STRING),
+                            value="Charlie",
+                        ),
+                        RendererTableValue(
+                            schema=RendererSchema(type=RendererValueType.NUMBER),
+                            value=30,
+                        ),
+                    ],
+                ],
+            ),
+            value_type="TableType",
+        ),
+        RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=RenderedAtomicValue(
+                template="Expected rows not found in current table: $row_count",
+                params={
+                    "row_count": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "value": 2,
+                    }
+                },
+                header_row=[
+                    RendererTableValue(
+                        schema=RendererSchema(type=RendererValueType.STRING),
+                        value="name",
+                    ),
+                    RendererTableValue(
+                        schema=RendererSchema(type=RendererValueType.STRING),
+                        value="age",
+                    ),
+                ],
+                table=[
+                    [
+                        RendererTableValue(
+                            schema=RendererSchema(type=RendererValueType.STRING),
+                            value="Dave",
+                        ),
+                        RendererTableValue(
+                            schema=RendererSchema(type=RendererValueType.NUMBER),
+                            value=28,
+                        ),
+                    ],
+                    [
+                        RendererTableValue(
+                            schema=RendererSchema(type=RendererValueType.STRING),
+                            value="Eve",
+                        ),
+                        RendererTableValue(
+                            schema=RendererSchema(type=RendererValueType.STRING),
+                            value=None,
+                        ),
+                    ],
+                ],
+            ),
+            value_type="TableType",
+        ),
+    ]
 
 
 @multi_source_batch_setup(
