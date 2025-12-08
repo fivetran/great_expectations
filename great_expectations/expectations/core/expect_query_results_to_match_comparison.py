@@ -633,13 +633,17 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         for row in rows:
             output_row_values = []
             for col_name in col_names:
-                if row[col_name] is not None:
-                    output_row_values.append(
-                        RendererTableValue(
-                            schema=RendererSchema(type=RendererValueType.from_value(row[col_name])),
-                            value=row[col_name],
-                        )
+                col_value = row[col_name]
+                output_row_values.append(
+                    RendererTableValue(
+                        schema=RendererSchema(
+                            type=RendererValueType.from_value(col_value)
+                            if col_value is not None
+                            else RendererValueType.STRING
+                        ),
+                        value=col_value,
                     )
+                )
             output_rows.append(output_row_values)
 
         return [header_row, *output_rows]
