@@ -42,8 +42,8 @@ if TYPE_CHECKING:
 def column_condition_partial(  # noqa: C901, PLR0915 # FIXME CoP
     engine: Type[ExecutionEngine],
     partial_fn_type: Optional[MetricPartialFunctionTypes] = None,
-    **kwargs,
-):
+    **kwargs: Any,
+) -> Callable[[Callable[[Any], Any]], Callable[[Any], Any]]:
     """Provides engine-specific support for authoring a metric_fn with a simplified signature.
 
     A column_condition_partial must provide a map function that evaluates to a boolean value; it will be used to provide
