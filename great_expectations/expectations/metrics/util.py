@@ -386,6 +386,45 @@ def get_sqlalchemy_column_metadata(  # noqa: C901 # FIXME CoP
 
         engine = execution_engine.engine
         inspector = execution_engine.get_inspector()
+
+        # Fetch primary key information early
+        primary_key_columns: set[str] = set()
+        table_name: Optional[str] = None
+
+        # Only fetch PK info if we have a real table (not a custom query/TextClause)
+        if sqlalchemy.quoted_name and isinstance(table_selectable, sqlalchemy.quoted_name):
+            table_name = str(table_selectable)
+            try:
+                pk_constraint = inspector.get_pk_constraint(
+                    table_name=table_selectable,
+                    schema=schema_name,
+                )
+                # get_pk_constraint returns dict like:
+                # {'constrained_columns': ['id', 'user_id'], 'name': 'pk_name'}
+                primary_key_columns = set(pk_constraint.get('constrained_columns', []))
+            except (sa.exc.NoSuchTableError, sa.exc.ProgrammingError, NotImplementedError) as e:
+                # Some dialects may not support PK introspection, or table may not exist
+                logger.debug(f"Could not fetch primary key info for table {table_name}: {e!r}")
+                primary_key_columns = set()
+        elif not (sqlalchemy.TextClause and isinstance(table_selectable, sqlalchemy.TextClause)):  # type: ignore[truthy-function]
+            # Try to extract table name from other selectable types
+            try:
+                table_name = str(table_selectable)
+                pk_constraint = inspector.get_pk_constraint(
+                    table_name=table_name,
+                    schema=schema_name,
+                )
+                primary_key_columns = set(pk_constraint.get('constrained_columns', []))
+            except (
+                sa.exc.NoSuchTableError,
+                sa.exc.ProgrammingError,
+                NotImplementedError,
+                AttributeError,
+            ) as e:
+                # Failed to get PK info - this is OK for custom queries, views, etc.
+                logger.debug(f"Could not fetch primary key info: {e!r}")
+                primary_key_columns = set()
+
         try:
             # if a custom query was passed
             if sqlalchemy.TextClause and isinstance(table_selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function]
@@ -431,6 +470,18 @@ def get_sqlalchemy_column_metadata(  # noqa: C901 # FIXME CoP
                 sqlalchemy_engine=engine,
             )
 
+        # Add primary_key field to each column
+        # WARNING: Do not alter columns in place, as they are cached on the inspector
+        columns_copy = [column.copy() for column in columns]
+        for column in columns_copy:
+            column_name = column.get('name', '')
+            # Check if column name is in primary key columns (case-insensitive comparison)
+            is_primary_key = any(
+                column_name.casefold() == pk_col.casefold()
+                for pk_col in primary_key_columns
+            )
+            column['primary_key'] = is_primary_key
+
         dialect_name = execution_engine.dialect.name
         if dialect_name in [
             GXSqlDialect.DATABRICKS,
@@ -438,8 +489,6 @@ def get_sqlalchemy_column_metadata(  # noqa: C901 # FIXME CoP
             GXSqlDialect.SNOWFLAKE,
             GXSqlDialect.TRINO,
         ]:
-            # WARNING: Do not alter columns in place, as they are cached on the inspector
-            columns_copy = [column.copy() for column in columns]
             for column in columns_copy:
                 if column.get("type"):
                     # When using column_reflection_fallback, we might not be able to
@@ -451,7 +500,7 @@ def get_sqlalchemy_column_metadata(  # noqa: C901 # FIXME CoP
             # Wrap all columns in CaseInsensitiveNameDict for all three dialects
             return [CaseInsensitiveNameDict(column) for column in columns_copy]
 
-        return columns
+        return columns_copy
     except AttributeError as e:
         logger.debug(f"Error while introspecting columns: {e!r}", exc_info=e)
         return None
