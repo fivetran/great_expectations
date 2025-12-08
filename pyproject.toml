@@ -196,13 +196,9 @@ follow_imports = 'silent'
 # need to use override because a mypy bug prevents ignoring an assignment warning inline
 # for `from azure import storage`
 module = ["great_expectations.compatibility.azure"]
-ignore_missing_imports = true
 disable_error_code = [
     'assignment', # cannot assign NotImported to a ModuleType
 ]
-
-[mypy-azure.*]
-ignore_missing_imports = True
 
 [[tool.mypy.overrides]]
 module = [
