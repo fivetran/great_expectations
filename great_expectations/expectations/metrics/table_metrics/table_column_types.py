@@ -159,7 +159,7 @@ def _get_sqlalchemy_column_metadata(
             table_name = raw_table_name
             logger.debug(f"Using table='{table_name}', schema='{schema_name}'")
 
-        table_selectable = table_name  # type: ignore[assignment]
+        table_selectable = table_name
 
         result = get_sqlalchemy_column_metadata(
             execution_engine=execution_engine,
@@ -172,8 +172,6 @@ def _get_sqlalchemy_column_metadata(
         return result
 
     # Default path for non-Redshift dialects.
-    table_selectable: str | sqlalchemy.TextClause
-
     if sqlalchemy.Table and isinstance(batch_data.selectable, sqlalchemy.Table):  # type: ignore[truthy-function] # FIXME CoP
         table_selectable = batch_data.source_table_name or batch_data.selectable.name
         schema_name = batch_data.source_schema_name or batch_data.selectable.schema
