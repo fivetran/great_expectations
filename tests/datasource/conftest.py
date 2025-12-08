@@ -131,6 +131,11 @@ def test_cases_for_sql_data_connector_sqlite_connection_url(sa):
 def test_cases_for_sql_data_connector_sqlite_execution_engine(
     sa, test_cases_for_sql_data_connector_sqlite_connection_url
 ):
+    """Provide a sqlite ExecutionEngine for SQL data connector tests.
+
+    The engine and its underlying connections are explicitly closed after use to avoid
+    leaking sqlite3.Connection objects (which surface as ResourceWarning in CI).
+    """
     if sa is None:
         raise ValueError("SQL Database tests require sqlalchemy to be installed.")
 
@@ -151,10 +156,23 @@ def test_cases_for_sql_data_connector_sqlite_execution_engine(
         except Exception:
             pass
 
-    conn: sa.engine.Connection = engine.connect()  # noqa: F841 # FIXME CoP
+    # Keep a live connection for static pools, but make sure it is closed on teardown.
+    conn: sa.engine.Connection = engine.connect()
 
     # Build a SqlAlchemyDataset using that database
-    return SqlAlchemyExecutionEngine(
+    execution_engine = SqlAlchemyExecutionEngine(
         name="test_sql_execution_engine",
         engine=engine,
     )
+
+    try:
+        yield execution_engine
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+        try:
+            execution_engine.close()
+        except Exception:
+            pass
