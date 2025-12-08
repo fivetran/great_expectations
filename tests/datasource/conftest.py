@@ -138,11 +138,18 @@ def test_cases_for_sql_data_connector_sqlite_execution_engine(
         test_cases_for_sql_data_connector_sqlite_connection_url,
         poolclass=sqlalchemy.StaticPool,
     )
-    raw_connection = engine.raw_connection()
-    raw_connection.create_function("sqrt", 1, lambda x: math.sqrt(x))
-    raw_connection.create_function(
-        "md5", 2, lambda x, d: hashlib.md5(str(x).encode("utf-8")).hexdigest()[-1 * d :]
-    )
+    _raw_dbapi_con = engine.raw_connection()
+    try:
+        _raw_dbapi_con.create_function("sqrt", 1, lambda x: math.sqrt(x))
+        _raw_dbapi_con.create_function(
+            "md5", 2, lambda x, d: hashlib.md5(str(x).encode("utf-8")).hexdigest()[-1 * d :]
+        )
+    finally:
+        # Ensure the temporary raw DB-API connection is closed to avoid ResourceWarning.
+        try:
+            _raw_dbapi_con.close()
+        except Exception:
+            pass
 
     conn: sa.engine.Connection = engine.connect()  # noqa: F841 # FIXME CoP
 
