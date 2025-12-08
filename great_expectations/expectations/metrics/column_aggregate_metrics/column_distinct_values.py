@@ -109,7 +109,7 @@ class ColumnDistinctValuesCount(ColumnAggregateMetricProvider):
     def _pandas(cls, column: pd.Series, **kwargs) -> int:
         return column.nunique()
 
-    @column_aggregate_partial(engine=SqlAlchemyExecutionEngine)  # type: ignore[misc] # untyped-decorator
+    @column_aggregate_partial(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(
         cls,
         column: sqlalchemy.ColumnClause,
@@ -122,7 +122,7 @@ class ColumnDistinctValuesCount(ColumnAggregateMetricProvider):
         """  # noqa: E501 # FIXME CoP
         return sa.func.count(sa.distinct(column))
 
-    @column_aggregate_partial(engine=SparkDFExecutionEngine)  # type: ignore[misc] # untyped-decorator
+    @column_aggregate_partial(engine=SparkDFExecutionEngine)
     def _spark(
         cls,
         column: pyspark.Column,
