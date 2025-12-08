@@ -317,3 +317,49 @@ class TestRedshiftDataTypes:
                 )
             )
         assert result.success
+
+    @pytest.mark.redshift
+    def test_batch_columns_not_empty(self):
+        """Test that batch.columns() returns column names correctly, not an empty list.
+
+        This test validates the fix applied in fix/redshift-table-column-types branch
+        (PR #11534), which ensures that batch.columns() does not return an empty list
+        for Redshift batches. The fix adds a fallback mechanism when information_schema
+        returns empty results, using SELECT * LIMIT 0 to retrieve column names.
+
+        This was causing InvalidMetricAccessorDomainKwargsKeyError when trying to
+        validate expectations on columns.
+        """
+        column_types = {
+            "id": REDSHIFT_TYPES.INTEGER,
+            "name": REDSHIFT_TYPES.VARCHAR,
+            "amount": REDSHIFT_TYPES.DECIMAL,
+        }
+        batch_setup = RedshiftBatchTestSetup(
+            config=RedshiftDatasourceTestConfig(column_types=column_types),
+            data=pd.DataFrame(
+                {
+                    "id": [1, 2, 3],
+                    "name": ["Alice", "Bob", "Charlie"],
+                    "amount": [10.50, 20.75, 30.00],
+                }
+            ),
+            extra_data={},
+            context=get_context(mode="ephemeral"),
+        )
+        with batch_setup.batch_test_context() as batch:
+            # This is the key test: batch.columns() should NOT return an empty list
+            columns = batch.columns()
+
+            # Validate that we got the columns (not an empty list)
+            assert columns is not None
+            assert isinstance(columns, list)
+            assert len(columns) > 0, "batch.columns() should not return empty list"
+            assert len(columns) == 3, "Should have exactly 3 columns"
+
+            # Validate that all expected column names are present
+            # Redshift returns column names in lowercase
+            columns_lower = [col.lower() for col in columns]
+            assert "id" in columns_lower
+            assert "name" in columns_lower
+            assert "amount" in columns_lower
