@@ -641,7 +641,7 @@ def test_get_sqlalchemy_column_metadata_includes_primary_key_field(sa):
 
     db_file = file_relative_path(
         __file__,
-        "../../test_sets/test_pk_metadata.db",
+        "../../test_sets/test_cases_for_sql_data_connector.db",
     )
     eng = sa.create_engine(f"sqlite:///{db_file}")
     engine = SqlAlchemyExecutionEngine(engine=eng)
@@ -682,7 +682,7 @@ def test_get_sqlalchemy_column_metadata_composite_primary_key(sa):
 
     db_file = file_relative_path(
         __file__,
-        "../../test_sets/test_pk_metadata.db",
+        "../../test_sets/test_cases_for_sql_data_connector.db",
     )
     eng = sa.create_engine(f"sqlite:///{db_file}")
     engine = SqlAlchemyExecutionEngine(engine=eng)
@@ -722,7 +722,7 @@ def test_get_sqlalchemy_column_metadata_no_primary_key(sa):
 
     db_file = file_relative_path(
         __file__,
-        "../../test_sets/test_pk_metadata.db",
+        "../../test_sets/test_cases_for_sql_data_connector.db",
     )
     eng = sa.create_engine(f"sqlite:///{db_file}")
     engine = SqlAlchemyExecutionEngine(engine=eng)
@@ -761,7 +761,7 @@ def test_get_sqlalchemy_column_metadata_quoted_pk_column(sa):
 
     db_file = file_relative_path(
         __file__,
-        "../../test_sets/test_pk_metadata.db",
+        "../../test_sets/test_cases_for_sql_data_connector.db",
     )
     eng = sa.create_engine(f"sqlite:///{db_file}")
     engine = SqlAlchemyExecutionEngine(engine=eng)
