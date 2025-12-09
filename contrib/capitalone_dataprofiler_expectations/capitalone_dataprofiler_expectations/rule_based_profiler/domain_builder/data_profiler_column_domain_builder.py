@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Iterable, List, Optional, Union
 
+from great_expectations.core.domain import (
+    Domain,
+    SemanticDomainTypes,
+)
 from great_expectations.experimental.rule_based_profiler.domain_builder import ColumnDomainBuilder
 from great_expectations.experimental.rule_based_profiler.exceptions import ProfilerExecutionError
 from great_expectations.experimental.rule_based_profiler.helpers.util import (
@@ -16,10 +20,6 @@ from great_expectations.util import is_candidate_subset_of_target
 from great_expectations.validator.metric_configuration import MetricConfiguration
 
 if TYPE_CHECKING:
-    from great_expectations.core.domain import (
-        Domain,
-        SemanticDomainTypes,
-    )
     from great_expectations.data_context.data_context.abstract_data_context import (
         AbstractDataContext,
     )

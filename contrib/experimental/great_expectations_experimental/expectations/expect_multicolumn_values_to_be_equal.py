@@ -6,9 +6,13 @@ from typing import TYPE_CHECKING, Dict, Optional
 import sqlalchemy as sa
 
 from great_expectations.compatibility.pyspark import functions as F
+from great_expectations.core import (
+    ExpectationValidationResult,
+)
 from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
+from great_expectations.core.types import Comparable
 from great_expectations.exceptions import InvalidExpectationConfigurationError
 from great_expectations.execution_engine import (
     ExecutionEngine,
@@ -47,10 +51,6 @@ from great_expectations.render.util import (
 )
 
 if TYPE_CHECKING:
-    from great_expectations.core import (
-        ExpectationValidationResult,
-    )
-    from great_expectations.core.types import Comparable
     from great_expectations.render.renderer_configuration import AddParamArgs
 
 

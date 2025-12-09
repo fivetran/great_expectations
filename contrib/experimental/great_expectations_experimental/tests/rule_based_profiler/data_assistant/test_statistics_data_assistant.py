@@ -1,6 +1,6 @@
 import math
 import os
-from typing import TYPE_CHECKING, Any, Dict, Optional, cast
+from typing import Any, Dict, Optional, cast
 
 import numpy as np
 import pytest
@@ -24,16 +24,13 @@ from great_expectations.experimental.rule_based_profiler.data_assistant_result i
 from great_expectations.experimental.rule_based_profiler.helpers.util import (
     convert_metric_values_to_float_dtype_best_effort,
 )
+from great_expectations.experimental.rule_based_profiler.metric_computation_result import (
+    MetricValues,
+)
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
     FULLY_QUALIFIED_PARAMETER_NAME_ATTRIBUTED_VALUE_KEY,
     ParameterNode,
 )
-
-if TYPE_CHECKING:
-    from great_expectations.compatibility import pyspark
-    from great_expectations.experimental.rule_based_profiler.metric_computation_result import (
-        MetricValues,
-    )
 
 # noinspection PyUnresolvedReferences
 
@@ -356,6 +353,7 @@ def test_spark_happy_path_statistics_data_assistant(
     3. Running StatisticsDataAssistant and making sure that StatisticsDataAssistantResult contains relevant fields
     4. Configuring BatchRequest to load 2020 January data
     """
+    from great_expectations.compatibility import pyspark
 
     schema: pyspark.types.StructType = spark_df_taxi_data_schema
     data_context = empty_data_context

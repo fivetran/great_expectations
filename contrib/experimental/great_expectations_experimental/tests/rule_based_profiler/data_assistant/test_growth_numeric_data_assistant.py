@@ -1,5 +1,5 @@
 import os
-from typing import TYPE_CHECKING, Dict, Optional, cast
+from typing import Dict, Optional, cast
 
 import pytest
 from freezegun import freeze_time
@@ -24,9 +24,6 @@ from great_expectations.experimental.rule_based_profiler.parameter_container imp
     FULLY_QUALIFIED_PARAMETER_NAME_ATTRIBUTED_VALUE_KEY,
     ParameterNode,
 )
-
-if TYPE_CHECKING:
-    from great_expectations.compatibility import pyspark
 
 
 @pytest.fixture
@@ -400,6 +397,7 @@ def test_spark_happy_path_growth_numeric_data_assistant(
     4. Configuring BatchRequest to load 2020 January data
     5. Configuring and running Checkpoint using BatchRequest for 2020-01, and 'taxi_data_2019_suite'.
     """
+    from great_expectations.compatibility import pyspark
 
     schema: pyspark.types.StructType = spark_df_taxi_data_schema
     data_context = empty_data_context

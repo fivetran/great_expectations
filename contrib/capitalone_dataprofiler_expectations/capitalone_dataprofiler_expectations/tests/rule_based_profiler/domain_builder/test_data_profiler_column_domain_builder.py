@@ -16,6 +16,8 @@ from great_expectations.core.domain import (
     SemanticDomainTypes,
 )
 from great_expectations.core.metric_domain_types import MetricDomainTypes
+from great_expectations.data_context import FileDataContext
+from great_expectations.experimental.rule_based_profiler.domain_builder import DomainBuilder
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
     ParameterContainer,
     build_parameter_container_for_variables,
@@ -25,9 +27,6 @@ if TYPE_CHECKING:
     from capitalone_dataprofiler_expectations.tests.conftest import (
         BaseProfiler,
     )
-
-    from great_expectations.data_context import FileDataContext
-    from great_expectations.experimental.rule_based_profiler.domain_builder import DomainBuilder
 
 
 test_root_path: str = os.path.dirname(  # noqa: PTH120

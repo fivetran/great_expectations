@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from capitalone_dataprofiler_expectations.rule_based_profiler.data_assistant_result import (
     DataProfilerStructuredDataAssistantResult,
@@ -12,10 +12,14 @@ from great_expectations.experimental.rule_based_profiler.data_assistant import D
 from great_expectations.experimental.rule_based_profiler.data_assistant_result import (
     DataAssistantResult,
 )
+from great_expectations.experimental.rule_based_profiler.domain_builder import (
+    DomainBuilder,
+)
 from great_expectations.experimental.rule_based_profiler.expectation_configuration_builder import (
     DefaultExpectationConfigurationBuilder,
     ExpectationConfigurationBuilder,
 )
+from great_expectations.experimental.rule_based_profiler.parameter_builder import ParameterBuilder
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
     DOMAIN_KWARGS_PARAMETER_FULLY_QUALIFIED_NAME,
     FULLY_QUALIFIED_PARAMETER_NAME_METADATA_KEY,
@@ -25,14 +29,6 @@ from great_expectations.experimental.rule_based_profiler.parameter_container imp
 )
 from great_expectations.experimental.rule_based_profiler.rule import Rule
 from great_expectations.validator.validator import Validator
-
-if TYPE_CHECKING:
-    from great_expectations.experimental.rule_based_profiler.domain_builder import (
-        DomainBuilder,
-    )
-    from great_expectations.experimental.rule_based_profiler.parameter_builder import (
-        ParameterBuilder,
-    )
 
 
 class DataProfilerStructuredDataAssistant(DataAssistant):
