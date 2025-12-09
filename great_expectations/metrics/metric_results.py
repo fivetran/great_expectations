@@ -79,6 +79,7 @@ class ColumnType(BaseModel):
 
     name: str
     type: str
+    primary_key: bool
 
 
 class TableColumnTypesResult(MetricResult[list[ColumnType]]): ...
