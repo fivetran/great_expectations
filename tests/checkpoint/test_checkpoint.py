@@ -41,9 +41,6 @@ from great_expectations.core.run_identifier import RunIdentifier
 from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
 from great_expectations.data_context.data_context.context_factory import set_context
-from great_expectations.data_context.data_context.ephemeral_data_context import (
-    EphemeralDataContext,
-)
 from great_expectations.data_context.types.resource_identifiers import (
     ValidationResultIdentifier,
 )
@@ -70,6 +67,9 @@ if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
     from great_expectations.data_context.data_context.cloud_data_context import CloudDataContext
+    from great_expectations.data_context.data_context.ephemeral_data_context import (
+        EphemeralDataContext,
+    )
 
 
 @pytest.mark.unit

@@ -11,13 +11,14 @@ from great_expectations.self_check.util import (
     get_test_validator_with_data,
 )
 from great_expectations.util import build_in_memory_runtime_context
-from great_expectations.validator.validator import (
-    ExpectationValidationResult,
-    Validator,
-)
 
 if TYPE_CHECKING:
     import pandas as pd
+
+    from great_expectations.validator.validator import (
+        ExpectationValidationResult,
+        Validator,
+    )
 
 sqlite_runtime_batch_request: RuntimeBatchRequest = RuntimeBatchRequest(
     datasource_name="my_sqlite_db_datasource",

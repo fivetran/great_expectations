@@ -4,14 +4,9 @@ from typing import TYPE_CHECKING, Dict, Optional
 
 import numpy as np
 
-from great_expectations.core import (
-    ExpectationValidationResult,
-)
 from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
-from great_expectations.core.types import Comparable
-from great_expectations.execution_engine import ExecutionEngine
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     _format_map_output,
@@ -39,6 +34,11 @@ from great_expectations.render.util import (
 )
 
 if TYPE_CHECKING:
+    from great_expectations.core import (
+        ExpectationValidationResult,
+    )
+    from great_expectations.core.types import Comparable
+    from great_expectations.execution_engine import ExecutionEngine
     from great_expectations.render.renderer_configuration import AddParamArgs
 
 

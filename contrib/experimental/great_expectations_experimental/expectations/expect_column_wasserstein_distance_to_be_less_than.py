@@ -1,16 +1,18 @@
 from __future__ import annotations
 
-from typing import Dict, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
 from scipy import stats
 
-from great_expectations.core.types import Comparable
 from great_expectations.execution_engine import ExecutionEngine, PandasExecutionEngine
 from great_expectations.expectations.expectation import ColumnAggregateExpectation
 from great_expectations.expectations.metrics.column_aggregate_metric_provider import (
     ColumnAggregateMetricProvider,
     column_aggregate_value,
 )
+
+if TYPE_CHECKING:
+    from great_expectations.core.types import Comparable
 
 
 class ColumnWassersteinDistance(ColumnAggregateMetricProvider):

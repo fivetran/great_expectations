@@ -25,16 +25,6 @@ from great_expectations.data_context import (
     EphemeralDataContext,
     FileDataContext,
 )
-from great_expectations.datasource.fluent import (
-    BatchRequest,
-    PandasFilesystemDatasource,
-    SparkFilesystemDatasource,
-    SqliteDatasource,
-)
-from great_expectations.datasource.fluent.interfaces import (
-    DataAsset,
-    Datasource,
-)
 from great_expectations.datasource.fluent.sources import (
     DEFAULT_PANDAS_DATA_ASSET_NAME,
 )
@@ -43,6 +33,16 @@ from great_expectations.expectations.expectation_configuration import Expectatio
 
 if TYPE_CHECKING:
     from great_expectations.checkpoint.checkpoint import CheckpointResult
+    from great_expectations.datasource.fluent import (
+        BatchRequest,
+        PandasFilesystemDatasource,
+        SparkFilesystemDatasource,
+        SqliteDatasource,
+    )
+    from great_expectations.datasource.fluent.interfaces import (
+        DataAsset,
+        Datasource,
+    )
 
 logger = logging.getLogger(__name__)
 

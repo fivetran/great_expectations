@@ -9,7 +9,6 @@ from capitalone_dataprofiler_expectations.rule_based_profiler.data_assistant.dat
     DataProfilerStructuredDataAssistant,
 )
 
-from great_expectations.core import ExpectationSuite
 from great_expectations.core.domain import Domain
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.experimental.rule_based_profiler.data_assistant_result import (
@@ -25,6 +24,7 @@ if TYPE_CHECKING:
         DataProfilerStructuredDataAssistantResult,
     )
 
+    from great_expectations.core import ExpectationSuite
     from great_expectations.data_context import FileDataContext
 
 

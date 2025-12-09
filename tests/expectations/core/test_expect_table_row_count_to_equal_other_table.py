@@ -1,15 +1,17 @@
 import sqlite3
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import pytest
 
 import great_expectations.expectations as gxe
-from great_expectations.core.expectation_validation_result import (
-    ExpectationValidationResult,
-)
 from great_expectations.util import build_in_memory_runtime_context
+
+if TYPE_CHECKING:
+    from great_expectations.core.expectation_validation_result import (
+        ExpectationValidationResult,
+    )
 
 
 @pytest.fixture

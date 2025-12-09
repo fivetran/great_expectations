@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import TYPE_CHECKING, List
 
 import pandas as pd
 import pytest
 from pandas import Timestamp
 
-from great_expectations.data_context import CloudDataContext
-from great_expectations.datasource.fluent.batch_request import BatchRequest
 from great_expectations.experimental.metric_repository.metric_list_metric_retriever import (
     MetricListMetricRetriever,
 )
@@ -18,6 +16,10 @@ from great_expectations.experimental.metric_repository.metrics import (
     MetricTypes,
     TableMetric,
 )
+
+if TYPE_CHECKING:
+    from great_expectations.data_context import CloudDataContext
+    from great_expectations.datasource.fluent.batch_request import BatchRequest
 
 
 @pytest.fixture

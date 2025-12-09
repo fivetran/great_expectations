@@ -2,17 +2,14 @@ from __future__ import annotations
 
 import itertools
 import logging
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Union
 
 import pytest
 
 import great_expectations.expectations as gxe
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.expectation_validation_result import ExpectationValidationResult
 from great_expectations.exceptions import InvalidExpectationConfigurationError
-from great_expectations.execution_engine.execution_engine import ExecutionEngine
-from great_expectations.expectations.conditions import Condition
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     ColumnPairMapExpectation,
@@ -23,11 +20,6 @@ from great_expectations.expectations.expectation import (
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
-from great_expectations.expectations.model_field_types import (
-    ConditionParser,
-    MostlyField,  # type needed in pydantic validation
-    ValueSetField,  # type needed in pydantic validation
-)
 from great_expectations.expectations.row_conditions import (
     AndCondition,
     Column,
@@ -37,6 +29,16 @@ from great_expectations.expectations.row_conditions import (
 )
 from great_expectations.expectations.window import Offset, Window
 from great_expectations.validator.metric_configuration import MetricConfiguration
+
+if TYPE_CHECKING:
+    from great_expectations.core.expectation_validation_result import ExpectationValidationResult
+    from great_expectations.execution_engine.execution_engine import ExecutionEngine
+    from great_expectations.expectations.conditions import Condition
+    from great_expectations.expectations.model_field_types import (
+        ConditionParser,
+        MostlyField,  # type needed in pydantic validation
+        ValueSetField,  # type needed in pydantic validation
+    )
 
 LOGGER = logging.getLogger(__name__)
 

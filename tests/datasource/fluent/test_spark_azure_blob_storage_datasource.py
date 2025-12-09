@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Iterator, List, cast
+from typing import TYPE_CHECKING, Any, Dict, Iterator, List, cast
 from unittest import mock
 
 import pytest
@@ -9,13 +9,15 @@ import pytest
 import great_expectations.exceptions as ge_exceptions
 from great_expectations.compatibility import azure
 from great_expectations.datasource.fluent import SparkAzureBlobStorageDatasource
-from great_expectations.datasource.fluent.data_asset.path.path_data_asset import (
-    PathDataAsset,
-)
 from great_expectations.datasource.fluent.data_asset.path.spark.csv_asset import CSVAsset
 from great_expectations.datasource.fluent.spark_azure_blob_storage_datasource import (
     SparkAzureBlobStorageDatasourceError,
 )
+
+if TYPE_CHECKING:
+    from great_expectations.datasource.fluent.data_asset.path.path_data_asset import (
+        PathDataAsset,
+    )
 
 logger = logging.getLogger(__file__)
 

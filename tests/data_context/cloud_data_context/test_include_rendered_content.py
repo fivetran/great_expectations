@@ -1,15 +1,18 @@
 import random
 import string
+from typing import TYPE_CHECKING
 
 import pandas as pd
 import pytest
 
-from great_expectations.core import (
-    ExpectationValidationResult,
-)
 from great_expectations.data_context import CloudDataContext
 from great_expectations.render import RenderedAtomicContent
-from great_expectations.validator.validator import Validator
+
+if TYPE_CHECKING:
+    from great_expectations.core import (
+        ExpectationValidationResult,
+    )
+    from great_expectations.validator.validator import Validator
 
 
 @pytest.mark.xfail(
