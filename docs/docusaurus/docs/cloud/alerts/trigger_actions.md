@@ -12,7 +12,7 @@ Use Actions to notify the appropriate parties of the results of your Validation 
 ## Prerequisites
 - A [GX Cloud account](https://greatexpectations.io/cloud).
 - Your [Cloud credentials](/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
-- A Checkpoint (either an automatically created GX-managed Checkpoint or a [manually created Checkpoint](/docs/cloud/validations/manage_validations#api-managed-expectations-entire-asset)).
+- A Checkpoint (either an automatically created GX-managed Checkpoint or a [manually created Checkpoint](/docs/cloud/validations/run_validations#api-managed-expectations-entire-asset)).
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
    :::note Want to use row conditions?

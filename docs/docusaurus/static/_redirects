@@ -465,3 +465,4 @@ http://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 /docs/cloud/overview/coverage_health /docs/cloud/overview/data_health
 /docs/cloud/alerts/manage_alerts /docs/cloud/alerts/manage_email_alerts
 /docs/cloud/users/manage_users /docs/cloud/access/manage_access
+/docs/cloud/validations/manage_validations /docs/cloud/validations/run_validations

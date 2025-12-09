@@ -201,9 +201,13 @@ module.exports = {
       ]
     },
     {
-      type: 'doc',
-      label: 'Manage Validations',
-      id: 'cloud/validations/manage_validations'
+      type: 'category',
+      label: 'Validations',
+      link: { type: 'doc', id: 'cloud/validations/validations_lp' },
+      items: [
+        'cloud/validations/run_validations',
+        'cloud/validations/choose_result_format'
+      ]
     },
     {
       type: 'doc',
