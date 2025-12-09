@@ -20,6 +20,10 @@ from great_expectations.expectations.expectation import (
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
+from great_expectations.expectations.model_field_types import (
+    MostlyField,  # noqa: TC001  # type needed in pydantic validation
+    ValueSetField,  # noqa: TC001  # type needed in pydantic validation
+)
 from great_expectations.expectations.row_conditions import (
     AndCondition,
     Column,
@@ -34,11 +38,7 @@ if TYPE_CHECKING:
     from great_expectations.core.expectation_validation_result import ExpectationValidationResult
     from great_expectations.execution_engine.execution_engine import ExecutionEngine
     from great_expectations.expectations.conditions import Condition
-    from great_expectations.expectations.model_field_types import (
-        ConditionParser,
-        MostlyField,  # type needed in pydantic validation
-        ValueSetField,  # type needed in pydantic validation
-    )
+    from great_expectations.expectations.model_field_types import ConditionParser
 
 LOGGER = logging.getLogger(__name__)
 
