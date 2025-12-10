@@ -4,7 +4,7 @@ import logging
 from typing import Literal, Optional, Tuple, overload
 
 from great_expectations.compatibility import sqlalchemy
-from great_expectations.compatibility.sqlalchemy import Selectable
+from great_expectations.compatibility.sqlalchemy import Selectable, TextClause
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
@@ -66,7 +66,7 @@ class SqlAlchemyBatchData(BatchData):
         # Option 2
         query: None = ...,
         # Option 3
-        selectable: Selectable = ...,
+        selectable: Selectable | TextClause = ...,
         create_temp_table: bool = ...,
         temp_table_schema_name: Optional[str] = ...,
         use_quoted_name: bool = ...,
@@ -83,7 +83,7 @@ class SqlAlchemyBatchData(BatchData):
         # Option 2
         query: Optional[str] = None,
         # Option 3
-        selectable: Optional[Selectable] = None,
+        selectable: Optional[Selectable | TextClause] = None,
         create_temp_table: bool = True,
         temp_table_schema_name: Optional[str] = None,
         use_quoted_name: bool = False,
