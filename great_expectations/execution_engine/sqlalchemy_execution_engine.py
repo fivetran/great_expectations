@@ -1272,7 +1272,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
 
     def _build_selectable_from_batch_spec(
         self, batch_spec: BatchSpec
-        ) -> Union[sqlalchemy.Selectable, sqlalchemy.TextClause]:
+    ) -> Union[sqlalchemy.Selectable, sqlalchemy.TextClause]:
         if batch_spec.get("query") is not None and batch_spec.get("sampling_method") is not None:
             raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "Sampling is not supported on query data. "
