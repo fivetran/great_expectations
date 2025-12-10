@@ -1270,7 +1270,9 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             partitioner_kwargs=partitioner_kwargs,
         )
 
-    def _build_selectable_from_batch_spec(self, batch_spec: BatchSpec) -> sqlalchemy.Selectable:
+    def _build_selectable_from_batch_spec(
+        self, batch_spec: BatchSpec
+        ) -> Union[sqlalchemy.Selectable, sqlalchemy.TextClause]:
         if batch_spec.get("query") is not None and batch_spec.get("sampling_method") is not None:
             raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "Sampling is not supported on query data. "
@@ -1382,8 +1384,8 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
 
         create_temp_table: bool = batch_spec.get("create_temp_table", self._create_temp_table)
         # this is where partitioner components are added to the selectable
-        selectable: sqlalchemy.Selectable = self._build_selectable_from_batch_spec(
-            batch_spec=batch_spec
+        selectable: sqlalchemy.Selectable | sqlalchemy.TextClause = (
+            self._build_selectable_from_batch_spec(batch_spec=batch_spec)
         )
         # NOTE: what's being checked here is the presence of a `query` attribute, we could check this directly  # noqa: E501 # FIXME CoP
         # instead of doing an instance check
