@@ -4,6 +4,7 @@ This is an example script for how to choose a Result Format.
 To test, run:
 pytest --docs-tests -k "cloud_docs_example_choose_result_format" tests/integration/test_script_runner.py
 """
+
 import pandas as pd
 
 import great_expectations as gx
@@ -100,7 +101,7 @@ result_format_dict = {
     "result_format": "COMPLETE",
     "unexpected_index_column_names": ["my_indentifying_column"],
     "partial_unexpected_count": 25,
-    "include_unexpected_rows": True
+    "include_unexpected_rows": True,
 }
 
 # Retrieve the Checkpoint
@@ -125,7 +126,7 @@ result_format_dict = {
     "result_format": "COMPLETE",
     "unexpected_index_column_names": ["my_indentifying_column"],
     "partial_unexpected_count": 25,
-    "include_unexpected_rows": True
+    "include_unexpected_rows": True,
 }
 
 # Retrieve the Validation Definition
