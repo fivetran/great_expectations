@@ -45,17 +45,21 @@ suite_name = "my_expectation_suite"
 context.suites.add(gx.ExpectationSuite(name=suite_name))
 
 
-import great_expectations as gx
+batch_definition = (
+    context.data_sources.get(data_source_name)
+    .get_asset(data_asset_name)
+    .get_batch_definition(batch_definition_name)
+)
 
-context = gx.get_context()
-# Hide this
-set_up_context_for_example(context)
-
-validation_name = "my_validation_definition"
-validation_definition = context.validation_definitions.get(validation_name)
+definition_name = "my_validation_definition"
+validation_definition = gx.ValidationDefinition(
+    data=batch_definition, suite=suite, name=definition_name
+)
 
 checkpoint_name = "my_checkpoint"
-checkpoint = context.checkpoints.get(checkpoint_name)
+checkpoint_config = gx.Checkpoint(
+    name=checkpoint_name, validation_definitions=[validation_definition]
+)
 
 # BOOLEAN_ONLY Result Format
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/result_format.py - boolean_only Result Format">
@@ -85,3 +89,51 @@ complete_result_format_dict = {"result_format": "COMPLETE"}
 validation_definition.run(result_format=complete_result_format_dict)
 # checkpoint.run(result_format=complete_result_format_dict)
 
+
+# <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/result_format.py - apply to Checkpoint">
+import great_expectations as gx
+
+context = gx.get_context(mode="cloud")
+
+# Define the Result Format
+result_format_dict = {
+    "result_format": "COMPLETE",
+    "unexpected_index_column_names": ["my_indentifying_column"],
+    "partial_unexpected_count": 25,
+    "include_unexpected_rows": True
+}
+
+# Retrieve the Checkpoint
+checkpoint = context.checkpoints.get("my_checkpoint")
+
+# Update the Checkpoint's configuration
+checkpoint.result_format = result_format_dict
+checkpoint.save()
+
+# Run the Checkpoint
+checkpoint.run()
+# </snippet>
+
+
+# <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/result_format.py - apply to Validation Definition">
+import great_expectations as gx
+
+context = gx.get_context(mode="cloud")
+
+# Define the Result Format
+result_format_dict = {
+    "result_format": "COMPLETE",
+    "unexpected_index_column_names": ["my_indentifying_column"],
+    "partial_unexpected_count": 25,
+    "include_unexpected_rows": True
+}
+
+# Retrieve the Validation Definition
+validation_definition = context.validation_definitions.get("my_validation_definition")
+
+# Run the Validation Definition with a Result Format configuration
+validation_results = validation_definition.run(result_format=result_format_dict)
+
+# Review the Validation Results
+print(validation_results)
+# </snippet>
