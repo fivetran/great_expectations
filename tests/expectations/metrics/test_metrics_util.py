@@ -633,17 +633,14 @@ class TestCaseInsensitiveString:
 
 
 @pytest.mark.unit
-def test_get_sqlalchemy_column_metadata_includes_primary_key_field(sa):
+def test_get_sqlalchemy_column_metadata_includes_primary_key_field(
+    sql_data_connector_test_db_execution_engine,
+):
     """Test that get_sqlalchemy_column_metadata includes primary_key field for all columns."""
     from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
     from great_expectations.expectations.metrics.util import get_sqlalchemy_column_metadata
 
-    db_file = file_relative_path(
-        __file__,
-        "../../test_sets/test_cases_for_sql_data_connector.db",
-    )
-    eng = sa.create_engine(f"sqlite:///{db_file}")
-    engine = SqlAlchemyExecutionEngine(engine=eng)
+    engine = sql_data_connector_test_db_execution_engine
 
     # Test table with single primary key
     batch_data = SqlAlchemyBatchData(execution_engine=engine, table_name="table_with_single_pk")
@@ -671,17 +668,14 @@ def test_get_sqlalchemy_column_metadata_includes_primary_key_field(sa):
 
 
 @pytest.mark.unit
-def test_get_sqlalchemy_column_metadata_composite_primary_key(sa):
+def test_get_sqlalchemy_column_metadata_composite_primary_key(
+    sql_data_connector_test_db_execution_engine,
+):
     """Test that composite primary keys are correctly identified."""
     from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
     from great_expectations.expectations.metrics.util import get_sqlalchemy_column_metadata
 
-    db_file = file_relative_path(
-        __file__,
-        "../../test_sets/test_cases_for_sql_data_connector.db",
-    )
-    eng = sa.create_engine(f"sqlite:///{db_file}")
-    engine = SqlAlchemyExecutionEngine(engine=eng)
+    engine = sql_data_connector_test_db_execution_engine
 
     batch_data = SqlAlchemyBatchData(execution_engine=engine, table_name="table_with_composite_pk")
     engine.load_batch_data("__test_composite_pk", batch_data)
@@ -708,17 +702,14 @@ def test_get_sqlalchemy_column_metadata_composite_primary_key(sa):
 
 
 @pytest.mark.unit
-def test_get_sqlalchemy_column_metadata_no_primary_key(sa):
+def test_get_sqlalchemy_column_metadata_no_primary_key(
+    sql_data_connector_test_db_execution_engine,
+):
     """Test that tables without primary keys don't break."""
     from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
     from great_expectations.expectations.metrics.util import get_sqlalchemy_column_metadata
 
-    db_file = file_relative_path(
-        __file__,
-        "../../test_sets/test_cases_for_sql_data_connector.db",
-    )
-    eng = sa.create_engine(f"sqlite:///{db_file}")
-    engine = SqlAlchemyExecutionEngine(engine=eng)
+    engine = sql_data_connector_test_db_execution_engine
 
     batch_data = SqlAlchemyBatchData(execution_engine=engine, table_name="table_without_pk")
     engine.load_batch_data("__test_no_pk", batch_data)
@@ -744,17 +735,14 @@ def test_get_sqlalchemy_column_metadata_no_primary_key(sa):
 
 
 @pytest.mark.unit
-def test_get_sqlalchemy_column_metadata_quoted_pk_column(sa):
+def test_get_sqlalchemy_column_metadata_quoted_pk_column(
+    sql_data_connector_test_db_execution_engine,
+):
     """Test that quoted column names as primary keys work correctly."""
     from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
     from great_expectations.expectations.metrics.util import get_sqlalchemy_column_metadata
 
-    db_file = file_relative_path(
-        __file__,
-        "../../test_sets/test_cases_for_sql_data_connector.db",
-    )
-    eng = sa.create_engine(f"sqlite:///{db_file}")
-    engine = SqlAlchemyExecutionEngine(engine=eng)
+    engine = sql_data_connector_test_db_execution_engine
 
     batch_data = SqlAlchemyBatchData(execution_engine=engine, table_name="table_with_quoted_pk")
     engine.load_batch_data("__test_quoted_pk", batch_data)
