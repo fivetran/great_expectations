@@ -447,7 +447,10 @@ def _get_columns_from_selectable(
         if is_text_clause:
             # Custom SQL query - extract columns from the clause itself (SQLAlchemy 1.4+)
             if hasattr(table_selectable, "selected_columns"):
-                return table_selectable.selected_columns.columns  # type: ignore[return-value]
+                return [
+                    {"name": col.name, "type": col.type}
+                    for col in table_selectable.selected_columns.values()
+                ]
             # Pre-1.4 SQLAlchemy is no longer supported; fall back to reflection
             logger.debug("TextClause without selected_columns; using reflection fallback")
             return []
