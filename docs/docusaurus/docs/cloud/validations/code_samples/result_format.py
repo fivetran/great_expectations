@@ -45,6 +45,7 @@ asset.add_batch_definition_whole_dataframe(batch_definition_name)
 suite_name = "my_expectation_suite"
 suite = context.suites.add(gx.ExpectationSuite(name=suite_name))
 
+context = gx.get_context(mode="cloud")
 
 batch_definition = (
     context.data_sources.get(data_source_name)
@@ -66,28 +67,32 @@ checkpoint_config = gx.Checkpoint(
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/result_format.py - boolean_only Result Format">
 boolean_result_format_dict = {"result_format": "BOOLEAN_ONLY"}
 # </snippet>
-validation_definition.run(result_format=boolean_result_format_dict)
+batch_parameters = {"dataframe": test_df}
+validation_definition.run(result_format=boolean_result_format_dict, batch_parameters=batch_parameters)
 # checkpoint.run(result_format=boolean_result_format_dict)
 
 # BASIC Result Format
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/result_format.py - basic Result Format">
 basic_result_format_dict = {"result_format": "BASIC"}
 # </snippet>
-validation_definition.run(result_format=basic_result_format_dict)
+batch_parameters = {"dataframe": test_df}
+validation_definition.run(result_format=basic_result_format_dict, batch_parameters=batch_parameters)
 # checkpoint.run(result_format=basic_result_format_dict)
 
 # SUMMARY Result Format
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/result_format.py - summary Result Format">
 summary_result_format_dict = {"result_format": "SUMMARY"}
 # </snippet>
-validation_definition.run(result_format=summary_result_format_dict)
+batch_parameters = {"dataframe": test_df}
+validation_definition.run(result_format=summary_result_format_dict, batch_parameters=batch_parameters)
 # checkpoint.run(result_format=summary_result_format_dict)
 
 # COMPLETE Result Format
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/result_format.py - complete Result Format">
 complete_result_format_dict = {"result_format": "COMPLETE"}
 # </snippet>
-validation_definition.run(result_format=complete_result_format_dict)
+batch_parameters = {"dataframe": test_df}
+validation_definition.run(result_format=complete_result_format_dict, batch_parameters=batch_parameters)
 # checkpoint.run(result_format=complete_result_format_dict)
 
 
