@@ -137,7 +137,9 @@ validation_definition = context.validation_definitions.get("my_validation_defini
 # Run the Validation Definition with a Result Format configuration
 # If you are working with a SQL or filesystem Data Asset, omit the batch_parameters.
 batch_parameters = {"dataframe": test_df}
-validation_results = validation_definition.run(result_format=result_format_dict,batch_parameters=batch_parameters)
+validation_results = validation_definition.run(
+    result_format=result_format_dict, batch_parameters=batch_parameters
+)
 
 # Review the Validation Results
 print(validation_results)
