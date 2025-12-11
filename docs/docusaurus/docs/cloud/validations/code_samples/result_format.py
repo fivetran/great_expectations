@@ -43,7 +43,7 @@ asset.add_batch_definition_whole_dataframe(batch_definition_name)
 
 # Create expectation suite
 suite_name = "my_expectation_suite"
-context.suites.add(gx.ExpectationSuite(name=suite_name))
+suite = context.suites.add(gx.ExpectationSuite(name=suite_name))
 
 
 batch_definition = (
