@@ -57,6 +57,7 @@ definition_name = "my_validation_definition"
 validation_definition = gx.ValidationDefinition(
     data=batch_definition, suite=suite, name=definition_name
 )
+context.validation_definitions.add(validation_definition)
 
 checkpoint_name = "my_checkpoint"
 checkpoint_config = gx.Checkpoint(
