@@ -13,13 +13,14 @@ import great_expectations.exceptions as ge_exceptions
 from great_expectations.compatibility import aws, pydantic
 from great_expectations.datasource.fluent import PandasS3Datasource
 from great_expectations.datasource.fluent.data_asset.path.pandas.generated_assets import CSVAsset
-from great_expectations.datasource.fluent.data_asset.path.path_data_asset import (
-    PathDataAsset,
-)
 from great_expectations.datasource.fluent.dynamic_pandas import PANDAS_VERSION
 
 if TYPE_CHECKING:
     from botocore.client import BaseClient
+
+    from great_expectations.datasource.fluent.data_asset.path.path_data_asset import (
+        PathDataAsset,
+    )
 
 
 logger = logging.getLogger(__file__)

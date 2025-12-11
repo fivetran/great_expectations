@@ -1,20 +1,22 @@
 from __future__ import annotations
 
 import pathlib
-from typing import Tuple
+from typing import TYPE_CHECKING, Tuple
 
 import pytest
 
 import great_expectations as gx
 import great_expectations.expectations as gxe
 from great_expectations.core.expectation_suite import ExpectationSuite
-from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.interfaces import Batch, Datasource
-from great_expectations.expectations.expectation import Expectation
 from great_expectations.metrics import BatchRowCount, ColumnValuesNonNull, Metric
 from great_expectations.metrics.batch.row_count import BatchRowCountResult
 from great_expectations.metrics.column.values_non_null import ColumnValuesNonNullResult
 from great_expectations.metrics.metric_results import MetricErrorResult
+
+if TYPE_CHECKING:
+    from great_expectations.data_context import AbstractDataContext
+    from great_expectations.expectations.expectation import Expectation
 
 DATASOURCE_NAME = "my_pandas"
 ASSET_NAME = "my_csv"

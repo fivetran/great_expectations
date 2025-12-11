@@ -17,7 +17,6 @@ from sqlalchemy.exc import SQLAlchemyError
 
 import great_expectations.exceptions as ge_exceptions
 from great_expectations.compatibility.pydantic import ValidationError, networks
-from great_expectations.core.batch_spec import SqlAlchemyDatasourceBatchSpec
 from great_expectations.core.id_dict import IDDict
 from great_expectations.core.partitioners import (
     ColumnPartitioner,
@@ -61,6 +60,7 @@ if TYPE_CHECKING:
 
     from pytest_mock import MockFixture
 
+    from great_expectations.core.batch_spec import SqlAlchemyDatasourceBatchSpec
     from great_expectations.datasource.fluent.interfaces import (
         BatchMetadata,
     )

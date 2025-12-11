@@ -3,12 +3,13 @@ from __future__ import annotations
 import logging
 from dataclasses import asdict, dataclass
 from functools import cached_property
-from typing import Any, Type
+from typing import TYPE_CHECKING, Any, Type
 
 import sqlalchemy as sa
 from sqlalchemy.pool import Pool, QueuePool
 
-from great_expectations.types.connect_args import ConnectArgs
+if TYPE_CHECKING:
+    from great_expectations.types.connect_args import ConnectArgs
 
 logger = logging.getLogger(__name__)
 

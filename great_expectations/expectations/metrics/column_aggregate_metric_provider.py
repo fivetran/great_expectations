@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Type, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Type, TypeVar, Union
 
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
@@ -31,6 +31,8 @@ from great_expectations.validator.metric_configuration import MetricConfiguratio
 
 logger = logging.getLogger(__name__)
 
+_F = TypeVar("_F", bound=Callable[..., Any])
+
 if TYPE_CHECKING:
     from great_expectations.compatibility import sqlalchemy
     from great_expectations.expectations.expectation_configuration import (
@@ -40,8 +42,8 @@ if TYPE_CHECKING:
 
 def column_aggregate_value(
     engine: Type[ExecutionEngine],
-    **kwargs,
-):
+    **kwargs: Any,
+) -> Callable[[_F], _F]:
     """Provides Pandas support for authoring a metric_fn with a simplified signature.
 
     A column_aggregate_value must provide an aggregate function; it will be executed by Pandas
@@ -60,7 +62,7 @@ def column_aggregate_value(
     domain_type: MetricDomainTypes = MetricDomainTypes.COLUMN
     if issubclass(engine, PandasExecutionEngine):
 
-        def wrapper(metric_fn: Callable):
+        def wrapper(metric_fn: _F) -> _F:
             @metric_value(engine=engine)
             @wraps(metric_fn)
             def inner_func(  # noqa: PLR0913 # FIXME CoP
@@ -96,14 +98,14 @@ def column_aggregate_value(
                     _metrics=metrics,
                 )
 
-            return inner_func
+            return inner_func  # type: ignore[return-value]
 
         return wrapper
     else:
         raise ValueError("column_aggregate_value decorator only supports PandasExecutionEngine")  # noqa: TRY003, TRY004 # FIXME CoP
 
 
-def column_aggregate_partial(engine: Type[ExecutionEngine], **kwargs):  # noqa: C901 # FIXME CoP
+def column_aggregate_partial(engine: Type[ExecutionEngine], **kwargs: Any) -> Callable[[_F], _F]:  # noqa: C901 # FIXME CoP
     """Provides engine-specific support for authoring a metric_fn with a simplified signature.
 
     A column_aggregate_partial must provide an aggregate function; it will be executed with the specified engine
@@ -125,7 +127,7 @@ def column_aggregate_partial(engine: Type[ExecutionEngine], **kwargs):  # noqa: 
     domain_type: MetricDomainTypes = MetricDomainTypes.COLUMN
     if issubclass(engine, SqlAlchemyExecutionEngine):
 
-        def wrapper(metric_fn: Callable):
+        def wrapper(metric_fn: _F) -> _F:
             @metric_partial(
                 engine=engine,
                 partial_fn_type=partial_fn_type,
@@ -181,13 +183,13 @@ def column_aggregate_partial(engine: Type[ExecutionEngine], **kwargs):  # noqa: 
                 )
                 return metric_aggregate, compute_domain_kwargs, accessor_domain_kwargs
 
-            return inner_func
+            return inner_func  # type: ignore[return-value]
 
         return wrapper
 
     elif issubclass(engine, SparkDFExecutionEngine):
 
-        def wrapper(metric_fn: Callable):
+        def wrapper(metric_fn: _F) -> _F:
             @metric_partial(
                 engine=engine,
                 partial_fn_type=partial_fn_type,
@@ -240,7 +242,7 @@ def column_aggregate_partial(engine: Type[ExecutionEngine], **kwargs):  # noqa: 
                 )
                 return metric_aggregate, compute_domain_kwargs, accessor_domain_kwargs
 
-            return inner_func
+            return inner_func  # type: ignore[return-value]
 
         return wrapper
 

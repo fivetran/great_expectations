@@ -363,7 +363,6 @@ class SparkDatasource(_SparkDatasource):
 
         Args:
             name: The name of the DataFrame asset. This can be any arbitrary string.
-            dataframe: The Spark Dataframe containing the data for this DataFrame data asset.
             batch_metadata: An arbitrary user defined dictionary with string keys which will get inherited by any
                             batches created from the asset.
 

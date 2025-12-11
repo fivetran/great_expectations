@@ -376,85 +376,130 @@ class CaseInsensitiveNameDict(UserDict):
         return item
 
 
-def get_sqlalchemy_column_metadata(  # noqa: C901 # FIXME CoP
+def get_sqlalchemy_column_metadata(
     execution_engine: SqlAlchemyExecutionEngine,
     table_selectable: sqlalchemy.Select,
     schema_name: Optional[str] = None,
 ) -> Sequence[Mapping[str, Any]] | None:
     try:
-        columns: Sequence[Dict[str, Any]]
-
         engine = execution_engine.engine
         inspector = execution_engine.get_inspector()
-        try:
-            # if a custom query was passed
-            if sqlalchemy.TextClause and isinstance(table_selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function]
-                if hasattr(table_selectable, "selected_columns"):
-                    # New in version 1.4.
-                    columns = table_selectable.selected_columns.columns
-                else:
-                    # Implicit subquery for columns().column was deprecated in SQLAlchemy 1.4
-                    # We must explicitly create a subquery
-                    columns = table_selectable.columns().subquery().columns
-            elif sqlalchemy.quoted_name and isinstance(table_selectable, sqlalchemy.quoted_name):  # type: ignore[truthy-function]
-                columns = inspector.get_columns(
-                    table_name=table_selectable,
+
+        # Determine selectable type once
+        is_text_clause = sqlalchemy.TextClause and isinstance(  # type: ignore[truthy-function]
+            table_selectable, sqlalchemy.TextClause
+        )
+        is_quoted_name = sqlalchemy.quoted_name and isinstance(  # type: ignore[truthy-function]
+            table_selectable, sqlalchemy.quoted_name
+        )
+        table_name = str(table_selectable)
+
+        # Fetch primary key info (skip for custom queries/TextClause)
+        primary_key_columns: set[str] = set()
+        if not is_text_clause:
+            try:
+                pk_constraint = inspector.get_pk_constraint(
+                    table_name=table_name,
                     schema=schema_name,
                 )
-            else:
-                logger.warning("unexpected table_selectable type")
-                columns = inspector.get_columns(  # type: ignore[assignment]
-                    table_name=str(table_selectable),
-                    schema=schema_name,
-                )
-        except (
-            KeyError,
-            AttributeError,
-            sa.exc.NoSuchTableError,
-            sa.exc.ProgrammingError,
-        ) as exc:
-            logger.debug(f"{type(exc).__name__} while introspecting columns", exc_info=exc)
-            logger.info(f"While introspecting columns {exc!r}; attempting reflection fallback")
-            # we will get a KeyError for temporary tables, since
-            # reflection will not find the temporary schema
+                primary_key_columns = set(pk_constraint.get("constrained_columns", []))
+            except (
+                sa.exc.NoSuchTableError,
+                sa.exc.ProgrammingError,
+                NotImplementedError,
+                AttributeError,
+            ) as e:
+                logger.debug(f"Could not fetch primary key info for {table_name}: {e!r}")
+
+        # Fetch column metadata
+        columns = _get_columns_from_selectable(
+            table_selectable,
+            inspector,
+            schema_name,
+            is_text_clause,
+            is_quoted_name,
+        )
+
+        # Use fallback for mssql/trino or when primary introspection fails
+        if not columns:
             columns = column_reflection_fallback(
                 selectable=table_selectable,
                 dialect=engine.dialect,
                 sqlalchemy_engine=engine,
             )
 
-        # Use fallback because for mssql and trino reflection mechanisms do not throw an error but return an empty list  # noqa: E501 # FIXME CoP
-        if len(columns) == 0:
-            columns = column_reflection_fallback(
-                selectable=table_selectable,
-                dialect=engine.dialect,
-                sqlalchemy_engine=engine,
-            )
-
-        dialect_name = execution_engine.dialect.name
-        if dialect_name in [
-            GXSqlDialect.DATABRICKS,
-            GXSqlDialect.POSTGRESQL,
-            GXSqlDialect.SNOWFLAKE,
-            GXSqlDialect.TRINO,
-        ]:
-            # WARNING: Do not alter columns in place, as they are cached on the inspector
-            columns_copy = [column.copy() for column in columns]
-            for column in columns_copy:
-                if column.get("type"):
-                    # When using column_reflection_fallback, we might not be able to
-                    # extract the column type, and only have the column name
-                    compiled_type = column["type"].compile(dialect=execution_engine.dialect)
-                    # Make the type case-insensitive
-                    column["type"] = CaseInsensitiveString(str(compiled_type))
-
-            # Wrap all columns in CaseInsensitiveNameDict for all three dialects
-            return [CaseInsensitiveNameDict(column) for column in columns_copy]
-
-        return columns
+        # Build result: copy columns, add PK info, apply dialect-specific formatting
+        return _build_column_metadata_result(columns, primary_key_columns, execution_engine)
     except AttributeError as e:
         logger.debug(f"Error while introspecting columns: {e!r}", exc_info=e)
         return None
+
+
+def _get_columns_from_selectable(
+    table_selectable: sqlalchemy.Select,
+    inspector: Any,
+    schema_name: Optional[str],
+    is_text_clause: bool,
+    is_quoted_name: bool,
+) -> Sequence[Dict[str, Any]]:
+    """Extract column metadata from a selectable, using reflection fallback on failure."""
+    try:
+        if is_text_clause:
+            # Custom SQL query - extract columns from the clause itself (SQLAlchemy 1.4+)
+            if hasattr(table_selectable, "selected_columns"):
+                return [
+                    {"name": col.name, "type": col.type}
+                    for col in table_selectable.selected_columns.values()
+                ]
+            # Pre-1.4 SQLAlchemy is no longer supported; fall back to reflection
+            logger.debug("TextClause without selected_columns; using reflection fallback")
+            return []
+
+        if not is_quoted_name:
+            logger.warning("unexpected table_selectable type")
+
+        return inspector.get_columns(
+            table_name=table_selectable if is_quoted_name else str(table_selectable),
+            schema=schema_name,
+        )
+    except (KeyError, AttributeError, sa.exc.NoSuchTableError, sa.exc.ProgrammingError) as exc:
+        logger.debug(f"{type(exc).__name__} while introspecting columns", exc_info=exc)
+        logger.info(f"While introspecting columns {exc!r}; attempting reflection fallback")
+        return []  # Caller will use column_reflection_fallback
+
+
+def _build_column_metadata_result(
+    columns: Sequence[Dict[str, Any]],
+    primary_key_columns: set[str],
+    execution_engine: SqlAlchemyExecutionEngine,
+) -> Sequence[Mapping[str, Any]]:
+    """Build final column metadata with PK info and dialect-specific formatting."""
+    # Copy columns to avoid mutating cached inspector data
+    pk_columns_lower = {pk.casefold() for pk in primary_key_columns}
+    result = [
+        {
+            **col,
+            "primary_key": col.get("name", "").casefold() in pk_columns_lower,
+        }
+        for col in (c.copy() for c in columns)
+    ]
+
+    # Apply case-insensitive formatting for specific dialects
+    dialect_name = execution_engine.dialect.name
+    case_insensitive_dialects = {
+        GXSqlDialect.DATABRICKS,
+        GXSqlDialect.POSTGRESQL,
+        GXSqlDialect.SNOWFLAKE,
+        GXSqlDialect.TRINO,
+    }
+    if dialect_name in case_insensitive_dialects:
+        for col in result:
+            if col.get("type"):
+                compiled_type = col["type"].compile(dialect=execution_engine.dialect)
+                col["type"] = CaseInsensitiveString(str(compiled_type))
+        return [CaseInsensitiveNameDict(col) for col in result]
+
+    return result
 
 
 def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP

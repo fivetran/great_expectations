@@ -25,11 +25,9 @@ import responses
 import setuptools  # noqa: F401  # Import setuptools avoid distutils import order warning
 
 import great_expectations as gx
-from great_expectations.compatibility import pyspark
 from great_expectations.compatibility.sqlalchemy_compatibility_wrappers import (
     add_dataframe_to_db,
 )
-from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.expectation_validation_result import (
     ExpectationValidationResult,
@@ -49,9 +47,6 @@ from great_expectations.data_context.cloud_constants import (
 from great_expectations.data_context.data_context.context_factory import (
     project_manager,
     set_context,
-)
-from great_expectations.data_context.data_context.ephemeral_data_context import (
-    EphemeralDataContext,
 )
 from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
@@ -101,7 +96,12 @@ if TYPE_CHECKING:
 
     from pytest_mock import MockerFixture
 
+    from great_expectations.compatibility import pyspark
     from great_expectations.compatibility.sqlalchemy import Engine
+    from great_expectations.core.batch_definition import BatchDefinition
+    from great_expectations.data_context.data_context.ephemeral_data_context import (
+        EphemeralDataContext,
+    )
 
 yaml = YAMLHandler()
 ###

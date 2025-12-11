@@ -9,6 +9,7 @@ from typing import (
     Dict,
     Optional,
     Type,
+    TypeVar,
     Union,
 )
 
@@ -35,6 +36,8 @@ from great_expectations.expectations.metrics.util import (
 
 logger = logging.getLogger(__name__)
 
+_F = TypeVar("_F", bound=Callable[..., Any])
+
 if TYPE_CHECKING:
     from great_expectations.compatibility import sqlalchemy
 
@@ -42,8 +45,8 @@ if TYPE_CHECKING:
 def column_condition_partial(  # noqa: C901, PLR0915 # FIXME CoP
     engine: Type[ExecutionEngine],
     partial_fn_type: Optional[MetricPartialFunctionTypes] = None,
-    **kwargs,
-):
+    **kwargs: Any,
+) -> Callable[[_F], _F]:
     """Provides engine-specific support for authoring a metric_fn with a simplified signature.
 
     A column_condition_partial must provide a map function that evaluates to a boolean value; it will be used to provide
@@ -72,7 +75,7 @@ def column_condition_partial(  # noqa: C901, PLR0915 # FIXME CoP
 "column_condition_partial" "partial_fn_type" property."""  # noqa: E501 # FIXME CoP
             )
 
-        def wrapper(metric_fn: Callable):
+        def wrapper(metric_fn: _F) -> _F:
             assert partial_fn_type is not None  # mypy has trouble type narrowing with closures
 
             @metric_partial(
@@ -123,7 +126,7 @@ def column_condition_partial(  # noqa: C901, PLR0915 # FIXME CoP
                     accessor_domain_kwargs,
                 )
 
-            return inner_func
+            return inner_func  # type: ignore[return-value]
 
         return wrapper
 
@@ -141,7 +144,7 @@ def column_condition_partial(  # noqa: C901, PLR0915 # FIXME CoP
 "{MetricPartialFunctionTypes.WINDOW_CONDITION_FN.value}" for "column_condition_partial" "partial_fn_type" property."""  # noqa: E501 # FIXME CoP
             )
 
-        def wrapper(metric_fn: Callable):
+        def wrapper(metric_fn: _F) -> _F:
             assert partial_fn_type is not None  # mypy has trouble type narrowing with closures
 
             @metric_partial(
@@ -210,7 +213,7 @@ def column_condition_partial(  # noqa: C901, PLR0915 # FIXME CoP
                     accessor_domain_kwargs,
                 )
 
-            return inner_func
+            return inner_func  # type: ignore[return-value]
 
         return wrapper
 
@@ -228,7 +231,7 @@ def column_condition_partial(  # noqa: C901, PLR0915 # FIXME CoP
 "{MetricPartialFunctionTypes.WINDOW_CONDITION_FN.value}" for "column_condition_partial" "partial_fn_type" property."""  # noqa: E501 # FIXME CoP
             )
 
-        def wrapper(metric_fn: Callable):
+        def wrapper(metric_fn: _F) -> _F:
             @metric_partial(
                 engine=engine,
                 partial_fn_type=partial_fn_type,
@@ -290,7 +293,7 @@ def column_condition_partial(  # noqa: C901, PLR0915 # FIXME CoP
                     accessor_domain_kwargs,
                 )
 
-            return inner_func
+            return inner_func  # type: ignore[return-value]
 
         return wrapper
     else:

@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Callable, Final
 import pact
 import pytest
 
-from great_expectations.data_context import CloudDataContext
 from great_expectations.exceptions import DataContextError
 from tests.integration.cloud.rest_contracts.conftest import (
     EXISTING_ORGANIZATION_ID,
@@ -17,6 +16,7 @@ from tests.integration.cloud.rest_contracts.conftest import (
 if TYPE_CHECKING:
     from requests import Session
 
+    from great_expectations.data_context import CloudDataContext
     from tests.integration.cloud.rest_contracts.conftest import PactBody
 
 
