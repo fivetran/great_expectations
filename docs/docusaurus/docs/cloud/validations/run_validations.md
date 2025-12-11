@@ -43,7 +43,7 @@ To help you find the right workflow for your particular combination of Expectati
   <tr>
     <td rowspan="3">Time interval</td>
     <td>AlloyDB<br />Aurora<br />Citus<br />Databricks SQL<br />Neon<br />PostgreSQL<br />Redshift<br />Snowflake</td>
-    <td>Use the UI:<ul><li>Choose a **Batch interval**.</li><li>Click the **Validate** button and select a Batch to validate.</li></ul><a href="https://deploy-preview-11400.docs.greatexpectations.io/docs/cloud/validations/run_validations/?validation-interface=ui#gx-managed-expectations-time-interval">Jump to full instructions</a></td>
+    <td>Use the UI:<ul><li>Choose a **Batch interval**.</li><li>Click the **Validate** button and select a Batch to validate.</li></ul><a href="/docs.greatexpectations.io/docs/cloud/validations/run_validations/?validation-interface=ui#gx-managed-expectations-time-interval">Jump to full instructions</a></td>
   </tr>
   <tr>
     <td>Amazon S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
