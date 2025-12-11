@@ -131,6 +131,11 @@ def test_cases_for_sql_data_connector_sqlite_connection_url(sa):
 def test_cases_for_sql_data_connector_sqlite_execution_engine(
     sa, test_cases_for_sql_data_connector_sqlite_connection_url
 ):
+    """Provide a sqlite ExecutionEngine for SQL data connector tests.
+
+    The engine and its underlying connections are explicitly closed after use to avoid
+    leaking sqlite3.Connection objects (which surface as ResourceWarning in CI).
+    """
     if sa is None:
         raise ValueError("SQL Database tests require sqlalchemy to be installed.")
 
@@ -138,16 +143,36 @@ def test_cases_for_sql_data_connector_sqlite_execution_engine(
         test_cases_for_sql_data_connector_sqlite_connection_url,
         poolclass=sqlalchemy.StaticPool,
     )
-    raw_connection = engine.raw_connection()
-    raw_connection.create_function("sqrt", 1, lambda x: math.sqrt(x))
-    raw_connection.create_function(
-        "md5", 2, lambda x, d: hashlib.md5(str(x).encode("utf-8")).hexdigest()[-1 * d :]
-    )
+    _raw_dbapi_con = engine.raw_connection()
+    try:
+        _raw_dbapi_con.create_function("sqrt", 1, lambda x: math.sqrt(x))
+        _raw_dbapi_con.create_function(
+            "md5", 2, lambda x, d: hashlib.md5(str(x).encode("utf-8")).hexdigest()[-1 * d :]
+        )
+    finally:
+        # Ensure the temporary raw DB-API connection is closed to avoid ResourceWarning.
+        try:
+            _raw_dbapi_con.close()
+        except Exception:
+            pass
 
-    conn: sa.engine.Connection = engine.connect()  # noqa: F841 # FIXME CoP
+    # Keep a live connection for static pools, but make sure it is closed on teardown.
+    conn: sa.engine.Connection = engine.connect()
 
     # Build a SqlAlchemyDataset using that database
-    return SqlAlchemyExecutionEngine(
+    execution_engine = SqlAlchemyExecutionEngine(
         name="test_sql_execution_engine",
         engine=engine,
     )
+
+    try:
+        yield execution_engine
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+        try:
+            execution_engine.close()
+        except Exception:
+            pass

@@ -1,5 +1,5 @@
 import os
-from typing import Dict, Tuple
+from typing import TYPE_CHECKING, Dict, Tuple
 from unittest import mock
 
 import pandas as pd
@@ -23,9 +23,11 @@ from great_expectations.expectations.row_conditions import (
     OrCondition,
 )
 from great_expectations.util import is_library_loadable
-from great_expectations.validator.computed_metric import MetricValue
 from great_expectations.validator.metric_configuration import MetricConfiguration
 from tests.expectations.test_util import get_table_columns_metric
+
+if TYPE_CHECKING:
+    from great_expectations.validator.computed_metric import MetricValue
 
 
 @pytest.mark.unit
@@ -541,7 +543,7 @@ def test_get_batch_with_partition_on_divided_integer_and_sample_on_list(test_df)
 
 # noinspection PyUnusedLocal
 @pytest.mark.skipif(
-    not (azure.storage and azure.BlobServiceClient),
+    not azure.BlobServiceClient,  # type: ignore[truthy-function]
     reason='Could not import "azure.storage.blob" from Microsoft Azure cloud',
 )
 @mock.patch(
@@ -563,7 +565,7 @@ def test_constructor_with_azure_options(mock_azure_conn):
 
 
 @pytest.mark.skipif(
-    not (azure.storage and azure.BlobServiceClient),
+    not azure.BlobServiceClient,  # type: ignore[truthy-function]
     reason='Could not import "azure.storage.blob" from Microsoft Azure cloud',
 )
 @mock.patch(

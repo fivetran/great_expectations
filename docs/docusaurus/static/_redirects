@@ -19,7 +19,7 @@
 /en/latest/contributing/* https://docs.greatexpectations.io/docs/core/introduction/community_resources/#contribute-code-or-documentation
 /en/latest/community.html https://docs.greatexpectations.io/docs/core/introduction/community_resources/
 /en/latest/guides.html https://docs.greatexpectations.io/docs/cloud/overview/gx_cloud_overview
-/en/latest/guides/workflows_patterns.html https://docs.greatexpectations.io/docs/cloud/deploy/deployment_patterns/#read-only-deployment
+/en/latest/guides/workflows_patterns.html https://docs.greatexpectations.io/docs/cloud/deploy/deployment_patterns
 /en/latest/guides/how_to_guides.html https://docs.greatexpectations.io/docs/core/introduction/
 /en/latest/guides/how_to_guides/configuring_data_docs/* https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_data_docs/
 /en/latest/guides/how_to_guides/creating_and_editing_expectations.html https://docs.greatexpectations.io/docs/core/define_expectations/
@@ -39,7 +39,7 @@
 /en/latest/guides/tutorials/getting_started_v3_api/* https://docs.greatexpectations.io/docs/core/introduction/
 /en/latest/guides/tutorials/quick_start.html https://docs.greatexpectations.io/docs/core/introduction/
 /en/latest/guides/tutorials/how_to_create_expectations.html https://docs.greatexpectations.io/docs/core/define_expectations/create_an_expectation/
-/en/latest/guides/workflows_patterns/* https://docs.greatexpectations.io/docs/cloud/deploy/deployment_patterns/#read-only-deployment
+/en/latest/guides/workflows_patterns/* https://docs.greatexpectations.io/docs/cloud/deploy/deployment_patterns
 /en/latest/changelog.html https://docs.greatexpectations.io/docs/core/changelog/
 /docs/changelog/ https://docs.greatexpectations.io/docs/core/changelog
 /en/latest/releasing.html https://docs.greatexpectations.io/docs/core/changelog/

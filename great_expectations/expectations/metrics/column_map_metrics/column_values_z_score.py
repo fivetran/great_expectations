@@ -50,7 +50,7 @@ class ColumnValuesZScore(ColumnMapMetricProvider):
         except TypeError:
             raise (TypeError("Cannot complete Z-score calculations on a non-numerical column."))  # noqa: TRY003 # FIXME CoP
 
-    @column_condition_partial(engine=PandasExecutionEngine)  # type: ignore[misc] # untyped-decorator
+    @column_condition_partial(engine=PandasExecutionEngine)
     def _pandas_condition(cls, column, _metrics, threshold, double_sided, **kwargs) -> pd.Series:
         z_score: pd.Series
         z_score, _, _ = _metrics[

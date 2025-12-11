@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Dict, Tuple, cast
+from typing import TYPE_CHECKING, Dict, Tuple, cast
 
 import pandas as pd
 import pytest
@@ -21,9 +21,6 @@ from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
 from great_expectations.data_context.util import file_relative_path
-from great_expectations.execution_engine.sqlalchemy_batch_data import (
-    SqlAlchemyBatchData,
-)
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from great_expectations.execution_engine.sqlalchemy_execution_engine import (
     SqlAlchemyExecutionEngine,
@@ -45,7 +42,6 @@ from great_expectations.expectations.row_conditions import (
 )
 from great_expectations.self_check.util import build_sa_execution_engine
 from great_expectations.util import get_sqlalchemy_domain_data
-from great_expectations.validator.computed_metric import MetricValue
 from great_expectations.validator.metric_configuration import MetricConfiguration
 from great_expectations.validator.validator import Validator
 from tests.expectations.test_util import get_table_columns_metric
@@ -55,6 +51,12 @@ from tests.test_utils import (
     get_sqlite_temp_table_names,
     get_sqlite_temp_table_names_from_engine,
 )
+
+if TYPE_CHECKING:
+    from great_expectations.execution_engine.sqlalchemy_batch_data import (
+        SqlAlchemyBatchData,
+    )
+    from great_expectations.validator.computed_metric import MetricValue
 
 try:
     sqlalchemy = pytest.importorskip("sqlalchemy")

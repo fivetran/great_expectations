@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 import os
-from typing import List
+from typing import TYPE_CHECKING, List
 
 import pandas as pd
 import pytest
@@ -18,12 +18,14 @@ from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 from great_expectations.execution_engine.partition_and_sample.sqlalchemy_data_sampler import (
     SqlAlchemyDataSampler,
 )
-from great_expectations.execution_engine.sqlalchemy_batch_data import (
-    SqlAlchemyBatchData,
-)
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from great_expectations.self_check.util import build_sa_execution_engine
 from great_expectations.util import import_library_module
+
+if TYPE_CHECKING:
+    from great_expectations.execution_engine.sqlalchemy_batch_data import (
+        SqlAlchemyBatchData,
+    )
 
 try:
     sqlalchemy = pytest.importorskip("sqlalchemy")

@@ -298,7 +298,7 @@ class MockedSecretClient:
 @pytest.mark.unit
 # This test requires this import but monkeypatches external calls made to azure.
 @pytest.mark.skipif(
-    not (azure.storage and azure.SecretClient),
+    not azure.SecretClient,  # type: ignore[truthy-function]
     reason='Could not import "azure.storage.blob" from Microsoft Azure cloud',
 )
 def test_substitute_value_from_azure_keyvault(

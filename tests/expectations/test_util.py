@@ -1,17 +1,13 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, List, cast
+from typing import TYPE_CHECKING, Dict, List, cast
 
 import pandas as pd
 import pytest
 
-from great_expectations.compatibility import sqlalchemy
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
-)
-from great_expectations.core import (
-    ExpectationValidationResult,
 )
 from great_expectations.core.expectation_diagnostics.expectation_test_data_cases import (
     ExpectationTestCase,
@@ -23,10 +19,6 @@ from great_expectations.core.expectation_diagnostics.supporting_types import (
     ExpectationExecutionEngineDiagnostics,
 )
 from great_expectations.exceptions import GreatExpectationsError
-from great_expectations.execution_engine import (
-    ExecutionEngine,
-    SqlAlchemyExecutionEngine,
-)
 from great_expectations.expectations.expectation import (
     render_suite_parameter_string,
 )
@@ -45,7 +37,17 @@ from great_expectations.self_check.util import (
     build_test_backends_list as build_test_backends_list_v3,
 )
 from great_expectations.validator.metric_configuration import MetricConfiguration
-from great_expectations.validator.validator import Validator
+
+if TYPE_CHECKING:
+    from great_expectations.compatibility import sqlalchemy
+    from great_expectations.core import (
+        ExpectationValidationResult,
+    )
+    from great_expectations.execution_engine import (
+        ExecutionEngine,
+        SqlAlchemyExecutionEngine,
+    )
+    from great_expectations.validator.validator import Validator
 
 logger = logging.getLogger(__name__)
 

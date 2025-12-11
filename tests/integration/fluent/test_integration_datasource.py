@@ -22,19 +22,6 @@ from great_expectations.core.partitioners import (
     PartitionerModInteger,
     PartitionerMultiColumnValue,
 )
-from great_expectations.data_context import (
-    AbstractDataContext,
-    CloudDataContext,
-    EphemeralDataContext,
-    FileDataContext,
-)
-from great_expectations.datasource.fluent import (
-    BatchRequest,
-)
-from great_expectations.datasource.fluent.interfaces import (
-    DataAsset,
-    Datasource,
-)
 from great_expectations.execution_engine.pandas_batch_data import PandasBatchData
 from great_expectations.execution_engine.sparkdf_batch_data import SparkDFBatchData
 from great_expectations.validator.v1_validator import Validator
@@ -49,6 +36,19 @@ if TYPE_CHECKING:
 
     from great_expectations.compatibility.pyspark import DataFrame as SparkDataFrame
     from great_expectations.compatibility.pyspark import SparkSession
+    from great_expectations.data_context import (
+        AbstractDataContext,
+        CloudDataContext,
+        EphemeralDataContext,
+        FileDataContext,
+    )
+    from great_expectations.datasource.fluent import (
+        BatchRequest,
+    )
+    from great_expectations.datasource.fluent.interfaces import (
+        DataAsset,
+        Datasource,
+    )
     from great_expectations.datasource.fluent.pandas_datasource import (
         DataFrameAsset as PandasDataFrameAsset,
     )

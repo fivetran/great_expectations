@@ -113,7 +113,7 @@ class DefaultJinjaView:
 
         return template
 
-    @contextfilter  # type: ignore[misc] # untyped 3rd party decorator
+    @contextfilter  # type: ignore[untyped-decorator]
     def add_data_context_id_to_url(
         self, jinja_context: Any, url: str, add_datetime: bool = True
     ) -> str:
@@ -128,7 +128,7 @@ class DefaultJinjaView:
             url += str(data_context_id)
         return url
 
-    @contextfilter  # type: ignore[misc] # untyped 3rd party decorator
+    @contextfilter  # type: ignore[untyped-decorator]
     def render_content_block(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
         self,
         jinja_context: Any,
@@ -201,7 +201,7 @@ class DefaultJinjaView:
                 continue
             dict_[key] = self.render_content_block(context, val, index, content_block_id)
 
-    @contextfilter  # type: ignore[misc] # untyped 3rd party decorator
+    @contextfilter  # type: ignore[untyped-decorator]
     def render_bootstrap_table_data(
         self,
         context: Any,
@@ -531,7 +531,7 @@ class DefaultMarkdownPageView(DefaultJinjaView):
         return pTemplate(template["template"]).safe_substitute(template.get("params", {}))
 
     @override
-    @contextfilter  # type: ignore[misc] # untyped 3rd party decorator
+    @contextfilter  # type: ignore[untyped-decorator]
     def render_content_block(
         self,
         jinja_context: Any,

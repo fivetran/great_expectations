@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import importlib
+import importlib.util
 import itertools
 import json
 from collections.abc import Iterable

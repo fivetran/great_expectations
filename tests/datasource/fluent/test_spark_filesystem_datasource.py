@@ -11,7 +11,6 @@ import pytest
 
 import great_expectations.exceptions as ge_exceptions
 import great_expectations.expectations as gxe
-from great_expectations.alias_types import PathStr
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.pyspark import types as pyspark_types
@@ -22,9 +21,6 @@ from great_expectations.core.partitioners import (
     ColumnPartitionerYearly,
     FileNamePartitionerMonthly,
     FileNamePartitionerYearly,
-)
-from great_expectations.datasource.fluent.data_asset.path.path_data_asset import (
-    PathDataAsset,
 )
 from great_expectations.datasource.fluent.data_asset.path.spark.csv_asset import (
     CSVAsset,
@@ -64,6 +60,10 @@ from great_expectations.datasource.fluent.spark_filesystem_datasource import (
 )
 
 if TYPE_CHECKING:
+    from great_expectations.alias_types import PathStr
+    from great_expectations.datasource.fluent.data_asset.path.path_data_asset import (
+        PathDataAsset,
+    )
     from great_expectations.datasource.fluent.interfaces import BatchSlice
 
 

@@ -33,14 +33,15 @@ from great_expectations.data_context.types.base import (
     GXCloudConfig,
     ProgressBarsConfig,
 )
-from great_expectations.data_context.types.resource_identifiers import (
-    ConfigurationIdentifier,
-)
 
 if TYPE_CHECKING:
     from unittest.mock import MagicMock  # noqa: TID251 # FIXME CoP
 
     from pytest_mock import MockerFixture
+
+    from great_expectations.data_context.types.resource_identifiers import (
+        ConfigurationIdentifier,
+    )
 
 yaml = YAMLHandler()
 

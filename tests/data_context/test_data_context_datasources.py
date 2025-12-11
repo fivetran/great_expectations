@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pathlib
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -12,10 +13,12 @@ from great_expectations.data_context.store.gx_cloud_store_backend import (
 from great_expectations.data_context.store.inline_store_backend import (
     InlineStoreBackend,
 )
-from great_expectations.data_context.types.base import (
-    DataContextConfig,
-    GXCloudConfig,
-)
+
+if TYPE_CHECKING:
+    from great_expectations.data_context.types.base import (
+        DataContextConfig,
+        GXCloudConfig,
+    )
 
 
 @pytest.fixture
