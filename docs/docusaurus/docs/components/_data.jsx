@@ -1,5 +1,5 @@
 export default {
-  release_version: "great_expectations, version 1.9.2",
+  release_version: "great_expectations, version 1.9.3",
   min_python: "3.10",
   max_python: "3.13",
 };

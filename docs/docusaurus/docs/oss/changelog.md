@@ -15,6 +15,21 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.9.3
+* [FEATURE] infer primary keys during column_types metric fetch ([#11554](https://github.com/great-expectations/great_expectations/pull/11554))
+* [BUGFIX] Prevent FROM DUAL from being added to a properly formatted ORACLE SQL query when using SQLAlchemy ([#11538](https://github.com/great-expectations/great_expectations/pull/11538)) (thanks @konnor-b)
+* [DOCS] asset history ([#11543](https://github.com/great-expectations/great_expectations/pull/11543))
+* [DOCS] typos on manage_expectations.md ([#11547](https://github.com/great-expectations/great_expectations/pull/11547))
+* [DOCS] combined compatibility reference updates ([#11555](https://github.com/great-expectations/great_expectations/pull/11555))
+* [DOCS] unexpected_rows ([#11553](https://github.com/great-expectations/great_expectations/pull/11553))
+* [MAINTENANCE] pre-commit autoupdate ([#11539](https://github.com/great-expectations/great_expectations/pull/11539))
+* [MAINTENANCE] Fix build_docs invocation of invoke ([#11545](https://github.com/great-expectations/great_expectations/pull/11545))
+* [MAINTENANCE] Bump ruff to 0.14.8 ([#11550](https://github.com/great-expectations/great_expectations/pull/11550))
+* [MAINTENANCE] restore null columns to rendered_content tables on multi-source expectations ([#11548](https://github.com/great-expectations/great_expectations/pull/11548))
+* [MAINTENANCE] ensure sqlite tests cleanup connections ([#11552](https://github.com/great-expectations/great_expectations/pull/11552))
+* [MAINTENANCE] Bump mypy to 0.19.0 ([#11551](https://github.com/great-expectations/great_expectations/pull/11551))
+* [MAINTENANCE] Update ruff pre-commit and remove TCH001 from tests ruff ignore list ([#11557](https://github.com/great-expectations/great_expectations/pull/11557))
+
 ### 1.9.2
 * [DOCS] validations with the Cloud API ([#11400](https://github.com/great-expectations/great_expectations/pull/11400))
 * [DOCS] remove "read-only" deployment pattern as a misnomer ([#11533](https://github.com/great-expectations/great_expectations/pull/11533))
