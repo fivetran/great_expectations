@@ -13,7 +13,7 @@ This setting controls the results you receive in both the GX Cloud UI and the GX
 
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - Your [Cloud credentials](/docs/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/docs/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
-- A Data Asset with a [Checkpoint or Validation Definition](/cloud/validations/run_validations). You can use an automatically created GX-managed resource or a manually created resource.
+- A Data Asset with a [Checkpoint or Validation Definition](/cloud/validations/run_validations.md). You can use an automatically created GX-managed resource or a manually created resource.
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
    :::note Minimum version for row conditions
