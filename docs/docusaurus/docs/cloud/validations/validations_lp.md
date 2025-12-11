@@ -17,5 +17,5 @@ import OverviewCard from '@site/src/components/OverviewCard';
 <LinkCardGrid>
   <LinkCard topIcon label="Run Validations" description="Validate that your data conforms to your Expectations." to="/cloud/validations/run_validations" icon="/img/checkpoint_icon.svg"/>
 
-  <LinkCard topIcon label="Choose result format" description="Control the verbosity of your Validation Results." to="/cloud/validations/choose_result_format" icon="/img/example_cases_icon.svg"/>
+  <LinkCard topIcon label="Format results" description="Control the verbosity of your Validation Results." to="/cloud/validations/format_results" icon="/img/example_cases_icon.svg"/>
 </LinkCardGrid>

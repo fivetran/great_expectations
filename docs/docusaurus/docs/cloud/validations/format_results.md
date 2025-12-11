@@ -1,5 +1,5 @@
 ---
-title: Choose result format
+title: Format results
 description: Control the verbosity of your Validation Results.
 ---
 import TabItem from '@theme/TabItem';
@@ -44,7 +44,7 @@ Follow the steps below to select a base level of verbosity, optionally configure
    <TabItem value="boolean" label='"BOOLEAN_ONLY"'>
    When the `result_format` is `"BOOLEAN_ONLY"`, Validation Results do not include additional information in a `result` dictionary.  The successful evaluation of the Expectation is exclusively returned via the `True` or `False` value of the `success` key in the returned Validation Result.
 
-   To create a `"BOOLEAN_ONLY"` result format configuration, use the following code:
+   To create a `"BOOLEAN_ONLY"` Result Format configuration, use the following code:
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/result_format.py - boolean_only Result Format"
    ```
@@ -53,9 +53,9 @@ Follow the steps below to select a base level of verbosity, optionally configure
    <TabItem value="basic" label='"BASIC"'>
    When the `result_format` is set to `"BASIC"`, the Validation Results of each Expectation include a `result` dictionary with information providing a basic explanation for why it failed or succeeded. The format is intended for quick feedback and it works well in Jupyter Notebooks.
    
-   You can check the [Validation Results reference tables](/docs/cloud/validations/choose_result_format?results=verbosity#reference-tables) to see what information is provided in the `result` dictionary.
+   You can check the [Validation Results reference tables](/docs/cloud/validations/format_results?results=verbosity#reference-tables) to see what information is provided in the `result` dictionary.
    
-   To create a `"BASIC"` result format configuration, use the following code:
+   To create a `"BASIC"` Result Format configuration, use the following code:
    
    ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/result_format.py - basic Result Format"
    ```
@@ -64,9 +64,9 @@ Follow the steps below to select a base level of verbosity, optionally configure
    <TabItem value="summary" label='"SUMMARY"'>
    When the `result_format` key is set to `"SUMMARY"`, the Validation Results of each Expectation include a `result` dictionary with information that summarizes values to show why it failed or succeeded.  This format is intended for more detailed exploratory work and includes additional information beyond what is included by `BASIC`.
    
-   You can check the [Validation Results reference tables](/docs/cloud/validations/choose_result_format?results=verbosity#reference-tables) to see what information is provided in the `result` dictionary.
+   You can check the [Validation Results reference tables](/docs/cloud/validations/format_results?results=verbosity#reference-tables) to see what information is provided in the `result` dictionary.
 
-   To create a `"SUMMARY"` result format configuration, use the following code:
+   To create a `"SUMMARY"` Result Format configuration, use the following code:
    
    ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/result_format.py - summary Result Format"
    ```
@@ -75,9 +75,9 @@ Follow the steps below to select a base level of verbosity, optionally configure
    <TabItem value="complete" label='"COMPLETE"'>
    When the `result_format` key is set to `"COMPLETE"`, the Validation Results of each Expectation include a `result` dictionary with all available information to explain why it failed or succeeded.  This format is intended for debugging pipelines or developing detailed regression tests and includes additional information beyond what is provided by `"SUMMARY"`.
    
-   You can check the [Validation Results reference tables](/docs/cloud/validations/choose_result_format?results=verbosity#reference-tables) to see what information is provided in the `result` dictionary.
+   You can check the [Validation Results reference tables](/docs/cloud/validations/format_results?results=verbosity#reference-tables) to see what information is provided in the `result` dictionary.
    
-   To create a `"COMPLETE"` result format configuration, use the following code:
+   To create a `"COMPLETE"` Result Format configuration, use the following code:
    
    ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/result_format.py - complete Result Format"
    ```
@@ -94,7 +94,7 @@ Follow the steps below to select a base level of verbosity, optionally configure
    <Tabs queryString="result_format_string" groupId="result_format_string" defaultValue='basic'>
 
    <TabItem value="boolean" label='"BOOLEAN_ONLY"'>
-      A '"BOOLEAN_ONLY"' result format does not support additional settings.
+      A '"BOOLEAN_ONLY"' Result Format does not support additional settings.
    </TabItem>
    
    <TabItem value="basic" label='"BASIC"'>
