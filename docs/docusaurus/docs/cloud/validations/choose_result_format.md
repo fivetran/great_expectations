@@ -53,7 +53,7 @@ Follow the steps below to select a base level of verbosity, optionally configure
    <TabItem value="basic" label='"BASIC"'>
    When the `result_format` is set to `"BASIC"`, the Validation Results of each Expectation include a `result` dictionary with information providing a basic explanation for why it failed or succeeded. The format is intended for quick feedback and it works well in Jupyter Notebooks.
    
-   You can check the [Validation Results reference tables](cloud/validations/choose_result_format/?results=verbosity#reference-tables) to see what information is provided in the `result` dictionary.
+   You can check the [Validation Results reference tables](/docs/cloud/validations/choose_result_format?results=verbosity#reference-tables) to see what information is provided in the `result` dictionary.
    
    To create a `"BASIC"` result format configuration, use the following code:
    
@@ -64,7 +64,7 @@ Follow the steps below to select a base level of verbosity, optionally configure
    <TabItem value="summary" label='"SUMMARY"'>
    When the `result_format` key is set to `"SUMMARY"`, the Validation Results of each Expectation include a `result` dictionary with information that summarizes values to show why it failed or succeeded.  This format is intended for more detailed exploratory work and includes additional information beyond what is included by `BASIC`.
    
-   You can check the [Validation Results reference tables](cloud/validations/choose_result_format/?results=verbosity#reference-tables) to see what information is provided in the `result` dictionary.
+   You can check the [Validation Results reference tables](/docs/cloud/validations/choose_result_format?results=verbosity#reference-tables) to see what information is provided in the `result` dictionary.
 
    To create a `"SUMMARY"` result format configuration, use the following code:
    
@@ -75,7 +75,7 @@ Follow the steps below to select a base level of verbosity, optionally configure
    <TabItem value="complete" label='"COMPLETE"'>
    When the `result_format` key is set to `"COMPLETE"`, the Validation Results of each Expectation include a `result` dictionary with all available information to explain why it failed or succeeded.  This format is intended for debugging pipelines or developing detailed regression tests and includes additional information beyond what is provided by `"SUMMARY"`.
    
-   You can check the [Validation Results reference tables](cloud/validations/choose_result_format/?results=verbosity#reference-tables) to see what information is provided in the `result` dictionary.
+   You can check the [Validation Results reference tables](/docs/cloud/validations/choose_result_format?results=verbosity#reference-tables) to see what information is provided in the `result` dictionary.
    
    To create a `"COMPLETE"` result format configuration, use the following code:
    
