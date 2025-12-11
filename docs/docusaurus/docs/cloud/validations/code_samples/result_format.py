@@ -68,7 +68,9 @@ checkpoint_config = gx.Checkpoint(
 boolean_result_format_dict = {"result_format": "BOOLEAN_ONLY"}
 # </snippet>
 batch_parameters = {"dataframe": test_df}
-validation_definition.run(result_format=boolean_result_format_dict, batch_parameters=batch_parameters)
+validation_definition.run(
+    result_format=boolean_result_format_dict, batch_parameters=batch_parameters
+)
 # checkpoint.run(result_format=boolean_result_format_dict)
 
 # BASIC Result Format
@@ -76,7 +78,9 @@ validation_definition.run(result_format=boolean_result_format_dict, batch_parame
 basic_result_format_dict = {"result_format": "BASIC"}
 # </snippet>
 batch_parameters = {"dataframe": test_df}
-validation_definition.run(result_format=basic_result_format_dict, batch_parameters=batch_parameters)
+validation_definition.run(
+    result_format=basic_result_format_dict, batch_parameters=batch_parameters
+)
 # checkpoint.run(result_format=basic_result_format_dict)
 
 # SUMMARY Result Format
@@ -84,7 +88,9 @@ validation_definition.run(result_format=basic_result_format_dict, batch_paramete
 summary_result_format_dict = {"result_format": "SUMMARY"}
 # </snippet>
 batch_parameters = {"dataframe": test_df}
-validation_definition.run(result_format=summary_result_format_dict, batch_parameters=batch_parameters)
+validation_definition.run(
+    result_format=summary_result_format_dict, batch_parameters=batch_parameters
+)
 # checkpoint.run(result_format=summary_result_format_dict)
 
 # COMPLETE Result Format
@@ -92,7 +98,9 @@ validation_definition.run(result_format=summary_result_format_dict, batch_parame
 complete_result_format_dict = {"result_format": "COMPLETE"}
 # </snippet>
 batch_parameters = {"dataframe": test_df}
-validation_definition.run(result_format=complete_result_format_dict, batch_parameters=batch_parameters)
+validation_definition.run(
+    result_format=complete_result_format_dict, batch_parameters=batch_parameters
+)
 # checkpoint.run(result_format=complete_result_format_dict)
 
 
