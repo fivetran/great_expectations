@@ -22,9 +22,9 @@ This setting controls the results you receive in both the GX Cloud UI and the GX
       - **is in**, **is not in**, or **is null** operators
    :::
 
-## Define a Result Format configuration
+## Configure and apply a Result Format
 
-The `result_format` parameter takes in a dictionary of configuration settings.
+Follow the steps below to select a base level of verbosity, optionally configure additional settings available to your selection, and then apply the Result Format configuration to a Checkpoint or Validation Definition.
 
 1. Create a dictionary and set the verbosity of returned Validation Results.
 
@@ -53,7 +53,7 @@ The `result_format` parameter takes in a dictionary of configuration settings.
    <TabItem value="basic" label='"BASIC"'>
    When the `result_format` is set to `"BASIC"`, the Validation Results of each Expectation include a `result` dictionary with information providing a basic explanation for why it failed or succeeded. The format is intended for quick feedback and it works well in Jupyter Notebooks.
    
-   You can check the [Validation Results reference tables](choose_result_format?results=verbosity#validation-results-reference-tables) to see what information is provided in the `result` dictionary.
+   You can check the [Validation Results reference tables](choose_result_format?results=verbosity#reference-tables) to see what information is provided in the `result` dictionary.
    
    To create a `"BASIC"` result format configuration, use the following code:
    
@@ -64,7 +64,7 @@ The `result_format` parameter takes in a dictionary of configuration settings.
    <TabItem value="summary" label='"SUMMARY"'>
    When the `result_format` key is set to `"SUMMARY"`, the Validation Results of each Expectation include a `result` dictionary with information that summarizes values to show why it failed or succeeded.  This format is intended for more detailed exploratory work and includes additional information beyond what is included by `BASIC`.
    
-   You can check the [Validation Results reference tables](choose_result_format?results=verbosity#validation-results-reference-tables) to see what information is provided in the `result` dictionary.
+   You can check the [Validation Results reference tables](choose_result_format?results=verbosity#reference-tables) to see what information is provided in the `result` dictionary.
 
    To create a `"SUMMARY"` result format configuration, use the following code:
    
@@ -75,7 +75,7 @@ The `result_format` parameter takes in a dictionary of configuration settings.
    <TabItem value="complete" label='"COMPLETE"'>
    When the `result_format` key is set to `"COMPLETE"`, the Validation Results of each Expectation include a `result` dictionary with all available information to explain why it failed or succeeded.  This format is intended for debugging pipelines or developing detailed regression tests and includes additional information beyond what is provided by `"SUMMARY"`.
    
-   You can check the [Validation Results reference tables](choose_result_format?results=verbosity#validation-results-reference-tables) to see what information is provided in the `result` dictionary.
+   You can check the [Validation Results reference tables](choose_result_format?results=verbosity#reference-tables) to see what information is provided in the `result` dictionary.
    
    To create a `"COMPLETE"` result format configuration, use the following code:
    
@@ -140,7 +140,7 @@ The `result_format` parameter takes in a dictionary of configuration settings.
    ```Python title="Runtime Result Format" name="docs/docusaurus/docs/cloud/validations/code_samples/result_format.py - apply to Validation Definition"
    ```
 
-## Validation Results reference tables
+## Reference tables
 
 <Tabs queryString="results" groupId="results" defaultValue='fields'>
 

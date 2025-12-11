@@ -112,7 +112,9 @@ checkpoint.result_format = result_format_dict
 checkpoint.save()
 
 # Run the Checkpoint
-checkpoint.run()
+# If you are working with a SQL or filesystem Data Asset, omit the batch_parameters.
+batch_parameters = {"dataframe": test_df}
+checkpoint.run(batch_parameters=batch_parameters)
 # </snippet>
 
 
@@ -133,7 +135,9 @@ result_format_dict = {
 validation_definition = context.validation_definitions.get("my_validation_definition")
 
 # Run the Validation Definition with a Result Format configuration
-validation_results = validation_definition.run(result_format=result_format_dict)
+# If you are working with a SQL or filesystem Data Asset, omit the batch_parameters.
+batch_parameters = {"dataframe": test_df}
+validation_results = validation_definition.run(result_format=result_format_dict,batch_parameters=batch_parameters)
 
 # Review the Validation Results
 print(validation_results)
