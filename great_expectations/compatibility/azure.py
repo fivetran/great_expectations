@@ -6,10 +6,6 @@ AZURE_BLOB_STORAGE_NOT_IMPORTED = NotImported(
     "azure blob storage components are not installed, please 'pip install azure-storage-blob azure-identity azure-keyvault-secrets'"  # noqa: E501 # FIXME CoP
 )
 
-try:
-    from azure import storage
-except ImportError:
-    storage = AZURE_BLOB_STORAGE_NOT_IMPORTED
 
 try:
     from azure.identity import DefaultAzureCredential

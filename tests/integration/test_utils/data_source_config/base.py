@@ -12,13 +12,15 @@ from uuid import UUID, uuid4
 import pandas as pd
 
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
 from great_expectations.datasource.fluent.interfaces import Batch, DataAsset
 
 if TYPE_CHECKING:
     import pytest
     from pytest import FixtureRequest
 
+    from great_expectations.data_context.data_context.abstract_data_context import (
+        AbstractDataContext,
+    )
     from tests.integration.test_utils.data_source_config.sql import SessionSQLEngineManager
 
 

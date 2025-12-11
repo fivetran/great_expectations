@@ -1,4 +1,4 @@
-from typing import Iterable, Optional, Union
+from typing import Generator, Iterable, Optional, Union
 
 import pytest
 
@@ -6,6 +6,7 @@ from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
 from great_expectations.core.metric_domain_types import MetricDomainTypes
+from great_expectations.data_context.util import file_relative_path
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
 
@@ -72,3 +73,25 @@ def mock_sqlalchemy_execution_engine():
     execution_engine = MockSqlAlchemyExecutionEngine()
     execution_engine._batch_manager = MockBatchManager()
     return execution_engine
+
+
+@pytest.fixture
+def sql_data_connector_test_db_execution_engine() -> Generator[
+    SqlAlchemyExecutionEngine, None, None
+]:
+    """Provide a sqlite ExecutionEngine pointing to the SQL data connector test database.
+
+    The engine and its underlying connections are explicitly closed after use to avoid
+    leaking sqlite3.Connection objects (which surface as ResourceWarning in CI).
+    """
+    db_file = file_relative_path(
+        __file__,
+        "../../test_sets/test_cases_for_sql_data_connector.db",
+    )
+    engine: sa.engine.Engine = sa.create_engine(f"sqlite:///{db_file}")
+    execution_engine = SqlAlchemyExecutionEngine(engine=engine)
+
+    try:
+        yield execution_engine
+    finally:
+        execution_engine.close()

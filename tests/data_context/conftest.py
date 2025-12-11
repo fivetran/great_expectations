@@ -5,7 +5,7 @@ import os
 import pathlib
 import shutil
 import unittest.mock
-from typing import Any, Callable, Dict, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Union, cast
 from unittest.mock import Mock  # noqa: TID251 # FIXME CoP
 
 import pytest
@@ -21,7 +21,9 @@ from great_expectations.data_context.store.gx_cloud_store_backend import (
 )
 from great_expectations.data_context.types.base import DataContextConfig
 from great_expectations.data_context.util import file_relative_path
-from great_expectations.datasource.fluent.interfaces import Datasource
+
+if TYPE_CHECKING:
+    from great_expectations.datasource.fluent.interfaces import Datasource
 
 yaml = YAMLHandler()
 

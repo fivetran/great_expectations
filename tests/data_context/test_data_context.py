@@ -4,7 +4,7 @@ import os
 import pathlib
 import shutil
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import TYPE_CHECKING, Dict, List, Union
 
 import pytest
 
@@ -13,8 +13,6 @@ import great_expectations.exceptions as gx_exceptions
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.yaml_handler import YAMLHandler
 from great_expectations.data_context import get_context
-from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
-from great_expectations.data_context.data_context.cloud_data_context import CloudDataContext
 from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
 )
@@ -35,6 +33,12 @@ from great_expectations.util import (
     gen_directory_tree_str,
 )
 from tests.test_utils import safe_remove
+
+if TYPE_CHECKING:
+    from great_expectations.data_context.data_context.abstract_data_context import (
+        AbstractDataContext,
+    )
+    from great_expectations.data_context.data_context.cloud_data_context import CloudDataContext
 
 yaml = YAMLHandler()
 

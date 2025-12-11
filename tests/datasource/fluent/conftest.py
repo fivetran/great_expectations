@@ -34,7 +34,6 @@ from great_expectations.core.batch_spec import (
     SqlAlchemyDatasourceBatchSpec,
 )
 from great_expectations.data_context import EphemeralDataContext, FileDataContext
-from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
 from great_expectations.datasource.fluent import (
     PandasAzureBlobStorageDatasource,
     PandasGoogleCloudStorageDatasource,
@@ -69,6 +68,9 @@ if TYPE_CHECKING:
     from pytest import FixtureRequest
 
     from great_expectations.data_context import CloudDataContext
+    from great_expectations.data_context.data_context.abstract_data_context import (
+        AbstractDataContext,
+    )
 
 
 CreateSourceFixture: TypeAlias = Callable[..., ContextManager[PostgresDatasource]]

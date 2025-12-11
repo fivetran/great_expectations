@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import TYPE_CHECKING, List
 
 import pandas as pd
 import pytest
 from pandas import Timestamp
 
-from great_expectations.data_context import CloudDataContext
-from great_expectations.datasource.fluent.batch_request import BatchRequest
 from great_expectations.experimental.metric_repository.metric_list_metric_retriever import (
     MetricListMetricRetriever,
 )
@@ -18,6 +16,10 @@ from great_expectations.experimental.metric_repository.metrics import (
     MetricTypes,
     TableMetric,
 )
+
+if TYPE_CHECKING:
+    from great_expectations.data_context import CloudDataContext
+    from great_expectations.datasource.fluent.batch_request import BatchRequest
 
 
 @pytest.fixture
@@ -89,12 +91,12 @@ def test_get_metrics_table_metrics_only(
             batch_id=batch_id,
             metric_name="table.column_types",
             value=[
-                {"name": "numeric_with_nulls_1", "type": "float64"},
-                {"name": "numeric_with_nulls_2", "type": "float64"},
-                {"name": "string", "type": "object"},
-                {"name": "string_with_nulls", "type": "object"},
-                {"name": "boolean", "type": "bool"},
-                {"name": "datetime", "type": "datetime64[ns]"},
+                {"name": "numeric_with_nulls_1", "type": "float64", "primary_key": False},
+                {"name": "numeric_with_nulls_2", "type": "float64", "primary_key": False},
+                {"name": "string", "type": "object", "primary_key": False},
+                {"name": "string_with_nulls", "type": "object", "primary_key": False},
+                {"name": "boolean", "type": "bool", "primary_key": False},
+                {"name": "datetime", "type": "datetime64[ns]", "primary_key": False},
             ],
             exception=None,
         ),
@@ -209,12 +211,12 @@ def test_get_metrics_full_cdm(
             batch_id=batch_id,
             metric_name="table.column_types",
             value=[
-                {"name": "numeric_with_nulls_1", "type": "float64"},
-                {"name": "numeric_with_nulls_2", "type": "float64"},
-                {"name": "string", "type": "object"},
-                {"name": "string_with_nulls", "type": "object"},
-                {"name": "boolean", "type": "bool"},
-                {"name": "datetime", "type": "datetime64[ns]"},
+                {"name": "numeric_with_nulls_1", "type": "float64", "primary_key": False},
+                {"name": "numeric_with_nulls_2", "type": "float64", "primary_key": False},
+                {"name": "string", "type": "object", "primary_key": False},
+                {"name": "string_with_nulls", "type": "object", "primary_key": False},
+                {"name": "boolean", "type": "bool", "primary_key": False},
+                {"name": "datetime", "type": "datetime64[ns]", "primary_key": False},
             ],
             exception=None,
         ),

@@ -117,8 +117,8 @@ def test_get_metrics_table_metrics_only(
             batch_id="batch_id",
             metric_name="table.column_types",
             value=[
-                {"name": "col1", "type": "float"},
-                {"name": "col2", "type": "float"},
+                {"name": "col1", "type": "float", "primary_key": False},
+                {"name": "col2", "type": "float", "primary_key": False},
             ],
             exception=None,
         ),
@@ -183,8 +183,8 @@ def test_get_metrics_full_list(
             batch_id="batch_id",
             metric_name="table.column_types",
             value=[
-                {"name": "col1", "type": "float"},
-                {"name": "col2", "type": "float"},
+                {"name": "col1", "type": "float", "primary_key": False},
+                {"name": "col2", "type": "float", "primary_key": False},
             ],
             exception=None,
         ),
@@ -368,8 +368,8 @@ def test_get_metrics_metrics_missing(
             batch_id="batch_id",
             metric_name="table.column_types",
             value=[
-                {"name": "col1", "type": "float"},
-                {"name": "col2", "type": "float"},
+                {"name": "col1", "type": "float", "primary_key": False},
+                {"name": "col2", "type": "float", "primary_key": False},
             ],
             exception=None,
         ),
@@ -461,8 +461,8 @@ def test_get_metrics_with_exception(
             batch_id="batch_id",
             metric_name="table.column_types",
             value=[
-                {"name": "col1", "type": "float"},
-                {"name": "col2", "type": "float"},
+                {"name": "col1", "type": "float", "primary_key": False},
+                {"name": "col2", "type": "float", "primary_key": False},
             ],
             exception=None,
         ),
@@ -539,9 +539,10 @@ def test_get_metrics_with_column_type_missing(
             batch_id="batch_id",
             metric_name="table.column_types",
             value=[
-                {"name": "col1", "type": "float"},
+                {"name": "col1", "type": "float", "primary_key": False},
                 {
                     "name": "col2",
+                    "primary_key": False,
                 },  # Note: No type for col2
             ],
             exception=None,
@@ -612,7 +613,7 @@ def test_get_metrics_with_timestamp_columns(
         TableMetric[List[str]](
             batch_id="batch_id",
             metric_name="table.column_types",
-            value=[{"name": "timestamp_col", "type": "TIMESTAMP_NTZ"}],
+            value=[{"name": "timestamp_col", "type": "TIMESTAMP_NTZ", "primary_key": False}],
             exception=None,
         ),
         ColumnMetric[str](
@@ -859,8 +860,8 @@ def test_get_metrics_with_timestamp_columns_exclude_time(
             batch_id="batch_id",
             metric_name="table.column_types",
             value=[
-                {"name": "timestamp_col", "type": "TIMESTAMP_NTZ"},
-                {"name": "time_col", "type": "TIME"},
+                {"name": "timestamp_col", "type": "TIMESTAMP_NTZ", "primary_key": False},
+                {"name": "time_col", "type": "TIME", "primary_key": False},
             ],
             exception=None,
         ),

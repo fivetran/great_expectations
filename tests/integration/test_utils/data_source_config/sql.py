@@ -21,8 +21,6 @@ from great_expectations.compatibility.sqlalchemy import (
     insert,
     sqltypes,
 )
-from great_expectations.data_context import AbstractDataContext
-from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from tests.integration.sql_session_manager import (
@@ -33,6 +31,9 @@ from tests.integration.test_utils.data_source_config.base import BatchTestSetup,
 
 if TYPE_CHECKING:
     import sqlalchemy as sa
+
+    from great_expectations.data_context import AbstractDataContext
+    from great_expectations.datasource.fluent.interfaces import Batch
 
 logger = logging.getLogger(__name__)
 

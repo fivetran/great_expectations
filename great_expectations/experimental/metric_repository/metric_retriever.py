@@ -316,10 +316,16 @@ class MetricRetriever(abc.ABC):
                     {
                         "name": raw_column_type["name"],
                         "type": str(raw_column_type["type"]),
+                        "primary_key": raw_column_type.get("primary_key", False),
                     }
                 )
             else:
-                column_types_converted_to_str.append({"name": raw_column_type["name"]})
+                column_types_converted_to_str.append(
+                    {
+                        "name": raw_column_type["name"],
+                        "primary_key": raw_column_type.get("primary_key", False),
+                    }
+                )
 
         return TableMetric[List[str]](
             batch_id=batch_id,

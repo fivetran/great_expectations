@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import re
-from typing import Any, Dict, Iterator, List, cast
+from typing import TYPE_CHECKING, Any, Dict, Iterator, List, cast
 from unittest import mock
 
 import pytest
@@ -14,10 +14,12 @@ from great_expectations.core.partitioners import FileNamePartitionerPath
 from great_expectations.datasource.fluent import (
     SparkGoogleCloudStorageDatasource,
 )
-from great_expectations.datasource.fluent.data_asset.path.path_data_asset import (
-    PathDataAsset,
-)
 from great_expectations.datasource.fluent.data_asset.path.spark.csv_asset import CSVAsset
+
+if TYPE_CHECKING:
+    from great_expectations.datasource.fluent.data_asset.path.path_data_asset import (
+        PathDataAsset,
+    )
 
 logger = logging.getLogger(__file__)
 
