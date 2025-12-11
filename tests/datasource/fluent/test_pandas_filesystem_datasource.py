@@ -21,9 +21,6 @@ from great_expectations.datasource.fluent.data_asset.path.pandas.generated_asset
     CSVAsset,
     JSONAsset,
 )
-from great_expectations.datasource.fluent.data_asset.path.path_data_asset import (
-    PathDataAsset,
-)
 from great_expectations.datasource.fluent.data_connector import (
     FilesystemDataConnector,
 )
@@ -35,6 +32,9 @@ from great_expectations.exceptions.exceptions import NoAvailableBatchesError
 if TYPE_CHECKING:
     from great_expectations.alias_types import PathStr
     from great_expectations.data_context import AbstractDataContext
+    from great_expectations.datasource.fluent.data_asset.path.path_data_asset import (
+        PathDataAsset,
+    )
     from great_expectations.datasource.fluent.interfaces import (
         BatchMetadata,
         BatchSlice,

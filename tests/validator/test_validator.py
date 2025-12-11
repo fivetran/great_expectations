@@ -24,7 +24,6 @@ from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
 )
 from great_expectations.data_context.util import file_relative_path
-from great_expectations.datasource.fluent.pandas_datasource import PandasDatasource
 from great_expectations.execution_engine import PandasExecutionEngine
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
@@ -34,6 +33,8 @@ from great_expectations.validator.validator import Validator
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
+
+    from great_expectations.datasource.fluent.pandas_datasource import PandasDatasource
 
 DATASOURCE_NAME = "my_datasource"
 DATA_ASSET_NAME = "IN_MEMORY_DATA_ASSET"

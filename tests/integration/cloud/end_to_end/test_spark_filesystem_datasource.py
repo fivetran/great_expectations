@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Generator
 import pytest
 
 from great_expectations import ValidationDefinition
-from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.datasource.fluent.data_connector.filesystem_data_connector import (
     normalize_directory_path,
 )
@@ -17,6 +16,7 @@ if TYPE_CHECKING:
 
     from great_expectations.checkpoint.checkpoint import Checkpoint, CheckpointResult
     from great_expectations.core import ExpectationSuite
+    from great_expectations.core.batch_definition import BatchDefinition
     from great_expectations.data_context import CloudDataContext
     from great_expectations.datasource.fluent import (
         SparkFilesystemDatasource,

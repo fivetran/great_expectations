@@ -10,7 +10,6 @@ import pytest
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.partitioners import FileNamePartitionerYearly
-from great_expectations.datasource.fluent.batch_request import BatchParameters
 from great_expectations.datasource.fluent.interfaces import Batch, DataAsset
 from great_expectations.exceptions import (
     BatchDefinitionNotAddedError,
@@ -31,7 +30,7 @@ if TYPE_CHECKING:
     from great_expectations.data_context.data_context.ephemeral_data_context import (
         EphemeralDataContext,
     )
-    from great_expectations.datasource.fluent.batch_request import BatchRequest
+    from great_expectations.datasource.fluent.batch_request import BatchParameters, BatchRequest
 
 
 class DataAssetForTests(DataAsset):

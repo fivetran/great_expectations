@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 import pandas as pd
 import pytest
@@ -8,13 +9,15 @@ import pytest
 import great_expectations.expectations as gxe
 from great_expectations.compatibility import pydantic
 from great_expectations.core.result_format import ResultFormat
-from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
     ALL_DATA_SOURCES,
     DATA_SOURCES_THAT_SUPPORT_DATE_COMPARISONS,
     JUST_PANDAS_DATA_SOURCES,
 )
+
+if TYPE_CHECKING:
+    from great_expectations.datasource.fluent.interfaces import Batch
 
 COL_NAME = "my_col"
 

@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
 
 import pytest
 
-from great_expectations.core.batch_definition import PartitionerT
 from great_expectations.core.partitioners import (
     ColumnPartitioner,
     ColumnPartitionerDaily,
@@ -17,6 +16,9 @@ from great_expectations.core.partitioners import (
     FileNamePartitionerYearly,
 )
 from great_expectations.datasource.fluent import BatchRequest
+
+if TYPE_CHECKING:
+    from great_expectations.core.batch_definition import PartitionerT
 
 
 @pytest.mark.unit

@@ -13,7 +13,6 @@ from pytest import param
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.snowflake import URL as SnowflakeURL
 from great_expectations.compatibility.snowflake import snowflake
-from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent import (
     GxContextWarning,
     SQLDatasource,
@@ -30,6 +29,8 @@ from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 if TYPE_CHECKING:
     from pytest.mark.structures import ParameterSet  # type: ignore[import-not-found] # FIXME CoP
     from pytest_mock import MockerFixture
+
+    from great_expectations.data_context import AbstractDataContext
 
 TEST_LOGGER: Final = logging.getLogger(__name__)
 

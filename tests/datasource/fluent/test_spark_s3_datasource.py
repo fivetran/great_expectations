@@ -7,13 +7,14 @@ import pytest
 
 import great_expectations.exceptions as ge_exceptions
 from great_expectations.datasource.fluent import SparkS3Datasource
-from great_expectations.datasource.fluent.data_asset.path.path_data_asset import (
-    PathDataAsset,
-)
 from great_expectations.datasource.fluent.data_asset.path.spark.csv_asset import CSVAsset
 
 if TYPE_CHECKING:
     from botocore.client import BaseClient
+
+    from great_expectations.datasource.fluent.data_asset.path.path_data_asset import (
+        PathDataAsset,
+    )
 
 
 @pytest.fixture()
