@@ -206,7 +206,7 @@ module.exports = {
       link: { type: 'doc', id: 'cloud/validations/validations_lp' },
       items: [
         'cloud/validations/run_validations',
-        'cloud/validations/choose_result_format'
+        'cloud/validations/format_results'
       ]
     },
     {
