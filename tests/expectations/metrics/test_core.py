@@ -2,7 +2,7 @@ import copy
 import datetime
 import logging
 from decimal import Decimal
-from typing import Dict, Tuple, Union
+from typing import TYPE_CHECKING, Dict, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -37,9 +37,11 @@ from great_expectations.self_check.util import (
     build_spark_engine,
 )
 from great_expectations.util import isclose
-from great_expectations.validator.computed_metric import MetricValue
 from great_expectations.validator.metric_configuration import MetricConfiguration
 from tests.expectations.test_util import get_table_columns_metric
+
+if TYPE_CHECKING:
+    from great_expectations.validator.computed_metric import MetricValue
 
 
 @pytest.mark.unit

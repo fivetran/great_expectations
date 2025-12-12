@@ -1579,14 +1579,13 @@ def generate_expectation_tests(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME
                 if isinstance(d["data"], list):
                     sqlite_db_path = generate_sqlite_db_path()
                     sub_index: int = 1  # additional index needed when dataset is a list
-                    for dataset in d["data"]:
+                    for sub_index, dataset in enumerate(d["data"]):
                         dataset_name = generate_dataset_name_from_expectation_name(
                             dataset=dataset,
                             expectation_type=expectation_type,
                             index=i,
                             sub_index=sub_index,
                         )
-                        sub_index += 1
                         datasets.append(
                             get_test_validator_with_data(
                                 execution_engine=c,

@@ -48,8 +48,8 @@ To create a custom Action, you subclass the `ValidationAction` class, overriding
 
 3.  Optional. Add any additional fields your Action requires at runtime. Actions are built on Pydantic models. Define the field name as a class-level attribute on your Action, and annotate it with the correct type. When you instantiate the Action, pass the field value into the Action `init` method. Your Action will have access to these values within your custom `run` method through `self.<MY_FIELD_NAME>`.
 
-   ```python title="Python" name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_custom_action.py - add custom fields"
-   ```
+      ```python title="Python" name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_custom_action.py - add custom fields"
+      ```
 
 4. Override the `run()` method with the logic for the Action.
 

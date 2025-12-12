@@ -29,9 +29,9 @@ All of these Data Sources have the following limitations, regardless of your GX 
 Azure Blob Storage, BigQuery, Google Cloud Storage, Pandas, and Spark have the following additional limitations:
 - Data Asset metrics are not supported.
 - The [Data Health](/docs/cloud/overview/data_health) dashboard entity filter cannot detect the Data Asset’s columns.
-- You cannot define a batch in the UI. You can use the GX Cloud API to create a [Batch Definition](/docs/reference/api/core/batch_definition/BatchDefinition_class.mdx).
+- You cannot use the UI to define a Batch for validating a time-based subset of your data. Use the GX Cloud API to [define a Batch](/docs/cloud/validations/manage_validations.md).
 - When you add an Expectation, you cannot generate Expectations for [Anomaly Detection](/docs/cloud/expectations/expectations_overview.md#anomaly-detection). You can manually configure Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
-- Ad hoc Validations cannot be triggered through the GX Cloud UI. Use the UI to [generate a Validation code snippet](/docs/cloud/validations/manage_validations.md) that you can use to run an ad hoc Validation through the GX Cloud API.
+- Ad hoc Validations cannot be triggered through the GX Cloud UI. Use the GX Cloud API to [run an ad hoc Validation](/docs/cloud/validations/manage_validations.md).
 - Recurring Validations cannot be scheduled in GX Cloud. Use an [orchestrator](/docs/reference/learn/integrations/data_pipeline_tutorial) to run recurring Validations. 
 
 ## Edit Data Source settings
@@ -161,7 +161,7 @@ Depending on your [deployment pattern](/docs/cloud/deploy/deployment_patterns), 
 
 -  **Direct input** is supported for all GX Cloud deployment patterns. You can input credentials directly into the GX Cloud UI. These credentials are stored in GX Cloud and securely encrypted at rest and in transit. 
 
-- **Environment variable substitution** is supported for agent-enabled and read-only deployments. To enhance security, you can use environment variables to manage sensitive connection parameters or strings. For example, instead of directly including your database password in configuration settings, you can use a variable reference like `${MY_DATABASE_PASSWORD}`. When using environment variable substitution, your credentials are not stored or transmitted to GX Cloud. 
+- **Environment variable substitution** is supported for agent-enabled deployments and Cloud API calls. To enhance security, you can use environment variables to manage sensitive connection parameters or strings. For example, instead of directly including your database password in configuration settings, you can use a variable reference like `${MY_DATABASE_PASSWORD}`. When using environment variable substitution, your credentials are not stored or transmitted to GX Cloud. 
 
 To use environment variable substitution, do the following:
 
@@ -175,7 +175,7 @@ To use environment variable substitution, do the following:
 
    When running the GX Agent in another container-based service, including Kubernetes, ECS, ACI, and GCE, use the service's instructions to set and provide environment variables to the running container.
 
-   When using environment variable substitution in a read-only deployment, set the environment variable in the environment where the GX Cloud API Python client is running.
+   When using environment variable substitution with the GX Cloud API, set the environment variable in the environment where the GX Cloud API Python client is running.
 
 2. In the Data Source setup form in the GX Cloud UI, enter the name of your environment variable, enclosed in `${}`. For example, `${MY_DATABASE_PASSWORD}`.
 

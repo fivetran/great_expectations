@@ -12,7 +12,6 @@ GX Cloud deployment patterns are defined by how GX Cloud connects to your data. 
 | :-- | :-- | :-- |
 | [Fully-hosted](#fully-hosted-deployment) | GX Cloud connects directly to your data through a secure, cloud-to-cloud connection. | You want to get started quickly and securely with GX Cloud and use direct Data Source connections. |
 | [Agent-enabled](#agent-enabled-deployment) | GX Cloud connects to your data through the GX Agent, a utility that you run in your environment. The Agent serves as an intermediary between GX Cloud and your data; in this deployment pattern, GX Cloud does not connect directly to your data. | You want to connect to Data Sources using your organization's environment and infrastructure, for enhanced control and security. |
-| [Read-only](#read-only-deployment) | GX Cloud does not connect to your data. You use the GX Core Python library to define your GX workflows, to connect to your data, and to run Validations in your environment. GX Cloud serves as a read-only store for your Data Asset and Expectation configurations, and provides a web interface to view Validation Results. | You want to use GX Cloud as a read-only store to view and share Validation Results. |
 
 If your GX Cloud organization has [multiple workspaces](/cloud/access/manage_access.md#workspaces), note that each deployment pattern applies at the organization level. All workspaces in your organization must use the same deployment pattern. 
 
@@ -35,12 +34,3 @@ In an agent-enabled deployment, the GX Agent runs in your environment and serves
 ![GX Cloud agent-enabled deployment](./deployment_images/agent_enabled_deployment.png)
 
 The GX Agent is a Docker container that can be run in your organization's deployment environment or locally. See [Deploy the GX Agent](/cloud/deploy/deploy_gx_agent.md) for setup details.
-
-
-## Read-only deployment
-
-In a read-only deployment, you use the GX Core Python library to push GX metadata to GX Cloud. You run the GX Core Python library in your environment to define your GX data validation workflows, connect to your data, and to run Validations. GX Cloud serves as a backend store for programmatically created Data Asset configurations, Expectation configurations, and Validation Result history.
-
-In this deployment scenario, there is a one-way flow of information from your environment to GX Cloud.
-
-![GX Cloud read-only deployment](./deployment_images/read_only_deployment.png)

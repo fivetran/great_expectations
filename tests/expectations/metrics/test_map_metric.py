@@ -52,7 +52,15 @@ def sqlite_table_for_unexpected_rows_with_index(
             from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 
             sqlite_path = file_relative_path(__file__, "../../test_sets/metrics_test.db")
-            sqlite_engine = sa.create_engine(f"sqlite:///{sqlite_path}")
+            connection_string = f"sqlite:///{sqlite_path}"
+            sqlite_engine = sa.create_engine(
+                connection_string,
+                poolclass=sqlalchemy.StaticPool,
+            )
+
+            # Keep a live connection for static pools, but make sure it is closed on teardown.
+            conn: sa.engine.Connection = sqlite_engine.connect()
+
             df = pd.DataFrame(
                 {
                     "pk_1": [0, 1, 2, 3, 4, 5],
@@ -80,8 +88,18 @@ def sqlite_table_for_unexpected_rows_with_index(
             except ValueError:
                 pass
 
-            yield sqlite_engine
-            sqlite_engine.dispose()
+            try:
+                yield sqlite_engine
+            finally:
+                # Ensure the connection is closed to avoid ResourceWarning.
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+                try:
+                    sqlite_engine.dispose()
+                except Exception:
+                    pass
         except ImportError:
             sa = None
     else:

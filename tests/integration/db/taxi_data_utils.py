@@ -7,15 +7,7 @@ from typing import TYPE_CHECKING, List
 import sqlalchemy as sa
 
 import great_expectations as gx
-from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.datasource.fluent import GxDatasourceWarning
-from great_expectations.execution_engine.sqlalchemy_batch_data import (
-    SqlAlchemyBatchData,
-)
-from tests.integration.fixtures.partition_and_sample_data.partitioner_test_cases_and_fixtures import (  # noqa: E501 # FIXME CoP
-    TaxiPartitioningTestCase,
-    TaxiPartitioningTestCasesBase,
-)
 from tests.test_utils import (
     LoadedTable,
     add_datasource,
@@ -26,6 +18,15 @@ from tests.test_utils import (
 
 if TYPE_CHECKING:
     import pandas as pd
+
+    from great_expectations.core.batch_definition import BatchDefinition
+    from great_expectations.execution_engine.sqlalchemy_batch_data import (
+        SqlAlchemyBatchData,
+    )
+    from tests.integration.fixtures.partition_and_sample_data.partitioner_test_cases_and_fixtures import (  # noqa: E501 # FIXME CoP
+        TaxiPartitioningTestCase,
+        TaxiPartitioningTestCasesBase,
+    )
 
 TAXI_DATA_TABLE_NAME: str = "taxi_data_all_samples"
 

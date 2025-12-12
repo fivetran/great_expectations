@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 import os
-from typing import List
+from typing import TYPE_CHECKING, List
 from unittest import mock
 
 import pandas as pd
@@ -11,13 +11,9 @@ from dateutil.parser import parse
 
 from great_expectations.core.batch_spec import SqlAlchemyDatasourceBatchSpec
 from great_expectations.data_context.util import file_relative_path
-from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 from great_expectations.execution_engine.partition_and_sample.sqlalchemy_data_partitioner import (
     DatePart,
     SqlAlchemyDataPartitioner,
-)
-from great_expectations.execution_engine.sqlalchemy_batch_data import (
-    SqlAlchemyBatchData,
 )
 from great_expectations.self_check.util import build_sa_execution_engine
 from tests.execution_engine.partition_and_sample.partition_and_sample_test_cases import (
@@ -36,6 +32,12 @@ from tests.integration.fixtures.partition_and_sample_data.partitioner_test_cases
     TaxiTestData,
 )
 from tests.test_utils import convert_string_columns_to_datetime
+
+if TYPE_CHECKING:
+    from great_expectations.execution_engine import SqlAlchemyExecutionEngine
+    from great_expectations.execution_engine.sqlalchemy_batch_data import (
+        SqlAlchemyBatchData,
+    )
 
 SINGLE_DATE_PART_DATE_PARTS += [
     pytest.param(

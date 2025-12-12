@@ -148,6 +148,15 @@ The following table lists the available Data Asset metrics.
 | **Median**                                 | For numeric columns, the value in the middle of a data set.<br/> 50% of the data within the Data Asset has a value smaller or equal to the median, and 50% of the data within the Data Asset has a value that is higher or equal to the median.  |
 | **Null %**                                | The percentage of missing values in a column.             |
 
+## View Data Asset history
+
+For an audit trail of who added or removed which Expectations and when, visit a Data Asset’s **History** tab.
+
+1. In GX Cloud, select the relevant **Workspace**, click **Data Assets**, and then select a Data Asset in the **Data Assets** list.
+2. Click the **History** tab.
+
+Note that the report is limited to the last 100 changes. 
+
 ## Delete a Data Asset
 
 

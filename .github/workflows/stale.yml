@@ -4,29 +4,28 @@
 name: StaleBot
 
 on:
-  workflow_dispatch: # https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#defining-inputs-for-manually-triggered-workflows
-  # schedule:
-  # - cron: '30 1 * * *'
+  schedule:
+    - cron: "0 0 * * *" # Runs at midnight UTC every day
 
 jobs:
   stale:
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
     steps:
-      - uses: actions/stale@v5
+      - uses: actions/stale@v10
         with:
           # General
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           operations-per-run: 1000
           days-before-stale: 30
           days-before-close: 60
-          days-before-pr-stale: -1
-          days-before-pr-close: -1
 
-          # Scope
-          only-pr-labels: community
-          only-issue-labels: community
-          exempt-issue-labels: core-team, core-engineering-queue, documentation, triage, "help wanted", "DevRel Triage"
-          # exempt-pr-labels: "example label"  # This needs to be reviewed if we move to staling PRs
+          # exempt all issues
+          days-before-issue-stale: -1
+          days-before-issue-close: -1
 
           # Issue messages
           stale-issue-message: >

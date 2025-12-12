@@ -13,7 +13,6 @@ from pytest import param
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.snowflake import URL as SnowflakeURL
 from great_expectations.compatibility.snowflake import snowflake
-from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent import (
     GxContextWarning,
     SQLDatasource,
@@ -30,6 +29,8 @@ from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 if TYPE_CHECKING:
     from pytest.mark.structures import ParameterSet  # type: ignore[import-not-found] # FIXME CoP
     from pytest_mock import MockerFixture
+
+    from great_expectations.data_context import AbstractDataContext
 
 TEST_LOGGER: Final = logging.getLogger(__name__)
 
@@ -965,7 +966,19 @@ def test_create_engine_is_called_with_expected_kwargs(
 ):
     create_engine_spy = mocker.spy(sa, "create_engine")
 
-    datasource = ephemeral_context_with_defaults.data_sources.add_snowflake(**config)
+    # Check if this config has private_key in connect_args (deprecated pattern)
+    has_deprecated_pattern = (
+        isinstance(config.get("kwargs"), dict)
+        and isinstance(config.get("kwargs", {}).get("connect_args"), dict)
+        and "private_key" in config.get("kwargs", {}).get("connect_args", {})
+    )
+
+    if has_deprecated_pattern:
+        with pytest.warns(DeprecationWarning, match="private_key.*deprecated"):
+            datasource = ephemeral_context_with_defaults.data_sources.add_snowflake(**config)
+    else:
+        datasource = ephemeral_context_with_defaults.data_sources.add_snowflake(**config)
+
     print(datasource)
     engine = datasource.get_engine()
     print(engine)
@@ -1136,5 +1149,21 @@ class TestConvenienceProperties:
         assert datasource.private_key == private_key
 
 
-if __name__ == "__main__":
-    pytest.main([__file__, "-vv"])
+@pytest.mark.unit
+class TestSnowflakeDatasourceDeprecationWarnings:
+    """Test deprecation warnings for SnowflakeDatasource."""
+
+    def test_private_key_in_kwargs_connect_args_deprecated_warning(self):
+        """Warn when private_key is in kwargs['connect_args']."""
+        with pytest.warns(DeprecationWarning, match="private_key.*deprecated"):
+            SnowflakeDatasource(
+                name="test_ds",
+                user="my_user",
+                password="<PLACEHOLDER PASSWORD>",
+                account="my_account",
+                schema="S_PUBLIC",
+                database="D_PUBLIC",
+                role="my_role",
+                warehouse="my_wh",
+                kwargs={"connect_args": {"private_key": b"test_key"}},
+            )
