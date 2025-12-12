@@ -21,7 +21,6 @@ This page provides instructions for working with Expectations. To learn about Ex
       {value: 'api', label: 'Add an Expectation with the API'}
    ]}
 >
-</Tabs>
 
 <TabItem value="ui" label="UI">
 
@@ -65,6 +64,7 @@ This page provides instructions for working with Expectations. To learn about Ex
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
 
 </TabItem>
+</Tabs>
 
 ## Save time with ExpectAI <span class="beta">Beta</span>
 
