@@ -4,17 +4,31 @@ title: "Manage Expectations"
 description: Create and manage Expectations in GX Cloud.
 ---
 
+import TabItem from '@theme/TabItem';
+import Tabs from '@theme/Tabs';
+
 You can manually create Expectations and use several different GX Cloud features to generate Expectations.
 
 This page provides instructions for working with Expectations. To learn about Expectation types and options, see the [Expectations overview](/cloud/expectations/expectations_overview.md). To learn about the Expectation changelog at the Data Asset level, visit [Manage Data Assets](/cloud/data_assets/manage_data_assets.md#view-data-asset-history).
+
+## Add an Expectation
+
+<Tabs 
+   queryString="expectations-interface"
+   defaultValue="ui"
+   values={[
+      {value: 'ui', label: 'Add an Expectation with the UI'},
+      {value: 'api', label: 'Add an Expectation with the API'}
+   ]}
+>
+</Tabs>
+
+<TabItem value="ui" label="UI">
 
 ## Prerequisites
 
 - You have a [Data Asset](/cloud/data_assets/manage_data_assets.md).
 
-
-
-## Add an Expectation
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
@@ -40,6 +54,17 @@ This page provides instructions for working with Expectations. To learn about Ex
 
 9. Optional. Configure recurring Validations. See [Manage schedules](/docs/cloud/schedules/manage_schedules).
 
+</TabItem>
+
+<TabItem value="api" label="API">
+
+## Prerequisites
+
+- You have a [Data Asset](/cloud/data_assets/manage_data_assets.md).
+- [Python version 3.10 to 3.13](https://www.python.org/downloads/).
+- [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
+
+</TabItem>
 
 ## Save time with ExpectAI <span class="beta">Beta</span>
 
