@@ -1,6 +1,6 @@
 import sys
 import uuid
-from typing import Dict, Iterable, Optional, Set, Tuple, Union, cast
+from typing import TYPE_CHECKING, Dict, Iterable, Optional, Set, Tuple, Union, cast
 from unittest import mock
 
 import pytest
@@ -20,7 +20,9 @@ from great_expectations.validator.validation_graph import (
     MetricEdge,
     ValidationGraph,
 )
-from great_expectations.validator.validator import ValidationDependencies
+
+if TYPE_CHECKING:
+    from great_expectations.validator.validator import ValidationDependencies
 
 
 @pytest.fixture

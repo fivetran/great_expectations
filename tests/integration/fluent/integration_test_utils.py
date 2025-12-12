@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -8,7 +9,6 @@ from great_expectations.checkpoint.checkpoint import Checkpoint
 from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.validation_definition import ValidationDefinition
-from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent import BatchRequest, PandasDatasource
 from great_expectations.datasource.fluent.interfaces import (
     DataAsset,
@@ -16,14 +16,17 @@ from great_expectations.datasource.fluent.interfaces import (
     HeadData,
 )
 from great_expectations.exceptions.exceptions import DataContextError
-from great_expectations.execution_engine import ExecutionEngine
-from great_expectations.validator.computed_metric import MetricValue
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
     MetricConfigurationID,
 )
 from great_expectations.validator.metrics_calculator import MetricsCalculator
 from tests.expectations.test_util import get_table_columns_metric
+
+if TYPE_CHECKING:
+    from great_expectations.data_context import AbstractDataContext
+    from great_expectations.execution_engine import ExecutionEngine
+    from great_expectations.validator.computed_metric import MetricValue
 
 logger = logging.getLogger(__name__)
 

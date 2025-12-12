@@ -9,10 +9,11 @@ from great_expectations.self_check.util import get_test_validator_with_data
 from great_expectations.util import isclose
 from great_expectations.validator.metric_configuration import MetricConfiguration
 from great_expectations.validator.metrics_calculator import MetricsCalculator
-from great_expectations.validator.validator import Validator
 
 if TYPE_CHECKING:
     import pandas as pd
+
+    from great_expectations.validator.validator import Validator
 
 
 @pytest.fixture

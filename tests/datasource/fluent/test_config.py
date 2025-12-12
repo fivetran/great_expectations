@@ -21,7 +21,6 @@ import pytest
 
 import great_expectations as gx
 from great_expectations.compatibility import pydantic
-from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.partitioners import ColumnPartitionerMonthly
 from great_expectations.core.yaml_handler import YAMLHandler
 from great_expectations.data_context import FileDataContext
@@ -52,6 +51,7 @@ from tests.datasource.fluent.conftest import FLUENT_DATASOURCE_TEST_DIR
 if TYPE_CHECKING:
     from pytest import FixtureRequest
 
+    from great_expectations.core.batch_definition import BatchDefinition
     from great_expectations.datasource.fluent import SqliteDatasource
 
 yaml = YAMLHandler()

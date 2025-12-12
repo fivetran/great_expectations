@@ -11,7 +11,6 @@ import pytest
 
 from great_expectations.compatibility.pydantic import DirectoryPath, validate_arguments
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.partitioners import ColumnPartitioner
 from great_expectations.core.yaml_handler import YAMLHandler
 from great_expectations.data_context import AbstractDataContext, FileDataContext
 from great_expectations.data_context import get_context as get_gx_context
@@ -19,11 +18,9 @@ from great_expectations.datasource.fluent.batch_request import (
     BatchParameters,
     BatchRequest,
 )
-from great_expectations.datasource.fluent.config import GxConfig
 from great_expectations.datasource.fluent.constants import (
     _FLUENT_DATASOURCES_KEY,
 )
-from great_expectations.datasource.fluent.data_connector.batch_filter import BatchSlice
 from great_expectations.datasource.fluent.interfaces import (
     DataAsset,
     Datasource,
@@ -39,7 +36,10 @@ yaml = YAMLHandler()
 
 if TYPE_CHECKING:
     from great_expectations.core.config_provider import _ConfigurationProvider
+    from great_expectations.core.partitioners import ColumnPartitioner
     from great_expectations.datasource.datasource_dict import DatasourceDict
+    from great_expectations.datasource.fluent.config import GxConfig
+    from great_expectations.datasource.fluent.data_connector.batch_filter import BatchSlice
     from great_expectations.datasource.fluent.interfaces import Batch
 
 

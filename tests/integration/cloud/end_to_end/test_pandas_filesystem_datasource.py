@@ -7,15 +7,14 @@ from typing import TYPE_CHECKING, Generator, Iterator
 import pytest
 
 from great_expectations import ValidationDefinition
-from great_expectations.checkpoint.checkpoint import Checkpoint
-from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.datasource.fluent import PandasFilesystemDatasource
 
 if TYPE_CHECKING:
     import pandas as pd
 
-    from great_expectations.checkpoint.checkpoint import CheckpointResult
+    from great_expectations.checkpoint.checkpoint import Checkpoint, CheckpointResult
     from great_expectations.core import ExpectationSuite
+    from great_expectations.core.batch_definition import BatchDefinition
     from great_expectations.data_context import CloudDataContext
     from great_expectations.datasource.fluent import (
         DataAsset,

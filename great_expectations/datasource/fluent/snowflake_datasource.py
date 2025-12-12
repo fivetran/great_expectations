@@ -729,8 +729,27 @@ class SnowflakeDatasource(SQLDatasource):
         return connection_string
 
     @pydantic.validator("kwargs")
-    def _base64_encode_private_key(cls, kwargs: dict) -> dict:
+    def _validate_and_process_kwargs(cls, kwargs: dict) -> dict:
+        """
+        Validate and process kwargs.
+        - Warn if private_key is found in kwargs['connect_args']
+        - Base64 encode private_key if present
+        """
         if connect_args := kwargs.get("connect_args", {}):
+            if "private_key" in connect_args:
+                msg = (
+                    "Passing 'private_key' via kwargs['connect_args'] is deprecated. "
+                    "Please pass 'private_key' as a keyword argument directly to add_snowflake(), "
+                    "update_snowflake(), or add_or_update_snowflake(). "
+                    "See https://docs.greatexpectations.io/docs/reference/datasources/"
+                    "snowflake for more information."
+                )
+                # deprecated-v1.8.0
+                warnings.warn(
+                    msg,
+                    category=DeprecationWarning,
+                    stacklevel=4,
+                )
             if private_key := connect_args.get("private_key"):
                 # test if it's already base64 encoded
                 if _is_b64_encoded(private_key):

@@ -45,12 +45,6 @@ from great_expectations.compatibility.sqlalchemy import (
 )
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.validation_definition import ValidationDefinition
-from great_expectations.data_context import EphemeralDataContext
-from great_expectations.datasource.fluent import (
-    PostgresDatasource,
-    SQLDatasource,
-    SqliteDatasource,
-)
 from great_expectations.execution_engine.sqlalchemy_dialect import (
     DIALECT_IDENTIFIER_QUOTE_STRINGS,
     GXSqlDialect,
@@ -64,6 +58,12 @@ if TYPE_CHECKING:
     from typing_extensions import TypeAlias
 
     from great_expectations.checkpoint.checkpoint import CheckpointResult
+    from great_expectations.data_context import EphemeralDataContext
+    from great_expectations.datasource.fluent import (
+        PostgresDatasource,
+        SQLDatasource,
+        SqliteDatasource,
+    )
     from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 
 TERMINAL_WIDTH: Final = shutil.get_terminal_size().columns

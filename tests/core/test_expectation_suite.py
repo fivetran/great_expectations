@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from copy import copy, deepcopy
-from typing import Dict, Union
+from typing import TYPE_CHECKING, Dict, Union
 from unittest import mock
 from unittest.mock import MagicMock, Mock  # noqa: TID251 # FIXME CoP
 from uuid import UUID, uuid4
@@ -24,11 +24,13 @@ from great_expectations.expectations import (
     ExpectColumnValuesToBeUnique,
     ExpectColumnValuesToNotBeNull,
 )
-from great_expectations.expectations.expectation import Expectation
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
 from great_expectations.render import RenderedAtomicContent, RenderedAtomicValue
+
+if TYPE_CHECKING:
+    from great_expectations.expectations.expectation import Expectation
 
 
 @pytest.fixture

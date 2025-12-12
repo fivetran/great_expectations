@@ -1270,7 +1270,9 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             partitioner_kwargs=partitioner_kwargs,
         )
 
-    def _build_selectable_from_batch_spec(self, batch_spec: BatchSpec) -> sqlalchemy.Selectable:
+    def _build_selectable_from_batch_spec(
+        self, batch_spec: BatchSpec
+    ) -> Union[sqlalchemy.Selectable, sqlalchemy.TextClause]:
         if batch_spec.get("query") is not None and batch_spec.get("sampling_method") is not None:
             raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "Sampling is not supported on query data. "
@@ -1291,6 +1293,18 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                 partition_clause = sa.text("1 = 1")
             else:
                 partition_clause = sa.true()
+
+        # If the data_source_query_asset query needs no partitioning or sampling, we don't need to wrap it in another select statement with _subselectable. # noqa: E501
+        # We just trust and execute the query provided.
+        # At this point, query has already been verified as a valid "SELECT " statement in sql_datasource.py:970. # noqa: E501
+        # This will prevent FROM DUAL being tacked on to the end of the intended query by sqlalchemy when using the OracleCX dialect. # noqa: E501
+        if (
+            batch_spec.get("query") is not None
+            and batch_spec.get("sampling_method") is None
+            and "partitioner_method" not in batch_spec
+            and partition_clause is sa.true()
+        ):
+            return sa.text(batch_spec["query"])
 
         selectable: sqlalchemy.Selectable = self._subselectable(batch_spec)
         sampling_method: Optional[str] = batch_spec.get("sampling_method")
@@ -1370,8 +1384,8 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
 
         create_temp_table: bool = batch_spec.get("create_temp_table", self._create_temp_table)
         # this is where partitioner components are added to the selectable
-        selectable: sqlalchemy.Selectable = self._build_selectable_from_batch_spec(
-            batch_spec=batch_spec
+        selectable: sqlalchemy.Selectable | sqlalchemy.TextClause = (
+            self._build_selectable_from_batch_spec(batch_spec=batch_spec)
         )
         # NOTE: what's being checked here is the presence of a `query` attribute, we could check this directly  # noqa: E501 # FIXME CoP
         # instead of doing an instance check

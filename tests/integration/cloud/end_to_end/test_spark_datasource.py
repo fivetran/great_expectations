@@ -6,8 +6,6 @@ from typing import TYPE_CHECKING, Generator
 import pytest
 
 from great_expectations import ValidationDefinition
-from great_expectations.core.batch_definition import BatchDefinition
-from great_expectations.datasource.fluent.spark_datasource import DataFrameAsset
 from tests.integration.cloud.end_to_end.conftest import construct_spark_df_from_pandas
 
 if TYPE_CHECKING:
@@ -16,11 +14,13 @@ if TYPE_CHECKING:
     from great_expectations.checkpoint.checkpoint import Checkpoint, CheckpointResult
     from great_expectations.compatibility import pyspark
     from great_expectations.core import ExpectationSuite
+    from great_expectations.core.batch_definition import BatchDefinition
     from great_expectations.data_context import CloudDataContext
     from great_expectations.datasource.fluent import (
         DataAsset,
         SparkDatasource,
     )
+    from great_expectations.datasource.fluent.spark_datasource import DataFrameAsset
 
 
 @pytest.fixture(scope="module")
