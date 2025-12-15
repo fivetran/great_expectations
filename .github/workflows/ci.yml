@@ -282,11 +282,13 @@ jobs:
 
       # upload coverage report to codecov
       - name: Upload coverage reports to Codecov
+        continue-on-error: true
         uses: codecov/codecov-action@v4.1.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: great-expectations/great_expectations
           flags: ${{ matrix.doc-step }}
+          fail_ci_if_error: false
 
       # upload test results to codecov
       - name: Upload test results to Codecov
@@ -330,11 +332,13 @@ jobs:
 
       # upload coverage report to codecov
       - name: Upload coverage reports to Codecov
+        continue-on-error: true
         uses: codecov/codecov-action@v4.1.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: great-expectations/great_expectations
           flags: ${{ matrix.python-version }}
+          fail_ci_if_error: false
 
       # upload test results to codecov
       - name: Upload test results to Codecov
@@ -548,11 +552,13 @@ jobs:
 
           # upload coverage report to codecov
       - name: Upload coverage reports to Codecov
+        continue-on-error: true
         uses: codecov/codecov-action@v4.1.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: great-expectations/great_expectations
           flags: cloud
+          fail_ci_if_error: false
 
       # upload test results to codecov
       - name: Upload test results to Codecov
@@ -603,11 +609,13 @@ jobs:
 
           # upload coverage report to codecov
       - name: Upload coverage reports to Codecov
+        continue-on-error: true
         uses: codecov/codecov-action@v4.1.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: great-expectations/great_expectations
           flags: integration
+          fail_ci_if_error: false
 
       # upload test results to codecov
       - name: Upload test results to Codecov
@@ -732,11 +740,13 @@ jobs:
 
       # upload coverage report to codecov
       - name: Upload coverage reports to Codecov
+        continue-on-error: true
         uses: codecov/codecov-action@v4.1.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: great-expectations/great_expectations
           flags: "${{ matrix.python-version }} ${{ matrix.markers }}"
+          fail_ci_if_error: false
 
       # upload test results to codecov
       - name: Upload test results to Codecov
@@ -804,11 +814,13 @@ jobs:
 
       # upload coverage report to codecov
       - name: Upload coverage reports to Codecov
+        continue-on-error: true
         uses: codecov/codecov-action@v4.1.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: great-expectations/great_expectations
           flags: "${{ matrix.python-version }} ${{ matrix.markers }}"
+          fail_ci_if_error: false
 
       # upload test results to codecov
       - name: Upload test results to Codecov
