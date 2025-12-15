@@ -24,7 +24,7 @@ This page provides instructions for working with Expectations. To learn about Ex
 
 <TabItem value="ui" label="UI">
 
-## Prerequisites
+### Prerequisites
 
 - You have a [Data Asset](/cloud/data_assets/manage_data_assets.md).
 
@@ -57,11 +57,23 @@ This page provides instructions for working with Expectations. To learn about Ex
 
 <TabItem value="api" label="API">
 
-## Prerequisites
+### Prerequisites
 
 - You have a [Data Asset](/cloud/data_assets/manage_data_assets.md).
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
+
+1. Choose an Expectation
+
+2. Determine Params
+
+3. Other params
+
+4. Create the Expectation
+
+5. Create an Expectation Suite
+
+6. Create a Validation Definition
 
 </TabItem>
 </Tabs>
