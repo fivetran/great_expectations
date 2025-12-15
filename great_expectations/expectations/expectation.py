@@ -1313,10 +1313,26 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
 
         result_format = parse_result_format(runtime_configuration.get("result_format", {}))
         if result_format.get("result_format") == ResultFormat.BOOLEAN_ONLY:
+            preserved_result = {}
+            if result_format.get("return_unexpected_index_query", False):
+                if isinstance(expectation_validation_result, ExpectationValidationResult):
+                    current_result = expectation_validation_result.result or {}
+                else:
+                    current_result = expectation_validation_result.get("result", {})
+
+                if "unexpected_index_query" in current_result:
+                    preserved_result["unexpected_index_query"] = current_result[
+                        "unexpected_index_query"
+                    ]
+                if "unexpected_index_column_names" in current_result:
+                    preserved_result["unexpected_index_column_names"] = current_result[
+                        "unexpected_index_column_names"
+                    ]
+
             if isinstance(expectation_validation_result, ExpectationValidationResult):
-                expectation_validation_result.result = {}
+                expectation_validation_result.result = preserved_result
             else:
-                expectation_validation_result["result"] = {}
+                expectation_validation_result["result"] = preserved_result
 
         evr: ExpectationValidationResult = self._build_evr(
             raw_response=expectation_validation_result,
@@ -2134,6 +2150,27 @@ class ColumnMapExpectation(BatchExpectation, ABC):
         include_unexpected_rows: Optional[bool] = validation_dependencies.result_format.get(
             "include_unexpected_rows"
         )
+        return_unexpected_index_query: bool = validation_dependencies.result_format.get(
+            "return_unexpected_index_query", False
+        )
+
+        if (
+            result_format_str in (ResultFormat.BOOLEAN_ONLY, ResultFormat.BASIC)
+            and return_unexpected_index_query
+        ):
+            metric_kwargs = get_metric_kwargs(
+                metric_name=f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_QUERY.value}",
+                configuration=self.configuration,
+                runtime_configuration=runtime_configuration,
+            )
+            validation_dependencies.set_metric_configuration(
+                metric_name=f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_QUERY.value}",
+                metric_configuration=MetricConfiguration(
+                    metric_name=f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_QUERY.value}",
+                    metric_domain_kwargs=metric_kwargs["metric_domain_kwargs"],
+                    metric_value_kwargs=metric_kwargs["metric_value_kwargs"],
+                ),
+            )
 
         if result_format_str == ResultFormat.BOOLEAN_ONLY:
             return validation_dependencies
@@ -2400,6 +2437,27 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
         include_unexpected_rows: Optional[bool] = validation_dependencies.result_format.get(
             "include_unexpected_rows"
         )
+        return_unexpected_index_query: bool = validation_dependencies.result_format.get(
+            "return_unexpected_index_query", False
+        )
+
+        if (
+            result_format_str in (ResultFormat.BOOLEAN_ONLY, ResultFormat.BASIC)
+            and return_unexpected_index_query
+        ):
+            metric_kwargs = get_metric_kwargs(
+                metric_name=f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_QUERY.value}",
+                configuration=configuration,
+                runtime_configuration=runtime_configuration,
+            )
+            validation_dependencies.set_metric_configuration(
+                metric_name=f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_QUERY.value}",
+                metric_configuration=MetricConfiguration(
+                    metric_name=f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_QUERY.value}",
+                    metric_domain_kwargs=metric_kwargs["metric_domain_kwargs"],
+                    metric_value_kwargs=metric_kwargs["metric_value_kwargs"],
+                ),
+            )
 
         if result_format_str == ResultFormat.BOOLEAN_ONLY:
             return validation_dependencies
@@ -2674,6 +2732,27 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
         include_unexpected_rows: Optional[bool] = validation_dependencies.result_format.get(
             "include_unexpected_rows"
         )
+        return_unexpected_index_query: bool = validation_dependencies.result_format.get(
+            "return_unexpected_index_query", False
+        )
+
+        if (
+            result_format_str in (ResultFormat.BOOLEAN_ONLY, ResultFormat.BASIC)
+            and return_unexpected_index_query
+        ):
+            metric_kwargs = get_metric_kwargs(
+                metric_name=f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_QUERY.value}",
+                configuration=configuration,
+                runtime_configuration=runtime_configuration,
+            )
+            validation_dependencies.set_metric_configuration(
+                metric_name=f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_QUERY.value}",
+                metric_configuration=MetricConfiguration(
+                    metric_name=f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_QUERY.value}",
+                    metric_domain_kwargs=metric_kwargs["metric_domain_kwargs"],
+                    metric_value_kwargs=metric_kwargs["metric_value_kwargs"],
+                ),
+            )
 
         if result_format_str == ResultFormat.BOOLEAN_ONLY:
             return validation_dependencies
@@ -2845,6 +2924,35 @@ class UnexpectedRowsExpectation:
         )
 
 
+def _add_unexpected_index_query_to_result(
+    return_obj: Dict[str, Any],
+    result_format: dict,
+    unexpected_index_query: Optional[str],
+    unexpected_index_column_names: Optional[Union[int, str, List[str]]],
+) -> None:
+    """Add unexpected_index_query to result if explicitly requested.
+
+    This helper handles the difference between BOOLEAN_ONLY (no `result` dict yet)
+    and BASIC (`result` dict exists, `unexpected_index_column_names` may already be added).
+    """
+    if unexpected_index_query is None:
+        return
+    if not result_format.get("return_unexpected_index_query", False):
+        return
+
+    if "result" not in return_obj:
+        return_obj["result"] = {}
+
+    return_obj["result"]["unexpected_index_query"] = unexpected_index_query
+
+    # For BOOLEAN_ONLY, we also need to add column names since they aren't added elsewhere
+    if (
+        unexpected_index_column_names is not None
+        and "unexpected_index_column_names" not in return_obj["result"]
+    ):
+        return_obj["result"]["unexpected_index_column_names"] = unexpected_index_column_names
+
+
 def _format_map_output(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
     result_format: dict,
     success: bool,
@@ -2875,6 +2983,9 @@ def _format_map_output(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
     return_obj: Dict[str, Any] = {"success": success}
 
     if result_format["result_format"] == ResultFormat.BOOLEAN_ONLY:
+        _add_unexpected_index_query_to_result(
+            return_obj, result_format, unexpected_index_query, unexpected_index_column_names
+        )
         return return_obj
 
     skip_missing = False
@@ -2935,6 +3046,9 @@ def _format_map_output(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
         )
 
     if result_format["result_format"] == ResultFormat.BASIC:
+        _add_unexpected_index_query_to_result(
+            return_obj, result_format, unexpected_index_query, unexpected_index_column_names
+        )
         return return_obj
 
     if unexpected_list is not None and not exclude_unexpected_values:
