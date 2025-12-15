@@ -493,6 +493,16 @@ docs_examples_cloud_validations = [
         # data_context_dir="",
         backend_dependencies=[BackendDependencies.CLOUD],
     ),
+    # Choose a Result Format.
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "cloud_docs_example_choose_result_format" tests/integration/test_script_runner.py
+        name="cloud_docs_example_choose_result_format",
+        user_flow_script="docs/docusaurus/docs/cloud/validations/code_samples/result_format.py",
+        # data_dir="",
+        # data_context_dir="",
+        backend_dependencies=[BackendDependencies.CLOUD],
+    ),
 ]
 
 docs_examples_trigger_actions_based_on_validation_results = [

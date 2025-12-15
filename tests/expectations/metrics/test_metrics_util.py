@@ -633,6 +633,140 @@ class TestCaseInsensitiveString:
 
 
 @pytest.mark.unit
+def test_get_sqlalchemy_column_metadata_includes_primary_key_field(
+    sql_data_connector_test_db_execution_engine,
+):
+    """Test that get_sqlalchemy_column_metadata includes primary_key field for all columns."""
+    from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
+    from great_expectations.expectations.metrics.util import get_sqlalchemy_column_metadata
+
+    engine = sql_data_connector_test_db_execution_engine
+
+    # Test table with single primary key
+    batch_data = SqlAlchemyBatchData(execution_engine=engine, table_name="table_with_single_pk")
+    engine.load_batch_data("__test_single_pk", batch_data)
+
+    columns = get_sqlalchemy_column_metadata(
+        execution_engine=engine,
+        table_selectable=sqlalchemy.quoted_name("table_with_single_pk", quote=False),
+        schema_name=None,
+    )
+
+    assert columns is not None
+    assert len(columns) == 3  # id, name, value
+
+    # All columns should have primary_key field
+    assert all("primary_key" in col for col in columns)
+
+    # Only 'id' should be marked as primary key
+    pk_columns = [col["name"] for col in columns if col["primary_key"]]
+    assert pk_columns == ["id"]
+
+    # Other columns should not be primary keys
+    non_pk_columns = [col["name"] for col in columns if not col["primary_key"]]
+    assert set(non_pk_columns) == {"name", "value"}
+
+
+@pytest.mark.unit
+def test_get_sqlalchemy_column_metadata_composite_primary_key(
+    sql_data_connector_test_db_execution_engine,
+):
+    """Test that composite primary keys are correctly identified."""
+    from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
+    from great_expectations.expectations.metrics.util import get_sqlalchemy_column_metadata
+
+    engine = sql_data_connector_test_db_execution_engine
+
+    batch_data = SqlAlchemyBatchData(execution_engine=engine, table_name="table_with_composite_pk")
+    engine.load_batch_data("__test_composite_pk", batch_data)
+
+    columns = get_sqlalchemy_column_metadata(
+        execution_engine=engine,
+        table_selectable=sqlalchemy.quoted_name("table_with_composite_pk", quote=False),
+        schema_name=None,
+    )
+
+    assert columns is not None
+    assert len(columns) == 4  # user_id, order_id, product, quantity
+
+    # All columns should have primary_key field
+    assert all("primary_key" in col for col in columns)
+
+    # Both user_id and order_id should be marked as primary keys
+    pk_columns = sorted([col["name"] for col in columns if col["primary_key"]])
+    assert pk_columns == ["order_id", "user_id"]
+
+    # Other columns should not be primary keys
+    non_pk_columns = sorted([col["name"] for col in columns if not col["primary_key"]])
+    assert non_pk_columns == ["product", "quantity"]
+
+
+@pytest.mark.unit
+def test_get_sqlalchemy_column_metadata_no_primary_key(
+    sql_data_connector_test_db_execution_engine,
+):
+    """Test that tables without primary keys don't break."""
+    from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
+    from great_expectations.expectations.metrics.util import get_sqlalchemy_column_metadata
+
+    engine = sql_data_connector_test_db_execution_engine
+
+    batch_data = SqlAlchemyBatchData(execution_engine=engine, table_name="table_without_pk")
+    engine.load_batch_data("__test_no_pk", batch_data)
+
+    columns = get_sqlalchemy_column_metadata(
+        execution_engine=engine,
+        table_selectable=sqlalchemy.quoted_name("table_without_pk", quote=False),
+        schema_name=None,
+    )
+
+    assert columns is not None
+    assert len(columns) == 2  # description, amount
+
+    # All columns should have primary_key field
+    assert all("primary_key" in col for col in columns)
+
+    # No columns should be marked as primary keys
+    pk_columns = [col["name"] for col in columns if col["primary_key"]]
+    assert pk_columns == []
+
+    # All columns should have primary_key=False
+    assert all(not col["primary_key"] for col in columns)
+
+
+@pytest.mark.unit
+def test_get_sqlalchemy_column_metadata_quoted_pk_column(
+    sql_data_connector_test_db_execution_engine,
+):
+    """Test that quoted column names as primary keys work correctly."""
+    from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
+    from great_expectations.expectations.metrics.util import get_sqlalchemy_column_metadata
+
+    engine = sql_data_connector_test_db_execution_engine
+
+    batch_data = SqlAlchemyBatchData(execution_engine=engine, table_name="table_with_quoted_pk")
+    engine.load_batch_data("__test_quoted_pk", batch_data)
+
+    columns = get_sqlalchemy_column_metadata(
+        execution_engine=engine,
+        table_selectable=sqlalchemy.quoted_name("table_with_quoted_pk", quote=False),
+        schema_name=None,
+    )
+
+    assert columns is not None
+    assert len(columns) == 2  # UserId, UserName
+
+    # All columns should have primary_key field
+    assert all("primary_key" in col for col in columns)
+
+    # UserId should be marked as primary key
+    pk_columns = [col["name"] for col in columns if col["primary_key"]]
+    assert len(pk_columns) == 1
+    # Case-insensitive check
+    assert pk_columns[0].lower() == "userid"
+
+
+@pytest.mark.unit
 @patch("great_expectations.expectations.metrics.util.sa")
 def test_get_dialect_like_pattern_expression_is_resilient_to_missing_dialects(mock_sqlalchemy):
     # arrange

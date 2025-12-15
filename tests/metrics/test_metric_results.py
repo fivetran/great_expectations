@@ -75,8 +75,8 @@ class TestMetricResultInstantiation:
             metric_value_kwargs_id="include_nested=True",
         )
         metric_value = [
-            {"name": "existing_column", "type": "int64"},
-            {"name": "another_existing_column", "type": "object"},
+            {"name": "existing_column", "type": "int64", "primary_key": False},
+            {"name": "another_existing_column", "type": "object", "primary_key": False},
         ]
 
         metric_result = TableColumnTypesResult(

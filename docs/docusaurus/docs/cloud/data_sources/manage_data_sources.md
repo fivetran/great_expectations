@@ -10,7 +10,6 @@ import Tabs from '@theme/Tabs';
 
 A Data Source is an object that tells GX Cloud how to connect to a specific location of data and provides an entry point for organizing that data into Data Assets, which can be validated. Visit the [compatibility reference](/docs/help/compatibility_reference) for a full list of supported Data Sources. Contact us to [request support for additional sources](mailto:sales@greatexpectations.io).
 
-
 ## Workflow and feature support
 
 Depending on your Data Source, GX Cloud supports both no-code UI workflows and programmatic API workflows as indicated in the table below.
