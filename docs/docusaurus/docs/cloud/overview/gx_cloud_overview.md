@@ -81,7 +81,7 @@ There are a variety of GX Cloud features that support additional enhancements to
 * **Monitor Data Health.** GX Cloud provides metric summaries and trends to help you understand and improve test coverage and success across your business. See [Data Health](/cloud/overview/data_health.md) for more detail.
 
 :::note Data Source support
-Some features aren't supported for some Data Sources. See [Data Source limitations](/docs/cloud/data_sources/manage_data_sources.md#data-source-limitations) for details.
+Some features aren't supported for some Data Sources. See [Manage Data Sources](/docs/cloud/data_sources/manage_data_sources.md#workflow-and-feature-support) for details.
 :::
 
 ## GX Cloud architecture
