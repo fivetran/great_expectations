@@ -59,7 +59,6 @@ This page provides instructions for working with Expectations. To learn about Ex
 
 ### Prerequisites
 
-- You have a [Data Asset](/cloud/data_assets/manage_data_assets.md).
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
 
@@ -110,7 +109,15 @@ This page provides instructions for working with Expectations. To learn about Ex
       ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - get expectation suite"
       ```
 
-6. Add the Expectation to the Expectation Suite
+6. Add the Expectation to the Expectation Suite.
+
+      ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - add expectation to suite"
+      ```
+   
+   If you modify an Expectation _after_ you have added it to your Expectation Suite, you must explicitly save those modifications before they will be pushed to the Expectation Suite's configuration:
+
+      ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - save the expectation"
+      ```
 
 </TabItem>
 </Tabs>

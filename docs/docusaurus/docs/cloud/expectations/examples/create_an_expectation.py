@@ -21,7 +21,7 @@ set_up_context_for_example(context)
 # All Expectations are found in the `gx.expectations` module.
 # This Expectation has all values set in advance:
 # <snippet name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - preset expectation">
-preset_expectation = gx.expectations.ExpectColumnMaxToBeBetween(
+expectation = gx.expectations.ExpectColumnMaxToBeBetween(
     column="passenger_count", min_value=1, max_value=6, severity="warning"
 )
 # </snippet>
@@ -40,6 +40,15 @@ existing_suite_name = (
     "my_expectation_suite"  # replace this with the name of your Expectation Suite
 )
 suite = context.suites.get(name=existing_suite_name)
+
+# Add the Expectation to the Expectation Suite.
+# <snippet name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - add expectation to suite">
+suite.add_expectation(expectation)
+# </snippet>
+
+# Optional. If you modify the Expectation after you have added it to your Expectation Suite, you must explicitly save those modifications.
+# <snippet name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - save the expectation">
+expectation.save()
 # </snippet>
 
 # </snippet>
