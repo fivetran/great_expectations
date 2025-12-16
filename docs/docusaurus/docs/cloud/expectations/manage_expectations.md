@@ -36,7 +36,7 @@ This page provides instructions for working with Expectations. To learn about Ex
 
 7. Click **Save** or click **Save & Add More** and then repeat steps 4 through 7 to add additional Expectations.
 
-8. Optional. [Run an ad hoc Validation](/cloud/validations/manage_validations.md).
+8. Optional. [Run an ad hoc Validation](/cloud/validations/run_validations.md).
 
 9. Optional. Configure recurring Validations. See [Manage schedules](/docs/cloud/schedules/manage_schedules).
 
@@ -62,7 +62,7 @@ To add AI-recommended Expectations:
    ExpectAI may take a few minutes to analyze your data and recommend personalized Expectations. You can navigate away from the page while ExpectAI works in the background. GX will send an [email alert](/cloud/alerts/manage_email_alerts.md) when your recommended Expectations are ready for review.
    :::
 4. Review the recommended Expectations and **Approve** (✓) or **Reject** (✗) them within 48 hours. After 48 hours, any remaining recommendations will be discarded.
-5. Optional. [Run an ad hoc Validation](/cloud/validations/manage_validations.md).
+5. Optional. [Run an ad hoc Validation](/cloud/validations/run_validations.md).
 6. Optional. [Edit](#edit-an-expectation) AI-generated Expectations based on the insights you get from running a Validation and your data quality needs.
 
 ### Generate SQL
