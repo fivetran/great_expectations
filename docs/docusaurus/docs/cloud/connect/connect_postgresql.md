@@ -42,6 +42,6 @@ import Tabs from '@theme/Tabs';
 ## Next steps
 
 - [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
-- [Run a Validation](/cloud/validations/manage_validations.md).
+- [Run a Validation](/cloud/validations/run_validations.md).
 
 
