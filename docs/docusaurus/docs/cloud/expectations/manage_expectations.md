@@ -121,7 +121,7 @@ This page provides instructions for working with Expectations. To learn about Ex
 
 ### Next Steps
 
-   If you have created a new Expectation Suite, you will need to associate it to a Data Asset before you can run Validations. Visit [Manage Validations](/docs/cloud/validations/run_validations/run_validations.md#api-managed-expectations-entire-asset) to learn how to do so.
+   If you have created a new Expectation Suite, you will need to associate it to a Data Asset before you can run Validations. Visit [Manage Validations](docs/cloud/validations/run_validations/run_validations.md#api-managed-expectations-entire-asset) to learn how to do so.
 
 </TabItem>
 </Tabs>
