@@ -11,14 +11,14 @@ You can manually create Expectations and use several different GX Cloud features
 
 This page provides instructions for working with Expectations. To learn about Expectation types and options, see the [Expectations overview](/cloud/expectations/expectations_overview.md). To learn about the Expectation changelog at the Data Asset level, visit [Manage Data Assets](/cloud/data_assets/manage_data_assets.md#view-data-asset-history).
 
-## Add an Expectation
+## Create an Expectation
 
 <Tabs 
    queryString="expectations-interface"
    defaultValue="ui"
    values={[
-      {value: 'ui', label: 'Add an Expectation with the UI'},
-      {value: 'api', label: 'Add an Expectation with the API'}
+      {value: 'ui', label: 'Create an Expectation with the UI'},
+      {value: 'api', label: 'Create an Expectation with the API'}
    ]}
 >
 
@@ -118,6 +118,10 @@ This page provides instructions for working with Expectations. To learn about Ex
 
       ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - save the expectation"
       ```
+
+### Next Steps
+
+   If you have created a new Expectation Suite, you will need to associate it to a Data Asset before you can run Validations. Visit [Manage Validations](/docs/cloud/validations/run_validations/run_validations.md#api-managed-expectations-entire-asset) to learn how to do so.
 
 </TabItem>
 </Tabs>
