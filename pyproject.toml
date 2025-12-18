@@ -635,10 +635,10 @@ filterwarnings = [
     # Example Actual Warning:
     # DeprecationWarning: The load_credentials_from_file method is deprecated because of a potential security risk.
     "ignore: The load_credentials_from_file method is deprecated because of a potential security risk.:DeprecationWarning",
-    # google.api_core
+    # google.* libraries
     # Example Actual Warning:
-    # FutureWarning: You are using a Python version (3.10.19) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2026-10-04). Please upgrade to the latest Python version, or at least Python 3.11, to continue receiving updates for google.api_core past that date.
-    "ignore: You are using a Python version.*which Google will stop supporting in new releases of google.api_core:FutureWarning",
+    # FutureWarning: You are using a Python version (3.10.19) which Google will stop supporting in new releases of google.* once it reaches its end of life (2026-10-04). Please upgrade to the latest Python version, or at least Python 3.11, to continue receiving updates past that date.
+    "ignore: You are using a Python version \\(3\\.10.*\\) which Google will stop supporting in new releases of google:FutureWarning",
     # sqlalchemy
     # Example Actual Warning:
     # sqlalchemy.exc.RemovedIn20Warning: Deprecated API features detected! These feature(s) are not compatible with SQLAlchemy 2.0. To prevent incompatible upgrades prior to updating applications, ensure requirements files are pinned to "sqlalchemy<2.0". Set environment variable SQLALCHEMY_WARN_20=1 to show all deprecation warnings.  Set environment variable SQLALCHEMY_SILENCE_UBER_WARNING=1 to silence this message. (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
