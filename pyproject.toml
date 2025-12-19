@@ -209,6 +209,7 @@ module = [
     "databricks.*",
     "google.*",
     "great_expectations.compatibility.pydantic.*",
+    "IPython.*",
     "mistune.*",
     "moto.*",
     "pact.*",

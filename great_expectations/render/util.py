@@ -438,8 +438,11 @@ def _convert_unexpected_indices_to_df(
         return pd.DataFrame()
 
     # 1. groupby on domain columns, and turn id/pk into list
+    def _agg_func(y: pd.Series[Any]) -> list[Any]:
+        return list(y)
+
     all_unexpected_indices: pd.DataFrame = unexpected_index_df.groupby(domain_column_name_list).agg(
-        lambda y: list(y)
+        _agg_func
     )
 
     # 2. add count

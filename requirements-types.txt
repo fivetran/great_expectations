@@ -1,3 +1,12 @@
+# This file installs all dependencies needed for type checking with mypy.
+# It serves two purposes:
+# 1. Installs the actual packages (pyspark, azure, etc.) that mypy needs to type-check imports
+# 2. Installs type stubs upfront for deterministic behavior (rather than relying solely on
+#    mypy's --install-types flag, which installs stubs dynamically and can vary between runs)
+# This ensures local type checking matches CI exactly: developers can run
+# `pip install -r requirements-types.txt` followed by `invoke types --ci --pretty`
+# and get the same results as CI.
+
 --requirement reqs/requirements-dev-sqlalchemy2.txt
 --requirement requirements.txt
 --requirement reqs/requirements-dev-lite.txt
@@ -10,22 +19,40 @@ pandas-stubs
 # force sqlalchemy 2 because it exports types
 sqlalchemy>2.0
 # typing stubs
+types-aws-xray-sdk
 types-beautifulsoup4
+types-cachetools
+types-cffi
 types-colorama
 types-decorator
+types-docker
+types-geopandas
+types-greenlet
+types-grpcio
+types-grpcio-status
 types-html5lib
 types-jsonschema
+types-oauthlib
 types-openpyxl
+types-pexpect
 types-protobuf
 types-psutil
 types-psycopg2
+types-pyasn1
 types-pycurl
 types-Pygments
+types-PyMySQL
+types-PySocks
 types-python-dateutil
+types-python-jose
 types-PyYAML
 types-requests
+types-setuptools
+types-shapely
 types-six
 types-tabulate
 types-tqdm
 types-typed-ast
 types-tzlocal
+types-xlrd
+types-xmltodict
