@@ -255,7 +255,7 @@ class SphinxInvokeDocsBuilder:
         for external_ref in external_refs:
             url = external_ref.string
             url_parts = urlparse(url)
-            url_path = url_parts.path.strip("/").split("/")
+            url_path = str(url_parts.path).strip("/").split("/")
             url_text = url_path[-1]
 
             formatted_text = url_text.replace("_", " ").title()
@@ -272,7 +272,7 @@ class SphinxInvokeDocsBuilder:
         for internal_ref in internal_refs:
             href = internal_ref["href"]
 
-            split_href = href.split("#")
+            split_href = str(href).split("#")
             href_path = pathlib.Path(split_href[0])
 
             if str(href_path) == ".":

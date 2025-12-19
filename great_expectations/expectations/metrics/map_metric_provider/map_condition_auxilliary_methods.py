@@ -62,7 +62,7 @@ def _pandas_map_condition_unexpected_count(
     **kwargs,
 ) -> int:
     """Returns unexpected count for MapExpectations"""
-    return np.count_nonzero(metrics["unexpected_condition"][0])
+    return int(np.count_nonzero(metrics["unexpected_condition"][0]))
 
 
 def _pandas_map_condition_index(
