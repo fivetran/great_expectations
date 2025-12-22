@@ -93,7 +93,7 @@ def get_store_backend_id_from_s3(bucket: str, prefix: str, key: str) -> uuid.UUI
     ge_store_backend_id_file_contents = s3_response_object["Body"].read().decode("utf-8")
 
     store_backend_id_file_parser = StoreBackend.STORE_BACKEND_ID_PREFIX + pp.Word(pp.hexnums + "-")
-    parsed_store_backend_id = store_backend_id_file_parser.parseString(
+    parsed_store_backend_id = store_backend_id_file_parser.parse_string(
         ge_store_backend_id_file_contents
     )
     return uuid.UUID(parsed_store_backend_id[1])

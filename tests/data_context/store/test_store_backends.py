@@ -103,7 +103,7 @@ def check_store_backend_store_backend_id_functionality(
     # Check file stores for the file in the correct format
     store_backend_id_from_file = store_backend.get(key=(".ge_store_backend_id",))
     store_backend_id_file_parser = "store_backend_id = " + pp.Word(pp.hexnums + "-")
-    parsed_store_backend_id = store_backend_id_file_parser.parseString(store_backend_id_from_file)
+    parsed_store_backend_id = store_backend_id_file_parser.parse_string(store_backend_id_from_file)
     assert test_utils.validate_uuid4(parsed_store_backend_id[1])
 
 

@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Union
 import dateutil
 from pyparsing import (
     CaselessKeyword,
+    DelimitedList,
     Forward,
     Group,
     Literal,
@@ -22,7 +23,6 @@ from pyparsing import (
     Word,
     alphanums,
     alphas,
-    delimitedList,
     dictOf,
 )
 
@@ -142,7 +142,7 @@ class SuiteParameterParser:
             expop = Literal("^")
 
             expr = Forward()
-            expr_list = delimitedList(Group(expr))
+            expr_list = DelimitedList(Group(expr))
 
             # We will allow functions either to accept *only* keyword
             # expressions or *only* non-keyword expressions
@@ -151,7 +151,7 @@ class SuiteParameterParser:
             # value = (fnumber | Word(alphanums))
             value = expr
             keyval = dictOf(key.set_parse_action(self.push_first), value)
-            kwarglist = delimitedList(keyval)
+            kwarglist = DelimitedList(keyval)
 
             # add parse action that replaces the function identifier with a (name, number of args, has_fn_kwargs) tuple  # noqa: E501 # FIXME CoP
             # 20211009 - JPC - Note that it's important that we consider kwarglist
@@ -355,7 +355,7 @@ def _get_parse_results(
     # Calling get_parser clears the stack
     parser = EXPR.get_parser()
     try:
-        parse_results = parser.parseString(parameter_expression, parseAll=True)
+        parse_results = parser.parse_string(parameter_expression, parse_all=True)
     except ParseException as err:
         parse_results = [
             "Parse Failure",

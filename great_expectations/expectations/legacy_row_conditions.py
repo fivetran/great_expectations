@@ -115,7 +115,7 @@ class RowCondition(SerializableDictDot):
 
 def parse_great_expectations_condition(row_condition: str):
     try:
-        return condition.parseString(row_condition)
+        return condition.parse_string(row_condition)
     except ParseException:
         raise ConditionParserError(f"unable to parse condition: {row_condition}")  # noqa: TRY003 # FIXME CoP
 

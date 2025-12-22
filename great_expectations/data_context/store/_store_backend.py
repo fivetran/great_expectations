@@ -85,7 +85,7 @@ class StoreBackend(metaclass=ABCMeta):
                 store_backend_id_file_parser = self.STORE_BACKEND_ID_PREFIX + pp.Word(
                     f"{pp.hexnums}-"
                 )
-                parsed_store_backend_id = store_backend_id_file_parser.parseString(
+                parsed_store_backend_id = store_backend_id_file_parser.parse_string(
                     ge_store_backend_id_file_contents
                 )
                 return uuid.UUID(parsed_store_backend_id[1])
