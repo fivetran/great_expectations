@@ -1,8 +1,6 @@
 # This file installs the actual packages needed for type checking with mypy.
 # Type stubs are installed automatically by mypy's --install-types flag during type checking.
-# This ensures local type checking matches CI: developers can run
-# `invoke deps -r types` followed by `invoke types --ci --pretty`
-# and get the same results as CI.
+# For usage instructions, run: invoke types --help
 
 --requirement reqs/requirements-dev-sqlalchemy2.txt
 --requirement requirements.txt

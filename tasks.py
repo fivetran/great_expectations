@@ -254,7 +254,13 @@ def type_check(  # noqa: C901, PLR0912
     ci: bool = False,
     python_version: str = "",
 ):
-    """Run mypy static type-checking on select packages."""
+    """Run mypy static type-checking on select packages.
+
+    1. Install type-checking dependencies: `invoke deps -r types --install-types`
+    2. Run type checking: `invoke types --ci --pretty`
+
+    See requirements-types.txt for details on type-checking dependencies.
+    """
     mypy_cache = pathlib.Path(".mypy_cache")
 
     if ci:
@@ -1002,6 +1008,8 @@ def deps(  # noqa: C901 - too complex
     the 'requirements-dev-cloud.txt' dependencies.
 
     $ invoke deps -m external_sqldialect -r cloud
+
+    For type-checking dependencies, use: `invoke deps -r types`
     """  # noqa: E501
     cmds = ["pip", "install"]
     if editable_install:
