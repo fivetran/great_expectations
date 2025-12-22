@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-import pyparsing
-
 try:
     from pyparsing import DelimitedList
 except ImportError:
@@ -20,14 +18,6 @@ except ImportError:
         dictOf as dict_of,  # noqa: F401  # import used externally via compatibility import
     )
 
-# Determine which API is available at import time
-try:
-    _test_parser = pyparsing.Literal("test")
-    _test_parser.set_parse_action(lambda: None)
-    _USE_NEW_PYPARSING_API = True
-except AttributeError:
-    _USE_NEW_PYPARSING_API = False
-
 
 def set_parse_action(parser: Any, action: Callable) -> Any:
     """Compatibility wrapper for set_parse_action/setParseAction.
@@ -39,9 +29,10 @@ def set_parse_action(parser: Any, action: Callable) -> Any:
     Returns:
         The parser object with the parse action set (for chaining)
     """
-    if _USE_NEW_PYPARSING_API:
+    try:
         return parser.set_parse_action(action)
-    return parser.setParseAction(action)
+    except AttributeError:
+        return parser.setParseAction(action)
 
 
 def set_results_name(parser: Any, name: str) -> Any:
@@ -54,9 +45,10 @@ def set_results_name(parser: Any, name: str) -> Any:
     Returns:
         The parser object with the results name set (for chaining)
     """
-    if _USE_NEW_PYPARSING_API:
+    try:
         return parser.set_results_name(name)
-    return parser.setResultsName(name)
+    except AttributeError:
+        return parser.setResultsName(name)
 
 
 def parse_string(parser: Any, string: str, parse_all: bool = False) -> Any:
@@ -70,6 +62,7 @@ def parse_string(parser: Any, string: str, parse_all: bool = False) -> Any:
     Returns:
         The parse results
     """
-    if _USE_NEW_PYPARSING_API:
+    try:
         return parser.parse_string(string, parse_all=parse_all)
-    return parser.parseString(string, parseAll=parse_all)
+    except AttributeError:
+        return parser.parseString(string, parseAll=parse_all)
