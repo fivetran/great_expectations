@@ -438,9 +438,11 @@ def _convert_unexpected_indices_to_df(
         return pd.DataFrame()
 
     # 1. groupby on domain columns, and turn id/pk into list
-    T = TypeVar("T")
+    # TypeVar constrained to pandas-compatible types (str, int, float, bool, etc.)
+    # Using object as bound since pandas Series can hold various types
+    T = TypeVar("T", bound=object)
 
-    def _agg_func(y: pd.Series[T]) -> list[T]:
+    def _agg_func(y: pd.Series[T]) -> list[T]:  # type: ignore[type-var]  # not yet supported by pandas-stubs
         return list(y)
 
     all_unexpected_indices: pd.DataFrame = unexpected_index_df.groupby(domain_column_name_list).agg(
