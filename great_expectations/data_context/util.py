@@ -147,7 +147,9 @@ def parse_substitution_variable(substitution_variable: str) -> Optional[str]:
     non_curly_brace_parser = "$" + substitution_variable_name
     both_parser = curly_brace_parser | non_curly_brace_parser
     try:
-        parsed_substitution_variable = parse_string(both_parser, substitution_variable)
+        parsed_substitution_variable = parse_string(
+            both_parser, substitution_variable, parse_all=False
+        )
         return parsed_substitution_variable.substitution_variable_name
     except pp.ParseException:
         return None

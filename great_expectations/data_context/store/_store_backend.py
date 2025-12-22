@@ -8,6 +8,7 @@ from typing import Any, List, Optional, Union
 
 import pyparsing as pp
 
+from great_expectations.compatibility.pyparsing import parse_string
 from great_expectations.exceptions import InvalidKeyError, StoreBackendError, StoreError
 
 logger = logging.getLogger(__name__)
@@ -85,8 +86,6 @@ class StoreBackend(metaclass=ABCMeta):
                 store_backend_id_file_parser = self.STORE_BACKEND_ID_PREFIX + pp.Word(
                     f"{pp.hexnums}-"
                 )
-                from great_expectations.compatibility.pyparsing import parse_string
-
                 parsed_store_backend_id = parse_string(
                     store_backend_id_file_parser, ge_store_backend_id_file_contents
                 )
