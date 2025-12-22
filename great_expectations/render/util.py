@@ -6,7 +6,7 @@ import copy
 import decimal
 import locale
 import re
-from typing import Any, Sequence
+from typing import Any, Sequence, TypeVar
 
 import pandas as pd
 
@@ -438,7 +438,9 @@ def _convert_unexpected_indices_to_df(
         return pd.DataFrame()
 
     # 1. groupby on domain columns, and turn id/pk into list
-    def _agg_func(y: pd.Series[Any]) -> list[Any]:
+    T = TypeVar("T")
+
+    def _agg_func(y: pd.Series[T]) -> list[T]:
         return list(y)
 
     all_unexpected_indices: pd.DataFrame = unexpected_index_df.groupby(domain_column_name_list).agg(
