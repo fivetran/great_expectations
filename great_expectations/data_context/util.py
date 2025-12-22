@@ -12,6 +12,10 @@ from urllib.parse import urlparse
 import pyparsing as pp
 
 from great_expectations.alias_types import PathStr  # noqa: TC001 # FIXME CoP
+from great_expectations.compatibility.pyparsing import (
+    parse_string,
+    set_results_name,
+)
 from great_expectations.exceptions import StoreConfigurationError
 from great_expectations.types import safe_deep_copy
 from great_expectations.util import load_class, verify_dynamic_loading_support
@@ -136,14 +140,14 @@ def parse_substitution_variable(substitution_variable: str) -> Optional[str]:
     Returns:
         string of variable name e.g. SOME_VAR or None if not parsable. If there are multiple substitution variables this currently returns the first e.g. $SOME_$TRING -> $SOME_
     """  # noqa: E501 # FIXME CoP
-    substitution_variable_name = pp.Word(pp.alphanums + "_").set_results_name(
-        "substitution_variable_name"
+    substitution_variable_name = set_results_name(
+        pp.Word(pp.alphanums + "_"), "substitution_variable_name"
     )
     curly_brace_parser = "${" + substitution_variable_name + "}"
     non_curly_brace_parser = "$" + substitution_variable_name
     both_parser = curly_brace_parser | non_curly_brace_parser
     try:
-        parsed_substitution_variable = both_parser.parse_string(substitution_variable)
+        parsed_substitution_variable = parse_string(both_parser, substitution_variable)
         return parsed_substitution_variable.substitution_variable_name
     except pp.ParseException:
         return None

@@ -85,8 +85,10 @@ class StoreBackend(metaclass=ABCMeta):
                 store_backend_id_file_parser = self.STORE_BACKEND_ID_PREFIX + pp.Word(
                     f"{pp.hexnums}-"
                 )
-                parsed_store_backend_id = store_backend_id_file_parser.parse_string(
-                    ge_store_backend_id_file_contents
+                from great_expectations.compatibility.pyparsing import parse_string
+
+                parsed_store_backend_id = parse_string(
+                    store_backend_id_file_parser, ge_store_backend_id_file_contents
                 )
                 return uuid.UUID(parsed_store_backend_id[1])
             except InvalidKeyError:
