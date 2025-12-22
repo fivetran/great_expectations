@@ -58,7 +58,7 @@ date = (
     + Suppress(Literal(")"))
 )
 not_null = CaselessLiteral(".notnull()").set_results_name("notnull")
-condition = (column_name + not_null).setParseAction(_set_notnull) ^ (
+condition = (column_name + not_null).set_parse_action(_set_notnull) ^ (
     column_name + ops + (fnumber ^ condition_value ^ date)
 )
 

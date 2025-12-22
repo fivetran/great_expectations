@@ -150,36 +150,36 @@ class SuiteParameterParser:
             key = Word(f"{alphas}_") + Suppress("=")
             # value = (fnumber | Word(alphanums))
             value = expr
-            keyval = dictOf(key.setParseAction(self.push_first), value)
+            keyval = dictOf(key.set_parse_action(self.push_first), value)
             kwarglist = delimitedList(keyval)
 
             # add parse action that replaces the function identifier with a (name, number of args, has_fn_kwargs) tuple  # noqa: E501 # FIXME CoP
             # 20211009 - JPC - Note that it's important that we consider kwarglist
             # first as part of disabling backtracking for the function's arguments
-            fn_call = (variable + lpar + rpar).setParseAction(
+            fn_call = (variable + lpar + rpar).set_parse_action(
                 lambda t: t.insert(0, (t.pop(0), 0, False))
             ) | (
-                (variable + lpar - Group(expr_list) + rpar).setParseAction(
+                (variable + lpar - Group(expr_list) + rpar).set_parse_action(
                     lambda t: t.insert(0, (t.pop(0), len(t[0]), False))
                 )
-                ^ (variable + lpar - Group(kwarglist) + rpar).setParseAction(
+                ^ (variable + lpar - Group(kwarglist) + rpar).set_parse_action(
                     lambda t: t.insert(0, (t.pop(0), len(t[0]), True))
                 )
             )
             atom = (
                 addop[...]
                 + (
-                    (fn_call | pi | e | fnumber | variable).setParseAction(self.push_first)
+                    (fn_call | pi | e | fnumber | variable).set_parse_action(self.push_first)
                     | Group(lpar + expr + rpar)
                 )
-            ).setParseAction(self.push_unary_minus)
+            ).set_parse_action(self.push_unary_minus)
 
             # by defining exponentiation as "atom [ ^ factor ]..." instead of "atom [ ^ atom ]...", we get right-to-left  # noqa: E501 # FIXME CoP
             # exponents, instead of left-to-right that is, 2^3^2 = 2^(3^2), not (2^3)^2.
             factor = Forward()
-            factor <<= atom + (expop + factor).setParseAction(self.push_first)[...]
-            term = factor + (multop + factor).setParseAction(self.push_first)[...]
-            expr <<= term + (addop + term).setParseAction(self.push_first)[...]
+            factor <<= atom + (expop + factor).set_parse_action(self.push_first)[...]
+            term = factor + (multop + factor).set_parse_action(self.push_first)[...]
+            expr <<= term + (addop + term).set_parse_action(self.push_first)[...]
             self._parser = expr
         return self._parser
 
