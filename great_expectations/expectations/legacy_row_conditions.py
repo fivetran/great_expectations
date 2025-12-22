@@ -6,7 +6,8 @@ from dataclasses import dataclass
 from string import punctuation
 from typing import TYPE_CHECKING
 
-from pyparsing import (
+import great_expectations.exceptions as gx_exceptions
+from great_expectations.compatibility.pyparsing import (
     CaselessLiteral,
     Combine,
     Literal,
@@ -17,10 +18,6 @@ from pyparsing import (
     Word,
     alphanums,
     alphas8bit,
-)
-
-import great_expectations.exceptions as gx_exceptions
-from great_expectations.compatibility.pyparsing import (
     parse_string,
     set_parse_action,
     set_results_name,

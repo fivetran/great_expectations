@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
+import pyparsing
+
+# Import classes and functions that may have different names in different versions
 try:
     from pyparsing import DelimitedList
 except ImportError:
     # Backward compatibility for older pyparsing versions (e.g., 3.0.9 used by Airflow 2.5.0)
     from pyparsing import (
-        delimitedList as DelimitedList,  # noqa: F401  # import used externally via compatibility import
+        delimitedList as DelimitedList,
     )
 
 try:
@@ -15,8 +18,54 @@ try:
 except ImportError:
     # Backward compatibility for older pyparsing versions (e.g., 3.0.9 used by Airflow 2.5.0)
     from pyparsing import (
-        dictOf as dict_of,  # noqa: F401  # import used externally via compatibility import
+        dictOf as dict_of,
     )
+
+# Re-export commonly used pyparsing classes and functions
+from pyparsing import (
+    CaselessKeyword,
+    CaselessLiteral,
+    Combine,
+    Forward,
+    Group,
+    Literal,
+    ParseException,
+    ParseResults,
+    QuotedString,
+    Regex,
+    Suppress,
+    Word,
+    alphanums,
+    alphas,
+    alphas8bit,
+    hexnums,
+)
+
+# Re-export pyparsing module itself for cases where the full module is needed
+__all__ = [
+    "CaselessKeyword",
+    "CaselessLiteral",
+    "Combine",
+    "DelimitedList",
+    "Forward",
+    "Group",
+    "Literal",
+    "ParseException",
+    "ParseResults",
+    "QuotedString",
+    "Regex",
+    "Suppress",
+    "Word",
+    "alphanums",
+    "alphas",
+    "alphas8bit",
+    "dict_of",
+    "hexnums",
+    "parse_string",
+    "pyparsing",
+    "set_parse_action",
+    "set_results_name",
+]
 
 
 def set_parse_action(parser: Any, action: Callable) -> Any:

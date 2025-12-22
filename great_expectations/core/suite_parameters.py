@@ -10,8 +10,10 @@ from collections import namedtuple
 from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Union
 
 import dateutil
-from pyparsing import (
+
+from great_expectations.compatibility.pyparsing import (
     CaselessKeyword,
+    DelimitedList,
     Forward,
     Group,
     Literal,
@@ -22,10 +24,6 @@ from pyparsing import (
     Word,
     alphanums,
     alphas,
-)
-
-from great_expectations.compatibility.pyparsing import (
-    DelimitedList,
     dict_of,
     parse_string,
     set_parse_action,

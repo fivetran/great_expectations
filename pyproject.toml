@@ -416,6 +416,7 @@ If you are working in a configuration file you may use the inline comment \
 "google".msg = "Please do not import google directly, import from great_expectations.compatibility.google instead."
 "azure".msg = "Please do not import azure directly, import from great_expectations.compatibility.azure instead."
 "trino".msg = "Please do not import trino directly, import from great_expectations.compatibility.trino instead."
+"pyparsing".msg = "Please do not import pyparsing directly, import from great_expectations.compatibility.pyparsing instead."
 "pyarrow".msg = "Please do not import pyarrow directly, import from great_expectations.compatibility.pyarrow instead."
 "typing_extensions.override".msg = "Do not import typing_extensions.override directly, import `override` from great_expectations.compatibility.typing_extensions instead."
 # TODO: remove pydantic once our min version is pydantic v2
