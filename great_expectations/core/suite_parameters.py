@@ -23,7 +23,7 @@ from pyparsing import (
     Word,
     alphanums,
     alphas,
-    dictOf,
+    dict_of,
 )
 
 from great_expectations.exceptions import SuiteParameterError
@@ -150,7 +150,7 @@ class SuiteParameterParser:
             key = Word(f"{alphas}_") + Suppress("=")
             # value = (fnumber | Word(alphanums))
             value = expr
-            keyval = dictOf(key.set_parse_action(self.push_first), value)
+            keyval = dict_of(key.set_parse_action(self.push_first), value)
             kwarglist = DelimitedList(keyval)
 
             # add parse action that replaces the function identifier with a (name, number of args, has_fn_kwargs) tuple  # noqa: E501 # FIXME CoP
