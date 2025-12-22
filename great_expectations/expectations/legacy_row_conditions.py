@@ -35,29 +35,29 @@ def _set_notnull(s, l, t) -> None:  # noqa: E741 # ambiguous name `l`
 
 
 WHITESPACE_CHARS = " \t"
-column_name = Combine(Literal("col(") + QuotedString('"').setResultsName("column") + Literal(")"))
+column_name = Combine(Literal("col(") + QuotedString('"').set_results_name("column") + Literal(")"))
 gt = Literal(">")
 lt = Literal("<")
 ge = Literal(">=")
 le = Literal("<=")
 eq = Literal("==")
 ne = Literal("!=")
-ops = (gt ^ lt ^ ge ^ le ^ eq ^ ne).setResultsName("op")
-fnumber = Regex(r"[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?").setResultsName("fnumber")
+ops = (gt ^ lt ^ ge ^ le ^ eq ^ ne).set_results_name("op")
+fnumber = Regex(r"[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?").set_results_name("fnumber")
 punctuation_without_apostrophe = punctuation.replace('"', "").replace("'", "")
 condition_value_chars = alphanums + alphas8bit + punctuation_without_apostrophe + WHITESPACE_CHARS
-condition_value = Suppress('"') + Word(f"{condition_value_chars}._").setResultsName(
+condition_value = Suppress('"') + Word(f"{condition_value_chars}._").set_results_name(
     "condition_value"
-) + Suppress('"') ^ Suppress("'") + Word(f"{condition_value_chars}._").setResultsName(
+) + Suppress('"') ^ Suppress("'") + Word(f"{condition_value_chars}._").set_results_name(
     "condition_value"
 ) + Suppress("'")
 date = (
-    Literal("date").setResultsName("date")
+    Literal("date").set_results_name("date")
     + Suppress(Literal("("))
     + condition_value
     + Suppress(Literal(")"))
 )
-not_null = CaselessLiteral(".notnull()").setResultsName("notnull")
+not_null = CaselessLiteral(".notnull()").set_results_name("notnull")
 condition = (column_name + not_null).setParseAction(_set_notnull) ^ (
     column_name + ops + (fnumber ^ condition_value ^ date)
 )

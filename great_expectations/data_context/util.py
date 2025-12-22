@@ -136,7 +136,7 @@ def parse_substitution_variable(substitution_variable: str) -> Optional[str]:
     Returns:
         string of variable name e.g. SOME_VAR or None if not parsable. If there are multiple substitution variables this currently returns the first e.g. $SOME_$TRING -> $SOME_
     """  # noqa: E501 # FIXME CoP
-    substitution_variable_name = pp.Word(pp.alphanums + "_").setResultsName(
+    substitution_variable_name = pp.Word(pp.alphanums + "_").set_results_name(
         "substitution_variable_name"
     )
     curly_brace_parser = "${" + substitution_variable_name + "}"
