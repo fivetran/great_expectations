@@ -59,7 +59,7 @@ def set_results_name(parser: Any, name: str) -> Any:
     return parser.setResultsName(name)
 
 
-def parse_string(parser: Any, string: str, parse_all: bool = True) -> Any:
+def parse_string(parser: Any, string: str, parse_all: bool = False) -> Any:
     """Compatibility wrapper for parse_string/parseString.
 
     Args:
