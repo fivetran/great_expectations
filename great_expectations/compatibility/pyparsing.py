@@ -2,19 +2,31 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-try:
-    from pyparsing import DelimitedList, dict_of
+import pyparsing
 
-    _USE_NEW_PYPARSING_API = True
+try:
+    from pyparsing import DelimitedList
 except ImportError:
     # Backward compatibility for older pyparsing versions (e.g., 3.0.9 used by Airflow 2.5.0)
-    from pyparsing import delimitedList as DelimitedList
-    from pyparsing import dictOf as dict_of
+    from pyparsing import (
+        delimitedList as DelimitedList,  # noqa: F401  # import used externally via compatibility import
+    )
 
+try:
+    from pyparsing import dict_of
+except ImportError:
+    # Backward compatibility for older pyparsing versions (e.g., 3.0.9 used by Airflow 2.5.0)
+    from pyparsing import (
+        dictOf as dict_of,  # noqa: F401  # import used externally via compatibility import
+    )
+
+# Determine which API is available at import time
+try:
+    _test_parser = pyparsing.Literal("test")
+    _test_parser.set_parse_action(lambda: None)
+    _USE_NEW_PYPARSING_API = True
+except AttributeError:
     _USE_NEW_PYPARSING_API = False
-
-# Re-export for convenience
-__all__ = ["DelimitedList", "dict_of", "parse_string", "set_parse_action", "set_results_name"]
 
 
 def set_parse_action(parser: Any, action: Callable) -> Any:
