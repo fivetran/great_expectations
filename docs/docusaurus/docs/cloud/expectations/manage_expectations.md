@@ -7,7 +7,7 @@ description: Create and manage Expectations in GX Cloud.
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
-You can manually create Expectations and use several different GX Cloud features to generate Expectations.
+You can manually create Expectations via both the UI and API, and use several different GX Cloud features to generate Expectations via the UI.
 
 This page provides instructions for working with Expectations. To learn about Expectation types and options, see the [Expectations overview](/cloud/expectations/expectations_overview.md). To learn about the Expectation changelog at the Data Asset level, visit [Manage Data Assets](/cloud/data_assets/manage_data_assets.md#view-data-asset-history).
 
