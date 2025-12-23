@@ -15,6 +15,17 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.10.0
+* [FEATURE] Support query and PK columns on BOOLEAN_ONLY and BASIC ([#11563](https://github.com/great-expectations/great_expectations/pull/11563))
+* [DOCS] remove temporary severity note ([#11564](https://github.com/great-expectations/great_expectations/pull/11564))
+* [DOCS] Cloud result format ([#11558](https://github.com/great-expectations/great_expectations/pull/11558))
+* [DOCS] data health dashboard metric filters ([#11529](https://github.com/great-expectations/great_expectations/pull/11529))
+* [MAINTENANCE] Fix add_dataframe_asset docstring for spark ([#11561](https://github.com/great-expectations/great_expectations/pull/11561))
+* [MAINTENANCE] Fix flaky sqlite ResourceWarning ([#11562](https://github.com/great-expectations/great_expectations/pull/11562))
+* [MAINTENANCE] Bump ruff version ([#11568](https://github.com/great-expectations/great_expectations/pull/11568))
+* [MAINTENANCE] Don't fail CI if codecov upload fails ([#11569](https://github.com/great-expectations/great_expectations/pull/11569))
+* [MAINTENANCE] Filter out google warning about using python 3.10 ([#11572](https://github.com/great-expectations/great_expectations/pull/11572))
+
 ### 1.9.3
 * [FEATURE] infer primary keys during column_types metric fetch ([#11554](https://github.com/great-expectations/great_expectations/pull/11554))
 * [BUGFIX] Prevent FROM DUAL from being added to a properly formatted ORACLE SQL query when using SQLAlchemy ([#11538](https://github.com/great-expectations/great_expectations/pull/11538)) (thanks @konnor-b)

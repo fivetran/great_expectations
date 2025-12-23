@@ -6,7 +6,8 @@ from dataclasses import dataclass
 from string import punctuation
 from typing import TYPE_CHECKING
 
-from pyparsing import (
+import great_expectations.exceptions as gx_exceptions
+from great_expectations.compatibility.pyparsing import (
     CaselessLiteral,
     Combine,
     Literal,
@@ -17,9 +18,10 @@ from pyparsing import (
     Word,
     alphanums,
     alphas8bit,
+    parse_string,
+    set_parse_action,
+    set_results_name,
 )
-
-import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
@@ -35,30 +37,32 @@ def _set_notnull(s, l, t) -> None:  # noqa: E741 # ambiguous name `l`
 
 
 WHITESPACE_CHARS = " \t"
-column_name = Combine(Literal("col(") + QuotedString('"').setResultsName("column") + Literal(")"))
+column_name = Combine(
+    Literal("col(") + set_results_name(QuotedString('"'), "column") + Literal(")")
+)
 gt = Literal(">")
 lt = Literal("<")
 ge = Literal(">=")
 le = Literal("<=")
 eq = Literal("==")
 ne = Literal("!=")
-ops = (gt ^ lt ^ ge ^ le ^ eq ^ ne).setResultsName("op")
-fnumber = Regex(r"[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?").setResultsName("fnumber")
+ops = set_results_name(gt ^ lt ^ ge ^ le ^ eq ^ ne, "op")
+fnumber = set_results_name(Regex(r"[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?"), "fnumber")
 punctuation_without_apostrophe = punctuation.replace('"', "").replace("'", "")
 condition_value_chars = alphanums + alphas8bit + punctuation_without_apostrophe + WHITESPACE_CHARS
-condition_value = Suppress('"') + Word(f"{condition_value_chars}._").setResultsName(
-    "condition_value"
-) + Suppress('"') ^ Suppress("'") + Word(f"{condition_value_chars}._").setResultsName(
-    "condition_value"
+condition_value = Suppress('"') + set_results_name(
+    Word(f"{condition_value_chars}._"), "condition_value"
+) + Suppress('"') ^ Suppress("'") + set_results_name(
+    Word(f"{condition_value_chars}._"), "condition_value"
 ) + Suppress("'")
 date = (
-    Literal("date").setResultsName("date")
+    set_results_name(Literal("date"), "date")
     + Suppress(Literal("("))
     + condition_value
     + Suppress(Literal(")"))
 )
-not_null = CaselessLiteral(".notnull()").setResultsName("notnull")
-condition = (column_name + not_null).setParseAction(_set_notnull) ^ (
+not_null = set_results_name(CaselessLiteral(".notnull()"), "notnull")
+condition = set_parse_action(column_name + not_null, _set_notnull) ^ (
     column_name + ops + (fnumber ^ condition_value ^ date)
 )
 
@@ -115,7 +119,7 @@ class RowCondition(SerializableDictDot):
 
 def parse_great_expectations_condition(row_condition: str):
     try:
-        return condition.parseString(row_condition)
+        return parse_string(condition, row_condition)
     except ParseException:
         raise ConditionParserError(f"unable to parse condition: {row_condition}")  # noqa: TRY003 # FIXME CoP
 

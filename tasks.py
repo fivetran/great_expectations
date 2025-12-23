@@ -254,7 +254,13 @@ def type_check(  # noqa: C901, PLR0912
     ci: bool = False,
     python_version: str = "",
 ):
-    """Run mypy static type-checking on select packages."""
+    """Run mypy static type-checking on select packages.
+
+    1. Install type-checking dependencies: `invoke deps -r types --install-types`
+    2. Run type checking: `invoke types --ci --pretty`
+
+    See requirements-types.txt for details on type-checking dependencies.
+    """
     mypy_cache = pathlib.Path(".mypy_cache")
 
     if ci:
@@ -971,7 +977,8 @@ def _get_marker_dependencies(markers: str | Sequence[str]) -> list[TestDependenc
     iterable=["markers", "requirements_dev"],
     help={
         "markers": "Optional marker to install dependencies for. Can be specified multiple times.",
-        "requirements_dev": "Short name of `requirements-dev-*.txt` file to install, e.g. test, spark, cloud, etc. Can be specified multiple times.",  # noqa: E501
+        "requirements_dev": "Short name of `requirements-dev-*.txt` file to install, "
+        "e.g. test, spark, cloud, types, etc. Can be specified multiple times.",
         "constraints": "Optional flag to install dependencies with constraints, default True",
         "gx_install": "Install the local version of Great Expectations.",
         "editable_install": "Install an editable local version of Great Expectations.",
@@ -1001,6 +1008,8 @@ def deps(  # noqa: C901 - too complex
     the 'requirements-dev-cloud.txt' dependencies.
 
     $ invoke deps -m external_sqldialect -r cloud
+
+    For type-checking dependencies, use: `invoke deps -r types`
     """  # noqa: E501
     cmds = ["pip", "install"]
     if editable_install:
@@ -1017,7 +1026,11 @@ def deps(  # noqa: C901 - too complex
         req_files.extend(test_deps.requirement_files)
 
     for name in requirements_dev:
-        req_path: pathlib.Path = REQS_DIR / f"requirements-dev-{name}.txt"
+        # Special case: "types" refers to requirements-types.txt in the root
+        if name == "types":
+            req_path = GX_ROOT_DIR / "requirements-types.txt"
+        else:
+            req_path = REQS_DIR / f"requirements-dev-{name}.txt"
         assert req_path.exists(), f"Requirement file {req_path} does not exist"
         req_files.append(str(req_path))
 

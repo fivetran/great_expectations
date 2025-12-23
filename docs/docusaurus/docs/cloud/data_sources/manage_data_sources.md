@@ -10,29 +10,31 @@ import Tabs from '@theme/Tabs';
 
 A Data Source is an object that tells GX Cloud how to connect to a specific location of data and provides an entry point for organizing that data into Data Assets, which can be validated. Visit the [compatibility reference](/docs/help/compatibility_reference) for a full list of supported Data Sources. Contact us to [request support for additional sources](mailto:sales@greatexpectations.io).
 
-## Data Source limitations
+## Workflow and feature support
 
-To connect to the following data locations, you must use the GX Cloud API. These are not available for connection in the GX Cloud UI:
-- [Amazon S3](/docs/cloud/connect/connect_s3)
-- [Azure Blob Storage](/docs/cloud/connect/connect_python)
-- [BigQuery](/docs/cloud/connect/connect_python)
-- [Google Cloud Storage](/docs/cloud/connect/connect_python)
-- [Pandas](/docs/cloud/connect/connect_python)
-- [Spark](/docs/cloud/connect/connect_python)
 
-All of these Data Sources have the following limitations, regardless of your GX Cloud [deployment pattern](/docs/cloud/deploy/deployment_patterns):
-- The Data Source configuration cannot be edited in the GX Cloud UI. Use the GX Cloud API if you need to [edit the connection](#edit-data-source-settings).
-- Data Assets cannot be added through the GX Cloud UI. Use the GX Cloud API to [add Data Assets](/docs/cloud/data_assets/manage_data_assets.md?interface=api).
-- When you add a Data Asset, Expectations for [Anomaly Detection](/docs/cloud/expectations/expectations_overview.md#anomaly-detection) are not automatically generated. You can [add Anomaly Detection Expectations](/docs/cloud/expectations/manage_expectations#add-an-expectation) after the Data Asset is created.
-- ExpectAI is not supported.
+Depending on your Data Source, GX Cloud supports both no-code UI workflows and programmatic API workflows as indicated in the table below.
 
-Azure Blob Storage, BigQuery, Google Cloud Storage, Pandas, and Spark have the following additional limitations:
-- Data Asset metrics are not supported.
-- The [Data Health](/docs/cloud/overview/data_health) dashboard entity filter cannot detect the Data Asset’s columns.
-- You cannot use the UI to define a Batch for validating a time-based subset of your data. Use the GX Cloud API to [define a Batch](/docs/cloud/validations/run_validations.md).
-- When you add an Expectation, you cannot generate Expectations for [Anomaly Detection](/docs/cloud/expectations/expectations_overview.md#anomaly-detection). You can manually configure Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
-- Ad hoc Validations cannot be triggered through the GX Cloud UI. Use the GX Cloud API to [run an ad hoc Validation](/docs/cloud/validations/run_validations.md).
-- Recurring Validations cannot be scheduled in GX Cloud. Use an [orchestrator](/docs/reference/learn/integrations/data_pipeline_tutorial) to run recurring Validations. 
+| Workflow                                                             | Databricks SQL<br/>PostgreSQL and its derivatives *<br/>Redshift<br/>Snowflake | Amazon S3 | Azure Blob Storage<br/>BigQuery<br/>Google Cloud Storage<br/>Pandas<br/>Spark |
+|:---------------------------------------------------------------------|:-------------------------------------------------------------------------------|:----------|:------------------------------------------------------------------------------|
+| [Create Data Source](/docs/cloud/connect/connect_lp.md)              | UI / API                                                                       | API       | API                                                                           |
+| [Edit Data Source configuration](#edit-data-source-settings)         | UI / API                                                                       | API       | API                                                                           |
+| [Add Data Assets](/docs/cloud/data_assets/manage_data_assets.md)     | UI / API                                                                       | API       | API                                                                           |
+| [Define Batches](/docs/cloud/validations/run_validations.md)         | UI / API                                                                       | API       | API                                                                           |
+| [Run ad hoc Validations](/docs/cloud/validations/run_validations.md) | UI / API                                                                       | UI / API  | API                                                                           |
+
+Some UI-only features are not supported for some Data Sources. Consult the table below to learn more about UI-only feature support for individual sources and, where available, workarounds.
+
+| Feature                                                                                                                                    | Databricks SQL<br/>PostgreSQL and its derivatives *<br/>Redshift<br/>Snowflake | Amazon S3                                   | Azure Blob Storage<br/>BigQuery<br/>Google Cloud Storage<br/>Pandas<br/>Spark | Workaround for unsupported Data Sources                                                              |
+|:-------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------|:--------------------------------------------|:------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [Data Asset metrics](/docs/cloud/data_assets/manage_data_assets.md#view-data-asset-metrics)                                                | <span role="img" aria-label="Yes">✅</span>                                    | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span>                                   | None                                                                                                                                                                           |
+| [Column filter](/docs/cloud/overview/data_health#filters) on Data Health dashboard                                                         | <span role="img" aria-label="Yes">✅</span>                                    | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span>                                   | None                                                                                                                                                                           |
+| [Generate Anomaly Detection](/docs/cloud/overview/accelerating_test_coverage.md#anomaly-detection) Expectations when adding a Data Asset   | <span role="img" aria-label="Yes">✅</span>                                    | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span>                                   |[Manually configure Anomaly Detection](/docs/cloud/expectations/expectations_overview.md#anomaly-detection) by adding Expectations with Dynamic Parameters or forecasted ranges |
+| [Generate Anomaly Detection](/docs/cloud/overview/accelerating_test_coverage.md#anomaly-detection) Expectations when adding an Expectation | <span role="img" aria-label="Yes">✅</span>                                    | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span>                                   |[Manually configure Anomaly Detection](/docs/cloud/expectations/expectations_overview.md#anomaly-detection) by adding Expectations with Dynamic Parameters or forecasted ranges |
+| [ExpectAI](/docs/cloud/overview/accelerating_test_coverage.md#expectai-beta)                                                               | <span role="img" aria-label="Yes">✅</span>                                    | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span>                                   | None                                                                                                                                                                           |
+| [Schedule recurring Validations](/docs/cloud/schedules/manage_schedules.md)                                                                | <span role="img" aria-label="Yes">✅</span>                                    | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span>                                   |[Use an orchestrator](/docs/reference/learn/integrations/data_pipeline_tutorial) to run recurring Validations                                                                   |
+
+\* AlloyDB, Amazon Aurora PostgreSQL, Citus, and Neon are PostgreSQL-derived systems and have the same support in GX Cloud as PostgreSQL.
 
 ## Edit Data Source settings
 

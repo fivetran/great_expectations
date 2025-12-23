@@ -102,7 +102,7 @@ Keep the following limitations in mind when working with Multi-source Expectatio
 
 ## Anomaly Detection
 
-Anomaly Detection Expectations evolve with your data to detect deviations from historical patterns. To speed up their creation, you can generate Anomaly Detection Expectations when you use the GX Cloud UI to [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation). Note that [some Data Sources](/docs/cloud/data_sources/manage_data_sources.md#data-source-limitations) don't support these options. All Data Sources support manual configuration of Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
+Anomaly Detection Expectations evolve with your data to detect deviations from historical patterns. To speed up their creation, you can generate Anomaly Detection Expectations when you use the GX Cloud UI to [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation). Note that [some Data Sources](/docs/cloud/data_sources/manage_data_sources.md#workflow-and-feature-support) don't support these options. All Data Sources support manual configuration of Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
 
 ### Dynamic Parameters
 
