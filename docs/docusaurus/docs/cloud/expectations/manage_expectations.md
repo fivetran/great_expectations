@@ -99,7 +99,7 @@ This page provides instructions for working with Expectations. To learn about Ex
 
 5. Create or get an Expectation Suite.
 
-   An Expectation Suite contains a group of Expectations that describe the same set of data. Combining all the Expectations that you apply to a given set of data into an Expectation Suite allows you to evaluate them as a group, rather than individually. All of the Expectations that you use to validate your data in production workflows should be grouped into Expectation Suites.
+   An Expectation Suite is used to group Expectations. All Expectations need to be added to an Expectation Suite before they can be associated to a Data Asset via a Validation Definition. All of the Expectations that are grouped with in an Expectation Suite will be evaluated together whenever you run the Validation Definition.
 
    Create an Expectation Suite and add it to your Data Context:
       ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - create expectation suite"
