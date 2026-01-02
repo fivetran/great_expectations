@@ -23,12 +23,12 @@ from great_expectations.core.run_identifier import RunIdentifier
 from great_expectations.core.validation_definition import ValidationDefinition
 
 __all__ = [
-    "get_context",
     "Checkpoint",
     "ExpectationSuite",
     "ResultFormat",
     "RunIdentifier",
     "ValidationDefinition",
+    "get_context",
 ]
 
 
