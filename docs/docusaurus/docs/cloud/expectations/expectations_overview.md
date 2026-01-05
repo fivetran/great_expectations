@@ -162,12 +162,7 @@ Here are some examples of how to express complex row conditions:
 
    ![product_category is games and purchase_amount is greater than or equal to 250 or product_category is games and product rating is 5](/img/a_and_b_or_c.png)
 
-Keep the following requirements and limitations in mind when working with row conditions:
-
-- An Expectation can have up to 100 condition statements grouped in any number of condition blocks. 
-- [GX agent versions](/cloud/deploy/deploy_gx_agent.md#gx-agent-versioning) prior to 20251103.0 and [Cloud API versions](/docs/reference/) before 1.8.1 do not support the following row conditions options. If you use any of these aspects of row conditions and use the GX agent or the GX Cloud API, make sure your versions are sufficiently recent.
-   - multiple condition statements
-   - **is in**, **is not in**, or **is null** operators
+An Expectation can have up to 100 condition statements grouped in any number of condition blocks.
 
 
 ## Failure severity
