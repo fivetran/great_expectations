@@ -15,7 +15,7 @@ import OverviewCard from '@site/src/components/OverviewCard';
 </OverviewCard>
 
 <LinkCardGrid>
-  <LinkCard topIcon label="Atlan" description="Surface data quality insights in Atlan’s metadata layer." to="/cloud/integrations/atlan" icon="/img/atlan_logo.png"/>
+  <LinkCard topIcon label="Atlan" description="Surface data quality insights in Atlan’s metadata layer." to="/cloud/integrations/integrate_atlan" icon="/img/atlan_logo.png"/>
 
-  <LinkCard topIcon label="Airflow" description="Validate data directly from a DAG" to="/cloud/integrations/airflow" icon="/img/airflow_icon.png"/>
+  <LinkCard topIcon label="Airflow" description="Validate data directly from a DAG" to="/cloud/integrations/integrate_airflow" icon="/img/airflow_icon.png"/>
 </LinkCardGrid>
