@@ -37,7 +37,7 @@ Configure the [Great Expectations connector](https://atlan.com/workflows/setup/a
 
 ## Limitations
 
-When working with the GX Cloud Atlan integration, note that the following types of Data Assets cannot be mapped from GX Cloud to Atlan
+When working with the GX Cloud Atlan integration, note that the following types of Data Assets cannot be mapped from GX Cloud to Atlan:
 
 - Data Assets from filesystem Data Sources such as Amazon S3. 
 - Query Data Assets that validate records returned by a SQL query. Only Table Data Assets that validate tables or views from SQL Data Sources are supported.
