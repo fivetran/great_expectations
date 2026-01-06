@@ -24,10 +24,8 @@ from great_expectations.expectations.metrics.util import (
     get_sqlalchemy_source_table_and_schema,
     sqlalchemy_select_to_sql_string,
 )
-from great_expectations.util import (  # noqa: TID251 # FIXME CoP
+from great_expectations.util import (  # FIXME CoP
     convert_to_json_serializable,
-)
-from great_expectations.util import (
     generate_temporary_table_name,
     get_sqlalchemy_selectable,
 )
