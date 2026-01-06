@@ -2148,7 +2148,7 @@ def test_map_column_values_increasing_spark(spark_session):
     metrics.update(results)
 
     assert metrics[unexpected_rows_metric.id] == [
-        (3,),
+        {"a": 3},
     ]
 
 
@@ -3520,9 +3520,9 @@ def test_map_column_pairs_equal_metric_spark(spark_session):  # noqa: PLR0915 # 
     metrics.update(results)
 
     assert metrics[unexpected_rows_metric.id] == [
-        (0, 5, 5, 7),
-        (1, 4, 4, 8),
-        (2, 6, 6, 0),
+        {"a": 0, "b": 5, "c": 5, "d": 7},
+        {"a": 1, "b": 4, "c": 4, "d": 8},
+        {"a": 2, "b": 6, "c": 6, "d": 0},
     ]
 
     unexpected_values_metric = MetricConfiguration(
@@ -6653,9 +6653,9 @@ def test_map_select_column_values_unique_within_record_spark(  # noqa: PLR0915 #
     metrics.update(results)
 
     assert metrics[unexpected_rows_metric.id] == [
-        (1.0, 1.0, 2.0),
-        (4.0, 4.0, 4.0),
-        (None, None, 9.0),
+        {"a": 1.0, "b": 1.0, "c": 2.0},
+        {"a": 4.0, "b": 4.0, "c": 4.0},
+        {"a": None, "b": None, "c": 9.0},
     ]
 
     unexpected_values_metric = MetricConfiguration(

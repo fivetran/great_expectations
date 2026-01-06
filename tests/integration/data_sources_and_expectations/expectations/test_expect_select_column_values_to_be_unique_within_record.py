@@ -169,6 +169,23 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     unexpected_rows_data = result_dict["unexpected_rows"]
     assert isinstance(unexpected_rows_data, list)
 
-    assert unexpected_rows_data == [
-        {INT_COL_A: 3, INT_COL_B: 4, INT_COL_C: 4, STRING_COL_A: "d", STRING_COL_B: "a"}
-    ]
+    assert len(unexpected_rows_data) == 1
+
+    unexpected_row = unexpected_rows_data[0]
+    assert isinstance(unexpected_row, dict)
+    # Check that we have exactly the expected keys (catches extra columns)
+    expected_keys = {INT_COL_A, INT_COL_B, INT_COL_C, STRING_COL_A, STRING_COL_B}
+    actual_keys = set(unexpected_row.keys())
+    extra_keys = actual_keys - expected_keys
+    missing_keys = expected_keys - actual_keys
+
+    assert actual_keys == expected_keys, (
+        f"Key mismatch. Expected: {expected_keys}, Got: {actual_keys}, "
+        f"Extra: {extra_keys}, Missing: {missing_keys}"
+    )
+
+    assert unexpected_row[INT_COL_A] == 3
+    assert unexpected_row[INT_COL_B] == 4
+    assert unexpected_row[INT_COL_C] == 4
+    assert unexpected_row[STRING_COL_A] == "d"
+    assert unexpected_row[STRING_COL_B] == "a"
