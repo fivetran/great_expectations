@@ -640,7 +640,7 @@ def _spark_map_condition_rows(
     metric_value_kwargs: dict,
     metrics: Dict[str, Any],
     **kwargs,
-) -> list[dict]:
+) -> Union[list[dict], Any]:
     unexpected_condition, compute_domain_kwargs, accessor_domain_kwargs = metrics[
         "unexpected_condition"
     ]
