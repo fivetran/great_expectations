@@ -169,4 +169,6 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     unexpected_rows_data = result_dict["unexpected_rows"]
     assert isinstance(unexpected_rows_data, list)
 
-    assert unexpected_rows_data == [(3, 4, 4, "d", "a")]
+    assert unexpected_rows_data == [
+        {INT_COL_A: 3, INT_COL_B: 4, INT_COL_C: 4, STRING_COL_A: "d", STRING_COL_B: "a"}
+    ]
