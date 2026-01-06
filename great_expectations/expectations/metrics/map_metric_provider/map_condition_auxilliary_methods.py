@@ -401,9 +401,7 @@ def _sqlalchemy_map_condition_rows(
     try:
         rows_result = execution_engine.execute_query(query).fetchmany(MAX_RESULT_RECORDS)
 
-        serialize = metric_value_kwargs.get("result_format", {}).get(
-            "serialize_unexpected_rows", False
-        )
+        serialize = result_format.get("serialize_unexpected_rows", False)
 
         if serialize:
             return [row._asdict() for row in rows_result]

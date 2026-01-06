@@ -54,6 +54,7 @@ def parse_result_format(result_format: Union[str, dict]) -> dict:
             "result_format": result_format,
             "partial_unexpected_count": 20,
             "include_unexpected_rows": False,
+            "serialize_unexpected_rows": False,
         }
     else:
         if "include_unexpected_rows" in result_format and "result_format" not in result_format:
@@ -66,6 +67,9 @@ def parse_result_format(result_format: Union[str, dict]) -> dict:
 
         if "include_unexpected_rows" not in result_format:
             result_format["include_unexpected_rows"] = False
+
+        if "serialize_unexpected_rows" not in result_format:
+            result_format["serialize_unexpected_rows"] = False
 
     return result_format
 
