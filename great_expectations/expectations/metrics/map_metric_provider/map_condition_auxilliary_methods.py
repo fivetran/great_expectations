@@ -399,10 +399,16 @@ def _sqlalchemy_map_condition_rows(
         limit = min(result_format["partial_unexpected_count"], MAX_RESULT_RECORDS)
         query = query.limit(limit)
     try:
-        return [
-            val._asdict()
-            for val in execution_engine.execute_query(query).fetchmany(MAX_RESULT_RECORDS)
-        ]
+        rows_result = execution_engine.execute_query(query).fetchmany(MAX_RESULT_RECORDS)
+
+        serialize = metric_value_kwargs.get("result_format", {}).get(
+            "serialize_unexpected_rows", False
+        )
+
+        if serialize:
+            return [row._asdict() for row in rows_result]
+
+        return rows_result
     except sqlalchemy.OperationalError as oe:
         exception_message: str = f"An SQL execution Exception occurred: {oe!s}."
         raise gx_exceptions.InvalidMetricAccessorDomainKwargsKeyError(message=exception_message)
@@ -661,7 +667,12 @@ def _spark_map_condition_rows(
         limit = min(result_format["partial_unexpected_count"], MAX_RESULT_RECORDS)
         rows = filtered.limit(limit).collect()
 
-    return [row.asDict() for row in rows]
+    serialize = result_format.get("serialize_unexpected_rows", False)
+
+    if serialize:
+        return [row.asDict() for row in rows]
+
+    return rows
 
 
 def _spark_map_condition_index(  # noqa: C901 #  too complex
