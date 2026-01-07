@@ -1555,3 +1555,47 @@ def test_expectation_suite_severity_in_configuration():
     # Test that to_domain_obj preserves severity
     domain_obj = config.to_domain_obj()
     assert domain_obj.severity == FailureSeverity.WARNING
+
+
+def test_multiple_expectations_same_type_column_different_kwargs_not_deduplicated() -> None:
+    """
+    Test that multiple expectations of the same type on the same column but with different
+    kwargs (e.g., different regex patterns) are NOT deduplicated.
+
+    This was a bug where match_type="domain" (the old default) caused expectations
+    with the same (type, column) but different kwargs to overwrite each other.
+
+    After the fix (match_type="success" by default), all expectations should be
+    preserved individually.
+    """
+    suite = ExpectationSuite(name="test_suite")
+
+    # Add multiple regex expectations on the same column with DIFFERENT regex patterns
+    suite.add_expectation_configuration(
+        ExpectationConfiguration(
+            type="expect_column_values_to_not_match_regex",
+            kwargs={"column": "First Name", "regex": r"^\s*[Mm][Rr]\."},
+        )
+    )
+    suite.add_expectation_configuration(
+        ExpectationConfiguration(
+            type="expect_column_values_to_not_match_regex",
+            kwargs={"column": "First Name", "regex": r"['\"]"},
+        )
+    )
+    suite.add_expectation_configuration(
+        ExpectationConfiguration(
+            type="expect_column_values_to_not_match_regex",
+            kwargs={"column": "First Name", "regex": r"(?i)\bJr\.\s*$"},
+        )
+    )
+
+    # Should have 3 expectations, not 1 (the bug would leave only the last one)
+    assert len(suite.expectations) == 3, f"Expected 3 expectations, got {len(suite.expectations)}"
+
+    # Verify all regex patterns are preserved
+    regex_patterns = {exp.configuration.kwargs["regex"] for exp in suite.expectations}
+    expected_patterns = {r"^\s*[Mm][Rr]\.", r"['\"]", r"(?i)\bJr\.\s*$"}
+    assert regex_patterns == expected_patterns, (
+        f"Expected regex patterns {expected_patterns}, got {regex_patterns}"
+    )

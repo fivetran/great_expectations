@@ -487,7 +487,7 @@ class ExpectationSuite(SerializableDictDot):
     def _add_expectation(
         self,
         expectation_configuration: ExpectationConfiguration,
-        match_type: str = "domain",
+        match_type: str = "success",
         overwrite_existing: bool = True,
     ) -> ExpectationConfiguration:
         """
@@ -496,7 +496,9 @@ class ExpectationSuite(SerializableDictDot):
         Args:
             expectation_configuration: The ExpectationConfiguration to add or update
             match_type: The criteria used to determine whether the Suite already has an ExpectationConfiguration
-                and so whether we should add or replace.
+                and so whether we should add or replace. Changed from "domain" to "success" to prevent
+                expectations with the same type/column but different kwargs (e.g., different regex patterns)
+                from overwriting each other.
             overwrite_existing: If the expectation already exists, this will overwrite if True and raise an error if
                 False.
 
@@ -547,7 +549,7 @@ class ExpectationSuite(SerializableDictDot):
     def add_expectation_configurations(
         self,
         expectation_configurations: List[ExpectationConfiguration],
-        match_type: str = "domain",
+        match_type: str = "success",
         overwrite_existing: bool = True,
     ) -> List[ExpectationConfiguration]:
         """Upsert a list of ExpectationConfigurations into this ExpectationSuite.
@@ -556,6 +558,8 @@ class ExpectationSuite(SerializableDictDot):
             expectation_configurations: The List of candidate new/modifed "ExpectationConfiguration" objects for Suite.
             match_type: The criteria used to determine whether the Suite already has an "ExpectationConfiguration"
                 object, matching the specified criteria, and thus whether we should add or replace (i.e., "upsert").
+                Changed from "domain" to "success" to prevent expectations with same type/column but different
+                kwargs (e.g., different regex patterns) from overwriting each other.
             overwrite_existing: If "ExpectationConfiguration" already exists, this will cause it to be overwritten if
                 True and raise an error if False.
 
@@ -581,7 +585,7 @@ class ExpectationSuite(SerializableDictDot):
     def add_expectation_configuration(
         self,
         expectation_configuration: ExpectationConfiguration,
-        match_type: str = "domain",
+        match_type: str = "success",
         overwrite_existing: bool = True,
     ) -> ExpectationConfiguration:
         """Upsert specified ExpectationConfiguration into this ExpectationSuite.
@@ -589,7 +593,8 @@ class ExpectationSuite(SerializableDictDot):
         Args:
             expectation_configuration: The ExpectationConfiguration to add or update.
             match_type: The criteria used to determine whether the Suite already has an ExpectationConfiguration
-                and so whether we should add or replace.
+                and so whether we should add or replace. Changed from "domain" to "success" to prevent
+                expectations with same type/column but different kwargs from overwriting each other.
             overwrite_existing: If the expectation already exists, this will overwrite if True and raise an error if
                 False.
 
