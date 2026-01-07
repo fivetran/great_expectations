@@ -401,7 +401,7 @@ def _sqlalchemy_map_condition_rows(
     try:
         rows_result = execution_engine.execute_query(query).fetchmany(MAX_RESULT_RECORDS)
 
-        serialize = result_format.get("serialize_unexpected_rows", False)
+        serialize = result_format.get("map_expectation_unexpected_rows_as_dict", False)
 
         if serialize:
             return [row._asdict() for row in rows_result]
@@ -665,7 +665,7 @@ def _spark_map_condition_rows(
         limit = min(result_format["partial_unexpected_count"], MAX_RESULT_RECORDS)
         rows = filtered.limit(limit).collect()
 
-    serialize = result_format.get("serialize_unexpected_rows", False)
+    serialize = result_format.get("map_expectation_unexpected_rows_as_dict", False)
 
     if serialize:
         return [row.asDict() for row in rows]

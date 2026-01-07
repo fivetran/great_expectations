@@ -296,7 +296,7 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
 @parameterize_batch_for_data_sources(
     data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
 )
-def test_serialize_unexpected_rows_flag_sql(batch_for_datasource: Batch) -> None:
+def test_map_expectation_unexpected_rows_as_dict_flag_sql(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnPairValuesToBeEqual(
         column_A=EQUAL_STRINGS_A, column_B=UNEQUAL_STRINGS
     )
@@ -305,7 +305,7 @@ def test_serialize_unexpected_rows_flag_sql(batch_for_datasource: Batch) -> None
         result_format={
             "result_format": "BASIC",
             "include_unexpected_rows": True,
-            "serialize_unexpected_rows": True,
+            "map_expectation_unexpected_rows_as_dict": True,
         },
     )
 

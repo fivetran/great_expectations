@@ -207,14 +207,14 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
 @parameterize_batch_for_data_sources(
     data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
 )
-def test_serialize_unexpected_rows_flag_sql(batch_for_datasource: Batch) -> None:
+def test_map_expectation_unexpected_rows_as_dict_flag_sql(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnValuesToBeInSet(column=NUMBERS_COLUMN, value_set=[1, 2])
     result = batch_for_datasource.validate(
         expectation,
         result_format={
             "result_format": "BASIC",
             "include_unexpected_rows": True,
-            "serialize_unexpected_rows": True,
+            "map_expectation_unexpected_rows_as_dict": True,
         },
     )
 
