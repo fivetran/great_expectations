@@ -6,7 +6,7 @@ description: Surface data quality insights directly in Atlan’s metadata layer,
 
 [Atlan](https://atlan.com/) is a centralized catalog and collaboration hub for data governance that helps teams understand what data they have and how it flows. Meanwhile, Great Expectations Cloud enables teams to define, validate, and monitor data quality. You can integrate GX Cloud with Atlan to surface data quality insights directly in Atlan’s metadata layer, and make Atlan’s data catalog and lineage information accessible from your GX Cloud Data Assets.
 
-To integrate GX Cloud with Atlan, you will first get your GX Cloud credentials and then configure the [Great Expectations Cloud workflow](https://atlan.com/workflows/setup/atlan-great-expectations) in Atlan.
+To integrate GX Cloud with Atlan, you will first get your GX Cloud credentials and then configure the Great Expectations Cloud workflow in Atlan.
 
 
 ## Get your credentials
@@ -29,16 +29,15 @@ GX recommends deleting the temporary file after you set your credentials in Atla
 
 ## Next steps
 
-Configure the [Great Expectations connector](https://atlan.com/workflows/setup/atlan-great-expectations) in the Atlan workflow center.
+Configure the Great Expectations connector in the Atlan workflow center.
 
-1. Enter the GX Cloud credentials you saved above.
-2. Delete the temporary file you saved your credentials in.
-3. [Configure your Data Asset mapping](https://docs.atlan.com/) in Atlan.
+1. Go to the Great Expectations connector in your company's Atlan workflow center
+2. Enter the GX Cloud credentials you saved above.
+3. Delete the temporary file you saved your credentials in.
+4. [Configure your Data Source mapping](https://docs.atlan.com/) in Atlan.
 
 ## Limitations
 
-When working with the GX Cloud Atlan integration, note that the following types of Data Assets cannot be mapped from GX Cloud to Atlan:
+Filesystem Data Sources, such as Amazon S3, cannot be mapped from GX Cloud to Atlan.
 
-- Data Assets from filesystem Data Sources such as Amazon S3. 
-- Query Data Assets that validate records returned by a SQL query. Only Table Data Assets that validate tables or views from SQL Data Sources are supported.
 
