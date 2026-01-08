@@ -27,7 +27,7 @@ This page provides instructions for working with Expectations. To learn about Ex
    :::tip Options for accelerating test coverage
    If you are using a [supported Data Source](/docs/cloud/data_sources/manage_data_sources), you can use the following to speed up test creation:
    - If you selected the **Schema**, **Volume**, or **Completeness** data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](/cloud/overview/accelerating_test_coverage.md#anomaly-detection). Generated Expectations will default to warning severity, which you can edit later. If you instead want to create your own rules, click **Manual**.
-   - If you selected custom **SQL**, you will have the option to **Generate SQL** with [ExpectAI (BETA)](#generate-sql). You can write your own SQL if you prefer.
+   - If you selected custom **SQL**, you will have the option to **Generate SQL** with [ExpectAI](#generate-sql). You can write your own SQL if you prefer.
    :::
 
 5. Select an Expectation type.
@@ -36,12 +36,12 @@ This page provides instructions for working with Expectations. To learn about Ex
 
 7. Click **Save** or click **Save & Add More** and then repeat steps 4 through 7 to add additional Expectations.
 
-8. Optional. [Run an ad hoc Validation](/cloud/validations/manage_validations.md).
+8. Optional. [Run an ad hoc Validation](/cloud/validations/run_validations.md).
 
 9. Optional. Configure recurring Validations. See [Manage schedules](/docs/cloud/schedules/manage_schedules).
 
 
-## Save time with ExpectAI <span class="beta">Beta</span>
+## Save time with ExpectAI
 
 ExpectAI is an analytical AI tool that you can use to generate tests.
 
@@ -62,7 +62,7 @@ To add AI-recommended Expectations:
    ExpectAI may take a few minutes to analyze your data and recommend personalized Expectations. You can navigate away from the page while ExpectAI works in the background. GX will send an [email alert](/cloud/alerts/manage_email_alerts.md) when your recommended Expectations are ready for review.
    :::
 4. Review the recommended Expectations and **Approve** (✓) or **Reject** (✗) them within 48 hours. After 48 hours, any remaining recommendations will be discarded.
-5. Optional. [Run an ad hoc Validation](/cloud/validations/manage_validations.md).
+5. Optional. [Run an ad hoc Validation](/cloud/validations/run_validations.md).
 6. Optional. [Edit](#edit-an-expectation) AI-generated Expectations based on the insights you get from running a Validation and your data quality needs.
 
 ### Generate SQL

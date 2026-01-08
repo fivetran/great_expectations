@@ -202,3 +202,36 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     unexpected_rows_str = str(unexpected_rows_data)
     assert "3" in unexpected_rows_str
     assert "c" in unexpected_rows_str
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_map_expectation_unexpected_rows_as_dict_flag_sql(batch_for_datasource: Batch) -> None:
+    expectation = gxe.ExpectColumnValuesToBeInSet(column=NUMBERS_COLUMN, value_set=[1, 2])
+    result = batch_for_datasource.validate(
+        expectation,
+        result_format={
+            "result_format": "BASIC",
+            "include_unexpected_rows": True,
+            "map_expectation_unexpected_rows_as_dict": True,
+        },
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    # Should contain 1 row where NUMBERS_COLUMN has value 3 (not in set [1, 2])
+    assert len(unexpected_rows_data) == 1
+
+    unexpected_row = unexpected_rows_data[0]
+    assert isinstance(unexpected_row, dict)
+
+    assert unexpected_row[NUMBERS_COLUMN] == 3
+    assert unexpected_row[STRINGS_COLUMN] == "c"

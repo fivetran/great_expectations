@@ -12,14 +12,9 @@ Use Actions to notify the appropriate parties of the results of your Validation 
 ## Prerequisites
 - A [GX Cloud account](https://greatexpectations.io/cloud).
 - Your [Cloud credentials](/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
-- A Checkpoint (either an automatically created GX-managed Checkpoint or a [manually created Checkpoint](/docs/cloud/validations/manage_validations#api-managed-expectations-entire-asset)).
+- A Checkpoint (either an automatically created GX-managed Checkpoint or a [manually created Checkpoint](/docs/cloud/validations/run_validations#api-managed-expectations-entire-asset)).
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
-   :::note Want to use row conditions?
-   GX Cloud library versions prior to 1.8.1 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your GX Cloud library is version 1.8.1 or later.
-      - multiple condition statements
-      - **is in**, **is not in**, or **is null** operators
-   :::
 
 ## Procedure
 

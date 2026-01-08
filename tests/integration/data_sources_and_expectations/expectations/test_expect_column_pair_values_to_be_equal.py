@@ -291,3 +291,38 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     unexpected_row_str = str(unexpected_row)
     assert "baz" in unexpected_row_str
     assert "wat" in unexpected_row_str
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_map_expectation_unexpected_rows_as_dict_flag_sql(batch_for_datasource: Batch) -> None:
+    expectation = gxe.ExpectColumnPairValuesToBeEqual(
+        column_A=EQUAL_STRINGS_A, column_B=UNEQUAL_STRINGS
+    )
+    result = batch_for_datasource.validate(
+        expectation,
+        result_format={
+            "result_format": "BASIC",
+            "include_unexpected_rows": True,
+            "map_expectation_unexpected_rows_as_dict": True,
+        },
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    # Should contain 1 row where column_A != column_B
+    assert len(unexpected_rows_data) == 1
+
+    unexpected_row = unexpected_rows_data[0]
+    assert isinstance(unexpected_row, dict)
+
+    assert unexpected_row[EQUAL_STRINGS_A] == "baz"
+    assert unexpected_row[UNEQUAL_STRINGS] == "wat"

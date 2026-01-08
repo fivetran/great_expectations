@@ -62,7 +62,7 @@ def _pandas_map_condition_unexpected_count(
     **kwargs,
 ) -> int:
     """Returns unexpected count for MapExpectations"""
-    return np.count_nonzero(metrics["unexpected_condition"][0])
+    return int(np.count_nonzero(metrics["unexpected_condition"][0]))
 
 
 def _pandas_map_condition_index(
@@ -376,6 +376,7 @@ def _sqlalchemy_map_condition_rows(
     Returns all rows of the metric values which do not meet an expected Expectation condition for instances
     of ColumnMapExpectation.
     """  # noqa: E501 # FIXME CoP
+
     unexpected_condition, compute_domain_kwargs, accessor_domain_kwargs = metrics[
         "unexpected_condition"
     ]
@@ -398,7 +399,14 @@ def _sqlalchemy_map_condition_rows(
         limit = min(result_format["partial_unexpected_count"], MAX_RESULT_RECORDS)
         query = query.limit(limit)
     try:
-        return execution_engine.execute_query(query).fetchmany(MAX_RESULT_RECORDS)
+        rows_result = execution_engine.execute_query(query).fetchmany(MAX_RESULT_RECORDS)
+
+        serialize = result_format.get("map_expectation_unexpected_rows_as_dict", False)
+
+        if serialize:
+            return [row._asdict() for row in rows_result]
+
+        return rows_result
     except sqlalchemy.OperationalError as oe:
         exception_message: str = f"An SQL execution Exception occurred: {oe!s}."
         raise gx_exceptions.InvalidMetricAccessorDomainKwargsKeyError(message=exception_message)
@@ -632,7 +640,7 @@ def _spark_map_condition_rows(
     metric_value_kwargs: dict,
     metrics: Dict[str, Any],
     **kwargs,
-) -> list[pyspark.Row]:
+) -> Union[list[dict], Any]:
     unexpected_condition, compute_domain_kwargs, accessor_domain_kwargs = metrics[
         "unexpected_condition"
     ]
@@ -652,10 +660,17 @@ def _spark_map_condition_rows(
     result_format = metric_value_kwargs["result_format"]
 
     if result_format["result_format"] == "COMPLETE":
-        return filtered.limit(MAX_RESULT_RECORDS).collect()
+        rows = filtered.limit(MAX_RESULT_RECORDS).collect()
+    else:
+        limit = min(result_format["partial_unexpected_count"], MAX_RESULT_RECORDS)
+        rows = filtered.limit(limit).collect()
 
-    limit = min(result_format["partial_unexpected_count"], MAX_RESULT_RECORDS)
-    return filtered.limit(limit).collect()
+    serialize = result_format.get("map_expectation_unexpected_rows_as_dict", False)
+
+    if serialize:
+        return [row.asDict() for row in rows]
+
+    return rows
 
 
 def _spark_map_condition_index(  # noqa: C901 #  too complex

@@ -1,6 +1,6 @@
 ---
-sidebar_label: 'Manage Validations'
-title: 'Manage Validations'
+sidebar_label: 'Run Validations'
+title: 'Run Validations'
 description: Create and manage Validations in GX Cloud.
 toc_max_heading_level: 3
 ---
@@ -34,39 +34,39 @@ To help you find the right workflow for your particular combination of Expectati
     <td rowspan="5">GX-managed</td>
     <td rowspan="2">Entire&nbsp;Data&nbsp;Asset</td>
     <td>AlloyDB<br />Amazon S3<br />Aurora<br />Citus<br />Databricks SQL<br />Neon<br />PostgreSQL<br />Redshift<br />Snowflake</td>
-    <td>Use the UI:<ul><li>Click the **Validate** button.</li></ul><a href="/docs/cloud/validations/manage_validations/?validation-interface=ui#gx-managed-expectations-entire-asset">Jump to full instructions</a></td>
+    <td>Use the UI:<ul><li>Click the **Validate** button.</li></ul><a href="/docs/cloud/validations/run_validations/?validation-interface=ui#gx-managed-expectations-entire-asset">Jump to full instructions</a></td>
   </tr>
   <tr>
     <td>Azure&nbsp;Blob&nbsp;Storage <br />BigQuery<br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td>Use the API:<ul><li>Retrieve your Data Asset’s GX-managed Checkpoint.</li><li>Run the Checkpoint.</li></ul><a href="/docs/cloud/validations/manage_validations/?validation-interface=api#gx-managed-expectations-entire-asset">Jump to full instructions</a></td>
+    <td>Use the API:<ul><li>Retrieve your Data Asset’s GX-managed Checkpoint.</li><li>Run the Checkpoint.</li></ul><a href="/docs/cloud/validations/run_validations/?validation-interface=api#gx-managed-expectations-entire-asset">Jump to full instructions</a></td>
   </tr>
   <tr>
     <td rowspan="3">Time interval</td>
     <td>AlloyDB<br />Aurora<br />Citus<br />Databricks SQL<br />Neon<br />PostgreSQL<br />Redshift<br />Snowflake</td>
-    <td>Use the UI:<ul><li>Choose a **Batch interval**.</li><li>Click the **Validate** button and select a Batch to validate.</li></ul><a href="https://deploy-preview-11400.docs.greatexpectations.io/docs/cloud/validations/manage_validations/?validation-interface=ui#gx-managed-expectations-time-interval">Jump to full instructions</a></td>
+    <td>Use the UI:<ul><li>Choose a **Batch interval**.</li><li>Click the **Validate** button and select a Batch to validate.</li></ul><a href="/docs/cloud/validations/run_validations/?validation-interface=ui#gx-managed-expectations-time-interval">Jump to full instructions</a></td>
   </tr>
   <tr>
     <td>Amazon S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td>Use the API:<ul><li>Update your Data Asset’s GX-managed Batch Definition to partition your data based on regex filename matching.</li><li>Retrieve your Data Asset's GX-managed Checkpoint.</li><li>Run the Checkpoint with Batch Parameters passed as strings.</li></ul><a href="/docs/cloud/validations/manage_validations/?validation-interface=api&source-type=filesystem#gx-managed-expectations-time-interval">Jump to full instructions</a></td>
+    <td>Use the API:<ul><li>Update your Data Asset’s GX-managed Batch Definition to partition your data based on regex filename matching.</li><li>Retrieve your Data Asset's GX-managed Checkpoint.</li><li>Run the Checkpoint with Batch Parameters passed as strings.</li></ul><a href="/docs/cloud/validations/run_validations/?validation-interface=api&source-type=filesystem#gx-managed-expectations-time-interval">Jump to full instructions</a></td>
   </tr>
   <tr>
     <td>BigQuery</td>
-    <td>Use the API:<ul><li>Update your Data Asset’s GX-managed Batch Definition to partition your data based on values in a DATE or DATETIME column.</li><li>Retrieve your Data Asset's GX-managed Checkpoint.</li><li>Run the Checkpoint with Batch Parameters passed as integers.</li></ul><a href="/docs/cloud/validations/manage_validations/?validation-interface=api&source-type=sql#gx-managed-expectations-time-interval">Jump to full instructions</a></td>
+    <td>Use the API:<ul><li>Update your Data Asset’s GX-managed Batch Definition to partition your data based on values in a DATE or DATETIME column.</li><li>Retrieve your Data Asset's GX-managed Checkpoint.</li><li>Run the Checkpoint with Batch Parameters passed as integers.</li></ul><a href="/docs/cloud/validations/run_validations/?validation-interface=api&source-type=sql#gx-managed-expectations-time-interval">Jump to full instructions</a></td>
   </tr>
   <tr>
     <td rowspan="3">API-managed</td>
     <td>Entire&nbsp;Data&nbsp;Asset</td>
     <td>All sources</td>
-    <td>Use the API:<ul><li>Retrieve your Data Asset's GX-managed Batch Definition.</li><li>Create a Validation Definition to associate your API-managed Expectations with your Data Asset via its GX-managed Batch Definition.</li><li>Run the Validation Definition.</li></ul><a href="/docs/cloud/validations/manage_validations/#api-managed-expectations-entire-asset">Jump to full instructions</a></td>
+    <td>Use the API:<ul><li>Retrieve your Data Asset's GX-managed Batch Definition.</li><li>Create a Validation Definition to associate your API-managed Expectations with your Data Asset via its GX-managed Batch Definition.</li><li>Run the Validation Definition.</li></ul><a href="/docs/cloud/validations/run_validations/#api-managed-expectations-entire-asset">Jump to full instructions</a></td>
   </tr>
   <tr>
     <td rowspan="2">Time interval</td>
     <td>AlloyDB<br />Aurora<br />BigQuery<br />Citus<br />Databricks SQL<br />Neon<br />PostgreSQL<br />Redshift<br />Snowflake</td>
-    <td>Use the API:<ul><li>Create a Batch Definition to partition your data based on values in a DATE or DATETIME column.</li><li>Create a Validation Definition to associate your API-managed Expectations with your Data Asset via your Batch Definition.</li><li>Run the Validation Definition  with Batch Parameters passed as integers.</li></ul><a href="/docs/cloud/validations/manage_validations/?source-type=sql#api-managed-expectations-time-interval">Jump to full instructions</a></td>
+    <td>Use the API:<ul><li>Create a Batch Definition to partition your data based on values in a DATE or DATETIME column.</li><li>Create a Validation Definition to associate your API-managed Expectations with your Data Asset via your Batch Definition.</li><li>Run the Validation Definition  with Batch Parameters passed as integers.</li></ul><a href="/docs/cloud/validations/run_validations/?source-type=sql#api-managed-expectations-time-interval">Jump to full instructions</a></td>
   </tr>
   <tr>
     <td>Amazon S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td>Use the API:<ul><li>Create a Batch Definition to partition your data based on regex filename matching.</li><li>Create a Validation Definition to associate your API-managed Expectations with your Data Asset via your Batch Definition.</li><li>Run the Validation Definition  with Batch Parameters passed as strings.</li></ul><a href="/docs/cloud/validations/manage_validations/?source-type=filesystem#api-managed-expectations-time-interval">Jump to full instructions</a></td>
+    <td>Use the API:<ul><li>Create a Batch Definition to partition your data based on regex filename matching.</li><li>Create a Validation Definition to associate your API-managed Expectations with your Data Asset via your Batch Definition.</li><li>Run the Validation Definition  with Batch Parameters passed as strings.</li></ul><a href="/docs/cloud/validations/run_validations/?source-type=filesystem#api-managed-expectations-time-interval">Jump to full instructions</a></td>
   </tr>
 </tbody></table>
 
@@ -123,11 +123,6 @@ For all Data Sources, you can use the GX Cloud API to validate GX-managed Expect
 - Any [Data Asset](/docs/cloud/data_assets/manage_data_assets.md) with at least one [GX-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
-   :::note Minimum version for row conditions
-   GX Cloud library versions prior to 1.8.1 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your GX Cloud library is version 1.8.1 or later.
-      - multiple condition statements
-      - **is in**, **is not in**, or **is null** operators
-   :::
 
 #### Procedure
 
@@ -232,11 +227,6 @@ Then, you can validate a Batch of data.
    - For filesystem Data Sources, your filenames must indicate the timeframe using a pattern that can be parsed with regex.
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
-   :::note Minimum version for row conditions
-   GX Cloud library versions prior to 1.8.1 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your GX Cloud library is version 1.8.1 or later.
-      - multiple condition statements
-      - **is in**, **is not in**, or **is null** operators
-   :::
 
 #### Procedure
 
@@ -349,11 +339,6 @@ To validate API-managed Expectations for your entire Data Asset, use the GX Clou
 - At least one [API-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations) in an API-managed Expectation Suite.
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
-   :::note Minimum version for row conditions
-   GX Cloud library versions prior to 1.8.1 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your GX Cloud library is version 1.8.1 or later.
-      - multiple condition statements
-      - **is in**, **is not in**, or **is null** operators
-   :::
 
 #### Procedure
 
@@ -401,11 +386,6 @@ To validate API-managed Expectations for a time-based subset of a Data Asset, us
 - At least one [API-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations) in an API-managed Expectation Suite.
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
-   :::note Minimum version for row conditions
-   GX Cloud library versions prior to 1.8.1 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your GX Cloud library is version 1.8.1 or later.
-      - multiple condition statements
-      - **is in**, **is not in**, or **is null** operators
-   :::
 
 
 #### Procedure 

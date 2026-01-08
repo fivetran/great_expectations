@@ -209,6 +209,7 @@ module = [
     "databricks.*",
     "google.*",
     "great_expectations.compatibility.pydantic.*",
+    "IPython.*",
     "mistune.*",
     "moto.*",
     "pact.*",
@@ -415,6 +416,7 @@ If you are working in a configuration file you may use the inline comment \
 "google".msg = "Please do not import google directly, import from great_expectations.compatibility.google instead."
 "azure".msg = "Please do not import azure directly, import from great_expectations.compatibility.azure instead."
 "trino".msg = "Please do not import trino directly, import from great_expectations.compatibility.trino instead."
+"pyparsing".msg = "Please do not import pyparsing directly, import from great_expectations.compatibility.pyparsing instead."
 "pyarrow".msg = "Please do not import pyarrow directly, import from great_expectations.compatibility.pyarrow instead."
 "typing_extensions.override".msg = "Do not import typing_extensions.override directly, import `override` from great_expectations.compatibility.typing_extensions instead."
 # TODO: remove pydantic once our min version is pydantic v2
@@ -449,6 +451,9 @@ filterwarnings = [
     # https://setuptools.pypa.io/en/latest/pkg_resources.html
     "ignore: pkg_resources is deprecated as an API:DeprecationWarning",
     "ignore: pkg_resources is deprecated as an API:UserWarning",
+    # the distutils module is deprecated in Python 3.10+ and removed in Python 3.12
+    # versioneer.py still uses it via setuptools
+    "ignore:The distutils.sysconfig module is deprecated:DeprecationWarning",
     # This warning is common during testing where we intentionally use a COMPLETE format even in cases that would
     # be potentially overly resource intensive in standard operation
     "ignore:Setting result format to COMPLETE for a SqlAlchemyDataset:UserWarning",
@@ -635,10 +640,10 @@ filterwarnings = [
     # Example Actual Warning:
     # DeprecationWarning: The load_credentials_from_file method is deprecated because of a potential security risk.
     "ignore: The load_credentials_from_file method is deprecated because of a potential security risk.:DeprecationWarning",
-    # google.api_core
+    # google.* libraries
     # Example Actual Warning:
-    # FutureWarning: You are using a Python version (3.10.19) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2026-10-04). Please upgrade to the latest Python version, or at least Python 3.11, to continue receiving updates for google.api_core past that date.
-    "ignore: You are using a Python version.*which Google will stop supporting in new releases of google.api_core:FutureWarning",
+    # FutureWarning: You are using a Python version (3.10.19) which Google will stop supporting in new releases of google.* once it reaches its end of life (2026-10-04). Please upgrade to the latest Python version, or at least Python 3.11, to continue receiving updates past that date.
+    "ignore: You are using a Python version \\(3\\.10.*\\) which Google will stop supporting in new releases of google:FutureWarning",
     # sqlalchemy
     # Example Actual Warning:
     # sqlalchemy.exc.RemovedIn20Warning: Deprecated API features detected! These feature(s) are not compatible with SQLAlchemy 2.0. To prevent incompatible upgrades prior to updating applications, ensure requirements files are pinned to "sqlalchemy<2.0". Set environment variable SQLALCHEMY_WARN_20=1 to show all deprecation warnings.  Set environment variable SQLALCHEMY_SILENCE_UBER_WARNING=1 to silence this message. (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
