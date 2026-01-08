@@ -1,7 +1,15 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Union,
+)
 
 import numpy as np
 
@@ -9,7 +17,9 @@ import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility import sqlalchemy
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.pyspark import pyspark
-from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
+from great_expectations.compatibility.sqlalchemy import (
+    sqlalchemy as sa,
+)
 from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
@@ -24,8 +34,8 @@ from great_expectations.expectations.metrics.util import (
     get_sqlalchemy_source_table_and_schema,
     sqlalchemy_select_to_sql_string,
 )
-from great_expectations.util import (  # FIXME CoP
-    convert_to_json_serializable,
+from great_expectations.util import (
+    convert_to_json_serializable,  # noqa: TID251 # FIXME CoP
     generate_temporary_table_name,
     get_sqlalchemy_selectable,
 )
