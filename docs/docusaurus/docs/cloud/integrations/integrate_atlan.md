@@ -31,7 +31,7 @@ GX recommends deleting the temporary file after you set your credentials in Atla
 
 Configure the Great Expectations workflow in Atlan.
 
-1. Go to the Great Expectations connector in your company's Atlan workflow center
+1. Go to the Great Expectations connector in your company's Atlan workflow center.
 2. Enter the GX Cloud credentials you saved above.
 3. Delete the temporary file you saved your credentials in.
 4. [Configure your Data Source mapping](https://docs.atlan.com/) in Atlan.
