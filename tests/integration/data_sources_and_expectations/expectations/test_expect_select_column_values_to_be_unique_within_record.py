@@ -175,21 +175,16 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
 
     unexpected_row = unexpected_rows_data[0]
 
-    # Debug: Print the actual row data to understand the structure
-    print(f"\nDEBUG - unexpected_row type: {type(unexpected_row)}")
-    print(f"DEBUG - unexpected_row repr: {unexpected_row!r}")
-    print(f"DEBUG - unexpected_row keys: {list(unexpected_row.keys())}")
-    print(f"DEBUG - unexpected_row key types: {[type(k) for k in unexpected_row.keys()]}")
-    if isinstance(unexpected_row, dict):
-        print(f"DEBUG - unexpected_row keys: {list(unexpected_row.keys())}")
-        print(f"DEBUG - unexpected_row key types: {[type(k) for k in unexpected_row.keys()]}")
-        print(f"DEBUG - unexpected_row: {unexpected_row}")
-
     assert isinstance(unexpected_row, dict)
 
-    # Check that the unexpected row contains the expected values
-    assert unexpected_row["INT_COL_A"] == 3
-    assert unexpected_row["INT_COL_B"] == 4
-    assert unexpected_row["INT_COL_C"] == 4
-    assert unexpected_row["STRING_COL_A"] == "d"
-    assert unexpected_row["STRING_COL_B"] == "a"
+    unexpected_row_normalized = {str(k).upper(): v for k, v in unexpected_row.items()}
+
+    expected = {
+        "INT_COL_A": 3,
+        "INT_COL_B": 4,
+        "INT_COL_C": 4,
+        "STRING_COL_A": "d",
+        "STRING_COL_B": "a",
+    }
+
+    assert unexpected_row_normalized == expected
