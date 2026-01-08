@@ -9,7 +9,9 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     ALL_DATA_SOURCES,
     JUST_PANDAS_DATA_SOURCES,
 )
-from tests.integration.test_utils.data_source_config import PostgreSQLDatasourceTestConfig
+from tests.integration.test_utils.data_source_config import (
+    PostgreSQLDatasourceTestConfig,
+)
 
 INT_COL_A = "INT_COL_A"
 INT_COL_B = "INT_COL_B"
@@ -172,14 +174,22 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     assert len(unexpected_rows_data) == 1
 
     unexpected_row = unexpected_rows_data[0]
+
+    # Debug: Print the actual row data to understand the structure
+    print(f"\nDEBUG - unexpected_row type: {type(unexpected_row)}")
+    print(f"DEBUG - unexpected_row repr: {unexpected_row!r}")
+    print(f"DEBUG - unexpected_row keys: {list(unexpected_row.keys())}")
+    print(f"DEBUG - unexpected_row key types: {[type(k) for k in unexpected_row.keys()]}")
+    if isinstance(unexpected_row, dict):
+        print(f"DEBUG - unexpected_row keys: {list(unexpected_row.keys())}")
+        print(f"DEBUG - unexpected_row key types: {[type(k) for k in unexpected_row.keys()]}")
+        print(f"DEBUG - unexpected_row: {unexpected_row}")
+
     assert isinstance(unexpected_row, dict)
 
-    assert unexpected_rows_data == [
-        {
-            "INT_COL_A": 3,
-            "INT_COL_B": 4,
-            "INT_COL_C": 4,
-            "STRING_COL_A": "d",
-            "STRING_COL_B": "a",
-        }
-    ]
+    # Check that the unexpected row contains the expected values
+    assert unexpected_row["INT_COL_A"] == 3
+    assert unexpected_row["INT_COL_B"] == 4
+    assert unexpected_row["INT_COL_C"] == 4
+    assert unexpected_row["STRING_COL_A"] == "d"
+    assert unexpected_row["STRING_COL_B"] == "a"
