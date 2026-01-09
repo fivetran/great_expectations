@@ -6,7 +6,7 @@ description: Surface data quality insights directly in Atlan’s metadata layer,
 
 [Atlan](https://atlan.com/) is a centralized catalog and collaboration hub for data governance that helps teams understand what data they have and how it flows. Meanwhile, Great Expectations Cloud enables teams to define, validate, and monitor data quality. You can integrate GX Cloud with Atlan to surface data quality insights directly in Atlan’s metadata layer, and make Atlan’s data catalog and lineage information accessible from your GX Cloud Data Assets.
 
-To integrate GX Cloud with Atlan, you will first get your GX Cloud credentials and then configure the Great Expectations Cloud workflow in Atlan.
+To integrate GX Cloud with Atlan, you will first get your GX Cloud credentials and then configure the [Great Expectations Cloud workflow in Atlan](https://docs.atlan.com/apps/connectors/observability/great-expectations-cloud).
 
 
 ## Get your credentials
@@ -34,7 +34,7 @@ Configure the Great Expectations workflow in Atlan.
 1. Go to the Great Expectations connector in your company's Atlan workflow center.
 2. Enter the GX Cloud credentials you saved above.
 3. Delete the temporary file you saved your credentials in.
-4. [Configure your Data Source mapping](https://docs.atlan.com/) in Atlan.
+4. [Configure your Data Source mapping](https://docs.atlan.com/apps/connectors/observability/great-expectations-cloud/how-tos/integrate-great-expectations-cloud#configure-connection) in Atlan.
 
 ## Limitations
 
