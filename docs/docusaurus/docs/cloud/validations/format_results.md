@@ -16,11 +16,6 @@ This setting controls the results you receive in both the GX Cloud UI and the GX
 - A Data Asset with a [Checkpoint or Validation Definition](/cloud/validations/run_validations.md). You can use an automatically created GX-managed resource or a manually created resource.
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
-   :::note Minimum version for row conditions
-   GX Cloud library versions prior to 1.8.1 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your GX Cloud library is version 1.8.1 or later.
-      - multiple condition statements
-      - **is in**, **is not in**, or **is null** operators
-   :::
 
 ## Configure and apply a Result Format
 

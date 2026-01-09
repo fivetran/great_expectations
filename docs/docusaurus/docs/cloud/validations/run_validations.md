@@ -123,11 +123,6 @@ For all Data Sources, you can use the GX Cloud API to validate GX-managed Expect
 - Any [Data Asset](/docs/cloud/data_assets/manage_data_assets.md) with at least one [GX-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
-   :::note Minimum version for row conditions
-   GX Cloud library versions prior to 1.8.1 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your GX Cloud library is version 1.8.1 or later.
-      - multiple condition statements
-      - **is in**, **is not in**, or **is null** operators
-   :::
 
 #### Procedure
 
@@ -232,11 +227,6 @@ Then, you can validate a Batch of data.
    - For filesystem Data Sources, your filenames must indicate the timeframe using a pattern that can be parsed with regex.
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
-   :::note Minimum version for row conditions
-   GX Cloud library versions prior to 1.8.1 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your GX Cloud library is version 1.8.1 or later.
-      - multiple condition statements
-      - **is in**, **is not in**, or **is null** operators
-   :::
 
 #### Procedure
 
@@ -349,11 +339,6 @@ To validate API-managed Expectations for your entire Data Asset, use the GX Clou
 - At least one [API-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations) in an API-managed Expectation Suite.
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
-   :::note Minimum version for row conditions
-   GX Cloud library versions prior to 1.8.1 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your GX Cloud library is version 1.8.1 or later.
-      - multiple condition statements
-      - **is in**, **is not in**, or **is null** operators
-   :::
 
 #### Procedure
 
@@ -401,11 +386,6 @@ To validate API-managed Expectations for a time-based subset of a Data Asset, us
 - At least one [API-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations) in an API-managed Expectation Suite.
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
-   :::note Minimum version for row conditions
-   GX Cloud library versions prior to 1.8.1 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your GX Cloud library is version 1.8.1 or later.
-      - multiple condition statements
-      - **is in**, **is not in**, or **is null** operators
-   :::
 
 
 #### Procedure 

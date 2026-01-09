@@ -983,6 +983,7 @@ def _get_marker_dependencies(markers: str | Sequence[str]) -> list[TestDependenc
         "gx_install": "Install the local version of Great Expectations.",
         "editable_install": "Install an editable local version of Great Expectations.",
         "force_reinstall": "Force re-installation of dependencies.",
+        "pty": _PTY_HELP_DESC,
     },
 )
 def deps(  # noqa: C901 - too complex
@@ -993,6 +994,7 @@ def deps(  # noqa: C901 - too complex
     gx_install: bool = False,
     editable_install: bool = False,
     force_reinstall: bool = False,
+    pty: bool = True,
 ):
     """
     Install dependencies for development and testing.
@@ -1043,7 +1045,7 @@ def deps(  # noqa: C901 - too complex
     if constraints:
         cmds.append("-c constraints-dev.txt")
 
-    ctx.run(" ".join(cmds), echo=True, pty=True)
+    ctx.run(" ".join(cmds), echo=True, pty=pty)
 
 
 @invoke.task(iterable=["service_names", "up_services", "verbose"])
