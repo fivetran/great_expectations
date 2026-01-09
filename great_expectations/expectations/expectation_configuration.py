@@ -455,14 +455,7 @@ class ExpectationConfiguration(SerializableDictDot):
             else:
                 return str(obj)
 
-        return hash(
-            (
-                self.type,
-                make_hashable(this_kwargs),
-                make_hashable(this_meta),
-                str(self.id)
-            )
-        )
+        return hash((self.type, make_hashable(this_kwargs), make_hashable(this_meta), str(self.id)))
 
     def __ne__(self, other):  # type: ignore[explicit-override] # FIXME
         # By using the == operator, the returned NotImplemented is handled correctly.
