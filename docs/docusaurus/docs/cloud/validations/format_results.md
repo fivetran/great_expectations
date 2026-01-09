@@ -5,9 +5,49 @@ description: Control the verbosity of your Validation Results.
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
-You can control the level of detail GX Cloud returns in your Validation Results to improve the clarity and efficiency of your data quality workflows. By configuring the `result_format` setting with the GX Cloud API, you can receive only the information you need, whether that’s a high-level pass/fail indicator for exploration, specific failing values for troubleshooting, or full failed rows for data cleansing.
+You can control the level of detail GX Cloud returns in your Validation Results to improve the clarity and efficiency of your data quality workflows. You can format your results to receive only the information you need, whether that’s a high-level pass/fail indicator for exploration, specific failing values for troubleshooting, or full failed rows for data cleansing.
 
-This setting controls the results you receive in both the GX Cloud UI and the GX Cloud API, as detailed below. However, `result_format` must be configured through the GX Cloud API.
+Depending on your use case, you can format your Validation Results with either the GX Cloud UI or the GX Cloud API. 
+- To format results from [GX-managed Expectations](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations), you can use either the UI or the API.
+- To format results from [API-managed Expectations](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations), you must use the API.
+- The UI provides a limited set of options for common combinations of more granular settings available through the API.
+- The API gives you full control to make custom combinations of settings. 
+
+No matter which interface you use to format your Validation Results, the configuration impacts the results you receive from both the GX Cloud UI and the GX Cloud API. 
+
+<Tabs queryString="interface" groupId="interface" defaultValue='ui'>
+
+<TabItem value="ui" label='UI'>
+
+
+## Prerequisites
+- A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access#roles-and-permissions) or greater.
+- A Data Asset with [GX-managed Expectations](/docs/cloud/expectations/expectations_overview#gx-managed-vs-api-managed-expectations).
+
+## Configure Validation Results
+1. In the GX Cloud UI, select the relevant **Workspace** and then click **Data Assets**.
+2. In the **Data Assets** list, click the Data Asset name.
+3. Click **Settings**.
+4. Choose what to include in your **Validation Results**. Here’s what is provided by each option:
+
+   |                                             | Status only                                | Observed values (default)                   | Sample unexpected rows                      |
+   |---------------------------------------------|--------------------------------------------|---------------------------------------------|---------------------------------------------|
+   | Success or failure                          | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> |
+   | Success rate *                              | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> |
+   | Query to retrieve full unexpected results * | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> |
+   | Observed computed values *                  | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> |
+   | Number of missing or unexpected rows *      | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> |
+   | Up to 25 sample unexpected values *         | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> |
+   | Up to 25 sample unexpected rows *           | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="Yes">✅</span> |
+
+   * Note that this kind of detail is not returned by some types of Expectations, even if this kind of detail is generally supported in your selected configuration. For example, a Column Aggregate Expectation like [ExpectColumnMeanToBeBetween](https://greatexpectations.io/expectations/expect_column_mean_to_be_between/) will never return a sample of failed rows because it assesses an aggregate of values across rows. 
+
+5. Click **OK** to save your selection. The new selection applies going forward. Historical Validation Results retain their original contents. 
+
+For more information about how the opinionated options in the UI map to the more granular options in the API, see the [UI options reference table](/docs/cloud/validations/format_results?results=ui_options).
+</TabItem>
+   
+<TabItem value="api" label='API'>
 
 ## Prerequisites
 
@@ -188,5 +228,9 @@ Follow the steps below to select a base level of verbosity, optionally configure
     | `"exclude_unexpected_values"`     | When running validations, a set of unexpected results' indices and values is returned.  Setting this value to `True` suppresses values from the output to only have indices (default is `False`).                                                                                                                                                                                                                                     |
     | `"include_unexpected_rows"`       | When `True`, the GX Cloud API returns up to 200 entire rows that violate the Expectation (default is `False`). Applies to Column Map Expectations only, such as [`ExpectColumnValuesToBeInSet`](https://greatexpectations.io/expectations/expect_column_values_to_be_in_set/). Note that `ExpectColumnValuesToBeOfType` and `ExpectColumnValuesToBeInTypeList` will return unexpected rows for only Pandas Data Sources.              |
    </TabItem>
+
+</Tabs>
+
+</TabItem>
 
 </Tabs>
