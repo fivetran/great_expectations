@@ -2148,7 +2148,7 @@ def test_map_column_values_increasing_spark(spark_session):
     metrics.update(results)
 
     assert metrics[unexpected_rows_metric.id] == [
-        (3,),
+        {"a": 3},
     ]
 
 
@@ -2315,7 +2315,7 @@ def test_map_column_values_decreasing_spark(spark_session):
     results = engine.resolve_metrics(metrics_to_resolve=(unexpected_rows_metric,), metrics=metrics)
     metrics.update(results)
 
-    assert metrics[unexpected_rows_metric.id] == [(6,)]
+    assert metrics[unexpected_rows_metric.id] == [{"a": 6}]
 
 
 @pytest.mark.big
@@ -2488,7 +2488,7 @@ def test_map_unique_column_exists_sa(sa):
     }
     results = engine.resolve_metrics(metrics_to_resolve=(desired_metric,), metrics=metrics)
     metrics.update(results)
-    assert results[desired_metric.id] == [(3, "baz"), (3, "qux")]
+    assert results[desired_metric.id] == [{"a": 3, "b": "baz"}, {"a": 3, "b": "qux"}]
 
 
 @pytest.mark.sqlite
@@ -2649,7 +2649,7 @@ def test_map_unique_column_exists_spark(spark_session):
     }
     results = engine.resolve_metrics(metrics_to_resolve=(desired_metric,), metrics=metrics)
     metrics.update(results)
-    assert results[desired_metric.id] == [(3, "bar"), (3, "baz")]
+    assert results[desired_metric.id] == [{"a": 3, "b": "bar"}, {"a": 3, "b": "baz"}]
 
 
 @pytest.mark.spark
@@ -3310,9 +3310,9 @@ def test_map_column_pairs_equal_metric_sa(sa):  # noqa: PLR0915 # FIXME CoP
     metrics.update(results)
 
     assert metrics[unexpected_rows_metric.id] == [
-        (0, 5, 5, 7),
-        (1, 4, 4, 8),
-        (2, 6, 6, 0),
+        {"a": 0, "b": 5, "c": 5, "d": 7},
+        {"a": 1, "b": 4, "c": 4, "d": 8},
+        {"a": 2, "b": 6, "c": 6, "d": 0},
     ]
 
     unexpected_values_metric = MetricConfiguration(
@@ -3520,9 +3520,9 @@ def test_map_column_pairs_equal_metric_spark(spark_session):  # noqa: PLR0915 # 
     metrics.update(results)
 
     assert metrics[unexpected_rows_metric.id] == [
-        (0, 5, 5, 7),
-        (1, 4, 4, 8),
-        (2, 6, 6, 0),
+        {"a": 0, "b": 5, "c": 5, "d": 7},
+        {"a": 1, "b": 4, "c": 4, "d": 8},
+        {"a": 2, "b": 6, "c": 6, "d": 0},
     ]
 
     unexpected_values_metric = MetricConfiguration(
@@ -5273,7 +5273,7 @@ def test_map_multicolumn_sum_equal_sa(sa):  # noqa: PLR0915 # FIXME CoP
     results = engine.resolve_metrics(metrics_to_resolve=(unexpected_rows_metric,), metrics=metrics)
     metrics.update(results)
 
-    assert metrics[unexpected_rows_metric.id] == [(2, 3, 1, 9)]
+    assert metrics[unexpected_rows_metric.id] == [{"a": 2, "b": 3, "c": 1, "d": 9}]
     assert len(metrics[unexpected_rows_metric.id][0]) == 4
 
     unexpected_values_metric = MetricConfiguration(
@@ -5468,7 +5468,7 @@ def test_map_multicolumn_sum_equal_spark(spark_session):  # noqa: PLR0915 # FIXM
     results = engine.resolve_metrics(metrics_to_resolve=(unexpected_rows_metric,), metrics=metrics)
     metrics.update(results)
 
-    assert metrics[unexpected_rows_metric.id] == [(2, 3, 1, 9)]
+    assert metrics[unexpected_rows_metric.id] == [{"a": 2, "b": 3, "c": 1, "d": 9}]
     assert len(metrics[unexpected_rows_metric.id][0]) == 4
 
     unexpected_values_metric = MetricConfiguration(
@@ -5892,7 +5892,10 @@ def test_map_compound_columns_unique_sa(sa):  # noqa: PLR0915 # FIXME CoP
     results = engine.resolve_metrics(metrics_to_resolve=(unexpected_rows_metric,), metrics=metrics)
     metrics.update(results)
 
-    assert metrics[unexpected_rows_metric.id] == [(1, 2, 2), (1, 3, 2)]
+    assert metrics[unexpected_rows_metric.id] == [
+        {"a": 1, "b": 2, "c": 2},
+        {"a": 1, "b": 3, "c": 2},
+    ]
 
     unexpected_values_metric = MetricConfiguration(
         metric_name=unexpected_values_metric_name,
@@ -6083,7 +6086,10 @@ def test_map_compound_columns_unique_spark(spark_session):  # noqa: PLR0915 # FI
     results = engine.resolve_metrics(metrics_to_resolve=(unexpected_rows_metric,), metrics=metrics)
     metrics.update(results)
 
-    assert metrics[unexpected_rows_metric.id] == [(1, 2, 2), (1, 3, 2)]
+    assert metrics[unexpected_rows_metric.id] == [
+        {"a": 1, "b": 2, "c": 2},
+        {"a": 1, "b": 3, "c": 2},
+    ]
 
     unexpected_values_metric = MetricConfiguration(
         metric_name=unexpected_values_metric_name,
@@ -6435,9 +6441,9 @@ def test_map_select_column_values_unique_within_record_sa(sa):  # noqa: PLR0915 
     metrics.update(results)
 
     assert metrics[unexpected_rows_metric.id] == [
-        (1.0, 1.0, 2.0),
-        (4.0, 4.0, 4.0),
-        (None, None, 9.0),
+        {"a": 1.0, "b": 1.0, "c": 2.0},
+        {"a": 4.0, "b": 4.0, "c": 4.0},
+        {"a": None, "b": None, "c": 9.0},
     ]
 
     unexpected_values_metric = MetricConfiguration(
@@ -6522,7 +6528,10 @@ def test_map_select_column_values_unique_within_record_sa(sa):  # noqa: PLR0915 
     results = engine.resolve_metrics(metrics_to_resolve=(unexpected_rows_metric,), metrics=metrics)
     metrics.update(results)
 
-    assert metrics[unexpected_rows_metric.id] == [(1.0, 1.0, 2.0), (4.0, 4.0, 4.0)]
+    assert metrics[unexpected_rows_metric.id] == [
+        {"a": 1.0, "b": 1.0, "c": 2.0},
+        {"a": 4.0, "b": 4.0, "c": 4.0},
+    ]
 
     unexpected_values_metric = MetricConfiguration(
         metric_name=unexpected_values_metric_name,
@@ -6644,9 +6653,9 @@ def test_map_select_column_values_unique_within_record_spark(  # noqa: PLR0915 #
     metrics.update(results)
 
     assert metrics[unexpected_rows_metric.id] == [
-        (1.0, 1.0, 2.0),
-        (4.0, 4.0, 4.0),
-        (None, None, 9.0),
+        {"a": 1.0, "b": 1.0, "c": 2.0},
+        {"a": 4.0, "b": 4.0, "c": 4.0},
+        {"a": None, "b": None, "c": 9.0},
     ]
 
     unexpected_values_metric = MetricConfiguration(
@@ -6739,7 +6748,10 @@ def test_map_select_column_values_unique_within_record_spark(  # noqa: PLR0915 #
     results = engine.resolve_metrics(metrics_to_resolve=(unexpected_rows_metric,), metrics=metrics)
     metrics.update(results)
 
-    assert metrics[unexpected_rows_metric.id] == [(1.0, 1.0, 2.0), (4.0, 4.0, 4.0)]
+    assert metrics[unexpected_rows_metric.id] == [
+        {"a": 1.0, "b": 1.0, "c": 2.0},
+        {"a": 4.0, "b": 4.0, "c": 4.0},
+    ]
 
     unexpected_values_metric = MetricConfiguration(
         metric_name=unexpected_values_metric_name,
