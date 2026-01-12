@@ -328,7 +328,7 @@ def test_expectation_configurations_with_same_kwargs_and_meta_but_different_ids_
 
     # Note: Current implementation doesn't include severity in equality comparison
     assert config1 != config2  # Same type and kwargs, different severity
-    assert not config1 == config2  # Same type and kwargs, different severity
+    assert not config1 == config2  # noqa: SIM201 # Same type and kwargs, different severity
 
 
 @pytest.mark.unit
@@ -349,4 +349,4 @@ def test_expectation_configurations_with_same_kwargs_meta_and_ids_are_equal():
 
     # Note: Current implementation doesn't include severity in equality comparison
     assert config1 == config2  # Same type and kwargs, different severity
-    assert not config1 != config2  # Same type and kwargs, different severity
+    assert not config1 != config2  # noqa: SIM201 # Same type and kwargs, different severity
