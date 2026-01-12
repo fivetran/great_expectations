@@ -18,7 +18,7 @@ A local deployment of the GX Agent will allow you to test GX Cloud setup or proc
 
 ## Limitations
 
-- Agent-enabled deployments do not support [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai-beta). To be able to generate AI-recommended Expectations or generate custom SQL Expectations from natural language prompts, use a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
+- Agent-enabled deployments do not support [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai). To be able to generate AI-recommended Expectations or generate custom SQL Expectations from natural language prompts, use a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
 
 ## Prerequisites
 

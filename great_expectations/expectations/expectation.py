@@ -3095,6 +3095,9 @@ def _format_map_output(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
                 )
 
     if result_format["result_format"] == ResultFormat.SUMMARY:
+        _add_unexpected_index_query_to_result(
+            return_obj, result_format, unexpected_index_query, unexpected_index_column_names
+        )
         return return_obj
 
     if unexpected_list is not None and not exclude_unexpected_values:

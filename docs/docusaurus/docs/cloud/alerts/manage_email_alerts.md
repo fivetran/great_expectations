@@ -8,7 +8,7 @@ Stay informed about the health of the Data Assets that you care about by enablin
 
 GX Cloud sends email alerts on the following events:
 - A Data Asset fails a validation run.
-- [ExpectAI (BETA)](/cloud/expectations/manage_expectations.md#generate-expectations) generates recommended Expectations for a Data Asset. 
+- [ExpectAI](/cloud/expectations/manage_expectations.md#generate-expectations) generates recommended Expectations for a Data Asset. 
 
 :::tip Want notifications based on failure severity?
 Use [Actions](/cloud/alerts/trigger_actions.md) to create notification patterns based on [failure severity](/cloud/expectations/expectations_overview.md#failure-severity).

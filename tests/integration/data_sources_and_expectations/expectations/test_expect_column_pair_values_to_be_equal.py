@@ -13,7 +13,9 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     NON_SQL_DATA_SOURCES,
     SQL_DATA_SOURCES,
 )
-from tests.integration.test_utils.data_source_config import PostgreSQLDatasourceTestConfig
+from tests.integration.test_utils.data_source_config import (
+    PostgreSQLDatasourceTestConfig,
+)
 
 EQUAL_STRINGS_A = "equal_strings_a"
 EQUAL_STRINGS_B = "equal_strings_b"
@@ -282,12 +284,10 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     # Should contain 1 row where column_A != column_B
     assert len(unexpected_rows_data) == 1
 
-    # For SQL data sources, the row is returned as a tuple
-    # The unexpected row should contain "baz" and "wat" (different values)
+    # Verify that the unexpected row is a dictionary
     unexpected_row = unexpected_rows_data[0]
-    assert len(unexpected_row) >= 3  # Should have at least the columns we're testing
+    assert isinstance(unexpected_row, dict)
 
-    # Check that the row contains the expected values somewhere
-    unexpected_row_str = str(unexpected_row)
-    assert "baz" in unexpected_row_str
-    assert "wat" in unexpected_row_str
+    # Verify that the unexpected row contains the expected columns and values
+    assert unexpected_row[EQUAL_STRINGS_A] == "baz"
+    assert unexpected_row[UNEQUAL_STRINGS] == "wat"
