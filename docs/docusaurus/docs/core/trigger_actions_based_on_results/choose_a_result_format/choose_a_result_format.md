@@ -77,7 +77,7 @@ The `result_format` parameter takes in a dictionary of configuration settings.
    <TabItem value="boolean" label='"BOOLEAN_ONLY"'>
    | Dictionary key                    | Purpose                                                                                                                                                                                                                    |
    |-----------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-   | `"return_unexpected_index_query"` | Return a query (or a set of indices) that allows you to retrieve the full set of unexpected results as well as the values of any identifying columns specified in `"unexpected_index_column_names"`. (default is `False`). |
+   | `"return_unexpected_index_query"` | Return a query (or a set of indices) that allows you to retrieve the full set of unexpected results as well as the values of any identifying columns specified in `"unexpected_index_column_names"`. (Default is `False`). |
    | `"unexpected_index_column_names"` | Takes a list to define the column(s) that will be used to identify unexpected results returned. For example, primary key (PK) column(s) or other columns with unique identifiers.                                          |
    </TabItem>
    
