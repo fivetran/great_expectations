@@ -237,11 +237,11 @@ Follow the steps below to select a base level of verbosity, optionally configure
    <TabItem value="ui_options" label="UI options">
    In case you want to replicate one of the opinionated UI options for configuring Validation Results, here are the equivalent API configurations for each UI option.
 
-   | UI option              | API configuration                                                                                            |
-   |------------------------|--------------------------------------------------------------------------------------------------------------|
-   | Status only            | `"result_format": "BOOLEAN_ONLY",`<br>`"return_unexpected_index_query": TRUE,`                               |
-   | Observed values        | `"result_format": "BASIC",`<br>`"return_unexpected_index_query": TRUE,`<br>`"partial_unexpected_count": 25,` |
-   | Sample unexpected rows | `"result_format": "COMPLETE",`<br>`"partial_unexpected_count": 25,`<br>`"include_unexpected_rows": TRUE,`.   |
+   | UI option              | API configuration                                                                                                |
+   |------------------------|------------------------------------------------------------------------------------------------------------------|
+   | Status only            | `"result_format": "BOOLEAN_ONLY",`<br />`"return_unexpected_index_query": TRUE,`                                 |
+   | Observed values        | `"result_format": "BASIC",`<br />`"return_unexpected_index_query": TRUE,`<br />`"partial_unexpected_count": 25,` |
+   | Sample unexpected rows | `"result_format": "COMPLETE",`<br />`"partial_unexpected_count": 25,`<br />`"include_unexpected_rows": TRUE,`.   |
    </TabItem>
 
 
