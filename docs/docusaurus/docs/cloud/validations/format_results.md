@@ -41,7 +41,7 @@ No matter which interface you use to format your Validation Results, the configu
    | Up to 25 sample unexpected values *         | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> |
    | Up to 25 sample unexpected rows *           | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="Yes">✅</span> |
 
-   /* Note that this kind of detail is not returned by some types of Expectations, even if this kind of detail is generally supported in your selected configuration. For example, a Column Aggregate Expectation like [ExpectColumnMeanToBeBetween](https://greatexpectations.io/expectations/expect_column_mean_to_be_between/) will never return a sample of failed rows because it assesses an aggregate of values across rows. 
+   \* Note that this kind of detail is not returned by some types of Expectations, even if this kind of detail is generally supported in your selected configuration. For example, a Column Aggregate Expectation like [ExpectColumnMeanToBeBetween](https://greatexpectations.io/expectations/expect_column_mean_to_be_between/) will never return a sample of failed rows because it assesses an aggregate of values across rows. 
 
 5. Click **OK** to save your selection. The new selection applies going forward. Historical Validation Results retain their original contents. 
 
