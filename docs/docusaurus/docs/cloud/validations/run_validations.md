@@ -510,7 +510,7 @@ When the Validation is complete, you can [view the results in the GX Cloud UI](#
 
        - To view only Expectations that failed in the selected run, click **Failures only**.
 
-       - To view a SQL query that will retrieve the full set of unexpected results, select img src="/img/search_file_icon.png" alt="search file icon" width="20" height="20"/> **View query**. Note that the unexpected results query may not be available depending on the type of Expectation and your configured [result format](/docs/cloud/validations/format_results.md).
+       - To view a SQL query that will retrieve the full set of unexpected results, select <img src="/img/search_file_icon.png" alt="search file icon" width="20" height="20"/> **View query**. Note that the unexpected results query may not be available depending on the type of Expectation and your configured [result format](/docs/cloud/validations/format_results.md).
 
     - To view the run history of all Validations, select **All Runs** to view a graph showing the Validation run history for all columns.
 
