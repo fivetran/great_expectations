@@ -45,7 +45,7 @@ No matter which interface you use to format your Validation Results, the configu
 
 5. Click **OK** to save your selection. The new selection applies going forward. Historical Validation Results retain their original contents. 
 
-For more information about how the opinionated options in the UI map to the more granular options in the API, see the [UI options reference table](/docs/cloud/validations/format_results?results=ui_options#reference-tables).
+For more information about how the opinionated options in the UI map to the more granular options in the API, see the [UI options reference table](/docs/cloud/validations/format_results?interface=api&results=ui_options#reference-tables).
 </TabItem>
    
 <TabItem value="api" label='API'>
