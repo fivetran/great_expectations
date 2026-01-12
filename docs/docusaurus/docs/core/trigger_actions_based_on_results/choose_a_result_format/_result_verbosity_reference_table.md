@@ -13,6 +13,6 @@ The following table lists the fields that can be found in the `result` dictionar
 |    partial_unexpected_index_list      |no              |no              |yes **          |yes **          |
 |    partial_unexpected_counts          |no              |no              |yes **          |yes **          |
 |    unexpected_index_list              |no              |no              |no              |yes             |
-|    unexpected_index_query             |yes *           |yes *           |yes *           |yes.            |
+|    unexpected_index_query             |yes *           |yes *           |yes *           |yes             |
 |    unexpected_list                    |no              |no              |no              |yes             |
 |    unexpected_rows                    |no              |yes *           |yes *           |yes *           |
