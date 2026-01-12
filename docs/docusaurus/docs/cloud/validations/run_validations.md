@@ -508,11 +508,13 @@ When the Validation is complete, you can [view the results in the GX Cloud UI](#
 
     - To view results for a specific Validation run, select an entry in the **Batches & run history** pane.
 
-       -  To view only Expectations that failed in the selected run, click **Failures only**.
-    
+       - To view only Expectations that failed in the selected run, click **Failures only**.
+
+       - To view a SQL query that will retrieve the full set of unexpected results, select img src="/img/search_file_icon.png" alt="search file icon" width="20" height="20"/> **View query**. Note that the unexpected results query may not be available depending on the type of Expectation and your configured [result format](/docs/cloud/validations/format_results.md).
+
     - To view the run history of all Validations, select **All Runs** to view a graph showing the Validation run history for all columns.
 
-       - To view details about a specific Validation run in the Validation timeline, including the observed values, hover over a success or [failure severity](/docs/cloud/expectations/expectations_overview.md#failure-severity) icon.
+       - To view details about a specific Validation run in the Validation timeline, hover over a success or [failure severity](/docs/cloud/expectations/expectations_overview.md#failure-severity) icon. Note that observed values may not be available depending on the type of Expectation and your configured [result format](/docs/cloud/validations/format_results.md).
 
       ![Provided details are: success, severity, run time, batch interval, batch column, batch name, and observed value.](/img/view_validation_timeline_detail.png)
 
