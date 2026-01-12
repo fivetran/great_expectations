@@ -10,8 +10,10 @@ from collections import namedtuple
 from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Union
 
 import dateutil
-from pyparsing import (
+
+from great_expectations.compatibility.pyparsing import (
     CaselessKeyword,
+    DelimitedList,
     Forward,
     Group,
     Literal,
@@ -22,10 +24,10 @@ from pyparsing import (
     Word,
     alphanums,
     alphas,
-    delimitedList,
-    dictOf,
+    dict_of,
+    parse_string,
+    set_parse_action,
 )
-
 from great_expectations.exceptions import SuiteParameterError
 from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
@@ -142,7 +144,7 @@ class SuiteParameterParser:
             expop = Literal("^")
 
             expr = Forward()
-            expr_list = delimitedList(Group(expr))
+            expr_list = DelimitedList(Group(expr))
 
             # We will allow functions either to accept *only* keyword
             # expressions or *only* non-keyword expressions
@@ -150,36 +152,39 @@ class SuiteParameterParser:
             key = Word(f"{alphas}_") + Suppress("=")
             # value = (fnumber | Word(alphanums))
             value = expr
-            keyval = dictOf(key.setParseAction(self.push_first), value)
-            kwarglist = delimitedList(keyval)
+            keyval = dict_of(set_parse_action(key, self.push_first), value)
+            kwarglist = DelimitedList(keyval)
 
             # add parse action that replaces the function identifier with a (name, number of args, has_fn_kwargs) tuple  # noqa: E501 # FIXME CoP
             # 20211009 - JPC - Note that it's important that we consider kwarglist
             # first as part of disabling backtracking for the function's arguments
-            fn_call = (variable + lpar + rpar).setParseAction(
-                lambda t: t.insert(0, (t.pop(0), 0, False))
+            fn_call = set_parse_action(
+                variable + lpar + rpar, lambda t: t.insert(0, (t.pop(0), 0, False))
             ) | (
-                (variable + lpar - Group(expr_list) + rpar).setParseAction(
-                    lambda t: t.insert(0, (t.pop(0), len(t[0]), False))
+                set_parse_action(
+                    variable + lpar - Group(expr_list) + rpar,
+                    lambda t: t.insert(0, (t.pop(0), len(t[0]), False)),
                 )
-                ^ (variable + lpar - Group(kwarglist) + rpar).setParseAction(
-                    lambda t: t.insert(0, (t.pop(0), len(t[0]), True))
+                ^ set_parse_action(
+                    variable + lpar - Group(kwarglist) + rpar,
+                    lambda t: t.insert(0, (t.pop(0), len(t[0]), True)),
                 )
             )
-            atom = (
+            atom = set_parse_action(
                 addop[...]
                 + (
-                    (fn_call | pi | e | fnumber | variable).setParseAction(self.push_first)
+                    set_parse_action(fn_call | pi | e | fnumber | variable, self.push_first)
                     | Group(lpar + expr + rpar)
-                )
-            ).setParseAction(self.push_unary_minus)
+                ),
+                self.push_unary_minus,
+            )
 
             # by defining exponentiation as "atom [ ^ factor ]..." instead of "atom [ ^ atom ]...", we get right-to-left  # noqa: E501 # FIXME CoP
             # exponents, instead of left-to-right that is, 2^3^2 = 2^(3^2), not (2^3)^2.
             factor = Forward()
-            factor <<= atom + (expop + factor).setParseAction(self.push_first)[...]
-            term = factor + (multop + factor).setParseAction(self.push_first)[...]
-            expr <<= term + (addop + term).setParseAction(self.push_first)[...]
+            factor <<= atom + set_parse_action(expop + factor, self.push_first)[...]
+            term = factor + set_parse_action(multop + factor, self.push_first)[...]
+            expr <<= term + set_parse_action(addop + term, self.push_first)[...]
             self._parser = expr
         return self._parser
 
@@ -355,7 +360,7 @@ def _get_parse_results(
     # Calling get_parser clears the stack
     parser = EXPR.get_parser()
     try:
-        parse_results = parser.parseString(parameter_expression, parseAll=True)
+        parse_results = parse_string(parser, parameter_expression, parse_all=True)
     except ParseException as err:
         parse_results = [
             "Parse Failure",

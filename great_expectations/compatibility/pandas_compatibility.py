@@ -17,7 +17,7 @@ def execute_pandas_to_datetime(  # noqa: PLR0913 # FIXME CoP
     utc: bool | None = None,
     format: str | None = None,
     exact: bool = True,
-    unit: str | None = None,
+    unit: Literal["D", "s", "ms", "us", "ns"] | None = None,
     infer_datetime_format: bool = False,
     origin="unix",
     cache: bool = True,

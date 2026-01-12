@@ -453,6 +453,136 @@ class TestBasicWithReturnUnexpectedIndexQuery:
         assert "unexpected_index_query" not in result["result"]
 
 
+class TestSummaryWithReturnUnexpectedIndexQuery:
+    """Tests for SUMMARY format with return_unexpected_index_query."""
+
+    def test_summary_with_return_unexpected_index_query_includes_query(self):
+        """SUMMARY with return_unexpected_index_query=True should include the query."""
+        result = _format_map_output(
+            result_format={
+                "result_format": "SUMMARY",
+                "return_unexpected_index_query": True,
+                "partial_unexpected_count": 20,
+                "include_unexpected_rows": False,
+            },
+            success=False,
+            element_count=5,
+            nonnull_count=5,
+            unexpected_count=2,
+            unexpected_list=["d", "e"],
+            unexpected_index_list=[1, 2],
+            unexpected_index_query="SELECT * FROM table WHERE condition",
+        )
+
+        assert result["success"] is False
+        assert "result" in result
+        assert result["result"]["unexpected_index_query"] == "SELECT * FROM table WHERE condition"
+        # SUMMARY should also have standard fields
+        assert result["result"]["element_count"] == 5
+        assert result["result"]["unexpected_count"] == 2
+        # SUMMARY should have partial_unexpected_counts
+        assert "partial_unexpected_counts" in result["result"]
+
+    def test_summary_with_return_unexpected_index_query_includes_column_names(self):
+        """SUMMARY with return_unexpected_index_query=True should include column names."""
+        result = _format_map_output(
+            result_format={
+                "result_format": "SUMMARY",
+                "return_unexpected_index_query": True,
+                "partial_unexpected_count": 20,
+                "include_unexpected_rows": False,
+            },
+            success=False,
+            element_count=5,
+            nonnull_count=5,
+            unexpected_count=2,
+            unexpected_list=["d", "e"],
+            unexpected_index_list=[1, 2],
+            unexpected_index_query="SELECT pk_1, pk_2 FROM table WHERE condition",
+            unexpected_index_column_names=["pk_1", "pk_2"],
+        )
+
+        assert result["success"] is False
+        assert "result" in result
+        assert (
+            result["result"]["unexpected_index_query"]
+            == "SELECT pk_1, pk_2 FROM table WHERE condition"
+        )
+        assert result["result"]["unexpected_index_column_names"] == ["pk_1", "pk_2"]
+
+    def test_summary_without_return_unexpected_index_query_excludes_query(self):
+        """SUMMARY without return_unexpected_index_query should NOT include the query.
+
+        This test verifies backwards compatibility.
+        """
+        result = _format_map_output(
+            result_format={
+                "result_format": "SUMMARY",
+                "partial_unexpected_count": 20,
+                "include_unexpected_rows": False,
+            },
+            success=False,
+            element_count=5,
+            nonnull_count=5,
+            unexpected_count=2,
+            unexpected_list=["d", "e"],
+            unexpected_index_list=[1, 2],
+            unexpected_index_query="SELECT * FROM table WHERE condition",
+        )
+
+        assert result["success"] is False
+        assert "result" in result
+        assert "unexpected_index_query" not in result["result"]
+        # But should still have standard SUMMARY fields
+        assert result["result"]["element_count"] == 5
+        assert result["result"]["unexpected_count"] == 2
+
+    def test_summary_with_return_unexpected_index_query_false_excludes_query(self):
+        """SUMMARY with return_unexpected_index_query=False should NOT include the query."""
+        result = _format_map_output(
+            result_format={
+                "result_format": "SUMMARY",
+                "return_unexpected_index_query": False,
+                "partial_unexpected_count": 20,
+                "include_unexpected_rows": False,
+            },
+            success=False,
+            element_count=5,
+            nonnull_count=5,
+            unexpected_count=2,
+            unexpected_list=["d", "e"],
+            unexpected_index_list=[1, 2],
+            unexpected_index_query="SELECT * FROM table WHERE condition",
+        )
+
+        assert "unexpected_index_query" not in result["result"]
+
+    def test_summary_with_return_unexpected_index_query_but_no_query(self):
+        """SUMMARY with return_unexpected_index_query=True but no query.
+
+        Should not add unexpected_index_query to the result.
+        """
+        result = _format_map_output(
+            result_format={
+                "result_format": "SUMMARY",
+                "return_unexpected_index_query": True,
+                "partial_unexpected_count": 20,
+                "include_unexpected_rows": False,
+            },
+            success=True,
+            element_count=5,
+            nonnull_count=5,
+            unexpected_count=0,
+            unexpected_list=[],
+            unexpected_index_list=[],
+            unexpected_index_query=None,
+        )
+
+        assert result["success"] is True
+        assert "result" in result
+        assert "unexpected_index_query" not in result["result"]
+
+
 # Tests for the helper function _add_unexpected_index_query_to_result
 class TestAddUnexpectedIndexQueryToResult:
     """Tests for the _add_unexpected_index_query_to_result helper function."""

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any, Dict, Optional, cast
 
 from great_expectations.compatibility import pyspark, sqlalchemy
@@ -18,6 +19,8 @@ from great_expectations.expectations.metrics.util import get_sqlalchemy_column_m
 
 if TYPE_CHECKING:
     from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
+
+logger = logging.getLogger(__name__)
 
 
 class ColumnTypes(TableMetricProvider):
@@ -93,8 +96,82 @@ class ColumnTypes(TableMetricProvider):
 def _get_sqlalchemy_column_metadata(
     execution_engine: SqlAlchemyExecutionEngine, batch_data: SqlAlchemyBatchData
 ):
-    table_selectable: str | sqlalchemy.TextClause
+    """
+    Helper to obtain column metadata for SqlAlchemyExecutionEngine batches.
 
+    For Redshift, many configurations encode fully-qualified names like
+    \"schema.table\" in `source_table_name` with `source_schema_name` left as None.
+    We normalize this into separate schema/table components so that
+    `get_sqlalchemy_column_metadata` can reflect correctly via the dialect.
+    """
+    dialect_name = getattr(execution_engine.dialect, "name", "").lower()
+
+    logger.debug(f"_get_sqlalchemy_column_metadata called for dialect: {dialect_name}")
+    logger.debug(
+        f"  source_table_name: {batch_data.source_table_name}, "
+        f"source_schema_name: {batch_data.source_schema_name}"
+    )
+
+    # Special handling for Redshift: normalize "schema.table" into separate parts.
+    if dialect_name == "redshift":
+        table_selectable: str | sqlalchemy.TextClause
+
+        # Check selectable type before accessing .name attribute
+        # TextClause objects don't have .name attribute
+        if sqlalchemy.TextClause and isinstance(batch_data.selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function] # FIXME CoP
+            # Custom query: pass through as-is
+            table_selectable = batch_data.selectable
+            schema_name = None
+            result = get_sqlalchemy_column_metadata(
+                execution_engine=execution_engine,
+                table_selectable=table_selectable,  # type: ignore[arg-type]
+                schema_name=schema_name,
+            )
+            logger.debug(
+                f"Returned {len(result) if result else 0} columns for Redshift TextClause query"
+            )
+            return result
+
+        # For Table or other selectable types, safely access .name
+        if sqlalchemy.Table and isinstance(batch_data.selectable, sqlalchemy.Table):  # type: ignore[truthy-function] # FIXME CoP
+            raw_table_name = batch_data.source_table_name or batch_data.selectable.name
+            schema_name = batch_data.source_schema_name or batch_data.selectable.schema
+        else:
+            # Fallback for other selectable types
+            raw_table_name = batch_data.source_table_name or (
+                batch_data.selectable.name if hasattr(batch_data.selectable, "name") else None
+            )
+            schema_name = batch_data.source_schema_name or (
+                batch_data.selectable.schema if hasattr(batch_data.selectable, "schema") else None
+            )
+
+        if raw_table_name is None:
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                "Could not determine table name from batch_data for Redshift dialect"
+            )
+
+        if isinstance(raw_table_name, str) and schema_name is None and "." in raw_table_name:
+            schema_name, table_name = raw_table_name.split(".", 1)
+            logger.debug(
+                f"Split '{raw_table_name}' into schema='{schema_name}', table='{table_name}'"
+            )
+        else:
+            table_name = raw_table_name
+            logger.debug(f"Using table='{table_name}', schema='{schema_name}'")
+
+        table_selectable = table_name
+
+        result = get_sqlalchemy_column_metadata(
+            execution_engine=execution_engine,
+            table_selectable=table_selectable,  # type: ignore[arg-type]
+            schema_name=schema_name,
+        )
+        logger.debug(
+            f"Returned {len(result) if result else 0} columns for Redshift table {table_name}"
+        )
+        return result
+
+    # Default path for non-Redshift dialects.
     if sqlalchemy.Table and isinstance(batch_data.selectable, sqlalchemy.Table):  # type: ignore[truthy-function] # FIXME CoP
         table_selectable = batch_data.source_table_name or batch_data.selectable.name
         schema_name = batch_data.source_schema_name or batch_data.selectable.schema

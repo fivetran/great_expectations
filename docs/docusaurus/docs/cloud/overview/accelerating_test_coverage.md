@@ -10,7 +10,7 @@ GX Cloud provides several conveniences to help you more quickly achieve test cov
 - Generating [code for custom SQL Expectations](#code-for-custom-sql-expectations). 
 
 :::note Data Source support
-Some options aren't supported for some Data Sources. See [Data Source limitations](/docs/cloud/data_sources/manage_data_sources.md#data-source-limitations) for details.
+Some options aren't supported for some Data Sources. See [Manage Data Sources](/docs/cloud/data_sources/manage_data_sources.md#workflow-and-feature-support) for details.
 :::
 
 ## Anomaly Detection
@@ -43,7 +43,7 @@ To detect completeness anomalies, we generate rules for every column to [**expec
 
 If the proportions change at all for a column that started with all null values or no null values, its generated completeness Expectation will fail. If the proportions change a bit for a column that started with a mix of null and non-null values, its generated completeness Expectation will pass; if the change is drastic, the generated completeness Expectation will fail.
 
-## ExpectAI <span class="beta">Beta</span>
+## ExpectAI
 ExpectAI is an analytical AI tool that powers several features in GX Cloud.
 
 
