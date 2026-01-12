@@ -15,6 +15,19 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.11.0
+* [MINORBUMP] Format `unexpected_rows` as dicts in map expectation validation results ([#11591](https://github.com/great-expectations/great_expectations/pull/11591))
+* [BUGFIX] batch.columns() returns empty list for Redshift batches ([#11534](https://github.com/great-expectations/great_expectations/pull/11534)) (thanks @leodrivera)
+* [DOCS] reframe and clarify Data Source limitations ([#11570](https://github.com/great-expectations/great_expectations/pull/11570))
+* [DOCS] Prevent copying hidden lines from code blocks when pressing copy button ([#11571](https://github.com/great-expectations/great_expectations/pull/11571))
+* [DOCS] remove temporary row conditions notes ([#11581](https://github.com/great-expectations/great_expectations/pull/11581))
+* [DOCS] remove beta from ExpectAI ([#11590](https://github.com/great-expectations/great_expectations/pull/11590))
+* [MAINTENANCE] Improve local type checking developer experience ([#11574](https://github.com/great-expectations/great_expectations/pull/11574))
+* [MAINTENANCE] Add `--pty` and `--no-pty` flags to `invoke deps` ([#11586](https://github.com/great-expectations/great_expectations/pull/11586))
+* [MAINTENANCE] Serialize `unexpected_rows` for all Map expectations when opt-in flag is provided ([#11583](https://github.com/great-expectations/great_expectations/pull/11583))
+* [MAINTENANCE] Ignore `DeprecationWarning` emitted by deps ([#11587](https://github.com/great-expectations/great_expectations/pull/11587))
+* [MAINTENANCE] Include SUMMARY in result_format query support ([#11594](https://github.com/great-expectations/great_expectations/pull/11594))
+
 ### 1.10.0
 * [FEATURE] Support query and PK columns on BOOLEAN_ONLY and BASIC ([#11563](https://github.com/great-expectations/great_expectations/pull/11563))
 * [DOCS] remove temporary severity note ([#11564](https://github.com/great-expectations/great_expectations/pull/11564))
