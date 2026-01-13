@@ -240,9 +240,9 @@ Follow the steps below to select a base level of verbosity, optionally configure
 
    | UI option              | API configuration                                                                                                |
    |------------------------|------------------------------------------------------------------------------------------------------------------|
-   | Status                 | `"result_format": "BOOLEAN_ONLY",`<br />`"return_unexpected_index_query": TRUE,`                                 |
-   | Observed values        | `"result_format": "BASIC",`<br />`"return_unexpected_index_query": TRUE,`<br />`"partial_unexpected_count": 25,` |
-   | Sample unexpected rows | `"result_format": "COMPLETE",`<br />`"partial_unexpected_count": 25,`<br />`"include_unexpected_rows": TRUE,`    |
+   | Status                 | `"result_format": "BOOLEAN_ONLY",`<br />`"return_unexpected_index_query": True,`                                 |
+   | Observed values        | `"result_format": "BASIC",`<br />`"return_unexpected_index_query": True,`<br />`"partial_unexpected_count": 25,` |
+   | Sample unexpected rows | `"result_format": "COMPLETE",`<br />`"partial_unexpected_count": 25,`<br />`"include_unexpected_rows": True,`    |
    </TabItem>
 
 
