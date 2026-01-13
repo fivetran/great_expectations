@@ -308,3 +308,45 @@ def test_expectation_configuration_severity_equality():
     assert config1 == config3  # Same type and kwargs, same severity
     assert hash(config1) == hash(config2)  # Same hash (severity not included)
     assert hash(config1) == hash(config3)  # Same hash
+
+
+@pytest.mark.unit
+def test_expectation_configurations_with_same_kwargs_and_meta_but_different_ids_are_not_equal():
+    """Test that severity is NOT considered in equality comparisons (current implementation)."""
+    config1 = ExpectationConfiguration(
+        type="expect_column_values_to_not_be_null",
+        kwargs={"column": "test_column"},
+        meta={"test": "value1"},
+        id="dbfd38bd-9724-4909-b937-82b8b5702e17",
+    )
+    config2 = ExpectationConfiguration(
+        type="expect_column_values_to_not_be_null",
+        kwargs={"column": "test_column"},
+        meta={"test": "value1"},
+        id="abc537ee-7b01-407d-8fa7-ac6aba34cc47",
+    )
+
+    # Note: Current implementation doesn't include severity in equality comparison
+    assert config1 != config2  # Same type and kwargs, different severity
+    assert not config1 == config2  # noqa: SIM201 # Same type and kwargs, different severity
+
+
+@pytest.mark.unit
+def test_expectation_configurations_with_same_kwargs_meta_and_ids_are_equal():
+    """Test that severity is NOT considered in equality comparisons (current implementation)."""
+    config1 = ExpectationConfiguration(
+        type="expect_column_values_to_not_be_null",
+        kwargs={"column": "test_column"},
+        meta={"test": "value1"},
+        id="dbfd38bd-9724-4909-b937-82b8b5702e17",
+    )
+    config2 = ExpectationConfiguration(
+        type="expect_column_values_to_not_be_null",
+        kwargs={"column": "test_column"},
+        meta={"test": "value1"},
+        id="dbfd38bd-9724-4909-b937-82b8b5702e17",
+    )
+
+    # Note: Current implementation doesn't include severity in equality comparison
+    assert config1 == config2  # Same type and kwargs, different severity
+    assert not config1 != config2  # Same type and kwargs, different severity
