@@ -6,11 +6,11 @@ from typing import Optional
 from unittest import mock
 
 import boto3
-import pyparsing as pp
 import pytest
 from moto import mock_s3
 from pytest_mock import MockerFixture
 
+from great_expectations.compatibility.pyparsing import Word, hexnums
 from great_expectations.core.data_context_key import DataContextVariableKey
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.run_identifier import RunIdentifier
@@ -102,8 +102,8 @@ def check_store_backend_store_backend_id_functionality(
 
     # Check file stores for the file in the correct format
     store_backend_id_from_file = store_backend.get(key=(".ge_store_backend_id",))
-    store_backend_id_file_parser = "store_backend_id = " + pp.Word(pp.hexnums + "-")
-    parsed_store_backend_id = store_backend_id_file_parser.parseString(store_backend_id_from_file)
+    store_backend_id_file_parser = "store_backend_id = " + Word(hexnums + "-")
+    parsed_store_backend_id = store_backend_id_file_parser.parse_string(store_backend_id_from_file)
     assert test_utils.validate_uuid4(parsed_store_backend_id[1])
 
 

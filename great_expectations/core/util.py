@@ -99,7 +99,7 @@ def nested_update(
 
 def in_jupyter_notebook():
     try:
-        from IPython import get_ipython  # type: ignore[import-not-found] # FIXME CoP
+        from IPython import get_ipython
 
         shell = get_ipython().__class__.__name__
         if shell == "ZMQInteractiveShell":
