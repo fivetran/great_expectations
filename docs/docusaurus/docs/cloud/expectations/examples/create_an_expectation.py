@@ -40,6 +40,7 @@ existing_suite_name = (
     "my_expectation_suite"  # replace this with the name of your Expectation Suite
 )
 suite = context.suites.get(name=existing_suite_name)
+# </snippet>
 
 # Add the Expectation to the Expectation Suite.
 # <snippet name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - add expectation to suite">
