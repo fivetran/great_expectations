@@ -439,6 +439,7 @@ class ExpectationConfiguration(SerializableDictDot):
                 self.type == other.type,
                 this_kwargs == other_kwargs,
                 this_meta == other_meta,
+                str(self.id) == str(other.id),
             )
         )
 
@@ -458,13 +459,7 @@ class ExpectationConfiguration(SerializableDictDot):
             else:
                 return str(obj)
 
-        return hash(
-            (
-                self.type,
-                make_hashable(this_kwargs),
-                make_hashable(this_meta),
-            )
-        )
+        return hash((self.type, make_hashable(this_kwargs), make_hashable(this_meta), str(self.id)))
 
     def __ne__(self, other):  # type: ignore[explicit-override] # FIXME
         # By using the == operator, the returned NotImplemented is handled correctly.

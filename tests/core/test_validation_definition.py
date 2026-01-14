@@ -51,9 +51,6 @@ from great_expectations.exceptions.exceptions import (
 )
 from great_expectations.exceptions.resource_freshness import ResourceFreshnessAggregateError
 from great_expectations.execution_engine.execution_engine import ExecutionEngine
-from great_expectations.expectations.expectation_configuration import (
-    ExpectationConfiguration,
-)
 from great_expectations.validator.v1_validator import (
     OldValidator,
 )
@@ -224,15 +221,19 @@ class TestValidationRun:
 
         validation_definition.run()
 
-        mock_validator.graph_validate.assert_called_with(
-            configurations=[
-                ExpectationConfiguration(
-                    type="expect_column_max_to_be_between",
-                    kwargs={"column": "foo", "max_value": 1.0},
-                )
-            ],
-            runtime_configuration={"result_format": "SUMMARY"},
+        mock_validator.graph_validate.assert_called_once()
+        assert len(mock_validator.graph_validate.call_args[1]["configurations"]) == 1
+        assert (
+            mock_validator.graph_validate.call_args[1]["configurations"][0]["type"]
+            == "expect_column_max_to_be_between"
         )
+        assert mock_validator.graph_validate.call_args[1]["configurations"][0]["kwargs"] == {
+            "column": "foo",
+            "max_value": 1.0,
+        }
+        assert mock_validator.graph_validate.call_args[1]["runtime_configuration"] == {
+            "result_format": "SUMMARY"
+        }
 
     @mock.patch.object(_PandasDataAsset, "build_batch_request", autospec=True)
     @pytest.mark.unit
@@ -253,15 +254,19 @@ class TestValidationRun:
             result_format=ResultFormat.COMPLETE,
         )
 
-        mock_validator.graph_validate.assert_called_with(
-            configurations=[
-                ExpectationConfiguration(
-                    type="expect_column_max_to_be_between",
-                    kwargs={"column": "foo", "max_value": 9000},
-                )
-            ],
-            runtime_configuration={"result_format": "COMPLETE"},
+        mock_validator.graph_validate.assert_called_once()
+        assert len(mock_validator.graph_validate.call_args[1]["configurations"]) == 1
+        assert (
+            mock_validator.graph_validate.call_args[1]["configurations"][0]["type"]
+            == "expect_column_max_to_be_between"
         )
+        assert mock_validator.graph_validate.call_args[1]["configurations"][0]["kwargs"] == {
+            "column": "foo",
+            "max_value": 9000,
+        }
+        assert mock_validator.graph_validate.call_args[1]["runtime_configuration"] == {
+            "result_format": "COMPLETE"
+        }
 
     @pytest.mark.unit
     def test_returns_expected_data(
@@ -393,15 +398,19 @@ class TestValidationRun:
 
         validation_definition.run()
 
-        mock_validator.graph_validate.assert_called_with(
-            configurations=[
-                ExpectationConfiguration(
-                    type="expect_column_max_to_be_between",
-                    kwargs={"column": "foo", "max_value": 1.0},
-                )
-            ],
-            runtime_configuration={"result_format": "SUMMARY"},
+        mock_validator.graph_validate.assert_called_once()
+        assert len(mock_validator.graph_validate.call_args[1]["configurations"]) == 1
+        assert (
+            mock_validator.graph_validate.call_args[1]["configurations"][0]["type"]
+            == "expect_column_max_to_be_between"
         )
+        assert mock_validator.graph_validate.call_args[1]["configurations"][0]["kwargs"] == {
+            "column": "foo",
+            "max_value": 1.0,
+        }
+        assert mock_validator.graph_validate.call_args[1]["runtime_configuration"] == {
+            "result_format": "SUMMARY"
+        }
 
         # validate we are calling set on the store with data that's roughly the right shape
         [(_, kwargs)] = mock_validation_results_store_set.call_args_list
