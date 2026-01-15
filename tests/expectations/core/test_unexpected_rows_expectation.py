@@ -135,7 +135,7 @@ def test_result_format_controls_details_visibility(
     assert set(result.to_json_dict().keys()) >= expected_keys
 
     if result_format == "BOOLEAN_ONLY":
-        assert result.result is None
+        assert result.result == {}
     elif result_format == "COMPLETE":
         assert "details" in result.result
         assert "unexpected_rows" in result.result["details"]
