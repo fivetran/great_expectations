@@ -1,4 +1,4 @@
-The following table lists the fields that can be found in the `result` dictionary of a Validation Result and the Result Format verbosity levels that return that field.
+The following table lists the fields that can be found in the `result` dictionary of a Validation Result and the `result_format` levels that return that field.
 
 | Fields within `result`                |BOOLEAN_ONLY    |BASIC           |SUMMARY         |COMPLETE        |
 ----------------------------------------|----------------|----------------|----------------|-----------------

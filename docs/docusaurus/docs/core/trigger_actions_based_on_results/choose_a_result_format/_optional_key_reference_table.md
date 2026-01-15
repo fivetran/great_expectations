@@ -1,4 +1,4 @@
-The following table lists the valid keys for a Result Format dictionary and what their purpose is.  Not all keys are used by every verbosity level.
+The following table lists the valid keys for a Result Format dictionary and what their purpose is.  Not all keys are used by every `result_format` level.
 
 | Dictionary key | Purpose                                                                                                                                                                                                                                                                                                       |
 | --- |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
