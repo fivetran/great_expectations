@@ -27,7 +27,7 @@ This page provides instructions for working with Expectations. To learn about Ex
    :::tip Options for accelerating test coverage
    If you are using a [supported Data Source](/docs/cloud/data_sources/manage_data_sources), you can use the following to speed up test creation:
    - If you selected the **Schema**, **Volume**, or **Completeness** data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](/cloud/overview/accelerating_test_coverage.md#anomaly-detection). Generated Expectations will default to warning severity, which you can edit later. If you instead want to create your own rules, click **Manual**.
-   - If you selected custom **SQL**, you will have the option to **Generate SQL** with [ExpectAI (BETA)](#generate-sql). You can write your own SQL if you prefer.
+   - If you selected custom **SQL**, you will have the option to **Generate SQL** with [ExpectAI](#generate-sql). You can write your own SQL if you prefer.
    :::
 
 5. Select an Expectation type.
@@ -41,7 +41,7 @@ This page provides instructions for working with Expectations. To learn about Ex
 9. Optional. Configure recurring Validations. See [Manage schedules](/docs/cloud/schedules/manage_schedules).
 
 
-## Save time with ExpectAI <span class="beta">Beta</span>
+## Save time with ExpectAI
 
 ExpectAI is an analytical AI tool that you can use to generate tests.
 

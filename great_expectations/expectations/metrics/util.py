@@ -427,6 +427,7 @@ def get_sqlalchemy_column_metadata(
                 dialect=engine.dialect,
                 sqlalchemy_engine=engine,
             )
+            logger.debug(f"fallback returned {len(columns)} columns")
 
         # Build result: copy columns, add PK info, apply dialect-specific formatting
         return _build_column_metadata_result(columns, primary_key_columns, execution_engine)

@@ -9,7 +9,9 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     ALL_DATA_SOURCES,
     JUST_PANDAS_DATA_SOURCES,
 )
-from tests.integration.test_utils.data_source_config import PostgreSQLDatasourceTestConfig
+from tests.integration.test_utils.data_source_config import (
+    PostgreSQLDatasourceTestConfig,
+)
 
 INT_COL_A = "INT_COL_A"
 INT_COL_B = "INT_COL_B"
@@ -169,4 +171,20 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     unexpected_rows_data = result_dict["unexpected_rows"]
     assert isinstance(unexpected_rows_data, list)
 
-    assert unexpected_rows_data == [(3, 4, 4, "d", "a")]
+    assert len(unexpected_rows_data) == 1
+
+    unexpected_row = unexpected_rows_data[0]
+
+    assert isinstance(unexpected_row, dict)
+
+    unexpected_row_normalized = {str(k).upper(): v for k, v in unexpected_row.items()}
+
+    expected = {
+        "INT_COL_A": 3,
+        "INT_COL_B": 4,
+        "INT_COL_C": 4,
+        "STRING_COL_A": "d",
+        "STRING_COL_B": "a",
+    }
+
+    assert unexpected_row_normalized == expected

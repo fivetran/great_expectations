@@ -110,6 +110,7 @@ assert validation_result.result == {
         {"value": "C", "count": 3},
         {"value": "D", "count": 2},
     ],
+    "unexpected_index_query": "df.filter(items=[3, 4, 5, 6, 7], axis=0)",
 }
 # </snippet>
 

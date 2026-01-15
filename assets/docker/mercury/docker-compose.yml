@@ -134,7 +134,7 @@ services:
       - |
         cd /app/services/ge_cloud
         ./scripts/localstack_init.sh
-        gunicorn "mercury.api_v1:get_app()" -c ./fastapi-gunicorn.conf.py
+        python run_fastapi.py
   nginx:
     image: ${ECR_PULL_THROUGH_REPOSITORY_URL}library/nginx:latest
     container_name: nginx
