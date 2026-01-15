@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Type, Un
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.core.result_format import ResultFormat
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # FIXME CoP
 )
@@ -267,12 +268,34 @@ class UnexpectedRowsExpectation(BatchExpectation):
         runtime_configuration: dict | None = None,
         execution_engine: ExecutionEngine | None = None,
     ) -> Union[ExpectationValidationResult, dict]:
+        result_format_config: str | dict[str, Any] = self._get_result_format(
+            runtime_configuration=runtime_configuration
+        )
+        # result_format can be a string or a dict with a "result_format" key
+        if isinstance(result_format_config, dict):
+            result_format = result_format_config.get("result_format", ResultFormat.SUMMARY)
+        else:
+            result_format = result_format_config
+
         metric_value = metrics["unexpected_rows_query.table"]
         unexpected_row_count = metrics["unexpected_rows_query.row_count"]
-        return {
-            "success": unexpected_row_count == 0,
-            "result": {
-                "observed_value": unexpected_row_count,
-                "details": {"unexpected_rows": metric_value},
-            },
-        }
+        success = unexpected_row_count == 0
+
+        if result_format == ResultFormat.BOOLEAN_ONLY:
+            return {"success": success}
+        elif result_format == ResultFormat.COMPLETE:
+            return {
+                "success": success,
+                "result": {
+                    "observed_value": unexpected_row_count,
+                    "details": {"unexpected_rows": metric_value},
+                },
+            }
+        else:
+            # BASIC or SUMMARY - don't include details with row data
+            return {
+                "success": success,
+                "result": {
+                    "observed_value": unexpected_row_count,
+                },
+            }

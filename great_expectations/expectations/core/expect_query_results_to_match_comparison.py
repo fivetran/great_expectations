@@ -257,9 +257,14 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         runtime_configuration: dict | None = None,
         execution_engine: ExecutionEngine | None = None,
     ) -> Union[ExpectationValidationResult, dict]:
-        result_format: str | dict[str, Any] = self._get_result_format(
+        result_format_config: str | dict[str, Any] = self._get_result_format(
             runtime_configuration=runtime_configuration
         )
+        # result_format can be a string or a dict with a "result_format" key
+        if isinstance(result_format_config, dict):
+            result_format = result_format_config.get("result_format", ResultFormat.SUMMARY)
+        else:
+            result_format = result_format_config
 
         missing_rows: list[dict[str, Any]]
         unexpected_rows: list[dict[str, Any]]
@@ -314,7 +319,7 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
 
         if result_format == ResultFormat.BOOLEAN_ONLY:
             return {"success": success}
-        else:
+        elif result_format == ResultFormat.COMPLETE:
             return {
                 "success": success,
                 "result": {
@@ -324,6 +329,15 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
                         "missing_rows": missing_rows,
                         "unexpected_rows": unexpected_rows,
                     },
+                },
+            }
+        else:
+            # BASIC or SUMMARY - don't include details with row data
+            return {
+                "success": success,
+                "result": {
+                    "unexpected_count": unexpected_count,
+                    "unexpected_percent": unexpected_percent,
                 },
             }
 
@@ -356,6 +370,9 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         runtime_configuration: Optional[dict] = None,
     ) -> list[RenderedAtomicContent] | RenderedAtomicContent:
         details = cls._get_details_from_results(result)
+        if details is None:
+            # Details are only available with COMPLETE result_format
+            return []
 
         missing_rows: list[dict[str, Any]] = details["missing_rows"]
         unexpected_rows: list[dict[str, Any]] = details["unexpected_rows"]
@@ -409,6 +426,7 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         runtime_configuration: Optional[dict] = None,
     ) -> list[RenderedAtomicContent]:
         result_details = cls._get_details_from_results(result)
+        assert result_details is not None  # Caller guarantees details exist
 
         renderer_configuration_base: RendererConfiguration = RendererConfiguration(
             configuration=configuration,
@@ -465,6 +483,7 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         runtime_configuration: Optional[dict] = None,
     ) -> RenderedAtomicContent:
         result_details = cls._get_details_from_results(result)
+        assert result_details is not None  # Caller guarantees details exist
         comparison_values = (
             [
                 row[comparison_col_name]
@@ -571,10 +590,13 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
     @classmethod
     def _get_details_from_results(
         cls, result: Optional[ExpectationValidationResult]
-    ) -> dict[str, Any]:
-        assert result and result.result, "Must have result"
+    ) -> Optional[dict[str, Any]]:
+        if not result or not result.result:
+            return None
         details = result.result.get("details")
-        assert isinstance(details, dict), "Details must exist and be a dict"
+        if not isinstance(details, dict):
+            # Details are only available with COMPLETE result_format
+            return None
         return details
 
     @classmethod
