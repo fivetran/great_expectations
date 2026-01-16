@@ -109,7 +109,7 @@ The `result_format` parameter takes in a dictionary of configuration settings.
       <ResultOutputReferenceTable/>
    </TabItem>
 
-   <TabItem value="verbosity" label="Result fields by base format">
+   <TabItem value="format" label="Result fields by base format">
       <ResultVerbosityReferenceTable/>
    </TabItem>
 
