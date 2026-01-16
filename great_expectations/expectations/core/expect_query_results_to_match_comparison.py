@@ -372,7 +372,12 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         details = cls._get_details_from_results(result)
         if details is None:
             # Details are only available with COMPLETE result_format
-            return []
+            # For BASIC/SUMMARY, use unexpected_percent; for BOOLEAN_ONLY, use a fallback
+            return cls._create_fallback_observed_value(
+                configuration=configuration,
+                result=result,
+                runtime_configuration=runtime_configuration,
+            )
 
         missing_rows: list[dict[str, Any]] = details["missing_rows"]
         unexpected_rows: list[dict[str, Any]] = details["unexpected_rows"]
@@ -382,6 +387,8 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         unexpected_rows_table = cls._create_observed_values_table(unexpected_rows)
 
         if len(missing_rows) == 0 and len(unexpected_rows) == 0:
+            # For COMPLETE format with no differences, return empty list
+            # (detailed observed value is not needed when everything matches)
             return []
         elif (
             len(missing_rows) == 1
@@ -598,6 +605,56 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
             # Details are only available with COMPLETE result_format
             return None
         return details
+
+    @classmethod
+    def _create_fallback_observed_value(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> RenderedAtomicContent:
+        """Create a fallback observed value for non-COMPLETE result formats.
+
+        For BASIC/SUMMARY formats, displays the unexpected_percent.
+        For BOOLEAN_ONLY or when no data is available, displays '--'.
+        """
+        renderer_configuration: RendererConfiguration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+
+        # Try to get unexpected_percent from result (available in BASIC/SUMMARY formats)
+        unexpected_percent: Optional[float] = None
+        if result and result.result:
+            unexpected_percent = result.result.get("unexpected_percent")
+
+        if unexpected_percent is not None:
+            renderer_configuration.add_param(
+                name="unexpected_percent",
+                param_type=RendererValueType.NUMBER,
+                value=unexpected_percent,
+            )
+            template_str = "$unexpected_percent% unexpected"
+        else:
+            # BOOLEAN_ONLY format or no data available
+            renderer_configuration.add_param(
+                name="observed_value",
+                param_type=RendererValueType.STRING,
+                value="--",
+            )
+            template_str = "$observed_value"
+
+        return RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=RenderedAtomicValue(
+                template=template_str,
+                params=renderer_configuration.params.dict(),
+                meta_notes=renderer_configuration.meta_notes,
+                schema={"type": "com.superconductive.rendered.string"},
+            ),
+            value_type="StringValueType",
+        )
 
     @classmethod
     def _create_table_rendered_atomic_content(

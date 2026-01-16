@@ -487,7 +487,8 @@ def test_rendering_no_differences(multi_source_batch: MultiSourceBatch):
             base_query="SELECT e, a, d, g, b, e FROM {batch} ORDER BY e",
             comparison_data_source_name=multi_source_batch.comparison_data_source_name,
             comparison_query=f"SELECT g, d, g, c, e, a  FROM {source_table} ORDER BY g",
-        )
+        ),
+        result_format="COMPLETE",
     )
     result.render()
 
