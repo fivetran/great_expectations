@@ -38,7 +38,7 @@ def _recursively_convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 #
 ) -> Any:
     # Handle Pydantic BaseModel objects (e.g., Condition objects for row_condition)
     if isinstance(test_obj, pydantic.BaseModel):
-        dump_method = getattr(test_obj, "model_dump", None) or getattr(test_obj, "dict")
+        dump_method = getattr(test_obj, "model_dump", None) or test_obj.dict
         return dump_method()
 
     # If it's one of our types, we pass
