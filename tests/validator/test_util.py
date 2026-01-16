@@ -8,6 +8,13 @@ import pytest
 from numpy.lib.npyio import DataSource
 
 from great_expectations import validator
+from great_expectations.expectations.row_conditions import (
+    AndCondition,
+    Column,
+    ComparisonCondition,
+    NullityCondition,
+    OrCondition,
+)
 
 
 @pytest.mark.big
@@ -76,3 +83,167 @@ def test_recursively_convert_to_json_serializable(tmp_path):
     with pytest.raises(TypeError):
         y = {"p": DataSource(tmp_path)}
         validator.util.recursively_convert_to_json_serializable(y)
+
+
+@pytest.mark.unit
+def test_recursively_convert_to_json_serializable_with_nullity_condition():
+    """Test that NullityCondition objects can be serialized (regression test for row_condition bug)."""
+    condition = Column("COLUMN1").is_not_null()
+    assert isinstance(condition, NullityCondition)
+
+    result = validator.util.recursively_convert_to_json_serializable(
+        {"row_condition": condition}
+    )
+
+    assert result == {
+        "row_condition": {
+            "type": "nullity",
+            "column": {"name": "COLUMN1"},
+            "is_null": False,
+        }
+    }
+
+
+@pytest.mark.unit
+def test_recursively_convert_to_json_serializable_with_is_null_condition():
+    """Test that NullityCondition with is_null=True can be serialized."""
+    condition = Column("col").is_null()
+    assert isinstance(condition, NullityCondition)
+
+    result = validator.util.recursively_convert_to_json_serializable(
+        {"row_condition": condition}
+    )
+
+    assert result == {
+        "row_condition": {
+            "type": "nullity",
+            "column": {"name": "col"},
+            "is_null": True,
+        }
+    }
+
+
+@pytest.mark.unit
+def test_recursively_convert_to_json_serializable_with_comparison_condition():
+    """Test that ComparisonCondition objects can be serialized."""
+    condition = Column("tenure") > 2
+    assert isinstance(condition, ComparisonCondition)
+
+    result = validator.util.recursively_convert_to_json_serializable(
+        {"row_condition": condition}
+    )
+
+    assert result == {
+        "row_condition": {
+            "type": "comparison",
+            "column": {"name": "tenure"},
+            "operator": ">",
+            "parameter": 2,
+        }
+    }
+
+
+@pytest.mark.unit
+def test_recursively_convert_to_json_serializable_with_and_condition():
+    """Test that AndCondition objects can be serialized."""
+    condition = (Column("tenure") > 2) & (Column("salary") <= 50000)
+    assert isinstance(condition, AndCondition)
+
+    result = validator.util.recursively_convert_to_json_serializable(
+        {"row_condition": condition}
+    )
+
+    assert result == {
+        "row_condition": {
+            "type": "and",
+            "conditions": [
+                {
+                    "type": "comparison",
+                    "column": {"name": "tenure"},
+                    "operator": ">",
+                    "parameter": 2,
+                },
+                {
+                    "type": "comparison",
+                    "column": {"name": "salary"},
+                    "operator": "<=",
+                    "parameter": 50000,
+                },
+            ],
+        }
+    }
+
+
+@pytest.mark.unit
+def test_recursively_convert_to_json_serializable_with_or_condition():
+    """Test that OrCondition objects can be serialized."""
+    condition = (Column("name") == "alice") | (Column("name") == "bob")
+    assert isinstance(condition, OrCondition)
+
+    result = validator.util.recursively_convert_to_json_serializable(
+        {"row_condition": condition}
+    )
+
+    assert result == {
+        "row_condition": {
+            "type": "or",
+            "conditions": [
+                {
+                    "type": "comparison",
+                    "column": {"name": "name"},
+                    "operator": "==",
+                    "parameter": "alice",
+                },
+                {
+                    "type": "comparison",
+                    "column": {"name": "name"},
+                    "operator": "==",
+                    "parameter": "bob",
+                },
+            ],
+        }
+    }
+
+
+@pytest.mark.unit
+def test_recursively_convert_to_json_serializable_with_complex_condition():
+    """Test serialization of complex condition: (A & B) | C."""
+    statement_1 = Column("tenure") > 2
+    statement_2 = Column("salary") <= 50000
+    statement_3 = Column("department") == "Sales"
+
+    block_1 = statement_1 & statement_2
+    row_condition = block_1 | statement_3
+
+    result = validator.util.recursively_convert_to_json_serializable(
+        {"row_condition": row_condition}
+    )
+
+    assert result["row_condition"]["type"] == "or"
+    assert len(result["row_condition"]["conditions"]) == 2
+
+
+@pytest.mark.unit
+def test_ensure_row_condition_is_correct_with_condition_object():
+    """Test that ensure_row_condition_is_correct does not raise for Condition objects."""
+    condition = Column("COLUMN1").is_not_null()
+
+    # Should not raise
+    validator.util.ensure_row_condition_is_correct(condition)
+
+
+@pytest.mark.unit
+def test_ensure_row_condition_is_correct_with_string():
+    """Test that ensure_row_condition_is_correct still validates strings."""
+    from great_expectations.exceptions import InvalidExpectationConfigurationError
+
+    # Valid string should not raise
+    validator.util.ensure_row_condition_is_correct('col("x") > 5')
+
+    # String with single quotes should raise
+    with pytest.raises(InvalidExpectationConfigurationError):
+        validator.util.ensure_row_condition_is_correct("col('x') > 5")
+
+    # String with newline should raise
+    with pytest.raises(InvalidExpectationConfigurationError):
+        validator.util.ensure_row_condition_is_correct("col(\"x\")\n> 5")

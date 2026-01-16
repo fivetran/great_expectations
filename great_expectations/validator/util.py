@@ -9,6 +9,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from great_expectations.compatibility import pydantic
 from great_expectations.exceptions import InvalidExpectationConfigurationError
 from great_expectations.types import SerializableDictDot, SerializableDotDict
 
@@ -35,6 +36,11 @@ def recursively_convert_to_json_serializable(
 def _recursively_convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
     test_obj: Any,
 ) -> Any:
+    # Handle Pydantic BaseModel objects (e.g., Condition objects for row_condition)
+    if isinstance(test_obj, pydantic.BaseModel):
+        dump_method = getattr(test_obj, "model_dump", None) or getattr(test_obj, "dict")
+        return dump_method()
+
     # If it's one of our types, we pass
     if isinstance(test_obj, (SerializableDictDot, SerializableDotDict)):
         return test_obj
@@ -139,9 +145,17 @@ def ensure_row_condition_is_correct(row_condition_string) -> None:
 
     Parameters
     ----------
-    row_condition_string : str
-        the pandas query string
+    row_condition_string : str or Condition
+        the pandas query string or a Condition object
     """
+    # Condition objects (pydantic BaseModel) are handled separately and don't need validation
+    if isinstance(row_condition_string, pydantic.BaseModel):
+        return
+
+    # Only validate string row conditions
+    if not isinstance(row_condition_string, str):
+        return
+
     if "'" in row_condition_string:
         raise InvalidExpectationConfigurationError(  # noqa: TRY003 # FIXME CoP
             f"{row_condition_string} cannot be serialized to json. "
