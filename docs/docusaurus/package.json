@@ -59,7 +59,11 @@
     "jest-environment-jsdom": "^30.0.5"
   },
   "resolutions": {
-    "webpack-dev-server": "^5.2.1"
+    "webpack-dev-server": "^5.2.1",
+    "qs": "^6.14.1",
+    "gray-matter/js-yaml": "3.14.2",
+    "parse-md/js-yaml": "3.14.2",
+    "@jest/transform/js-yaml": "3.14.2"
   },
   "browserslist": {
     "production": [
