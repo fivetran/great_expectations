@@ -15,6 +15,13 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.11.1
+* [BUGFIX] Include Expectation ID in equality ([#11593](https://github.com/great-expectations/great_expectations/pull/11593))
+* [BUGFIX] fix CustomSQL & MultiSource row-level result population ([#11601](https://github.com/great-expectations/great_expectations/pull/11601))
+* [MAINTENANCE] Use run_fastapi.py to launch mercury v1 ([#11599](https://github.com/great-expectations/great_expectations/pull/11599))
+* [MAINTENANCE] Fix npm security vulnerabilities in docusaurus ([#11600](https://github.com/great-expectations/great_expectations/pull/11600))
+* [CONTRIB] Fix typing export for get_context ([#11578](https://github.com/great-expectations/great_expectations/pull/11578)) (thanks @ipriyankalimbad)
+
 ### 1.11.0
 * [MINORBUMP] Format `unexpected_rows` as dicts in map expectation validation results ([#11591](https://github.com/great-expectations/great_expectations/pull/11591))
 * [BUGFIX] batch.columns() returns empty list for Redshift batches ([#11534](https://github.com/great-expectations/great_expectations/pull/11534)) (thanks @leodrivera)

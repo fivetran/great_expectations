@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import pytest
 
@@ -98,7 +98,7 @@ def test_unexpected_rows_expectation_validate(
     batch = sqlite_batch
 
     expectation = UnexpectedRowsExpectation(unexpected_rows_query=query)
-    result = batch.validate(expectation)
+    result = batch.validate(expectation, result_format="COMPLETE")
 
     assert result.success is expected_success
 
@@ -107,6 +107,43 @@ def test_unexpected_rows_expectation_validate(
 
     unexpected_count_rows_returned = len(res["details"]["unexpected_rows"])
     assert unexpected_count_rows_returned == expected_count_unexpected_rows_returned
+
+
+@pytest.mark.sqlite
+@pytest.mark.parametrize(
+    "result_format,expected_keys",
+    [
+        pytest.param("BOOLEAN_ONLY", {"success"}, id="boolean_only"),
+        pytest.param("BASIC", {"success", "result"}, id="basic"),
+        pytest.param("SUMMARY", {"success", "result"}, id="summary"),
+        pytest.param("COMPLETE", {"success", "result"}, id="complete"),
+    ],
+)
+def test_result_format_controls_details_visibility(
+    sqlite_batch: Batch,
+    result_format: Literal["BOOLEAN_ONLY", "BASIC", "SUMMARY", "COMPLETE"],
+    expected_keys: set[str],
+) -> None:
+    """Test that unexpected_rows are only visible with COMPLETE result format."""
+    batch = sqlite_batch
+    query = "SELECT * FROM {batch} WHERE passenger_count > 6"
+
+    expectation = UnexpectedRowsExpectation(unexpected_rows_query=query)
+    result = batch.validate(expectation, result_format=result_format)
+
+    # Verify top-level keys
+    assert set(result.to_json_dict().keys()) >= expected_keys
+
+    if result_format == "BOOLEAN_ONLY":
+        assert result.result == {}
+    elif result_format == "COMPLETE":
+        assert "details" in result.result
+        assert "unexpected_rows" in result.result["details"]
+        assert "observed_value" in result.result
+    else:
+        # BASIC and SUMMARY should not have details
+        assert "details" not in result.result
+        assert "observed_value" in result.result
 
 
 @pytest.mark.unit
