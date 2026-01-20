@@ -13,10 +13,12 @@ Run:
 
 import json
 import os
+import pathlib
 import sys
 from datetime import datetime
 
 import pandas as pd
+
 import great_expectations as gx
 
 
@@ -62,7 +64,7 @@ def main():
 
     # Write artifact
     out_dir = os.path.join("outputs", "ge_validation")
-    os.makedirs(out_dir, exist_ok=True)
+    pathlib.Path(out_dir).mkdir(exist_ok=True, parents=True)
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     out_path = os.path.join(out_dir, f"validation_result_{timestamp}.json")
 
