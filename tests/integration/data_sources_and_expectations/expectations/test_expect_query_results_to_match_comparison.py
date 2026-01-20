@@ -1,5 +1,5 @@
 import uuid
-from typing import Any
+from typing import Any, Literal
 
 import pandas as pd
 import pytest
@@ -347,7 +347,8 @@ def test_expect_query_results_to_match_comparison_missing_and_unexpected_values(
             base_query=base_query,
             comparison_data_source_name=multi_source_batch.comparison_data_source_name,
             comparison_query=f"SELECT source FROM {multi_source_batch.comparison_table_name}",
-        )
+        ),
+        result_format="COMPLETE",
     )
 
     assert result.result["details"] == {
@@ -408,7 +409,8 @@ def test_column_ordering(
             comparison_query=comparison_query.replace(
                 "{source_table}", multi_source_batch.comparison_table_name
             ),
-        )
+        ),
+        result_format="COMPLETE",
     )
 
     assert result.result["details"] == {
@@ -485,7 +487,8 @@ def test_rendering_no_differences(multi_source_batch: MultiSourceBatch):
             base_query="SELECT e, a, d, g, b, e FROM {batch} ORDER BY e",
             comparison_data_source_name=multi_source_batch.comparison_data_source_name,
             comparison_query=f"SELECT g, d, g, c, e, a  FROM {source_table} ORDER BY g",
-        )
+        ),
+        result_format="COMPLETE",
     )
     result.render()
 
@@ -507,7 +510,8 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
             base_query="SELECT a, b, c, d FROM {batch} ORDER BY e",
             comparison_data_source_name=multi_source_batch.comparison_data_source_name,
             comparison_query=f"SELECT e, f, g, h  FROM {source_table} ORDER BY g",
-        )
+        ),
+        result_format="COMPLETE",
     )
     result.render()
 
@@ -587,7 +591,8 @@ def test_rendering_with_one_column(multi_source_batch: MultiSourceBatch):
             comparison_data_source_name=multi_source_batch.comparison_data_source_name,
             comparison_query=f"SELECT foo FROM {source_table}",
             base_query="SELECT bar FROM {batch}",
-        )
+        ),
+        result_format="COMPLETE",
     )
     result.render()
 
@@ -656,7 +661,8 @@ def test_rendering_with_one_value(multi_source_batch: MultiSourceBatch):
             comparison_data_source_name=multi_source_batch.comparison_data_source_name,
             comparison_query=f"SELECT foo FROM {source_table}",
             base_query="SELECT bar FROM {batch}",
-        )
+        ),
+        result_format="COMPLETE",
     )
     result.render()
 
@@ -705,7 +711,8 @@ def test_rendering_only_missing_rows_single_column(multi_source_batch: MultiSour
             comparison_data_source_name=multi_source_batch.comparison_data_source_name,
             comparison_query=f"SELECT foo FROM {source_table}",
             base_query="SELECT bar FROM {batch}",
-        )
+        ),
+        result_format="COMPLETE",
     )
     result.render()
 
@@ -760,7 +767,8 @@ def test_rendering_only_unexpected_rows_single_column(multi_source_batch: MultiS
             comparison_data_source_name=multi_source_batch.comparison_data_source_name,
             comparison_query=f"SELECT foo FROM {source_table}",
             base_query="SELECT bar FROM {batch}",
-        )
+        ),
+        result_format="COMPLETE",
     )
     result.render()
 
@@ -878,7 +886,8 @@ def test_rendering_table_with_multiple_uuid():
                 comparison_data_source_name=data_source_name,
                 comparison_query=f"SELECT name, id FROM {source_table}",
                 base_query="SELECT name, id FROM {batch}",
-            )
+            ),
+            result_format="COMPLETE",
         )
         result.render()
 
@@ -963,7 +972,8 @@ def test_rendering_table_with_null_values(multi_source_batch: MultiSourceBatch):
             comparison_data_source_name=multi_source_batch.comparison_data_source_name,
             comparison_query=f"SELECT col1, col2, col3 FROM {source_table}",
             base_query="SELECT col1, col2, col3 FROM {batch}",
-        )
+        ),
+        result_format="COMPLETE",
     )
     result.render()
 
@@ -1023,7 +1033,8 @@ def test_rendering_table_with_mixed_null_values(multi_source_batch: MultiSourceB
             comparison_data_source_name=multi_source_batch.comparison_data_source_name,
             comparison_query=f"SELECT name, age FROM {source_table}",
             base_query="SELECT name, age FROM {batch}",
-        )
+        ),
+        result_format="COMPLETE",
     )
     result.render()
 
@@ -1124,6 +1135,51 @@ def test_rendering_table_with_mixed_null_values(multi_source_batch: MultiSourceB
             value_type="TableType",
         ),
     ]
+
+
+@pytest.mark.parametrize(
+    "result_format,expected_keys",
+    [
+        pytest.param("BOOLEAN_ONLY", {"success"}, id="boolean_only"),
+        pytest.param("BASIC", {"success", "result"}, id="basic"),
+        pytest.param("SUMMARY", {"success", "result"}, id="summary"),
+        pytest.param("COMPLETE", {"success", "result"}, id="complete"),
+    ],
+)
+@multi_source_batch_setup(
+    multi_source_test_configs=SQLITE_ONLY,
+    base_data=MISSING_AND_UNEXPECTED_DF,
+    comparison_data=MISSING_AND_UNEXPECTED_DF,
+)
+def test_result_format_controls_details_visibility(
+    multi_source_batch: MultiSourceBatch,
+    result_format: Literal["BOOLEAN_ONLY", "BASIC", "SUMMARY", "COMPLETE"],
+    expected_keys: set[str],
+) -> None:
+    """Test that missing_rows and unexpected_rows are only visible with COMPLETE result format."""
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            base_query="SELECT missing_and_unexpected FROM {batch}",
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=f"SELECT source FROM {multi_source_batch.comparison_table_name}",
+        ),
+        result_format=result_format,
+    )
+
+    # Verify top-level keys
+    assert set(result.to_json_dict().keys()) >= expected_keys
+
+    if result_format == "BOOLEAN_ONLY":
+        assert result.result == {}
+    elif result_format == "COMPLETE":
+        assert "details" in result.result
+        assert "missing_rows" in result.result["details"]
+        assert "unexpected_rows" in result.result["details"]
+    else:
+        # BASIC and SUMMARY should not have details
+        assert "details" not in result.result
+        assert "unexpected_count" in result.result
+        assert "unexpected_percent" in result.result
 
 
 @multi_source_batch_setup(

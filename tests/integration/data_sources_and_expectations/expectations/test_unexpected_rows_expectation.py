@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Sequence
+from typing import Literal, Sequence
 from uuid import uuid4
 
 import pandas as pd
@@ -331,7 +331,8 @@ def test_success_result_format(batch_for_datasource: Batch) -> None:
     result = batch_for_datasource.validate(
         gxe.UnexpectedRowsExpectation(
             unexpected_rows_query="SELECT * FROM {batch} WHERE entity_id = 123"
-        )
+        ),
+        result_format="COMPLETE",
     )
 
     assert result.success
@@ -351,7 +352,8 @@ def test_fail_result_format(batch_for_datasource: Batch) -> None:
     result = batch_for_datasource.validate(
         gxe.UnexpectedRowsExpectation(
             unexpected_rows_query="SELECT * FROM {batch} WHERE entity_id = 2"
-        )
+        ),
+        result_format="COMPLETE",
     )
 
     assert not result.success
@@ -369,6 +371,47 @@ def test_fail_result_format(batch_for_datasource: Batch) -> None:
             ],
         },
     }
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig(), RedshiftDatasourceTestConfig()],
+    data=TABLE_1,
+)
+@pytest.mark.parametrize(
+    "result_format,expected_keys",
+    [
+        pytest.param("BOOLEAN_ONLY", {"success"}, id="boolean_only"),
+        pytest.param("BASIC", {"success", "result"}, id="basic"),
+        pytest.param("SUMMARY", {"success", "result"}, id="summary"),
+        pytest.param("COMPLETE", {"success", "result"}, id="complete"),
+    ],
+)
+def test_result_format_controls_details_visibility(
+    batch_for_datasource: Batch,
+    result_format: Literal["BOOLEAN_ONLY", "BASIC", "SUMMARY", "COMPLETE"],
+    expected_keys: set[str],
+) -> None:
+    """Test that unexpected_rows are only visible with COMPLETE result format."""
+    result = batch_for_datasource.validate(
+        gxe.UnexpectedRowsExpectation(
+            unexpected_rows_query="SELECT * FROM {batch} WHERE entity_id = 2"
+        ),
+        result_format=result_format,
+    )
+
+    # Verify top-level keys
+    assert set(result.to_json_dict().keys()) >= expected_keys
+
+    if result_format == "BOOLEAN_ONLY":
+        assert result.result == {}
+    elif result_format == "COMPLETE":
+        assert "details" in result.result
+        assert "unexpected_rows" in result.result["details"]
+        assert "observed_value" in result.result
+    else:
+        # BASIC and SUMMARY should not have details
+        assert "details" not in result.result
+        assert "observed_value" in result.result
 
 
 @parameterize_batch_for_data_sources(

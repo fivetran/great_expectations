@@ -257,9 +257,14 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         runtime_configuration: dict | None = None,
         execution_engine: ExecutionEngine | None = None,
     ) -> Union[ExpectationValidationResult, dict]:
-        result_format: str | dict[str, Any] = self._get_result_format(
+        result_format_config: str | dict[str, Any] = self._get_result_format(
             runtime_configuration=runtime_configuration
         )
+        # result_format can be a string or a dict with a "result_format" key
+        if isinstance(result_format_config, dict):
+            result_format = result_format_config.get("result_format", ResultFormat.SUMMARY)
+        else:
+            result_format = result_format_config
 
         missing_rows: list[dict[str, Any]]
         unexpected_rows: list[dict[str, Any]]
@@ -314,7 +319,7 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
 
         if result_format == ResultFormat.BOOLEAN_ONLY:
             return {"success": success}
-        else:
+        elif result_format == ResultFormat.COMPLETE:
             return {
                 "success": success,
                 "result": {
@@ -324,6 +329,15 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
                         "missing_rows": missing_rows,
                         "unexpected_rows": unexpected_rows,
                     },
+                },
+            }
+        else:
+            # BASIC or SUMMARY - don't include details with row data
+            return {
+                "success": success,
+                "result": {
+                    "unexpected_count": unexpected_count,
+                    "unexpected_percent": unexpected_percent,
                 },
             }
 
@@ -356,6 +370,14 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         runtime_configuration: Optional[dict] = None,
     ) -> list[RenderedAtomicContent] | RenderedAtomicContent:
         details = cls._get_details_from_results(result)
+        if details is None:
+            # Details are only available with COMPLETE result_format
+            # For BASIC/SUMMARY, use unexpected_percent; for BOOLEAN_ONLY, use a fallback
+            return cls._create_fallback_observed_value(
+                configuration=configuration,
+                result=result,
+                runtime_configuration=runtime_configuration,
+            )
 
         missing_rows: list[dict[str, Any]] = details["missing_rows"]
         unexpected_rows: list[dict[str, Any]] = details["unexpected_rows"]
@@ -365,6 +387,8 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         unexpected_rows_table = cls._create_observed_values_table(unexpected_rows)
 
         if len(missing_rows) == 0 and len(unexpected_rows) == 0:
+            # For COMPLETE format with no differences, return empty list
+            # (detailed observed value is not needed when everything matches)
             return []
         elif (
             len(missing_rows) == 1
@@ -409,6 +433,7 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         runtime_configuration: Optional[dict] = None,
     ) -> list[RenderedAtomicContent]:
         result_details = cls._get_details_from_results(result)
+        assert result_details is not None  # Caller guarantees details exist
 
         renderer_configuration_base: RendererConfiguration = RendererConfiguration(
             configuration=configuration,
@@ -465,6 +490,7 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         runtime_configuration: Optional[dict] = None,
     ) -> RenderedAtomicContent:
         result_details = cls._get_details_from_results(result)
+        assert result_details is not None  # Caller guarantees details exist
         comparison_values = (
             [
                 row[comparison_col_name]
@@ -571,11 +597,64 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
     @classmethod
     def _get_details_from_results(
         cls, result: Optional[ExpectationValidationResult]
-    ) -> dict[str, Any]:
-        assert result and result.result, "Must have result"
+    ) -> Optional[dict[str, Any]]:
+        if not result or not result.result:
+            return None
         details = result.result.get("details")
-        assert isinstance(details, dict), "Details must exist and be a dict"
+        if not isinstance(details, dict):
+            # Details are only available with COMPLETE result_format
+            return None
         return details
+
+    @classmethod
+    def _create_fallback_observed_value(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> RenderedAtomicContent:
+        """Create a fallback observed value for non-COMPLETE result formats.
+
+        For BASIC/SUMMARY formats, displays the unexpected_percent.
+        For BOOLEAN_ONLY or when no data is available, displays '--'.
+        """
+        renderer_configuration: RendererConfiguration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+
+        # Try to get unexpected_percent from result (available in BASIC/SUMMARY formats)
+        unexpected_percent: Optional[float] = None
+        if result and result.result:
+            unexpected_percent = result.result.get("unexpected_percent")
+
+        if unexpected_percent is not None:
+            renderer_configuration.add_param(
+                name="unexpected_percent",
+                param_type=RendererValueType.NUMBER,
+                value=unexpected_percent,
+            )
+            template_str = "$unexpected_percent% unexpected"
+        else:
+            # BOOLEAN_ONLY format or no data available
+            renderer_configuration.add_param(
+                name="observed_value",
+                param_type=RendererValueType.STRING,
+                value="--",
+            )
+            template_str = "$observed_value"
+
+        return RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=RenderedAtomicValue(
+                template=template_str,
+                params=renderer_configuration.params.dict(),
+                meta_notes=renderer_configuration.meta_notes,
+                schema={"type": "com.superconductive.rendered.string"},
+            ),
+            value_type="StringValueType",
+        )
 
     @classmethod
     def _create_table_rendered_atomic_content(
