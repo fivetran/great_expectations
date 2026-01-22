@@ -1,5 +1,6 @@
 import pandas as pd
 import pytest
+from typing_extensions import override
 
 from great_expectations import get_context
 from great_expectations.compatibility.aws import REDSHIFT_TYPES, redshiftdialect
@@ -392,6 +393,7 @@ class TestRedshiftSchemaQualifiedTables:
 
         class RedshiftWithSchemaBatchTestSetup(RedshiftBatchTestSetup):
             @property
+            @override
             def use_schema(self) -> bool:
                 return True
 
@@ -433,6 +435,7 @@ class TestRedshiftSchemaQualifiedTables:
 
         class RedshiftWithSchemaBatchTestSetup(RedshiftBatchTestSetup):
             @property
+            @override
             def use_schema(self) -> bool:
                 return True
 

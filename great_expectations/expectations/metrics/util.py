@@ -721,7 +721,7 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
                         qualified_table = f"{schema_name}.{selectable}"
                     else:
                         qualified_table = str(selectable)
-                    query = sa.select(sa.text("*")).select_from(sa.text(qualified_table)).limit(1)  # type: ignore[assignment,arg-type] # FIXME CoP
+                    query = sa.select(sa.text("*")).select_from(sa.text(qualified_table)).limit(1)  # type: ignore[assignment] # FIXME CoP
                 else:
                     query = sa.select(sa.text("*")).select_from(sa.text(selectable)).limit(1)  # type: ignore[assignment,arg-type] # FIXME CoP
 
