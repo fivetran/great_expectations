@@ -237,6 +237,8 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
     metric_dependencies = (
         "column.distinct_values.not_in_set.count",
         "column.distinct_values.not_in_set",
+        "column.distinct_values",
+        "column.value_counts",
     )
     success_keys = ("value_set",)
 
@@ -301,8 +303,10 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         result_format = self._get_result_format(runtime_configuration)
         if isinstance(result_format, dict):
             limit = result_format.get("partial_unexpected_count", 20)
+            result_format_str = result_format.get("result_format", "SUMMARY")
         else:
             limit = 20
+            result_format_str = result_format or "SUMMARY"
 
         # Get value_set from expectation kwargs
         value_set = self._get_success_kwargs().get("value_set", [])
@@ -314,15 +318,25 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
                 configuration=self.configuration,
                 runtime_configuration=runtime_configuration,
             )
-            # Add value_set and limit to metric_value_kwargs
+            # Add value_set and limit to metric_value_kwargs for not_in_set metrics
             metric_value_kwargs = (
                 dict(metric_kwargs["metric_value_kwargs"])
                 if metric_kwargs["metric_value_kwargs"]
                 else {}
             )
-            metric_value_kwargs["value_set"] = value_set
             if metric_name == "column.distinct_values.not_in_set":
+                metric_value_kwargs["value_set"] = value_set
                 metric_value_kwargs["limit"] = limit
+            elif metric_name == "column.distinct_values.not_in_set.count":
+                metric_value_kwargs["value_set"] = value_set
+            # Only fetch value_counts when result_format is COMPLETE
+            elif metric_name == "column.value_counts":
+                if result_format_str != "COMPLETE":
+                    # Remove this metric if not needed
+                    if metric_name in validation_dependencies.metric_configurations:
+                        validation_dependencies.remove_metric_configuration(metric_name)
+                    continue
+            # column.distinct_values is always needed for type coercion and observed_value
 
             validation_dependencies.set_metric_configuration(
                 metric_name=metric_name,
@@ -513,13 +527,40 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
 
         return new_block
 
-    def _validate(
+    def _validate(  # noqa: C901, PLR0912 # FIXME CoP
         self,
         metrics: Dict,
         runtime_configuration: Optional[dict] = None,
         execution_engine: Optional[ExecutionEngine] = None,
     ):
+        # Get value_set and do type coercion if needed
+        value_set = self._get_success_kwargs().get("value_set", [])
+
+        # Get observed values for type coercion
+        observed_value_set = metrics.get("column.distinct_values")
+        if observed_value_set is None and "column.value_counts" in metrics:
+            observed_value_set = set(metrics["column.value_counts"].index)
+
+        # Coerce value_set to match observed value types
+        coerced_value_set = value_set
+        if observed_value_set and value_set:
+            first_observed = next(iter(observed_value_set))
+            coerced_value_set = [
+                parse_value_to_observed_type(first_observed, value) for value in value_set
+            ]
+
+        # Re-check violations with coerced values
+        # We need to manually check since SQL comparison was done with original value_set
+        # This handles the case where types don't match (e.g., date vs string)
         violation_count = metrics.get("column.distinct_values.not_in_set.count", 0)
+        actual_violations = set()
+
+        # If we have observed values, do a Python-side check with coerced values
+        if observed_value_set:
+            coerced_value_set_set = set(coerced_value_set)
+            actual_violations = observed_value_set - coerced_value_set_set
+            violation_count = len(actual_violations)
+
         success = violation_count == 0
 
         # Get result_format settings
@@ -531,20 +572,43 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
             result_format_str = result_format or "SUMMARY"
             partial_unexpected_count = 20
 
-        # Only fetch violations if needed and if there are violations
-        # The metric already respects the limit, but we trim here for safety
-        violations = []
-        if not success and result_format_str != "BOOLEAN_ONLY":
-            violations = metrics.get("column.distinct_values.not_in_set", [])
-            violations = violations[:partial_unexpected_count]
-
-        return {
+        # Build result
+        result: Dict[str, Any] = {
             "success": success,
-            "result": {
-                "observed_value": violations,
-                "unexpected_count": violation_count,
-            },
         }
+
+        if result_format_str == "BOOLEAN_ONLY":
+            result["result"] = {}
+        else:
+            # Get violations if failing
+            violations = []
+            if not success:
+                # Use SQL violations if available, otherwise compute from observed values
+                sql_violations = metrics.get("column.distinct_values.not_in_set", [])
+                if sql_violations:
+                    violations = sql_violations[:partial_unexpected_count]
+                elif observed_value_set:
+                    violations = sorted(list(actual_violations))[:partial_unexpected_count]
+
+            # Get observed_value - always use all distinct values (for backward compatibility)
+            if observed_value_set:
+                observed_value = sorted(list(observed_value_set))
+            else:
+                # Fallback: shouldn't happen in normal flow
+                observed_value = violations if not success else []
+
+            result["result"] = {
+                "observed_value": observed_value,
+                "unexpected_count": violation_count,
+            }
+
+            # Add value_counts details when result_format is COMPLETE
+            if result_format_str == "COMPLETE" and "column.value_counts" in metrics:
+                result["result"]["details"] = {
+                    "value_counts": metrics["column.value_counts"],
+                }
+
+        return result
 
     @classmethod
     @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
