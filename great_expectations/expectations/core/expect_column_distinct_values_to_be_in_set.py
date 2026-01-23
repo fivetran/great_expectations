@@ -541,6 +541,16 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         if observed_value_set is None and "column.value_counts" in metrics:
             observed_value_set = set(metrics["column.value_counts"].index)
 
+        # Filter out nulls/NaN from observed values (expectation should ignore nulls)
+        if observed_value_set:
+            import math
+
+            observed_value_set = {
+                v
+                for v in observed_value_set
+                if v is not None and not (isinstance(v, float) and math.isnan(v))
+            }
+
         # Coerce value_set to match observed value types
         coerced_value_set = value_set
         if observed_value_set and value_set:
@@ -591,6 +601,7 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
                     violations = sorted(list(actual_violations))[:partial_unexpected_count]
 
             # Get observed_value - always use all distinct values (for backward compatibility)
+            # Filter out nulls from observed_value for display
             if observed_value_set:
                 observed_value = sorted(list(observed_value_set))
             else:
@@ -599,8 +610,10 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
 
             result["result"] = {
                 "observed_value": observed_value,
-                "unexpected_count": violation_count,
             }
+            # Only include unexpected_count when there are violations
+            if not success:
+                result["result"]["unexpected_count"] = violation_count
 
             # Add value_counts details when result_format is COMPLETE
             if result_format_str == "COMPLETE" and "column.value_counts" in metrics:
