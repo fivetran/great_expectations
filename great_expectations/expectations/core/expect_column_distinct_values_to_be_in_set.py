@@ -45,7 +45,6 @@ from great_expectations.render.util import (
     substitute_none_for_missing,
 )
 from great_expectations.validator.metric_configuration import MetricConfiguration
-from great_expectations.validator.validator import ValidationDependencies  # noqa: TC001
 
 if TYPE_CHECKING:
     from great_expectations.core import (
@@ -56,6 +55,7 @@ if TYPE_CHECKING:
         ExpectationConfiguration,
     )
     from great_expectations.render.renderer_configuration import AddParamArgs
+    from great_expectations.validator.validator import ValidationDependencies
 
 EXPECTATION_SHORT_DESCRIPTION = (
     "Expect the set of distinct column values to be contained by a given set."
@@ -291,6 +291,7 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         runtime_configuration: Optional[dict] = None,
     ) -> ValidationDependencies:
         """Override to configure metrics with limit parameter from result_format."""
+
         validation_dependencies: ValidationDependencies = super().get_validation_dependencies(
             execution_engine=execution_engine,
             runtime_configuration=runtime_configuration,
