@@ -477,7 +477,12 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         result_format = self._get_result_format(runtime_configuration)
         if isinstance(result_format, dict):
             result_format_str = result_format.get("result_format", "SUMMARY")
-            partial_unexpected_count = int(result_format.get("partial_unexpected_count", 20))
+            partial_unexpected_count_raw = result_format.get("partial_unexpected_count", 20)
+            partial_unexpected_count = (
+                int(partial_unexpected_count_raw)
+                if isinstance(partial_unexpected_count_raw, (int, str))
+                else 20
+            )
         else:
             result_format_str = result_format or "SUMMARY"
             partial_unexpected_count = 20
