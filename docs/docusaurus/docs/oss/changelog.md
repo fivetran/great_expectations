@@ -15,6 +15,10 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.11.2
+* [DOCS] RCA result format ([#11596](https://github.com/great-expectations/great_expectations/pull/11596))
+* [MAINTENANCE] Upper bound pandas to be below 3.0.0 ([#11607](https://github.com/great-expectations/great_expectations/pull/11607))
+
 ### 1.11.1
 * [BUGFIX] Include Expectation ID in equality ([#11593](https://github.com/great-expectations/great_expectations/pull/11593))
 * [BUGFIX] fix CustomSQL & MultiSource row-level result population ([#11601](https://github.com/great-expectations/great_expectations/pull/11601))
