@@ -1603,4 +1603,4 @@ class TestConditionToFilterClauseSqlAlchemy:
         # Verify the result is a valid ColumnElement (this would fail before the fix)
         assert isinstance(result, ColumnElement)
         compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert "my_condition_column IN (1, 2)" == compiled
+        assert compiled == "my_condition_column IN (1, 2)"
