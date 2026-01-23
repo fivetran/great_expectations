@@ -1584,3 +1584,23 @@ class TestConditionToFilterClauseSqlAlchemy:
         assert len(result) == 4
         ids = sorted([row[2] for row in result])
         assert ids == [2, 3, 4, 5]
+
+    @pytest.mark.sqlite
+    def test_condition_to_filter_clause_returns_column_element(self, sa) -> None:
+        """
+        In SQLAlchemy 1.x, ColumnElement is not exported at the top-level namespace,
+        so using `sa.ColumnElement` in isinstance() checks fails. This test ensures
+        condition_to_filter_clause works correctly with both SQLAlchemy 1.x and 2.x.
+        """
+        from great_expectations.compatibility.sqlalchemy import ColumnElement
+
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+
+        # Test the exact scenario from the bug report: Column(...).is_in([...])
+        condition = Column("my_condition_column").is_in([1, 2])
+        result = engine.condition_to_filter_clause(condition)
+
+        # Verify the result is a valid ColumnElement (this would fail before the fix)
+        assert isinstance(result, ColumnElement)
+        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
+        assert "my_condition_column IN (1, 2)" == compiled
