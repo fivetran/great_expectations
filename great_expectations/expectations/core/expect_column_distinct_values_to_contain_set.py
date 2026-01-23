@@ -429,7 +429,7 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         return validation_dependencies
 
     @override
-    def _validate(  # noqa: C901 # FIXME CoP
+    def _validate(  # noqa: C901, PLR0912 # FIXME CoP
         self,
         metrics: Dict,
         runtime_configuration: Optional[dict] = None,
@@ -442,6 +442,16 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         observed_value_set = metrics.get("column.distinct_values")
         if observed_value_set is None and "column.value_counts" in metrics:
             observed_value_set = set(metrics["column.value_counts"].index)
+
+        # Filter out nulls/NaN from observed values (expectation should ignore nulls)
+        if observed_value_set:
+            import math
+
+            observed_value_set = {
+                v
+                for v in observed_value_set
+                if v is not None and not (isinstance(v, float) and math.isnan(v))
+            }
 
         # Coerce value_set to match observed value types
         coerced_value_set = value_set
