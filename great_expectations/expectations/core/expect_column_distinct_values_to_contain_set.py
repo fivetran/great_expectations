@@ -18,6 +18,7 @@ from great_expectations.expectations.model_field_descriptions import (
 from great_expectations.expectations.model_field_types import (
     ValueSetField,  # noqa: TC001  # type needed in pydantic validation
 )
+from great_expectations.expectations.registry import get_metric_kwargs
 from great_expectations.render import (
     AtomicDiagnosticRendererType,
     LegacyRendererType,
@@ -35,6 +36,8 @@ from great_expectations.render.util import (
     parse_row_condition_string,
     substitute_none_for_missing,
 )
+from great_expectations.validator.metric_configuration import MetricConfiguration
+from great_expectations.validator.validator import ValidationDependencies  # noqa: TC001
 
 if TYPE_CHECKING:
     from great_expectations.core import (
@@ -218,7 +221,7 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
     _library_metadata = library_metadata
 
     # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
-    metric_dependencies = ("column.value_counts",)
+    metric_dependencies = ("column.distinct_values.missing_from_set",)
     success_keys = ("value_set",)
 
     args_keys = (
@@ -361,35 +364,81 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         ]
 
     @override
+    def get_validation_dependencies(
+        self,
+        execution_engine: Optional[ExecutionEngine] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> ValidationDependencies:
+        """Override to configure metrics with limit parameter from result_format."""
+        validation_dependencies: ValidationDependencies = super().get_validation_dependencies(
+            execution_engine=execution_engine,
+            runtime_configuration=runtime_configuration,
+        )
+
+        # Get limit from result_format
+        result_format = self._get_result_format(runtime_configuration)
+        if isinstance(result_format, dict):
+            limit = result_format.get("partial_unexpected_count", 20)
+        else:
+            limit = 20
+
+        # Get value_set from expectation kwargs
+        value_set = self._get_success_kwargs().get("value_set", [])
+
+        # Configure metrics with value_set and limit
+        for metric_name in self.metric_dependencies:
+            metric_kwargs = get_metric_kwargs(
+                metric_name=metric_name,
+                configuration=self.configuration,
+                runtime_configuration=runtime_configuration,
+            )
+            # Add value_set and limit to metric_value_kwargs
+            metric_value_kwargs = (
+                dict(metric_kwargs["metric_value_kwargs"])
+                if metric_kwargs["metric_value_kwargs"]
+                else {}
+            )
+            metric_value_kwargs["value_set"] = value_set
+            metric_value_kwargs["limit"] = limit
+
+            validation_dependencies.set_metric_configuration(
+                metric_name=metric_name,
+                metric_configuration=MetricConfiguration(
+                    metric_name=metric_name,
+                    metric_domain_kwargs=metric_kwargs["metric_domain_kwargs"],
+                    metric_value_kwargs=metric_value_kwargs,
+                ),
+            )
+
+        return validation_dependencies
+
+    @override
     def _validate(
         self,
         metrics: Dict,
         runtime_configuration: Optional[dict] = None,
         execution_engine: Optional[ExecutionEngine] = None,
     ):
-        observed_value_counts = metrics["column.value_counts"]
-        observed_value_set = set(observed_value_counts.index)
-        value_set = self._get_success_kwargs()["value_set"]
+        missing_values = metrics.get("column.distinct_values.missing_from_set", [])
+        success = len(missing_values) == 0
 
-        # Try to coerce string values to match the type of observed values
-        if observed_value_set and value_set:
-            first_observed = next(iter(observed_value_set))
-            expected_value_set = {
-                parse_value_to_observed_type(first_observed, value) for value in value_set
-            }
+        # Get result_format settings
+        result_format = self._get_result_format(runtime_configuration)
+        if isinstance(result_format, dict):
+            result_format_str = result_format.get("result_format", "SUMMARY")
         else:
-            expected_value_set = set(value_set)
+            result_format_str = result_format or "SUMMARY"
 
-        if not expected_value_set:
-            success = True
-        else:
-            success = expected_value_set.issubset(observed_value_set)
+        # Only include violations if needed
+        violations = []
+        if not success and result_format_str != "BOOLEAN_ONLY":
+            violations = missing_values
 
         return {
             "success": success,
             "result": {
-                "observed_value": sorted(list(observed_value_set)),
-                "details": {"value_counts": observed_value_counts},
+                "observed_value": violations,
+                "unexpected_count": len(missing_values),
             },
         }
 

@@ -186,3 +186,96 @@ class ColumnDistinctValuesCountUnderThreshold(ColumnAggregateMetricProvider):
                 metric_value_kwargs=None,
             )
         return dependencies
+
+
+class ColumnDistinctValuesMissingFromSet(ColumnAggregateMetricProvider):
+    """Metric that returns values in the expected set that are missing from the column.
+
+    Used for expect_column_distinct_values_to_contain_set to check which
+    required values are not present in the column.
+    """
+
+    metric_name = "column.distinct_values.missing_from_set"
+    value_keys = ("value_set", "limit")
+
+    @column_aggregate_value(engine=PandasExecutionEngine)
+    def _pandas(
+        cls, column: pd.Series, value_set: List[Any], limit: int = 20, **kwargs
+    ) -> List[Any]:
+        column_set = set(column.dropna().unique())
+        missing = [v for v in value_set if v not in column_set]
+        return missing[:limit]
+
+    @metric_value(engine=SqlAlchemyExecutionEngine)
+    def _sqlalchemy(
+        cls,
+        execution_engine: SqlAlchemyExecutionEngine,
+        metric_domain_kwargs: Dict[str, str],
+        metric_value_kwargs: Dict[str, Any],
+        **kwargs,
+    ) -> List[Any]:
+        """Return values in the expected set that are missing from the column."""
+        value_set = metric_value_kwargs.get("value_set", [])
+        limit = metric_value_kwargs.get("limit", 20)
+
+        selectable: sqlalchemy.Selectable
+        accessor_domain_kwargs: Dict[str, str]
+        (
+            selectable,
+            _,
+            accessor_domain_kwargs,
+        ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        column_name: str = accessor_domain_kwargs["column"]
+        column: sqlalchemy.ColumnClause = sa.column(column_name)
+
+        # Get distinct values in the column
+        if hasattr(column, "is_not"):
+            column_values_query = (
+                sa.select(column).where(column.is_not(None)).distinct().select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
+            )
+        else:
+            column_values_query = (
+                sa.select(column).where(column.isnot(None)).distinct().select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
+            )
+
+        column_values_result = execution_engine.execute_query(column_values_query).fetchall()
+        column_values_set = {row[0] for row in column_values_result}
+
+        # Find missing values
+        missing = [v for v in value_set if v not in column_values_set]
+        return missing[:limit]
+
+    @metric_value(engine=SparkDFExecutionEngine)
+    def _spark(
+        cls,
+        execution_engine: SparkDFExecutionEngine,
+        metric_domain_kwargs: Dict[str, str],
+        metric_value_kwargs: Dict[str, Any],
+        **kwargs,
+    ) -> List[Any]:
+        """Return values in the expected set that are missing from the column."""
+        value_set = metric_value_kwargs.get("value_set", [])
+        limit = metric_value_kwargs.get("limit", 20)
+
+        df: pyspark.DataFrame
+        accessor_domain_kwargs: Dict[str, str]
+        (
+            df,
+            _,
+            accessor_domain_kwargs,
+        ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        column_name: str = accessor_domain_kwargs["column"]
+
+        # Get distinct values in the column
+        column_values = (
+            df.select(F.col(column_name))
+            .where(F.col(column_name).isNotNull())
+            .distinct()
+            .rdd.flatMap(lambda x: x)
+            .collect()
+        )
+        column_values_set = set(column_values)
+
+        # Find missing values
+        missing = [v for v in value_set if v not in column_values_set]
+        return missing[:limit]
