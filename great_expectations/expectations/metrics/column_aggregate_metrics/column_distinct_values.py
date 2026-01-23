@@ -290,7 +290,7 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
                 .limit(limit)
             )
 
-        results = execution_engine.execute_query(  # type: ignore[assignment] # FIXME CoP
+        results = execution_engine.execute_query(
             query.select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
         ).fetchall()
         return [row[0] for row in results]
