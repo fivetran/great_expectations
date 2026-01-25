@@ -112,7 +112,10 @@ class MetricsCalculator:
             )
         )
 
-        return df.reset_index(drop=True, inplace=False)
+        if hasattr(df, "reset_index"):
+            return df.reset_index(drop=True, inplace=False)
+
+        return df
 
     def get_metric(
         self,
