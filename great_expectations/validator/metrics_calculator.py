@@ -111,6 +111,8 @@ class MetricsCalculator:
                 },
             )
         )
+        if hasattr(df, "toPandas"):
+            df = df.toPandas()
 
         if hasattr(df, "reset_index"):
             return df.reset_index(drop=True, inplace=False)

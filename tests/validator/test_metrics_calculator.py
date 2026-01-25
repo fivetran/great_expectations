@@ -2,6 +2,7 @@ import datetime
 from typing import TYPE_CHECKING, Any, Union, cast
 from unittest import mock
 
+import pandas as pd
 import pytest
 
 from great_expectations.execution_engine import ExecutionEngine, PandasExecutionEngine
@@ -11,8 +12,6 @@ from great_expectations.validator.metric_configuration import MetricConfiguratio
 from great_expectations.validator.metrics_calculator import MetricsCalculator
 
 if TYPE_CHECKING:
-    import pandas as pd
-
     from great_expectations.validator.validator import Validator
 
 
@@ -188,36 +187,41 @@ def test_get_metric_calls_get_metrics_and_returns_correct_result():
 
 
 @pytest.mark.unit
-def test_head_with_pyspark_style_dataframe_no_reset_index():
+def test_head_with_pyspark_style_dataframe_converts_to_pandas(mocker):
     """
-    Regression test for issue #11617:
-    Ensures that MetricsCalculator.head() does not raise an AttributeError 
-    when the underlying data object (e.g., a PySpark DataFrame) 
-    does not have a .reset_index() method.
+    This regression test ensures that MetricsCalculator.head() correctly handles non-Pandas
+    DataFrames (specifically PySpark-style objects) by converting them to Pandas.
+
+    The purpose of this test is to verify that:
+        1) MetricsCalculator.head() identifies objects with a 'toPandas' method.
+        2) It invokes the conversion method to ensure the return type follows the
+           pd.DataFrame contract.
+        3) It prevents the AttributeError that would occur if it attempted to call
+           Pandas-specific methods like '.reset_index()' directly on a Spark object.
     """
-    # 1. Arrange: Initialize MetricsCalculator with a mock engine
-    # We use a mock engine because head() internally calls get_metric()
-    mock_engine = mock.MagicMock()
+    # 1. Arrange: Initialize MetricsCalculator and prepare mock data objects
+    mock_engine = mocker.Mock()
     metrics_calculator = MetricsCalculator(execution_engine=mock_engine)
 
-    # Define a dummy object that lacks 'reset_index' to simulate a PySpark DataFrame
+    # Define the expected Pandas result after conversion
+    expected_pd_df = pd.DataFrame({"a": [1, 2, 3]})
+
+    # Define a mock object simulating a PySpark DataFrame (lacks reset_index, has toPandas)
     class FakeSparkDataFrame:
+        def toPandas(self):
+            return expected_pd_df
+
         def __repr__(self):
             return "<Fake Spark DataFrame>"
 
-    fake_df = FakeSparkDataFrame()
-    
-    # Mock get_metric to return our fake Spark-like object
-    metrics_calculator.get_metric = mock.MagicMock(return_value=fake_df)
+    fake_spark_df = FakeSparkDataFrame()
 
-    # 2. Act: Execute head() and ensure it handles the object gracefully
-    try:
-        result = metrics_calculator.head(n_rows=5)
-    except AttributeError as e:
-        pytest.fail(
-            f"MetricsCalculator.head() failed with AttributeError: {e}. "
-            "It should handle objects without a reset_index() method (like PySpark DataFrames)."
-        )
+    # Mock get_metric to return our simulated Spark object using mocker
+    mocker.patch.object(metrics_calculator, "get_metric", return_value=fake_spark_df)
 
-    # 3. Assert: Verify the result is returned as-is when reset_index is missing
-    assert result == fake_df
+    # 2. Act: Call the method under test
+    result = metrics_calculator.head(n_rows=5)
+
+    # 3. Assert: Verify the behavior and the integrity of the returned object
+    assert isinstance(result, pd.DataFrame), "Result should be converted to Pandas."
+    assert result.equals(expected_pd_df), "DataFrame content should match original data."
