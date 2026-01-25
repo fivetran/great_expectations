@@ -185,3 +185,39 @@ def test_get_metric_calls_get_metrics_and_returns_correct_result():
         resolved_metric_value: Any = metrics_calculator.get_metric(metric=metric_configuration)
         mock_get_metrics_method.assert_called_once_with(metrics={metric_name: metric_configuration})
         assert resolved_metric_value == actual_metric_value
+
+
+@pytest.mark.unit
+def test_head_with_pyspark_style_dataframe_no_reset_index():
+    """
+    Regression test for issue #11617:
+    Ensures that MetricsCalculator.head() does not raise an AttributeError 
+    when the underlying data object (e.g., a PySpark DataFrame) 
+    does not have a .reset_index() method.
+    """
+    # 1. Arrange: Initialize MetricsCalculator with a mock engine
+    # We use a mock engine because head() internally calls get_metric()
+    mock_engine = mock.MagicMock()
+    metrics_calculator = MetricsCalculator(execution_engine=mock_engine)
+
+    # Define a dummy object that lacks 'reset_index' to simulate a PySpark DataFrame
+    class FakeSparkDataFrame:
+        def __repr__(self):
+            return "<Fake Spark DataFrame>"
+
+    fake_df = FakeSparkDataFrame()
+    
+    # Mock get_metric to return our fake Spark-like object
+    metrics_calculator.get_metric = mock.MagicMock(return_value=fake_df)
+
+    # 2. Act: Execute head() and ensure it handles the object gracefully
+    try:
+        result = metrics_calculator.head(n_rows=5)
+    except AttributeError as e:
+        pytest.fail(
+            f"MetricsCalculator.head() failed with AttributeError: {e}. "
+            "It should handle objects without a reset_index() method (like PySpark DataFrames)."
+        )
+
+    # 3. Assert: Verify the result is returned as-is when reset_index is missing
+    assert result == fake_df
