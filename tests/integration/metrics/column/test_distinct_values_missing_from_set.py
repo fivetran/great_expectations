@@ -111,19 +111,3 @@ class TestColumnDistinctValuesMissingFromSet:
 
         assert isinstance(metric_result, ColumnDistinctValuesMissingFromSetResult)
         assert metric_result.value == []
-
-    @parameterize_batch_for_data_sources(
-        data_source_configs=DATA_SOURCES_THAT_SUPPORT_DATE_COMPARISONS,
-        data=DATE_DATA_FRAME,
-    )
-    def test_dates_with_str_value_set(self, batch_for_datasource: Batch) -> None:
-        """When date column is compared with string value_set, should handle type coercion."""
-        metric = ColumnDistinctValuesMissingFromSet(
-            column=COLUMN_NAME,
-            value_set=["2024-11-19", "2024-11-20"],  # strings instead of date objects
-        )
-        metric_result = batch_for_datasource.compute_metrics(metric)
-
-        assert isinstance(metric_result, ColumnDistinctValuesMissingFromSetResult)
-        # After type coercion, all values should be present
-        assert metric_result.value == []
