@@ -211,17 +211,13 @@ class ColumnDistinctValuesNotInSetCount(ColumnAggregateMetricProvider):
         BigQuery doesn't support DATE NOT IN UNNEST(ARRAY<STRING>), so we need
         to convert string values to DATE objects before the SQL query.
         """
-        # Check if we're on BigQuery
+        # Check if we're on BigQuery using the same pattern as util.py
         dialect = kwargs.get("_dialect")
         is_bigquery = False
         if dialect is not None:
-            # Check dialect name or class name
-            dialect_name = getattr(dialect, "__name__", None)
-            dialect_class_name = getattr(dialect, "__class__", {}).get("__name__", "")
-            is_bigquery = (
-                dialect_name == "sqlalchemy_bigquery"
-                or "BigQuery" in dialect_class_name
-                or (hasattr(dialect, "name") and dialect.name == "bigquery")
+            # Check for BigQuery dialect - use hasattr pattern from util.py
+            is_bigquery = hasattr(dialect, "BigQueryDialect") or (
+                hasattr(dialect, "name") and dialect.name == "bigquery"
             )
 
         if (
@@ -324,17 +320,13 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
         BigQuery doesn't support DATE NOT IN UNNEST(ARRAY<STRING>), so we need
         to convert string values to DATE objects before the SQL query.
         """
-        # Check if we're on BigQuery
+        # Check if we're on BigQuery using the same pattern as util.py
         dialect = kwargs.get("_dialect")
         is_bigquery = False
         if dialect is not None:
-            # Check dialect name or class name
-            dialect_name = getattr(dialect, "__name__", None)
-            dialect_class_name = getattr(dialect, "__class__", {}).get("__name__", "")
-            is_bigquery = (
-                dialect_name == "sqlalchemy_bigquery"
-                or "BigQuery" in dialect_class_name
-                or (hasattr(dialect, "name") and dialect.name == "bigquery")
+            # Check for BigQuery dialect - use hasattr pattern from util.py
+            is_bigquery = hasattr(dialect, "BigQueryDialect") or (
+                hasattr(dialect, "name") and dialect.name == "bigquery"
             )
 
         if (
