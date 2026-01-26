@@ -388,7 +388,8 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
         execution_engine: SqlAlchemyExecutionEngine,
         metric_domain_kwargs: Dict[str, str],
         metric_value_kwargs: Dict[str, Any],
-        **kwargs,
+        metrics: Dict[str, Any],
+        runtime_configuration: dict,
     ) -> List[Any]:
         """Return a sample of distinct values NOT in the provided set."""
         value_set = metric_value_kwargs.get("value_set", [])
@@ -406,8 +407,12 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
 
         # Handle BigQuery DATE column with string value_set
         # BigQuery doesn't support DATE NOT IN UNNEST(ARRAY<STRING>)
+        sqlalchemy_engine: sa.engine.Engine = execution_engine.engine
+        dialect = sqlalchemy_engine.dialect
         value_set_to_use = cls._coerce_value_set_for_bigquery_date(
-            column=column, value_set=value_set, kwargs=kwargs
+            column=column,
+            value_set=value_set,
+            kwargs={"_dialect": dialect, "_metrics": metrics},
         )
 
         if hasattr(column, "is_not"):
