@@ -1007,6 +1007,7 @@ def test_sqlite_single_column_complete_result_format(
     }
 
 
+@pytest.mark.unit
 def test_result_format_config_in_expectation_configuration_emits_warning(mocker) -> None:
     expectation_configuration = ExpectationConfiguration(
         type="expect_column_values_to_be_in_set",
