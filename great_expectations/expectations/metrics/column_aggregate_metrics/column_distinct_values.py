@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set
 
 from great_expectations.compatibility.pyspark import (
@@ -199,6 +200,67 @@ class ColumnDistinctValuesNotInSetCount(ColumnAggregateMetricProvider):
     metric_name = "column.distinct_values.not_in_set.count"
     value_keys = ("value_set",)
 
+    @staticmethod
+    def _coerce_value_set_for_bigquery_date(
+        column: sqlalchemy.ColumnClause,
+        value_set: List[Any],
+        kwargs: Dict[str, Any],
+    ) -> List[Any]:
+        """Coerce string values to DATE for BigQuery DATE columns.
+
+        BigQuery doesn't support DATE NOT IN UNNEST(ARRAY<STRING>), so we need
+        to convert string values to DATE objects before the SQL query.
+        """
+        # Check if we're on BigQuery
+        dialect = kwargs.get("_dialect")
+        is_bigquery = False
+        if dialect is not None:
+            # Check dialect name or class name
+            dialect_name = getattr(dialect, "__name__", None)
+            dialect_class_name = getattr(dialect, "__class__", {}).get("__name__", "")
+            is_bigquery = (
+                dialect_name == "sqlalchemy_bigquery"
+                or "BigQuery" in dialect_class_name
+                or (hasattr(dialect, "name") and dialect.name == "bigquery")
+            )
+
+        if (
+            is_bigquery
+            and "_metrics" in kwargs
+            and "table.column_types" in kwargs["_metrics"]
+            and isinstance(kwargs["_metrics"]["table.column_types"], Sequence)
+        ):
+            # Check if column type is DATE
+            column_name_str = str(column.name) if hasattr(column, "name") else None
+            for column_info in kwargs["_metrics"]["table.column_types"]:
+                column_info_name = column_info.get("name")
+                # Handle both string and quoted_name comparisons
+                if (
+                    column_info_name is not None
+                    and (
+                        str(column_info_name) == column_name_str or column_info_name == column.name
+                    )
+                    and "type" in column_info
+                    and isinstance(column_info["type"], sa.Date)
+                ):
+                    # Convert string values to date objects
+                    from datetime import date
+
+                    coerced_value_set = []
+                    for value in value_set:
+                        if isinstance(value, str):
+                            try:
+                                # Try parsing as date string (YYYY-MM-DD)
+                                parsed_date = date.fromisoformat(value)
+                                coerced_value_set.append(parsed_date)
+                            except (ValueError, TypeError):
+                                # If parsing fails, keep original value
+                                coerced_value_set.append(value)
+                        else:
+                            coerced_value_set.append(value)
+                    return coerced_value_set
+        return value_set
+
     @column_aggregate_value(engine=PandasExecutionEngine)
     def _pandas(cls, column: pd.Series, value_set: List[Any], **kwargs) -> int:
         value_set_set = set(value_set)
@@ -212,13 +274,21 @@ class ColumnDistinctValuesNotInSetCount(ColumnAggregateMetricProvider):
         **kwargs,
     ) -> sqlalchemy.Selectable:
         """Count distinct values NOT in the provided set."""
+        # Handle BigQuery DATE column with string value_set
+        # BigQuery doesn't support DATE NOT IN UNNEST(ARRAY<STRING>)
+        value_set_to_use = cls._coerce_value_set_for_bigquery_date(
+            column=column, value_set=value_set, kwargs=kwargs
+        )
+
         if hasattr(column, "is_not"):
             return sa.func.count(
-                sa.distinct(sa.case((column.notin_(value_set) & column.is_not(None), column)))
+                sa.distinct(
+                    sa.case((column.notin_(value_set_to_use) & column.is_not(None), column))
+                )
             )
         else:
             return sa.func.count(
-                sa.distinct(sa.case((column.notin_(value_set) & column.isnot(None), column)))
+                sa.distinct(sa.case((column.notin_(value_set_to_use) & column.isnot(None), column)))
             )
 
     @column_aggregate_partial(engine=SparkDFExecutionEngine)
@@ -273,11 +343,17 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
         column_name: str = accessor_domain_kwargs["column"]
         column: sqlalchemy.ColumnClause = sa.column(column_name)
 
+        # Handle BigQuery DATE column with string value_set
+        # BigQuery doesn't support DATE NOT IN UNNEST(ARRAY<STRING>)
+        value_set_to_use = cls._coerce_value_set_for_bigquery_date(
+            column=column, value_set=value_set, kwargs=kwargs
+        )
+
         if hasattr(column, "is_not"):
             query = (
                 sa.select(column)
                 .where(column.is_not(None))
-                .where(column.notin_(value_set))
+                .where(column.notin_(value_set_to_use))
                 .distinct()
                 .limit(limit)
             )
@@ -285,7 +361,7 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
             query = (
                 sa.select(column)
                 .where(column.isnot(None))
-                .where(column.notin_(value_set))
+                .where(column.notin_(value_set_to_use))
                 .distinct()
                 .limit(limit)
             )
