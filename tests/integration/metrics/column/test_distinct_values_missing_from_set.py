@@ -1,3 +1,5 @@
+from datetime import date
+
 import pandas as pd
 
 from great_expectations.datasource.fluent.interfaces import Batch
@@ -6,12 +8,20 @@ from great_expectations.metrics.column.distinct_values_missing_from_set import (
     ColumnDistinctValuesMissingFromSetResult,
 )
 from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
+    DATA_SOURCES_THAT_SUPPORT_DATE_COMPARISONS,
+)
 from tests.metrics.conftest import ALL_DATA_SOURCES
 
 COLUMN_NAME = "my_col"
 DATA_FRAME = pd.DataFrame(
     {
         COLUMN_NAME: ["a", "b", "c", "c", "c", None],
+    },
+)
+DATE_DATA_FRAME = pd.DataFrame(
+    {
+        COLUMN_NAME: [date(2024, 11, 19), date(2024, 11, 20)],
     },
 )
 
@@ -86,3 +96,34 @@ class TestColumnDistinctValuesMissingFromSet:
         assert len(metric_result.value) <= 2
         # All returned values should be from the set
         assert all(v in {"w", "x", "y", "z"} for v in metric_result.value)
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=DATA_SOURCES_THAT_SUPPORT_DATE_COMPARISONS,
+        data=DATE_DATA_FRAME,
+    )
+    def test_dates_all_present(self, batch_for_datasource: Batch) -> None:
+        """When all date values in set are present in column, result should be empty."""
+        metric = ColumnDistinctValuesMissingFromSet(
+            column=COLUMN_NAME,
+            value_set=[date(2024, 11, 19), date(2024, 11, 20)],
+        )
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert isinstance(metric_result, ColumnDistinctValuesMissingFromSetResult)
+        assert metric_result.value == []
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=DATA_SOURCES_THAT_SUPPORT_DATE_COMPARISONS,
+        data=DATE_DATA_FRAME,
+    )
+    def test_dates_with_str_value_set(self, batch_for_datasource: Batch) -> None:
+        """When date column is compared with string value_set, should handle type coercion."""
+        metric = ColumnDistinctValuesMissingFromSet(
+            column=COLUMN_NAME,
+            value_set=["2024-11-19", "2024-11-20"],  # strings instead of date objects
+        )
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert isinstance(metric_result, ColumnDistinctValuesMissingFromSetResult)
+        # After type coercion, all values should be present
+        assert metric_result.value == []
