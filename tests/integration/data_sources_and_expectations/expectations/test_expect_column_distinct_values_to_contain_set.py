@@ -182,10 +182,11 @@ def test_failure_complete_results(batch_for_datasource: Batch) -> None:
     assert sorted(result.result["observed_value"]) == [1, 2]
     # Check unexpected_count
     assert result.result["unexpected_count"] == 1
-    # Check details contains value_counts
-    assert "details" in result.result
-    assert "value_counts" in result.result["details"]
-    assert result.result["details"]["value_counts"] == [
+    # Check details contains value_counts (use to_json_dict for proper serialization)
+    result_dict = result.to_json_dict()["result"]
+    assert "details" in result_dict
+    assert "value_counts" in result_dict["details"]
+    assert result_dict["details"]["value_counts"] == [
         {"value": 1, "count": 1},
         {"value": 2, "count": 3},
     ]
