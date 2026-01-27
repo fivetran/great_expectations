@@ -440,8 +440,6 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
 
         # Get observed values for type coercion
         observed_value_set = metrics.get("column.distinct_values")
-        if observed_value_set is None and "column.value_counts" in metrics:
-            observed_value_set = set(metrics["column.value_counts"].index)
 
         # Filter out nulls/NaN from observed values (expectation should ignore nulls)
         if observed_value_set:
