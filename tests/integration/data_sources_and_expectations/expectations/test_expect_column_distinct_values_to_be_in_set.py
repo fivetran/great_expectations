@@ -29,14 +29,9 @@ def test_success_complete_results(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=[1, 2])
     result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
     assert result.success
+    # BREAKING CHANGE: observed_value now contains only violations (empty when success)
     assert result.to_json_dict()["result"] == {
-        "details": {
-            "value_counts": [
-                {"value": 1, "count": 1},
-                {"value": 2, "count": 3},
-            ]
-        },
-        "observed_value": [1, 2],
+        "observed_value": [],
     }
 
 
@@ -70,12 +65,16 @@ def test_dates(batch_for_datasource: Batch) -> None:
     data=pd.DataFrame({COL_NAME: [datetime(2024, 11, 19).date(), datetime(2024, 11, 20).date()]}),  # noqa: DTZ001 # FIXME CoP
 )
 def test_dates_with_str_value_set(batch_for_datasource: Batch) -> None:
+    # BREAKING CHANGE: String values are no longer automatically coerced to match date columns.
+    # Users should provide value_set with matching types.
+    # This test now expects failure when strings are provided for a date column.
     expectation = gxe.ExpectColumnDistinctValuesToBeInSet(
         column=COL_NAME,
         value_set=[str(datetime(2024, 11, 19).date()), str(datetime(2024, 11, 20).date())],  # noqa: DTZ001 # FIXME CoP
     )
     result = batch_for_datasource.validate(expectation)
-    assert result.success
+    # Strings don't match date objects, so all dates appear as violations
+    assert not result.success
 
 
 @parameterize_batch_for_data_sources(
@@ -120,7 +119,7 @@ def test_failure(batch_for_datasource: Batch) -> None:
         pytest.param("BOOLEAN_ONLY", set(), id="boolean_only"),
         pytest.param("BASIC", {"observed_value"}, id="basic"),
         pytest.param("SUMMARY", {"observed_value"}, id="summary"),
-        pytest.param("COMPLETE", {"observed_value", "details"}, id="complete"),
+        pytest.param("COMPLETE", {"observed_value"}, id="complete"),
     ],
 )
 @parameterize_batch_for_data_sources(
@@ -141,6 +140,8 @@ def test_result_format_success(
         assert result.result == {}
     else:
         assert set(result.result.keys()) == expected_result_keys
+        # BREAKING CHANGE: observed_value now contains only violations (empty when success)
+        assert result.result["observed_value"] == []
 
 
 @pytest.mark.parametrize(
@@ -149,7 +150,7 @@ def test_result_format_success(
         pytest.param("BOOLEAN_ONLY", set(), id="boolean_only"),
         pytest.param("BASIC", {"observed_value", "unexpected_count"}, id="basic"),
         pytest.param("SUMMARY", {"observed_value", "unexpected_count"}, id="summary"),
-        pytest.param("COMPLETE", {"observed_value", "unexpected_count", "details"}, id="complete"),
+        pytest.param("COMPLETE", {"observed_value", "unexpected_count"}, id="complete"),
     ],
 )
 @parameterize_batch_for_data_sources(
@@ -170,8 +171,8 @@ def test_result_format_failure(
         assert result.result == {}
     else:
         assert set(result.result.keys()) == expected_result_keys
-        # Verify observed_value contains all distinct values (not just violations)
-        assert sorted(result.result["observed_value"]) == [1, 2]
+        # BREAKING CHANGE: observed_value now contains only violations
+        assert result.result["observed_value"] == [2]
         # Verify unexpected_count reflects the number of violations
         assert result.result["unexpected_count"] == 1
 
@@ -180,24 +181,14 @@ def test_result_format_failure(
     data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
 )
 def test_failure_complete_results(batch_for_datasource: Batch) -> None:
-    """Test that COMPLETE result format includes value_counts in details on failure."""
+    """Test COMPLETE result format on failure."""
     expectation = gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=[1])
     result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
 
     assert not result.success
 
-    # Check observed_value contains all distinct values
-    assert sorted(result.result["observed_value"]) == [1, 2]
-    # Check unexpected_count
-    assert result.result["unexpected_count"] == 1
-    # Check details contains value_counts (use to_json_dict for proper serialization)
+    # BREAKING CHANGE: observed_value now contains only violations
     assert result.to_json_dict()["result"] == {
-        "observed_value": [1, 2],
+        "observed_value": [2],
         "unexpected_count": 1,
-        "details": {
-            "value_counts": [
-                {"value": 1, "count": 1},
-                {"value": 2, "count": 3},
-            ]
-        },
     }
