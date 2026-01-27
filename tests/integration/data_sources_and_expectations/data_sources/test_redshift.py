@@ -1,5 +1,6 @@
 import pandas as pd
 import pytest
+from typing_extensions import override
 
 from great_expectations import get_context
 from great_expectations.compatibility.aws import REDSHIFT_TYPES, redshiftdialect
@@ -363,3 +364,92 @@ class TestRedshiftDataTypes:
             assert "id" in columns_lower
             assert "name" in columns_lower
             assert "amount" in columns_lower
+
+
+class TestRedshiftSchemaQualifiedTables:
+    """Tests for schema-qualified table name handling in Redshift.
+
+    These tests validate the fix that ensures the fallback column detection
+    uses schema-qualified table names (schema.table) when a schema is specified.
+    Without this fix, queries like `SELECT * FROM table LIMIT 1` fail when the
+    table is in a non-default schema.
+    """
+
+    COLUMN = "col_a"
+
+    @pytest.mark.redshift
+    def test_batch_columns_with_schema(self):
+        """Test that batch.columns() works correctly when table is in a schema.
+
+        This validates the schema_name parameter is properly passed to the fallback
+        query, resulting in schema-qualified table references like `my_schema.my_table`
+        instead of just `my_table`.
+        """
+        column_types = {
+            "id": REDSHIFT_TYPES.INTEGER,
+            "name": REDSHIFT_TYPES.VARCHAR,
+            "value": REDSHIFT_TYPES.DECIMAL,
+        }
+
+        class RedshiftWithSchemaBatchTestSetup(RedshiftBatchTestSetup):
+            @property
+            @override
+            def use_schema(self) -> bool:
+                return True
+
+        batch_setup = RedshiftWithSchemaBatchTestSetup(
+            config=RedshiftDatasourceTestConfig(column_types=column_types),
+            data=pd.DataFrame(
+                {
+                    "id": [1, 2, 3],
+                    "name": ["foo", "bar", "baz"],
+                    "value": [1.1, 2.2, 3.3],
+                }
+            ),
+            extra_data={},
+            context=get_context(mode="ephemeral"),
+        )
+        with batch_setup.batch_test_context() as batch:
+            columns = batch.columns()
+
+            assert columns is not None
+            assert isinstance(columns, list)
+            assert len(columns) > 0, "batch.columns() should not return empty list"
+            assert len(columns) == 3, "Should have exactly 3 columns"
+
+            columns_lower = [col.lower() for col in columns]
+            assert "id" in columns_lower
+            assert "name" in columns_lower
+            assert "value" in columns_lower
+
+    @pytest.mark.redshift
+    def test_expectation_with_schema(self):
+        """Test that expectations work correctly when table is in a schema.
+
+        This is an end-to-end test ensuring the full validation flow works
+        with schema-qualified tables.
+        """
+        column_types = {
+            self.COLUMN: REDSHIFT_TYPES.INTEGER,
+        }
+
+        class RedshiftWithSchemaBatchTestSetup(RedshiftBatchTestSetup):
+            @property
+            @override
+            def use_schema(self) -> bool:
+                return True
+
+        batch_setup = RedshiftWithSchemaBatchTestSetup(
+            config=RedshiftDatasourceTestConfig(column_types=column_types),
+            data=pd.DataFrame({self.COLUMN: [1, 2, 3]}),
+            extra_data={},
+            context=get_context(mode="ephemeral"),
+        )
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(
+                expect=ExpectColumnValuesToBeOfType(
+                    column=self.COLUMN,
+                    type_="INTEGER",
+                )
+            )
+        assert result.success
