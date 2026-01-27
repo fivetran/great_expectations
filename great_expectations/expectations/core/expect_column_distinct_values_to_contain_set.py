@@ -429,7 +429,7 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         return validation_dependencies
 
     @override
-    def _validate(  # noqa: C901, PLR0912 # FIXME CoP
+    def _validate(  # noqa: C901 # FIXME CoP
         self,
         metrics: Dict,
         runtime_configuration: Optional[dict] = None,
