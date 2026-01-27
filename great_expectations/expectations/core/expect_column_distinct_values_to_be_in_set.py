@@ -235,7 +235,6 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
 
     # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
     metric_dependencies = (
-        "column.distinct_values.not_in_set.count",
         "column.distinct_values.not_in_set",
         "column.distinct_values",
         "column.value_counts",
@@ -327,8 +326,6 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
             if metric_name == "column.distinct_values.not_in_set":
                 metric_value_kwargs["value_set"] = value_set
                 metric_value_kwargs["limit"] = limit
-            elif metric_name == "column.distinct_values.not_in_set.count":
-                metric_value_kwargs["value_set"] = value_set
             # Only fetch value_counts when result_format is COMPLETE
             elif metric_name == "column.value_counts":
                 if result_format_str != "COMPLETE":
@@ -560,15 +557,14 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         # Re-check violations with coerced values
         # We need to manually check since SQL comparison was done with original value_set
         # This handles the case where types don't match (e.g., date vs string)
-        violation_count = metrics.get("column.distinct_values.not_in_set.count", 0)
-        actual_violations = set()
+        actual_violations: set = set()
 
         # If we have observed values, do a Python-side check with coerced values
         if observed_value_set:
             coerced_value_set_set = set(coerced_value_set)
             actual_violations = observed_value_set - coerced_value_set_set
-            violation_count = len(actual_violations)
 
+        violation_count = len(actual_violations)
         success = violation_count == 0
 
         # Get result_format settings
