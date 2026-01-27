@@ -189,6 +189,50 @@ class ColumnDistinctValuesCountUnderThreshold(ColumnAggregateMetricProvider):
         return dependencies
 
 
+class ColumnDistinctValuesNotInSetCount(ColumnAggregateMetricProvider):
+    """Metric that counts distinct column values NOT in a provided set.
+
+    This metric pushes the comparison logic to the database, avoiding the need
+    to fetch all distinct values into memory. Used for optimizing
+    expect_column_distinct_values_to_be_in_set expectations.
+    """
+
+    metric_name = "column.distinct_values.not_in_set.count"
+    value_keys = ("value_set",)
+
+    @column_aggregate_value(engine=PandasExecutionEngine)
+    def _pandas(cls, column: pd.Series, value_set: List[Any], **kwargs) -> int:
+        value_set_set = set(value_set)
+        return column[~column.isin(value_set_set)].nunique()
+
+    @column_aggregate_partial(engine=SqlAlchemyExecutionEngine)
+    def _sqlalchemy(
+        cls,
+        column: sqlalchemy.ColumnClause,
+        value_set: List[Any],
+        **kwargs,
+    ) -> sqlalchemy.Selectable:
+        """Count distinct values NOT in the provided set."""
+        if hasattr(column, "is_not"):
+            return sa.func.count(
+                sa.distinct(sa.case((column.notin_(value_set) & column.is_not(None), column)))
+            )
+        else:
+            return sa.func.count(
+                sa.distinct(sa.case((column.notin_(value_set) & column.isnot(None), column)))
+            )
+
+    @column_aggregate_partial(engine=SparkDFExecutionEngine)
+    def _spark(
+        cls,
+        column: pyspark.Column,
+        value_set: List[Any],
+        **kwargs,
+    ) -> pyspark.Column:
+        """Count distinct values NOT in the provided set."""
+        return F.countDistinct(F.when((~column.isin(value_set)) & column.isNotNull(), column))
+
+
 class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
     """Metric that returns a sample of distinct column values NOT in a provided set.
 
