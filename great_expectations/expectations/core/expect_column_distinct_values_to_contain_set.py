@@ -221,11 +221,7 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
     _library_metadata = library_metadata
 
     # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
-    metric_dependencies = (
-        "column.distinct_values.missing_from_set",
-        "column.distinct_values",
-        "column.value_counts",
-    )
+    metric_dependencies = ("column.distinct_values.missing_from_set",)
     success_keys = ("value_set",)
 
     args_keys = (
@@ -373,7 +369,7 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         execution_engine: Optional[ExecutionEngine] = None,
         runtime_configuration: Optional[dict] = None,
     ) -> ValidationDependencies:
-        """Override to configure metrics with limit parameter from result_format."""
+        """Override to configure metrics with value_set and limit parameters."""
 
         validation_dependencies: ValidationDependencies = super().get_validation_dependencies(
             execution_engine=execution_engine,
@@ -384,106 +380,56 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         result_format = self._get_result_format(runtime_configuration)
         if isinstance(result_format, dict):
             limit = result_format.get("partial_unexpected_count", 20)
-            result_format_str = result_format.get("result_format", "SUMMARY")
         else:
             limit = 20
-            result_format_str = result_format or "SUMMARY"
 
         # Get value_set from expectation kwargs
         value_set = self._get_success_kwargs().get("value_set", [])
 
-        # Configure metrics with value_set and limit
-        for metric_name in self.metric_dependencies:
-            metric_kwargs = get_metric_kwargs(
-                metric_name=metric_name,
-                configuration=self.configuration,
-                runtime_configuration=runtime_configuration,
-            )
-            # Add value_set and limit to metric_value_kwargs for missing_from_set metric
-            metric_value_kwargs = (
-                dict(metric_kwargs["metric_value_kwargs"])
-                if metric_kwargs["metric_value_kwargs"]
-                else {}
-            )
-            if metric_name == "column.distinct_values.missing_from_set":
-                metric_value_kwargs["value_set"] = value_set
-                metric_value_kwargs["limit"] = limit
-            # Only fetch value_counts when result_format is COMPLETE
-            elif metric_name == "column.value_counts":
-                if result_format_str != "COMPLETE":
-                    # Remove this metric if not needed
-                    if metric_name in validation_dependencies.metric_configurations:
-                        validation_dependencies.remove_metric_configuration(metric_name)
-                    continue
-            # column.distinct_values is always needed for type coercion and observed_value
+        # Configure metric with value_set and limit
+        metric_name = "column.distinct_values.missing_from_set"
+        metric_kwargs = get_metric_kwargs(
+            metric_name=metric_name,
+            configuration=self.configuration,
+            runtime_configuration=runtime_configuration,
+        )
+        metric_value_kwargs = (
+            dict(metric_kwargs["metric_value_kwargs"])
+            if metric_kwargs["metric_value_kwargs"]
+            else {}
+        )
+        metric_value_kwargs["value_set"] = value_set
+        metric_value_kwargs["limit"] = limit
 
-            validation_dependencies.set_metric_configuration(
+        validation_dependencies.set_metric_configuration(
+            metric_name=metric_name,
+            metric_configuration=MetricConfiguration(
                 metric_name=metric_name,
-                metric_configuration=MetricConfiguration(
-                    metric_name=metric_name,
-                    metric_domain_kwargs=metric_kwargs["metric_domain_kwargs"],
-                    metric_value_kwargs=metric_value_kwargs,
-                ),
-            )
+                metric_domain_kwargs=metric_kwargs["metric_domain_kwargs"],
+                metric_value_kwargs=metric_value_kwargs,
+            ),
+        )
 
         return validation_dependencies
 
     @override
-    def _validate(  # noqa: C901 # FIXME CoP
+    def _validate(
         self,
         metrics: Dict,
         runtime_configuration: Optional[dict] = None,
         execution_engine: Optional[ExecutionEngine] = None,
     ):
-        # Get value_set and do type coercion if needed
-        value_set = self._get_success_kwargs().get("value_set", [])
-
-        # Get observed values for type coercion
-        observed_value_set = metrics.get("column.distinct_values")
-
-        # Filter out nulls/NaN from observed values (expectation should ignore nulls)
-        if observed_value_set:
-            import math
-
-            observed_value_set = {
-                v
-                for v in observed_value_set
-                if v is not None and not (isinstance(v, float) and math.isnan(v))
-            }
-
-        # Coerce value_set to match observed value types
-        coerced_value_set = value_set
-        if observed_value_set and value_set:
-            first_observed = next(iter(observed_value_set))
-            coerced_value_set = [
-                parse_value_to_observed_type(first_observed, value) for value in value_set
-            ]
-
         # Get missing values (values in value_set but not in column)
+        # This is already limited by the metric's limit parameter
         missing_values = metrics.get("column.distinct_values.missing_from_set", [])
-
-        # Re-check with coerced values if we have observed values
-        # This handles the case where types don't match (e.g., date vs string)
-        if observed_value_set:
-            coerced_value_set_set = set(coerced_value_set)
-            actual_missing = coerced_value_set_set - observed_value_set
-            missing_values = list(actual_missing)
-
         success = len(missing_values) == 0
 
         # Get result_format settings
         result_format = self._get_result_format(runtime_configuration)
         if isinstance(result_format, dict):
             result_format_str = result_format.get("result_format", "SUMMARY")
-            partial_unexpected_count_raw = result_format.get("partial_unexpected_count", 20)
-            partial_unexpected_count = (
-                int(partial_unexpected_count_raw)
-                if isinstance(partial_unexpected_count_raw, (int, str))
-                else 20
-            )
         else:
             result_format_str = result_format or "SUMMARY"
-            partial_unexpected_count = 20
 
         # Build result
         result: Dict[str, Any] = {
@@ -493,30 +439,12 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         if result_format_str == "BOOLEAN_ONLY":
             result["result"] = {}
         else:
-            # Get violations if failing
-            violations = []
-            if not success:
-                violations = missing_values[:partial_unexpected_count]
-
-            # Get observed_value - always use all distinct values (for backward compatibility)
-            if observed_value_set:
-                observed_value = sorted(list(observed_value_set))
-            else:
-                # Fallback: shouldn't happen in normal flow
-                observed_value = violations if not success else []
-
+            # BREAKING CHANGE: observed_value now contains only missing values
             result["result"] = {
-                "observed_value": observed_value,
+                "observed_value": missing_values,
             }
-            # Only include unexpected_count when there are violations
             if not success:
                 result["result"]["unexpected_count"] = len(missing_values)
-
-            # Add value_counts details when result_format is COMPLETE
-            if result_format_str == "COMPLETE" and "column.value_counts" in metrics:
-                result["result"]["details"] = {
-                    "value_counts": metrics["column.value_counts"],
-                }
 
         return result
 
