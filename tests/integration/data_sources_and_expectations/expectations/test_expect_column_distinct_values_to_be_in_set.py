@@ -191,10 +191,13 @@ def test_failure_complete_results(batch_for_datasource: Batch) -> None:
     # Check unexpected_count
     assert result.result["unexpected_count"] == 1
     # Check details contains value_counts (use to_json_dict for proper serialization)
-    result_dict = result.to_json_dict()["result"]
-    assert "details" in result_dict
-    assert "value_counts" in result_dict["details"]
-    assert result_dict["details"]["value_counts"] == [
-        {"value": 1, "count": 1},
-        {"value": 2, "count": 3},
-    ]
+    assert result.to_json_dict()["result"] == {
+        "observed_value": [1, 2],
+        "unexpected_count": 1,
+        "details": {
+            "value_counts": [
+                {"value": 1, "count": 1},
+                {"value": 2, "count": 3},
+            ]
+        },
+    }
