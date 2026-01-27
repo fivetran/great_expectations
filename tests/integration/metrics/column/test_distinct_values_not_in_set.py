@@ -7,6 +7,10 @@ from great_expectations.metrics.column.distinct_values_not_in_set import (
     ColumnDistinctValuesNotInSet,
     ColumnDistinctValuesNotInSetResult,
 )
+from great_expectations.metrics.column.distinct_values_not_in_set_count import (
+    ColumnDistinctValuesNotInSetCount,
+    ColumnDistinctValuesNotInSetCountResult,
+)
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
     DATA_SOURCES_THAT_SUPPORT_DATE_COMPARISONS,
@@ -24,6 +28,47 @@ DATE_DATA_FRAME = pd.DataFrame(
         COLUMN_NAME: [date(2024, 11, 19), date(2024, 11, 20)],
     },
 )
+
+
+class TestColumnDistinctValuesNotInSetCount:
+    @parameterize_batch_for_data_sources(
+        data_source_configs=ALL_DATA_SOURCES,
+        data=DATA_FRAME,
+    )
+    def test_all_values_in_set(self, batch_for_datasource: Batch) -> None:
+        """When all column values are in the set, count should be 0."""
+        metric = ColumnDistinctValuesNotInSetCount(column=COLUMN_NAME, value_set=["a", "b", "c"])
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert isinstance(metric_result, ColumnDistinctValuesNotInSetCountResult)
+        assert metric_result.value == 0
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=ALL_DATA_SOURCES,
+        data=DATA_FRAME,
+    )
+    def test_some_values_not_in_set(self, batch_for_datasource: Batch) -> None:
+        """When some column values are not in the set, count should reflect that."""
+        metric = ColumnDistinctValuesNotInSetCount(
+            column=COLUMN_NAME,
+            value_set=["a", "b"],  # missing "c"
+        )
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert isinstance(metric_result, ColumnDistinctValuesNotInSetCountResult)
+        assert metric_result.value == 1  # "c" is not in set
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=ALL_DATA_SOURCES,
+        data=DATA_FRAME,
+    )
+    def test_no_values_in_set(self, batch_for_datasource: Batch) -> None:
+        """When no column values are in the set, count should be all distinct values."""
+        metric = ColumnDistinctValuesNotInSetCount(column=COLUMN_NAME, value_set=["x", "y", "z"])
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert isinstance(metric_result, ColumnDistinctValuesNotInSetCountResult)
+        assert metric_result.value == 3  # a, b, c are all not in set
 
 
 class TestColumnDistinctValuesNotInSet:
@@ -96,3 +141,20 @@ class TestColumnDistinctValuesNotInSet:
 
         assert isinstance(metric_result, ColumnDistinctValuesNotInSetResult)
         assert metric_result.value == []
+
+
+class TestColumnDistinctValuesNotInSetCountDates:
+    @parameterize_batch_for_data_sources(
+        data_source_configs=DATA_SOURCES_THAT_SUPPORT_DATE_COMPARISONS,
+        data=DATE_DATA_FRAME,
+    )
+    def test_dates_all_in_set(self, batch_for_datasource: Batch) -> None:
+        """When all date column values are in the set, count should be 0."""
+        metric = ColumnDistinctValuesNotInSetCount(
+            column=COLUMN_NAME,
+            value_set=[date(2024, 11, 19), date(2024, 11, 20)],
+        )
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert isinstance(metric_result, ColumnDistinctValuesNotInSetCountResult)
+        assert metric_result.value == 0
