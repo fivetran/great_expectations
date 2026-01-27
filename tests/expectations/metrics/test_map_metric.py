@@ -1007,12 +1007,8 @@ def test_sqlite_single_column_complete_result_format(
     }
 
 
-@pytest.mark.sqlite
-def test_sqlite_single_column_complete_result_format_id_pk(
-    sa,
-    in_memory_runtime_context,
-    sqlite_table_for_unexpected_rows_with_index,
-):
+@pytest.mark.unit
+def test_result_format_config_in_expectation_configuration_emits_warning(mocker) -> None:
     expectation_configuration = ExpectationConfiguration(
         type="expect_column_values_to_be_in_set",
         kwargs={
@@ -1025,13 +1021,7 @@ def test_sqlite_single_column_complete_result_format_id_pk(
         },
     )
 
-    # result_format configuration at ExpectationConfiguration-level will emit warning
-    with pytest.warns(UserWarning):
-        result: ExpectationValidationResult = _expecation_configuration_to_validation_result_sql(
-            expectation_configuration=expectation_configuration,
-            context=in_memory_runtime_context,
-        )
-    assert convert_to_json_serializable(result.result) == {
+    expected_result = {
         "element_count": 6,
         "missing_count": 0,
         "missing_percent": 0.0,
@@ -1062,6 +1052,25 @@ def test_sqlite_single_column_complete_result_format_id_pk(
         "unexpected_percent_nonmissing": 50.0,
         "unexpected_percent_total": 50.0,
     }
+
+    mock_evr = ExpectationValidationResult(
+        success=False,
+        result=expected_result,
+    )
+
+    expectation = gxe.ExpectColumnValuesToBeInSet(**expectation_configuration.kwargs)
+
+    mock_validator = mocker.MagicMock()
+    mock_validator.graph_validate.return_value = [mock_evr]
+
+    # result_format configuration at ExpectationConfiguration-level will emit warning
+    with pytest.warns(
+        UserWarning,
+        match=r"`result_format` configured at the Expectation-level will not be persisted",
+    ):
+        result = expectation.validate_(mock_validator)
+
+    assert convert_to_json_serializable(result.result) == expected_result
 
 
 @pytest.mark.sqlite
