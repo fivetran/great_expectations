@@ -177,7 +177,6 @@ module.exports = {
         'cloud/connect/connect_postgresql',
         'cloud/connect/connect_redshift',
         'cloud/connect/connect_snowflake',
-        'cloud/connect/connect_airflow',
         'cloud/connect/connect_python'
       ]
     },
@@ -228,6 +227,15 @@ module.exports = {
       type: 'doc',
       label: 'Manage access',
       id: 'cloud/access/manage_access'
+    },
+    {
+      type: 'category',
+      label: 'Integrations',
+      link: { type: 'doc', id: 'cloud/integrations/integrations_lp' },
+      items: [
+        'cloud/integrations/integrate_atlan',
+        'cloud/integrations/integrate_airflow'
+      ]
     },
     {
       type: 'link',

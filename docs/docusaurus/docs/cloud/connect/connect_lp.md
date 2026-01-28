@@ -20,6 +20,5 @@ import OverviewCard from '@site/src/components/OverviewCard';
   <LinkCard topIcon label="Connect GX Cloud to PostgreSQL" description="Start using GX Cloud with PostgreSQL." to="/cloud/connect/connect_postgresql" icon="/img/postgresql_icon.svg" />
   <LinkCard topIcon label="Connect GX Cloud to Redshift" description="Start using GX Cloud with Redshift." to="/cloud/connect/connect_redshift" icon="/img/redshift_icon.png" />
   <LinkCard topIcon label="Connect GX Cloud to Snowflake" description="Start using GX Cloud with Snowflake." to="/cloud/connect/connect_snowflake" icon="/img/snowflake_icon.png" />
-  <LinkCard topIcon label="Connect GX Cloud and Airflow" description="Use Airflow to run recurring GX Cloud validations." to="/cloud/connect/connect_airflow" icon="/img/airflow_icon.png" />
   <LinkCard topIcon label="Connect to GX Cloud with Python" description="Start using GX Cloud with Python." to="/cloud/connect/connect_python" icon="/img/python_icon.svg" />
 </LinkCardGrid>
