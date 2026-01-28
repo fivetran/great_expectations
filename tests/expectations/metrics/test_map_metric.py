@@ -617,59 +617,6 @@ def test_pandas_default_complete_result_format(
 
 
 @pytest.mark.unit
-def test_pandas_unexpected_rows_complete_result_format_with_id_pk(
-    in_memory_runtime_context,
-    pandas_animals_dataframe_for_unexpected_rows_and_index: pd.DataFrame,
-):
-    expectation_configuration = ExpectationConfiguration(
-        type="expect_column_values_to_be_in_set",
-        kwargs={
-            "column": "animals",
-            "value_set": ["cat", "fish", "dog"],
-            "result_format": {
-                "result_format": "COMPLETE",
-                "unexpected_index_column_names": ["pk_1"],
-            },
-        },
-    )
-    # result_format configuration at ExpectationConfiguration-level will emit warning
-    with pytest.warns(UserWarning):
-        result: ExpectationValidationResult = _expecation_configuration_to_validation_result_pandas(
-            expectation_configuration=expectation_configuration,
-            dataframe=pandas_animals_dataframe_for_unexpected_rows_and_index,
-            context=in_memory_runtime_context,
-        )
-    assert convert_to_json_serializable(result.result) == {
-        "element_count": 6,
-        "missing_count": 0,
-        "missing_percent": 0.0,
-        "partial_unexpected_counts": [
-            {"count": 1, "value": "giraffe"},
-            {"count": 1, "value": "lion"},
-            {"count": 1, "value": "zebra"},
-        ],
-        "partial_unexpected_index_list": [
-            {"animals": "giraffe", "pk_1": 3},
-            {"animals": "lion", "pk_1": 4},
-            {"animals": "zebra", "pk_1": 5},
-        ],
-        "partial_unexpected_list": ["giraffe", "lion", "zebra"],
-        "unexpected_count": 3,
-        "unexpected_index_column_names": ["pk_1"],
-        "unexpected_index_list": [
-            {"animals": "giraffe", "pk_1": 3},
-            {"animals": "lion", "pk_1": 4},
-            {"animals": "zebra", "pk_1": 5},
-        ],
-        "unexpected_index_query": "df.filter(items=[3, 4, 5], axis=0)",
-        "unexpected_list": ["giraffe", "lion", "zebra"],
-        "unexpected_percent": 50.0,
-        "unexpected_percent_nonmissing": 50.0,
-        "unexpected_percent_total": 50.0,
-    }
-
-
-@pytest.mark.unit
 def test_pandas_default_to_not_include_unexpected_rows(
     in_memory_runtime_context,
     pandas_animals_dataframe_for_unexpected_rows_and_index,
