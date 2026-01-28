@@ -287,7 +287,7 @@ You can see that the two Expectations you have created are passing. View failed 
 The final portion of this tutorial automates the process above with a pipeline or DAG in the workflow orchestration tool Airflow. You will create a simple pipeline using the common write-audit-publish pattern.
 
 :::tip Try the Great Expectations Airflow Provider
-For a more ergonomic interface and more flexibility, use the [Great Expectations Airflow Provider maintained by Astronomer](https://github.com/astronomer/airflow-provider-great-expectations/blob/main/docs/index.md) to validate data directly from a DAG.
+For a more ergonomic interface and more flexibility, use the [Great Expectations Airflow Provider](https://great-expectations.github.io/airflow-provider-great-expectations/latest/) to validate data directly from a DAG.
 :::
 
 ### Log into Airflow
