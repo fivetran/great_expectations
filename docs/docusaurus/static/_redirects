@@ -457,6 +457,10 @@ http://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 /docs/0.18/oss/* /docs/0.18/core/introduction/introduction
 /docs/0.18/reference/learn/terms/* /docs/0.18/reference/learn/glossary
 
+## Redirect for mistargeted incoming link
+
+/docs/cloud/integrations/atlan /docs/cloud/integrations/integrate_atlan 
+
 ## Redirects for renamed docs
 
 /docs/resources/get_support /docs/help/get_support
