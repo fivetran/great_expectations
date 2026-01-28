@@ -10,6 +10,7 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     _style_row_condition,
+    parse_value_to_observed_type,
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
@@ -31,6 +32,7 @@ from great_expectations.render import (
     RenderedStringTemplateContent,
     renderedAtomicValueSchema,
 )
+from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
     RendererConfiguration,
@@ -561,16 +563,50 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
     ) -> RenderedAtomicContent:
-        """Render observed value - returns None since violations are in partial_unexpected_list."""
-        renderer_configuration = RendererConfiguration(
+        renderer_configuration: RendererConfiguration = RendererConfiguration(
             configuration=configuration,
             result=result,
             runtime_configuration=runtime_configuration,
         )
+        ov_param_prefix = "ov__"
+        ov_param_name = "observed_value"
 
-        # observed_value is None for this expectation - violations are in partial_unexpected_list
-        # Return a simple "N/A" or empty rendering
-        renderer_configuration.template_str = "--"
+        value_set = set(renderer_configuration.kwargs.get("value_set", []))
+
+        # Use partial_unexpected_list for rendering (these are the violations)
+        unexpected_values = (
+            result.get("result", {}).get("partial_unexpected_list", []) if result else []
+        )
+
+        renderer_configuration.add_param(
+            name=ov_param_name,
+            param_type=RendererValueType.ARRAY,
+            value=unexpected_values,
+        )
+        renderer_configuration = cls._add_array_params(
+            array_param_name=ov_param_name,
+            param_prefix=ov_param_prefix,
+            renderer_configuration=renderer_configuration,
+        )
+
+        template_str_list = []
+        for name, schema in renderer_configuration.params:
+            if not name.startswith(ov_param_prefix):
+                continue
+            # try to coerce value_set to a type that can be compared with schema.value
+            coerced_value_set = {
+                parse_value_to_observed_type(observed_value=schema.value, value=value)
+                for value in value_set
+            }
+            render_state = (
+                ObservedValueRenderState.EXPECTED.value
+                if schema.value in coerced_value_set
+                else ObservedValueRenderState.UNEXPECTED.value
+            )
+            renderer_configuration.params.__dict__[name].render_state = render_state
+            template_str_list.append(f"${name}")
+
+        renderer_configuration.template_str = " ".join(template_str_list)
 
         value_obj = renderedAtomicValueSchema.load(
             {
