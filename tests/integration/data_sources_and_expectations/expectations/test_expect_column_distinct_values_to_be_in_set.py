@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 import pandas as pd
 import pytest
@@ -29,9 +29,14 @@ def test_success_complete_results(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=[1, 2])
     result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
     assert result.success
-    # BREAKING CHANGE: observed_value now contains only violations (empty when success)
     assert result.to_json_dict()["result"] == {
-        "observed_value": [],
+        "details": {
+            "value_counts": [
+                {"value": 1, "count": 1},
+                {"value": 2, "count": 3},
+            ]
+        },
+        "observed_value": [1, 2],
     }
 
 
@@ -65,16 +70,12 @@ def test_dates(batch_for_datasource: Batch) -> None:
     data=pd.DataFrame({COL_NAME: [datetime(2024, 11, 19).date(), datetime(2024, 11, 20).date()]}),  # noqa: DTZ001 # FIXME CoP
 )
 def test_dates_with_str_value_set(batch_for_datasource: Batch) -> None:
-    # BREAKING CHANGE: String values are no longer automatically coerced to match date columns.
-    # Users should provide value_set with matching types.
-    # This test now expects failure when strings are provided for a date column.
     expectation = gxe.ExpectColumnDistinctValuesToBeInSet(
         column=COL_NAME,
         value_set=[str(datetime(2024, 11, 19).date()), str(datetime(2024, 11, 20).date())],  # noqa: DTZ001 # FIXME CoP
     )
     result = batch_for_datasource.validate(expectation)
-    # Strings don't match date objects, so all dates appear as violations
-    assert not result.success
+    assert result.success
 
 
 @parameterize_batch_for_data_sources(
@@ -108,87 +109,3 @@ def test_failure(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=[1])
     result = batch_for_datasource.validate(expectation)
     assert not result.success
-
-
-# Result format tests
-
-
-@pytest.mark.parametrize(
-    "result_format,expected_result_keys",
-    [
-        pytest.param("BOOLEAN_ONLY", set(), id="boolean_only"),
-        pytest.param("BASIC", {"observed_value"}, id="basic"),
-        pytest.param("SUMMARY", {"observed_value"}, id="summary"),
-        pytest.param("COMPLETE", {"observed_value"}, id="complete"),
-    ],
-)
-@parameterize_batch_for_data_sources(
-    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
-)
-def test_result_format_success(
-    batch_for_datasource: Batch,
-    result_format: Literal["BOOLEAN_ONLY", "BASIC", "SUMMARY", "COMPLETE"],
-    expected_result_keys: set[str],
-) -> None:
-    """Test that result format controls what's included in the result on success."""
-    expectation = gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=[1, 2])
-    result = batch_for_datasource.validate(expectation, result_format=result_format)
-
-    assert result.success
-
-    if result_format == "BOOLEAN_ONLY":
-        assert result.result == {}
-    else:
-        assert set(result.result.keys()) == expected_result_keys
-        # BREAKING CHANGE: observed_value now contains only violations (empty when success)
-        assert result.result["observed_value"] == []
-
-
-@pytest.mark.parametrize(
-    "result_format,expected_result_keys",
-    [
-        pytest.param("BOOLEAN_ONLY", set(), id="boolean_only"),
-        pytest.param("BASIC", {"observed_value", "unexpected_count"}, id="basic"),
-        pytest.param("SUMMARY", {"observed_value", "unexpected_count"}, id="summary"),
-        pytest.param("COMPLETE", {"observed_value", "unexpected_count"}, id="complete"),
-    ],
-)
-@parameterize_batch_for_data_sources(
-    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
-)
-def test_result_format_failure(
-    batch_for_datasource: Batch,
-    result_format: Literal["BOOLEAN_ONLY", "BASIC", "SUMMARY", "COMPLETE"],
-    expected_result_keys: set[str],
-) -> None:
-    """Test that result format controls what's included in the result on failure."""
-    expectation = gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=[1])
-    result = batch_for_datasource.validate(expectation, result_format=result_format)
-
-    assert not result.success
-
-    if result_format == "BOOLEAN_ONLY":
-        assert result.result == {}
-    else:
-        assert set(result.result.keys()) == expected_result_keys
-        # BREAKING CHANGE: observed_value now contains only violations
-        assert result.result["observed_value"] == [2]
-        # Verify unexpected_count reflects the number of violations
-        assert result.result["unexpected_count"] == 1
-
-
-@parameterize_batch_for_data_sources(
-    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
-)
-def test_failure_complete_results(batch_for_datasource: Batch) -> None:
-    """Test COMPLETE result format on failure."""
-    expectation = gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=[1])
-    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
-
-    assert not result.success
-
-    # BREAKING CHANGE: observed_value now contains only violations
-    assert result.to_json_dict()["result"] == {
-        "observed_value": [2],
-        "unexpected_count": 1,
-    }
