@@ -1,14 +1,14 @@
 ---
-sidebar_label: 'Connect GX Cloud and Airflow'
-title: 'Connect GX Cloud and Airflow'
-id: connect_airflow
-description: Connect GX Cloud to an Airflow Orchestrator.
+sidebar_label: 'Integrate GX Cloud with Airflow'
+title: 'Integrate GX Cloud with Airflow'
+id: integrate_airflow
+description: Integrate GX Cloud with an Airflow Orchestrator.
 ---
 
 In this quickstart, you'll learn how to use GX Cloud with Apache Airflow directly. You'll create a basic DAG that runs a Checkpoint in GX Cloud, and then trigger it through a local installation of an Airflow server.
 
 :::tip Try the Great Expectations Airflow Provider
-For a more ergonomic interface and more flexibility, use the [Great Expectations Airflow Provider maintained by Astronomer](https://github.com/astronomer/airflow-provider-great-expectations/blob/main/docs/index.md) to validate data directly from a DAG.
+For a more ergonomic interface and more flexibility, use the [Great Expectations Airflow Provider](https://great-expectations.github.io/airflow-provider-great-expectations/latest/) to validate data directly from a DAG.
 :::
 
 Apache Airflow is an orchestration tool that allows you to schedule and monitor your data pipelines. For more information about Apache Airflow, see the [Apache Airflow documentation](https://airflow.apache.org/docs/apache-airflow/stable/index.html).
