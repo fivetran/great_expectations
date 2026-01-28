@@ -25,6 +25,7 @@ from great_expectations.exceptions import MetricResolutionError
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 from great_expectations.expectations.metrics.util import (
     CaseInsensitiveString,
+    column_reflection_fallback,
     get_dbms_compatible_metric_domain_kwargs,
     get_dialect_like_pattern_expression,
     get_unexpected_indices_for_multiple_pandas_named_indices,
@@ -1044,3 +1045,74 @@ def test_sqlalchemy_select_to_sql_string_parameter_styles(
                 f"Expected 1 compile call (successful render_postcompile) "
                 f"but got {compile_call_count[0]}"
             )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "schema_name,expected_table_ref",
+    [
+        pytest.param(
+            "my_schema",
+            "my_schema.my_table",
+            id="with_schema_name",
+        ),
+        pytest.param(
+            None,
+            "my_table",
+            id="without_schema_name",
+        ),
+    ],
+)
+def test_column_reflection_fallback_redshift_schema_qualified(
+    schema_name: str | None,
+    expected_table_ref: str,
+    mocker: MockerFixture,
+) -> None:
+    """Test that column_reflection_fallback uses schema-qualified table names for Redshift.
+
+    This tests the fix for the bug where fallback column detection would fail with
+    'relation "my_table" does not exist' when tables are in a non-default schema.
+    The fix ensures that when schema_name is provided, the fallback query uses
+    schema-qualified table names (e.g., 'my_schema.my_table' instead of just 'my_table').
+    """
+    # Create a mock dialect that reports as Redshift
+    mock_dialect = mocker.MagicMock()
+    mock_dialect.name = "redshift"
+
+    # Create mock connection and result
+    mock_result = mocker.MagicMock()
+    mock_result.keys.return_value = ["id", "name", "value"]
+    mock_result.fetchone.return_value = (1, "test", 100)
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.execute.return_value = mock_result
+    mock_connection.__enter__ = mocker.MagicMock(return_value=mock_connection)
+    mock_connection.__exit__ = mocker.MagicMock(return_value=False)
+
+    mock_engine = mocker.MagicMock()
+    mock_engine.engine = mocker.MagicMock()
+    mock_engine.engine.connect.return_value = mock_connection
+
+    # Track what gets passed to sa.text()
+    text_calls = []
+    original_text = sa.text
+
+    def track_text(arg):
+        text_calls.append(arg)
+        return original_text(arg)
+
+    mocker.patch.object(sa, "text", side_effect=track_text)
+
+    # Call the function
+    result = column_reflection_fallback(
+        selectable="my_table",  # type: ignore[arg-type]
+        dialect=mock_dialect,
+        sqlalchemy_engine=mock_engine,
+        schema_name=schema_name,
+    )
+
+    # Verify the correct table reference was used
+    assert expected_table_ref in text_calls, (
+        f"Expected '{expected_table_ref}' in sa.text() calls, but got: {text_calls}"
+    )
+    assert isinstance(result, list)
