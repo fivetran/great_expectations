@@ -342,7 +342,7 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 
 /docs/cloud/quickstarts/quickstart_lp /docs/cloud/connect/connect_lp
 /docs/cloud/quickstarts/snowflake_quickstart /docs/cloud/try_gx_cloud
-/docs/cloud/quickstarts/airflow_quickstart /docs/cloud/connect/connect_airflow
+/docs/cloud/quickstarts/airflow_quickstart /docs/cloud/integrations/integrate_airflow
 /docs/cloud/quickstarts/python_quickstart /docs/cloud/connect/connect_python
 /docs/cloud/set_up_gx_cloud#* /docs/cloud/try_gx_cloud#:splat
 /docs/cloud/try_gx_cloud /docs/cloud/deploy_gx_agent
@@ -457,6 +457,10 @@ http://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 /docs/0.18/oss/* /docs/0.18/core/introduction/introduction
 /docs/0.18/reference/learn/terms/* /docs/0.18/reference/learn/glossary
 
+## Redirect for mistargeted incoming link
+
+/docs/cloud/integrations/atlan /docs/cloud/integrations/integrate_atlan 
+
 ## Redirects for renamed docs
 
 /docs/resources/get_support /docs/help/get_support
@@ -466,3 +470,4 @@ http://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 /docs/cloud/alerts/manage_alerts /docs/cloud/alerts/manage_email_alerts
 /docs/cloud/users/manage_users /docs/cloud/access/manage_access
 /docs/cloud/validations/manage_validations /docs/cloud/validations/run_validations
+/docs/cloud/connect/connect_airflow /docs/cloud/integrations/integrate_airflow

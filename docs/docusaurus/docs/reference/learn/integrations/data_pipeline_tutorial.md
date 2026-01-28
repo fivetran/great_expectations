@@ -15,7 +15,7 @@ The tutorial provides a functioning deployment of GX, Airflow, JupyterLab, and P
 The tutorial environment uses Airflow as the orchestrator and Postgres as the Data Source, but the examples can be adapted to any other [supported Data Source and orchestrator](/docs/help/compatibility_reference).
 
 :::tip Other options for Airflow specifically
-For a more ergonomic interface and more flexibility, use the [Great Expectations Airflow Provider maintained by Astronomer](https://github.com/astronomer/airflow-provider-great-expectations/blob/main/docs/index.md) to validate data directly from a DAG.
+For a more ergonomic interface and more flexibility, use the [Great Expectations Airflow Provider](https://great-expectations.github.io/airflow-provider-great-expectations/latest/) to validate data directly from a DAG.
 :::
 
 <Admonition type="cta" title="Access this tutorial on GitHub" icon={<GitHubMark/>}>

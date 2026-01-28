@@ -43,4 +43,5 @@ import OverviewCard from '@site/src/components/OverviewCard';
   <LinkCard topIcon label="Schedules" description="Use a schedule to automate data quality checks." to="/cloud/schedules/manage_schedules" icon="/img/small_gx_logo.png" />
   <LinkCard topIcon label="Alerts" description="Add, edit, or delete alerts." to="/cloud/alerts/alerts_lp" icon="/img/small_gx_logo.png" />
   <LinkCard topIcon label="Access" description="Manage GX Cloud workspaces, users, and access tokens." to="/cloud/access/manage_access" icon="/img/small_gx_logo.png" />
+  <LinkCard topIcon label="Integrations" description="Integrate GX Cloud with third-party tools." to="/cloud/integrations/integrations_lp" icon="/img/small_gx_logo.png" />
 </LinkCardGrid>
