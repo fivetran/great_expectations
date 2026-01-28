@@ -10,7 +10,6 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     _style_row_condition,
-    parse_value_to_observed_type,
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
@@ -31,9 +30,6 @@ from great_expectations.render import (
     RenderedGraphContent,
     RenderedStringTemplateContent,
     renderedAtomicValueSchema,
-)
-from great_expectations.render.renderer.observed_value_renderer import (
-    ObservedValueRenderState,
 )
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
@@ -524,8 +520,12 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
 
         # Get result_format settings
         result_format = self._get_result_format(runtime_configuration)
+        partial_unexpected_count: int = 20
         if isinstance(result_format, dict):
             result_format_str = result_format.get("result_format", "SUMMARY")
+            puc = result_format.get("partial_unexpected_count", 20)
+            if isinstance(puc, int):
+                partial_unexpected_count = puc
         else:
             result_format_str = result_format or "SUMMARY"
 
@@ -541,12 +541,15 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
             # This is already limited by the metric's limit parameter
             violations = metrics.get("column.distinct_values.not_in_set", [])
 
-            # BREAKING CHANGE: observed_value now contains only violations, not all distinct values
+            # observed_value is None - violations go in partial_unexpected_list
             result["result"] = {
-                "observed_value": violations,
+                "observed_value": None,
+                "unexpected_count": violation_count,
             }
-            if not success:
-                result["result"]["unexpected_count"] = violation_count
+
+            # Add partial_unexpected_list (limited sample of violations)
+            if violations and partial_unexpected_count > 0:
+                result["result"]["partial_unexpected_list"] = violations[:partial_unexpected_count]
 
         return result
 
@@ -558,45 +561,16 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
     ) -> RenderedAtomicContent:
+        """Render observed value - returns None since violations are in partial_unexpected_list."""
         renderer_configuration = RendererConfiguration(
             configuration=configuration,
             result=result,
             runtime_configuration=runtime_configuration,
         )
-        ov_param_prefix = "ov__"
-        ov_param_name = "observed_value"
 
-        value_set = set(renderer_configuration.kwargs.get("value_set", []))
-
-        renderer_configuration.add_param(
-            name=ov_param_name,
-            param_type=RendererValueType.ARRAY,
-            value=result.get("result", {}).get("observed_value"),
-        )
-        renderer_configuration = cls._add_array_params(
-            array_param_name=ov_param_name,
-            param_prefix=ov_param_prefix,
-            renderer_configuration=renderer_configuration,
-        )
-
-        template_str_list = []
-        for name, schema in renderer_configuration.params:
-            if not name.startswith(ov_param_prefix):
-                continue
-            # try to coerce value_set to a type that can be compared with schema.value
-            coerced_value_set = {
-                parse_value_to_observed_type(observed_value=schema.value, value=value)
-                for value in value_set
-            }
-            render_state = (
-                ObservedValueRenderState.EXPECTED.value
-                if schema.value in coerced_value_set
-                else ObservedValueRenderState.UNEXPECTED.value
-            )
-            renderer_configuration.params.__dict__[name].render_state = render_state
-            template_str_list.append(f"${name}")
-
-        renderer_configuration.template_str = " ".join(template_str_list)
+        # observed_value is None for this expectation - violations are in partial_unexpected_list
+        # Return a simple "N/A" or empty rendering
+        renderer_configuration.template_str = "--"
 
         value_obj = renderedAtomicValueSchema.load(
             {
