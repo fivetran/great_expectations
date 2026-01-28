@@ -1,8 +1,8 @@
 ---
-sidebar_label: 'Connect GX Cloud and Airflow'
-title: 'Connect GX Cloud and Airflow'
-id: connect_airflow
-description: Connect GX Cloud to an Airflow Orchestrator.
+sidebar_label: 'Integrate GX Cloud with Airflow'
+title: 'Integrate GX Cloud with Airflow'
+id: integrate_airflow
+description: Integrate GX Cloud with an Airflow Orchestrator.
 ---
 
 In this quickstart, you'll learn how to use GX Cloud with Apache Airflow directly. You'll create a basic DAG that runs a Checkpoint in GX Cloud, and then trigger it through a local installation of an Airflow server.
