@@ -8,7 +8,7 @@ toc_max_heading_level: 3
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
-To explore your data and fine-tune your Expectations, run an ad hoc Validation as described on this page. To run recurring Validations, use a [schedule](/docs/cloud/schedules/manage_schedules.md) or an [orchestrator](/docs/cloud/connect/connect_airflow.md).
+To explore your data and fine-tune your Expectations, run an ad hoc Validation as described on this page. To run recurring Validations, use a [schedule](/docs/cloud/schedules/manage_schedules.md) or an [orchestrator](/docs/cloud/integrations/integrate_airflow.md).
 
 ## Run an ad hoc Validation
 

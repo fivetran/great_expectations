@@ -80,6 +80,8 @@ There are a variety of GX Cloud features that support additional enhancements to
 
 * **Monitor Data Health.** GX Cloud provides metric summaries and trends to help you understand and improve test coverage and success across your business. See [Data Health](/cloud/overview/data_health.md) for more detail.
 
+* **Integrations.** GX Cloud integrates with a variety of third-party tools to help you get the most out of your data quality efforts. For example, you can integrate GX Cloud with data catalogs to bring data quality insights into your data governance workflows. Or, you can integrate GX Cloud with orchestrators to quarantine and backfill bad records. See [Integrations](/cloud/integrations/integrations_lp.md) for more information.
+
 :::note Data Source support
 Some features aren't supported for some Data Sources. See [Manage Data Sources](/docs/cloud/data_sources/manage_data_sources.md#workflow-and-feature-support) for details.
 :::
