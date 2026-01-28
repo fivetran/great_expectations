@@ -195,6 +195,7 @@ Here is a comparison of key characteristics of GX-managed and API-managed Expect
 | Expectation Suite     | Automatically organized in a hidden default Expectation Suite.                                                                                                                                                                  | Manually grouped into [custom Expectation Suites](/core/define_expectations/organize_expectation_suites.md) via the GX Cloud API.                                                                           |
 | Delete                | [Delete Expectation](/docs/cloud/expectations/manage_expectations/#delete-an-expectation) with the GX Cloud UI.                                                                                                                 | [Delete Expectation with the GX Cloud API](/reference/api/ExpectationSuite_class.mdx#great_expectations.ExpectationSuite.delete_expectation) or the GX Cloud UI.                                            |
 
+
 :::note Hidden resources for GX-managed Expectations
 To support GX-managed Expectations, we create resources that you typically won't directly interact with. For example, we create a GX-managed Expectation Suite that we use to organize your Expectations. For some workflows you may need to work with these hidden resources, for example, you may need to [find the name of an automatically created Checkpoint](/cloud/integrations/integrate_airflow.md#create-a-dag-file-for-your-gx-cloud-checkpoint). But, typically you can ignore the existence of these hidden resources. 
 :::
