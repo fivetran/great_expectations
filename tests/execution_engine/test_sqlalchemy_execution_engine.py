@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.exceptions as gx_exceptions
-from great_expectations.compatibility.sqlalchemy import Connection
+from great_expectations.compatibility.sqlalchemy import ColumnElement, Connection
 from great_expectations.compatibility.sqlalchemy_compatibility_wrappers import (
     add_dataframe_to_db,
 )
@@ -1587,12 +1587,7 @@ class TestConditionToFilterClauseSqlAlchemy:
 
     @pytest.mark.sqlite
     def test_condition_to_filter_clause_returns_column_element(self, sa) -> None:
-        """
-        In SQLAlchemy 1.x, ColumnElement is not exported at the top-level namespace,
-        so using `sa.ColumnElement` in isinstance() checks fails. This test ensures
-        condition_to_filter_clause works correctly with both SQLAlchemy 1.x and 2.x.
-        """
-        from great_expectations.compatibility.sqlalchemy import ColumnElement
+        """Test that condition_to_filter_clause correctly handles ColumnElement conditions."""
 
         engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
 
