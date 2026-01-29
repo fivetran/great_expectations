@@ -39,6 +39,7 @@ from great_expectations._docs_decorators import new_method_or_class
 from great_expectations.compatibility import snowflake, sqlalchemy
 from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.compatibility.sqlalchemy import (
+    ColumnElement,
     DatabaseError,
     PendingRollbackError,
     Subquery,
@@ -1557,7 +1558,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
         # since we can't make the class generic on sqlalchemy
         # since it's not installed in all environments."""
         output = super().condition_to_filter_clause(condition)
-        if not isinstance(output, sa.ColumnElement):
+        if not isinstance(output, ColumnElement):
             raise InvalidFilterClause(output)
         return output
 

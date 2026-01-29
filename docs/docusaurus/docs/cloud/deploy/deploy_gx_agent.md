@@ -54,7 +54,7 @@ The GX Agent is not enabled by default in GX Cloud. To enable the GX Agent for y
 </TabItem>
 </Tabs>
 
-We will send you a confirmation email when we fulfill your request. You can continue following the steps below to deploy the GX Agent while we work on enabling it for your organization.
+You can continue following the steps below to deploy the GX Agent while you wait for it to be enabled for your organization.
 
 ## Get your access token and organization ID
 

@@ -15,6 +15,15 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.11.3
+* [BUGFIX] Fix Redshift fallback column detection for schema-qualified tables ([#11606](https://github.com/great-expectations/great_expectations/pull/11606)) (thanks @jni-bot)
+* [BUGFIX] Update isinstance check for ColumnElement in SqlAlchemyExecutionEngine ([#11612](https://github.com/great-expectations/great_expectations/pull/11612)) (thanks @subediparas5)
+* [DOCS] Update airflow provider refs ([#11621](https://github.com/great-expectations/great_expectations/pull/11621))
+* [DOCS] Atlan integration ([#11580](https://github.com/great-expectations/great_expectations/pull/11580))
+* [MAINTENANCE] Fix flaky test by removing sqlite dependency ([#11618](https://github.com/great-expectations/great_expectations/pull/11618))
+* [MAINTENANCE] Remove references to v0 api in dockerfile ([#11624](https://github.com/great-expectations/great_expectations/pull/11624))
+* [MAINTENANCE] Bump lodash from 4.17.21 to 4.17.23 in /docs/docusaurus ([#11608](https://github.com/great-expectations/great_expectations/pull/11608))
+
 ### 1.11.2
 * [DOCS] RCA result format ([#11596](https://github.com/great-expectations/great_expectations/pull/11596))
 * [MAINTENANCE] Upper bound pandas to be below 3.0.0 ([#11607](https://github.com/great-expectations/great_expectations/pull/11607))

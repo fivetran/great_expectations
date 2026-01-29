@@ -39,51 +39,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-  mercury-service-api:
-    image: 258143015559.dkr.ecr.us-east-1.amazonaws.com/mercury/api:latest
-    platform: linux/amd64
-    restart: always
-    ports:
-      - 6001:6001
-    environment:
-      LOGGING_LEVEL: ${LOGGING_LEVEL}
-      ENVIRONMENT: ${ENVIRONMENT}
-      MERCURY_DIALECT: postgresql
-      MERCURY_USER: gx_mercury_user
-      MERCURY_PASSWORD: postgres
-      MERCURY_HOST: db
-      MERCURY_DATABASE: mercury
-      AMQP_CONNECTION_STRING: amqp://gx_prod:password@mq:5672
-      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
-      AUTH0_API_AUDIENCE: ${AUTH0_API_AUDIENCE}
-      AUTH0_MERCURY_API_CLIENT_ID: ${AUTH0_MERCURY_API_CLIENT_ID}
-      AUTH0_MERCURY_API_CLIENT_SECRET: ${AUTH0_MERCURY_API_CLIENT_SECRET}
-      SENDGRID_API_KEY: fake_key
-      LD_SDK_KEY: default
-      GX_LD_BASE_URI: "http://localhost:8765"
-      GX_LD_EVENTS_URI: "http://localhost:8765"
-      GX_LD_STREAM_URI: "http://localhost:8765"
-    # TODO replace migtrations with ./scripts/automated_migrations.sh
-    entrypoint:
-      - /bin/bash
-      - -c
-      - |
-        sed -i 's/localhost/db/g' /app/services/ge_cloud/mercury/alembic.ini
-        cd /app/services/ge_cloud/mercury
-        alembic upgrade head
-        cd /app/services/ge_cloud
-        python -m tests.utils.dev_db_seed_script
-        gunicorn mercury.api:get_app\(\) --config ./gunicorn.conf.py --workers=1
-    healthcheck:
-      test: bash -c ':> /dev/tcp/0.0.0.0/6001' || exit 1
-      interval: 5s
-      timeout: 2s
-      retries: 20
-    depends_on:
-      db-provisioner:
-        condition: service_completed_successfully
-      localstack:
-        condition: service_healthy
   mercury-service-api-v1:
     image: 258143015559.dkr.ecr.us-east-1.amazonaws.com/mercury/api:v1api-latest
     platform: linux/amd64
@@ -122,8 +77,6 @@ services:
       timeout: 2s
       retries: 20
     depends_on:
-      mercury-service-api:
-        condition: service_started
       db-provisioner:
         condition: service_completed_successfully
       localstack:
@@ -132,7 +85,11 @@ services:
       - /bin/bash
       - -c
       - |
+        sed -i 's/localhost/db/g' /app/services/ge_cloud/mercury/alembic.ini
+        cd /app/services/ge_cloud/mercury
+        alembic upgrade head
         cd /app/services/ge_cloud
+        python -m tests.utils.dev_db_seed_script
         ./scripts/localstack_init.sh
         python run_fastapi.py
   nginx:
@@ -143,7 +100,6 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - mercury-service-api
       - mercury-service-api-v1
   localstack:
     container_name: localstack
