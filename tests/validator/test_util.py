@@ -15,6 +15,7 @@ from great_expectations.expectations.row_conditions import (
     NullityCondition,
     OrCondition,
 )
+from great_expectations.exceptions import InvalidExpectationConfigurationError
 
 
 @pytest.mark.big
@@ -225,7 +226,6 @@ def test_ensure_row_condition_is_correct_with_condition_object():
 @pytest.mark.unit
 def test_ensure_row_condition_is_correct_with_string():
     """Test that ensure_row_condition_is_correct still validates strings."""
-    from great_expectations.exceptions import InvalidExpectationConfigurationError
 
     # Valid string should not raise
     validator.util.ensure_row_condition_is_correct('col("x") > 5')
