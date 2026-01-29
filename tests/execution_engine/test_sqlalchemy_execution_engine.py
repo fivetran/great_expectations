@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.exceptions as gx_exceptions
-from great_expectations.compatibility.sqlalchemy import Connection
+from great_expectations.compatibility.sqlalchemy import ColumnElement, Connection
 from great_expectations.compatibility.sqlalchemy_compatibility_wrappers import (
     add_dataframe_to_db,
 )
@@ -1584,3 +1584,18 @@ class TestConditionToFilterClauseSqlAlchemy:
         assert len(result) == 4
         ids = sorted([row[2] for row in result])
         assert ids == [2, 3, 4, 5]
+
+    @pytest.mark.sqlite
+    def test_condition_to_filter_clause_returns_column_element(self, sa) -> None:
+        """Test that condition_to_filter_clause correctly handles ColumnElement conditions."""
+
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+
+        # Test the exact scenario from the bug report: Column(...).is_in([...])
+        condition = Column("my_condition_column").is_in([1, 2])
+        result = engine.condition_to_filter_clause(condition)
+
+        # Verify the result is a valid ColumnElement (this would fail before the fix)
+        assert isinstance(result, ColumnElement)
+        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
+        assert compiled == "my_condition_column IN (1, 2)"
