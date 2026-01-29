@@ -8,6 +8,7 @@ import pytest
 from numpy.lib.npyio import DataSource
 
 from great_expectations import validator
+from great_expectations.exceptions import InvalidExpectationConfigurationError
 from great_expectations.expectations.row_conditions import (
     AndCondition,
     Column,
@@ -15,7 +16,6 @@ from great_expectations.expectations.row_conditions import (
     NullityCondition,
     OrCondition,
 )
-from great_expectations.exceptions import InvalidExpectationConfigurationError
 
 
 @pytest.mark.big
