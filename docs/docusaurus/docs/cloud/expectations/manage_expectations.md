@@ -117,13 +117,13 @@ An Expectation can have up to 100 condition statements grouped in any number of 
 Expectations that have different row conditions are treated as unique, even if they are of the same type, apply to the same column, and belong to the same Expectation Suite. This allows you to validate your data through multiple lenses.
 
 Note that the following Expectations do not accept the `row_condition` argument:
-- `expect_column_to_exist`
-- `expect_query_results_to_match_comparison`
-- `expect_table_columns_to_match_ordered_list`
-- `expect_table_columns_to_match_set`
-- `expect_table_column_count_to_be_between`
-- `expect_table_column_count_to_equal`
-- `unexpected_rows_expectation`
+   - `expect_column_to_exist`
+   - `expect_query_results_to_match_comparison`
+   - `expect_table_columns_to_match_ordered_list`
+   - `expect_table_columns_to_match_set`
+   - `expect_table_column_count_to_be_between`
+   - `expect_table_column_count_to_equal`
+   - `unexpected_rows_expectation`
    </details>
 
 4. Create the Expectation.
