@@ -77,7 +77,7 @@ You must have the following prerequisites fulfilled before creating an Expectati
    - `mostly`: A special argument that allows for _fuzzy_ validation based on a percentage of successfully validated rows. If the percentage is at least the value set in the `mostly` parameter, the Expectation will return a `success` value of `true`.
    - `severity`: Indicates the impact of the Expectation failing. Accepted values are `critical`, `warning`, or `info`. Defaults to `critical` if not explicitly set. You can [trigger Actions](/cloud/alerts/trigger_actions.md) based on severity levels or you can condition your data pipeline with the `get_maximum_severity_failure` helper method in the [`ExpectationSuiteValidationResult` class](/reference/api/core//ExpectationSuiteValidationResult_class.mdx). Note that if an Expectation fails to execute, the failure will be recorded as critical, regardless of the Expectation configuration, to bring your attention to the fact that your data is not being tested as intended.
 
-   <details>
+<details>
    <summary>Restrict an Expectation to specific rows</summary>
 
    To restrict an Expectation to a subset of the data retrieved in a Batch, use the `row_condition` argument. The `row_condition` argument takes a boolean expression built with Python objects. Rows will be validated for the Expectation when the `row_condition` expression evaluates to `True`. Conversely, if the `row_condition` evaluates to `False`, the corresponding row will not be validated for the Expectation.
@@ -124,7 +124,7 @@ Note that the following Expectations do not accept the `row_condition` argument:
    - `expect_table_column_count_to_be_between`
    - `expect_table_column_count_to_equal`
    - `unexpected_rows_expectation`
-   </details>
+</details>
 
 4. Create the Expectation.
   
