@@ -392,11 +392,18 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         if len(observed_value_list) > MAX_OBSERVED_VALUES:
             observed_value_list = observed_value_list[:MAX_OBSERVED_VALUES]
 
+        # Limit value_counts to prevent payload size issues (e.g., 413 errors)
+        # Use a reasonable limit that balances usefulness with payload size
+        MAX_VALUE_COUNTS = 1000
+        value_counts_limited = observed_value_counts
+        if len(observed_value_counts) > MAX_VALUE_COUNTS:
+            value_counts_limited = observed_value_counts.head(MAX_VALUE_COUNTS)
+
         return {
             "success": success,
             "result": {
                 "observed_value": observed_value_list,
-                "details": {"value_counts": observed_value_counts},
+                "details": {"value_counts": value_counts_limited},
             },
         }
 
