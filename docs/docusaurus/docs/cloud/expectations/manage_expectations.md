@@ -64,12 +64,6 @@ You must have the following prerequisites fulfilled before creating an Expectati
 
    GX Cloud comes with many Expectations to cover your data quality needs. You can find a catalog of these Expectations in the [Expectation Gallery](https://greatexpectations.io/expectations/). When browsing the Expectation Gallery, you can filter the available Expectations by the data quality issue they address and by the Data Sources they support. There is also a search bar that will let you filter Expectations by matching text in their name or description.
 
-   In your code, you will find the classes for Expectations in the `expectations` module. Import the module:
-
-   ```python title="Python"
-   from great_expectations import expectations as gxe
-   ```
-
 2. Determine the Expectation's required parameters.
 
    To determine the parameters your Expectation uses to evaluate data, reference the Expectation's entry in the [Expectation Gallery](https://greatexpectations.io/expectations/).  Under the **Args** section you will find a list of parameters that are necessary for the Expectation to be evaluated, along with a description of the value(s) that should be provided.
@@ -159,11 +153,6 @@ Note that the following Expectations do not accept the `row_condition` argument:
       ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - add expectation to suite"
       ```
    
-   If you modify an Expectation _after_ you have added it to your Expectation Suite, you must explicitly save those modifications before they will be pushed to the Expectation Suite's configuration:
-
-      ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - save the expectation"
-      ```
-
 ### Next Steps
 
    If you have created a new Expectation Suite, you will need to associate it to a Data Asset before you can run Validations. Visit [Run Validations](/docs/cloud/validations/run_validations/#api-managed-expectations-entire-asset) to learn how to do so.

@@ -46,8 +46,3 @@ suite = context.suites.get(name=existing_suite_name)
 suite.add_expectation(expectation)
 suite.save()
 # </snippet>
-
-# Optional. If you modify the Expectation after you have added it to your Expectation Suite, you must explicitly save those modifications.
-# <snippet name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - save the expectation">
-expectation.save()
-# </snippet>
