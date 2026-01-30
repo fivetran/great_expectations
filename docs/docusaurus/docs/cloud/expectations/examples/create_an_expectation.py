@@ -11,7 +11,6 @@ def set_up_context_for_example(context):
 
 
 # EXAMPLE SCRIPT STARTS HERE:
-# <snippet name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - full code example">
 import great_expectations as gx
 
 context = gx.get_context()
@@ -51,6 +50,4 @@ suite.save()
 # Optional. If you modify the Expectation after you have added it to your Expectation Suite, you must explicitly save those modifications.
 # <snippet name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - save the expectation">
 expectation.save()
-# </snippet>
-
 # </snippet>
