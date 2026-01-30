@@ -50,9 +50,9 @@ If you want to temporarily stop an alert from sending emails, you can disable it
 
 1. In the GX Cloud UI, select the relevant **Workspace** and then click **Data Assets**.
 2. In the **Data Assets** list, click the Data Asset name.
-3. Click **ettings**.
+3. Click **Settings**.
 4. In the **Alerts** section, find the alert that you want to delete.
-5. Click <img src="/img/trash.png" alt="trash icon" width="20" height="20"/> Delete alert for the alert that you want to delete.
+5. Click <img src="/img/trash.png" alt="trash icon" width="20" height="20"/> **Delete alert** for the alert that you want to delete.
 6. Click **Delete**.
 
 ## Update your organization’s email domain allowlist 
