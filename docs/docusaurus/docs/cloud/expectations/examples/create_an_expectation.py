@@ -2,7 +2,7 @@
 This is an example script for creating an expectation with preset parameters.
 
 To test, run:
-pytest --docs-tests -k "doc_example_create_an_expectation" tests/integration/test_script_runner.py
+pytest --docs-tests -k "doc_example_create_an_expectation_for_cloud" tests/integration/test_script_runner.py
 """
 
 
