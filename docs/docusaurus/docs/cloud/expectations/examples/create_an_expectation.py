@@ -1,5 +1,5 @@
 """
-This is an example script for creating an expectation with preset or runtime parameters.
+This is an example script for creating an expectation with preset parameters.
 
 To test, run:
 pytest --docs-tests -k "doc_example_create_an_expectation" tests/integration/test_script_runner.py
@@ -26,7 +26,7 @@ expectation = gx.expectations.ExpectColumnMaxToBeBetween(
 )
 # </snippet>
 
-# Expectations need to be added to an Expectation Suite before being associated to a Data Asset.
+# Expectations need to be added to an Expectation Suite before being associated with a Data Asset.
 # Create the Expectation Suite and add it to your Data Context
 # <snippet name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - create expectation suite">
 suite_name = "my_expectation_suite"
@@ -45,6 +45,7 @@ suite = context.suites.get(name=existing_suite_name)
 # Add the Expectation to the Expectation Suite.
 # <snippet name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - add expectation to suite">
 suite.add_expectation(expectation)
+suite.save()
 # </snippet>
 
 # Optional. If you modify the Expectation after you have added it to your Expectation Suite, you must explicitly save those modifications.

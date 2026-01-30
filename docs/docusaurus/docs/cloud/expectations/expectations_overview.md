@@ -29,7 +29,7 @@ The following table lists the available GX Cloud Expectations. Note that some Da
 | Numeric            | **column z scores to be less than**                    | Expect the Z-scores of a column's values to be less than a given threshold.                                                            | No                  | No                |
 | Numeric            | **multicolumn sum to equal**                           | Expect that the sum of row values in a specified column list is the same for each row, and equal to a specified sum total.             | No                  | No                |
 | Numeric            | **column KL divergence to be less than***               | Expect the Kulback-Leibler (KL) divergence (relative entropy) of the specified column with respect to the partition object to be lower than the provided threshold.         | No              | No              |
-| Numeric            | **column quantile values to be between***               | Expect the specific provided column quantiles to be between a minimum value and a maximum value.
+| Numeric            | **column quantile values to be between***               | Expect the specific provided column quantiles to be between a minimum value and a maximum value. | No | No |
 | Schema             | **column to exist**                                    | Checks for the existence of a specified column within a table or view.                                                                 | No                  | No                |
 | Schema             | **column values to be in type list**                   | Expect a column to contain values from a specified type list.                                                                          | No                  | No                |
 | Schema             | **column values to be of type**                        | Expect a column to contain values of a specified data type.                                                                            | No                  | No                |
@@ -65,7 +65,7 @@ The following table lists the available GX Cloud Expectations. Note that some Da
 | Volume             | **table row count to equal**                           | Expect the number of rows to equal a value.                                                                                            | No                  | No                |
 | Volume             | **table row count to equal other table**               | Expect the number of rows to equal the number in another table or view within the same database.                                       | No                  | No                |
 
-*Only configurable through the GX Cloud API. 
+*Configurable through only the GX Cloud API. 
 
 ## Custom SQL Expectations
 

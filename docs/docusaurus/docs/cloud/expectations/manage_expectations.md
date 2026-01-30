@@ -17,8 +17,8 @@ This page provides instructions for working with Expectations. To learn about Ex
    queryString="expectations-interface"
    defaultValue="ui"
    values={[
-      {value: 'ui', label: 'Create an Expectation with the UI'},
-      {value: 'api', label: 'Create an Expectation with the API'}
+      {value: 'ui', label: 'UI'},
+      {value: 'api', label: 'API'}
    ]}
 >
 
@@ -61,11 +61,11 @@ This page provides instructions for working with Expectations. To learn about Ex
 
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
-- [A Data Context connected to your GX Cloud organization](/cloud/connect/connect_python.md#create-a-data-context)
+- [A Data Context connected to your GX Cloud organization](/cloud/connect/connect_python.md#create-a-data-context).
 
 1. Choose an Expectation to create.
 
-   GX comes with many built-in Expectations to cover your data quality needs. You can find a catalog of these Expectations in the [Expectation Gallery](https://greatexpectations.io/expectations/). When browsing the Expectation Gallery, you can filter the available Expectations by the data quality issue they address and by the Data Sources they support. There is also a search bar that will let you filter Expectations by matching text in their name or description.
+   GX Cloud comes with many Expectations to cover your data quality needs. You can find a catalog of these Expectations in the [Expectation Gallery](https://greatexpectations.io/expectations/). When browsing the Expectation Gallery, you can filter the available Expectations by the data quality issue they address and by the Data Sources they support. There is also a search bar that will let you filter Expectations by matching text in their name or description.
 
    In your code, you will find the classes for Expectations in the `expectations` module. Import the module:
 
@@ -73,29 +73,31 @@ This page provides instructions for working with Expectations. To learn about Ex
    from great_expectations import expectations as gxe
    ```
 
-2. Determine the Expectation's required parameters
+2. Determine the Expectation's required parameters.
 
    To determine the parameters your Expectation uses to evaluate data, reference the Expectation's entry in the [Expectation Gallery](https://greatexpectations.io/expectations/).  Under the **Args** section you will find a list of parameters that are necessary for the Expectation to be evaluated, along with a description of the value(s) that should be provided.
 
-3. Optional. Determine the Expectation's other parameters
+3. Optional. Determine the Expectation's other parameters.
 
    In addition to the parameters that are required for an Expectation to evaluate data, Expectations also support some optional parameters.  In the Expectations Gallery these are found under each Expectation's **Other Parameters** section.
 
    Examples of these parameters are:
    - `meta`: A dictionary of user-supplied metadata to store with an Expectation. This dictionary can be used to add notes about the purpose and intended use of an Expectation.
    - `mostly`: A special argument that allows for _fuzzy_ validation based on a percentage of successfully validated rows. If the percentage is at least the value set in the `mostly` parameter, the Expectation will return a `success` value of `true`.
-   - `severity`: Indicates the impact of the Expectation failing. Accepted values are `critical`, `warning`, or `info`. Defaults to `critical` if not explicitly set. You can [trigger Actions](/core/trigger_actions_based_on_results/create_a_checkpoint_with_actions.md) based on severity levels or you can condition your data pipeline with the `get_maximum_severity_failure` helper method in the [`ExpectationSuiteValidationResult` class](/reference/api/core//ExpectationSuiteValidationResult_class.mdx). Note that if an Expectation fails to execute, the failure will be recorded as critical, regardless of the Expectation configuration, to bring your attention to the fact that your data is not being tested as intended.
+   - `severity`: Indicates the impact of the Expectation failing. Accepted values are `critical`, `warning`, or `info`. Defaults to `critical` if not explicitly set. You can [trigger Actions](/cloud/alerts/trigger_actions.md) based on severity levels or you can condition your data pipeline with the `get_maximum_severity_failure` helper method in the [`ExpectationSuiteValidationResult` class](/reference/api/core//ExpectationSuiteValidationResult_class.mdx). Note that if an Expectation fails to execute, the failure will be recorded as critical, regardless of the Expectation configuration, to bring your attention to the fact that your data is not being tested as intended.
 
    <details>
    <summary>Restrict an Expectation to specific rows</summary>
 
-   To restrict an Expectation to a subset of the data retrieved in a Batch, use the `row_condition` argument. The `row_condition` argument takes a boolean expression built with Python objects. Rows will be validated for the Expectation when the `row_condition` expression evaluates to True. Conversely, if the `row_condition` evaluates to False, the corresponding row will not be validated for the Expectation.
+   To restrict an Expectation to a subset of the data retrieved in a Batch, use the `row_condition` argument. The `row_condition` argument takes a boolean expression built with Python objects. Rows will be validated for the Expectation when the `row_condition` expression evaluates to `True`. Conversely, if the `row_condition` evaluates to `False`, the corresponding row will not be validated for the Expectation.
 
 
    To support complex business use cases, logical clauses can be combined with AND / OR relationships within the `row_condition` argument.
 
    ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - determine expression"
    ```
+
+An Expectation can have up to 100 condition statements grouped in any number of condition blocks.
 
    Here are some examples of how to create common patterns in row conditions:
 
@@ -121,26 +123,36 @@ This page provides instructions for working with Expectations. To learn about Ex
    ```
 
 
+Expectations that have different row conditions are treated as unique, even if they are of the same type, apply to the same column, and belong to the same Expectation Suite. This allows you to validate your data through multiple lenses.
+
+Note that the following Expectations do not accept the `row_condition` argument:
+- `expect_column_to_exist`
+- `expect_query_results_to_match_comparison`
+- `expect_table_columns_to_match_ordered_list`
+- `expect_table_columns_to_match_set`
+- `expect_table_column_count_to_be_between`
+- `expect_table_column_count_to_equal`
+- `unexpected_rows_expectation`
    </details>
 
 4. Create the Expectation.
   
    Using the Expectation class you picked and the parameters you determined when referencing the Expectation Gallery, you can create your Expectation.
 
-   In this example, the `ExpectColumnMaxToBeBetween` Expectation is created and all of its parameters are defined in advance while leaving `strict_min` and `strict_max` as their default values:
+   In this example, the `ExpectColumnMaxToBeBetween` Expectation is created with a range of acceptable values that will be evaluated inclusively. 
 
       ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - preset expectation"
       ```
 
 5. Create or get an Expectation Suite.
 
-   An Expectation Suite is used to group Expectations. All Expectations need to be added to an Expectation Suite before they can be associated to a Data Asset via a Validation Definition. All of the Expectations that are grouped with in an Expectation Suite will be evaluated together whenever you run the Validation Definition.
+   An Expectation Suite is used to group Expectations. All Expectations need to be added to an Expectation Suite before they can be associated with a Data Asset via a Validation Definition. All of the Expectations that are grouped within an Expectation Suite will be evaluated together whenever the Validation Definition runs.
 
    Create an Expectation Suite and add it to your Data Context:
       ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - create expectation suite"
       ```
 
-   Optional. If you already have an Expectation Suite, get it from your Data Context:
+   Optional. If you already have an API-managed Expectation Suite, get it from your Data Context:
 
       ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - get expectation suite"
       ```
@@ -157,7 +169,7 @@ This page provides instructions for working with Expectations. To learn about Ex
 
 ### Next Steps
 
-   If you have created a new Expectation Suite, you will need to associate it to a Data Asset before you can run Validations. Visit [Manage Validations](/docs/cloud/validations/run_validations/#api-managed-expectations-entire-asset) to learn how to do so.
+   If you have created a new Expectation Suite, you will need to associate it to a Data Asset before you can run Validations. Visit [Run Validations](/docs/cloud/validations/run_validations/#api-managed-expectations-entire-asset) to learn how to do so.
 
 </TabItem>
 </Tabs>
