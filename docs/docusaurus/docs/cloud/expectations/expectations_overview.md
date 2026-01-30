@@ -97,7 +97,7 @@ The percentage of identical rows is computed by dividing the number of matching 
 | 100                   | 25                          | 1            | 1%                           |
 | 0                     | 0                           | 0            | 100%                         |
 
-To create a Multi-source Expectation, [add the **expect query results to match comparison** Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation) on the base Data Source. Each provided query should be written in the dialect of the associated Data Source.
+To create a Multi-source Expectation, [add the **expect query results to match comparison** Expectation](/cloud/expectations/manage_expectations.md#create-an-expectation) on the base Data Source. Each provided query should be written in the dialect of the associated Data Source.
 
 Keep the following limitations in mind when working with Multi-source Expectations:
 - The comparison is limited to the first 200 rows of each query result. If you anticipate that a query will return more than 200 rows, use an `ORDER BY` clause to control what is surfaced first for comparison.
@@ -106,7 +106,7 @@ Keep the following limitations in mind when working with Multi-source Expectatio
 
 ## Anomaly Detection
 
-Anomaly Detection Expectations evolve with your data to detect deviations from historical patterns. To speed up their creation, you can generate Anomaly Detection Expectations when you use the GX Cloud UI to [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation). Note that [some Data Sources](/docs/cloud/data_sources/manage_data_sources.md#workflow-and-feature-support) don't support these options. All Data Sources support manual configuration of Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
+Anomaly Detection Expectations evolve with your data to detect deviations from historical patterns. To speed up their creation, you can generate Anomaly Detection Expectations when you use the GX Cloud UI to [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#create-an-expectation). Note that [some Data Sources](/docs/cloud/data_sources/manage_data_sources.md#workflow-and-feature-support) don't support these options. All Data Sources support manual configuration of Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
 
 ### Dynamic Parameters
 
