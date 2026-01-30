@@ -24,10 +24,7 @@ This page provides instructions for working with Expectations. To learn about Ex
 
 <TabItem value="ui" label="UI">
 
-### Prerequisites
-
-- You have a [Data Asset](/cloud/data_assets/manage_data_assets.md).
-
+You must have a [Data Asset](/cloud/data_assets/manage_data_assets.md) before creating an Expectation.
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
@@ -57,7 +54,7 @@ This page provides instructions for working with Expectations. To learn about Ex
 
 <TabItem value="api" label="API">
 
-### Prerequisites
+You must have the following prerequisites fulfilled before creating an Expectation:
 
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
