@@ -426,6 +426,7 @@ def get_sqlalchemy_column_metadata(
                 selectable=table_selectable,
                 dialect=engine.dialect,
                 sqlalchemy_engine=engine,
+                schema_name=schema_name,
             )
             logger.debug(f"fallback returned {len(columns)} columns")
 
@@ -507,6 +508,7 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     selectable: sqlalchemy.Select,
     dialect: sqlalchemy.Dialect,
     sqlalchemy_engine: sqlalchemy.Engine,
+    schema_name: Optional[str] = None,
 ) -> List[Dict[str, str]]:
     """If we can't reflect the table, use a query to at least get column names."""
     if isinstance(sqlalchemy_engine.engine, sqlalchemy.Engine):
@@ -714,8 +716,12 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
             else:  # noqa: PLR5501 # FIXME CoP
                 # noinspection PyUnresolvedReferences
                 if dialect.name.lower() == GXSqlDialect.REDSHIFT:
-                    # Redshift needs temp tables to be declared as text
-                    query = sa.select(sa.text("*")).select_from(sa.text(selectable)).limit(1)  # type: ignore[assignment,arg-type] # FIXME CoP
+                    # Redshift needs schema-qualified table names
+                    if schema_name:
+                        qualified_table = f"{schema_name}.{selectable}"
+                    else:
+                        qualified_table = str(selectable)
+                    query = sa.select(sa.text("*")).select_from(sa.text(qualified_table)).limit(1)  # type: ignore[assignment] # FIXME CoP
                 else:
                     query = sa.select(sa.text("*")).select_from(sa.text(selectable)).limit(1)  # type: ignore[assignment,arg-type] # FIXME CoP
 
