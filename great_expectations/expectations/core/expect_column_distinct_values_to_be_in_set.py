@@ -479,10 +479,17 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         else:
             success = observed_value_set.issubset(expected_value_set)
 
+        # Limit observed_value to prevent payload size issues (e.g., 413 errors)
+        # Use a reasonable limit that balances usefulness with payload size
+        MAX_OBSERVED_VALUES = 1000
+        observed_value_list = sorted(list(observed_value_set))
+        if len(observed_value_list) > MAX_OBSERVED_VALUES:
+            observed_value_list = observed_value_list[:MAX_OBSERVED_VALUES]
+
         return {
             "success": success,
             "result": {
-                "observed_value": sorted(list(observed_value_set)),
+                "observed_value": observed_value_list,
                 "details": {"value_counts": observed_value_counts},
             },
         }
