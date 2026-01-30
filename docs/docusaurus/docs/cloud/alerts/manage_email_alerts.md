@@ -4,27 +4,65 @@ title: 'Manage email alerts'
 description: Create and manage email alerts in GX Cloud.
 ---
 
-Stay informed about the health of the Data Assets that you care about by enabling alerts in GX Cloud. 
+Keep stakeholders informed about the health of the Data Assets and Expectations that they care about by configuring alerts in GX Cloud.
 
-GX Cloud sends email alerts on the following events:
-- A Data Asset fails a validation run.
-- [ExpectAI](/cloud/expectations/manage_expectations.md#generate-expectations) generates recommended Expectations for a Data Asset. 
+Alerts are configured at the Data Asset level. An alert can be configured to notify about all Expectation failures or only failures of certain [severities](/cloud/expectations/expectations_overview.md#failure-severity). To keep your email alerts secure,  your GX Cloud organization has an allowlist of email domains that all alert recipient email addresses must belong to. By default, this includes the email domain of the Organization Owner who created the organization and domains for sending emails to the following third-party services: [Slack](https://slack.com/help/articles/206819278-Send-emails-to-Slack), [MS Teams](https://support.microsoft.com/en-us/office/send-an-email-to-a-channel-in-microsoft-teams-d91db004-d9d7-4a47-82e6-fb1b16dfd51e), and [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide).
 
-:::tip Want notifications based on failure severity?
-Use [Actions](/cloud/alerts/trigger_actions.md) to create notification patterns based on [failure severity](/cloud/expectations/expectations_overview.md#failure-severity).
-:::
+## Create an email alert
 
-## Email alert default settings
+1. In the GX Cloud UI, select the relevant **Workspace** and then click **Data Assets**.
+2. In the **Data Assets** list, click the Data Asset name.
+3. Click **Settings**.
+4. In the **Alerts** section, click **+ ADD**.
+5. In the **Alert nam**e field, enter a name for the alert that will help you quickly identify it later.
+6. Under **Severity**, select one or more failure severities for the alert to notify about. 
+7. Under **Recipients**, enter an email address for the alert to send notifications to. Note that the domain of the email address must belong to your organization’s [email domain allowlist](#update-your-organizations-email-domain-allowlist). By default, the following third-party domains are allowed for integrations with third-party services. (specific domains pending confirmation in question number 11 above)
 
-Email alerts are configured on a per-user basis; your email alert settings do not affect the email alerts of other users in your workspace.
+   - [Slack](https://slack.com/help/articles/206819278-Send-emails-to-Slack) - `*.slack.com`
+   - [MS Teams](https://support.microsoft.com/en-us/office/send-an-email-to-a-channel-in-microsoft-teams-d91db004-d9d7-4a47-82e6-fb1b16dfd51e) `*.teams.ms`
+   - [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide) - `*.pagerduty.com`
 
-By default, alerts are enabled for you for every Data Asset you create and disabled for all Data Assets created by others. You can change these settings at any time.
+
+8. Optional. To send the same notification to another recipient, click **+ ADD** and enter another email address. Repeat as needed. 
+9. Click **Save**.
+
+## Edit an email alert
+
+1. In the GX Cloud UI, select the relevant **Workspace** and then click **Data Assets**.
+2. In the **Data Assets** list, click the Data Asset name.
+3. Click **Settings**.
+4. In the **Alerts** section, find the alert that you want to edit.
+5. Click <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/> **Edit alert** for the alert that you want to edit.
+6. Edit the alert configuration.
+7. Click **Save**.
+
+## Disable or enable an email alert
+
+If you want to temporarily stop an alert from sending emails, you can disable it instead of deleting it. This makes it easier to restore the alert when you’re ready for it to start sending emails again. 
+
+1. In the GX Cloud UI, select the relevant **Workspace** and then click **Data Assets**.
+2. In the **Data Assets** list, click the Data Asset name.
+3. Click **Settings**.
+4. In the **Alerts** section, find the alert that you want to disable or enable.
+5. Click the **ON** / **OFF** toggle switch to disable or enable the alert.
+
+## Delete an email alert
+
+1. In the GX Cloud UI, select the relevant **Workspace** and then click **Data Assets**.
+2. In the **Data Assets** list, click the Data Asset name.
+3. Click **ettings**.
+4. In the **Alerts** section, find the alert that you want to delete.
+5. Click <img src="/img/trash.png" alt="trash icon" width="20" height="20"/> Delete alert for the alert that you want to delete.
+6. Click **Delete**.
+
+## Update your organization’s email domain allowlist 
+
+By default, your organization’s email domain allowlist includes the following:
+
+- The email domain of the Organization Owner who created the organization
+- `*.slack.com`
+- `*.teams.ms`
+- `*.pagerduty.com`
 
 
-## Update an email alert
-
-1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
-2. Click a Data Asset in the **Data Assets** list.
-3. Click **Alerts**.
-4. Click the **toggle switch** to enable or disable email alerts for the Data Asset.
-5. Click **Done**.
+To request changes to your organization’s email domain allowlist, have an Organization Owner [contact support](mailto:support@greatexpectations.io).
