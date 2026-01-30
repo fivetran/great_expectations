@@ -841,3 +841,95 @@ class TestLegacyRowConditionTransformation:
 
         # Should have two warnings: one for condition_parser, one for string row_condition
         assert len(warning_list) == 2
+
+
+@pytest.mark.unit
+class TestGetSuccessKwarg:
+    """Tests for the _get_success_kwarg() single-key accessor method."""
+
+    @pytest.mark.parametrize(
+        "key,expected_value",
+        [
+            pytest.param("column", "test_col", id="string_value"),
+            pytest.param("column_index", 5, id="int_value"),
+        ],
+    )
+    def test_returns_configured_value(self, key, expected_value):
+        """Values in configuration.kwargs should be returned directly."""
+        exp = gxe.ExpectColumnToExist(column="test_col", column_index=5)
+        assert exp._get_success_kwarg(key) == expected_value
+
+    @pytest.mark.parametrize(
+        "key,default,expected_value",
+        [
+            pytest.param("table", None, None, id="non_field_key_default_none"),
+            pytest.param("table", "fallback", "fallback", id="non_field_key_custom_default"),
+            pytest.param("nonexistent_key", "custom", "custom", id="unknown_key_custom_default"),
+        ],
+    )
+    def test_returns_default_for_missing_non_field(self, key, default, expected_value):
+        """Keys that aren't Pydantic fields should return the provided default."""
+        exp = gxe.ExpectColumnToExist(column="test_col")
+        assert exp._get_success_kwarg(key, default=default) == expected_value
+
+    def test_returns_field_default_for_optional_field(self):
+        """Optional Pydantic fields should return their field default."""
+        exp = gxe.ExpectColumnToExist(column="test_col")
+        # column_index is an optional field with default=None
+        assert exp._get_success_kwarg("column_index") is None
+
+    @pytest.mark.parametrize(
+        "key",
+        [
+            pytest.param("column", id="domain_key"),
+            pytest.param("value_set", id="success_key"),
+            pytest.param("mostly", id="success_key_with_default"),
+        ],
+    )
+    def test_equivalent_to_get_success_kwargs_get(self, key):
+        """_get_success_kwarg should return same values as _get_success_kwargs().get()."""
+        exp = gxe.ExpectColumnValuesToBeInSet(column="status", value_set=["a", "b"], mostly=0.95)
+        assert exp._get_success_kwarg(key) == exp._get_success_kwargs().get(key)
+
+
+@pytest.mark.unit
+class TestKwargsMethodsNoLoggingForNonFields:
+    """Tests that _get_domain_kwargs/_get_success_kwargs don't log for non-field keys.
+
+    ExpectColumnToExist has domain_keys=('batch_id', 'table') where 'table' is not
+    a Pydantic field - it comes from execution context. Previously, iterating over
+    domain_keys would call _get_default_value('table') which logged an INFO message.
+    """
+
+    @pytest.mark.parametrize(
+        "method_name,expected_keys",
+        [
+            pytest.param(
+                "_get_domain_kwargs",
+                ["table", "batch_id"],
+                id="domain_kwargs",
+            ),
+            pytest.param(
+                "_get_success_kwargs",
+                ["table", "column"],
+                id="success_kwargs",
+            ),
+            pytest.param(
+                "_get_runtime_kwargs",
+                ["column", "result_format"],
+                id="runtime_kwargs",
+            ),
+        ],
+    )
+    def test_no_logging_for_non_field_keys(self, caplog, method_name, expected_keys):
+        """Kwargs methods should not log for keys that aren't Pydantic fields."""
+        exp = gxe.ExpectColumnToExist(column="test_col")
+
+        with caplog.at_level(logging.INFO, logger="great_expectations.expectations.expectation"):
+            result = getattr(exp, method_name)()
+
+        # Should not log about any keys not being known fields
+        assert "_get_default_value called with key" not in caplog.text
+        # But should still include expected keys in the result
+        for key in expected_keys:
+            assert key in result

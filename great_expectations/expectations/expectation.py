@@ -1385,9 +1385,36 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
             logger.info(f'_get_default_value called with key "{key}", but it is not a known field')
             return None
 
+    def _get_success_kwarg(self, key: str, default: Any = None) -> Any:
+        """Get a single success/domain kwarg value without building full dict.
+
+        Use this instead of `_get_success_kwargs().get(key)` when you only need
+        one or two specific values - avoids unnecessary iteration over all
+        domain_keys and success_keys.
+
+        Args:
+            key: The kwarg key to retrieve
+            default: Value to return if key not found (default: None)
+
+        Returns:
+            The kwarg value from configuration, field default, or provided default
+        """
+        # Check configuration kwargs first
+        if key in self.configuration.kwargs:
+            return self.configuration.kwargs[key]
+
+        # Fall back to field default (only for actual Pydantic fields)
+        field = self.__fields__.get(key)
+        if field is not None:
+            return field.default if not field.required else default
+
+        return default
+
     def _get_domain_kwargs(self) -> Dict[str, Optional[str]]:
         domain_kwargs: Dict[str, Optional[str]] = {
-            key: self.configuration.kwargs.get(key, self._get_default_value(key))
+            key: self.configuration.kwargs.get(
+                key, self._get_default_value(key) if key in self.__fields__ else None
+            )
             for key in self.domain_keys
         }
         missing_kwargs: Union[set, Set[str]] = set(self.domain_keys) - set(domain_kwargs.keys())
@@ -1398,7 +1425,9 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
     def _get_success_kwargs(self) -> Dict[str, Any]:
         domain_kwargs: Dict[str, Optional[str]] = self._get_domain_kwargs()
         success_kwargs: Dict[str, Any] = {
-            key: self.configuration.kwargs.get(key, self._get_default_value(key))
+            key: self.configuration.kwargs.get(
+                key, self._get_default_value(key) if key in self.__fields__ else None
+            )
             for key in self.success_keys
         }
         success_kwargs.update(domain_kwargs)
@@ -1415,7 +1444,9 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
 
         success_kwargs = self._get_success_kwargs()
         runtime_kwargs = {
-            key: configuration.kwargs.get(key, self._get_default_value(key))
+            key: configuration.kwargs.get(
+                key, self._get_default_value(key) if key in self.__fields__ else None
+            )
             for key in self.runtime_keys
         }
         runtime_kwargs.update(success_kwargs)
@@ -2291,7 +2322,7 @@ class ColumnMapExpectation(BatchExpectation, ABC):
             success = _mostly_success(
                 nonnull_count,
                 unexpected_count,
-                self._get_success_kwargs()["mostly"],
+                self._get_success_kwarg("mostly"),
             )
 
         return _format_map_output(
@@ -2577,7 +2608,7 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
             success = _mostly_success(
                 filtered_row_count,
                 unexpected_count,
-                self._get_success_kwargs()["mostly"],
+                self._get_success_kwarg("mostly"),
             )
 
         return _format_map_output(
@@ -2881,7 +2912,7 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
             success = _mostly_success(
                 filtered_row_count,
                 unexpected_count,
-                self._get_success_kwargs()["mostly"],
+                self._get_success_kwarg("mostly"),
             )
 
         return _format_map_output(
