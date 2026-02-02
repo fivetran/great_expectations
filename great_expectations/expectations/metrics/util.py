@@ -8,7 +8,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Dict,
-    Final,
     Iterable,
     List,
     Literal,
@@ -91,8 +90,6 @@ except ImportError:
     teradatasqlalchemy = None
     teradatatypes = None
 
-
-MAX_RESULT_RECORDS: Final[int] = 200
 
 UnexpectedIndexList: TypeAlias = List[Dict[str, Any]]
 
