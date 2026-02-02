@@ -232,27 +232,27 @@ class ColumnDistinctValuesNotInSetCount(ColumnAggregateMetricProvider):
                     sa.select(sa.func.count(sa.distinct(column)))
                     .where(column.is_not(None))
                     .where(column.notin_(value_set))
-                    .select_from(selectable)
+                    .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
                 )
             else:
                 query = (
                     sa.select(sa.func.count(sa.distinct(column)))
                     .where(column.isnot(None))
                     .where(column.notin_(value_set))
-                    .select_from(selectable)
+                    .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
                 )
         # Empty value_set means all non-null values are violations
         elif hasattr(column, "is_not"):
             query = (
                 sa.select(sa.func.count(sa.distinct(column)))
                 .where(column.is_not(None))
-                .select_from(selectable)
+                .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
             )
         else:
             query = (
                 sa.select(sa.func.count(sa.distinct(column)))
                 .where(column.isnot(None))
-                .select_from(selectable)
+                .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
             )
 
         result = execution_engine.execute_query(query).scalar()
@@ -337,7 +337,7 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
                     .where(column.notin_(value_set))
                     .distinct()
                     .limit(limit)
-                    .select_from(selectable)
+                    .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
                 )
             else:
                 query = (
@@ -346,7 +346,7 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
                     .where(column.notin_(value_set))
                     .distinct()
                     .limit(limit)
-                    .select_from(selectable)
+                    .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
                 )
         # Empty value_set means all non-null values are violations
         elif hasattr(column, "is_not"):
@@ -355,7 +355,7 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
                 .where(column.is_not(None))
                 .distinct()
                 .limit(limit)
-                .select_from(selectable)
+                .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
             )
         else:
             query = (
@@ -363,7 +363,7 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
                 .where(column.isnot(None))
                 .distinct()
                 .limit(limit)
-                .select_from(selectable)
+                .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
             )
 
         results = execution_engine.execute_query(query).fetchall()
@@ -451,14 +451,14 @@ class ColumnDistinctValuesMissingFromSetCount(ColumnAggregateMetricProvider):
                 sa.select(sa.func.count(sa.distinct(column)))
                 .where(column.is_not(None))
                 .where(column.in_(value_set))
-                .select_from(selectable)
+                .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
             )
         else:
             query = (
                 sa.select(sa.func.count(sa.distinct(column)))
                 .where(column.isnot(None))
                 .where(column.in_(value_set))
-                .select_from(selectable)
+                .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
             )
 
         found_count = execution_engine.execute_query(query).scalar() or 0
