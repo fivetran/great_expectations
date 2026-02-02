@@ -2662,60 +2662,39 @@ def test_expect_column_distinct_values_to_be_in_set_atomic_diagnostic_observed_v
     "description, value_set, observed_value, expected_result",
     [
         (
-            "complete set",
+            "no missing values (all expected values in column)",
             ["a", "b", "c"],
+            [],  # observed_value now contains only missing values
+            [],
+        ),
+        (
+            "empty value_set (nothing expected)",
+            [],
+            [],  # no values to be missing
+            [],
+        ),
+        (
+            "all missing (empty column)",
             ["a", "b", "c"],
+            ["a", "b", "c"],  # all expected values are missing
             [
-                ("ov__0", "a", "expected"),
-                ("ov__1", "b", "expected"),
-                ("ov__2", "c", "expected"),
+                ("ov__0", "a", "missing"),
+                ("ov__1", "b", "missing"),
+                ("ov__2", "c", "missing"),
             ],
         ),
         (
-            "empty input",
-            [],
-            ["a", "b", "c"],
-            [
-                ("ov__0", "a", "expected"),
-                ("ov__1", "b", "expected"),
-                ("ov__2", "c", "expected"),
-            ],
-        ),
-        (
-            "empty observed",
-            ["a", "b", "c"],
-            [],
-            [
-                ("exp__0", "a", "missing"),
-                ("exp__1", "b", "missing"),
-                ("exp__2", "c", "missing"),
-            ],
-        ),
-        (
-            "empty input and observed",
+            "empty input and column",
             [],
             [],
             [],
         ),
         (
-            "subset observed",
+            "some missing values",
             ["a", "b", "c"],
-            ["a", "b"],
+            ["c"],  # only c is missing
             [
-                ("ov__0", "a", "expected"),
-                ("ov__1", "b", "expected"),
-                ("exp__2", "c", "missing"),
-            ],
-        ),
-        (
-            "superset observed",
-            ["a", "b", "c"],
-            ["a", "b", "c", "d"],
-            [
-                ("ov__0", "a", "expected"),
-                ("ov__1", "b", "expected"),
-                ("ov__2", "c", "expected"),
-                ("ov__3", "d", "expected"),
+                ("ov__0", "c", "missing"),
             ],
         ),
     ],
