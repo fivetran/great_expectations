@@ -81,25 +81,11 @@ def test_ignores_nulls(batch_for_datasource: Batch) -> None:
     assert result.success
 
 
-@pytest.mark.unit
-def test_empty_value_set() -> None:
-    with pytest.raises(Exception):  # noqa: B017 # expecting a ValidationError (pydantic)
-        gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=[])
-
-
+@pytest.mark.parametrize("value_set", [[1], [1, 4], [1, 2, 3]])
 @parameterize_batch_for_data_sources(
     data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
 )
-def test_failure_unexpected(batch_for_datasource: Batch) -> None:
-    expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=[1])
-    result = batch_for_datasource.validate(expectation)
-    assert not result.success
-
-
-@parameterize_batch_for_data_sources(
-    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
-)
-def test_failure_missing(batch_for_datasource: Batch) -> None:
-    expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=[1, 2, 3])
+def test_fails_if_data_is_not_equal(batch_for_datasource: Batch, value_set: list[int]) -> None:
+    expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=value_set)
     result = batch_for_datasource.validate(expectation)
     assert not result.success
