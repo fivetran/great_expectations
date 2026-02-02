@@ -3,13 +3,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.constants import MAX_DISTINCT_VALUES
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     _style_row_condition,
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
-from great_expectations.expectations.metrics.util import MAX_DISTINCT_VALUES
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     FAILURE_SEVERITY_DESCRIPTION,
