@@ -188,6 +188,318 @@ class ColumnDistinctValuesCountUnderThreshold(ColumnAggregateMetricProvider):
         return dependencies
 
 
+class ColumnDistinctValuesNotInSetCount(ColumnAggregateMetricProvider):
+    """Metric that returns count of column values NOT in the expected set.
+
+    Used for expect_column_distinct_values_to_be_in_set to determine pass/fail
+    without fetching all distinct values.
+    """
+
+    metric_name = "column.distinct_values.not_in_set.count"
+    value_keys = ("value_set",)
+
+    @column_aggregate_value(engine=PandasExecutionEngine)
+    def _pandas(cls, column: pd.Series, value_set: List[Any], **kwargs) -> int:
+        column_set = set(column.dropna().unique())
+        expected_set = set(value_set) if value_set else set()
+        return len(column_set - expected_set)
+
+    @metric_value(engine=SqlAlchemyExecutionEngine)
+    def _sqlalchemy(
+        cls,
+        execution_engine: SqlAlchemyExecutionEngine,
+        metric_domain_kwargs: Dict[str, str],
+        metric_value_kwargs: Dict[str, Any],
+        **kwargs,
+    ) -> int:
+        """Count distinct values in column that are NOT in the expected set."""
+        value_set = metric_value_kwargs.get("value_set", [])
+
+        selectable: sqlalchemy.Selectable
+        accessor_domain_kwargs: Dict[str, str]
+        (
+            selectable,
+            _,
+            accessor_domain_kwargs,
+        ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        column_name: str = accessor_domain_kwargs["column"]
+        column: sqlalchemy.ColumnClause = sa.column(column_name)
+
+        # Count distinct values NOT in the provided set
+        if value_set:
+            if hasattr(column, "is_not"):
+                query = (
+                    sa.select(sa.func.count(sa.distinct(column)))
+                    .where(column.is_not(None))
+                    .where(column.notin_(value_set))
+                    .select_from(selectable)
+                )
+            else:
+                query = (
+                    sa.select(sa.func.count(sa.distinct(column)))
+                    .where(column.isnot(None))
+                    .where(column.notin_(value_set))
+                    .select_from(selectable)
+                )
+        # Empty value_set means all non-null values are violations
+        elif hasattr(column, "is_not"):
+            query = (
+                sa.select(sa.func.count(sa.distinct(column)))
+                .where(column.is_not(None))
+                .select_from(selectable)
+            )
+        else:
+            query = (
+                sa.select(sa.func.count(sa.distinct(column)))
+                .where(column.isnot(None))
+                .select_from(selectable)
+            )
+
+        result = execution_engine.execute_query(query).scalar()
+        return result or 0
+
+    @metric_value(engine=SparkDFExecutionEngine)
+    def _spark(
+        cls,
+        execution_engine: SparkDFExecutionEngine,
+        metric_domain_kwargs: Dict[str, str],
+        metric_value_kwargs: Dict[str, Any],
+        **kwargs,
+    ) -> int:
+        """Count distinct values in column that are NOT in the expected set."""
+        value_set = metric_value_kwargs.get("value_set", [])
+
+        df: pyspark.DataFrame
+        accessor_domain_kwargs: Dict[str, str]
+        (
+            df,
+            _,
+            accessor_domain_kwargs,
+        ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        column_name: str = accessor_domain_kwargs["column"]
+
+        # Filter to values NOT in the set and count distinct
+        filtered_df = df.where(F.col(column_name).isNotNull())
+        if value_set:
+            filtered_df = filtered_df.where(~F.col(column_name).isin(value_set))
+
+        result = filtered_df.select(F.countDistinct(F.col(column_name))).collect()[0][0]
+        return result or 0
+
+
+class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
+    """Metric that returns sample of column values NOT in the expected set.
+
+    Used for expect_column_distinct_values_to_be_in_set to report violations
+    without fetching all distinct values.
+    """
+
+    metric_name = "column.distinct_values.not_in_set"
+    value_keys = ("value_set", "limit")
+
+    @column_aggregate_value(engine=PandasExecutionEngine)
+    def _pandas(
+        cls, column: pd.Series, value_set: List[Any], limit: int = 20, **kwargs
+    ) -> List[Any]:
+        column_set = set(column.dropna().unique())
+        expected_set = set(value_set) if value_set else set()
+        not_in_set = sorted(list(column_set - expected_set))
+        return not_in_set[:limit]
+
+    @metric_value(engine=SqlAlchemyExecutionEngine)
+    def _sqlalchemy(
+        cls,
+        execution_engine: SqlAlchemyExecutionEngine,
+        metric_domain_kwargs: Dict[str, str],
+        metric_value_kwargs: Dict[str, Any],
+        **kwargs,
+    ) -> List[Any]:
+        """Return sample of distinct values in column that are NOT in the expected set."""
+        value_set = metric_value_kwargs.get("value_set", [])
+        limit = metric_value_kwargs.get("limit", 20)
+
+        selectable: sqlalchemy.Selectable
+        accessor_domain_kwargs: Dict[str, str]
+        (
+            selectable,
+            _,
+            accessor_domain_kwargs,
+        ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        column_name: str = accessor_domain_kwargs["column"]
+        column: sqlalchemy.ColumnClause = sa.column(column_name)
+
+        # Get distinct values NOT in the provided set (with limit)
+        if value_set:
+            if hasattr(column, "is_not"):
+                query = (
+                    sa.select(column)
+                    .where(column.is_not(None))
+                    .where(column.notin_(value_set))
+                    .distinct()
+                    .limit(limit)
+                    .select_from(selectable)
+                )
+            else:
+                query = (
+                    sa.select(column)
+                    .where(column.isnot(None))
+                    .where(column.notin_(value_set))
+                    .distinct()
+                    .limit(limit)
+                    .select_from(selectable)
+                )
+        # Empty value_set means all non-null values are violations
+        elif hasattr(column, "is_not"):
+            query = (
+                sa.select(column)
+                .where(column.is_not(None))
+                .distinct()
+                .limit(limit)
+                .select_from(selectable)
+            )
+        else:
+            query = (
+                sa.select(column)
+                .where(column.isnot(None))
+                .distinct()
+                .limit(limit)
+                .select_from(selectable)
+            )
+
+        results = execution_engine.execute_query(query).fetchall()
+        return [row[0] for row in results]
+
+    @metric_value(engine=SparkDFExecutionEngine)
+    def _spark(
+        cls,
+        execution_engine: SparkDFExecutionEngine,
+        metric_domain_kwargs: Dict[str, str],
+        metric_value_kwargs: Dict[str, Any],
+        **kwargs,
+    ) -> List[Any]:
+        """Return sample of distinct values in column that are NOT in the expected set."""
+        value_set = metric_value_kwargs.get("value_set", [])
+        limit = metric_value_kwargs.get("limit", 20)
+
+        df: pyspark.DataFrame
+        accessor_domain_kwargs: Dict[str, str]
+        (
+            df,
+            _,
+            accessor_domain_kwargs,
+        ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        column_name: str = accessor_domain_kwargs["column"]
+
+        # Filter to values NOT in the set
+        filtered_df = df.where(F.col(column_name).isNotNull())
+        if value_set:
+            filtered_df = filtered_df.where(~F.col(column_name).isin(value_set))
+
+        # Get distinct values with limit
+        results = (
+            filtered_df.select(F.col(column_name))
+            .distinct()
+            .limit(limit)
+            .rdd.flatMap(lambda x: x)
+            .collect()
+        )
+        return list(results)
+
+
+class ColumnDistinctValuesMissingFromSetCount(ColumnAggregateMetricProvider):
+    """Metric that returns count of expected values missing from the column.
+
+    Used for expect_column_distinct_values_to_contain_set to determine pass/fail
+    without fetching all distinct values.
+    """
+
+    metric_name = "column.distinct_values.missing_from_set.count"
+    value_keys = ("value_set",)
+
+    @column_aggregate_value(engine=PandasExecutionEngine)
+    def _pandas(cls, column: pd.Series, value_set: List[Any], **kwargs) -> int:
+        column_set = set(column.dropna().unique())
+        missing = [v for v in value_set if v not in column_set]
+        return len(missing)
+
+    @metric_value(engine=SqlAlchemyExecutionEngine)
+    def _sqlalchemy(
+        cls,
+        execution_engine: SqlAlchemyExecutionEngine,
+        metric_domain_kwargs: Dict[str, str],
+        metric_value_kwargs: Dict[str, Any],
+        **kwargs,
+    ) -> int:
+        """Count values in the expected set that are missing from the column."""
+        value_set = metric_value_kwargs.get("value_set", [])
+        if not value_set:
+            return 0
+
+        selectable: sqlalchemy.Selectable
+        accessor_domain_kwargs: Dict[str, str]
+        (
+            selectable,
+            _,
+            accessor_domain_kwargs,
+        ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        column_name: str = accessor_domain_kwargs["column"]
+        column: sqlalchemy.ColumnClause = sa.column(column_name)
+
+        # Count how many expected values exist in the column
+        if hasattr(column, "is_not"):
+            query = (
+                sa.select(sa.func.count(sa.distinct(column)))
+                .where(column.is_not(None))
+                .where(column.in_(value_set))
+                .select_from(selectable)
+            )
+        else:
+            query = (
+                sa.select(sa.func.count(sa.distinct(column)))
+                .where(column.isnot(None))
+                .where(column.in_(value_set))
+                .select_from(selectable)
+            )
+
+        found_count = execution_engine.execute_query(query).scalar() or 0
+        return len(value_set) - found_count
+
+    @metric_value(engine=SparkDFExecutionEngine)
+    def _spark(
+        cls,
+        execution_engine: SparkDFExecutionEngine,
+        metric_domain_kwargs: Dict[str, str],
+        metric_value_kwargs: Dict[str, Any],
+        **kwargs,
+    ) -> int:
+        """Count values in the expected set that are missing from the column."""
+        value_set = metric_value_kwargs.get("value_set", [])
+        if not value_set:
+            return 0
+
+        df: pyspark.DataFrame
+        accessor_domain_kwargs: Dict[str, str]
+        (
+            df,
+            _,
+            accessor_domain_kwargs,
+        ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        column_name: str = accessor_domain_kwargs["column"]
+
+        # Count how many expected values exist in the column
+        found_count = (
+            (
+                df.where(F.col(column_name).isNotNull())
+                .where(F.col(column_name).isin(value_set))
+                .select(F.countDistinct(F.col(column_name)))
+                .collect()[0][0]
+            )
+            or 0
+        )
+
+        return len(value_set) - found_count
+
+
 class ColumnDistinctValuesMissingFromSet(ColumnAggregateMetricProvider):
     """Metric that returns values in the expected set that are missing from the column.
 
