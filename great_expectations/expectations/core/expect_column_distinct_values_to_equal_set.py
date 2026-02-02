@@ -9,6 +9,7 @@ from great_expectations.expectations.expectation import (
     parse_value_to_observed_type,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metrics.util import MAX_DISTINCT_VALUES
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
@@ -375,19 +376,14 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
         else:
             expected_value_set = set(value_set)
 
-        # Limit observed_value to prevent payload size issues (e.g., 413 errors)
-        # Use a reasonable limit that balances usefulness with payload size
-        MAX_OBSERVED_VALUES = 1000
+        # Limit results to prevent payload size issues (e.g., 413 errors)
         observed_value_list = sorted(list(observed_value_set))
-        if len(observed_value_list) > MAX_OBSERVED_VALUES:
-            observed_value_list = observed_value_list[:MAX_OBSERVED_VALUES]
+        if len(observed_value_list) > MAX_DISTINCT_VALUES:
+            observed_value_list = observed_value_list[:MAX_DISTINCT_VALUES]
 
-        # Limit value_counts to prevent payload size issues (e.g., 413 errors)
-        # Use a reasonable limit that balances usefulness with payload size
-        MAX_VALUE_COUNTS = 1000
         value_counts_limited = observed_value_counts
-        if len(observed_value_counts) > MAX_VALUE_COUNTS:
-            value_counts_limited = observed_value_counts.head(MAX_VALUE_COUNTS)
+        if len(observed_value_counts) > MAX_DISTINCT_VALUES:
+            value_counts_limited = observed_value_counts.head(MAX_DISTINCT_VALUES)
 
         return {
             "success": observed_value_set == expected_value_set,
