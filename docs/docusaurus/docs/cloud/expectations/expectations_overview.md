@@ -171,7 +171,7 @@ Every Expectation is assigned a severity level of critical, warning, or info tha
 
 You can use the following to create severity-based responses to results:
 - [Email alerts](/cloud/alerts/manage_email_alerts.md).
-- [Built-in Actions](/cloud/alerts/trigger_actions.md).
+- Built-in [Actions](/cloud/alerts/trigger_actions.md).
 - Pipeline conditioning with the `get_maximum_severity_failure` helper method in the [`ExpectationSuiteValidationResult` class](/reference/api/core//ExpectationSuiteValidationResult_class.mdx).
 
 You decide the severity when you manually create an Expectation. When you have GX Cloud generate Expectations, they default to warning severity, which you can edit later. If an Expectation fails to execute, the failure will be recorded as critical, regardless of the Expectation configuration, to bring your attention to the fact that your data is not being tested as intended.
