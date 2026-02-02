@@ -47,7 +47,7 @@ def _coerce_value_set_to_column_type(column_set: Set[Any], value_set: List[Any])
 
     # If column contains datetime types and value_set contains strings, try to parse
     if isinstance(sample_value, (datetime.date, datetime.datetime)):
-        coerced_set = set()
+        coerced_set: Set[Any] = set()
         for v in value_set:
             if isinstance(v, str):
                 try:
