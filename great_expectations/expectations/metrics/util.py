@@ -93,6 +93,7 @@ except ImportError:
 
 
 MAX_RESULT_RECORDS: Final[int] = 200
+MAX_DISTINCT_VALUES: Final[int] = 500
 
 UnexpectedIndexList: TypeAlias = List[Dict[str, Any]]
 
