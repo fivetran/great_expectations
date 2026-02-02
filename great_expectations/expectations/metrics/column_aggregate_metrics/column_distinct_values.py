@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set
+
+from dateutil.parser import parse
 
 from great_expectations.compatibility.pyspark import (
     functions as F,
@@ -29,6 +32,38 @@ if TYPE_CHECKING:
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
     )
+
+
+def _coerce_value_set_to_column_type(column_set: Set[Any], value_set: List[Any]) -> Set[Any]:
+    """Coerce value_set items to match the type of values in column_set.
+
+    This handles cases like comparing string dates to datetime.date objects.
+    """
+    if not column_set or not value_set:
+        return set(value_set) if value_set else set()
+
+    # Get a sample value from the column to determine its type
+    sample_value = next(iter(column_set))
+
+    # If column contains datetime types and value_set contains strings, try to parse
+    if isinstance(sample_value, (datetime.date, datetime.datetime)):
+        coerced_set = set()
+        for v in value_set:
+            if isinstance(v, str):
+                try:
+                    if isinstance(sample_value, datetime.date) and not isinstance(
+                        sample_value, datetime.datetime
+                    ):
+                        coerced_set.add(parse(v).date())
+                    else:
+                        coerced_set.add(parse(v))
+                except (ValueError, TypeError):
+                    coerced_set.add(v)
+            else:
+                coerced_set.add(v)
+        return coerced_set
+
+    return set(value_set)
 
 
 class ColumnDistinctValues(ColumnAggregateMetricProvider):
@@ -201,7 +236,7 @@ class ColumnDistinctValuesNotInSetCount(ColumnAggregateMetricProvider):
     @column_aggregate_value(engine=PandasExecutionEngine)
     def _pandas(cls, column: pd.Series, value_set: List[Any], **kwargs) -> int:
         column_set = set(column.dropna().unique())
-        expected_set = set(value_set) if value_set else set()
+        expected_set = _coerce_value_set_to_column_type(column_set, value_set)
         return len(column_set - expected_set)
 
     @metric_value(engine=SqlAlchemyExecutionEngine)
@@ -302,8 +337,13 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
         cls, column: pd.Series, value_set: List[Any], limit: int = 20, **kwargs
     ) -> List[Any]:
         column_set = set(column.dropna().unique())
-        expected_set = set(value_set) if value_set else set()
-        not_in_set = sorted(list(column_set - expected_set))
+        expected_set = _coerce_value_set_to_column_type(column_set, value_set)
+        not_in_set = list(column_set - expected_set)
+        # Sort for deterministic results, handling mixed types gracefully
+        try:
+            not_in_set = sorted(not_in_set)
+        except TypeError:
+            pass  # Mixed types can't be sorted, return unsorted
         return not_in_set[:limit]
 
     @metric_value(engine=SqlAlchemyExecutionEngine)
@@ -419,7 +459,8 @@ class ColumnDistinctValuesMissingFromSetCount(ColumnAggregateMetricProvider):
     @column_aggregate_value(engine=PandasExecutionEngine)
     def _pandas(cls, column: pd.Series, value_set: List[Any], **kwargs) -> int:
         column_set = set(column.dropna().unique())
-        missing = [v for v in value_set if v not in column_set]
+        expected_set = _coerce_value_set_to_column_type(column_set, value_set)
+        missing = expected_set - column_set
         return len(missing)
 
     @metric_value(engine=SqlAlchemyExecutionEngine)
@@ -515,7 +556,8 @@ class ColumnDistinctValuesMissingFromSet(ColumnAggregateMetricProvider):
         cls, column: pd.Series, value_set: List[Any], limit: int = 20, **kwargs
     ) -> List[Any]:
         column_set = set(column.dropna().unique())
-        missing = [v for v in value_set if v not in column_set]
+        expected_set = _coerce_value_set_to_column_type(column_set, value_set)
+        missing = list(expected_set - column_set)
         return missing[:limit]
 
     @metric_value(engine=SqlAlchemyExecutionEngine)
