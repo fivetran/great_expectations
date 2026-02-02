@@ -3,6 +3,8 @@ from .column_distinct_values import (
     ColumnDistinctValues,
     ColumnDistinctValuesCount,
     ColumnDistinctValuesCountUnderThreshold,
+    ColumnDistinctValuesMissingFromSet,
+    ColumnDistinctValuesMissingFromSetCount,
     ColumnDistinctValuesNotInSet,
     ColumnDistinctValuesNotInSetCount,
 )

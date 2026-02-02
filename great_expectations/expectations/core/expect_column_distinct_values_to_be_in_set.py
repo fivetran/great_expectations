@@ -2,14 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Union
 
-import altair as alt
-import pandas as pd
-
 from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     _style_row_condition,
-    parse_value_to_observed_type,
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
@@ -53,6 +50,7 @@ if TYPE_CHECKING:
         ExpectationConfiguration,
     )
     from great_expectations.render.renderer_configuration import AddParamArgs
+    from great_expectations.validator.validation_dependencies import ValidationDependencies
 
 EXPECTATION_SHORT_DESCRIPTION = (
     "Expect the set of distinct column values to be contained by a given set."
@@ -231,7 +229,10 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
     _library_metadata = library_metadata
 
     # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
-    metric_dependencies = ("column.value_counts",)
+    metric_dependencies = (
+        "column.distinct_values.not_in_set.count",
+        "column.distinct_values.not_in_set",
+    )
     success_keys = ("value_set",)
 
     args_keys = (
@@ -277,6 +278,35 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         if not value_set:
             raise ValueError("value_set must be a non-empty set-like object.")  # noqa: TRY003 # Error messaged gets swallowed by Pydantic
         return value_set
+
+    @override
+    def get_validation_dependencies(
+        self,
+        execution_engine: Optional[ExecutionEngine] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> ValidationDependencies:
+        validation_dependencies: ValidationDependencies = super().get_validation_dependencies(
+            execution_engine, runtime_configuration
+        )
+        configuration = self.configuration
+        value_set = configuration.kwargs.get("value_set", [])
+
+        # Pass value_set to the not_in_set.count metric
+        count_metric = validation_dependencies.get_metric_configuration(
+            metric_name="column.distinct_values.not_in_set.count"
+        )
+        if count_metric:
+            count_metric.metric_value_kwargs["value_set"] = value_set
+
+        # Pass value_set and limit to the not_in_set metric
+        values_metric = validation_dependencies.get_metric_configuration(
+            metric_name="column.distinct_values.not_in_set"
+        )
+        if values_metric:
+            values_metric.metric_value_kwargs["value_set"] = value_set
+            values_metric.metric_value_kwargs["limit"] = MAX_DISTINCT_VALUES
+
+        return validation_dependencies
 
     @classmethod
     def _prescriptive_template(
@@ -392,69 +422,9 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
     ) -> Optional[RenderedGraphContent]:
-        assert result, "Must pass in result."
-        value_count_dicts = result.result["details"]["value_counts"]
-        if isinstance(value_count_dicts, pd.Series):
-            values = value_count_dicts.index.tolist()
-            counts = value_count_dicts.tolist()
-        else:
-            values = [value_count_dict["value"] for value_count_dict in value_count_dicts]
-            counts = [value_count_dict["count"] for value_count_dict in value_count_dicts]
-
-        df = pd.DataFrame(
-            {
-                "value": values,
-                "count": counts,
-            }
-        )
-
-        if len(values) > 60:  # noqa: PLR2004 # FIXME CoP
-            return None
-        else:
-            chart_pixel_width = (len(values) / 60.0) * 500
-            chart_pixel_width = max(chart_pixel_width, 250)
-            chart_container_col_width = round((len(values) / 60.0) * 6)
-            if chart_container_col_width < 4:  # noqa: PLR2004 # FIXME CoP
-                chart_container_col_width = 4
-            elif chart_container_col_width >= 5:  # noqa: PLR2004 # FIXME CoP
-                chart_container_col_width = 6
-            elif chart_container_col_width >= 4:  # noqa: PLR2004 # FIXME CoP
-                chart_container_col_width = 5
-
-        mark_bar_args = {}
-        if len(values) == 1:
-            mark_bar_args["size"] = 20
-
-        bars = (
-            alt.Chart(df)
-            .mark_bar(**mark_bar_args)
-            .encode(y="count:Q", x="value:O", tooltip=["value", "count"])
-            .properties(height=400, width=chart_pixel_width, autosize="fit")
-        )
-
-        chart = bars.to_json()
-
-        new_block = RenderedGraphContent(
-            **{
-                "content_block_type": "graph",
-                "header": RenderedStringTemplateContent(
-                    **{
-                        "content_block_type": "string_template",
-                        "string_template": {
-                            "template": "Value Counts",
-                            "tooltip": {"content": "expect_column_distinct_values_to_be_in_set"},
-                            "tag": "h6",
-                        },
-                    }
-                ),
-                "graph": chart,
-                "styling": {
-                    "classes": [f"col-{chart_container_col_width!s}", "mt-1"],
-                },
-            }
-        )
-
-        return new_block
+        # This renderer is no longer supported since we no longer fetch all value_counts
+        # The expectation now only returns unexpected values, not full value counts
+        return None
 
     def _validate(
         self,
@@ -462,38 +432,22 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         runtime_configuration: Optional[dict] = None,
         execution_engine: Optional[ExecutionEngine] = None,
     ):
-        observed_value_counts = metrics.get("column.value_counts")
-        observed_value_set = set(observed_value_counts.index)
-        value_set = self._get_success_kwargs().get("value_set") or []
+        # Get count of violations (values not in set) - computed in database
+        unexpected_count = metrics.get("column.distinct_values.not_in_set.count", 0)
 
-        # Try to coerce string values to match the type of observed values
-        if observed_value_set and value_set:
-            first_observed = next(iter(observed_value_set))
-            expected_value_set = {
-                parse_value_to_observed_type(first_observed, value) for value in value_set
-            }
-        else:
-            expected_value_set = set(value_set)
+        # Get sample of violations (values not in set) - limited by SQL LIMIT
+        unexpected_values = metrics.get("column.distinct_values.not_in_set", [])
 
-        if not expected_value_set:
-            success = True
-        else:
-            success = observed_value_set.issubset(expected_value_set)
-
-        # Limit results to prevent payload size issues (e.g., 413 errors)
-        observed_value_list = sorted(list(observed_value_set))
-        if len(observed_value_list) > MAX_DISTINCT_VALUES:
-            observed_value_list = observed_value_list[:MAX_DISTINCT_VALUES]
-
-        value_counts_limited = observed_value_counts
-        if len(observed_value_counts) > MAX_DISTINCT_VALUES:
-            value_counts_limited = observed_value_counts.head(MAX_DISTINCT_VALUES)
+        # Success if no values exist outside the expected set
+        success = unexpected_count == 0
 
         return {
             "success": success,
             "result": {
-                "observed_value": observed_value_list,
-                "details": {"value_counts": value_counts_limited},
+                "observed_value": unexpected_values,
+                "details": {
+                    "unexpected_count": unexpected_count,
+                },
             },
         }
 
@@ -513,8 +467,6 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         ov_param_prefix = "ov__"
         ov_param_name = "observed_value"
 
-        value_set = set(renderer_configuration.kwargs.get("value_set", []))
-
         renderer_configuration.add_param(
             name=ov_param_name,
             param_type=RendererValueType.ARRAY,
@@ -530,17 +482,10 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         for name, schema in renderer_configuration.params:
             if not name.startswith(ov_param_prefix):
                 continue
-            # try to coerce value_set to a type that can be compared with schema.value
-            coerced_value_set = {
-                parse_value_to_observed_type(observed_value=schema.value, value=value)
-                for value in value_set
-            }
-            render_state = (
-                ObservedValueRenderState.EXPECTED.value
-                if schema.value in coerced_value_set
-                else ObservedValueRenderState.UNEXPECTED.value
-            )
-            renderer_configuration.params.__dict__[name].render_state = render_state
+            # All values in observed_value are now unexpected (values not in expected set)
+            renderer_configuration.params.__dict__[
+                name
+            ].render_state = ObservedValueRenderState.UNEXPECTED.value
             template_str_list.append(f"${name}")
 
         renderer_configuration.template_str = " ".join(template_str_list)
