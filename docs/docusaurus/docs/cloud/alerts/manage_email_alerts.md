@@ -6,7 +6,7 @@ description: Create and manage email alerts in GX Cloud.
 
 Keep stakeholders informed about the health of the Data Assets and Expectations that they care about by configuring alerts in GX Cloud.
 
-Alerts are configured at the Data Asset level. An alert can be configured to notify about all Expectation failures or only failures of certain [severities](/cloud/expectations/expectations_overview.md#failure-severity). To keep your email alerts secure,  your GX Cloud organization has an allowlist of email domains that all alert recipient email addresses must belong to. By default, this includes the email domain of the Organization Owner who created the organization and domains for sending emails to the following third-party services: [Slack](https://slack.com/help/articles/206819278-Send-emails-to-Slack), [MS Teams](https://support.microsoft.com/en-us/office/send-an-email-to-a-channel-in-microsoft-teams-d91db004-d9d7-4a47-82e6-fb1b16dfd51e), and [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide).
+Alerts are configured at the Data Asset level. An alert can be configured to notify about all Expectation failures or only failures of certain [severities](/cloud/expectations/expectations_overview.md#failure-severity). To keep your email alerts secure,  your GX Cloud organization has an allowlist of email domains that all alert recipient email addresses must belong to. By default, this includes the email domain of the Organization Owner who created the organization and domains for sending emails to the following third-party services: [Slack](https://slack.com/help/articles/206819278-Send-emails-to-Slack), [Microsoft Teams](https://support.microsoft.com/en-us/office/send-an-email-to-a-channel-in-microsoft-teams-d91db004-d9d7-4a47-82e6-fb1b16dfd51e), and [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide).
 
 ## Create an email alert
 
@@ -19,7 +19,7 @@ Alerts are configured at the Data Asset level. An alert can be configured to not
 7. Under **Recipients**, click **+** and enter an email address for the alert to send notifications to. Note that the domain of the email address must belong to your organization’s [email domain allowlist](#update-your-organizations-email-domain-allowlist). By default, the following third-party domains are allowed for integrations with third-party services. (specific domains pending confirmation in question number 11 above)
 
    - [Slack](https://slack.com/help/articles/206819278-Send-emails-to-Slack) - `*.slack.com`
-   - [MS Teams](https://support.microsoft.com/en-us/office/send-an-email-to-a-channel-in-microsoft-teams-d91db004-d9d7-4a47-82e6-fb1b16dfd51e) - `*.teams.ms`
+   - [Microsoft Teams](https://support.microsoft.com/en-us/office/send-an-email-to-a-channel-in-microsoft-teams-d91db004-d9d7-4a47-82e6-fb1b16dfd51e) - `*.teams.ms`
    - [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide) - `*.pagerduty.com`
 
 
