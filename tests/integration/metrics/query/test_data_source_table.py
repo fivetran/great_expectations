@@ -2,7 +2,7 @@ from typing import Sequence
 
 import pandas as pd
 
-from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
+from great_expectations.constants import MAX_RESULT_RECORDS
 from great_expectations.metrics import QueryDataSourceTable
 from great_expectations.metrics.query.data_source_table import QueryDataSourceTableResult
 from tests.integration.conftest import (
