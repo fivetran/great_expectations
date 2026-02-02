@@ -2574,19 +2574,15 @@ def test_expect_column_most_common_value_to_be_in_set_atomic_diagnostic_observed
     "description, value_set, observed_value, expected_result",
     [
         (
-            "complete set",
+            "no violations (all values in set)",
             ["a", "b", "c"],
-            ["a", "b", "c"],
-            [
-                ("ov__0", "a", "expected"),
-                ("ov__1", "b", "expected"),
-                ("ov__2", "c", "expected"),
-            ],
+            [],  # observed_value now contains only unexpected values
+            [],
         ),
         (
-            "empty input",
+            "all unexpected (empty value_set)",
             [],
-            ["a", "b", "c"],
+            ["a", "b", "c"],  # all values are unexpected
             [
                 ("ov__0", "a", "unexpected"),
                 ("ov__1", "b", "unexpected"),
@@ -2594,35 +2590,24 @@ def test_expect_column_most_common_value_to_be_in_set_atomic_diagnostic_observed
             ],
         ),
         (
-            "empty observed",
+            "empty column",
             ["a", "b", "c"],
+            [],  # no values to be unexpected
+            [],
+        ),
+        (
+            "empty input and column",
+            [],
             [],
             [],
         ),
         (
-            "empty input and observed",
-            [],
-            [],
-            [],
-        ),
-        (
-            "subset observed",
+            "some unexpected values",
             ["a", "b", "c"],
-            ["a", "b"],
+            ["d", "e"],  # only unexpected values
             [
-                ("ov__0", "a", "expected"),
-                ("ov__1", "b", "expected"),
-            ],
-        ),
-        (
-            "superset observed",
-            ["a", "b", "c"],
-            ["a", "b", "c", "d"],
-            [
-                ("ov__0", "a", "expected"),
-                ("ov__1", "b", "expected"),
-                ("ov__2", "c", "expected"),
-                ("ov__3", "d", "unexpected"),
+                ("ov__0", "d", "unexpected"),
+                ("ov__1", "e", "unexpected"),
             ],
         ),
     ],
