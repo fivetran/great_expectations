@@ -45,7 +45,7 @@ if TYPE_CHECKING:
         ExpectationConfiguration,
     )
     from great_expectations.render.renderer_configuration import AddParamArgs
-    from great_expectations.validator.validation_dependencies import ValidationDependencies
+    from great_expectations.validator.validator import ValidationDependencies
 
 EXPECTATION_SHORT_DESCRIPTION = "Expect the set of distinct column values to contain a given set."
 SUPPORTED_DATA_SOURCES = [
