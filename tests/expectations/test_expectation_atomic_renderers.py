@@ -2785,9 +2785,9 @@ def _create_result_details_from_expected_result(
             [],
             {"unexpected": ["a", "b", "c"], "missing": []},
             [
-                ("unexp__0", "a", "unexpected"),
-                ("unexp__1", "b", "unexpected"),
-                ("unexp__2", "c", "unexpected"),
+                ("ov__0", "a", "unexpected"),
+                ("ov__1", "b", "unexpected"),
+                ("ov__2", "c", "unexpected"),
             ],
         ),
         (
@@ -2795,9 +2795,9 @@ def _create_result_details_from_expected_result(
             ["a", "b", "c"],
             {"unexpected": [], "missing": ["a", "b", "c"]},
             [
-                ("miss__0", "a", "missing"),
-                ("miss__1", "b", "missing"),
-                ("miss__2", "c", "missing"),
+                ("exp__0", "a", "missing"),
+                ("exp__1", "b", "missing"),
+                ("exp__2", "c", "missing"),
             ],
         ),
         (
@@ -2811,7 +2811,7 @@ def _create_result_details_from_expected_result(
             ["a", "b", "c"],
             {"unexpected": [], "missing": ["c"]},
             [
-                ("miss__0", "c", "missing"),
+                ("exp__0", "c", "missing"),
             ],
         ),
         (
@@ -2819,7 +2819,7 @@ def _create_result_details_from_expected_result(
             ["a", "b", "c"],
             {"unexpected": ["d"], "missing": []},
             [
-                ("unexp__0", "d", "unexpected"),
+                ("ov__0", "d", "unexpected"),
             ],
         ),
         (
@@ -2827,9 +2827,9 @@ def _create_result_details_from_expected_result(
             ["a", "b", "c"],
             {"unexpected": ["d", "e"], "missing": ["c"]},
             [
-                ("unexp__0", "d", "unexpected"),
-                ("unexp__1", "e", "unexpected"),
-                ("miss__0", "c", "missing"),
+                ("ov__0", "d", "unexpected"),
+                ("ov__1", "e", "unexpected"),
+                ("exp__0", "c", "missing"),
             ],
         ),
     ],

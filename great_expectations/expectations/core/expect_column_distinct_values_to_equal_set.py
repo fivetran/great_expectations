@@ -449,10 +449,11 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
             result=result,
             runtime_configuration=runtime_configuration,
         )
-        unexpected_param_prefix = "unexp__"
-        unexpected_param_name = "unexpected_values"
-        missing_param_prefix = "miss__"
-        missing_param_name = "missing_values"
+        # Use original prefixes that frontend expects
+        ov_param_prefix = "ov__"  # for unexpected values (observed but not expected)
+        ov_param_name = "observed_value"
+        exp_param_prefix = "exp__"  # for missing values (expected but not observed)
+        exp_param_name = "expected_value"
 
         # observed_value now contains {"unexpected": [...], "missing": [...]}
         observed_value = result.get("result", {}).get("observed_value", {}) if result else {}
@@ -463,43 +464,43 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
             observed_value.get("missing", []) if isinstance(observed_value, dict) else []
         )
 
-        # Add unexpected values (values in column but NOT in expected set)
+        # Add unexpected values (values in column but NOT in expected set) using ov__ prefix
         renderer_configuration.add_param(
-            name=unexpected_param_name,
+            name=ov_param_name,
             param_type=RendererValueType.ARRAY,
             value=unexpected_values,
         )
         renderer_configuration = cls._add_array_params(
-            array_param_name=unexpected_param_name,
-            param_prefix=unexpected_param_prefix,
+            array_param_name=ov_param_name,
+            param_prefix=ov_param_prefix,
             renderer_configuration=renderer_configuration,
         )
 
-        # Add missing values (values in expected set but NOT in column)
+        # Add missing values (values in expected set but NOT in column) using exp__ prefix
         renderer_configuration.add_param(
-            name=missing_param_name,
+            name=exp_param_name,
             param_type=RendererValueType.ARRAY,
             value=missing_values,
         )
         renderer_configuration = cls._add_array_params(
-            array_param_name=missing_param_name,
-            param_prefix=missing_param_prefix,
+            array_param_name=exp_param_name,
+            param_prefix=exp_param_prefix,
             renderer_configuration=renderer_configuration,
         )
 
         template_str_list = []
 
-        # All unexpected values get UNEXPECTED render state
+        # All unexpected values (ov__) get UNEXPECTED render state
         for name, schema in renderer_configuration.params:
-            if name.startswith(unexpected_param_prefix):
+            if name.startswith(ov_param_prefix):
                 renderer_configuration.params.__dict__[
                     name
                 ].render_state = ObservedValueRenderState.UNEXPECTED.value
                 template_str_list.append(f"${name}")
 
-        # All missing values get MISSING render state
+        # All missing values (exp__) get MISSING render state
         for name, schema in renderer_configuration.params:
-            if name.startswith(missing_param_prefix):
+            if name.startswith(exp_param_prefix):
                 renderer_configuration.params.__dict__[
                     name
                 ].render_state = ObservedValueRenderState.MISSING.value
