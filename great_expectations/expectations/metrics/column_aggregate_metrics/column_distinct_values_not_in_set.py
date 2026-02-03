@@ -150,6 +150,9 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
     def _pandas(
         cls, column: pd.Series, value_set: List[Any], limit: int = 20, **kwargs
     ) -> List[Any]:
+        # Handle None being passed explicitly
+        if limit is None:
+            limit = 20
         column_set = set(column.dropna().unique())
         expected_set = _coerce_value_set_to_column_type(column_set, value_set)
         not_in_set = list(column_set - expected_set)
@@ -170,7 +173,7 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
     ) -> List[Any]:
         """Return sample of distinct values in column that are NOT in the expected set."""
         value_set = _coerce_value_set_for_sql(metric_value_kwargs.get("value_set", []))
-        limit = metric_value_kwargs.get("limit", 20)
+        limit = metric_value_kwargs.get("limit") or 20
 
         selectable: sqlalchemy.Selectable
         accessor_domain_kwargs: Dict[str, str]
@@ -233,7 +236,7 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
     ) -> List[Any]:
         """Return sample of distinct values in column that are NOT in the expected set."""
         value_set = metric_value_kwargs.get("value_set", [])
-        limit = metric_value_kwargs.get("limit", 20)
+        limit = metric_value_kwargs.get("limit") or 20
 
         df: pyspark.DataFrame
         accessor_domain_kwargs: Dict[str, str]
