@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Union
 
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.constants import MAX_DISTINCT_VALUES
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     _style_row_condition,
@@ -45,7 +44,6 @@ if TYPE_CHECKING:
         ExpectationConfiguration,
     )
     from great_expectations.render.renderer_configuration import AddParamArgs
-    from great_expectations.validator.validator import ValidationDependencies
 
 EXPECTATION_SHORT_DESCRIPTION = "Expect the set of distinct column values to contain a given set."
 SUPPORTED_DATA_SOURCES = [
@@ -262,35 +260,6 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
                     },
                 }
             )
-
-    @override
-    def get_validation_dependencies(
-        self,
-        execution_engine: Optional[ExecutionEngine] = None,
-        runtime_configuration: Optional[dict] = None,
-    ) -> ValidationDependencies:
-        validation_dependencies: ValidationDependencies = super().get_validation_dependencies(
-            execution_engine, runtime_configuration
-        )
-        configuration = self.configuration
-        value_set = configuration.kwargs.get("value_set", [])
-
-        # Pass value_set to the missing_from_column.count metric
-        count_metric = validation_dependencies.get_metric_configuration(
-            metric_name="column.distinct_values.missing_from_column.count"
-        )
-        if count_metric:
-            count_metric.metric_value_kwargs["value_set"] = value_set
-
-        # Pass value_set and limit to the missing_from_column metric
-        values_metric = validation_dependencies.get_metric_configuration(
-            metric_name="column.distinct_values.missing_from_column"
-        )
-        if values_metric:
-            values_metric.metric_value_kwargs["value_set"] = value_set
-            values_metric.metric_value_kwargs["limit"] = MAX_DISTINCT_VALUES
-
-        return validation_dependencies
 
     @override
     @classmethod
