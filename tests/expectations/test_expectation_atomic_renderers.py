@@ -2772,18 +2772,20 @@ def _create_result_details_from_expected_result(
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
-    "description, value_set, observed_value, expected_result",
+    "description, value_set, partial_unexpected_list, partial_missing_list, expected_result",
     [
         (
             "complete set (no violations)",
             ["a", "b", "c"],
-            {"unexpected": [], "missing": []},
+            [],
+            [],
             [],
         ),
         (
             "all unexpected (empty value_set)",
             [],
-            {"unexpected": ["a", "b", "c"], "missing": []},
+            ["a", "b", "c"],
+            [],
             [
                 ("ov__0", "a", "unexpected"),
                 ("ov__1", "b", "unexpected"),
@@ -2793,7 +2795,8 @@ def _create_result_details_from_expected_result(
         (
             "all missing (empty column)",
             ["a", "b", "c"],
-            {"unexpected": [], "missing": ["a", "b", "c"]},
+            [],
+            ["a", "b", "c"],
             [
                 ("exp__0", "a", "missing"),
                 ("exp__1", "b", "missing"),
@@ -2803,13 +2806,15 @@ def _create_result_details_from_expected_result(
         (
             "empty input and observed",
             [],
-            {"unexpected": [], "missing": []},
+            [],
+            [],
             [],
         ),
         (
             "some missing",
             ["a", "b", "c"],
-            {"unexpected": [], "missing": ["c"]},
+            [],
+            ["c"],
             [
                 ("exp__0", "c", "missing"),
             ],
@@ -2817,7 +2822,8 @@ def _create_result_details_from_expected_result(
         (
             "some unexpected",
             ["a", "b", "c"],
-            {"unexpected": ["d"], "missing": []},
+            ["d"],
+            [],
             [
                 ("ov__0", "d", "unexpected"),
             ],
@@ -2825,7 +2831,8 @@ def _create_result_details_from_expected_result(
         (
             "both unexpected and missing",
             ["a", "b", "c"],
-            {"unexpected": ["d", "e"], "missing": ["c"]},
+            ["d", "e"],
+            ["c"],
             [
                 ("ov__0", "d", "unexpected"),
                 ("ov__1", "e", "unexpected"),
@@ -2837,7 +2844,8 @@ def _create_result_details_from_expected_result(
 def test_expect_column_distinct_values_to_equal_set_atomic_diagnostic_observed_value(
     description,
     value_set,
-    observed_value,
+    partial_unexpected_list,
+    partial_missing_list,
     expected_result,
     get_diagnostic_rendered_content,
 ):
@@ -2847,7 +2855,10 @@ def test_expect_column_distinct_values_to_equal_set_atomic_diagnostic_observed_v
             type="expect_column_distinct_values_to_equal_set",
             kwargs={"value_set": value_set},
         ),
-        "result": {"observed_value": observed_value},
+        "result": {
+            "partial_unexpected_list": partial_unexpected_list,
+            "partial_missing_list": partial_missing_list,
+        },
     }
 
     expected_template_string = " ".join([f"${name}" for name, _, _ in expected_result])

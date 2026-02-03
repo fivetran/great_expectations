@@ -380,14 +380,11 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
         return {
             "success": success,
             "result": {
-                "observed_value": {
-                    "unexpected": unexpected_values,
-                    "missing": missing_values,
-                },
-                "details": {
-                    "unexpected_count": unexpected_count,
-                    "missing_count": missing_count,
-                },
+                "observed_value": None,
+                "unexpected_count": unexpected_count,
+                "partial_unexpected_list": unexpected_values,
+                "missing_count": missing_count,
+                "partial_missing_list": missing_values,
             },
         }
 
@@ -411,14 +408,10 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
         exp_param_prefix = "exp__"  # for missing values (expected but not observed)
         exp_param_name = "expected_value"
 
-        # observed_value now contains {"unexpected": [...], "missing": [...]}
-        observed_value = result.get("result", {}).get("observed_value", {}) if result else {}
-        unexpected_values = (
-            observed_value.get("unexpected", []) if isinstance(observed_value, dict) else []
-        )
-        missing_values = (
-            observed_value.get("missing", []) if isinstance(observed_value, dict) else []
-        )
+        # Get unexpected and missing values from result
+        result_dict = result.get("result", {}) if result else {}
+        unexpected_values = result_dict.get("partial_unexpected_list", [])
+        missing_values = result_dict.get("partial_missing_list", [])
 
         # Add unexpected values (values in column but NOT in expected set) using ov__ prefix
         renderer_configuration.add_param(
