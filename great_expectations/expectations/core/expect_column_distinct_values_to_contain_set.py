@@ -381,10 +381,9 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         return {
             "success": success,
             "result": {
-                "observed_value": missing_values,
-                "details": {
-                    "missing_count": missing_count,
-                },
+                "observed_value": None,
+                "missing_count": missing_count,
+                "partial_missing_list": missing_values,
             },
         }
 
@@ -405,11 +404,12 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         ov_param_prefix = "ov__"
         ov_param_name = "observed_value"
 
-        # observed_value now contains missing values (expected values not found in column)
+        # Get missing values from partial_missing_list
+        missing_values = result.get("result", {}).get("partial_missing_list", []) if result else []
         renderer_configuration.add_param(
             name=ov_param_name,
             param_type=RendererValueType.ARRAY,
-            value=result.get("result", {}).get("observed_value", []) if result else [],
+            value=missing_values,
         )
         renderer_configuration = cls._add_array_params(
             array_param_name=ov_param_name,

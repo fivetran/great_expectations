@@ -2712,7 +2712,7 @@ def test_expect_column_distinct_values_to_contain_set_atomic_diagnostic_observed
             type="expect_column_distinct_values_to_contain_set",
             kwargs={"value_set": value_set},
         ),
-        "result": {"observed_value": observed_value},
+        "result": {"partial_missing_list": observed_value},
     }
 
     expected_template_string = " ".join([f"${name}" for name, _, _ in expected_result])
