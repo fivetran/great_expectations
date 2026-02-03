@@ -133,7 +133,7 @@ Follow the steps below to configure an Expectation and add it to an Expectation 
       - `unexpected_rows_expectation`
    </details>
 
-4. Create the Expectation.
+5. Create the Expectation.
   
    Using the Expectation class you picked and the parameters you determined when referencing the Expectation Gallery, you can create your Expectation.
 
@@ -142,7 +142,7 @@ Follow the steps below to configure an Expectation and add it to an Expectation 
       ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - preset expectation"
       ```
 
-5. Create or get an Expectation Suite.
+6. Create or get an Expectation Suite.
 
    An Expectation Suite is used to group Expectations. All Expectations need to be added to an Expectation Suite before they can be associated with a Data Asset via a Validation Definition. All of the Expectations that are grouped within an Expectation Suite will be evaluated together whenever the Validation Definition runs.
 
@@ -155,14 +155,12 @@ Follow the steps below to configure an Expectation and add it to an Expectation 
       ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - get expectation suite"
       ```
 
-6. Add the Expectation to the Expectation Suite.
+7. Add the Expectation to the Expectation Suite.
 
       ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - add expectation to suite"
       ```
    
-### Next Steps
-
-   If you have created a new Expectation Suite, you will need to associate it to a Data Asset before you can run Validations. Visit [Run Validations](/docs/cloud/validations/run_validations/#api-managed-expectations-entire-asset) to learn how to do so.
+8.  If your Expectation Suite is not yet associated with a Data Asset through a Validation Definition, you must set up this relationship before you can validate your Expectations. Visit [Run Validations](/docs/cloud/validations/run_validations/#api-managed-expectations-entire-asset) to learn how to do so.
 
 </TabItem>
 </Tabs>
