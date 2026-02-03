@@ -220,8 +220,8 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
 
     # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
     metric_dependencies = (
-        "column.distinct_values.missing_from_set.count",
-        "column.distinct_values.missing_from_set",
+        "column.distinct_values.missing_from_column.count",
+        "column.distinct_values.missing_from_column",
     )
     success_keys = ("value_set",)
 
@@ -275,16 +275,16 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         configuration = self.configuration
         value_set = configuration.kwargs.get("value_set", [])
 
-        # Pass value_set to the missing_from_set.count metric
+        # Pass value_set to the missing_from_column.count metric
         count_metric = validation_dependencies.get_metric_configuration(
-            metric_name="column.distinct_values.missing_from_set.count"
+            metric_name="column.distinct_values.missing_from_column.count"
         )
         if count_metric:
             count_metric.metric_value_kwargs["value_set"] = value_set
 
-        # Pass value_set and limit to the missing_from_set metric
+        # Pass value_set and limit to the missing_from_column metric
         values_metric = validation_dependencies.get_metric_configuration(
-            metric_name="column.distinct_values.missing_from_set"
+            metric_name="column.distinct_values.missing_from_column"
         )
         if values_metric:
             values_metric.metric_value_kwargs["value_set"] = value_set
@@ -401,10 +401,10 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         execution_engine: Optional[ExecutionEngine] = None,
     ):
         # Get count of missing values (expected values not in column) - computed in database
-        missing_count = metrics.get("column.distinct_values.missing_from_set.count", 0)
+        missing_count = metrics.get("column.distinct_values.missing_from_column.count", 0)
 
         # Get sample of missing values (expected values not in column) - limited by SQL LIMIT
-        missing_values = metrics.get("column.distinct_values.missing_from_set", [])
+        missing_values = metrics.get("column.distinct_values.missing_from_column", [])
 
         # Success if all expected values exist in the column
         success = missing_count == 0
