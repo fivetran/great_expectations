@@ -412,10 +412,9 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         return {
             "success": success,
             "result": {
-                "observed_value": unexpected_values,
-                "details": {
-                    "unexpected_count": unexpected_count,
-                },
+                "observed_value": None,
+                "unexpected_count": unexpected_count,
+                "partial_unexpected_list": unexpected_values,
             },
         }
 
@@ -435,10 +434,14 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         ov_param_prefix = "ov__"
         ov_param_name = "observed_value"
 
+        # Get unexpected values from partial_unexpected_list
+        unexpected_values = (
+            result.get("result", {}).get("partial_unexpected_list", []) if result else []
+        )
         renderer_configuration.add_param(
             name=ov_param_name,
             param_type=RendererValueType.ARRAY,
-            value=result.get("result", {}).get("observed_value"),
+            value=unexpected_values,
         )
         renderer_configuration = cls._add_array_params(
             array_param_name=ov_param_name,
