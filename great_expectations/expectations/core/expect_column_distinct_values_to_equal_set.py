@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.constants import MAX_DISTINCT_VALUES
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     _style_row_condition,
@@ -45,7 +44,6 @@ if TYPE_CHECKING:
         ExpectationConfiguration,
     )
     from great_expectations.render.renderer_configuration import AddParamArgs
-    from great_expectations.validator.validator import ValidationDependencies
 
 EXPECTATION_SHORT_DESCRIPTION = "Expect the set of distinct column values to equal a given set."
 SUPPORTED_DATA_SOURCES = [
@@ -263,48 +261,6 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
                     },
                 }
             )
-
-    @override
-    def get_validation_dependencies(
-        self,
-        execution_engine: Optional[ExecutionEngine] = None,
-        runtime_configuration: Optional[dict] = None,
-    ) -> ValidationDependencies:
-        validation_dependencies: ValidationDependencies = super().get_validation_dependencies(
-            execution_engine, runtime_configuration
-        )
-        configuration = self.configuration
-        value_set = configuration.kwargs.get("value_set", [])
-
-        # Pass value_set to the not_in_set metrics (values in column but NOT in expected set)
-        not_in_set_count_metric = validation_dependencies.get_metric_configuration(
-            metric_name="column.distinct_values.not_in_set.count"
-        )
-        if not_in_set_count_metric:
-            not_in_set_count_metric.metric_value_kwargs["value_set"] = value_set
-
-        not_in_set_metric = validation_dependencies.get_metric_configuration(
-            metric_name="column.distinct_values.not_in_set"
-        )
-        if not_in_set_metric:
-            not_in_set_metric.metric_value_kwargs["value_set"] = value_set
-            not_in_set_metric.metric_value_kwargs["limit"] = MAX_DISTINCT_VALUES
-
-        # Pass value_set to the missing_from_column metrics (values expected but NOT in column)
-        missing_count_metric = validation_dependencies.get_metric_configuration(
-            metric_name="column.distinct_values.missing_from_column.count"
-        )
-        if missing_count_metric:
-            missing_count_metric.metric_value_kwargs["value_set"] = value_set
-
-        missing_metric = validation_dependencies.get_metric_configuration(
-            metric_name="column.distinct_values.missing_from_column"
-        )
-        if missing_metric:
-            missing_metric.metric_value_kwargs["value_set"] = value_set
-            missing_metric.metric_value_kwargs["limit"] = MAX_DISTINCT_VALUES
-
-        return validation_dependencies
 
     @override
     @classmethod
