@@ -395,7 +395,7 @@ example_scripts_for_define_expectations = [
         # To test, run:
         # pytest --docs-tests -k "doc_example_create_an_expectation" tests/integration/test_script_runner.py
         name="doc_example_create_an_expectation_for_cloud",
-        user_flow_script="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py",
+        user_flow_script="docs/docusaurus/docs/cloud/expectations/examples/doc_example_create_an_expectation_for_cloud.py",
         # data_context_dir="",
         backend_dependencies=[BackendDependencies.CLOUD],
     ),
