@@ -23,10 +23,9 @@ def test_success_complete_results(batch_for_datasource: Batch) -> None:
     result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
     assert result.success
     assert result.to_json_dict()["result"] == {
-        "details": {
-            "missing_count": 0,
-        },
-        "observed_value": [],
+        "observed_value": None,
+        "missing_count": 0,
+        "partial_missing_list": [],
     }
 
 
