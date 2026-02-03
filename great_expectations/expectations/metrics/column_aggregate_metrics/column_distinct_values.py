@@ -117,61 +117,6 @@ def _coerce_value_set_for_sql(value_set: List[ScalarValue]) -> List[ScalarValue]
     return coerced
 
 
-def _coerce_value_set_to_column_type(column_set: Set[Any], value_set: List[Any]) -> Set[Any]:
-    """Coerce value_set items to match the type of values in column_set.
-
-    This handles cases like comparing string dates to datetime.date objects.
-    Used by Pandas metrics where we have access to actual column values.
-    """
-    if not column_set or not value_set:
-        return set(value_set) if value_set else set()
-
-    # Get a sample value from the column to determine its type
-    sample_value = next(iter(column_set))
-
-    # If column contains datetime types and value_set contains strings, try to parse
-    if isinstance(sample_value, (datetime.date, datetime.datetime)):
-        coerced_set: Set[Any] = set()
-        for v in value_set:
-            if isinstance(v, str):
-                try:
-                    if isinstance(sample_value, datetime.date) and not isinstance(
-                        sample_value, datetime.datetime
-                    ):
-                        coerced_set.add(parse(v).date())
-                    else:
-                        coerced_set.add(parse(v))
-                except (ValueError, TypeError):
-                    coerced_set.add(v)
-            else:
-                coerced_set.add(v)
-        return coerced_set
-
-    return set(value_set)
-
-
-def _coerce_value_set_for_sql(value_set: List[Any]) -> List[Any]:
-    """Coerce value_set string values that look like dates to datetime.date objects.
-
-    This is needed for databases like BigQuery that require exact type matching.
-    For SQLAlchemy metrics where we don't have access to actual column values.
-    """
-    if not value_set:
-        return []
-
-    coerced: List[Any] = []
-    for v in value_set:
-        if isinstance(v, str):
-            # Try to parse as date (common format: YYYY-MM-DD)
-            try:
-                coerced.append(parse(v).date())
-            except (ValueError, TypeError):
-                coerced.append(v)
-        else:
-            coerced.append(v)
-    return coerced
-
-
 class ColumnDistinctValues(ColumnAggregateMetricProvider):
     metric_name = "column.distinct_values"
 
