@@ -56,19 +56,26 @@ You must have a [Data Asset](/cloud/data_assets/manage_data_assets.md) before cr
 
 You must have the following prerequisites fulfilled before creating an Expectation:
 
+- Your [Cloud credentials](/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
-- [A Data Context connected to your GX Cloud organization](/cloud/connect/connect_python.md#create-a-data-context).
 
-1. Choose an Expectation to create.
+Follow the steps below to configure an Expectation and add it to an Expectation Suite:
+
+1. Create a Data Context object.
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py - get cloud context" 
+   ```
+
+2. Choose an Expectation to create.
 
    GX Cloud comes with many Expectations to cover your data quality needs. You can find a catalog of these Expectations in the [Expectation Gallery](https://greatexpectations.io/expectations/). When browsing the Expectation Gallery, you can filter the available Expectations by the data quality issue they address and by the Data Sources they support. There is also a search bar that will let you filter Expectations by matching text in their name or description.
 
-2. Determine the Expectation's required parameters.
+3. Determine the Expectation's required parameters.
 
    To determine the parameters your Expectation uses to evaluate data, reference the Expectation's entry in the [Expectation Gallery](https://greatexpectations.io/expectations/).  Under the **Args** section you will find a list of parameters that are necessary for the Expectation to be evaluated, along with a description of the value(s) that should be provided.
 
-3. Optional. Determine the Expectation's other parameters.
+4. Optional. Determine the Expectation's other parameters.
 
    In addition to the parameters that are required for an Expectation to evaluate data, Expectations also support some optional parameters.  In the Expectations Gallery these are found under each Expectation's **Other Parameters** section.
 
