@@ -38,6 +38,7 @@ def _coerce_value_set_to_column_type(column_set: Set[Any], value_set: List[Any])
     """Coerce value_set items to match the type of values in column_set.
 
     This handles cases like comparing string dates to datetime.date objects.
+    Used by Pandas metrics where we have access to actual column values.
     """
     if not column_set or not value_set:
         return set(value_set) if value_set else set()
@@ -64,6 +65,28 @@ def _coerce_value_set_to_column_type(column_set: Set[Any], value_set: List[Any])
         return coerced_set
 
     return set(value_set)
+
+
+def _coerce_value_set_for_sql(value_set: List[Any]) -> List[Any]:
+    """Coerce value_set string values that look like dates to datetime.date objects.
+
+    This is needed for databases like BigQuery that require exact type matching.
+    For SQLAlchemy metrics where we don't have access to actual column values.
+    """
+    if not value_set:
+        return []
+
+    coerced: List[Any] = []
+    for v in value_set:
+        if isinstance(v, str):
+            # Try to parse as date (common format: YYYY-MM-DD)
+            try:
+                coerced.append(parse(v).date())
+            except (ValueError, TypeError):
+                coerced.append(v)
+        else:
+            coerced.append(v)
+    return coerced
 
 
 class ColumnDistinctValues(ColumnAggregateMetricProvider):
@@ -248,7 +271,7 @@ class ColumnDistinctValuesNotInSetCount(ColumnAggregateMetricProvider):
         **kwargs,
     ) -> int:
         """Count distinct values in column that are NOT in the expected set."""
-        value_set = metric_value_kwargs.get("value_set", [])
+        value_set = _coerce_value_set_for_sql(metric_value_kwargs.get("value_set", []))
 
         selectable: sqlalchemy.Selectable
         accessor_domain_kwargs: Dict[str, str]
@@ -355,7 +378,7 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
         **kwargs,
     ) -> List[Any]:
         """Return sample of distinct values in column that are NOT in the expected set."""
-        value_set = metric_value_kwargs.get("value_set", [])
+        value_set = _coerce_value_set_for_sql(metric_value_kwargs.get("value_set", []))
         limit = metric_value_kwargs.get("limit", 20)
 
         selectable: sqlalchemy.Selectable
@@ -472,7 +495,7 @@ class ColumnDistinctValuesMissingFromSetCount(ColumnAggregateMetricProvider):
         **kwargs,
     ) -> int:
         """Count values in the expected set that are missing from the column."""
-        value_set = metric_value_kwargs.get("value_set", [])
+        value_set = _coerce_value_set_for_sql(metric_value_kwargs.get("value_set", []))
         if not value_set:
             return 0
 
@@ -569,7 +592,7 @@ class ColumnDistinctValuesMissingFromSet(ColumnAggregateMetricProvider):
         **kwargs,
     ) -> List[Any]:
         """Return values in the expected set that are missing from the column."""
-        value_set = metric_value_kwargs.get("value_set", [])
+        value_set = _coerce_value_set_for_sql(metric_value_kwargs.get("value_set", []))
         limit = metric_value_kwargs.get("limit", 20)
 
         selectable: sqlalchemy.Selectable
