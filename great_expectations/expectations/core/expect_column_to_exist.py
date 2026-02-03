@@ -174,7 +174,6 @@ class ExpectColumnToExist(BatchExpectation):
     )
     domain_keys = (
         "batch_id",
-        "table",
     )
     args_keys = ("column", "column_index")
 
