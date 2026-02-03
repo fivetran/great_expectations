@@ -3,8 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
-from great_expectations.compatibility.typing_extensions import override
-from great_expectations.constants import MAX_DISTINCT_VALUES
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     _style_row_condition,
@@ -50,7 +48,6 @@ if TYPE_CHECKING:
         ExpectationConfiguration,
     )
     from great_expectations.render.renderer_configuration import AddParamArgs
-    from great_expectations.validator.validation_dependencies import ValidationDependencies
 
 EXPECTATION_SHORT_DESCRIPTION = (
     "Expect the set of distinct column values to be contained by a given set."
@@ -278,35 +275,6 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         if not value_set:
             raise ValueError("value_set must be a non-empty set-like object.")  # noqa: TRY003 # Error messaged gets swallowed by Pydantic
         return value_set
-
-    @override
-    def get_validation_dependencies(
-        self,
-        execution_engine: Optional[ExecutionEngine] = None,
-        runtime_configuration: Optional[dict] = None,
-    ) -> ValidationDependencies:
-        validation_dependencies: ValidationDependencies = super().get_validation_dependencies(
-            execution_engine, runtime_configuration
-        )
-        configuration = self.configuration
-        value_set = configuration.kwargs.get("value_set", [])
-
-        # Pass value_set to the not_in_set.count metric
-        count_metric = validation_dependencies.get_metric_configuration(
-            metric_name="column.distinct_values.not_in_set.count"
-        )
-        if count_metric:
-            count_metric.metric_value_kwargs["value_set"] = value_set
-
-        # Pass value_set and limit to the not_in_set metric
-        values_metric = validation_dependencies.get_metric_configuration(
-            metric_name="column.distinct_values.not_in_set"
-        )
-        if values_metric:
-            values_metric.metric_value_kwargs["value_set"] = value_set
-            values_metric.metric_value_kwargs["limit"] = MAX_DISTINCT_VALUES
-
-        return validation_dependencies
 
     @classmethod
     def _prescriptive_template(
