@@ -222,8 +222,8 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
     metric_dependencies = (
         "column.distinct_values.not_in_set.count",
         "column.distinct_values.not_in_set",
-        "column.distinct_values.missing_from_set.count",
-        "column.distinct_values.missing_from_set",
+        "column.distinct_values.missing_from_column.count",
+        "column.distinct_values.missing_from_column",
     )
     success_keys = ("value_set",)
     args_keys = (
@@ -290,15 +290,15 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
             not_in_set_metric.metric_value_kwargs["value_set"] = value_set
             not_in_set_metric.metric_value_kwargs["limit"] = MAX_DISTINCT_VALUES
 
-        # Pass value_set to the missing_from_set metrics (values in expected set but NOT in column)
+        # Pass value_set to the missing_from_column metrics (values expected but NOT in column)
         missing_count_metric = validation_dependencies.get_metric_configuration(
-            metric_name="column.distinct_values.missing_from_set.count"
+            metric_name="column.distinct_values.missing_from_column.count"
         )
         if missing_count_metric:
             missing_count_metric.metric_value_kwargs["value_set"] = value_set
 
         missing_metric = validation_dependencies.get_metric_configuration(
-            metric_name="column.distinct_values.missing_from_set"
+            metric_name="column.distinct_values.missing_from_column"
         )
         if missing_metric:
             missing_metric.metric_value_kwargs["value_set"] = value_set
@@ -415,8 +415,8 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
         unexpected_values = metrics.get("column.distinct_values.not_in_set", [])
 
         # Get count of missing values (values in expected set but NOT in column)
-        missing_count = metrics.get("column.distinct_values.missing_from_set.count", 0)
-        missing_values = metrics.get("column.distinct_values.missing_from_set", [])
+        missing_count = metrics.get("column.distinct_values.missing_from_column.count", 0)
+        missing_values = metrics.get("column.distinct_values.missing_from_column", [])
 
         # Success if no unexpected values AND no missing values
         success = (unexpected_count == 0) and (missing_count == 0)
