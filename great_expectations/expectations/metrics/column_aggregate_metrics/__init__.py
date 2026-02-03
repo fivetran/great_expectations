@@ -8,6 +8,14 @@ from .column_distinct_values import (
     ColumnDistinctValuesNotInSet,
     ColumnDistinctValuesNotInSetCount,
 )
+from .column_distinct_values_missing_from_column import (
+    ColumnDistinctValuesMissingFromColumn,
+    ColumnDistinctValuesMissingFromColumnCount,
+)
+from .column_distinct_values_not_in_set import (
+    ColumnDistinctValuesNotInSet,
+    ColumnDistinctValuesNotInSetCount,
+)
 from .column_histogram import ColumnHistogram
 from .column_max import ColumnMax
 from .column_mean import ColumnMean
