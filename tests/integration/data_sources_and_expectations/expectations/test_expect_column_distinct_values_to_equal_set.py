@@ -87,3 +87,32 @@ def test_fails_if_data_is_not_equal(batch_for_datasource: Batch, value_set: list
     expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=value_set)
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
+)
+def test_boolean_only_result_format_excludes_fields(batch_for_datasource: Batch) -> None:
+    """BOOLEAN_ONLY result format should not include unexpected/missing fields."""
+    expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=[1, 2, 3])
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.BOOLEAN_ONLY)
+    assert not result.success
+    assert result.result == {}
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
+)
+def test_summary_result_format_includes_fields(batch_for_datasource: Batch) -> None:
+    """SUMMARY result format should include unexpected and missing fields."""
+    expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=[1, 2, 3])
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.SUMMARY)
+    assert not result.success
+    assert "unexpected_count" in result.result
+    assert "partial_unexpected_list" in result.result
+    assert "missing_count" in result.result
+    assert "partial_missing_list" in result.result
+    assert result.result["unexpected_count"] == 0
+    assert result.result["partial_unexpected_list"] == []
+    assert result.result["missing_count"] == 1
+    assert result.result["partial_missing_list"] == [3]
