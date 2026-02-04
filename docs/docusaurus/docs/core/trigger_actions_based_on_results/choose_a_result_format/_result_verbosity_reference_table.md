@@ -1,4 +1,4 @@
-The following table lists the fields that can be found in the `result` dictionary of a Validation Result and the `result_format` levels that return that field.
+The following table lists the fields that can be found in the `result` dictionary of a Validation Result and the `result_format` levels that return that field. An * indicates the field is not returned by default but can be enabled through an additional setting. Meanwhile, ** indicates that the field is returned by default but can be disabled.
 
 | Fields within `result`                |BOOLEAN_ONLY    |BASIC           |SUMMARY         |COMPLETE        |
 ----------------------------------------|----------------|----------------|----------------|-----------------
