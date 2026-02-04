@@ -64,7 +64,7 @@ Follow the steps below to configure an Expectation and add it to an Expectation 
 
 1. Create a Data Context object.
 
-   ```python title="Python" name="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py - get cloud context" 
+   ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation_for_cloud.py - get cloud context" 
    ```
 
 2. Choose an Expectation to create.
@@ -139,7 +139,7 @@ Follow the steps below to configure an Expectation and add it to an Expectation 
 
    In this example, the `ExpectColumnMaxToBeBetween` Expectation is created with a range of acceptable values that will be evaluated inclusively. 
 
-      ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - preset expectation"
+      ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation_for_cloud.py - preset expectation"
       ```
 
 6. Create or get an Expectation Suite.
@@ -147,17 +147,17 @@ Follow the steps below to configure an Expectation and add it to an Expectation 
    An Expectation Suite is used to group Expectations. All Expectations need to be added to an Expectation Suite before they can be associated with a Data Asset via a Validation Definition. All of the Expectations that are grouped within an Expectation Suite will be evaluated together whenever the Validation Definition runs.
 
    Create an Expectation Suite and add it to your Data Context:
-      ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - create expectation suite"
+      ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation_for_cloud.py - create expectation suite"
       ```
 
    Optional. If you already have an API-managed Expectation Suite, get it from your Data Context:
 
-      ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - get expectation suite"
+      ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation_for_cloud.py - get expectation suite"
       ```
 
 7. Add the Expectation to the Expectation Suite.
 
-      ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation.py - add expectation to suite"
+      ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation_for_cloud.py - add expectation to suite"
       ```
    
 8.  If your Expectation Suite is not yet associated with a Data Asset through a Validation Definition, you must set up this relationship before you can validate your Expectations. Visit [Run Validations](/docs/cloud/validations/run_validations/#api-managed-expectations-entire-asset) to learn how to do so.
