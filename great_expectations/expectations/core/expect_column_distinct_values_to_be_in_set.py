@@ -411,13 +411,12 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         success = unexpected_count == 0
 
         # Check partial_unexpected_count setting to determine if partial lists should be included
-        # Default to MAX_DISTINCT_VALUES (500) for distinct values Expectations
+        # For distinct values Expectations, always use MAX_DISTINCT_VALUES as the limit
+        # but respect partial_unexpected_count: 0 to exclude the list entirely
         result_format = (
             runtime_configuration.get("result_format", {}) if runtime_configuration else {}
         )
-        partial_unexpected_count = result_format.get(
-            "partial_unexpected_count", MAX_DISTINCT_VALUES
-        )
+        partial_unexpected_count = result_format.get("partial_unexpected_count", 20)
         include_partial_lists = partial_unexpected_count > 0
 
         result_dict: Dict[str, Any] = {
@@ -426,7 +425,7 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         }
 
         if include_partial_lists:
-            result_dict["partial_unexpected_list"] = unexpected_values[:partial_unexpected_count]
+            result_dict["partial_unexpected_list"] = unexpected_values[:MAX_DISTINCT_VALUES]
 
         return {
             "success": success,
