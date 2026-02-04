@@ -1,9 +1,16 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set
+import datetime
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
+from dateutil.parser import parse
+
+from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.compatibility.pyspark import (
     functions as F,
+)
+from great_expectations.compatibility.sqlalchemy import (
+    __version__ as SQLALCHEMY_VERSION,
 )
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
@@ -29,6 +36,85 @@ if TYPE_CHECKING:
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
     )
+
+# SQLAlchemy 1.4+ uses is_not() instead of isnot()
+_SQLALCHEMY_1_4_OR_GREATER = SQLALCHEMY_VERSION is not None and is_version_greater_or_equal(
+    SQLALCHEMY_VERSION, "1.4.0"
+)
+
+
+# Type alias for scalar values that can appear in columns or value sets
+ScalarValue = Union[str, int, float, bool, datetime.date, datetime.datetime, None]
+
+
+def _coerce_value_set_to_column_type(
+    column_set: Set[ScalarValue], value_set: List[ScalarValue]
+) -> Set[ScalarValue]:
+    """Coerce value_set items to match the type of values in column_set.
+
+    This handles cases like comparing string dates to datetime.date objects.
+    Used by Pandas metrics where we have access to actual column values.
+
+    Args:
+        column_set: Set of values from the column (determines target type)
+        value_set: List of expected values to coerce
+
+    Returns:
+        Set of values coerced to match the column's type
+    """
+    if not column_set or not value_set:
+        return set(value_set) if value_set else set()
+
+    # Get a sample value from the column to determine its type
+    sample_value = next(iter(column_set))
+
+    # If column contains datetime types and value_set contains strings, try to parse
+    if isinstance(sample_value, (datetime.date, datetime.datetime)):
+        coerced_set: Set[ScalarValue] = set()
+        for v in value_set:
+            if isinstance(v, str):
+                try:
+                    if isinstance(sample_value, datetime.date) and not isinstance(
+                        sample_value, datetime.datetime
+                    ):
+                        coerced_set.add(parse(v).date())
+                    else:
+                        coerced_set.add(parse(v))
+                except (ValueError, TypeError):
+                    coerced_set.add(v)
+            else:
+                coerced_set.add(v)
+        return coerced_set
+
+    return set(value_set)
+
+
+def _coerce_value_set_for_sql(value_set: List[ScalarValue]) -> List[ScalarValue]:
+    """Coerce value_set string values that look like dates to datetime.date objects.
+
+    This is needed for databases like BigQuery that require exact type matching.
+    For SQLAlchemy metrics where we don't have access to actual column values.
+
+    Args:
+        value_set: List of expected values, may contain date strings
+
+    Returns:
+        List with date strings converted to datetime.date objects
+    """
+    if not value_set:
+        return []
+
+    coerced: List[ScalarValue] = []
+    for v in value_set:
+        if isinstance(v, str):
+            # Try to parse as date (common format: YYYY-MM-DD)
+            try:
+                coerced.append(parse(v).date())
+            except (ValueError, TypeError):
+                coerced.append(v)
+        else:
+            coerced.append(v)
+    return coerced
 
 
 class ColumnDistinctValues(ColumnAggregateMetricProvider):
@@ -61,7 +147,7 @@ class ColumnDistinctValues(ColumnAggregateMetricProvider):
         column: sqlalchemy.ColumnClause = sa.column(column_name)
 
         distinct_values: List[sqlalchemy.Row]
-        if hasattr(column, "is_not"):
+        if _SQLALCHEMY_1_4_OR_GREATER:
             distinct_values = execution_engine.execute_query(  # type: ignore[assignment] # FIXME CoP
                 sa.select(column).where(column.is_not(None)).distinct().select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
             ).fetchall()
