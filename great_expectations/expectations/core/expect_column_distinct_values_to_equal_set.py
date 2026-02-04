@@ -377,15 +377,26 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
         # Success if no unexpected values AND no missing values
         success = (unexpected_count == 0) and (missing_count == 0)
 
+        # Check partial_unexpected_count setting to determine if partial lists should be included
+        result_format = (
+            runtime_configuration.get("result_format", {}) if runtime_configuration else {}
+        )
+        partial_unexpected_count = result_format.get("partial_unexpected_count", 20)
+        include_partial_lists = partial_unexpected_count > 0
+
+        result_dict: Dict[str, Any] = {
+            "observed_value": None,
+            "unexpected_count": unexpected_count,
+            "missing_count": missing_count,
+        }
+
+        if include_partial_lists:
+            result_dict["partial_unexpected_list"] = unexpected_values
+            result_dict["partial_missing_list"] = missing_values
+
         return {
             "success": success,
-            "result": {
-                "observed_value": None,
-                "unexpected_count": unexpected_count,
-                "partial_unexpected_list": unexpected_values,
-                "missing_count": missing_count,
-                "partial_missing_list": missing_values,
-            },
+            "result": result_dict,
         }
 
     @classmethod

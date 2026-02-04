@@ -116,3 +116,20 @@ def test_summary_result_format_includes_fields(batch_for_datasource: Batch) -> N
     assert result.result["partial_unexpected_list"] == []
     assert result.result["missing_count"] == 1
     assert result.result["partial_missing_list"] == [3]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
+)
+def test_partial_unexpected_count_zero_excludes_partial_lists(batch_for_datasource: Batch) -> None:
+    """Setting partial_unexpected_count=0 should exclude partial lists but keep counts."""
+    expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=[1, 2, 3])
+    result = batch_for_datasource.validate(
+        expectation,
+        result_format={"result_format": "SUMMARY", "partial_unexpected_count": 0},
+    )
+    assert not result.success
+    assert "unexpected_count" in result.result
+    assert "missing_count" in result.result
+    assert "partial_unexpected_list" not in result.result
+    assert "partial_missing_list" not in result.result
