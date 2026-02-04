@@ -395,7 +395,7 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         }
 
         if include_partial_lists:
-            result_dict["partial_missing_list"] = missing_values
+            result_dict["partial_missing_list"] = missing_values[:partial_unexpected_count]
 
         return {
             "success": success,
