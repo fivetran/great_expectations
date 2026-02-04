@@ -32,6 +32,17 @@ If you're not sure where to start, or you want to learn what other contributors 
 
 If you're interested in helping out, pick out an issue with a `community-supported` label and either comment on an issue you’re interested in working on or assign it to yourself. If you can't find an issue that interests you, and you want to add an improvement or change, create a new issue and add a comment to introduce yourself and let everyone know you’re working on the issue. [Read more about the GX Issues board here](https://github.com/orgs/great-expectations/projects/2/views/3?pane=info).
 
+### Windows: repository clone path length issues
+
+On Windows, cloning the Great Expectations repository may fail with `Filename too long` errors due to deep documentation paths.
+
+To avoid this:
+
+1. Enable long paths in Git:
+   ```bash
+   git config --global core.longpaths true
+
+
 ## Connect with our community
 
 Join the [GX Discourse forum](https://discourse.greatexpectations.io/) to connect with other GX users and see how they're using GX. Before you post for the first time, review the [Discourse guidelines](https://discourse.greatexpectations.io/t/discourse-guidelines/1230).
