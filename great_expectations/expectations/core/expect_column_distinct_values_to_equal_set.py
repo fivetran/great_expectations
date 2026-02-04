@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.constants import MAX_DISTINCT_VALUES
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     _style_row_condition,
@@ -378,10 +379,13 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
         success = (unexpected_count == 0) and (missing_count == 0)
 
         # Check partial_unexpected_count setting to determine if partial lists should be included
+        # Default to MAX_DISTINCT_VALUES (500) to match payload limits
         result_format = (
             runtime_configuration.get("result_format", {}) if runtime_configuration else {}
         )
-        partial_unexpected_count = result_format.get("partial_unexpected_count", 20)
+        partial_unexpected_count = result_format.get(
+            "partial_unexpected_count", MAX_DISTINCT_VALUES
+        )
         include_partial_lists = partial_unexpected_count > 0
 
         result_dict: Dict[str, Any] = {
@@ -419,10 +423,10 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
         exp_param_prefix = "exp__"  # for missing values (expected but not observed)
         exp_param_name = "expected_value"
 
-        # Get unexpected and missing values from result
+        # Get unexpected and missing values from result, limited to MAX_DISTINCT_VALUES
         result_dict = result.get("result", {}) if result else {}
-        unexpected_values = result_dict.get("partial_unexpected_list", [])
-        missing_values = result_dict.get("partial_missing_list", [])
+        unexpected_values = result_dict.get("partial_unexpected_list", [])[:MAX_DISTINCT_VALUES]
+        missing_values = result_dict.get("partial_missing_list", [])[:MAX_DISTINCT_VALUES]
 
         # Add unexpected values (values in column but NOT in expected set) using ov__ prefix
         renderer_configuration.add_param(
