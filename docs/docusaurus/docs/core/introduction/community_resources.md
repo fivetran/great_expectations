@@ -39,9 +39,9 @@ On Windows, cloning the Great Expectations repository may fail with `Filename to
 To avoid this:
 
 1. Enable long paths in Git:
-   ```bash
-   git config --global core.longpaths true
-
+    ```bash
+    git config --global core.longpaths true
+    ```
 
 ## Connect with our community
 
