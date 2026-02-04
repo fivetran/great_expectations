@@ -426,7 +426,7 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         }
 
         if include_partial_lists:
-            result_dict["partial_unexpected_list"] = unexpected_values
+            result_dict["partial_unexpected_list"] = unexpected_values[:partial_unexpected_count]
 
         return {
             "success": success,
