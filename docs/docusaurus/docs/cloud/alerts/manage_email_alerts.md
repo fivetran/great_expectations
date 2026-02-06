@@ -4,11 +4,13 @@ title: 'Manage email alerts'
 description: Create and manage email alerts in GX Cloud.
 ---
 
-Keep stakeholders informed about the health of the Data Assets and Expectations that they care about by configuring alerts in GX Cloud.
+Keep yourself and your stakeholders informed about the health of Data Assets and Expectations by configuring alerts in GX Cloud.
 
 Alerts are configured at the Data Asset level. A single Data Asset can have multiple alerts configured. An alert can be configured to notify about all Expectation failures or only failures of certain [severities](/cloud/expectations/expectations_overview.md#failure-severity).
 
 To keep your email alerts secure,  your GX Cloud organization has an allowlist of email domains that all alert recipient email addresses must belong to. By default, this includes the email domain of the Organization Owner who created the organization and domains for sending emails to the following third-party services: [Slack](https://slack.com/help/articles/206819278-Send-emails-to-Slack), [Microsoft Teams](https://support.microsoft.com/en-us/office/send-an-email-to-a-channel-in-microsoft-teams-d91db004-d9d7-4a47-82e6-fb1b16dfd51e), and [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide).
+
+Note that you must have [Workspace Editor permissions](/cloud/access/manage_access#roles-and-permissions) or greater to manage email alerts.
 
 ## Create an email alert
 
