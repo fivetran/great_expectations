@@ -1013,6 +1013,17 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                 logger.debug(f"Attempting query {sa_query_object!s}")
                 res = self.execute_query(sa_query_object).fetchall()  # type: ignore[assignment] # FIXME CoP
 
+                # Handle empty result set (e.g., DuckDB with certain query patterns)
+                # to provide a clear error message instead of IndexError
+                if len(res) == 0:
+                    raise ExecutionEngineError(
+                        message=(
+                            "Query returned no results; expected one row with metric values. "
+                            f"Domain: {IDDict(domain_kwargs).to_id()}. "
+                            "This may indicate an issue with the query or an empty data source."
+                        )
+                    )
+
                 logger.debug(
                     f"""SqlAlchemyExecutionEngine computed {len(res[0])} metrics on domain_id \
 {IDDict(domain_kwargs).to_id()}"""

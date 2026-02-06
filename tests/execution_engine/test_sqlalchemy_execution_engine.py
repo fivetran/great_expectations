@@ -1023,6 +1023,43 @@ def test_resolve_metric_bundle_with_compute_domain_kwargs_json_serialization(sa)
 
 
 @pytest.mark.sqlite
+def test_resolve_metric_bundle_with_empty_result_raises_clear_error(sa, monkeypatch):
+    """
+    Test that when a query returns empty results (e.g., with DuckDB),
+    a clear ExecutionEngineError is raised instead of an IndexError.
+    This addresses GitHub issue #11579.
+    """
+    from great_expectations.execution_engine.sqlalchemy_execution_engine import (
+        ExecutionEngineError,
+    )
+
+    execution_engine = build_sa_execution_engine(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}), sa)
+
+    # Mock execute_query to return empty results (simulating DuckDB behavior)
+    class EmptyResult:
+        def fetchall(self):
+            return []
+
+    def mock_execute_query(query):
+        return EmptyResult()
+
+    monkeypatch.setattr(execution_engine, "execute_query", mock_execute_query)
+
+    desired_metric = MetricConfiguration(
+        metric_name="column.min",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+
+    # Should raise ExecutionEngineError with clear message, not IndexError
+    with pytest.raises(ExecutionEngineError) as exc_info:
+        execution_engine.resolve_metrics(metrics_to_resolve=(desired_metric,))
+
+    assert "Query returned no results" in str(exc_info.value)
+    assert "expected exactly one row" in str(exc_info.value)
+
+
+@pytest.mark.sqlite
 def test_get_batch_data_and_markers_using_query(sqlite_view_engine, test_df):
     my_execution_engine: SqlAlchemyExecutionEngine = SqlAlchemyExecutionEngine(
         engine=sqlite_view_engine,
