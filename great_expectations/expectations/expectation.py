@@ -3183,12 +3183,15 @@ def parse_value_to_observed_type(observed_value: Any, value: Any) -> Any:
     Returns:
         A value coerced to match observed_value's type where possible
     """
-    # Handle datetime and date types
-    if isinstance(observed_value, (datetime.date, datetime.datetime)):
+    # Handle datetime and date types (Timestamp > datetime > date)
+    if isinstance(observed_value, datetime.date):
         try:
-            return (
-                parse(value).date() if isinstance(observed_value, datetime.date) else parse(value)
-            )
+            parsed = parse(value)
+            if isinstance(observed_value, pd.Timestamp):
+                return pd.Timestamp(parsed)
+            if isinstance(observed_value, datetime.datetime):
+                return parsed
+            return parsed.date()
         except (ValueError, TypeError):
             return value
 
