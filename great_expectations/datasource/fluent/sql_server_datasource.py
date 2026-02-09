@@ -53,7 +53,7 @@ class _SQLServerConnectionDetailsBase(FluentBaseModel):
 
     class Config:
         allow_population_by_field_name = (
-            True  # this allows us to use the alias "schema_" for the "schema" field
+            True  # this allows us to use the alias "schema" for the "schema_" field
         )
 
 
