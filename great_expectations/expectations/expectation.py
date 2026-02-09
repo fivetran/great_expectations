@@ -2794,24 +2794,27 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
         )
 
         # ID/PK currently doesn't work for ExpectCompoundColumnsToBeUnique in SQL
-        if self.map_metric == "compound_columns.unique" and isinstance(
-            execution_engine, SqlAlchemyExecutionEngine
+        # Skip unexpected_index_list for compound columns on SQL,
+        # but still register unexpected_index_query
+        if not (
+            self.map_metric == "compound_columns.unique"
+            and isinstance(execution_engine, SqlAlchemyExecutionEngine)
         ):
-            return validation_dependencies
-
-        metric_kwargs = get_metric_kwargs(
-            metric_name=f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_LIST.value}",
-            configuration=configuration,
-            runtime_configuration=runtime_configuration,
-        )
-        validation_dependencies.set_metric_configuration(
-            metric_name=f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_LIST.value}",
-            metric_configuration=MetricConfiguration(
+            metric_kwargs = get_metric_kwargs(
                 metric_name=f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_LIST.value}",
-                metric_domain_kwargs=metric_kwargs["metric_domain_kwargs"],
-                metric_value_kwargs=metric_kwargs["metric_value_kwargs"],
-            ),
-        )
+                configuration=configuration,
+                runtime_configuration=runtime_configuration,
+            )
+            validation_dependencies.set_metric_configuration(
+                metric_name=f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_LIST.value}",
+                metric_configuration=MetricConfiguration(
+                    metric_name=f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_LIST.value}",
+                    metric_domain_kwargs=metric_kwargs["metric_domain_kwargs"],
+                    metric_value_kwargs=metric_kwargs["metric_value_kwargs"],
+                ),
+            )
+
+        # Always register unexpected_index_query (works for compound columns on SQL)
         metric_kwargs = get_metric_kwargs(
             metric_name=f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_QUERY.value}",
             configuration=configuration,
@@ -3104,7 +3107,10 @@ def _format_map_output(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
         return_obj["result"].update({"unexpected_list": unexpected_list})
     if unexpected_index_list is not None:
         return_obj["result"].update({"unexpected_index_list": unexpected_index_list})
-    if unexpected_index_query is not None:
+    if (
+        unexpected_index_query is not None
+        and result_format.get("return_unexpected_index_query") is not False
+    ):
         return_obj["result"].update({"unexpected_index_query": unexpected_index_query})
     if result_format["result_format"] == ResultFormat.COMPLETE:
         return return_obj
