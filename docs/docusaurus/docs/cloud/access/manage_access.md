@@ -87,6 +87,9 @@ The following table lists GX Cloud roles and permissions.
     - **Workspace** - If you’re adding a Workspace Admin, Editor, or Viewer, select a workspace. If you’re adding an Organization Owner, they will automatically have full access to all current and future workspaces. 
 
     - **Email** - Enter the user's email address.
+       :::note Allowed email domains
+       To help keep your business secure,  your GX Cloud organization has an allowlist of email domains that all user email addresses must belong to. By default, the allowlist includes the email domain of the Organization Owner who created the organization. To request changes to your organization’s email domain allowlist, have an Organization Owner [contact support](mailto:support@greatexpectations.io).
+       :::
 
     - **Role** - See [roles and permissions](#roles-and-permissions) for details on the options.
 
@@ -125,6 +128,9 @@ Workspace user access is managed on a workspace basis. To remove a workspace use
 3. Click <img src="/img/trash.png" alt="trash icon" width="20" height="20"/> **Remove user** for the person you want to remove.
 4. Click **Remove**.
 
+:::note Alerts are managed separately
+When you delete a user’s access, any [email alerts](/cloud/alerts/manage_email_alerts.md) configured with that user as a recipient are left as they are. Depending on the reason for removing the user, you may want to update your alert configuration so that the person no longer receives emails about failing Expectations.
+:::
 
 ## Tokens
 
