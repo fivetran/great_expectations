@@ -20,6 +20,7 @@ from typing import (
     Type,
     Union,
 )
+from unittest import mock
 
 import pytest
 from moto import mock_s3
@@ -514,9 +515,9 @@ def sql_datasource_table_asset_test_connection_noop(
 
 
 @pytest.fixture
-def create_engine_spy(mocker: MockerFixture) -> Generator[None, None, None]:
+def create_engine_spy(mocker: MockerFixture) -> Generator[mock.MagicMock, None, None]:  # noqa: TID251 # FIXME CoP
     spy = mocker.spy(sa, "create_engine")
-    yield
+    yield spy
     if not spy.call_count:
         CNF_TEST_LOGGER.warning("SQLAlchemy create_engine was not called")
 

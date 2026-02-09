@@ -10,7 +10,6 @@ import pytest
 from pytest import param
 
 from great_expectations.compatibility import sqlalchemy
-from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.datasource.fluent import GxDatasourceWarning, SQLDatasource
 from great_expectations.datasource.fluent.sql_datasource import (
     DEFAULT_INITIAL_QUOTE_CHARACTERS,
@@ -88,9 +87,9 @@ def gx_sqlalchemy_execution_engine_spy(
     ],
 )
 class TestConfigPasstrough:
-    @pytest.mark.usefixtures("create_engine_spy")
     def test_kwargs_passed_to_create_engine(
         self,
+        create_engine_spy: mock.MagicMock,  # noqa: TID251 # FIXME CoP
         monkeypatch: pytest.MonkeyPatch,
         ephemeral_context_with_defaults: EphemeralDataContext,
         ds_kwargs: dict,
@@ -103,7 +102,7 @@ class TestConfigPasstrough:
         print(ds)
         ds.test_connection()
 
-        sa.create_engine.assert_called_once_with(  # type: ignore[union-attr]
+        create_engine_spy.assert_called_once_with(
             "sqlite:///",
             **{
                 **ds.dict(include={"kwargs"}, exclude_unset=False)["kwargs"],
