@@ -76,7 +76,7 @@ class SQLServerDatasource(SQLDatasource):
     """
 
     type: Literal["sql_server"] = "sql_server"  # type: ignore[assignment]
-    connection_string: SQLServerAuthConnectionDetails  # type: ignore[assignment]  # # Raw connection strings are not supported
+    connection_string: SQLServerAuthConnectionDetails  # type: ignore[assignment]  # Raw connection strings are not supported
 
     @property
     def schema_(self) -> str:
