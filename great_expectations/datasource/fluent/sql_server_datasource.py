@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Final, Literal, Union
 from urllib.parse import quote, quote_plus
 
@@ -16,8 +15,6 @@ from great_expectations.datasource.fluent.sql_datasource import (
 
 if TYPE_CHECKING:
     from great_expectations.compatibility import sqlalchemy
-
-LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 
 
 class SqlServerDsn(pydantic.AnyUrl):
