@@ -20,7 +20,6 @@ from typing import (
     Type,
     Union,
 )
-from unittest import mock
 
 import pytest
 from moto import mock_s3
@@ -68,7 +67,7 @@ if TYPE_CHECKING:
     import responses
     from botocore.client import BaseClient as BotoBaseClient
     from pytest import FixtureRequest
-    from pytest_mock import MockerFixture
+    from pytest_mock import MockerFixture, MockType
 
     from great_expectations.data_context import CloudDataContext
     from great_expectations.data_context.data_context.abstract_data_context import (
@@ -515,7 +514,7 @@ def sql_datasource_table_asset_test_connection_noop(
 
 
 @pytest.fixture
-def create_engine_spy(mocker: MockerFixture) -> Generator[mock.MagicMock, None, None]:  # noqa: TID251 # FIXME CoP
+def create_engine_spy(mocker: MockerFixture) -> Generator[MockType, None, None]:
     spy = mocker.spy(sa, "create_engine")
     yield spy
     if not spy.call_count:
