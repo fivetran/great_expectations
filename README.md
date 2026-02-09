@@ -55,14 +55,7 @@ They are listed in the order in which GX is prioritizing the support issues:
 3. Questions posted to the [GX Slack community channel](https://greatexpectationstalk.slack.com/archives/CUTCNHN82)
 
 ## Contribute
-We truly value the contributions of our community and always welcome pull requests. PRs are encouraged for both bug fixes and new features. For feature requests, we ask that you first open an issue and get confirmation from our team that it’s something we’re excited to support in order to ensure your time and effort are well spent. Thank you for being a crucial part of GX Core!
-
-### Levels of contribution readiness
-🟢 Ready. Have a clear and public interface for extensions.
-
-🟡 Partially ready. Case-by-case.
-
-🔴 Not ready. Will accept contributions that fix existing bugs or workflows.
+We truly value the contributions of our community and always welcome pull requests. PRs are encouraged for both bug fixes and new features. For feature requests, we ask that you first open an issue for discussion to ensure the feature fits within the vision for GX Core and to align on the approach so that your time and effort are well spent. Thank you for being a crucial part of GX Core!
 
 ## Code of conduct
 Everyone interacting in GX Core project codebases, Discourse forums, Slack channels, and email communications is expected to adhere to the [GX Community Code of Conduct](https://discourse.greatexpectations.io/t/gx-community-code-of-conduct/1199).
