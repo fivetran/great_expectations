@@ -95,6 +95,9 @@ from great_expectations.datasource.fluent.spark_azure_blob_storage_datasource im
     SparkAzureBlobStorageDatasource,
 )
 from great_expectations.datasource.fluent.sql_datasource import SQLDatasource
+from great_expectations.datasource.fluent.sql_server_datasource import (
+    SQLServerDatasource,
+)
 from great_expectations.datasource.fluent.sqlite_datasource import (
     SqliteDatasource,
 )
