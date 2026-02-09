@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-import logging
-from typing import TYPE_CHECKING, Any, Generator
+from typing import TYPE_CHECKING, Any
 
 import pytest
-import sqlalchemy as sa
-from pydantic.v1 import ValidationError
 
-from great_expectations.compatibility.sqlalchemy import sqlalchemy as gx_sa
+from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.datasource.fluent.sql_server_datasource import (
     SQLServerAuthConnectionDetails,
@@ -16,10 +13,7 @@ from great_expectations.datasource.fluent.sql_server_datasource import (
 )
 
 if TYPE_CHECKING:
-    from pytest_mock import MockerFixture
     from typing_extensions import TypeAlias
-
-LOGGER = logging.getLogger(__name__)
 
 ConnectionDetailsDict: TypeAlias = dict[str, Any]
 
@@ -78,28 +72,6 @@ def connection_details_special_chars() -> ConnectionDetailsDict:
         "username": "user",
         "password": "p@ss:w/rd",
     }
-
-
-@pytest.fixture
-def create_engine_spy(mocker: MockerFixture) -> Generator[None, None, None]:
-    spy = mocker.spy(gx_sa, "create_engine")
-    yield
-    if not spy.call_count:
-        LOGGER.warning("SQLAlchemy create_engine was not called")
-
-
-@pytest.fixture
-def create_engine_fake(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:
-    """Monkeypatch sqlalchemy.create_engine to always return an in-memory sqlite engine."""
-    in_memory_sqlite_engine = sa.create_engine("sqlite:///")
-
-    def _fake_create_engine(*args, **kwargs) -> sa.engine.Engine:
-        LOGGER.info(f"Mock create_engine called with {args=} {kwargs=}")
-        return in_memory_sqlite_engine
-
-    monkeypatch.setattr(gx_sa, "create_engine", _fake_create_engine, raising=True)
-    yield
-    in_memory_sqlite_engine.dispose()
 
 
 @pytest.mark.unit
