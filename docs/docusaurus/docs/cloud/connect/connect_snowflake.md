@@ -53,8 +53,8 @@ description: Connect GX Cloud to a Snowflake Data Source.
 
 ## Next steps
 
-- [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
-- [Run a Validation](/cloud/validations/run_validations.md).
-
+- [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation)
+- [Run a Validation](/cloud/validations/run_validations.md)
+- [Configure an alert](/cloud/alerts/manage_email_alerts.md)
 
 
