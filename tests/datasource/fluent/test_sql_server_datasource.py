@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Generator, Union
+from typing import TYPE_CHECKING, Any, Generator
 
 import pytest
 import sqlalchemy as sa
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 LOGGER = logging.getLogger(__name__)
 
-ConnectionDetailsDict: TypeAlias = dict[str, Union[str, int]]
+ConnectionDetailsDict: TypeAlias = dict[str, Any]
 
 
 @pytest.fixture

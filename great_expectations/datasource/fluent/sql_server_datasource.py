@@ -31,7 +31,7 @@ class SqlServerDsn(pydantic.AnyUrl):
         class _Model(pydantic.BaseModel):
             url: SqlServerDsn
 
-        return _Model(url=url).url
+        return _Model(url=url).url  # type: ignore[arg-type] # pydantic coerces str to SqlServerDsn
 
 
 _ENCRYPT_VALUE_MAP: Final[dict[str, str]] = {
