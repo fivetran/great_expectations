@@ -96,6 +96,7 @@ class SQLServerDatasource(SQLDatasource):
         else:
             resolved_password = str(password)
 
+        # quote() for userinfo (spaces → %20), quote_plus() for query params (spaces → +)
         username = quote(details.username, safe="")
         encoded_password = quote(resolved_password, safe="")
         driver = quote_plus(details.driver)
