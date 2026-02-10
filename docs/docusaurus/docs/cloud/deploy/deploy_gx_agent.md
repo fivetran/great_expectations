@@ -74,7 +74,7 @@ You need your GX Cloud access token and organization ID to deploy the GX Agent. 
 
 7. Copy the value in the **Organization ID** field into the temporary file with your user access token and then save the file. 
 
-8. Optional. If you want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), go to your OpenAI dashboard’s [API keys](https://platform.openai.com/api-keys) page, create a new secret key with **Restricted** permissions that grant **Model capabilities: Write**, copy the value into the temporary file with your GX credentials, and then save the file.
+8. Optional. If you want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), go to your OpenAI dashboard’s [API keys](https://platform.openai.com/api-keys) page, create a new secret key with **Restricted** permissions that grant **Model capabilities: Write**, copy the secret key value into the temporary file with your GX credentials, and then save the file.
 
 9. [Deploy the GX Agent](#deploy-the-gx-agent).
 
@@ -158,7 +158,7 @@ You can deploy the GX Agent in any environment in which you create Kubernetes cl
    kubectl create secret generic gx-agent-secret \
    --from-literal=GX_CLOUD_ORGANIZATION_ID=YOUR_ORGANIZATION_ID \
    --from-literal=GX_CLOUD_ACCESS_TOKEN=YOUR_ACCESS_TOKEN \
-   --from-literal=OPENAI_API_KEY=YOUR_API_TOKEN \
+   --from-literal=OPENAI_API_KEY=YOUR_API_KEY \
    ```
     Replace `YOUR_ORGANIZATION_ID`, `YOUR_ACCESS_TOKEN`, and `YOUR_API_KEY` with the [credential values](#get-your-credentials) that you copied previously. If you don’t want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), you can omit setting `OPENAI_API_KEY`.
 
