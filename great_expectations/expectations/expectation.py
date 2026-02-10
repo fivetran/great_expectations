@@ -3189,17 +3189,18 @@ def parse_value_to_observed_type(observed_value: Any, value: Any) -> Any:
     Returns:
         A value coerced to match observed_value's type where possible
     """
-    # Handle datetime and date types
-    if isinstance(observed_value, (datetime.date, datetime.datetime)):
-        try:
-            return (
-                parse(value).date() if isinstance(observed_value, datetime.date) else parse(value)
-            )
-        except (ValueError, TypeError):
-            return value
-
-    # For other types, no special handling needed
-    return value
+    if not isinstance(observed_value, datetime.date):
+        return value
+    # Handle datetime and date types (Timestamp > datetime > date)
+    try:
+        parsed = parse(value)
+        if isinstance(observed_value, pd.Timestamp):
+            return pd.Timestamp(parsed)
+        elif isinstance(observed_value, datetime.datetime):
+            return parsed
+        return parsed.date()
+    except (ValueError, TypeError):
+        return value
 
 
 def _style_row_condition(

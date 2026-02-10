@@ -151,7 +151,6 @@ def unset_gx_env_variables(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv(var, raising=False)
 
 
-@pytest.mark.order(index=2)
 @pytest.fixture(scope="module")
 def spark_warehouse_session(tmp_path_factory):
     # Note this fixture will configure spark to use in-memory metastore
@@ -541,7 +540,6 @@ def sa(test_backends):
             raise ValueError("SQL Database tests require sqlalchemy to be installed.")
 
 
-@pytest.mark.order(index=2)
 @pytest.fixture
 def spark_session(test_backends) -> pyspark.SparkSession:
     from great_expectations.compatibility import pyspark
@@ -623,7 +621,6 @@ def spark_df_taxi_data_schema(spark_session):
     return schema
 
 
-@pytest.mark.order(index=3)
 @pytest.fixture
 def spark_session_v012(test_backends):
     try:
