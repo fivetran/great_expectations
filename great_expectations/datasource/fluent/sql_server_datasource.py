@@ -15,6 +15,7 @@ from great_expectations.datasource.fluent.sql_datasource import (
 
 if TYPE_CHECKING:
     from great_expectations.compatibility import sqlalchemy
+    from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 
 
 class SqlServerDsn(pydantic.AnyUrl):
@@ -78,6 +79,28 @@ class SQLServerDatasource(SQLDatasource):
     @property
     def schema_(self) -> str:
         return self.connection_string.schema_
+
+    @override
+    def get_execution_engine(self) -> SqlAlchemyExecutionEngine:
+        current_execution_engine_kwargs = self.dict(
+            exclude=self._get_exec_engine_excludes(),
+            config_provider=self._config_provider,
+            exclude_unset=False,
+        )
+        if (
+            current_execution_engine_kwargs != self._cached_execution_engine_kwargs
+            or not self._execution_engine
+        ):
+            self._cached_execution_engine_kwargs = current_execution_engine_kwargs
+            engine_kwargs = current_execution_engine_kwargs.pop("kwargs", {})
+            current_execution_engine_kwargs.pop("connection_string", None)
+            engine = self._create_engine()
+            self._execution_engine = self._execution_engine_type()(
+                engine=engine,
+                **current_execution_engine_kwargs,
+                **engine_kwargs,
+            )
+        return self._execution_engine
 
     @override
     def _create_engine(self) -> sqlalchemy.Engine:
