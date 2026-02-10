@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final, Literal, Union
+from typing import TYPE_CHECKING, Any, Final, Literal, Union
 from urllib.parse import quote, quote_plus
 
 from typing_extensions import Annotated
@@ -32,6 +32,10 @@ class SqlServerDsn(pydantic.AnyUrl):
 
         return _Model(url=url).url  # type: ignore[arg-type] # pydantic coerces str to SqlServerDsn
 
+
+_MUTUALLY_EXCLUSIVE_MSG: Final[str] = (
+    "Provide either a connection_string object or individual keyword arguments, not both."
+)
 
 _ENCRYPT_VALUE_MAP: Final[dict[str, str]] = {
     "Mandatory": "yes",
@@ -82,18 +86,45 @@ SQLServerConnectionDetails = Annotated[
 ]
 
 
+_CONNECTION_DETAIL_FIELDS: Final[frozenset[str]] = frozenset(
+    {
+        "schema",  # alias for schema_
+        *_SQLServerConnectionDetailsBase.__fields__.keys(),
+        *SQLServerAuthConnectionDetails.__fields__.keys(),
+        *AzureADPasswordAuthConnectionDetails.__fields__.keys(),
+    }
+)
+
+
 class SQLServerDatasource(SQLDatasource):
     """Adds a SQL Server datasource to the data context.
 
     Args:
         name: The name of this SQL Server datasource.
         connection_string: Structured connection details for SQL Server.
+            Alternatively, pass connection detail fields (host, database, schema,
+            username, password, etc.) as keyword arguments directly.
         assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose
             values are TableAsset or QueryAsset objects.
     """
 
     type: Literal["sql_server"] = "sql_server"  # type: ignore[assignment]
     connection_string: SQLServerConnectionDetails  # type: ignore[assignment]  # Raw connection strings are not supported
+
+    @pydantic.root_validator(pre=True)
+    def _convert_root_connection_detail_fields(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """Pack top-level connection detail kwargs into ``connection_string``."""
+        connection_string = values.get("connection_string")
+        connection_details: dict[str, Any] = {}
+        for field_name in list(values.keys()):
+            if field_name in _CONNECTION_DETAIL_FIELDS:
+                if connection_string is not None:
+                    raise ValueError(_MUTUALLY_EXCLUSIVE_MSG)
+                connection_details[field_name] = values.pop(field_name)
+        if connection_details:
+            connection_details.setdefault("authentication", "SQL Server")
+            values["connection_string"] = connection_details
+        return values
 
     @property
     def schema_(self) -> str:

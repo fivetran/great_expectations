@@ -444,3 +444,55 @@ class TestAddSQLServerDatasourceAPI:
         assert isinstance(source.connection_string, AzureADPasswordAuthConnectionDetails)
         assert source.schema_ == "dbo"
         assert source.assets == []
+
+    def test_add_sql_server_with_flat_kwargs_sql_server_auth(
+        self,
+        empty_data_context: AbstractDataContext,
+    ) -> None:
+        source = empty_data_context.data_sources.add_sql_server(
+            name="my_sql_server_flat",
+            host="myserver.database.windows.net",
+            database="mydb",
+            schema="dbo",
+            username="myuser",
+            password="mypassword",
+        )
+        assert source.type == "sql_server"
+        assert source.name == "my_sql_server_flat"
+        assert isinstance(source.connection_string, SQLServerAuthConnectionDetails)
+        assert source.schema_ == "dbo"
+
+    def test_add_sql_server_with_flat_kwargs_azure_ad_password(
+        self,
+        empty_data_context: AbstractDataContext,
+    ) -> None:
+        source = empty_data_context.data_sources.add_sql_server(
+            name="my_azure_flat",
+            host="myserver.database.windows.net",
+            database="mydb",
+            schema="dbo",
+            username="myuser@contoso.com",
+            password="mypassword",
+            authentication="Azure AD Password",
+        )
+        assert source.type == "sql_server"
+        assert source.name == "my_azure_flat"
+        assert isinstance(source.connection_string, AzureADPasswordAuthConnectionDetails)
+        assert source.schema_ == "dbo"
+
+    def test_add_sql_server_flat_kwargs_rejects_connection_string_and_kwargs(
+        self,
+        empty_data_context: AbstractDataContext,
+    ) -> None:
+        with pytest.raises(ValueError, match="not both"):
+            empty_data_context.data_sources.add_sql_server(
+                name="bad",
+                connection_string=SQLServerAuthConnectionDetails(
+                    host="h",
+                    database="d",
+                    schema="s",
+                    username="u",
+                    password="p",
+                ),
+                host="other_host",
+            )

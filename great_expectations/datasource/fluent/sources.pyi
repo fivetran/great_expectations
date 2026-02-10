@@ -8,6 +8,7 @@ from typing import (
     Final,
     Generator,
     List,
+    Literal,
     NamedTuple,
     Optional,
     Type,
@@ -617,23 +618,116 @@ class DataSourceManager:
         self,
         name: str,
     ) -> None: ...
+    @overload
     def add_sql_server(
         self,
         name: str,
         *,
         connection_string: SQLServerConnectionDetails = ...,
     ) -> SQLServerDatasource: ...
+    @overload
+    def add_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        username: str = ...,
+        password: Union[ConfigStr, str] = ...,
+        authentication: Literal["SQL Server"] = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
+    def add_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        username: str = ...,
+        password: Union[ConfigStr, str] = ...,
+        authentication: Literal["Azure AD Password"] = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
     def update_sql_server(
         self,
         name: str,
         *,
         connection_string: SQLServerConnectionDetails = ...,
     ) -> SQLServerDatasource: ...
+    @overload
+    def update_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        username: str = ...,
+        password: Union[ConfigStr, str] = ...,
+        authentication: Literal["SQL Server"] = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
+    def update_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        username: str = ...,
+        password: Union[ConfigStr, str] = ...,
+        authentication: Literal["Azure AD Password"] = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
     def add_or_update_sql_server(
         self,
         name: str,
         *,
         connection_string: SQLServerConnectionDetails = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
+    def add_or_update_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        username: str = ...,
+        password: Union[ConfigStr, str] = ...,
+        authentication: Literal["SQL Server"] = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
+    def add_or_update_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        username: str = ...,
+        password: Union[ConfigStr, str] = ...,
+        authentication: Literal["Azure AD Password"] = ...,
     ) -> SQLServerDatasource: ...
     def delete_sql_server(
         self,
