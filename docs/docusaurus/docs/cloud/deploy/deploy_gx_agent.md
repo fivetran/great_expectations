@@ -12,7 +12,7 @@ import Tabs from '@theme/Tabs';
 
 The GX Agent is used to run an [agent-enabled deployment](/cloud/deploy/deployment_patterns.md#agent-enabled-deployment) of GX Cloud. If you are running a fully-hosted deployment or using the GX Cloud API, you do not need to deploy the GX Agent.
 
-The GX Agent serves as an intermediary between GX Cloud and your organization's data stores. GX Cloud does not connect directly to your data in an agent-enabled deployment, and all data access occurs within the GX Agent. GX Cloud sends jobs to the GX Agent, the GX Agent executes these jobs against your data, and then sends the job results to GX Cloud. If you use [ExpectAI](/cloud/overview/accelerating_test_coverage/#expectai), the GX Agent uses your own LLM to analyze samples of your data. Your LLM API key and all data processed by ExpectAI remain within your environment.
+The GX Agent serves as an intermediary between GX Cloud and your organization's data stores. GX Cloud does not connect directly to your data in an agent-enabled deployment, and all data access occurs within the GX Agent. GX Cloud sends jobs to the GX Agent, the GX Agent executes these jobs against your data, and then sends the job results to GX Cloud. If you use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), the GX Agent uses your own LLM to analyze samples of your data. Your LLM API key and all data processed by ExpectAI remain within your environment.
 
 A local deployment of the GX Agent will allow you to test GX Cloud setup or processes from a single machine before moving to a shared production deployment. Alternatively, you can run the GX Agent in your deployment environment and leverage GX Cloud while connecting to Data Sources using your organization's environment and infrastructure, for enhanced control and security.
 
@@ -21,7 +21,7 @@ A local deployment of the GX Agent will allow you to test GX Cloud setup or proc
 
 - You are an [Organization Owner](/cloud/access/manage_access.md#roles-and-permissions).
 - You have a [Docker instance](https://docs.docker.com/get-docker/) or [kubectl](https://kubernetes.io/docs/tasks/tools/).
-- Optional. If you want to use [ExpectAI](/cloud/overview/accelerating_test_coverage/#expectai), you have an [OpenAI](https://openai.com/) project and the ability to create an OpenAI API token.
+- Optional. If you want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), you have an [OpenAI](https://openai.com/) project and the ability to create an OpenAI API token.
 
 ## Enable the GX Agent
 
@@ -56,7 +56,7 @@ You can continue following the steps below to deploy the GX Agent while you wait
 
 ## Get your credentials
 
-You need your GX Cloud access token and organization ID to deploy the GX Agent. If you want to use [ExpectAI](/cloud/overview/accelerating_test_coverage/#expectai), you will also need your OpenAI API key. Access tokens and API keys shouldn't be committed to version control software.
+You need your GX Cloud access token and organization ID to deploy the GX Agent. If you want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), you will also need your OpenAI API key. Access tokens and API keys shouldn't be committed to version control software.
 
 1. In GX Cloud, click **Tokens**.
 
@@ -72,7 +72,7 @@ You need your GX Cloud access token and organization ID to deploy the GX Agent. 
 
 7. Copy the value in the **Organization ID** field into the temporary file with your user access token and then save the file. 
 
-8. Optional. If you want to use [ExpectAI](/cloud/overview/accelerating_test_coverage/#expectai), go to your OpenAI dashboard’s [API keys](https://platform.openai.com/api-keys) page and create a new secret key with the following `Restricted` permissions:
+8. Optional. If you want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), go to your OpenAI dashboard’s [API keys](https://platform.openai.com/api-keys) page and create a new secret key with the following `Restricted` permissions:
 
    - Model capabilities: Write
    - Access to the model `gpt-4o-2024-11-20` 
@@ -133,7 +133,7 @@ You can deploy the GX Agent in any environment in which you create Kubernetes cl
    ```bash title="Terminal input"
    docker run -it -e GX_CLOUD_ACCESS_TOKEN="<YOUR_ACCESS_TOKEN>" -e GX_CLOUD_ORGANIZATION_ID="<YOUR_ORGANIZATION_ID>" -e OPENAI_API_KEY="<YOUR_API_KEY>"  greatexpectations/agent:stable
     ```
-    Replace `<YOUR_ACCESS_TOKEN>`, `<YOUR_ORGANIZATION_ID>`, and `<YOUR_API_KEY>` with the [credential values](#get-your-credentials) that you copied previously. If you don’t want to use [ExpectAI](/cloud/overview/accelerating_test_coverage/#expectai), you can omit setting `OPENAI_API_KEY`.
+    Replace `<YOUR_ACCESS_TOKEN>`, `<YOUR_ORGANIZATION_ID>`, and `<YOUR_API_KEY>` with the [credential values](#get-your-credentials) that you copied previously. If you don’t want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), you can omit setting `OPENAI_API_KEY`.
 
 3. Optional. If you created a temporary file to record your credentials, delete it.
 
@@ -163,7 +163,7 @@ You can deploy the GX Agent in any environment in which you create Kubernetes cl
    --from-literal=GX_CLOUD_ACCESS_TOKEN=YOUR_ACCESS_TOKEN \
    --from-literal=OPENAI_API_KEY=YOUR_API_TOKEN \
    ```
-    Replace `YOUR_ORGANIZATION_ID`, `YOUR_ACCESS_TOKEN`, and `YOUR_API_KEY` with the [credential values](#get-your-credentials) that you copied previously. If you don’t want to use [ExpectAI](/cloud/overview/accelerating_test_coverage/#expectai), you can omit setting `OPENAI_API_KEY`.
+    Replace `YOUR_ORGANIZATION_ID`, `YOUR_ACCESS_TOKEN`, and `YOUR_API_KEY` with the [credential values](#get-your-credentials) that you copied previously. If you don’t want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), you can omit setting `OPENAI_API_KEY`.
 
 3. Optional. If you created a temporary file to record your credentials, delete it.
 
@@ -223,7 +223,7 @@ You can deploy the GX Agent in any environment in which you create Kubernetes cl
     ```bash title="Terminal input"
     docker run --rm --pull=always -e GX_CLOUD_ACCESS_TOKEN="<YOUR_ACCESS_TOKEN>" -e GX_CLOUD_ORGANIZATION_ID="<YOUR_ORGANIZATION_ID>" -e OPENAI_API_KEY="<YOUR_API_KEY>"  greatexpectations/agent:stable
     ```
-   Replace `<YOUR_ACCESS_TOKEN>`, `<YOUR_ORGANIZATION_ID>`, and `<YOUR_API_KEY>` with the [credential values]((#get-your-credentials)) that you copied previously. If you don’t want to use [ExpectAI](/cloud/overview/accelerating_test_coverage/#expectai), you can omit setting `OPENAI_API_KEY`.
+   Replace `<YOUR_ACCESS_TOKEN>`, `<YOUR_ORGANIZATION_ID>`, and `<YOUR_API_KEY>` with the [credential values]((#get-your-credentials)) that you copied previously. If you don’t want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), you can omit setting `OPENAI_API_KEY`.
 
 3. In GX Cloud, confirm the GX Agent status is **Active Agent** and the icon is green. This indicates the GX Agent is active. If it isn't, repeat step 2 and confirm the `user_access_token` and `organization_id` values are correct.
 
