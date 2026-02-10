@@ -39,7 +39,7 @@ ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
 # pandas not currently supported by this Expecatation
 EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     DatabricksDatasourceTestConfig(),
-    MSSQLDatasourceTestConfig(),  # fix me
+    MSSQLDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
@@ -51,7 +51,7 @@ EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
 PARTITIONER_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
-    # MSSQLDatasourceTestConfig(),  # fix me
+    MSSQLDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
@@ -63,7 +63,7 @@ PARTITIONER_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
 # pandas and spark not currently supporting partitioners
 PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     DatabricksDatasourceTestConfig(),
-    # MSSQLDatasourceTestConfig(),  # fix me
+    MSSQLDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
