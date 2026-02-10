@@ -35,20 +35,6 @@ ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     # SqliteDatasourceTestConfig(),  # fix me
 ]
 
-DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION: Sequence[DataSourceTestConfig] = [
-    MSSQLDatasourceTestConfig(),
-]
-
-DATA_SOURCES_THAT_DO_NOT_REQUIRE_TOP_EXPRESSION: Sequence[DataSourceTestConfig] = [
-    BigQueryDatasourceTestConfig(),
-    DatabricksDatasourceTestConfig(),
-    MySQLDatasourceTestConfig(),
-    PostgreSQLDatasourceTestConfig(),
-    RedshiftDatasourceTestConfig(),
-    SnowflakeDatasourceTestConfig(),
-    SparkFilesystemCsvDatasourceTestConfig(),
-    # SqliteDatasourceTestConfig(),  # fix me
-]
 
 # spark and big query not currently supported with extra_data, so we can't test JOIN
 # pandas not currently supported by this Expecatation
@@ -63,7 +49,7 @@ EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
 ]
 
 # pandas and spark not currently supporting partitioners
-PARTITIONER_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
+_PARTITIONER_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
     MSSQLDatasourceTestConfig(),
@@ -73,6 +59,7 @@ PARTITIONER_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     SnowflakeDatasourceTestConfig(),
     # SqliteDatasourceTestConfig(),  # fix me
 ]
+
 
 # spark and big query not currently supported with extra_data, so we can't test JOIN
 # pandas and spark not currently supporting partitioners
@@ -84,6 +71,35 @@ PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig
     RedshiftDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     # SqliteDatasourceTestConfig(),  # fix me
+]
+
+# strings correspond to `label` property on TestConfig instances
+DATA_SOURCE_TYPES_THAT_REQUIRE_TOP_EXPRESSION = {"mssql"}
+
+DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION: Sequence[DataSourceTestConfig] = [
+    ds
+    for ds in ALL_SUPPORTED_DATA_SOURCES
+    if ds.label in DATA_SOURCE_TYPES_THAT_REQUIRE_TOP_EXPRESSION
+]
+
+DATA_SOURCES_THAT_DO_NOT_REQUIRE_TOP_EXPRESSION: Sequence[DataSourceTestConfig] = [
+    ds
+    for ds in ALL_SUPPORTED_DATA_SOURCES
+    if ds.label not in DATA_SOURCE_TYPES_THAT_REQUIRE_TOP_EXPRESSION
+]
+
+PARTITIONER_SUPPORTED_DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION: Sequence[DataSourceTestConfig] = [
+    ds
+    for ds in _PARTITIONER_SUPPORTED_DATA_SOURCES
+    if ds.label in DATA_SOURCE_TYPES_THAT_REQUIRE_TOP_EXPRESSION
+]
+
+PARTITIONER_SUPPORTED_DATA_SOURCES_THAT_DO_NOT_REQUIRE_TOP_EXPRESSION: Sequence[
+    DataSourceTestConfig
+] = [
+    ds
+    for ds in _PARTITIONER_SUPPORTED_DATA_SOURCES
+    if ds.label not in DATA_SOURCE_TYPES_THAT_REQUIRE_TOP_EXPRESSION
 ]
 
 TABLE_1 = pd.DataFrame(
@@ -293,7 +309,7 @@ def test_unexpected_rows_expectation_join_keyword_failure(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=DATA_SOURCES_THAT_DO_NOT_REQUIRE_TOP_EXPRESSION,
+    data_source_configs=PARTITIONER_SUPPORTED_DATA_SOURCES_THAT_DO_NOT_REQUIRE_TOP_EXPRESSION,
     data=TABLE_1,
 )
 @pytest.mark.parametrize("unexpected_rows_query", SUCCESS_QUERIES_WITHOUT_TOP_EXPRESSION)
@@ -314,7 +330,7 @@ def test_unexpected_rows_expectation_batch_keyword_partitioner_success(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION,
+    data_source_configs=PARTITIONER_SUPPORTED_DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION,
     data=TABLE_1,
 )
 @pytest.mark.parametrize("unexpected_rows_query", SUCCESS_QUERIES_WITH_TOP_EXPRESSION)
@@ -360,7 +376,7 @@ def test_unexpected_rows_expectation_join_keyword_partitioner_success(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=DATA_SOURCES_THAT_DO_NOT_REQUIRE_TOP_EXPRESSION,
+    data_source_configs=PARTITIONER_SUPPORTED_DATA_SOURCES_THAT_DO_NOT_REQUIRE_TOP_EXPRESSION,
     data=TABLE_1,
 )
 @pytest.mark.parametrize("unexpected_rows_query", FAIULRE_QUERIES_WITHOUT_TOP_EXPRESSION)
@@ -381,7 +397,7 @@ def test_unexpected_rows_expectation_batch_keyword_partitioner_failure(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION,
+    data_source_configs=PARTITIONER_SUPPORTED_DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION,
     data=TABLE_1,
 )
 @pytest.mark.parametrize("unexpected_rows_query", FAIULRE_QUERIES_WITH_TOP_EXPRESSION)
