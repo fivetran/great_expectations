@@ -23,7 +23,7 @@ A local deployment of the GX Agent will allow you to test GX Cloud setup or proc
 
 - You are an [Organization Owner](/cloud/access/manage_access.md#roles-and-permissions).
 - You have a [Docker instance](https://docs.docker.com/get-docker/) or [kubectl](https://kubernetes.io/docs/tasks/tools/).
-- Optional. If you want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), you have an [OpenAI](https://openai.com/) project and the ability to create an OpenAI API token.
+- Optional. If you want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), you have an [OpenAI](https://openai.com/) project that allows access to the model `gpt-4o-2024-11-20` (available by default) and you have the ability to create an OpenAI API token.
 
 ## Enable the GX Agent
 
@@ -74,12 +74,7 @@ You need your GX Cloud access token and organization ID to deploy the GX Agent. 
 
 7. Copy the value in the **Organization ID** field into the temporary file with your user access token and then save the file. 
 
-8. Optional. If you want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), go to your OpenAI dashboard’s [API keys](https://platform.openai.com/api-keys) page and create a new secret key with the following `Restricted` permissions:
-
-   - Model capabilities: Write
-   - Access to the model `gpt-4o-2024-11-20` 
-
-   Copy the value into the temporary file with your GX credentials, and then save the file.
+8. Optional. If you want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), go to your OpenAI dashboard’s [API keys](https://platform.openai.com/api-keys) page, create a new secret key with **Restricted** permissions that grant **Model capabilities: Write**, copy the value into the temporary file with your GX credentials, and then save the file.
 
 9. [Deploy the GX Agent](#deploy-the-gx-agent).
 
