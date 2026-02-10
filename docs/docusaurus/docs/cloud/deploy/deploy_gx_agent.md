@@ -14,7 +14,7 @@ The GX Agent is used to run an [agent-enabled deployment](/cloud/deploy/deployme
 
 The GX Agent serves as an intermediary between GX Cloud and your organization's data stores. GX Cloud does not connect directly to your data in an agent-enabled deployment, and all data access occurs within the GX Agent. GX Cloud sends jobs to the GX Agent, the GX Agent executes these jobs against your data, and then sends the job results to GX Cloud.
 
-If you use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), the GX Agent uses your own OpenAI project to analyze samples of your data. Your OpenAI API key and all data processed by ExpectAI remain within your environment. When you use ExpectAI in an agent-enabled deployment, AI usage is billed to your own OpenAI account.
+If you use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), the GX Agent uses your own OpenAI project to analyze samples of your data. Your OpenAI API key and all data processed by ExpectAI remain within your environment.
 
 A local deployment of the GX Agent will allow you to test GX Cloud setup or processes from a single machine before moving to a shared production deployment. Alternatively, you can run the GX Agent in your deployment environment and leverage GX Cloud while connecting to Data Sources using your organization's environment and infrastructure, for enhanced control and security.
 
