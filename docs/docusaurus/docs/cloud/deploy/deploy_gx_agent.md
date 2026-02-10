@@ -133,7 +133,6 @@ You can deploy the GX Agent in any environment in which you create Kubernetes cl
    ```bash title="Terminal input"
    docker run -it -e GX_CLOUD_ACCESS_TOKEN="<YOUR_ACCESS_TOKEN>" -e GX_CLOUD_ORGANIZATION_ID="<YOUR_ORGANIZATION_ID>" -e OPENAI_API_KEY="<YOUR_API_KEY>"  greatexpectations/agent:stable
     ```
-    Replace `<YOUR_ACCESS_TOKEN>` and `<YOUR_ORGANIZATION_ID>` with the [access token and organization ID](#get-your-credentials) values that you copied previously.
     Replace `<YOUR_ACCESS_TOKEN>`, `<YOUR_ORGANIZATION_ID>`, and `<YOUR_API_KEY>` with the [credential values](#get-your-credentials) that you copied previously. If you don’t want to use [ExpectAI](/cloud/overview/accelerating_test_coverage/#expectai), you can omit setting `OPENAI_API_KEY`.
 
 3. Optional. If you created a temporary file to record your credentials, delete it.
