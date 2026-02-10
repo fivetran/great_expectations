@@ -13,7 +13,7 @@ from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
     DataSourceTestConfig,
-    # MSSQLDatasourceTestConfig,
+    MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     RedshiftDatasourceTestConfig,
@@ -26,7 +26,7 @@ from tests.integration.test_utils.data_source_config import (
 ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
-    # MSSQLDatasourceTestConfig(),  # fix me
+    MSSQLDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
@@ -39,7 +39,7 @@ ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
 # pandas not currently supported by this Expecatation
 EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     DatabricksDatasourceTestConfig(),
-    # MSSQLDatasourceTestConfig(),  # fix me
+    MSSQLDatasourceTestConfig(),  # fix me
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
@@ -101,7 +101,7 @@ SUCCESS_QUERIES = [
     "SELECT * FROM {batch} WHERE quantity > 2",
     "SELECT * FROM {batch} WHERE quantity > 2 AND temperature > 91",
     "SELECT * FROM {batch} WHERE quantity > 2 OR temperature > 92",
-    "SELECT * FROM {batch} WHERE quantity > 2 ORDER BY quantity DESC",
+    "SELECT TOP 10 * FROM {batch} WHERE quantity > 2 ORDER BY quantity DESC",
     "SELECT color FROM {batch} GROUP BY color HAVING SUM(quantity) > 3",
 ]
 
@@ -109,7 +109,7 @@ JOIN_SUCCESS_QUERIES = [
     """
      SELECT t1.entity_id, t1.quantity, t2.total_quantity
      FROM {batch} t1
-     JOIN table_2 t2 USING (entity_id)
+     JOIN table_2 t2 ON t1.entity_id = t2.entity_id
      WHERE t1.quantity <> t2.total_quantity
     """,
     """
@@ -128,7 +128,7 @@ FAILURE_QUERIES = [
     "SELECT * FROM {batch} WHERE quantity > 0",
     "SELECT * FROM {batch} WHERE quantity > 0 AND temperature > 74",
     "SELECT * FROM {batch} WHERE quantity > 0 OR temperature > 92",
-    "SELECT * FROM {batch} WHERE quantity > 0 ORDER BY quantity DESC",
+    "SELECT TOP 10 * FROM {batch} WHERE quantity > 0 ORDER BY quantity DESC",
     "SELECT color FROM {batch} GROUP BY color HAVING SUM(quantity) > 0",
 ]
 
@@ -136,7 +136,7 @@ JOIN_FAILURE_QUERIES = [
     """
      SELECT t1.entity_id, t1.quantity, t2.total_quantity
      FROM {batch} t1
-     JOIN table_2 t2 USING (entity_id)
+     JOIN table_2 t2 ON t1.entity_id = t2.entity_id
      WHERE t1.quantity = t2.total_quantity
     """,
     """
