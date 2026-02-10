@@ -52,7 +52,7 @@ To accelerate test coverage, you can use ExpectAI to generate recommended Expect
 Keep the following requirements in mind when working with ExpectAI:
 - The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake.
 - Generated Expectations will default to warning severity, which you can edit later.
-- If your organization is using an [agent-enabled deployment](/cloud/deploy/deployment_patterns.md), you must have [the `OPENAI_API_KEY` environment variable](/cloud/deploy/deploy_gx_agent.md#deploy-the-gx-agent) set with credentials for your own OpenAI project.
+- If your organization is using an [agent-enabled deployment](/cloud/deploy/deployment_patterns.md), you must [deploy the agent](/cloud/deploy/deploy_gx_agent.md#deploy-the-gx-agent) with credentials for your own LLM.
 
 To add AI-recommended Expectations:
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
@@ -84,7 +84,7 @@ AND passenger_count > 4
 
 Keep the following requirements in mind when working with ExpectAI:
 - The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake.
-- If your organization is using an [agent-enabled deployment](/cloud/deploy/deployment_patterns.md), you must have [the `OPENAI_API_KEY` environment variable](/cloud/deploy/deploy_gx_agent.md#deploy-the-gx-agent) set with credentials for your own OpenAI project.
+- If your organization is using an [agent-enabled deployment](/cloud/deploy/deployment_patterns.md), you must [deploy the agent](/cloud/deploy/deploy_gx_agent.md#deploy-the-gx-agent) with credentials for your own LLM.
 
 ## Edit an Expectation
 
