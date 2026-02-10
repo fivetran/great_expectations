@@ -273,7 +273,7 @@ class ExpectTableChecksumToEqualOtherTable(BatchExpectation):
         Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.
 
     See Also:
-        [expect_table_row_count_to_equal_other_table](https://greatexpectations.io/expectations/xpect_table_row_count_to_equal_other_table)
+        [expect_table_row_count_to_equal_other_table](https://greatexpectations.io/expectations/expect_table_row_count_to_equal_other_table)
     """
 
     # These examples will be shown in the public gallery, and also executed as unit tests for your Expectation
