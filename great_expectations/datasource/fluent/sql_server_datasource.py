@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Final, Literal, Union
 from urllib.parse import quote, quote_plus
 
+from typing_extensions import Annotated
+
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pydantic import Field
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
@@ -62,6 +64,24 @@ class SQLServerAuthConnectionDetails(_SQLServerConnectionDetailsBase):
     password: Union[ConfigStr, str]
 
 
+class AzureADPasswordAuthConnectionDetails(_SQLServerConnectionDetailsBase):
+    """Azure AD Password authentication."""
+
+    authentication: Literal["Azure AD Password"] = "Azure AD Password"
+    username: str
+    password: Union[ConfigStr, str]
+
+
+# Discriminated union using the authentication field (Pydantic v1 syntax)
+SQLServerConnectionDetails = Annotated[
+    Union[
+        SQLServerAuthConnectionDetails,
+        AzureADPasswordAuthConnectionDetails,
+    ],
+    Field(discriminator="authentication"),
+]
+
+
 class SQLServerDatasource(SQLDatasource):
     """Adds a SQL Server datasource to the data context.
 
@@ -73,7 +93,7 @@ class SQLServerDatasource(SQLDatasource):
     """
 
     type: Literal["sql_server"] = "sql_server"  # type: ignore[assignment]
-    connection_string: SQLServerAuthConnectionDetails  # type: ignore[assignment]  # Raw connection strings are not supported
+    connection_string: SQLServerConnectionDetails  # type: ignore[assignment]  # Raw connection strings are not supported
 
     @property
     def schema_(self) -> str:
@@ -99,9 +119,14 @@ class SQLServerDatasource(SQLDatasource):
         driver = quote_plus(details.driver)
         encrypt = _ENCRYPT_VALUE_MAP.get(details.encrypt, "yes")
 
+        query_params = f"driver={driver}&Encrypt={encrypt}"
+
+        if isinstance(details, AzureADPasswordAuthConnectionDetails):
+            query_params += "&Authentication=ActiveDirectoryPassword"
+
         url = (
             f"mssql+pyodbc://{username}:{encoded_password}"
             f"@{details.host}:{details.port}/{details.database}"
-            f"?driver={driver}&Encrypt={encrypt}"
+            f"?{query_params}"
         )
         return SqlServerDsn.from_url(url)

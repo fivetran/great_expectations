@@ -41,6 +41,7 @@ from great_expectations.datasource.fluent import (
     SparkS3Datasource,
     SQLDatasource,
     SqliteDatasource,
+    SQLServerDatasource,
 )
 from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.datasource.fluent.databricks_sql_datasource import DatabricksDsn
@@ -59,6 +60,9 @@ from great_expectations.datasource.fluent.snowflake_datasource import (
     SnowflakeDsn,
 )
 from great_expectations.datasource.fluent.spark_datasource import SparkConfig
+from great_expectations.datasource.fluent.sql_server_datasource import (
+    SQLServerConnectionDetails,
+)
 from great_expectations.datasource.fluent.sqlite_datasource import SqliteDsn
 from great_expectations.datasource.fluent.type_lookup import TypeLookup
 
@@ -610,6 +614,28 @@ class DataSourceManager:
         create_temp_table: bool = True,
     ) -> SqliteDatasource: ...
     def delete_sqlite(
+        self,
+        name: str,
+    ) -> None: ...
+    def add_sql_server(
+        self,
+        name: str,
+        *,
+        connection_string: SQLServerConnectionDetails = ...,
+    ) -> SQLServerDatasource: ...
+    def update_sql_server(
+        self,
+        name: str,
+        *,
+        connection_string: SQLServerConnectionDetails = ...,
+    ) -> SQLServerDatasource: ...
+    def add_or_update_sql_server(
+        self,
+        name: str,
+        *,
+        connection_string: SQLServerConnectionDetails = ...,
+    ) -> SQLServerDatasource: ...
+    def delete_sql_server(
         self,
         name: str,
     ) -> None: ...
