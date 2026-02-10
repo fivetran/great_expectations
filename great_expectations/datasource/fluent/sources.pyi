@@ -936,28 +936,6 @@ class DataSourceManager:
         self,
         name: str,
     ) -> None: ...
-    def add_sql_server(
-        self,
-        name: str,
-        *,
-        connection_string: SQLServerAuthConnectionDetails,
-        create_temp_table: bool = False,
-    ) -> SQLServerDatasource: ...
-    def update_sql_server(
-        self,
-        name: str,
-        *,
-        connection_string: SQLServerAuthConnectionDetails,
-        create_temp_table: bool = False,
-    ) -> SQLServerDatasource: ...
-    def add_or_update_sql_server(
-        self,
-        name: str,
-        *,
-        connection_string: SQLServerAuthConnectionDetails,
-        create_temp_table: bool = False,
-    ) -> SQLServerDatasource: ...
-    def delete_sql_server(self, name: str) -> None: ...
     def add_fabric_powerbi(
         self,
         name: Optional[str] = None,
