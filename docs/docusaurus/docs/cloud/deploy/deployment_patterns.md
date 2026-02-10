@@ -29,7 +29,7 @@ If you are using a fully-hosted deployment, ensure that the following GX Cloud I
 
 ## Agent-enabled deployment
 
-In an agent-enabled deployment, the GX Agent runs in your environment and serves as an intermediary between GX Cloud and your data. GX Cloud sends jobs to the GX Agent, the GX Agent connects to and interacts with your data, and the GX Agent reports job results back to GX Cloud. If you use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), the GX Agent uses your own LLM to analyze samples of your data. Your OpenAI API key and all data processed by ExpectAI remain within your environment.
+In an agent-enabled deployment, the GX Agent runs in your environment and serves as an intermediary between GX Cloud and your data. GX Cloud sends jobs to the GX Agent, the GX Agent connects to and interacts with your data, and the GX Agent reports job results back to GX Cloud. If you use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), the GX Agent uses your own LLM to analyze samples of your data. Your LLM API key and all data processed by ExpectAI remain within your environment.
 
 ![GX Cloud has a web UI, storage, and backend managed by Great Expectations.](./deployment_images/agent_enabled_deployment.png)
 
