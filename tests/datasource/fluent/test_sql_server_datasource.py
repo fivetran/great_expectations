@@ -12,7 +12,6 @@ from great_expectations.datasource.fluent.sql_server_datasource import (
     SQLServerDatasource,
     SqlServerDsn,
 )
-from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
@@ -173,16 +172,18 @@ class TestBuildConnectionString:
             name="test_ds",
             connection_string=SQLServerAuthConnectionDetails(**connection_details_encrypt_optional),
         )
-        result = ds._build_connection_string()
-        assert "Encrypt=no" in result
+        assert ds._build_connection_string() == (
+            "mssql+pyodbc://u:p@host:1433/db?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=no"
+        )
 
     def test_encrypt_strict(self, connection_details_encrypt_strict: ConnectionDetailsDict) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
             connection_string=SQLServerAuthConnectionDetails(**connection_details_encrypt_strict),
         )
-        result = ds._build_connection_string()
-        assert "Encrypt=strict" in result
+        assert ds._build_connection_string() == (
+            "mssql+pyodbc://u:p@host:1433/db?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=strict"
+        )
 
     def test_special_chars_in_password_are_encoded(
         self, connection_details_special_chars: ConnectionDetailsDict
@@ -191,8 +192,10 @@ class TestBuildConnectionString:
             name="test_ds",
             connection_string=SQLServerAuthConnectionDetails(**connection_details_special_chars),
         )
-        result = ds._build_connection_string()
-        assert "p%40ss%3Aw%2Frd" in result
+        assert ds._build_connection_string() == (
+            "mssql+pyodbc://user:p%40ss%3Aw%2Frd@host:1433/db"
+            "?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes"
+        )
 
 
 @pytest.mark.unit
@@ -274,16 +277,6 @@ class TestAzureADPasswordAuthConnectionDetails:
         assert isinstance(details.password, ConfigStr)
         assert str(details.password) == "${MY_PASSWORD}"
 
-    def test_authentication_literal(self) -> None:
-        details = AzureADPasswordAuthConnectionDetails(
-            host="myserver",
-            database="mydb",
-            schema="dbo",
-            username="myuser@contoso.com",
-            password="pw",
-        )
-        assert details.authentication == "Azure AD Password"
-
 
 @pytest.mark.unit
 class TestBuildConnectionStringAzureAD:
@@ -316,9 +309,12 @@ class TestBuildConnectionStringAzureAD:
                 password="p@ss:w/rd",
             ),
         )
-        result = ds._build_connection_string()
-        assert "p%40ss%3Aw%2Frd" in result
-        assert "Authentication=ActiveDirectoryPassword" in result
+        assert ds._build_connection_string() == (
+            "mssql+pyodbc://myuser%40contoso.com:p%40ss%3Aw%2Frd"
+            "@myserver.database.windows.net:1433/mydb"
+            "?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes"
+            "&Authentication=ActiveDirectoryPassword"
+        )
 
     def test_azure_ad_password_encrypt_optional(self) -> None:
         ds = SQLServerDatasource(
@@ -332,9 +328,12 @@ class TestBuildConnectionStringAzureAD:
                 password="pw",
             ),
         )
-        result = ds._build_connection_string()
-        assert "Encrypt=no" in result
-        assert "Authentication=ActiveDirectoryPassword" in result
+        assert ds._build_connection_string() == (
+            "mssql+pyodbc://myuser%40contoso.com:pw"
+            "@myserver.database.windows.net:1433/mydb"
+            "?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=no"
+            "&Authentication=ActiveDirectoryPassword"
+        )
 
     def test_sql_server_auth_has_no_authentication_param(
         self,
@@ -345,8 +344,11 @@ class TestBuildConnectionStringAzureAD:
             name="test_ds",
             connection_string=SQLServerAuthConnectionDetails(**connection_details_default),
         )
-        result = ds._build_connection_string()
-        assert "Authentication=" not in result
+        assert ds._build_connection_string() == (
+            "mssql+pyodbc://myuser:mypassword"
+            "@myserver.database.windows.net:1433/mydb"
+            "?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes"
+        )
 
 
 @pytest.mark.unit
@@ -417,12 +419,24 @@ class TestAddSQLServerDatasourceAPI:
                 password="mypassword",
             ),
         )
-        assert source.type == "sql_server"
-        assert source.name == "my_sql_server"
-        assert source.execution_engine_type is SqlAlchemyExecutionEngine
-        assert isinstance(source.connection_string, SQLServerAuthConnectionDetails)
-        assert source.schema_ == "dbo"
-        assert source.assets == []
+        assert source.dict(by_alias=True, exclude_unset=False, exclude={"id"}) == {
+            "type": "sql_server",
+            "name": "my_sql_server",
+            "connection_string": {
+                "host": "myserver.database.windows.net",
+                "port": 1433,
+                "database": "mydb",
+                "schema": "dbo",
+                "driver": "ODBC Driver 18 for SQL Server",
+                "encrypt": "Mandatory",
+                "authentication": "SQL Server",
+                "username": "myuser",
+                "password": "mypassword",
+            },
+            "create_temp_table": False,
+            "kwargs": {},
+            "assets": [],
+        }
 
     def test_add_sql_server_with_azure_ad_password_auth(
         self,
@@ -438,12 +452,24 @@ class TestAddSQLServerDatasourceAPI:
                 password="mypassword",
             ),
         )
-        assert source.type == "sql_server"
-        assert source.name == "my_azure_sql"
-        assert source.execution_engine_type is SqlAlchemyExecutionEngine
-        assert isinstance(source.connection_string, AzureADPasswordAuthConnectionDetails)
-        assert source.schema_ == "dbo"
-        assert source.assets == []
+        assert source.dict(by_alias=True, exclude_unset=False, exclude={"id"}) == {
+            "type": "sql_server",
+            "name": "my_azure_sql",
+            "connection_string": {
+                "host": "myserver.database.windows.net",
+                "port": 1433,
+                "database": "mydb",
+                "schema": "dbo",
+                "driver": "ODBC Driver 18 for SQL Server",
+                "encrypt": "Mandatory",
+                "authentication": "Azure AD Password",
+                "username": "myuser@contoso.com",
+                "password": "mypassword",
+            },
+            "create_temp_table": False,
+            "kwargs": {},
+            "assets": [],
+        }
 
     def test_add_sql_server_with_flat_kwargs_sql_server_auth(
         self,
@@ -457,10 +483,24 @@ class TestAddSQLServerDatasourceAPI:
             username="myuser",
             password="mypassword",
         )
-        assert source.type == "sql_server"
-        assert source.name == "my_sql_server_flat"
-        assert isinstance(source.connection_string, SQLServerAuthConnectionDetails)
-        assert source.schema_ == "dbo"
+        assert source.dict(by_alias=True, exclude_unset=False, exclude={"id"}) == {
+            "type": "sql_server",
+            "name": "my_sql_server_flat",
+            "connection_string": {
+                "host": "myserver.database.windows.net",
+                "port": 1433,
+                "database": "mydb",
+                "schema": "dbo",
+                "driver": "ODBC Driver 18 for SQL Server",
+                "encrypt": "Mandatory",
+                "authentication": "SQL Server",
+                "username": "myuser",
+                "password": "mypassword",
+            },
+            "create_temp_table": False,
+            "kwargs": {},
+            "assets": [],
+        }
 
     def test_add_sql_server_with_flat_kwargs_azure_ad_password(
         self,
@@ -475,17 +515,31 @@ class TestAddSQLServerDatasourceAPI:
             password="mypassword",
             authentication="Azure AD Password",
         )
-        assert source.type == "sql_server"
-        assert source.name == "my_azure_flat"
-        assert isinstance(source.connection_string, AzureADPasswordAuthConnectionDetails)
-        assert source.schema_ == "dbo"
+        assert source.dict(by_alias=True, exclude_unset=False, exclude={"id"}) == {
+            "type": "sql_server",
+            "name": "my_azure_flat",
+            "connection_string": {
+                "host": "myserver.database.windows.net",
+                "port": 1433,
+                "database": "mydb",
+                "schema": "dbo",
+                "driver": "ODBC Driver 18 for SQL Server",
+                "encrypt": "Mandatory",
+                "authentication": "Azure AD Password",
+                "username": "myuser@contoso.com",
+                "password": "mypassword",
+            },
+            "create_temp_table": False,
+            "kwargs": {},
+            "assets": [],
+        }
 
     def test_add_sql_server_flat_kwargs_rejects_connection_string_and_kwargs(
         self,
         empty_data_context: AbstractDataContext,
     ) -> None:
         with pytest.raises(ValueError, match="not both"):
-            empty_data_context.data_sources.add_sql_server(
+            empty_data_context.data_sources.add_sql_server(  # type: ignore[call-overload]
                 name="bad",
                 connection_string=SQLServerAuthConnectionDetails(
                     host="h",
