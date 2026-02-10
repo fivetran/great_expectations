@@ -156,6 +156,72 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     assert "100" in unexpected_rows_str
 
 
+@pytest.mark.parametrize(
+    "result_format",
+    [
+        pytest.param(
+            {"result_format": "BOOLEAN_ONLY", "return_unexpected_index_query": True},
+            id="boolean_only_with_flag",
+        ),
+        pytest.param(
+            {"result_format": "BASIC", "return_unexpected_index_query": True},
+            id="basic_with_flag",
+        ),
+        pytest.param(
+            {"result_format": "SUMMARY", "return_unexpected_index_query": True},
+            id="summary_with_flag",
+        ),
+        pytest.param(
+            {"result_format": "COMPLETE", "return_unexpected_index_query": True},
+            id="complete_with_flag",
+        ),
+        pytest.param(
+            {"result_format": "COMPLETE"},
+            id="complete_default",
+        ),
+    ],
+)
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_unexpected_index_query_sql(batch_for_datasource: Batch, result_format: dict) -> None:
+    """Test that unexpected_index_query is returned for ExpectCompoundColumnsToBeUnique with SQL."""
+    expectation = gxe.ExpectCompoundColumnsToBeUnique(column_list=[INT_COL, DUPLICATES])
+    result = batch_for_datasource.validate(expectation, result_format=result_format)
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_index_query is present
+    assert "unexpected_index_query" in result_dict
+    assert result_dict["unexpected_index_query"] is not None
+    assert isinstance(result_dict["unexpected_index_query"], str)
+    assert len(result_dict["unexpected_index_query"]) > 0
+
+    # Verify the query includes the compound columns
+    query = result_dict["unexpected_index_query"]
+    assert INT_COL in query or INT_COL.lower() in query.lower()
+    assert DUPLICATES in query or DUPLICATES.lower() in query.lower()
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_unexpected_index_query_sql_suppressed(batch_for_datasource: Batch) -> None:
+    """Test that unexpected_index_query can be suppressed with return_unexpected_index_query=False."""  # noqa: E501
+    expectation = gxe.ExpectCompoundColumnsToBeUnique(column_list=[INT_COL, DUPLICATES])
+    result = batch_for_datasource.validate(
+        expectation,
+        result_format={"result_format": "COMPLETE", "return_unexpected_index_query": False},
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_index_query is NOT present when explicitly suppressed
+    assert "unexpected_index_query" not in result_dict
+
+
 @pytest.mark.unit
 @pytest.mark.parametrize(
     "column_list",
