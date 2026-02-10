@@ -223,7 +223,7 @@ You can deploy the GX Agent in any environment in which you create Kubernetes cl
     ```bash title="Terminal input"
     docker run --rm --pull=always -e GX_CLOUD_ACCESS_TOKEN="<YOUR_ACCESS_TOKEN>" -e GX_CLOUD_ORGANIZATION_ID="<YOUR_ORGANIZATION_ID>" -e OPENAI_API_KEY="<YOUR_API_KEY>"  greatexpectations/agent:stable
     ```
-   Replace `<YOUR_ACCESS_TOKEN>`, `<YOUR_ORGANIZATION_ID>`, and `<YOUR_API_KEY>` with the [credential values]((#get-your-credentials)) that you copied previously. If you don’t want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), you can omit setting `OPENAI_API_KEY`.
+   Replace `<YOUR_ACCESS_TOKEN>`, `<YOUR_ORGANIZATION_ID>`, and `<YOUR_API_KEY>` with the [credential values](#get-your-credentials) that you copied previously. If you don’t want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), you can omit setting `OPENAI_API_KEY`.
 
 3. In GX Cloud, confirm the GX Agent status is **Active Agent** and the icon is green. This indicates the GX Agent is active. If it isn't, repeat step 2 and confirm the `user_access_token` and `organization_id` values are correct.
 
