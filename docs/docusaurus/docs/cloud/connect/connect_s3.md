@@ -150,8 +150,9 @@ Environment variables securely store your GX Cloud and AWS credentials.
 
 ## Next steps
 
-- [Add an Expectation](/docs/cloud/expectations/manage_expectations) 
-- [Run a Validation](/docs/cloud/validations/run_validations)
+- [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation)
+- [Run a Validation](/cloud/validations/run_validations.md)
+- [Configure an alert](/cloud/alerts/manage_email_alerts.md)
 
 ## Limitations
 
