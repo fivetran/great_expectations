@@ -401,7 +401,7 @@ class TestSQLServerDatasourceDiscriminatedUnion:
 
 
 @pytest.mark.unit
-@pytest.mark.usefixtures("mock_sql_server_test_connection")
+@pytest.mark.usefixtures("mock_test_connection")
 class TestAddSQLServerDatasourceAPI:
     def test_add_sql_server_with_sql_server_auth(
         self,

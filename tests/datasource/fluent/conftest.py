@@ -41,7 +41,6 @@ from great_expectations.datasource.fluent import (
     SparkAzureBlobStorageDatasource,
     SparkGoogleCloudStorageDatasource,
     SQLDatasource,
-    SQLServerDatasource,
 )
 from great_expectations.datasource.fluent.config import GxConfig
 from great_expectations.datasource.fluent.interfaces import Datasource
@@ -523,16 +522,16 @@ def create_engine_spy(mocker: MockerFixture) -> Generator[MockType, None, None]:
 
 
 @pytest.fixture
-def mock_sql_server_test_connection(monkeypatch: pytest.MonkeyPatch):
-    """Patches test_connection on SQLServerDatasource to return True."""
+def mock_test_connection(monkeypatch: pytest.MonkeyPatch):
+    """Patches test_connection on Datasource and SQLDatasource to be a no-op."""
 
-    def _mock_test_connection(self: SQLServerDatasource) -> bool:
+    def _mock_test_connection(self: Datasource, test_assets: bool = True) -> None:
         CNF_TEST_LOGGER.warning(
-            f"Mocked {self.__class__.__name__}.test_connection() called and returning True"
+            f"Mocked {self.__class__.__name__}.test_connection() called (no-op)"
         )
-        return True
 
-    monkeypatch.setattr(SQLServerDatasource, "test_connection", _mock_test_connection)
+    monkeypatch.setattr(Datasource, "test_connection", _mock_test_connection)
+    monkeypatch.setattr(SQLDatasource, "test_connection", _mock_test_connection)
 
 
 @pytest.fixture
