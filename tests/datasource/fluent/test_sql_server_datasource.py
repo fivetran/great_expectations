@@ -12,9 +12,12 @@ from great_expectations.datasource.fluent.sql_server_datasource import (
     SQLServerDatasource,
     SqlServerDsn,
 )
+from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
+
+    from great_expectations.data_context import AbstractDataContext
 
 ConnectionDetailsDict: TypeAlias = dict[str, Any]
 
@@ -395,3 +398,49 @@ class TestSQLServerDatasourceDiscriminatedUnion:
         )
         engine = ds.get_engine()
         assert engine is not None
+
+
+@pytest.mark.unit
+@pytest.mark.usefixtures("mock_sql_server_test_connection")
+class TestAddSQLServerDatasourceAPI:
+    def test_add_sql_server_with_sql_server_auth(
+        self,
+        empty_data_context: AbstractDataContext,
+    ) -> None:
+        source = empty_data_context.data_sources.add_sql_server(
+            name="my_sql_server",
+            connection_string=SQLServerAuthConnectionDetails(
+                host="myserver.database.windows.net",
+                database="mydb",
+                schema="dbo",
+                username="myuser",
+                password="mypassword",
+            ),
+        )
+        assert source.type == "sql_server"
+        assert source.name == "my_sql_server"
+        assert source.execution_engine_type is SqlAlchemyExecutionEngine
+        assert isinstance(source.connection_string, SQLServerAuthConnectionDetails)
+        assert source.schema_ == "dbo"
+        assert source.assets == []
+
+    def test_add_sql_server_with_azure_ad_password_auth(
+        self,
+        empty_data_context: AbstractDataContext,
+    ) -> None:
+        source = empty_data_context.data_sources.add_sql_server(
+            name="my_azure_sql",
+            connection_string=AzureADPasswordAuthConnectionDetails(
+                host="myserver.database.windows.net",
+                database="mydb",
+                schema="dbo",
+                username="myuser@contoso.com",
+                password="mypassword",
+            ),
+        )
+        assert source.type == "sql_server"
+        assert source.name == "my_azure_sql"
+        assert source.execution_engine_type is SqlAlchemyExecutionEngine
+        assert isinstance(source.connection_string, AzureADPasswordAuthConnectionDetails)
+        assert source.schema_ == "dbo"
+        assert source.assets == []
