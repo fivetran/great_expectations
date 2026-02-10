@@ -6,6 +6,9 @@ import pytest
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
+from great_expectations.datasource.fluent.sql_server_datasource import (
+    SQLServerAuthConnectionDetails,
+)
 from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
@@ -58,8 +61,19 @@ class MSSQLBatchTestSetup(SQLBatchTestSetup[MSSQLDatasourceTestConfig]):
 
     @override
     def make_asset(self) -> TableAsset:
-        return self.context.data_sources.add_sql(
-            name=self._random_resource_name(), connection_string=self.connection_string
+        connection_details = SQLServerAuthConnectionDetails(
+            host="127.0.0.1",
+            port=1433,
+            database="test_ci",
+            schema="dbo",
+            username="sa",
+            password="ReallyStrongPwd1234%^&*",
+            driver="ODBC Driver 18 for SQL Server",
+            encrypt="Optional",
+        )
+        return self.context.data_sources.add_sql_server(
+            name=self._random_resource_name(),
+            connection_string=connection_details,
         ).add_table_asset(
             name=self._random_resource_name(),
             table_name=self.table_name,
