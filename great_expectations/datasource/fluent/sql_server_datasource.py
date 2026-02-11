@@ -60,6 +60,13 @@ class _SQLServerConnectionDetailsBase(FluentBaseModel):
             True  # this allows us to use the alias "schema" for the "schema_" field
         )
 
+    def get_query_params(self) -> dict[str, str]:
+        """Return query parameters for the connection URL."""
+        return {
+            "driver": quote_plus(self.driver),
+            "Encrypt": _ENCRYPT_VALUE_MAP.get(self.encrypt, "yes"),
+        }
+
 
 class SQLServerAuthConnectionDetails(_SQLServerConnectionDetailsBase):
     """SQL Server authentication (username/password)."""
@@ -75,6 +82,12 @@ class AzureADPasswordAuthConnectionDetails(_SQLServerConnectionDetailsBase):
     authentication: Literal["Azure AD Password"] = "Azure AD Password"
     username: str
     password: Union[ConfigStr, str]
+
+    @override
+    def get_query_params(self) -> dict[str, str]:
+        params = super().get_query_params()
+        params["Authentication"] = "ActiveDirectoryPassword"
+        return params
 
 
 # Discriminated union using the authentication field (Pydantic v1 syntax)
@@ -170,17 +183,12 @@ class SQLServerDatasource(SQLDatasource):
         # quote() for userinfo (spaces → %20), quote_plus() for query params (spaces → +)
         username = quote(details.username, safe="")
         encoded_password = quote(resolved_password, safe="")
-        driver = quote_plus(details.driver)
-        encrypt = _ENCRYPT_VALUE_MAP.get(details.encrypt, "yes")
 
-        query_params = f"driver={driver}&Encrypt={encrypt}"
-
-        if isinstance(details, AzureADPasswordAuthConnectionDetails):
-            query_params += "&Authentication=ActiveDirectoryPassword"
+        query_string = "&".join(f"{k}={v}" for k, v in details.get_query_params().items())
 
         url = (
             f"mssql+pyodbc://{username}:{encoded_password}"
             f"@{details.host}:{details.port}/{details.database}"
-            f"?{query_params}"
+            f"?{query_string}"
         )
         return SqlServerDsn.from_url(url)
