@@ -15,6 +15,24 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.12
+* [MINORBUMP] Add support for pd.Timestamp for datetime comparison operations ([#11637](https://github.com/great-expectations/great_expectations/pull/11637)) (thanks @subediparas5)
+* [FEATURE] Add sql server types stubs and use api in integration tests ([#11643](https://github.com/great-expectations/great_expectations/pull/11643))
+* [FEATURE] MSSQL support for UnexpectedRowsExpectation ([#11646](https://github.com/great-expectations/great_expectations/pull/11646))
+* [BUGFIX] Remove table domain key from ExpectColumnToExist ([#11630](https://github.com/great-expectations/great_expectations/pull/11630))
+* [BUGFIX] Fix missing unexpected_index_query for ExpectCompoundColumnsToBeUnique on SQL ([#11639](https://github.com/great-expectations/great_expectations/pull/11639))
+* [DOCS] Agent request next steps ([#11619](https://github.com/great-expectations/great_expectations/pull/11619))
+* [DOCS] define asterisks in core result format docs ([#11631](https://github.com/great-expectations/great_expectations/pull/11631))
+* [DOCS] Fix link to expect_table_row_count_to_equal_other_table in documentation ([#11634](https://github.com/great-expectations/great_expectations/pull/11634)) (thanks @teixeirazeus)
+* [DOCS] Email alerts ([#11628](https://github.com/great-expectations/great_expectations/pull/11628))
+* [DOCS] Revise contribution guidelines and readiness criteria ([#11638](https://github.com/great-expectations/great_expectations/pull/11638)) (thanks @adeola-ak)
+* [DOCS] Add an Expectation using the GX Cloud API ([#11567](https://github.com/great-expectations/great_expectations/pull/11567))
+* [MAINTENANCE] Remove duplicate flaky test ([#11623](https://github.com/great-expectations/great_expectations/pull/11623))
+* [MAINTENANCE] Bump diff from 3.5.0 to 3.5.1 in /docs/docusaurus ([#11627](https://github.com/great-expectations/great_expectations/pull/11627))
+* [MAINTENANCE] Add database-pushdown metrics for distinct values set comparisons ([#11629](https://github.com/great-expectations/great_expectations/pull/11629))
+* [MAINTENANCE] Bump webpack from 5.94.0 to 5.104.1 in /docs/docusaurus ([#11636](https://github.com/great-expectations/great_expectations/pull/11636))
+* [MAINTENANCE] `SQLServerDatasource` with SQL Server authentication ([#11640](https://github.com/great-expectations/great_expectations/pull/11640))
+
 ### 1.11.3
 * [BUGFIX] Fix Redshift fallback column detection for schema-qualified tables ([#11606](https://github.com/great-expectations/great_expectations/pull/11606)) (thanks @jni-bot)
 * [BUGFIX] Update isinstance check for ColumnElement in SqlAlchemyExecutionEngine ([#11612](https://github.com/great-expectations/great_expectations/pull/11612)) (thanks @subediparas5)
