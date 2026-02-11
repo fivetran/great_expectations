@@ -46,9 +46,10 @@ class TestSchemaSupport:
         schema_name: str | None,
     ) -> None:
         batch_setup = DatabricksBatchTestSetup(
-            config=DatabricksDatasourceTestConfig(),
+            config=DatabricksDatasourceTestConfig(
+                schema_name=schema_name,
+            ),
             data=DATA_FRAME,
-            schema_name=schema_name,
             extra_data={},
             context=get_context(mode="ephemeral"),
         )
@@ -65,9 +66,8 @@ class TestSchemaSupport:
         schema_name: str | None,
     ) -> None:
         batch_setup = MSSQLBatchTestSetup(
-            config=MSSQLDatasourceTestConfig(),
+            config=MSSQLDatasourceTestConfig(schema_name=schema_name),
             data=DATA_FRAME,
-            schema_name=schema_name,
             extra_data={},
             context=get_context(mode="ephemeral"),
         )
@@ -84,9 +84,10 @@ class TestSchemaSupport:
         schema_name: str | None,
     ) -> None:
         batch_setup = MySQLBatchTestSetup(
-            config=MySQLDatasourceTestConfig(),
+            config=MySQLDatasourceTestConfig(
+                schema_name=schema_name,
+            ),
             data=DATA_FRAME,
-            schema_name=schema_name,
             extra_data={},
             context=get_context(mode="ephemeral"),
         )
@@ -103,9 +104,10 @@ class TestSchemaSupport:
         schema_name: str | None,
     ) -> None:
         batch_setup = PostgresBatchTestSetup(
-            config=PostgreSQLDatasourceTestConfig(),
+            config=PostgreSQLDatasourceTestConfig(
+                schema_name=schema_name,
+            ),
             data=DATA_FRAME,
-            schema_name=schema_name,
             extra_data={},
             context=get_context(mode="ephemeral"),
         )
@@ -122,9 +124,10 @@ class TestSchemaSupport:
         schema_name: str | None,
     ) -> None:
         batch_setup = RedshiftBatchTestSetup(
-            config=RedshiftDatasourceTestConfig(),
+            config=RedshiftDatasourceTestConfig(
+                schema_name=schema_name,
+            ),
             data=DATA_FRAME,
-            schema_name=schema_name,
             extra_data={},
             context=get_context(mode="ephemeral"),
         )
@@ -141,9 +144,10 @@ class TestSchemaSupport:
         schema_name: str | None,
     ) -> None:
         batch_setup = SnowflakeBatchTestSetup(
-            config=SnowflakeDatasourceTestConfig(),
+            config=SnowflakeDatasourceTestConfig(
+                schema_name=schema_name,
+            ),
             data=DATA_FRAME,
-            schema_name=schema_name,
             extra_data={},
             context=get_context(mode="ephemeral"),
         )

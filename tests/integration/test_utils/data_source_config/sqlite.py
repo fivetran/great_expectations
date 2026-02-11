@@ -44,7 +44,6 @@ class SqliteDatasourceTestConfig(DataSourceTestConfig):
             base_dir=tmp_path,
             extra_data=extra_data,
             table_name=self.table_name,
-            schema_name=self.schema_name,
             context=context,
             engine_manager=engine_manager,
         )
@@ -59,7 +58,6 @@ class SqliteBatchTestSetup(SQLBatchTestSetup[SqliteDatasourceTestConfig]):
         context: AbstractDataContext,
         base_dir: pathlib.Path,
         table_name: Optional[str] = None,
-        schema_name: Optional[str] = None,
         engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> None:
         self._base_dir = base_dir
@@ -68,7 +66,6 @@ class SqliteBatchTestSetup(SQLBatchTestSetup[SqliteDatasourceTestConfig]):
             data=data,
             extra_data=extra_data,
             table_name=table_name,
-            schema_name=schema_name,
             engine_manager=engine_manager,
             context=context,
         )

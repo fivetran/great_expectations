@@ -60,7 +60,6 @@ class RedshiftDatasourceTestConfig(DataSourceTestConfig):
             config=self,
             extra_data=extra_data,
             table_name=self.table_name,
-            schema_name=self.schema_name,
             context=context,
             engine_manager=engine_manager,
         )
@@ -84,7 +83,6 @@ class RedshiftBatchTestSetup(SQLBatchTestSetup[RedshiftDatasourceTestConfig]):
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
         table_name: Optional[str] = None,  # Overrides random table name generation
-        schema_name: Optional[str] = None,  # Overrides random table name generation
         engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> None:
         self.redshift_connection_config = RedshiftConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
@@ -93,7 +91,6 @@ class RedshiftBatchTestSetup(SQLBatchTestSetup[RedshiftDatasourceTestConfig]):
             data=data,
             extra_data=extra_data,
             table_name=table_name,
-            schema_name=schema_name,
             engine_manager=engine_manager,
             context=context,
         )

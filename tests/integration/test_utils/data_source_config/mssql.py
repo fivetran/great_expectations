@@ -43,7 +43,6 @@ class MSSQLDatasourceTestConfig(DataSourceTestConfig):
             config=self,
             extra_data=extra_data,
             table_name=self.table_name,
-            schema_name=self.schema_name,
             context=context,
             engine_manager=engine_manager,
         )
