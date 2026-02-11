@@ -35,4 +35,5 @@ Hosted environments such as EMR Spark do not provide a filesystem to install you
 <InstallEmrSpark/>
 </TabItem>
 
+</Tabs>
 
