@@ -69,10 +69,6 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         If `True`, a schema will be automatically created.
         """
 
-    def escape_name(self, name: str) -> str:
-        """Escape a table or schema name for quoted identifiers."""
-        return name
-
     @property
     def inferrable_types_lookup(self) -> InferrableTypesLookup:
         """Dict of Python type keys mapped to SQL dialect-specific SqlAlchemy types."""
@@ -118,7 +114,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @cached_property
     def main_table_data(self) -> _TableData:
-        name = self.escape_name(self._user_specified_table_name or self._create_table_name())
+        name = self._user_specified_table_name or self._create_table_name()
         return self._create_table_data(
             name=name,
             df=self.data,

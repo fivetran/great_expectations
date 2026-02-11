@@ -60,10 +60,6 @@ class MSSQLBatchTestSetup(SQLBatchTestSetup[MSSQLDatasourceTestConfig]):
     def use_schema(self) -> bool:
         return True
 
-    # @override
-    # def escape_name(self, name: str) -> str:
-    #     return f"[{name}]"
-
     @override
     def make_asset(self) -> TableAsset:
         connection_details = SQLServerAuthConnectionDetails(
