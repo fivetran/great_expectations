@@ -160,7 +160,7 @@ Keep the following limitations in mind when working with S3 Data Sources.
 
 - S3 Data Source connections cannot be edited in the GX Cloud UI. Use the GX Cloud API if you need to [edit the connection](/cloud/data_sources/manage_data_sources.md#edit-data-source-settings).
 - S3 Data Assets cannot be added through the GX Cloud UI. Use the GX Cloud API to [add more Data Assets](/docs/cloud/data_assets/manage_data_assets.md?interface=api#add-a-data-asset-from-an-existing-data-source) from your S3 Data Source.
-- When you add an S3 Data Asset, Expectations for Anomaly Detection are not automatically generated. You can [generate Anomaly Detection Expectations](/docs/cloud/expectations/manage_expectations#add-an-expectation) after the Data Asset is created.
+- When you add an S3 Data Asset, Expectations for Anomaly Detection are not automatically generated. You can [generate Anomaly Detection Expectations](/docs/cloud/expectations/manage_expectations#create-an-expectation) after the Data Asset is created.
 - ExpectAI is not supported.
 - Data Asset metrics are not automatically fetched. You can [manually profile data](/docs/cloud/data_assets/manage_data_assets.md#view-data-asset-metrics) to return all available metrics for an S3 Data Asset.
 - Custom SQL and multi-source Expectations are not supported.
