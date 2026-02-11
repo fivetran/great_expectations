@@ -73,6 +73,8 @@ PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig
     # SqliteDatasourceTestConfig(),  # fix me
 ]
 
+# NOTE: MSSQL requires the TOP expression to be used in nested queries that use ORDER BY,
+#       so we have to group by this requirement.
 # strings correspond to `label` property on TestConfig instances
 DATA_SOURCE_TYPES_THAT_REQUIRE_TOP_EXPRESSION = {"mssql"}
 
