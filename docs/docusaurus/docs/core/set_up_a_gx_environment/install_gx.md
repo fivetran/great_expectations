@@ -12,7 +12,7 @@ import InstallEmrSpark from './_install_gx/_emr_spark_installation.md';
 
 import PythonVersion from '../_core_components/_python_version.md';
 
-GX Core is a Python library.  Follow the instructions in this guide to install GX Core in your local Python environment, or as a notebook-scoped library in hosted environments such as or EMR Spark clusters.
+GX Core is a Python library.  Follow the instructions in this guide to install GX Core in your local Python environment, or as a notebook-scoped library in hosted environments such as EMR Spark clusters.
 
 ## Prerequisites
 
