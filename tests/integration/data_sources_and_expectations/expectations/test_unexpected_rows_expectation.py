@@ -13,7 +13,7 @@ from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
     DataSourceTestConfig,
-    # MSSQLDatasourceTestConfig,
+    MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     RedshiftDatasourceTestConfig,
@@ -26,7 +26,7 @@ from tests.integration.test_utils.data_source_config import (
 ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
-    # MSSQLDatasourceTestConfig(),  # fix me
+    MSSQLDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
@@ -35,11 +35,12 @@ ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     # SqliteDatasourceTestConfig(),  # fix me
 ]
 
+
 # spark and big query not currently supported with extra_data, so we can't test JOIN
 # pandas not currently supported by this Expecatation
 EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     DatabricksDatasourceTestConfig(),
-    # MSSQLDatasourceTestConfig(),  # fix me
+    MSSQLDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
@@ -48,27 +49,59 @@ EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
 ]
 
 # pandas and spark not currently supporting partitioners
-PARTITIONER_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
+_PARTITIONER_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
-    # MSSQLDatasourceTestConfig(),  # fix me
+    MSSQLDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     # SqliteDatasourceTestConfig(),  # fix me
 ]
+
 
 # spark and big query not currently supported with extra_data, so we can't test JOIN
 # pandas and spark not currently supporting partitioners
 PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     DatabricksDatasourceTestConfig(),
-    # MSSQLDatasourceTestConfig(),  # fix me
+    MSSQLDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     # SqliteDatasourceTestConfig(),  # fix me
+]
+
+# NOTE: MSSQL requires the TOP expression to be used in nested queries that use ORDER BY,
+#       so we have to group by this requirement.
+# strings correspond to `label` property on TestConfig instances
+DATA_SOURCE_TYPES_THAT_REQUIRE_TOP_EXPRESSION = {"mssql"}
+
+DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION: Sequence[DataSourceTestConfig] = [
+    ds
+    for ds in ALL_SUPPORTED_DATA_SOURCES
+    if ds.label in DATA_SOURCE_TYPES_THAT_REQUIRE_TOP_EXPRESSION
+]
+
+DATA_SOURCES_THAT_DO_NOT_REQUIRE_TOP_EXPRESSION: Sequence[DataSourceTestConfig] = [
+    ds
+    for ds in ALL_SUPPORTED_DATA_SOURCES
+    if ds.label not in DATA_SOURCE_TYPES_THAT_REQUIRE_TOP_EXPRESSION
+]
+
+PARTITIONER_SUPPORTED_DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION: Sequence[DataSourceTestConfig] = [
+    ds
+    for ds in _PARTITIONER_SUPPORTED_DATA_SOURCES
+    if ds.label in DATA_SOURCE_TYPES_THAT_REQUIRE_TOP_EXPRESSION
+]
+
+PARTITIONER_SUPPORTED_DATA_SOURCES_THAT_DO_NOT_REQUIRE_TOP_EXPRESSION: Sequence[
+    DataSourceTestConfig
+] = [
+    ds
+    for ds in _PARTITIONER_SUPPORTED_DATA_SOURCES
+    if ds.label not in DATA_SOURCE_TYPES_THAT_REQUIRE_TOP_EXPRESSION
 ]
 
 TABLE_1 = pd.DataFrame(
@@ -97,19 +130,24 @@ TABLE_2 = pd.DataFrame(
 
 DATE_COLUMN = "created_at"
 
-SUCCESS_QUERIES = [
+_SUCCESS_QUERIES = [
     "SELECT * FROM {batch} WHERE quantity > 2",
     "SELECT * FROM {batch} WHERE quantity > 2 AND temperature > 91",
     "SELECT * FROM {batch} WHERE quantity > 2 OR temperature > 92",
-    "SELECT * FROM {batch} WHERE quantity > 2 ORDER BY quantity DESC",
     "SELECT color FROM {batch} GROUP BY color HAVING SUM(quantity) > 3",
+]
+SUCCESS_QUERIES_WITH_TOP_EXPRESSION = _SUCCESS_QUERIES + [
+    "SELECT TOP 10 * FROM {batch} WHERE quantity > 2 ORDER BY quantity DESC",
+]
+SUCCESS_QUERIES_WITHOUT_TOP_EXPRESSION = _SUCCESS_QUERIES + [
+    "SELECT * FROM {batch} WHERE quantity > 2 ORDER BY quantity DESC",
 ]
 
 JOIN_SUCCESS_QUERIES = [
     """
      SELECT t1.entity_id, t1.quantity, t2.total_quantity
      FROM {batch} t1
-     JOIN table_2 t2 USING (entity_id)
+     JOIN table_2 t2 ON t1.entity_id = t2.entity_id
      WHERE t1.quantity <> t2.total_quantity
     """,
     """
@@ -123,20 +161,25 @@ JOIN_SUCCESS_QUERIES = [
     """,
 ]
 
-FAILURE_QUERIES = [
+_FAILURE_QUERIES = [
     "SELECT * FROM {batch}",
     "SELECT * FROM {batch} WHERE quantity > 0",
     "SELECT * FROM {batch} WHERE quantity > 0 AND temperature > 74",
     "SELECT * FROM {batch} WHERE quantity > 0 OR temperature > 92",
-    "SELECT * FROM {batch} WHERE quantity > 0 ORDER BY quantity DESC",
     "SELECT color FROM {batch} GROUP BY color HAVING SUM(quantity) > 0",
+]
+FAIULRE_QUERIES_WITH_TOP_EXPRESSION = _FAILURE_QUERIES + [
+    "SELECT TOP 10 * FROM {batch} WHERE quantity > 0 ORDER BY quantity DESC",
+]
+FAIULRE_QUERIES_WITHOUT_TOP_EXPRESSION = _FAILURE_QUERIES + [
+    "SELECT * FROM {batch} WHERE quantity > 0 ORDER BY quantity DESC",
 ]
 
 JOIN_FAILURE_QUERIES = [
     """
      SELECT t1.entity_id, t1.quantity, t2.total_quantity
      FROM {batch} t1
-     JOIN table_2 t2 USING (entity_id)
+     JOIN table_2 t2 ON t1.entity_id = t2.entity_id
      WHERE t1.quantity = t2.total_quantity
     """,
     """
@@ -152,11 +195,29 @@ JOIN_FAILURE_QUERIES = [
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=ALL_SUPPORTED_DATA_SOURCES,
+    data_source_configs=DATA_SOURCES_THAT_DO_NOT_REQUIRE_TOP_EXPRESSION,
     data=TABLE_1,
 )
-@pytest.mark.parametrize("unexpected_rows_query", SUCCESS_QUERIES)
+@pytest.mark.parametrize("unexpected_rows_query", SUCCESS_QUERIES_WITHOUT_TOP_EXPRESSION)
 def test_unexpected_rows_expectation_batch_keyword_success(
+    batch_for_datasource,
+    unexpected_rows_query,
+) -> None:
+    expectation = gxe.UnexpectedRowsExpectation(
+        description="Expect query with {batch} keyword to succeed",
+        unexpected_rows_query=unexpected_rows_query,
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+    assert result.exception_info.get("raised_exception") is False
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION,
+    data=TABLE_1,
+)
+@pytest.mark.parametrize("unexpected_rows_query", SUCCESS_QUERIES_WITH_TOP_EXPRESSION)
+def test_unexpected_rows_expectation_batch_keyword_success_with_top_expression(
     batch_for_datasource,
     unexpected_rows_query,
 ) -> None:
@@ -192,11 +253,29 @@ def test_unexpected_rows_expectation_join_keyword_success(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=ALL_SUPPORTED_DATA_SOURCES,
+    data_source_configs=DATA_SOURCES_THAT_DO_NOT_REQUIRE_TOP_EXPRESSION,
     data=TABLE_1,
 )
-@pytest.mark.parametrize("unexpected_rows_query", FAILURE_QUERIES)
+@pytest.mark.parametrize("unexpected_rows_query", FAIULRE_QUERIES_WITHOUT_TOP_EXPRESSION)
 def test_unexpected_rows_expectation_batch_keyword_failure(
+    batch_for_datasource,
+    unexpected_rows_query,
+) -> None:
+    expectation = gxe.UnexpectedRowsExpectation(
+        description="Expect query with {batch} keyword to fail",
+        unexpected_rows_query=unexpected_rows_query,
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success is False
+    assert result.exception_info.get("raised_exception") is False
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION,
+    data=TABLE_1,
+)
+@pytest.mark.parametrize("unexpected_rows_query", FAIULRE_QUERIES_WITH_TOP_EXPRESSION)
+def test_unexpected_rows_expectation_batch_keyword_failure_with_top_expression(
     batch_for_datasource,
     unexpected_rows_query,
 ) -> None:
@@ -232,11 +311,32 @@ def test_unexpected_rows_expectation_join_keyword_failure(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=PARTITIONER_SUPPORTED_DATA_SOURCES,
+    data_source_configs=PARTITIONER_SUPPORTED_DATA_SOURCES_THAT_DO_NOT_REQUIRE_TOP_EXPRESSION,
     data=TABLE_1,
 )
-@pytest.mark.parametrize("unexpected_rows_query", SUCCESS_QUERIES)
+@pytest.mark.parametrize("unexpected_rows_query", SUCCESS_QUERIES_WITHOUT_TOP_EXPRESSION)
 def test_unexpected_rows_expectation_batch_keyword_partitioner_success(
+    asset_for_datasource,
+    unexpected_rows_query,
+) -> None:
+    batch = asset_for_datasource.add_batch_definition_monthly(
+        name="my-batch-def", column=DATE_COLUMN
+    ).get_batch()
+    expectation = gxe.UnexpectedRowsExpectation(
+        description="Expect query with {batch} keyword and paritioner defined to succeed",
+        unexpected_rows_query=unexpected_rows_query,
+    )
+    result = batch.validate(expectation)
+    assert result.success
+    assert result.exception_info.get("raised_exception") is False
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=PARTITIONER_SUPPORTED_DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION,
+    data=TABLE_1,
+)
+@pytest.mark.parametrize("unexpected_rows_query", SUCCESS_QUERIES_WITH_TOP_EXPRESSION)
+def test_unexpected_rows_expectation_batch_keyword_partitioner_success_with_top_expression(
     asset_for_datasource,
     unexpected_rows_query,
 ) -> None:
@@ -278,11 +378,32 @@ def test_unexpected_rows_expectation_join_keyword_partitioner_success(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=PARTITIONER_SUPPORTED_DATA_SOURCES,
+    data_source_configs=PARTITIONER_SUPPORTED_DATA_SOURCES_THAT_DO_NOT_REQUIRE_TOP_EXPRESSION,
     data=TABLE_1,
 )
-@pytest.mark.parametrize("unexpected_rows_query", FAILURE_QUERIES)
+@pytest.mark.parametrize("unexpected_rows_query", FAIULRE_QUERIES_WITHOUT_TOP_EXPRESSION)
 def test_unexpected_rows_expectation_batch_keyword_partitioner_failure(
+    asset_for_datasource,
+    unexpected_rows_query,
+) -> None:
+    batch = asset_for_datasource.add_batch_definition_monthly(
+        name=str(uuid4()), column=DATE_COLUMN
+    ).get_batch()
+    expectation = gxe.UnexpectedRowsExpectation(
+        description="Expect query with {batch} keyword and partitioner defined to fail",
+        unexpected_rows_query=unexpected_rows_query,
+    )
+    result = batch.validate(expectation)
+    assert result.success is False
+    assert result.exception_info.get("raised_exception") is False
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=PARTITIONER_SUPPORTED_DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION,
+    data=TABLE_1,
+)
+@pytest.mark.parametrize("unexpected_rows_query", FAIULRE_QUERIES_WITH_TOP_EXPRESSION)
+def test_unexpected_rows_expectation_batch_keyword_partitioner_failure_with_top_expression(
     asset_for_datasource,
     unexpected_rows_query,
 ) -> None:
@@ -415,11 +536,31 @@ def test_result_format_controls_details_visibility(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=ALL_SUPPORTED_DATA_SOURCES,
+    data_source_configs=DATA_SOURCES_THAT_DO_NOT_REQUIRE_TOP_EXPRESSION,
     data=TABLE_1,
 )
-@pytest.mark.parametrize("unexpected_rows_query", SUCCESS_QUERIES)
-def test_success_with_suite_param_other_table_name_(
+@pytest.mark.parametrize("unexpected_rows_query", SUCCESS_QUERIES_WITHOUT_TOP_EXPRESSION)
+def test_success_with_suite_param_other_table_name(
+    batch_for_datasource: Batch, unexpected_rows_query
+) -> None:
+    suite_param_key = "test_unexpected_rows_expectation"
+    expectation = gxe.UnexpectedRowsExpectation(
+        description="Expect query with {batch} keyword to succeed",
+        unexpected_rows_query={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: unexpected_rows_query}
+    )
+    assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION,
+    data=TABLE_1,
+)
+@pytest.mark.parametrize("unexpected_rows_query", SUCCESS_QUERIES_WITH_TOP_EXPRESSION)
+def test_success_with_suite_param_other_table_name_with_top_expression(
     batch_for_datasource: Batch, unexpected_rows_query
 ) -> None:
     suite_param_key = "test_unexpected_rows_expectation"
