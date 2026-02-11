@@ -40,6 +40,7 @@ TEST_SCHEMAS = ["regular_ol_lowercase", "FANCY_UPPER_CASE", None]
 
 
 class TestSchemaSupport:
+    @pytest.mark.databricks
     @pytest.mark.parametrize("schema_name", TEST_SCHEMAS)
     def test_databricks(
         self,
@@ -60,6 +61,7 @@ class TestSchemaSupport:
 
             assert result.success
 
+    @pytest.mark.mssql
     @pytest.mark.parametrize("schema_name", TEST_SCHEMAS)
     def test_mssql(
         self,
@@ -78,6 +80,7 @@ class TestSchemaSupport:
 
             assert result.success
 
+    @pytest.mark.mysql
     @pytest.mark.parametrize("schema_name", TEST_SCHEMAS)
     def test_mysql(
         self,
@@ -98,6 +101,7 @@ class TestSchemaSupport:
 
             assert result.success
 
+    @pytest.mark.postgresql
     @pytest.mark.parametrize("schema_name", TEST_SCHEMAS)
     def test_postgres(
         self,
@@ -118,6 +122,7 @@ class TestSchemaSupport:
 
             assert result.success
 
+    @pytest.mark.redshift
     @pytest.mark.parametrize("schema_name", TEST_SCHEMAS)
     def test_redshift(
         self,
@@ -138,6 +143,7 @@ class TestSchemaSupport:
 
             assert result.success
 
+    @pytest.mark.snowflake
     @pytest.mark.parametrize("schema_name", TEST_SCHEMAS)
     def test_snowflake(
         self,
