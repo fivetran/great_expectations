@@ -57,7 +57,7 @@ class MSSQLBatchTestSetup(SQLBatchTestSetup[MSSQLDatasourceTestConfig]):
     @property
     @override
     def use_schema(self) -> bool:
-        return False
+        return True
 
     @override
     def make_asset(self) -> TableAsset:
