@@ -184,7 +184,8 @@ class SQLServerDatasource(SQLDatasource):
         username = quote(details.username, safe="")
         encoded_password = quote(resolved_password, safe="")
 
-        query_string = "&".join(f"{k}={v}" for k, v in details.get_query_params().items())
+        query_params = details.get_query_params()
+        query_string = "&".join(f"{k}={v}" for k, v in query_params.items())
 
         url = (
             f"mssql+pyodbc://{username}:{encoded_password}"
