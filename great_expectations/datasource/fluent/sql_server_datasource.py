@@ -63,7 +63,7 @@ class _SQLServerConnectionDetailsBase(FluentBaseModel):
     def get_query_params(self) -> dict[str, str]:
         """Return query parameters for the connection URL."""
         return {
-            "driver": quote_plus(self.driver),
+            "driver": quote_plus(self.driver),  # quote_plus (spaces → +)
             "Encrypt": _ENCRYPT_VALUE_MAP.get(self.encrypt, "yes"),
         }
 
@@ -180,15 +180,15 @@ class SQLServerDatasource(SQLDatasource):
         else:
             resolved_password = str(password)
 
-        # quote() for userinfo (spaces → %20), quote_plus() for query params (spaces → +)
+        # quote() for userinfo (spaces → %20)
         username = quote(details.username, safe="")
-        encoded_password = quote(resolved_password, safe="")
+        password = quote(resolved_password, safe="")
 
         query_params = details.get_query_params()
         query_string = "&".join(f"{k}={v}" for k, v in query_params.items())
 
         url = (
-            f"mssql+pyodbc://{username}:{encoded_password}"
+            f"mssql+pyodbc://{username}:{password}"
             f"@{details.host}:{details.port}/{details.database}"
             f"?{query_string}"
         )
