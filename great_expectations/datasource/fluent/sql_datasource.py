@@ -1079,6 +1079,7 @@ class TableAsset(_SQLAsset):
         inspector: sqlalchemy.Inspector = sa.inspect(engine)
 
         if self.schema_name and self.schema_name not in inspector.get_schema_names():
+            breakpoint()
             raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
                 f'Attempt to connect to table: "{self.qualified_name}" failed because the schema '
                 f'"{self.schema_name}" does not exist.'
@@ -1088,6 +1089,7 @@ class TableAsset(_SQLAsset):
             with engine.connect() as connection:
                 table = sa.table(self.table_name, schema=self.schema_name)
                 # don't need to fetch any data, just want to make sure the table is accessible
+                breakpoint()
                 connection.execute(sa.select(1, table).limit(1))
         except Exception as query_error:
             LOGGER.info(f"{self.name} `.test_connection()` query failed: {query_error!r}")
@@ -1329,7 +1331,9 @@ class SQLDatasource(Datasource):
             eg, it could be a TableAsset or a SqliteTableAsset.
         """  # noqa: E501 # FIXME CoP
         if schema_name:
+            breakpoint()
             schema_name = self._TableAsset._to_lower_if_not_bracketed_by_quotes(schema_name)
+            breakpoint()
         asset = self._TableAsset(
             name=name,
             table_name=table_name,

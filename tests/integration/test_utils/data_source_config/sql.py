@@ -69,6 +69,10 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         If `True`, a schema will be automatically created.
         """
 
+    def escape_name(self, name: str) -> str:
+        """Escape a table or schema name for quoted identifiers."""
+        return name
+
     @property
     def inferrable_types_lookup(self) -> InferrableTypesLookup:
         """Dict of Python type keys mapped to SQL dialect-specific SqlAlchemy types."""
@@ -90,12 +94,14 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
         table_name: Optional[str] = None,  # Overrides random table name generation
+        schema_name: Optional[str] = None,  # Overrides random table name generation
         engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> None:
         self.engine_manager = engine_manager
         self.extra_data = extra_data
         self.metadata = MetaData()
         self._user_specified_table_name = table_name
+        self._user_specified_schema_name = schema_name
         super().__init__(config, data, context=context)
 
     @override
@@ -112,7 +118,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @cached_property
     def main_table_data(self) -> _TableData:
-        name = self._user_specified_table_name or self._create_table_name()
+        name = self.escape_name(self._user_specified_table_name or self._create_table_name())
         return self._create_table_data(
             name=name,
             df=self.data,
@@ -138,7 +144,12 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
     @cached_property
     def schema(self) -> Union[str, None]:
         if self.use_schema:
-            return f"{self.SCHEMA_PREFIX}{self._random_resource_name()}"
+            schema_name = self._user_specified_schema_name or self._random_resource_name()
+            return f"{self.SCHEMA_PREFIX}{schema_name}"
+        elif self._user_specified_schema_name:
+            raise ValueError(
+                "Schema name provided but use_schema is False for this datasource type."
+            )
         else:
             return None
 

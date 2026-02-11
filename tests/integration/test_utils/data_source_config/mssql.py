@@ -43,6 +43,7 @@ class MSSQLDatasourceTestConfig(DataSourceTestConfig):
             config=self,
             extra_data=extra_data,
             table_name=self.table_name,
+            schema_name=self.schema_name,
             context=context,
             engine_manager=engine_manager,
         )
@@ -58,6 +59,10 @@ class MSSQLBatchTestSetup(SQLBatchTestSetup[MSSQLDatasourceTestConfig]):
     @override
     def use_schema(self) -> bool:
         return True
+
+    # @override
+    # def escape_name(self, name: str) -> str:
+    #     return f"[{name}]"
 
     @override
     def make_asset(self) -> TableAsset:

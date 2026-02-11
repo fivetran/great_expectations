@@ -1,8 +1,10 @@
 import pandas as pd
+import pytest
 
 import great_expectations.expectations as gxe
-from tests.integration.conftest import parameterize_batch_for_data_sources
+from great_expectations import get_context
 from tests.integration.test_utils.data_source_config import MSSQLDatasourceTestConfig
+from tests.integration.test_utils.data_source_config.mssql import MSSQLBatchTestSetup
 
 DATA_FRAME = pd.DataFrame(
     {
@@ -16,16 +18,21 @@ DATA_FRAME = pd.DataFrame(
 
 
 class TestMSSQLSchema:
-    @parameterize_batch_for_data_sources(
-        data_source_configs=[MSSQLDatasourceTestConfig()],
-        data=DATA_FRAME,
-    )
+    @pytest.mark.parametrize("schema_name", ["regular_ol_lowercase", "FANCY_UPPER_CASE", None])
     def test_schema(
         self,
-        batch_for_datasource,
+        schema_name: str | None,
     ) -> None:
-        expectation = gxe.ExpectTableRowCountToEqual(value=3)
+        batch_setup = MSSQLBatchTestSetup(
+            config=MSSQLDatasourceTestConfig(),
+            data=DATA_FRAME,
+            schema_name=schema_name,
+            extra_data={},
+            context=get_context(mode="ephemeral"),
+        )
+        with batch_setup.batch_test_context() as batch:
+            expectation = gxe.ExpectTableRowCountToEqual(value=3)
 
-        result = batch_for_datasource.validate(expectation)
+            result = batch.validate(expectation)
 
-        assert result.success
+            assert result.success
