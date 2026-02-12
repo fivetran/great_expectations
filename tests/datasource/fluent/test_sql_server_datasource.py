@@ -345,7 +345,7 @@ class TestBuildConnectionStringAzureAD:
             "mssql+pyodbc://myuser%40contoso.com:mypassword"
             "@myserver.database.windows.net:1433/mydb"
             "?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes"
-            "&Authentication=ActiveDirectoryPassword"
+            "&authentication=ActiveDirectoryPassword"
         )
 
     def test_azure_ad_password_special_chars_in_password(self) -> None:
@@ -361,7 +361,7 @@ class TestBuildConnectionStringAzureAD:
         )
         result = ds._build_connection_string()
         assert "p%40ss%3Aw%2Frd" in result
-        assert "Authentication=ActiveDirectoryPassword" in result
+        assert "authentication=ActiveDirectoryPassword" in result
 
     def test_azure_ad_password_encrypt_optional(self) -> None:
         ds = SQLServerDatasource(
@@ -377,7 +377,7 @@ class TestBuildConnectionStringAzureAD:
         )
         result = ds._build_connection_string()
         assert "Encrypt=no" in result
-        assert "Authentication=ActiveDirectoryPassword" in result
+        assert "authentication=ActiveDirectoryPassword" in result
 
     def test_sql_server_auth_has_no_authentication_param(
         self,

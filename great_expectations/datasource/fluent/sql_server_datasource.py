@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Final, Literal, Union
+from abc import abstractmethod
+from typing import TYPE_CHECKING, Any, Final, Literal, Optional, Union
 from urllib.parse import quote, quote_plus
 
 from typing_extensions import Annotated
@@ -45,6 +46,15 @@ _ENCRYPT_VALUE_MAP: Final[dict[str, str]] = {
 }
 
 
+def _resolve_config_str(value: Union[ConfigStr, str], config_provider: Any) -> str:
+    """Resolve ConfigStr to str; raise ConfigStrError if config_provider is missing."""
+    if isinstance(value, ConfigStr):
+        if config_provider:
+            return value.get_config_value(config_provider)
+        raise ConfigStrError()
+    return str(value)
+
+
 class _SQLServerConnectionDetailsBase(FluentBaseModel):
     """Base class with common connection fields."""
 
@@ -60,12 +70,12 @@ class _SQLServerConnectionDetailsBase(FluentBaseModel):
             True  # this allows us to use the alias "schema" for the "schema_" field
         )
 
-    def get_query_params(self) -> dict[str, ConfigStr | str]:
-        """Return query parameters for the connection URL."""
-        return {
-            "driver": quote_plus(self.driver),  # quote_plus (spaces → +)
-            "Encrypt": _ENCRYPT_VALUE_MAP.get(self.encrypt, "yes"),
-        }
+    @abstractmethod
+    def build_connection_string(
+        self,
+        config_provider: Optional[Any] = None,
+    ) -> SqlServerDsn:
+        """Build and return a validated mssql+pyodbc URL."""
 
 
 class SQLServerAuthConnectionDetails(_SQLServerConnectionDetailsBase):
@@ -74,6 +84,26 @@ class SQLServerAuthConnectionDetails(_SQLServerConnectionDetailsBase):
     authentication: Literal["SQL Server"] = "SQL Server"
     username: str
     password: Union[ConfigStr, str]
+
+    @override
+    def build_connection_string(
+        self,
+        config_provider: Optional[Any] = None,
+    ) -> SqlServerDsn:
+        password = _resolve_config_str(self.password, config_provider)
+        username = quote(self.username, safe="")
+        password_encoded = quote(password, safe="")
+        query_params = {
+            "driver": quote_plus(self.driver),
+            "Encrypt": _ENCRYPT_VALUE_MAP.get(self.encrypt, "yes"),
+        }
+        query_string = "&".join(f"{k}={v}" for k, v in query_params.items())
+        url = (
+            f"mssql+pyodbc://{username}:{password_encoded}"
+            f"@{self.host}:{self.port}/{self.database}"
+            f"?{query_string}"
+        )
+        return SqlServerDsn.from_url(url)
 
 
 class AzureADPasswordAuthConnectionDetails(_SQLServerConnectionDetailsBase):
@@ -84,10 +114,25 @@ class AzureADPasswordAuthConnectionDetails(_SQLServerConnectionDetailsBase):
     password: Union[ConfigStr, str]
 
     @override
-    def get_query_params(self) -> dict[str, ConfigStr | str]:
-        params = super().get_query_params()
-        params["Authentication"] = "ActiveDirectoryPassword"
-        return params
+    def build_connection_string(
+        self,
+        config_provider: Optional[Any] = None,
+    ) -> SqlServerDsn:
+        password = _resolve_config_str(self.password, config_provider)
+        username = quote(self.username, safe="")
+        password_encoded = quote(password, safe="")
+        query_params = {
+            "driver": quote_plus(self.driver),
+            "Encrypt": _ENCRYPT_VALUE_MAP.get(self.encrypt, "yes"),
+            "authentication": "ActiveDirectoryPassword",
+        }
+        query_string = "&".join(f"{k}={v}" for k, v in query_params.items())
+        url = (
+            f"mssql+pyodbc://{username}:{password_encoded}"
+            f"@{self.host}:{self.port}/{self.database}"
+            f"?{query_string}"
+        )
+        return SqlServerDsn.from_url(url)
 
 
 class AzureADServicePrincipalAuthConnectionDetails(_SQLServerConnectionDetailsBase):
@@ -99,10 +144,24 @@ class AzureADServicePrincipalAuthConnectionDetails(_SQLServerConnectionDetailsBa
     tenant_id: str
 
     @override
-    def get_query_params(self) -> dict[str, ConfigStr | str]:
-        params = super().get_query_params()
-        params["authentication"] = "ActiveDirectoryServicePrincipal"
-        return params
+    def build_connection_string(
+        self,
+        config_provider: Optional[Any] = None,
+    ) -> SqlServerDsn:
+        client_secret = _resolve_config_str(self.client_secret, config_provider)
+        client_id = quote(self.client_id, safe="")
+        client_secret_encoded = quote(client_secret, safe="")
+        query_params = {
+            "driver": quote_plus(self.driver),
+            "Encrypt": _ENCRYPT_VALUE_MAP.get(self.encrypt, "yes"),
+            "authentication": "ActiveDirectoryServicePrincipal",
+            "TenantId": self.tenant_id,
+            "UID": client_id,
+            "PWD": client_secret_encoded,
+        }
+        query_string = "&".join(f"{k}={v}" for k, v in query_params.items())
+        url = f"mssql+pyodbc://@{self.host}:{self.port}/{self.database}?{query_string}"
+        return SqlServerDsn.from_url(url)
 
 
 # Discriminated union using the authentication field (Pydantic v1 syntax)
@@ -190,48 +249,7 @@ class SQLServerDatasource(SQLDatasource):
 
     def _build_connection_string(self) -> SqlServerDsn:
         """Convert connection details to a validated ``mssql+pyodbc://`` URL."""
-        details = self.connection_string
-
-        if isinstance(details, AzureADServicePrincipalAuthConnectionDetails):
-            # Special handling for Azure AD Service Principal authentication
-            client_secret = self.config_str_to_str(details.client_secret)
-
-            # quote() for userinfo (spaces → %20)
-            client_id = quote(details.client_id, safe="")
-            client_secret = quote(client_secret, safe="")
-
-            query_params = dict(details.get_query_params())
-            query_params["UID"] = client_id
-            query_params["PWD"] = client_secret
-            query_string = "&".join(f"{k}={v}" for k, v in query_params.items())
-
-            url = f"mssql+pyodbc://@{details.host}:{details.port}/{details.database}?{query_string}"
-            return SqlServerDsn.from_url(url)
-        else:
-            password = self.config_str_to_str(details.password)
-
-            # quote() for userinfo (spaces → %20)
-            username = quote(details.username, safe="")
-            password = quote(password, safe="")
-
-            query_params = details.get_query_params()
-            query_string = "&".join(f"{k}={v}" for k, v in query_params.items())
-
-            url = (
-                f"mssql+pyodbc://{username}:{password}"
-                f"@{details.host}:{details.port}/{details.database}"
-                f"?{query_string}"
-            )
-            return SqlServerDsn.from_url(url)
-
-    def config_str_to_str(self, value: ConfigStr | str) -> str:
-        if isinstance(value, ConfigStr):
-            if self._config_provider:
-                return value.get_config_value(self._config_provider)
-            else:
-                raise ConfigStrError()
-        else:
-            return value
+        return self.connection_string.build_connection_string(config_provider=self._config_provider)
 
 
 class ConfigStrError(ValueError):
