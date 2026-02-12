@@ -1404,6 +1404,21 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         success_kwargs.update(domain_kwargs)
         return success_kwargs
 
+    @staticmethod
+    def _merge_result_formats(
+        expectation_result_format: dict,
+        runtime_result_format: Union[str, dict],
+    ) -> dict:
+        """
+        Merge a runtime result_format with the expectation's result_format.
+        """
+        if isinstance(runtime_result_format, str):
+            merged = parse_result_format(runtime_result_format)
+        else:
+            merged = runtime_result_format
+        merged.update(expectation_result_format)
+        return merged
+
     def _get_runtime_kwargs(
         self,
         runtime_configuration: Optional[dict] = None,
@@ -1411,6 +1426,15 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         configuration = deepcopy(self.configuration)
 
         if runtime_configuration:
+            if "result_format" in runtime_configuration:
+                expectation_rf = configuration.kwargs.get("result_format")
+                if isinstance(expectation_rf, dict):
+                    runtime_configuration = dict(runtime_configuration)
+                    runtime_configuration["result_format"] = self._merge_result_formats(
+                        expectation_result_format=expectation_rf,
+                        runtime_result_format=runtime_configuration["result_format"],
+                    )
+
             configuration.kwargs.update(runtime_configuration)
 
         success_kwargs = self._get_success_kwargs()
@@ -1438,10 +1462,16 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         ] = self.configuration.kwargs.get("result_format", default_result_format or {})
         result_format: Union[Dict[str, Union[str, int, bool, List[str], None]], str]
         if runtime_configuration:
-            result_format = runtime_configuration.get(
-                "result_format",
-                configuration_result_format,
-            )
+            runtime_rf = runtime_configuration.get("result_format")
+            if runtime_rf is not None and isinstance(configuration_result_format, dict):
+                result_format = self._merge_result_formats(
+                    expectation_result_format=configuration_result_format,
+                    runtime_result_format=runtime_rf,
+                )
+            elif runtime_rf is not None:
+                result_format = runtime_rf
+            else:
+                result_format = configuration_result_format
         else:
             result_format = configuration_result_format
         return result_format

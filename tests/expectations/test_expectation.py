@@ -841,3 +841,155 @@ class TestLegacyRowConditionTransformation:
 
         # Should have two warnings: one for condition_parser, one for string row_condition
         assert len(warning_list) == 2
+
+
+class TestMergeResultFormats:
+    """Tests for Expectation._merge_result_formats.
+
+    When an expectation specifies a dict result_format (e.g. with
+    unexpected_index_column_names), that dict must not be silently
+    replaced when a runtime default like "SUMMARY" is supplied.
+    """
+
+    def test_string_runtime_preserves_expectation_keys(self):
+        """A plain string runtime format should not drop expectation-level keys."""
+        expectation_rf = {
+            "result_format": "COMPLETE",
+            "unexpected_index_column_names": ["broker_code"],
+        }
+        result = Expectation._merge_result_formats(
+            expectation_result_format=expectation_rf,
+            runtime_result_format="SUMMARY",
+        )
+        assert result["result_format"] == "COMPLETE"
+        assert result["unexpected_index_column_names"] == ["broker_code"]
+        # Runtime defaults like partial_unexpected_count should still be present
+        assert "partial_unexpected_count" in result
+
+    def test_dict_runtime_merges_with_expectation(self):
+        """A dict runtime format should merge, with expectation keys winning."""
+        expectation_rf = {
+            "result_format": "COMPLETE",
+            "unexpected_index_column_names": ["id"],
+        }
+        runtime_rf = {
+            "result_format": "BASIC",
+            "partial_unexpected_count": 10,
+        }
+        result = Expectation._merge_result_formats(
+            expectation_result_format=expectation_rf,
+            runtime_result_format=runtime_rf,
+        )
+        assert result["result_format"] == "COMPLETE"
+        assert result["unexpected_index_column_names"] == ["id"]
+        assert result["partial_unexpected_count"] == 10
+
+    def test_string_runtime_without_expectation_extras(self):
+        """When the expectation dict has no extras, the format level still comes from it."""
+        expectation_rf = {"result_format": "BASIC"}
+        result = Expectation._merge_result_formats(
+            expectation_result_format=expectation_rf,
+            runtime_result_format="SUMMARY",
+        )
+        assert result["result_format"] == "BASIC"
+
+    def test_runtime_fills_defaults_expectation_does_not_set(self):
+        """Runtime-provided defaults fill in keys not set by the expectation."""
+        expectation_rf = {
+            "result_format": "COMPLETE",
+            "unexpected_index_column_names": ["pk"],
+        }
+        result = Expectation._merge_result_formats(
+            expectation_result_format=expectation_rf,
+            runtime_result_format="SUMMARY",
+        )
+        assert result["include_unexpected_rows"] is False
+        assert result["partial_unexpected_count"] == 20
+
+
+class TestGetRuntimeKwargsResultFormatMerge:
+    """Tests that _get_runtime_kwargs properly merges result_format."""
+
+    def test_dict_result_format_preserved_with_string_runtime(self):
+        """Per-expectation dict result_format must survive a string runtime override."""
+        expectation = gxe.ExpectColumnValuesToNotBeNull(
+            column="broker_name",
+            result_format={
+                "result_format": "COMPLETE",
+                "unexpected_index_column_names": ["broker_code"],
+            },
+        )
+        runtime_configuration = {"result_format": "SUMMARY"}
+        result = expectation._get_runtime_kwargs(
+            runtime_configuration=runtime_configuration,
+        )
+        rf = result["result_format"]
+        assert rf["result_format"] == "COMPLETE"
+        assert rf["unexpected_index_column_names"] == ["broker_code"]
+
+    def test_string_result_format_not_affected(self):
+        """When the expectation uses a plain string, runtime override works as before."""
+        expectation = gxe.ExpectColumnValuesToNotBeNull(column="col")
+        runtime_configuration = {"result_format": "BASIC"}
+        result = expectation._get_runtime_kwargs(
+            runtime_configuration=runtime_configuration,
+        )
+        rf = result["result_format"]
+        assert rf["result_format"] == "BASIC"
+        assert "unexpected_index_column_names" not in rf
+
+    def test_no_runtime_configuration_uses_expectation_format(self):
+        """Without runtime config, the expectation's own result_format is used."""
+        expectation = gxe.ExpectColumnValuesToNotBeNull(
+            column="col",
+            result_format={
+                "result_format": "COMPLETE",
+                "unexpected_index_column_names": ["id"],
+            },
+        )
+        result = expectation._get_runtime_kwargs(runtime_configuration=None)
+        rf = result["result_format"]
+        assert rf["result_format"] == "COMPLETE"
+        assert rf["unexpected_index_column_names"] == ["id"]
+
+
+class TestGetResultFormatMerge:
+    """Tests that _get_result_format properly merges result_format."""
+
+    def test_dict_config_preserved_with_string_runtime(self):
+        """Per-expectation dict result_format must survive a string runtime override."""
+        expectation = gxe.ExpectColumnValuesToNotBeNull(
+            column="broker_name",
+            result_format={
+                "result_format": "COMPLETE",
+                "unexpected_index_column_names": ["broker_code"],
+            },
+        )
+        result = expectation._get_result_format(
+            runtime_configuration={"result_format": "SUMMARY"},
+        )
+        assert isinstance(result, dict)
+        assert result["result_format"] == "COMPLETE"
+        assert result["unexpected_index_column_names"] == ["broker_code"]
+
+    def test_string_config_replaced_by_runtime(self):
+        """When the expectation has no dict result_format, runtime takes effect."""
+        expectation = gxe.ExpectColumnValuesToNotBeNull(column="col")
+        result = expectation._get_result_format(
+            runtime_configuration={"result_format": "BASIC"},
+        )
+        assert result == "BASIC"
+
+    def test_no_runtime_returns_expectation_config(self):
+        """Without runtime config, the expectation's own result_format is returned."""
+        expectation = gxe.ExpectColumnValuesToNotBeNull(
+            column="col",
+            result_format={
+                "result_format": "COMPLETE",
+                "unexpected_index_column_names": ["id"],
+            },
+        )
+        result = expectation._get_result_format(runtime_configuration=None)
+        assert isinstance(result, dict)
+        assert result["result_format"] == "COMPLETE"
+        assert result["unexpected_index_column_names"] == ["id"]
