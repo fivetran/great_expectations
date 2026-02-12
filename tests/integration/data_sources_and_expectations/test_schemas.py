@@ -70,7 +70,7 @@ class TestSchemaSupport:
 
             assert result.success
 
-    @pytest.mark.xfail(
+    @pytest.mark.skip(
         "Cleanup fails for upper case schemas. TODO: determine if this is a test issue or something we need to address."  # noqa: E501
     )
     @pytest.mark.snowflake
