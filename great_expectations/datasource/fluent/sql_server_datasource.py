@@ -200,7 +200,7 @@ class SQLServerDatasource(SQLDatasource):
             client_id = quote(details.client_id, safe="")
             client_secret = quote(client_secret, safe="")
 
-            query_params = details.get_query_params().__dict__
+            query_params = dict(details.get_query_params())
             query_params["UID"] = client_id
             query_params["PWD"] = client_secret
             query_string = "&".join(f"{k}={v}" for k, v in query_params.items())
