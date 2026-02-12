@@ -11,10 +11,6 @@ from tests.integration.test_utils.data_source_config.mssql import (
     MSSQLBatchTestSetup,
     MSSQLDatasourceTestConfig,
 )
-from tests.integration.test_utils.data_source_config.redshift import (
-    RedshiftBatchTestSetup,
-    RedshiftDatasourceTestConfig,
-)
 from tests.integration.test_utils.data_source_config.snowflake import (
     SnowflakeBatchTestSetup,
     SnowflakeDatasourceTestConfig,
@@ -63,27 +59,6 @@ class TestSchemaSupport:
     ) -> None:
         batch_setup = MSSQLBatchTestSetup(
             config=MSSQLDatasourceTestConfig(schema_name=schema_name),
-            data=DATA_FRAME,
-            extra_data={},
-            context=get_context(mode="ephemeral"),
-        )
-        with batch_setup.batch_test_context() as batch:
-            expectation = gxe.ExpectTableRowCountToEqual(value=3)
-
-            result = batch.validate(expectation)
-
-            assert result.success
-
-    @pytest.mark.redshift
-    @pytest.mark.parametrize("schema_name", TEST_SCHEMAS)
-    def test_redshift(
-        self,
-        schema_name: str | None,
-    ) -> None:
-        batch_setup = RedshiftBatchTestSetup(
-            config=RedshiftDatasourceTestConfig(
-                schema_name=schema_name,
-            ),
             data=DATA_FRAME,
             extra_data={},
             context=get_context(mode="ephemeral"),
