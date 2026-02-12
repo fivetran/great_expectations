@@ -101,7 +101,7 @@ class AzureADServicePrincipalAuthConnectionDetails(_SQLServerConnectionDetailsBa
     @override
     def get_query_params(self) -> dict[str, ConfigStr | str]:
         params = super().get_query_params()
-        params["Authentication"] = "ActiveDirectoryServicePrincipal"
+        params["authentication"] = "ActiveDirectoryServicePrincipal"
         return params
 
 

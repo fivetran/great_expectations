@@ -403,7 +403,7 @@ class TestBuildConnectionStringAzureAD:
         )
         result = ds._build_connection_string()
         assert "mssql+pyodbc://@myserver.database.windows.net:1433/mydb" in result
-        assert "Authentication=ActiveDirectoryServicePrincipal" in result
+        assert "authentication=ActiveDirectoryServicePrincipal" in result
         assert "UID=my-client-id-123" in result
         assert "PWD=my-secret" in result
 
@@ -421,7 +421,7 @@ class TestBuildConnectionStringAzureAD:
         )
         result = ds._build_connection_string()
         assert "p%40ss%3Aw%2Frd" in result
-        assert "Authentication=ActiveDirectoryServicePrincipal" in result
+        assert "authentication=ActiveDirectoryServicePrincipal" in result
 
     def test_azure_ad_service_principal_encrypt_optional(self) -> None:
         ds = SQLServerDatasource(
@@ -438,7 +438,7 @@ class TestBuildConnectionStringAzureAD:
         )
         result = ds._build_connection_string()
         assert "Encrypt=no" in result
-        assert "Authentication=ActiveDirectoryServicePrincipal" in result
+        assert "authentication=ActiveDirectoryServicePrincipal" in result
 
 
 @pytest.mark.unit
