@@ -270,19 +270,15 @@ def schema_name_for_datasource(
 
 
 @pytest.fixture
-def extra_table_names_for_datasource(
-    _batch_setup_for_datasource: BatchTestSetup,
-) -> Generator[Mapping[str, str], None, None]:
-    assert isinstance(_batch_setup_for_datasource, SQLBatchTestSetup)
-    yield {key: t.name for key, t in _batch_setup_for_datasource.extra_table_data.items()}
-
-
-@pytest.fixture
 def fully_qualified_extra_table_names_for_datasource(
-    extra_table_names_for_datasource: Mapping[str, str],
+    _batch_setup_for_datasource: BatchTestSetup,
     schema_name_for_datasource: str | None,
 ) -> Generator[Mapping[str, str], None, None]:
     """Fixture that yields extra table names"""
+    assert isinstance(_batch_setup_for_datasource, SQLBatchTestSetup)
+    extra_table_names_for_datasource = {
+        key: t.name for key, t in _batch_setup_for_datasource.extra_table_data.items()
+    }
     if schema_name_for_datasource:
         yield {
             key: f"{schema_name_for_datasource}.{table_name}"

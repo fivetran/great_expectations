@@ -35,9 +35,9 @@ MULTI_ASSET_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
 )
 def test_success(
     batch_for_datasource: Batch,
-    extra_table_names_for_datasource: Mapping[str, str],
+    fully_qualified_extra_table_names_for_datasource: Mapping[str, str],
 ):
-    other_table_name = extra_table_names_for_datasource["other_table"]
+    other_table_name = fully_qualified_extra_table_names_for_datasource["other_table"]
     expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name=other_table_name)
     result = batch_for_datasource.validate(expectation)
     assert result.success
@@ -50,9 +50,9 @@ def test_success(
 )
 def test_different_counts(
     batch_for_datasource: Batch,
-    extra_table_names_for_datasource: Mapping[str, str],
+    fully_qualified_extra_table_names_for_datasource: Mapping[str, str],
 ):
-    other_table_name = extra_table_names_for_datasource["other_table"]
+    other_table_name = fully_qualified_extra_table_names_for_datasource["other_table"]
     expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name=other_table_name)
     result = batch_for_datasource.validate(expectation)
     assert not result.success
@@ -78,10 +78,10 @@ def test_missing_table(batch_for_datasource: Batch):
     extra_data={"other_table": pd.DataFrame({"col_b": ["a", "b", "c", "d"]})},
 )
 def test_success_with_suite_param_other_table_name_(
-    batch_for_datasource: Batch, extra_table_names_for_datasource: Mapping[str, str]
+    batch_for_datasource: Batch, fully_qualified_extra_table_names_for_datasource: Mapping[str, str]
 ) -> None:
     suite_param_key = "test_expect_table_row_count_to_equal_other_table"
-    other_table_name = extra_table_names_for_datasource["other_table"]
+    other_table_name = fully_qualified_extra_table_names_for_datasource["other_table"]
     expectation = gxe.ExpectTableRowCountToEqualOtherTable(
         other_table_name={"$PARAMETER": suite_param_key},
         result_format=ResultFormat.SUMMARY,
