@@ -1408,13 +1408,15 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         if field is not None:
             return field.default if not field.required else default
 
+        logger.warning(
+            f'_get_success_kwarg called with key "{key}", '
+            f"but it is not a known field of {type(self).__name__}"
+        )
         return default
 
     def _get_domain_kwargs(self) -> Dict[str, Optional[str]]:
         domain_kwargs: Dict[str, Optional[str]] = {
-            key: self.configuration.kwargs.get(
-                key, self._get_default_value(key) if key in self.__fields__ else None
-            )
+            key: self.configuration.kwargs.get(key, self._get_default_value(key))
             for key in self.domain_keys
         }
         missing_kwargs: Union[set, Set[str]] = set(self.domain_keys) - set(domain_kwargs.keys())
@@ -1425,9 +1427,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
     def _get_success_kwargs(self) -> Dict[str, Any]:
         domain_kwargs: Dict[str, Optional[str]] = self._get_domain_kwargs()
         success_kwargs: Dict[str, Any] = {
-            key: self.configuration.kwargs.get(
-                key, self._get_default_value(key) if key in self.__fields__ else None
-            )
+            key: self.configuration.kwargs.get(key, self._get_default_value(key))
             for key in self.success_keys
         }
         success_kwargs.update(domain_kwargs)
@@ -1437,16 +1437,11 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         self,
         runtime_configuration: Optional[dict] = None,
     ) -> dict:
-        configuration = deepcopy(self.configuration)
-
-        if runtime_configuration:
-            configuration.kwargs.update(runtime_configuration)
+        runtime_configuration = runtime_configuration or {}
 
         success_kwargs = self._get_success_kwargs()
         runtime_kwargs = {
-            key: configuration.kwargs.get(
-                key, self._get_default_value(key) if key in self.__fields__ else None
-            )
+            key: runtime_configuration.get(key, self._get_success_kwarg(key))
             for key in self.runtime_keys
         }
         runtime_kwargs.update(success_kwargs)

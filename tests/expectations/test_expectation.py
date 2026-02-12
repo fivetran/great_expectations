@@ -867,10 +867,13 @@ class TestGetSuccessKwarg:
             pytest.param("nonexistent_key", "custom", "custom", id="unknown_key_custom_default"),
         ],
     )
-    def test_returns_default_for_missing_non_field(self, key, default, expected_value):
-        """Keys that aren't Pydantic fields should return the provided default."""
+    def test_returns_default_and_warns_for_missing_non_field(self, key, default, expected_value, caplog):
+        """Keys that aren't Pydantic fields should return the provided default and warn."""
         exp = gxe.ExpectColumnToExist(column="test_col")
-        assert exp._get_success_kwarg(key, default=default) == expected_value
+        with caplog.at_level(logging.WARNING, logger="great_expectations.expectations.expectation"):
+            result = exp._get_success_kwarg(key, default=default)
+        assert result == expected_value
+        assert f'_get_success_kwarg called with key "{key}"' in caplog.text
 
     def test_returns_field_default_for_optional_field(self):
         """Optional Pydantic fields should return their field default."""
@@ -890,46 +893,3 @@ class TestGetSuccessKwarg:
         """_get_success_kwarg should return same values as _get_success_kwargs().get()."""
         exp = gxe.ExpectColumnValuesToBeInSet(column="status", value_set=["a", "b"], mostly=0.95)
         assert exp._get_success_kwarg(key) == exp._get_success_kwargs().get(key)
-
-
-@pytest.mark.unit
-class TestKwargsMethodsNoLoggingForNonFields:
-    """Tests that _get_domain_kwargs/_get_success_kwargs don't log for non-field keys.
-
-    ExpectColumnToExist has domain_keys=('batch_id', 'table') where 'table' is not
-    a Pydantic field - it comes from execution context. Previously, iterating over
-    domain_keys would call _get_default_value('table') which logged an INFO message.
-    """
-
-    @pytest.mark.parametrize(
-        "method_name,expected_keys",
-        [
-            pytest.param(
-                "_get_domain_kwargs",
-                ["table", "batch_id"],
-                id="domain_kwargs",
-            ),
-            pytest.param(
-                "_get_success_kwargs",
-                ["table", "column"],
-                id="success_kwargs",
-            ),
-            pytest.param(
-                "_get_runtime_kwargs",
-                ["column", "result_format"],
-                id="runtime_kwargs",
-            ),
-        ],
-    )
-    def test_no_logging_for_non_field_keys(self, caplog, method_name, expected_keys):
-        """Kwargs methods should not log for keys that aren't Pydantic fields."""
-        exp = gxe.ExpectColumnToExist(column="test_col")
-
-        with caplog.at_level(logging.INFO, logger="great_expectations.expectations.expectation"):
-            result = getattr(exp, method_name)()
-
-        # Should not log about any keys not being known fields
-        assert "_get_default_value called with key" not in caplog.text
-        # But should still include expected keys in the result
-        for key in expected_keys:
-            assert key in result
