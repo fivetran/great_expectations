@@ -1078,9 +1078,13 @@ class TableAsset(_SQLAsset):
         engine: sqlalchemy.Engine = datasource.get_engine()
         inspector: sqlalchemy.Inspector = sa.inspect(engine)
 
-        schema_names = [
-            self._to_lower_if_not_bracketed_by_quotes(name) for name in inspector.get_schema_names()
-        ]
+        schema_names = inspector.get_schema_names()
+        schema_names = (
+            [self._to_lower_if_not_bracketed_by_quotes(name) for name in schema_names]
+            if schema_names
+            else []
+        )
+
         if self.schema_name and self.schema_name not in schema_names:
             raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
                 f'Attempt to connect to table: "{self.qualified_name}" failed because the schema '
