@@ -627,7 +627,8 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                 # noinspection PyProtectedMember
                 # _schema_name is set when using the table_name path in SqlAlchemyBatchData.
                 # _source_schema_name is set when using the selectable path (fluent API).
-                # We need to check both to properly schema-qualify the "other" table.
+                # We need to check both to properly schema-qualify the "other" table in queries that
+                # join across tables.
                 schema = data_object._schema_name or data_object._source_schema_name
                 selectable = sa.Table(
                     domain_kwargs["table"],
