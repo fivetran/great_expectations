@@ -74,8 +74,7 @@ class QueryTemplateValues(QueryMetricProvider):
         ):  # Specifying a row_condition returns the active batch as a Select object, requiring compilation &  # noqa: E501 # FIXME CoP
             # aliasing when formatting the parameterized query
             compiled_selectable = selectable.compile(
-                dialect=execution_engine.engine.dialect,
-                compile_kwargs={'literal_binds': True}
+                dialect=execution_engine.engine.dialect, compile_kwargs={"literal_binds": True}
             )
             query = cls.get_query(
                 query,
