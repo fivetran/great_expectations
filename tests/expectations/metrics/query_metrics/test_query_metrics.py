@@ -224,6 +224,7 @@ def test_sqlalchemy_query_row_count(
 @pytest.mark.unit
 def test_get_substituted_batch_subquery_uses_dialect_for_compilation(
     mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
+    monkeypatch: pytest.MonkeyPatch,
 ):
     """Test that batch selectable compilation uses the execution engine's dialect.
 
@@ -243,7 +244,7 @@ def test_get_substituted_batch_subquery_uses_dialect_for_compilation(
     # Mock the engine.dialect to simulate Databricks
     mock_dialect = mock.Mock()
     mock_dialect.name = "databricks"
-    mock_sqlalchemy_execution_engine.engine.dialect = mock_dialect
+    monkeypatch.setattr(mock_sqlalchemy_execution_engine.engine, "dialect", mock_dialect)
 
     # Call the method
     result = QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
