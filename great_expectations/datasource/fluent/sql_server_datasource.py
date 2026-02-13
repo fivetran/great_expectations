@@ -8,9 +8,11 @@ from typing_extensions import Annotated
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pydantic import Field
+from great_expectations.compatibility.pyodbc import pyodbc
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.config_str import ConfigStr
+from great_expectations.datasource.fluent.interfaces import TestConnectionError
 from great_expectations.datasource.fluent.sql_datasource import (
     FluentBaseModel,
     SQLDatasource,
@@ -243,6 +245,28 @@ class SQLServerDatasource(SQLDatasource):
         return self._execution_engine
 
     @override
+    def test_connection(self, test_assets: bool = True) -> None:
+        try:
+            super().test_connection(test_assets=test_assets)
+        except TestConnectionError as e:
+            if isinstance(e.cause, (pyodbc.OperationalError, sa.exc.OperationalError)):
+                if "Login" in str(e.cause):
+                    if isinstance(
+                        self.connection_string, AzureADServicePrincipalAuthConnectionDetails
+                    ):
+                        raise SQLServerPrincipalAuthError(e.cause) from e
+                    else:
+                        raise SQLServerPasswordAuthError(e.cause) from e
+                else:
+                    raise SQLServerNetworkError(e.cause) from e
+            elif isinstance(
+                e.cause, (pyodbc.InterfaceError, sa.exc.DBAPIError)
+            ) and "file not found" in str(e.cause):
+                raise MissingODBCDriverError(e.cause) from e
+            else:
+                raise
+
+    @override
     def _create_engine(self) -> sqlalchemy.Engine:
         url = self._build_connection_string()
         return sa.create_engine(url, **self.kwargs)
@@ -258,4 +282,48 @@ class ConfigStrError(ValueError):
     def __init__(self) -> None:
         super().__init__(
             "ConfigStr value provided, but no config provider is set on the datasource."
+        )
+
+
+class SQLServerNetworkError(TestConnectionError):
+    """Raised when a connection test fails due to a network error."""
+
+    def __init__(self, cause: pyodbc.OperationalError) -> None:
+        super().__init__(
+            cause=cause,
+            message=" ".join(
+                [
+                    "Unable to connect to SQL Server.",
+                    "Verify the host and port are correct and the server is accessible.",
+                ]
+            ),
+        )
+
+
+class SQLServerPasswordAuthError(TestConnectionError):
+    """Raised when a connection test fails due to a authentication error."""
+
+    def __init__(self, cause: pyodbc.OperationalError) -> None:
+        super().__init__(
+            cause=cause,
+            message="Authentication failed. Verify your username and password.",
+        )
+
+
+class SQLServerPrincipalAuthError(TestConnectionError):
+    """Raised when a connection test fails due to a authentication error."""
+
+    def __init__(self, cause: pyodbc.OperationalError) -> None:
+        super().__init__(
+            cause=cause,
+            message="Azure AD authentication failed. Verify your client ID, secret, and tenant ID.",
+        )
+
+
+class MissingODBCDriverError(TestConnectionError):
+    """Raised when a connection test fails due to a missing ODBC driver."""
+
+    def __init__(self, cause: pyodbc.OperationalError) -> None:
+        super().__init__(
+            cause=cause, message="ODBC driver not found. Ensure the specified driver is installed."
         )
