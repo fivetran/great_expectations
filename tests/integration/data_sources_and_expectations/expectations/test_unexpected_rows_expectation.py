@@ -21,6 +21,7 @@ from tests.integration.test_utils.data_source_config import (
     SparkFilesystemCsvDatasourceTestConfig,
     # SqliteDatasourceTestConfig,
 )
+from tests.integration.test_utils.data_source_config.base import Mapping
 
 # pandas not currently supported by this Expecatation
 ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
@@ -76,7 +77,9 @@ PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig
 # NOTE: MSSQL requires the TOP expression to be used in nested queries that use ORDER BY,
 #       so we have to group by this requirement.
 # strings correspond to `label` property on TestConfig instances
-DATA_SOURCE_TYPES_THAT_REQUIRE_TOP_EXPRESSION = {"mssql"}
+DATA_SOURCE_TYPES_THAT_REQUIRE_TOP_EXPRESSION = {
+    MSSQLDatasourceTestConfig().label,
+}
 
 DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION: Sequence[DataSourceTestConfig] = [
     ds
@@ -236,12 +239,13 @@ def test_unexpected_rows_expectation_batch_keyword_success_with_top_expression(
     extra_data={"table_2": TABLE_2},
 )
 def test_unexpected_rows_expectation_join_keyword_success(
-    batch_for_datasource,
-    extra_table_names_for_datasource,
+    batch_for_datasource: Batch,
+    fully_qualified_extra_table_names_for_datasource: Mapping[str, str],
 ) -> None:
     for join_success_query in JOIN_SUCCESS_QUERIES:
         unexpected_rows_query = join_success_query.replace(
-            "table_2", extra_table_names_for_datasource["table_2"]
+            "table_2",
+            fully_qualified_extra_table_names_for_datasource["table_2"],
         )
         expectation = gxe.UnexpectedRowsExpectation(
             description="Expect query with JOIN keyword to succeed",
@@ -294,12 +298,12 @@ def test_unexpected_rows_expectation_batch_keyword_failure_with_top_expression(
     extra_data={"table_2": TABLE_2},
 )
 def test_unexpected_rows_expectation_join_keyword_failure(
-    batch_for_datasource,
-    extra_table_names_for_datasource,
+    batch_for_datasource: Batch,
+    fully_qualified_extra_table_names_for_datasource: Mapping[str, str],
 ) -> None:
     for join_failure_query in JOIN_FAILURE_QUERIES:
         unexpected_rows_query = join_failure_query.replace(
-            "table_2", extra_table_names_for_datasource["table_2"]
+            "table_2", fully_qualified_extra_table_names_for_datasource["table_2"]
         )
         expectation = gxe.UnexpectedRowsExpectation(
             description="Expect query with JOIN keyword to fail",
@@ -359,14 +363,14 @@ def test_unexpected_rows_expectation_batch_keyword_partitioner_success_with_top_
 )
 def test_unexpected_rows_expectation_join_keyword_partitioner_success(
     asset_for_datasource,
-    extra_table_names_for_datasource,
+    fully_qualified_extra_table_names_for_datasource: Mapping[str, str],
 ) -> None:
     batch = asset_for_datasource.add_batch_definition_monthly(
         name="my-batch-def", column=DATE_COLUMN
     ).get_batch()
     for join_success_query in JOIN_SUCCESS_QUERIES:
         unexpected_rows_query = join_success_query.replace(
-            "table_2", extra_table_names_for_datasource["table_2"]
+            "table_2", fully_qualified_extra_table_names_for_datasource["table_2"]
         )
         expectation = gxe.UnexpectedRowsExpectation(
             description="Expect query with JOIN keyword and paritioner defined to succeed",
@@ -426,14 +430,14 @@ def test_unexpected_rows_expectation_batch_keyword_partitioner_failure_with_top_
 )
 def test_unexpected_rows_expectation_join_keyword_partitioner_failure(
     asset_for_datasource,
-    extra_table_names_for_datasource,
+    fully_qualified_extra_table_names_for_datasource: Mapping[str, str],
 ) -> None:
     batch = asset_for_datasource.add_batch_definition_monthly(
         name=str(uuid4()), column=DATE_COLUMN
     ).get_batch()
     for join_failure_query in JOIN_FAILURE_QUERIES:
         unexpected_rows_query = join_failure_query.replace(
-            "table_2", extra_table_names_for_datasource["table_2"]
+            "table_2", fully_qualified_extra_table_names_for_datasource["table_2"]
         )
         expectation = gxe.UnexpectedRowsExpectation(
             description="Expect query with JOIN keyword and paritioner defined to fail",
