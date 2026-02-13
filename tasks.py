@@ -1234,7 +1234,7 @@ def service(
                     "up",
                     "-d",
                     "--wait",
-                    "--wait-timeout 120",
+                    "--wait-timeout 300",
                 ]
             )
             ctx.run(" ".join(cmds), echo=True, pty=pty)

@@ -19,9 +19,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, List, Union
 
 import great_expectations.exceptions as gx_exceptions
-from great_expectations.compatibility.sqlalchemy import (
-    sqlalchemy as sa,
-)
+from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.execution_engine.partition_and_sample.data_partitioner import (
     DataPartitioner,
     DatePart,
@@ -45,6 +43,25 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
 
     def __init__(self, dialect: str):
         self._dialect = dialect
+
+    def _extract_date_part(
+        self, date_part: str, column: sqlalchemy.ColumnClause
+    ) -> sqlalchemy.ColumnElement:
+        """Extract a date part from a column, using dialect-appropriate function.
+
+        For MSSQL, uses DATEPART() instead of EXTRACT() since EXTRACT is not supported.
+        For other dialects, uses SQLAlchemy's extract() function.
+
+        Args:
+            date_part: The date part to extract (e.g., "year", "month", "day")
+            column: The column to extract the date part from
+
+        Returns:
+            A SQLAlchemy column element representing the extracted date part
+        """
+        if self._dialect == GXSqlDialect.MSSQL:
+            return sa.func.datepart(sa.text(date_part), column)
+        return sa.func.extract(date_part, column)
 
     DATETIME_PARTITIONER_METHOD_TO_GET_UNIQUE_BATCH_IDENTIFIERS_METHOD_MAPPING: dict = {
         PartitionerMethod.PARTITION_ON_YEAR: "get_data_for_batch_identifiers_year",
@@ -169,7 +186,7 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
 
         query: Union[sqlalchemy.BinaryExpression, sqlalchemy.BooleanClauseList] = sa.and_(  # type: ignore[assignment] # FIXME CoP
             *[
-                sa.extract(date_part.value, sa.column(column_name))
+                self._extract_date_part(date_part.value, sa.column(column_name))
                 == date_parts_dict[date_part.value]
                 for date_part in date_parts
             ]
@@ -478,7 +495,7 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
         if len(date_parts) == 1:
             # MSSql does not accept single item concatenation
             concat_clause = sa.func.distinct(  # type: ignore[assignment] # FIXME CoP
-                sa.func.extract(date_parts[0].value, sa.column(column_name)).label(
+                self._extract_date_part(date_parts[0].value, sa.column(column_name)).label(
                     date_parts[0].value
                 )
             ).label("concat_distinct_values")
@@ -490,7 +507,7 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
             """  # noqa: E501 # FIXME CoP
             if self._dialect == GXSqlDialect.SQLITE:
                 concat_date_parts = sa.cast(
-                    sa.func.extract(date_parts[0].value, sa.column(column_name)),
+                    self._extract_date_part(date_parts[0].value, sa.column(column_name)),
                     sa.String,
                 )
 
@@ -498,7 +515,7 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
                 for date_part in date_parts[1:]:
                     concat_date_parts = concat_date_parts.concat(
                         sa.cast(
-                            sa.func.extract(date_part.value, sa.column(column_name)),
+                            self._extract_date_part(date_part.value, sa.column(column_name)),
                             sa.String,
                         )
                     )
@@ -508,7 +525,7 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
                 concat_date_parts = sa.func.concat(
                     "",
                     sa.cast(
-                        sa.func.extract(date_parts[0].value, sa.column(column_name)),
+                        self._extract_date_part(date_parts[0].value, sa.column(column_name)),
                         sa.String,
                     ),
                 )
@@ -517,7 +534,7 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
                     concat_date_parts = sa.func.concat(
                         concat_date_parts,
                         sa.cast(
-                            sa.func.extract(date_part.value, sa.column(column_name)),
+                            self._extract_date_part(date_part.value, sa.column(column_name)),
                             sa.String,
                         ),
                     )
@@ -527,9 +544,9 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
         partitioned_query: sqlalchemy.Selectable = sa.select(  # type: ignore[call-overload] # FIXME CoP
             concat_clause,
             *[
-                sa.cast(sa.func.extract(date_part.value, sa.column(column_name)), sa.Integer).label(
-                    date_part.value
-                )
+                sa.cast(
+                    self._extract_date_part(date_part.value, sa.column(column_name)), sa.Integer
+                ).label(date_part.value)
                 for date_part in date_parts
             ],
         ).select_from(selectable)

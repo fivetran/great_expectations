@@ -18,11 +18,13 @@ The following table lists the available GX Cloud Expectations. Note that some Da
 | Completeness       | **column values to be null**                           | Expect the column values to be null.                                                                                                   | Yes                 | No                |
 | Completeness       | **column values to not be null**                       | Expect the column values to not be null.                                                                                               | Yes                 | No                |
 | Multi-source       | **query results to match comparison**                  | Query multiple Data Sources and compare the results for equality.                                                                      | No                  | No                |
+| Numeric            | **column KL divergence to be less than***               | Expect the Kulback-Leibler (KL) divergence (relative entropy) of the specified column with respect to the partition object to be lower than the provided threshold.         | No              | No              |
 | Numeric            | **column max to be between**                           | Expect the column maximum to be between a minimum and a maximum value.                                                                 | Yes                 | No                |
 | Numeric            | **column mean to be between**                          | Expect the column mean to be between a minimum and a maximum value.                                                                    | Yes                 | No                |
 | Numeric            | **column median to be between**                        | Expect the column median to be between a minimum and a maximum value.                                                                  | Yes                 | No                |
 | Numeric            | **column min to be between**                           | Expect the column minimum to be between a minimum value and a maximum value.                                                           | Yes                 | No                |
 | Numeric            | **column pair values A to be greater than B**          | Expect the values in column A to be greater than column B.                                                                             | No                  | No                |
+| Numeric            | **column quantile values to be between***               | Expect the specific provided column quantiles to be between a minimum value and a maximum value. | No | No |
 | Numeric            | **column stdev to be between**                         | Expect the column standard deviation to be between a minimum value and a maximum value.                                                | Yes                 | No                |
 | Numeric            | **column sum to be between**                           | Expect the column sum to be between a minimum value and a maximum value.                                                               | Yes                 | No                |
 | Numeric            | **column values to be between**                        | Expect the column entries to be between a minimum value and a maximum value.                                                           | No                  | No                |
@@ -46,6 +48,7 @@ The following table lists the available GX Cloud Expectations. Note that some Da
 | Uniqueness         | **select column values to be unique within record**    | Expect the values for each record to be unique across the columns listed. Note that records can be duplicated.                         | No                  | No                |
 | Validity           | **column most common value to be in set**              | Expect the most common value to be within the designated value set.                                                                    | No                  | No                |
 | Validity           | **column pair values to be equal**                     | Expect the values in column A to be the same as column B.                                                                              | No                  | No                |
+| Validity           | **column pair values to be in set***                    | Expect the paired values from columns A and B to belong to a set of valid pairs.                                                     | No                   | No               |
 | Validity           | **column value lengths to be between**                 | Expect the column entries to be strings with length between a minimum value and a maximum value.                                       | No                  | No                |
 | Validity           | **column value lengths to equal**                      | Expect the column entries to be strings with length equal to the provided value.                                                       | No                  | No                |
 | Validity           | **column values to be in set**                         | Expect each column value to be in a given set.                                                                                         | No                  | No                |
@@ -62,6 +65,7 @@ The following table lists the available GX Cloud Expectations. Note that some Da
 | Volume             | **table row count to equal**                           | Expect the number of rows to equal a value.                                                                                            | No                  | No                |
 | Volume             | **table row count to equal other table**               | Expect the number of rows to equal the number in another table or view within the same database.                                       | No                  | No                |
 
+*Configurable through only the GX Cloud API. 
 
 ## Custom SQL Expectations
 
@@ -93,7 +97,7 @@ The percentage of identical rows is computed by dividing the number of matching 
 | 100                   | 25                          | 1            | 1%                           |
 | 0                     | 0                           | 0            | 100%                         |
 
-To create a Multi-source Expectation, [add the **expect query results to match comparison** Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation) on the base Data Source. Each provided query should be written in the dialect of the associated Data Source.
+To create a Multi-source Expectation, [add the **expect query results to match comparison** Expectation](/cloud/expectations/manage_expectations.md#create-an-expectation) on the base Data Source. Each provided query should be written in the dialect of the associated Data Source.
 
 Keep the following limitations in mind when working with Multi-source Expectations:
 - The comparison is limited to the first 200 rows of each query result. If you anticipate that a query will return more than 200 rows, use an `ORDER BY` clause to control what is surfaced first for comparison.
@@ -102,7 +106,7 @@ Keep the following limitations in mind when working with Multi-source Expectatio
 
 ## Anomaly Detection
 
-Anomaly Detection Expectations evolve with your data to detect deviations from historical patterns. To speed up their creation, you can generate Anomaly Detection Expectations when you use the GX Cloud UI to [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation). Note that [some Data Sources](/docs/cloud/data_sources/manage_data_sources.md#workflow-and-feature-support) don't support these options. All Data Sources support manual configuration of Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
+Anomaly Detection Expectations evolve with your data to detect deviations from historical patterns. To speed up their creation, you can generate Anomaly Detection Expectations when you use the GX Cloud UI to [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#create-an-expectation). Note that [some Data Sources](/docs/cloud/data_sources/manage_data_sources.md#workflow-and-feature-support) don't support these options. All Data Sources support manual configuration of Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
 
 ### Dynamic Parameters
 

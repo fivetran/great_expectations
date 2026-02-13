@@ -138,7 +138,12 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
     @cached_property
     def schema(self) -> Union[str, None]:
         if self.use_schema:
-            return f"{self.SCHEMA_PREFIX}{self._random_resource_name()}"
+            schema_name = self.config.schema_name or self._random_resource_name()
+            return f"{self.SCHEMA_PREFIX}{schema_name}"
+        elif self.config.schema_name:
+            raise ValueError(
+                "Schema name provided but use_schema is False for this datasource type."
+            )
         else:
             return None
 
@@ -227,8 +232,24 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             self._safe_commit(conn)
         cleanup()
 
+    def _close_execution_engines(self) -> None:
+        """Close all execution engines in the data context.
+
+        Some dialects (MSSQL, SQLite, BigQuery, Databricks) use persisted
+        connections that are kept alive for temp-table support. These
+        connections hold locks that prevent DDL operations like DROP SCHEMA.
+        Closing them before teardown avoids hangs.
+        """
+        for datasource in self.context.data_sources.all().values():
+            execution_engine = datasource.execution_engine
+            if execution_engine:
+                execution_engine.close()
+
     @override
     def teardown(self) -> None:
+        # Close any execution engine connections that may hold schema locks
+        self._close_execution_engines()
+
         engine, cleanup = self._get_engine()
         with engine.connect() as conn:
             for table in self.tables:
