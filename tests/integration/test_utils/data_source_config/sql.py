@@ -232,19 +232,6 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             self._safe_commit(conn)
         cleanup()
 
-    def _close_execution_engines(self) -> None:
-        """Close all execution engines in the data context.
-
-        Some dialects (MSSQL, SQLite, BigQuery, Databricks) use persisted
-        connections that are kept alive for temp-table support. These
-        connections hold locks that prevent DDL operations like DROP SCHEMA.
-        Closing them before teardown avoids hangs.
-        """
-        for datasource in self.context.data_sources.all().values():
-            execution_engine = datasource.execution_engine
-            if execution_engine:
-                execution_engine.close()
-
     @override
     def teardown(self) -> None:
         engine, cleanup = self._get_engine()
