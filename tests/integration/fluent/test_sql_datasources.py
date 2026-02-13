@@ -45,6 +45,9 @@ from great_expectations.compatibility.sqlalchemy import (
 )
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.validation_definition import ValidationDefinition
+from great_expectations.datasource.fluent.sql_server_datasource import (
+    SQLServerAuthConnectionDetails,
+)
 from great_expectations.execution_engine.sqlalchemy_dialect import (
     DIALECT_IDENTIFIER_QUOTE_STRINGS,
     GXSqlDialect,
@@ -63,6 +66,9 @@ if TYPE_CHECKING:
         PostgresDatasource,
         SQLDatasource,
         SqliteDatasource,
+    )
+    from great_expectations.datasource.fluent.sql_server_datasource import (
+        SQLServerDatasource,
     )
     from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 
@@ -83,7 +89,7 @@ DO_NOT_CREATE_TABLES: set[str] = {"trino"}
 # sqlite db files should be using fresh tmp_path on every test
 DO_NOT_DROP_TABLES: set[str] = {"sqlite"}
 
-DatabaseType: TypeAlias = Literal["postgres", "sqlite", "trino"]
+DatabaseType: TypeAlias = Literal["postgres", "sqlite", "trino", "mssql"]
 TableNameCase: TypeAlias = Literal[
     "quoted_lower",
     "quoted_mixed",
@@ -120,6 +126,14 @@ TABLE_NAME_MAPPING: Final[Mapping[DatabaseType, Mapping[TableNameCase, str]]] = 
         "unquoted_upper": TEST_TABLE_NAME.upper(),
         "quoted_upper": f'"{TEST_TABLE_NAME.upper()}"',
         "quoted_mixed": f'"{TEST_TABLE_NAME.title()}"',
+        "unquoted_mixed": TEST_TABLE_NAME.title(),
+    },
+    "mssql": {
+        "unquoted_lower": TEST_TABLE_NAME.lower(),
+        "quoted_lower": f"[{TEST_TABLE_NAME.lower()}]",
+        "unquoted_upper": TEST_TABLE_NAME.upper(),
+        "quoted_upper": f"[{TEST_TABLE_NAME.upper()}]",
+        "quoted_mixed": f"[{TEST_TABLE_NAME.title()}]",
         "unquoted_mixed": TEST_TABLE_NAME.title(),
     },
 }
@@ -343,6 +357,24 @@ class TableFactory(Protocol):
     ) -> None: ...
 
 
+def _create_schema_ddl(schema: str, is_mssql: bool) -> str:
+    if is_mssql:
+        return (
+            f"IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = '{schema}')"
+            f" EXEC('CREATE SCHEMA {schema}')"
+        )
+    return f"CREATE SCHEMA IF NOT EXISTS {schema}"
+
+
+def _create_table_ddl(qualified_table_name: str, table_columns: str, is_mssql: bool) -> str:
+    if is_mssql:
+        return (
+            f"IF OBJECT_ID(N'{qualified_table_name}', N'U') IS NULL"
+            f" CREATE TABLE {qualified_table_name}{table_columns}"
+        )
+    return f"CREATE TABLE IF NOT EXISTS {qualified_table_name}{table_columns}"
+
+
 @pytest.fixture(
     scope="class",
 )
@@ -382,6 +414,7 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
         )
         dialect = GXSqlDialect(sa_engine.dialect.name)
         created_tables: list[dict[Literal["table_name", "schema"], str | None]] = []
+        is_mssql = dialect == GXSqlDialect.MSSQL
 
         with gx_engine.get_connection() as conn:
             quoted_upper_col: str = quote_str(QUOTED_UPPER_COL, dialect=dialect)
@@ -390,18 +423,18 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
             quoted_mixed_case: str = quote_str(QUOTED_MIXED_CASE, dialect=dialect)
 
             if schema:
-                conn.execute(TextClause(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
+                conn.execute(TextClause(_create_schema_ddl(schema, is_mssql)))
             for name in table_names:
                 qualified_table_name = f"{schema}.{name}" if schema else name
-                # TODO: use dialect specific quotes
-                create_tables: str = (
-                    f"CREATE TABLE IF NOT EXISTS {qualified_table_name}"
+                table_columns: str = (
                     " (id INTEGER, name VARCHAR(255),"
                     f" {quoted_upper_col} VARCHAR(255), {quoted_lower_col} VARCHAR(255),"
                     f" {UNQUOTED_UPPER_COL} VARCHAR(255), {UNQUOTED_LOWER_COL} VARCHAR(255),"
                     f" {quoted_mixed_case} VARCHAR(255), {quoted_w_dots} VARCHAR(255))"
                 )
-                conn.execute(TextClause(create_tables))
+                conn.execute(
+                    TextClause(_create_table_ddl(qualified_table_name, table_columns, is_mssql))
+                )
                 if data:
                     insert_data = (
                         f"INSERT INTO {qualified_table_name}"
@@ -466,6 +499,24 @@ def postgres_ds(context: EphemeralDataContext) -> PostgresDatasource:
 def sqlite_ds(context: EphemeralDataContext, tmp_path: pathlib.Path) -> SqliteDatasource:
     ds = context.data_sources.add_sqlite(
         "sqlite", connection_string=f"sqlite:///{tmp_path}/test.db"
+    )
+    return ds
+
+
+@pytest.fixture
+def mssql_ds(context: EphemeralDataContext) -> SQLServerDatasource:
+    ds = context.data_sources.add_sql_server(
+        "mssql",
+        connection_string=SQLServerAuthConnectionDetails(
+            host="127.0.0.1",
+            port=1433,
+            database="test_ci",
+            schema="dbo",
+            username="sa",
+            password="ReallyStrongPwd1234%^&*",
+            driver="ODBC Driver 18 for SQL Server",
+            encrypt="Optional",
+        ),
     )
     return ds
 
@@ -551,6 +602,24 @@ class TestTableIdentifiers:
 
         sqlite_ds.add_table_asset(asset_name, table_name=table_name)
 
+    @pytest.mark.mssql
+    def test_mssql(
+        self,
+        mssql_ds: SQLServerDatasource,
+        asset_name: TableNameCase,
+        table_factory: TableFactory,
+    ):
+        table_name = TABLE_NAME_MAPPING["mssql"].get(asset_name)
+        if not table_name:
+            pytest.skip(f"no '{asset_name}' table_name for mssql")
+        # create table
+        table_factory(gx_engine=mssql_ds.get_execution_engine(), table_names={table_name})
+
+        table_names: list[str] = inspect(mssql_ds.get_engine()).get_table_names()
+        print(f"mssql tables:\n{pf(table_names)}))")
+
+        mssql_ds.add_table_asset(asset_name, table_name=table_name)
+
     @pytest.mark.filterwarnings(  # snowflake `add_table_asset` raises warning on passing a schema
         "once::great_expectations.datasource.fluent.GxDatasourceWarning"
     )
@@ -560,6 +629,7 @@ class TestTableIdentifiers:
             param("trino", None, marks=[pytest.mark.trino]),
             param("postgres", None, marks=[pytest.mark.postgresql]),
             param("sqlite", None, marks=[pytest.mark.sqlite]),
+            param("mssql", None, marks=[pytest.mark.mssql]),
         ],
     )
     def test_checkpoint_run(
@@ -625,10 +695,10 @@ def _is_quote_char_dialect_mismatch(
     dialect: GXSqlDialect,
     column_name: str | quoted_name,
 ) -> bool:
-    quote_char = column_name[0] if column_name[0] in ("'", '"', "`") else None
+    quote_char = column_name[0] if column_name[0] in ("'", '"', "`", "[") else None
     if quote_char:
-        dialect_quote_char = DIALECT_IDENTIFIER_QUOTE_STRINGS[dialect]
-        if quote_char != dialect_quote_char:
+        expected = DIALECT_IDENTIFIER_QUOTE_STRINGS[dialect][0]
+        if quote_char != expected:
             return True
     return False
 
@@ -639,8 +709,12 @@ def _raw_query_check_column_exists(
     gx_execution_engine: SqlAlchemyExecutionEngine,
 ) -> bool:
     """Use a simple 'SELECT {column_name_param} from {qualified_table_name};' query to check if the column exists.'"""  # noqa: E501 # FIXME CoP
-    with gx_execution_engine.get_connection() as connection:
+    dialect_name = gx_execution_engine.engine.dialect.name
+    if dialect_name == "mssql":
+        query = f"""SELECT TOP 1 {column_name_param} FROM {qualified_table_name};"""
+    else:
         query = f"""SELECT {column_name_param} FROM {qualified_table_name} LIMIT 1;"""
+    with gx_execution_engine.get_connection() as connection:
         print(f"query:\n  {query}")
         # an exception will be raised if the column does not exist
         try:
