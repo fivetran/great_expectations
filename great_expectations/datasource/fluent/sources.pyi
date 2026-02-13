@@ -859,6 +859,22 @@ class DataSourceManager:
         password: Union[ConfigStr, str] = ...,
     ) -> SQLServerDatasource: ...
     @overload
+    def add_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        authentication: Literal["Azure AD Service Principal"] = ...,
+        client_id: str = ...,
+        client_secret: Union[ConfigStr, str] = ...,
+        tenant_id: str = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
     def update_sql_server(
         self,
         name: str,
@@ -896,6 +912,22 @@ class DataSourceManager:
         password: Union[ConfigStr, str] = ...,
     ) -> SQLServerDatasource: ...
     @overload
+    def update_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        authentication: Literal["Azure AD Service Principal"] = ...,
+        client_id: str = ...,
+        client_secret: Union[ConfigStr, str] = ...,
+        tenant_id: str = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
     def add_or_update_sql_server(
         self,
         name: str,
@@ -931,6 +963,22 @@ class DataSourceManager:
         authentication: Literal["Azure AD Password"] = ...,
         username: str = ...,
         password: Union[ConfigStr, str] = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
+    def add_or_update_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        authentication: Literal["Azure AD Service Principal"] = ...,
+        client_id: str = ...,
+        client_secret: Union[ConfigStr, str] = ...,
+        tenant_id: str = ...,
     ) -> SQLServerDatasource: ...
     def delete_sql_server(
         self,
