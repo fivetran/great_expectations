@@ -45,15 +45,15 @@ from great_expectations.compatibility.sqlalchemy import (
 )
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.validation_definition import ValidationDefinition
+from great_expectations.datasource.fluent.sql_server_datasource import (
+    SQLServerAuthConnectionDetails,
+)
 from great_expectations.execution_engine.sqlalchemy_dialect import (
     DIALECT_IDENTIFIER_QUOTE_STRINGS,
     GXSqlDialect,
     quote_str,
 )
 from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
-from great_expectations.datasource.fluent.sql_server_datasource import (
-    SQLServerAuthConnectionDetails,
-)
 from tests.integration.fluent.conftest import TEST_TABLE_NAME
 from tests.integration.test_utils.data_source_config.sql import _AUTO_COMMIT_DIALECTS
 
