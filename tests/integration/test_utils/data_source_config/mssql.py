@@ -91,8 +91,6 @@ class MSSQLBatchTestSetup(SQLBatchTestSetup[MSSQLDatasourceTestConfig]):
         cached engine releases all pool connections before we run DROP, avoiding
         hangs. We use a fresh engine for the drop since the cached one was disposed.
         """
-        self._close_execution_engines()
-
         if self.engine_manager:
             self.engine_manager.dispose_engine(
                 ConnectionDetails(connection_string=self.connection_string)
