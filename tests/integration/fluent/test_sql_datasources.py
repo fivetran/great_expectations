@@ -51,6 +51,9 @@ from great_expectations.execution_engine.sqlalchemy_dialect import (
     quote_str,
 )
 from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
+from great_expectations.datasource.fluent.sql_server_datasource import (
+    SQLServerAuthConnectionDetails,
+)
 from tests.integration.fluent.conftest import TEST_TABLE_NAME
 from tests.integration.test_utils.data_source_config.sql import _AUTO_COMMIT_DIALECTS
 
@@ -63,6 +66,9 @@ if TYPE_CHECKING:
         PostgresDatasource,
         SQLDatasource,
         SqliteDatasource,
+    )
+    from great_expectations.datasource.fluent.sql_server_datasource import (
+        SQLServerDatasource,
     )
     from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 
@@ -498,12 +504,19 @@ def sqlite_ds(context: EphemeralDataContext, tmp_path: pathlib.Path) -> SqliteDa
 
 
 @pytest.fixture
-def mssql_ds(context: EphemeralDataContext) -> SQLDatasource:
-    from tests.test_utils import get_default_mssql_url
-
-    ds = context.data_sources.add_sql(
+def mssql_ds(context: EphemeralDataContext) -> SQLServerDatasource:
+    ds = context.data_sources.add_sql_server(
         "mssql",
-        connection_string=get_default_mssql_url(),
+        connection_string=SQLServerAuthConnectionDetails(
+            host="127.0.0.1",
+            port=1433,
+            database="test_ci",
+            schema="dbo",
+            username="sa",
+            password="ReallyStrongPwd1234%^&*",
+            driver="ODBC Driver 18 for SQL Server",
+            encrypt="Optional",
+        ),
     )
     return ds
 
@@ -592,7 +605,7 @@ class TestTableIdentifiers:
     @pytest.mark.mssql
     def test_mssql(
         self,
-        mssql_ds: SQLDatasource,
+        mssql_ds: SQLServerDatasource,
         asset_name: TableNameCase,
         table_factory: TableFactory,
     ):

@@ -75,20 +75,20 @@ def test_quote_str_already_quoted_raises(dialect, quoted_input):
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
-    "dialect,quoted_input,expected",
+    "dialect,quoted_input",
     [
-        (GXSqlDialect.DATABRICKS, "`col`", "col"),
-        (GXSqlDialect.MSSQL, "[col]", "col"),
-        (GXSqlDialect.MSSQL, '"col"', "col"),
-        (GXSqlDialect.MYSQL, "`col`", "col"),
-        (GXSqlDialect.POSTGRESQL, '"col"', "col"),
-        (GXSqlDialect.SNOWFLAKE, '"col"', "col"),
-        (GXSqlDialect.SQLITE, '"col"', "col"),
-        (GXSqlDialect.TRINO, "`col`", "col"),
+        (GXSqlDialect.DATABRICKS, "`col`"),
+        (GXSqlDialect.MSSQL, "[col]"),
+        (GXSqlDialect.MSSQL, '"col"'),
+        (GXSqlDialect.MYSQL, "`col`"),
+        (GXSqlDialect.POSTGRESQL, '"col"'),
+        (GXSqlDialect.SNOWFLAKE, '"col"'),
+        (GXSqlDialect.SQLITE, '"col"'),
+        (GXSqlDialect.TRINO, "`col`"),
     ],
 )
-def test_strip_quotes(dialect, quoted_input, expected):
-    assert _strip_quotes(quoted_input, dialect) == expected
+def test_strip_quotes(dialect, quoted_input):
+    assert _strip_quotes(quoted_input, dialect) == "col"
 
 
 @pytest.mark.unit
