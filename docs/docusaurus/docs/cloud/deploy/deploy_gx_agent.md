@@ -23,7 +23,7 @@ A local deployment of the GX Agent will allow you to test GX Cloud setup or proc
 
 - You are an [Organization Owner](/cloud/access/manage_access.md#roles-and-permissions).
 - You have a [Docker instance](https://docs.docker.com/get-docker/) or [kubectl](https://kubernetes.io/docs/tasks/tools/).
-- Optional. If you want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), you have an [OpenAI](https://openai.com/) project that allows access to the model `gpt-4o-2024-11-20` (available by default), and you can create an OpenAI API token.
+- Optional. If you want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), you have an [OpenAI](https://openai.com/) project that allows [Model Usage](https://help.openai.com/en/articles/9186755-managing-projects-in-the-api-platform#h_d4737514e7) of `gpt-4o-2024-11-20`, and you can create an OpenAI API token.
 
 ## Enable the GX Agent
 
