@@ -608,9 +608,7 @@ class ExecutionEngine(ABC, Generic[TFilter]):
             except Exception as e:
                 if first_exception is None:
                     first_exception = e
-                all_failed_metrics.extend(
-                    cfg.metric_configuration for cfg in group
-                )
+                all_failed_metrics.extend(cfg.metric_configuration for cfg in group)
 
         if all_failed_metrics:
             raise gx_exceptions.MetricResolutionError(
