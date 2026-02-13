@@ -1,21 +1,25 @@
+import logging
 from typing import Mapping, Optional
 
 import pandas as pd
 import pytest
 
+from great_expectations.compatibility.sqlalchemy import TextClause, create_engine
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from great_expectations.datasource.fluent.sql_server_datasource import (
     SQLServerAuthConnectionDetails,
 )
-from tests.integration.sql_session_manager import SessionSQLEngineManager
+from tests.integration.sql_session_manager import ConnectionDetails, SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.test_utils import get_default_mssql_url
+
+logger = logging.getLogger(__name__)
 
 
 class MSSQLDatasourceTestConfig(DataSourceTestConfig):
@@ -79,3 +83,30 @@ class MSSQLBatchTestSetup(SQLBatchTestSetup[MSSQLDatasourceTestConfig]):
             table_name=self.table_name,
             schema_name=self.schema,
         )
+
+    @override
+    def teardown(self) -> None:
+        """Override teardown to dispose cached engines before DROP SCHEMA.
+
+        MSSQL holds schema locks on connections. Disposing the session manager's
+        cached engine releases all pool connections before we run DROP, avoiding
+        hangs. We use a fresh engine for the drop since the cached one was disposed.
+        """
+        self._close_execution_engines()
+
+        if self.engine_manager:
+            self.engine_manager.dispose_engine(
+                ConnectionDetails(connection_string=self.connection_string)
+            )
+
+        engine = create_engine(self.connection_string)
+        try:
+            with engine.connect() as conn:
+                for table in self.tables:
+                    table.drop(conn)
+                if self.schema:
+                    logger.info(f"DROPPING SCHEMA {self.schema}")
+                    conn.execute(TextClause(f"DROP SCHEMA IF EXISTS {self.schema}"))
+                self._safe_commit(conn)
+        finally:
+            engine.dispose()
