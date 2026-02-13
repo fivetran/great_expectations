@@ -2,6 +2,7 @@ from typing import ClassVar, Optional
 from unittest import mock
 
 import pytest
+from sqlalchemy.dialects import mysql
 
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
@@ -241,10 +242,9 @@ def test_get_substituted_batch_subquery_uses_dialect_for_compilation(
 
     query = "SELECT * FROM {batch}"
 
-    # Mock the engine.dialect to simulate Databricks
-    mock_dialect = mock.Mock()
-    mock_dialect.name = "databricks"
-    monkeypatch.setattr(mock_sqlalchemy_execution_engine.engine, "dialect", mock_dialect)
+    # Use MySQL dialect to simulate Databricks (both use backticks for identifiers)
+    mysql_dialect = mysql.dialect()
+    monkeypatch.setattr(mock_sqlalchemy_execution_engine.engine, "dialect", mysql_dialect)
 
     # Call the method
     result = QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
@@ -253,7 +253,8 @@ def test_get_substituted_batch_subquery_uses_dialect_for_compilation(
         execution_engine=mock_sqlalchemy_execution_engine,
     )
 
-    # Verify the result is a string containing the compiled SQL
+    # Verify the result is a string containing the compiled SQL with proper table/column references
     assert isinstance(result, str)
     assert "SELECT" in result.upper()
-    assert "test_table" in result or "ReportingDate" in result
+    # Verify that the batch selectable was actually compiled (should contain table and column references)
+    assert "test_table" in result.lower() or "reportingdate" in result.lower()
