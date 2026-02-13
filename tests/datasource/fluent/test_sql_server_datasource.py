@@ -78,7 +78,7 @@ def connection_details_special_chars() -> ConnectionDetailsDict:
 
 
 @pytest.fixture
-def azure_ad_service_principal_connection_details_default() -> ConnectionDetailsDict:
+def entra_id_service_principal_connection_details_default() -> ConnectionDetailsDict:
     return {
         "host": "myserver.database.windows.net",
         "port": 1433,
@@ -292,14 +292,14 @@ class TestBuildConnectionStringEntraID:
         result = ds._build_connection_string()
         assert "Authentication=" not in result
 
-    def test_azure_ad_service_principal_connection_string(
+    def test_entra_id_service_principal_connection_string(
         self,
-        azure_ad_service_principal_connection_details_default: ConnectionDetailsDict,
+        entra_id_service_principal_connection_details_default: ConnectionDetailsDict,
     ) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
             connection_string=EntraIDServicePrincipalAuthConnectionDetails(
-                **azure_ad_service_principal_connection_details_default
+                **entra_id_service_principal_connection_details_default
             ),
         )
         result = ds._build_connection_string()
@@ -308,7 +308,7 @@ class TestBuildConnectionStringEntraID:
         assert "UID=my-client-id-123" in result
         assert "PWD=my-secret" in result
 
-    def test_azure_ad_service_principal_special_chars_in_client_secret(self) -> None:
+    def test_entra_id_service_principal_special_chars_in_client_secret(self) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
             connection_string=EntraIDServicePrincipalAuthConnectionDetails(
@@ -324,7 +324,7 @@ class TestBuildConnectionStringEntraID:
         assert "p%40ss%3Aw%2Frd" in result
         assert "authentication=ActiveDirectoryServicePrincipal" in result
 
-    def test_azure_ad_service_principal_encrypt_optional(self) -> None:
+    def test_entra_id_service_principal_encrypt_optional(self) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
             connection_string=EntraIDServicePrincipalAuthConnectionDetails(
@@ -354,39 +354,39 @@ class TestSQLServerDatasourceDiscriminatedUnion:
         )
         assert isinstance(ds.connection_string, SQLServerAuthConnectionDetails)
 
-    def test_accepts_azure_ad_service_principal_auth(
+    def test_accepts_entra_id_service_principal_auth(
         self,
-        azure_ad_service_principal_connection_details_default: ConnectionDetailsDict,
+        entra_id_service_principal_connection_details_default: ConnectionDetailsDict,
     ) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
             connection_string=EntraIDServicePrincipalAuthConnectionDetails(
-                **azure_ad_service_principal_connection_details_default
+                **entra_id_service_principal_connection_details_default
             ),
         )
         assert isinstance(ds.connection_string, EntraIDServicePrincipalAuthConnectionDetails)
 
-    def test_schema_property_azure_ad_service_principal(
+    def test_schema_property_entra_id_service_principal(
         self,
-        azure_ad_service_principal_connection_details_default: ConnectionDetailsDict,
+        entra_id_service_principal_connection_details_default: ConnectionDetailsDict,
     ) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
             connection_string=EntraIDServicePrincipalAuthConnectionDetails(
-                **azure_ad_service_principal_connection_details_default
+                **entra_id_service_principal_connection_details_default
             ),
         )
         assert ds.schema_ == "dbo"
 
     @pytest.mark.usefixtures("create_engine_fake")
-    def test_get_engine_azure_ad_service_principal(
+    def test_get_engine_entra_id_service_principal(
         self,
-        azure_ad_service_principal_connection_details_default: ConnectionDetailsDict,
+        entra_id_service_principal_connection_details_default: ConnectionDetailsDict,
     ) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
             connection_string=EntraIDServicePrincipalAuthConnectionDetails(
-                **azure_ad_service_principal_connection_details_default
+                **entra_id_service_principal_connection_details_default
             ),
         )
         engine = ds.get_engine()
@@ -429,7 +429,7 @@ class TestAddSQLServerDatasourceAPI:
             "assets": [],
         }
 
-    def test_add_sql_server_with_azure_ad_service_principal_auth(
+    def test_add_sql_server_with_entra_id_service_principal_auth(
         self,
         empty_data_context: AbstractDataContext,
     ) -> None:
@@ -495,7 +495,7 @@ class TestAddSQLServerDatasourceAPI:
             "assets": [],
         }
 
-    def test_add_sql_server_with_flat_kwargs_azure_ad_service_principal(
+    def test_add_sql_server_with_flat_kwargs_entra_id_service_principal(
         self,
         empty_data_context: AbstractDataContext,
     ) -> None:
