@@ -4,7 +4,6 @@ from typing import Mapping, Optional
 import pandas as pd
 import pytest
 
-from great_expectations.compatibility.sqlalchemy import TextClause, create_engine
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
@@ -99,14 +98,4 @@ class MSSQLBatchTestSetup(SQLBatchTestSetup[MSSQLDatasourceTestConfig]):
                 ConnectionDetails(connection_string=self.connection_string)
             )
 
-        engine = create_engine(self.connection_string)
-        try:
-            with engine.connect() as conn:
-                for table in self.tables:
-                    table.drop(conn)
-                if self.schema:
-                    logger.info(f"DROPPING SCHEMA {self.schema}")
-                    conn.execute(TextClause(f"DROP SCHEMA IF EXISTS {self.schema}"))
-                self._safe_commit(conn)
-        finally:
-            engine.dispose()
+        super().teardown()

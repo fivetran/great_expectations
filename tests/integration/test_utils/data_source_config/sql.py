@@ -247,9 +247,6 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @override
     def teardown(self) -> None:
-        # Close any execution engine connections that may hold schema locks
-        self._close_execution_engines()
-
         engine, cleanup = self._get_engine()
         with engine.connect() as conn:
             for table in self.tables:
