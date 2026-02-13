@@ -1288,7 +1288,10 @@ class SQLDatasource(Datasource):
         ):
             self._cached_execution_engine_kwargs = current_execution_engine_kwargs
             engine_kwargs = current_execution_engine_kwargs.pop("kwargs", {})
+            current_execution_engine_kwargs.pop("connection_string", None)
+            engine = self._create_engine()
             self._execution_engine = self._execution_engine_type()(
+                engine=engine,
                 **current_execution_engine_kwargs,
                 **engine_kwargs,
             )
