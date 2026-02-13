@@ -124,6 +124,9 @@ class QueryMetricProvider(MetricProvider):
         else:
             query = query.format(batch=f"({batch_selectable})", **parameters)
 
+        if getattr(execution_engine, "dialect_name", None) == "mssql":  # fix for batch error
+            query = query.replace("WHERE true", "WHERE 1=1")
+
         return query
 
     @classmethod
