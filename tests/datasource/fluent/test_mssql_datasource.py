@@ -63,7 +63,7 @@ def _get_pyodbc_login_error() -> Exception:
     try:
         from great_expectations.compatibility import pyodbc
 
-        return pyodbc.OperationalError("Login failed for user")
+        return pyodbc.OperationalError("Login failed for user")  # type: ignore[attr-defined] # pyodbc is either the module or a NotImported sentinel
     except (TypeError, AttributeError):
         pytest.skip("pyodbc not installed or OperationalError not available")
 
