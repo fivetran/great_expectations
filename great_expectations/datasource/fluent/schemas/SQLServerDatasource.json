@@ -49,16 +49,12 @@
                 "propertyName": "authentication",
                 "mapping": {
                     "SQL Server": "#/definitions/SQLServerAuthConnectionDetails",
-                    "Entra ID Password": "#/definitions/EntraIDPasswordAuthConnectionDetails",
                     "Entra ID Service Principal": "#/definitions/EntraIDServicePrincipalAuthConnectionDetails"
                 }
             },
             "oneOf": [
                 {
                     "$ref": "#/definitions/SQLServerAuthConnectionDetails"
-                },
-                {
-                    "$ref": "#/definitions/EntraIDPasswordAuthConnectionDetails"
                 },
                 {
                     "$ref": "#/definitions/EntraIDServicePrincipalAuthConnectionDetails"
@@ -578,84 +574,6 @@
                     "default": "SQL Server",
                     "enum": [
                         "SQL Server"
-                    ],
-                    "type": "string"
-                },
-                "username": {
-                    "title": "Username",
-                    "type": "string"
-                },
-                "password": {
-                    "title": "Password",
-                    "anyOf": [
-                        {
-                            "type": "string",
-                            "writeOnly": true,
-                            "format": "password",
-                            "description": "Contains config templates to be substituted at runtime. Runtime values will never be serialized.",
-                            "pattern": ".*(?<!\\\\)\\$\\{(.*?)\\}|(?<!\\\\)\\$([_a-zA-Z][_a-zA-Z0-9]*).*",
-                            "examples": [
-                                "hello_${NAME}",
-                                "${MY_CFG_VAR}"
-                            ]
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ]
-                }
-            },
-            "required": [
-                "host",
-                "database",
-                "schema",
-                "username",
-                "password"
-            ],
-            "additionalProperties": false
-        },
-        "EntraIDPasswordAuthConnectionDetails": {
-            "title": "EntraIDPasswordAuthConnectionDetails",
-            "description": "Entra ID Password authentication.",
-            "type": "object",
-            "properties": {
-                "host": {
-                    "title": "Host",
-                    "type": "string"
-                },
-                "port": {
-                    "title": "Port",
-                    "default": 1433,
-                    "type": "integer"
-                },
-                "database": {
-                    "title": "Database",
-                    "type": "string"
-                },
-                "schema": {
-                    "title": "Schema",
-                    "type": "string"
-                },
-                "driver": {
-                    "title": "Driver",
-                    "default": "ODBC Driver 18 for SQL Server",
-                    "type": "string"
-                },
-                "encrypt": {
-                    "title": "Encrypt",
-                    "default": "Mandatory",
-                    "enum": [
-                        "Mandatory",
-                        "Optional",
-                        "Strict"
-                    ],
-                    "type": "string"
-                },
-                "authentication": {
-                    "title": "Authentication",
-                    "default": "Entra ID Password",
-                    "enum": [
-                        "Entra ID Password"
                     ],
                     "type": "string"
                 },
