@@ -22,6 +22,7 @@ from typing import (
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.batch_manager import BatchManager
+from great_expectations.core.id_dict import IDDict
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.expectations.legacy_row_conditions import (
     RowCondition,
@@ -584,20 +585,38 @@ class ExecutionEngine(ABC, Generic[TFilter]):
                     failed_metrics=(metric_computation_configuration.metric_configuration,),
                 ) from e
 
-        try:
-            # an engine-specific way of computing metrics together
-            resolved_metric_bundle: dict[MetricConfigurationID, MetricValue] = (
-                self.resolve_metric_bundle(metric_fn_bundle=metric_fn_bundle_configurations)
-            )
-            resolved_metrics.update(resolved_metric_bundle)
-        except Exception as e:
+        # Group bundled metric configurations by their compute domain so that a
+        # failure in one domain does not cascade to metrics in unrelated domains.
+        # See: https://github.com/great-expectations/great_expectations/issues/10709
+        domain_groups: dict[str, List[MetricComputationConfiguration]] = {}
+        for cfg in metric_fn_bundle_configurations:
+            domain_kwargs = cfg.compute_domain_kwargs or {}
+            if not isinstance(domain_kwargs, IDDict):
+                domain_kwargs = IDDict(domain_kwargs)
+            domain_id = domain_kwargs.to_id()
+            domain_groups.setdefault(domain_id, []).append(cfg)
+
+        all_failed_metrics: list = []
+        first_exception: Optional[Exception] = None
+
+        for domain_id, group in domain_groups.items():
+            try:
+                resolved_metric_bundle: dict[MetricConfigurationID, MetricValue] = (
+                    self.resolve_metric_bundle(metric_fn_bundle=group)
+                )
+                resolved_metrics.update(resolved_metric_bundle)
+            except Exception as e:
+                if first_exception is None:
+                    first_exception = e
+                all_failed_metrics.extend(
+                    cfg.metric_configuration for cfg in group
+                )
+
+        if all_failed_metrics:
             raise gx_exceptions.MetricResolutionError(
-                message=str(e),
-                failed_metrics=[
-                    metric_computation_configuration.metric_configuration
-                    for metric_computation_configuration in metric_fn_bundle_configurations
-                ],
-            ) from e
+                message=str(first_exception),
+                failed_metrics=all_failed_metrics,
+            ) from first_exception
 
         if self._caching:
             self._metric_cache.update(resolved_metrics)
