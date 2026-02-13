@@ -24,8 +24,6 @@ from great_expectations.datasource.fluent.sql_server_datasource import (
     SQLServerPrincipalAuthError,
 )
 
-pytestmark = pytest.mark.mssql
-
 
 def with_mock_engine_raising(
     connect_exception: Union[Exception, Callable[[], Exception]],
@@ -63,7 +61,7 @@ def _make_mock_engine(connect_exception: Exception):
 def _get_pyodbc_login_error() -> Exception:
     """Return pyodbc.OperationalError or skip if pyodbc not available."""
     try:
-        import pyodbc
+        from great_expectations.compatibility import pyodbc
 
         return pyodbc.OperationalError("Login failed for user")
     except (TypeError, AttributeError):
@@ -101,7 +99,7 @@ def azure_ad_service_principal_datasource() -> SQLServerDatasource:
     )
 
 
-@pytest.mark.unit
+@pytest.mark.mssql
 class TestSQLServerDatasourceTestConnectionErrors:
     """Tests for error handling in SQLServerDatasource.test_connection."""
 
