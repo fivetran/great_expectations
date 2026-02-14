@@ -49,8 +49,8 @@
                 "propertyName": "authentication",
                 "mapping": {
                     "SQL Server": "#/definitions/SQLServerAuthConnectionDetails",
-                    "Azure AD Password": "#/definitions/AzureADPasswordAuthConnectionDetails",
-                    "Azure AD Service Principal": "#/definitions/AzureADServicePrincipalAuthConnectionDetails"
+                    "Entra ID Password": "#/definitions/EntraIDPasswordAuthConnectionDetails",
+                    "Entra ID Service Principal": "#/definitions/EntraIDServicePrincipalAuthConnectionDetails"
                 }
             },
             "oneOf": [
@@ -58,10 +58,10 @@
                     "$ref": "#/definitions/SQLServerAuthConnectionDetails"
                 },
                 {
-                    "$ref": "#/definitions/AzureADPasswordAuthConnectionDetails"
+                    "$ref": "#/definitions/EntraIDPasswordAuthConnectionDetails"
                 },
                 {
-                    "$ref": "#/definitions/AzureADServicePrincipalAuthConnectionDetails"
+                    "$ref": "#/definitions/EntraIDServicePrincipalAuthConnectionDetails"
                 }
             ]
         },
@@ -614,9 +614,9 @@
             ],
             "additionalProperties": false
         },
-        "AzureADPasswordAuthConnectionDetails": {
-            "title": "AzureADPasswordAuthConnectionDetails",
-            "description": "Azure AD Password authentication.",
+        "EntraIDPasswordAuthConnectionDetails": {
+            "title": "EntraIDPasswordAuthConnectionDetails",
+            "description": "Entra ID Password authentication.",
             "type": "object",
             "properties": {
                 "host": {
@@ -653,9 +653,9 @@
                 },
                 "authentication": {
                     "title": "Authentication",
-                    "default": "Azure AD Password",
+                    "default": "Entra ID Password",
                     "enum": [
-                        "Azure AD Password"
+                        "Entra ID Password"
                     ],
                     "type": "string"
                 },
@@ -692,9 +692,9 @@
             ],
             "additionalProperties": false
         },
-        "AzureADServicePrincipalAuthConnectionDetails": {
-            "title": "AzureADServicePrincipalAuthConnectionDetails",
-            "description": "Azure AD Service Principal authentication.",
+        "EntraIDServicePrincipalAuthConnectionDetails": {
+            "title": "EntraIDServicePrincipalAuthConnectionDetails",
+            "description": "Entra ID Service Principal authentication.",
             "type": "object",
             "properties": {
                 "host": {
@@ -731,9 +731,9 @@
                 },
                 "authentication": {
                     "title": "Authentication",
-                    "default": "Azure AD Service Principal",
+                    "default": "Entra ID Service Principal",
                     "enum": [
-                        "Azure AD Service Principal"
+                        "Entra ID Service Principal"
                     ],
                     "type": "string"
                 },
