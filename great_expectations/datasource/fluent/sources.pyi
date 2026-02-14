@@ -854,6 +854,24 @@ class DataSourceManager:
         schema: str = ...,
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+<<<<<<< m/gx-2363/remove-azure-ad-password-auth
+=======
+        authentication: Literal["Entra ID Password"] = ...,
+        username: str = ...,
+        password: Union[ConfigStr, str] = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
+    def add_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+>>>>>>> develop
         authentication: Literal["Entra ID Service Principal"] = ...,
         client_id: str = ...,
         client_secret: Union[ConfigStr, str] = ...,
@@ -892,6 +910,24 @@ class DataSourceManager:
         schema: str = ...,
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+<<<<<<< m/gx-2363/remove-azure-ad-password-auth
+=======
+        authentication: Literal["Entra ID Password"] = ...,
+        username: str = ...,
+        password: Union[ConfigStr, str] = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
+    def update_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+>>>>>>> develop
         authentication: Literal["Entra ID Service Principal"] = ...,
         client_id: str = ...,
         client_secret: Union[ConfigStr, str] = ...,
@@ -930,6 +966,24 @@ class DataSourceManager:
         schema: str = ...,
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+<<<<<<< m/gx-2363/remove-azure-ad-password-auth
+=======
+        authentication: Literal["Entra ID Password"] = ...,
+        username: str = ...,
+        password: Union[ConfigStr, str] = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
+    def add_or_update_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+>>>>>>> develop
         authentication: Literal["Entra ID Service Principal"] = ...,
         client_id: str = ...,
         client_secret: Union[ConfigStr, str] = ...,
