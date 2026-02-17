@@ -106,10 +106,10 @@ class SQLServerAuthConnectionDetails(_SQLServerConnectionDetailsBase):
         return SqlServerDsn.from_url(url)
 
 
-class AzureADPasswordAuthConnectionDetails(_SQLServerConnectionDetailsBase):
-    """Azure AD Password authentication."""
+class EntraIDPasswordAuthConnectionDetails(_SQLServerConnectionDetailsBase):
+    """Entra ID Password authentication."""
 
-    authentication: Literal["Azure AD Password"] = "Azure AD Password"
+    authentication: Literal["Entra ID Password"] = "Entra ID Password"
     username: str
     password: Union[ConfigStr, str]
 
@@ -135,10 +135,10 @@ class AzureADPasswordAuthConnectionDetails(_SQLServerConnectionDetailsBase):
         return SqlServerDsn.from_url(url)
 
 
-class AzureADServicePrincipalAuthConnectionDetails(_SQLServerConnectionDetailsBase):
-    """Azure AD Service Principal authentication."""
+class EntraIDServicePrincipalAuthConnectionDetails(_SQLServerConnectionDetailsBase):
+    """Entra ID Service Principal authentication."""
 
-    authentication: Literal["Azure AD Service Principal"] = "Azure AD Service Principal"
+    authentication: Literal["Entra ID Service Principal"] = "Entra ID Service Principal"
     client_id: str
     client_secret: Union[ConfigStr, str]
     tenant_id: str
@@ -168,8 +168,8 @@ class AzureADServicePrincipalAuthConnectionDetails(_SQLServerConnectionDetailsBa
 SQLServerConnectionDetails = Annotated[
     Union[
         SQLServerAuthConnectionDetails,
-        AzureADPasswordAuthConnectionDetails,
-        AzureADServicePrincipalAuthConnectionDetails,
+        EntraIDPasswordAuthConnectionDetails,
+        EntraIDServicePrincipalAuthConnectionDetails,
     ],
     Field(discriminator="authentication"),
 ]
@@ -180,8 +180,8 @@ _CONNECTION_DETAIL_FIELDS: Final[frozenset[str]] = frozenset(
         "schema",  # alias for schema_
         *_SQLServerConnectionDetailsBase.__fields__.keys(),
         *SQLServerAuthConnectionDetails.__fields__.keys(),
-        *AzureADPasswordAuthConnectionDetails.__fields__.keys(),
-        *AzureADServicePrincipalAuthConnectionDetails.__fields__.keys(),
+        *EntraIDPasswordAuthConnectionDetails.__fields__.keys(),
+        *EntraIDServicePrincipalAuthConnectionDetails.__fields__.keys(),
     }
 )
 

@@ -7,8 +7,8 @@ import pytest
 from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.datasource.fluent.sql_server_datasource import (
-    AzureADPasswordAuthConnectionDetails,
-    AzureADServicePrincipalAuthConnectionDetails,
+    EntraIDPasswordAuthConnectionDetails,
+    EntraIDServicePrincipalAuthConnectionDetails,
     SQLServerAuthConnectionDetails,
     SQLServerDatasource,
     SqlServerDsn,
@@ -79,7 +79,7 @@ def connection_details_special_chars() -> ConnectionDetailsDict:
 
 
 @pytest.fixture
-def azure_ad_connection_details_default() -> ConnectionDetailsDict:
+def entra_id_connection_details_default() -> ConnectionDetailsDict:
     return {
         "host": "myserver.database.windows.net",
         "port": 1433,
@@ -87,14 +87,14 @@ def azure_ad_connection_details_default() -> ConnectionDetailsDict:
         "schema": "dbo",
         "driver": "ODBC Driver 18 for SQL Server",
         "encrypt": "Mandatory",
-        "authentication": "Azure AD Password",
+        "authentication": "Entra ID Password",
         "username": "myuser@contoso.com",
         "password": "mypassword",
     }
 
 
 @pytest.fixture
-def azure_ad_service_principal_connection_details_default() -> ConnectionDetailsDict:
+def entra_id_service_principal_connection_details_default() -> ConnectionDetailsDict:
     return {
         "host": "myserver.database.windows.net",
         "port": 1433,
@@ -102,7 +102,7 @@ def azure_ad_service_principal_connection_details_default() -> ConnectionDetails
         "schema": "dbo",
         "driver": "ODBC Driver 18 for SQL Server",
         "encrypt": "Mandatory",
-        "authentication": "Azure AD Service Principal",
+        "authentication": "Entra ID Service Principal",
         "client_id": "my-client-id-123",
         "client_secret": "my-secret",
         "tenant_id": "my-tenant-id-456",
@@ -258,9 +258,9 @@ class TestSQLServerDatasource:
 
 
 @pytest.mark.unit
-class TestAzureADPasswordAuthConnectionDetails:
+class TestEntraIDPasswordAuthConnectionDetails:
     def test_create_with_defaults(self) -> None:
-        details = AzureADPasswordAuthConnectionDetails(
+        details = EntraIDPasswordAuthConnectionDetails(
             host="myserver.database.windows.net",
             database="mydb",
             schema="dbo",
@@ -274,13 +274,13 @@ class TestAzureADPasswordAuthConnectionDetails:
             "schema": "dbo",
             "driver": "ODBC Driver 18 for SQL Server",
             "encrypt": "Mandatory",
-            "authentication": "Azure AD Password",
+            "authentication": "Entra ID Password",
             "username": "myuser@contoso.com",
             "password": "mypassword",
         }
 
     def test_password_accepts_config_str(self) -> None:
-        details = AzureADPasswordAuthConnectionDetails(
+        details = EntraIDPasswordAuthConnectionDetails(
             host="myserver",
             database="mydb",
             schema="dbo",
@@ -292,9 +292,9 @@ class TestAzureADPasswordAuthConnectionDetails:
 
 
 @pytest.mark.unit
-class TestAzureADServicePrincipalAuthConnectionDetails:
+class TestEntraIDServicePrincipalAuthConnectionDetails:
     def test_create_with_defaults(self) -> None:
-        details = AzureADServicePrincipalAuthConnectionDetails(
+        details = EntraIDServicePrincipalAuthConnectionDetails(
             host="myserver.database.windows.net",
             database="mydb",
             schema="dbo",
@@ -309,14 +309,14 @@ class TestAzureADServicePrincipalAuthConnectionDetails:
             "schema": "dbo",
             "driver": "ODBC Driver 18 for SQL Server",
             "encrypt": "Mandatory",
-            "authentication": "Azure AD Service Principal",
+            "authentication": "Entra ID Service Principal",
             "client_id": "my-client-id-123",
             "client_secret": "my-secret",
             "tenant_id": "my-tenant-id-456",
         }
 
     def test_client_secret_accepts_config_str(self) -> None:
-        details = AzureADServicePrincipalAuthConnectionDetails(
+        details = EntraIDServicePrincipalAuthConnectionDetails(
             host="myserver",
             database="mydb",
             schema="dbo",
@@ -330,14 +330,14 @@ class TestAzureADServicePrincipalAuthConnectionDetails:
 
 @pytest.mark.unit
 class TestBuildConnectionStringAzureAD:
-    def test_azure_ad_password_connection_string(
+    def test_entra_id_password_connection_string(
         self,
-        azure_ad_connection_details_default: ConnectionDetailsDict,
+        entra_id_connection_details_default: ConnectionDetailsDict,
     ) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
-            connection_string=AzureADPasswordAuthConnectionDetails(
-                **azure_ad_connection_details_default
+            connection_string=EntraIDPasswordAuthConnectionDetails(
+                **entra_id_connection_details_default
             ),
         )
         result = ds._build_connection_string()
@@ -348,10 +348,10 @@ class TestBuildConnectionStringAzureAD:
             "&authentication=ActiveDirectoryPassword"
         )
 
-    def test_azure_ad_password_special_chars_in_password(self) -> None:
+    def test_entra_id_password_special_chars_in_password(self) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
-            connection_string=AzureADPasswordAuthConnectionDetails(
+            connection_string=EntraIDPasswordAuthConnectionDetails(
                 host="myserver.database.windows.net",
                 database="mydb",
                 schema="dbo",
@@ -363,10 +363,10 @@ class TestBuildConnectionStringAzureAD:
         assert "p%40ss%3Aw%2Frd" in result
         assert "authentication=ActiveDirectoryPassword" in result
 
-    def test_azure_ad_password_encrypt_optional(self) -> None:
+    def test_entra_id_password_encrypt_optional(self) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
-            connection_string=AzureADPasswordAuthConnectionDetails(
+            connection_string=EntraIDPasswordAuthConnectionDetails(
                 host="myserver.database.windows.net",
                 database="mydb",
                 schema="dbo",
@@ -391,14 +391,14 @@ class TestBuildConnectionStringAzureAD:
         result = ds._build_connection_string()
         assert "Authentication=" not in result
 
-    def test_azure_ad_service_principal_connection_string(
+    def test_entra_id_service_principal_connection_string(
         self,
-        azure_ad_service_principal_connection_details_default: ConnectionDetailsDict,
+        entra_id_service_principal_connection_details_default: ConnectionDetailsDict,
     ) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
-            connection_string=AzureADServicePrincipalAuthConnectionDetails(
-                **azure_ad_service_principal_connection_details_default
+            connection_string=EntraIDServicePrincipalAuthConnectionDetails(
+                **entra_id_service_principal_connection_details_default
             ),
         )
         result = ds._build_connection_string()
@@ -407,10 +407,10 @@ class TestBuildConnectionStringAzureAD:
         assert "UID=my-client-id-123" in result
         assert "PWD=my-secret" in result
 
-    def test_azure_ad_service_principal_special_chars_in_client_secret(self) -> None:
+    def test_entra_id_service_principal_special_chars_in_client_secret(self) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
-            connection_string=AzureADServicePrincipalAuthConnectionDetails(
+            connection_string=EntraIDServicePrincipalAuthConnectionDetails(
                 host="myserver.database.windows.net",
                 database="mydb",
                 schema="dbo",
@@ -423,10 +423,10 @@ class TestBuildConnectionStringAzureAD:
         assert "p%40ss%3Aw%2Frd" in result
         assert "authentication=ActiveDirectoryServicePrincipal" in result
 
-    def test_azure_ad_service_principal_encrypt_optional(self) -> None:
+    def test_entra_id_service_principal_encrypt_optional(self) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
-            connection_string=AzureADServicePrincipalAuthConnectionDetails(
+            connection_string=EntraIDServicePrincipalAuthConnectionDetails(
                 host="myserver.database.windows.net",
                 database="mydb",
                 schema="dbo",
@@ -453,77 +453,77 @@ class TestSQLServerDatasourceDiscriminatedUnion:
         )
         assert isinstance(ds.connection_string, SQLServerAuthConnectionDetails)
 
-    def test_accepts_azure_ad_password_auth(
+    def test_accepts_entra_id_password_auth(
         self,
-        azure_ad_connection_details_default: ConnectionDetailsDict,
+        entra_id_connection_details_default: ConnectionDetailsDict,
     ) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
-            connection_string=AzureADPasswordAuthConnectionDetails(
-                **azure_ad_connection_details_default
+            connection_string=EntraIDPasswordAuthConnectionDetails(
+                **entra_id_connection_details_default
             ),
         )
-        assert isinstance(ds.connection_string, AzureADPasswordAuthConnectionDetails)
+        assert isinstance(ds.connection_string, EntraIDPasswordAuthConnectionDetails)
 
-    def test_accepts_azure_ad_service_principal_auth(
+    def test_accepts_entra_id_service_principal_auth(
         self,
-        azure_ad_service_principal_connection_details_default: ConnectionDetailsDict,
+        entra_id_service_principal_connection_details_default: ConnectionDetailsDict,
     ) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
-            connection_string=AzureADServicePrincipalAuthConnectionDetails(
-                **azure_ad_service_principal_connection_details_default
+            connection_string=EntraIDServicePrincipalAuthConnectionDetails(
+                **entra_id_service_principal_connection_details_default
             ),
         )
-        assert isinstance(ds.connection_string, AzureADServicePrincipalAuthConnectionDetails)
+        assert isinstance(ds.connection_string, EntraIDServicePrincipalAuthConnectionDetails)
 
-    def test_schema_property_azure_ad(
+    def test_schema_property_entra_id(
         self,
-        azure_ad_connection_details_default: ConnectionDetailsDict,
+        entra_id_connection_details_default: ConnectionDetailsDict,
     ) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
-            connection_string=AzureADPasswordAuthConnectionDetails(
-                **azure_ad_connection_details_default
+            connection_string=EntraIDPasswordAuthConnectionDetails(
+                **entra_id_connection_details_default
             ),
         )
         assert ds.schema_ == "dbo"
 
-    def test_schema_property_azure_ad_service_principal(
+    def test_schema_property_entra_id_service_principal(
         self,
-        azure_ad_service_principal_connection_details_default: ConnectionDetailsDict,
+        entra_id_service_principal_connection_details_default: ConnectionDetailsDict,
     ) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
-            connection_string=AzureADServicePrincipalAuthConnectionDetails(
-                **azure_ad_service_principal_connection_details_default
+            connection_string=EntraIDServicePrincipalAuthConnectionDetails(
+                **entra_id_service_principal_connection_details_default
             ),
         )
         assert ds.schema_ == "dbo"
 
     @pytest.mark.usefixtures("create_engine_fake")
-    def test_get_engine_azure_ad(
+    def test_get_engine_entra_id(
         self,
-        azure_ad_connection_details_default: ConnectionDetailsDict,
+        entra_id_connection_details_default: ConnectionDetailsDict,
     ) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
-            connection_string=AzureADPasswordAuthConnectionDetails(
-                **azure_ad_connection_details_default
+            connection_string=EntraIDPasswordAuthConnectionDetails(
+                **entra_id_connection_details_default
             ),
         )
         engine = ds.get_engine()
         assert engine is not None
 
     @pytest.mark.usefixtures("create_engine_fake")
-    def test_get_engine_azure_ad_service_principal(
+    def test_get_engine_entra_id_service_principal(
         self,
-        azure_ad_service_principal_connection_details_default: ConnectionDetailsDict,
+        entra_id_service_principal_connection_details_default: ConnectionDetailsDict,
     ) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
-            connection_string=AzureADServicePrincipalAuthConnectionDetails(
-                **azure_ad_service_principal_connection_details_default
+            connection_string=EntraIDServicePrincipalAuthConnectionDetails(
+                **entra_id_service_principal_connection_details_default
             ),
         )
         engine = ds.get_engine()
@@ -566,13 +566,13 @@ class TestAddSQLServerDatasourceAPI:
             "assets": [],
         }
 
-    def test_add_sql_server_with_azure_ad_password_auth(
+    def test_add_sql_server_with_entra_id_password_auth(
         self,
         empty_data_context: AbstractDataContext,
     ) -> None:
         source = empty_data_context.data_sources.add_sql_server(
             name="my_azure_sql",
-            connection_string=AzureADPasswordAuthConnectionDetails(
+            connection_string=EntraIDPasswordAuthConnectionDetails(
                 host="myserver.database.windows.net",
                 database="mydb",
                 schema="dbo",
@@ -590,7 +590,7 @@ class TestAddSQLServerDatasourceAPI:
                 "schema": "dbo",
                 "driver": "ODBC Driver 18 for SQL Server",
                 "encrypt": "Mandatory",
-                "authentication": "Azure AD Password",
+                "authentication": "Entra ID Password",
                 "username": "myuser@contoso.com",
                 "password": "mypassword",
             },
@@ -599,13 +599,13 @@ class TestAddSQLServerDatasourceAPI:
             "assets": [],
         }
 
-    def test_add_sql_server_with_azure_ad_service_principal_auth(
+    def test_add_sql_server_with_entra_id_service_principal_auth(
         self,
         empty_data_context: AbstractDataContext,
     ) -> None:
         source = empty_data_context.data_sources.add_sql_server(
             name="my_azure_sp_sql",
-            connection_string=AzureADServicePrincipalAuthConnectionDetails(
+            connection_string=EntraIDServicePrincipalAuthConnectionDetails(
                 host="myserver.database.windows.net",
                 database="mydb",
                 schema="dbo",
@@ -624,7 +624,7 @@ class TestAddSQLServerDatasourceAPI:
                 "schema": "dbo",
                 "driver": "ODBC Driver 18 for SQL Server",
                 "encrypt": "Mandatory",
-                "authentication": "Azure AD Service Principal",
+                "authentication": "Entra ID Service Principal",
                 "client_id": "my-client-id-123",
                 "client_secret": "my-secret",
                 "tenant_id": "my-tenant-id-456",
@@ -665,7 +665,7 @@ class TestAddSQLServerDatasourceAPI:
             "assets": [],
         }
 
-    def test_add_sql_server_with_flat_kwargs_azure_ad_password(
+    def test_add_sql_server_with_flat_kwargs_entra_id_password(
         self,
         empty_data_context: AbstractDataContext,
     ) -> None:
@@ -676,7 +676,7 @@ class TestAddSQLServerDatasourceAPI:
             schema="dbo",
             username="myuser@contoso.com",
             password="mypassword",
-            authentication="Azure AD Password",
+            authentication="Entra ID Password",
         )
         assert source.dict(by_alias=True, exclude_unset=False, exclude={"id"}) == {
             "type": "sql_server",
@@ -688,7 +688,7 @@ class TestAddSQLServerDatasourceAPI:
                 "schema": "dbo",
                 "driver": "ODBC Driver 18 for SQL Server",
                 "encrypt": "Mandatory",
-                "authentication": "Azure AD Password",
+                "authentication": "Entra ID Password",
                 "username": "myuser@contoso.com",
                 "password": "mypassword",
             },
@@ -697,7 +697,7 @@ class TestAddSQLServerDatasourceAPI:
             "assets": [],
         }
 
-    def test_add_sql_server_with_flat_kwargs_azure_ad_service_principal(
+    def test_add_sql_server_with_flat_kwargs_entra_id_service_principal(
         self,
         empty_data_context: AbstractDataContext,
     ) -> None:
@@ -706,7 +706,7 @@ class TestAddSQLServerDatasourceAPI:
             host="myserver.database.windows.net",
             database="mydb",
             schema="dbo",
-            authentication="Azure AD Service Principal",
+            authentication="Entra ID Service Principal",
             client_id="my-client-id-123",
             client_secret="my-secret",
             tenant_id="my-tenant-id-456",
@@ -721,7 +721,7 @@ class TestAddSQLServerDatasourceAPI:
                 "schema": "dbo",
                 "driver": "ODBC Driver 18 for SQL Server",
                 "encrypt": "Mandatory",
-                "authentication": "Azure AD Service Principal",
+                "authentication": "Entra ID Service Principal",
                 "client_id": "my-client-id-123",
                 "client_secret": "my-secret",
                 "tenant_id": "my-tenant-id-456",
