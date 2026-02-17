@@ -503,12 +503,12 @@ class TestSQLServerDatasourceDiscriminatedUnion:
 
     def test_schema_property_azure_ad_service_principal(
         self,
-        azure_ad_service_principal_connection_details_default: ConnectionDetailsDict,
+        entra_id_service_principal_connection_details_default: ConnectionDetailsDict,
     ) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
             connection_string=EntraIDServicePrincipalAuthConnectionDetails(
-                **azure_ad_service_principal_connection_details_default
+                **entra_id_service_principal_connection_details_default
             ),
         )
         assert ds.schema_ == "dbo"
@@ -544,12 +544,12 @@ class TestSQLServerDatasourceDiscriminatedUnion:
     @pytest.mark.usefixtures("create_engine_fake")
     def test_get_engine_azure_ad_service_principal(
         self,
-        azure_ad_service_principal_connection_details_default: ConnectionDetailsDict,
+        entra_id_service_principal_connection_details_default: ConnectionDetailsDict,
     ) -> None:
         ds = SQLServerDatasource(
             name="test_ds",
             connection_string=EntraIDServicePrincipalAuthConnectionDetails(
-                **azure_ad_service_principal_connection_details_default
+                **entra_id_service_principal_connection_details_default
             ),
         )
         engine = ds.get_engine()

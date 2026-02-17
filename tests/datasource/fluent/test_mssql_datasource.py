@@ -15,7 +15,7 @@ import pytest
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.datasource.fluent.interfaces import TestConnectionError
 from great_expectations.datasource.fluent.sql_server_datasource import (
-    AzureADServicePrincipalAuthConnectionDetails,
+    EntraIDServicePrincipalAuthConnectionDetails,
     MissingODBCDriverError,
     SQLServerAuthConnectionDetails,
     SQLServerDatasource,
@@ -88,7 +88,7 @@ def azure_ad_service_principal_datasource() -> SQLServerDatasource:
     """SQL Server datasource with Azure AD Service Principal auth."""
     return SQLServerDatasource(
         name="test_ds",
-        connection_string=AzureADServicePrincipalAuthConnectionDetails(
+        connection_string=EntraIDServicePrincipalAuthConnectionDetails(
             host="myserver.database.windows.net",
             database="mydb",
             schema="dbo",
