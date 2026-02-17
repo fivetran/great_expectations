@@ -1,0 +1,779 @@
+{
+    "title": "SQLServerDatasource",
+    "description": "Adds a SQL Server datasource to the data context.\n\nArgs:\n    name: The name of this SQL Server datasource.\n    connection_string: Structured connection details for SQL Server.\n        Alternatively, pass connection detail fields (host, database, schema,\n        username, password, etc.) as keyword arguments directly.\n    assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose\n        values are TableAsset or QueryAsset objects.",
+    "type": "object",
+    "properties": {
+        "type": {
+            "title": "Type",
+            "default": "sql_server",
+            "enum": [
+                "sql_server"
+            ],
+            "type": "string"
+        },
+        "name": {
+            "title": "Name",
+            "type": "string"
+        },
+        "id": {
+            "title": "Id",
+            "description": "Datasource id",
+            "type": "string",
+            "format": "uuid"
+        },
+        "assets": {
+            "title": "Assets",
+            "default": [],
+            "type": "array",
+            "items": {
+                "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                        "table": "#/definitions/TableAsset",
+                        "query": "#/definitions/QueryAsset"
+                    }
+                },
+                "oneOf": [
+                    {
+                        "$ref": "#/definitions/TableAsset"
+                    },
+                    {
+                        "$ref": "#/definitions/QueryAsset"
+                    }
+                ]
+            }
+        },
+        "connection_string": {
+            "title": "Connection String",
+            "discriminator": {
+                "propertyName": "authentication",
+                "mapping": {
+                    "SQL Server": "#/definitions/SQLServerAuthConnectionDetails",
+                    "Entra ID Password": "#/definitions/EntraIDPasswordAuthConnectionDetails",
+                    "Entra ID Service Principal": "#/definitions/EntraIDServicePrincipalAuthConnectionDetails"
+                }
+            },
+            "oneOf": [
+                {
+                    "$ref": "#/definitions/SQLServerAuthConnectionDetails"
+                },
+                {
+                    "$ref": "#/definitions/EntraIDPasswordAuthConnectionDetails"
+                },
+                {
+                    "$ref": "#/definitions/EntraIDServicePrincipalAuthConnectionDetails"
+                }
+            ]
+        },
+        "create_temp_table": {
+            "title": "Create Temp Table",
+            "default": false,
+            "type": "boolean"
+        },
+        "kwargs": {
+            "title": "Kwargs",
+            "description": "Optional dictionary of `kwargs` will be passed to the SQLAlchemy Engine as part of `create_engine(connection_string, **kwargs)`",
+            "default": {},
+            "type": "object",
+            "additionalProperties": {
+                "anyOf": [
+                    {
+                        "type": "string",
+                        "writeOnly": true,
+                        "format": "password",
+                        "description": "Contains config templates to be substituted at runtime. Runtime values will never be serialized.",
+                        "pattern": ".*(?<!\\\\)\\$\\{(.*?)\\}|(?<!\\\\)\\$([_a-zA-Z][_a-zA-Z0-9]*).*",
+                        "examples": [
+                            "hello_${NAME}",
+                            "${MY_CFG_VAR}"
+                        ]
+                    },
+                    {}
+                ]
+            }
+        }
+    },
+    "required": [
+        "name",
+        "connection_string"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "Sorter": {
+            "title": "Sorter",
+            "type": "object",
+            "properties": {
+                "key": {
+                    "title": "Key",
+                    "type": "string"
+                },
+                "reverse": {
+                    "title": "Reverse",
+                    "default": false,
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "key"
+            ]
+        },
+        "PartitionerColumnValue": {
+            "title": "PartitionerColumnValue",
+            "type": "object",
+            "properties": {
+                "column_name": {
+                    "title": "Column Name",
+                    "type": "string"
+                },
+                "sort_ascending": {
+                    "title": "Sort Ascending",
+                    "default": true,
+                    "type": "boolean"
+                },
+                "method_name": {
+                    "title": "Method Name",
+                    "default": "partition_on_column_value",
+                    "enum": [
+                        "partition_on_column_value"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "column_name"
+            ]
+        },
+        "PartitionerMultiColumnValue": {
+            "title": "PartitionerMultiColumnValue",
+            "type": "object",
+            "properties": {
+                "column_names": {
+                    "title": "Column Names",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "sort_ascending": {
+                    "title": "Sort Ascending",
+                    "default": true,
+                    "type": "boolean"
+                },
+                "method_name": {
+                    "title": "Method Name",
+                    "default": "partition_on_multi_column_values",
+                    "enum": [
+                        "partition_on_multi_column_values"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "column_names"
+            ]
+        },
+        "PartitionerDividedInteger": {
+            "title": "PartitionerDividedInteger",
+            "type": "object",
+            "properties": {
+                "divisor": {
+                    "title": "Divisor",
+                    "type": "integer"
+                },
+                "column_name": {
+                    "title": "Column Name",
+                    "type": "string"
+                },
+                "sort_ascending": {
+                    "title": "Sort Ascending",
+                    "default": true,
+                    "type": "boolean"
+                },
+                "method_name": {
+                    "title": "Method Name",
+                    "default": "partition_on_divided_integer",
+                    "enum": [
+                        "partition_on_divided_integer"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "divisor",
+                "column_name"
+            ]
+        },
+        "PartitionerModInteger": {
+            "title": "PartitionerModInteger",
+            "type": "object",
+            "properties": {
+                "mod": {
+                    "title": "Mod",
+                    "type": "integer"
+                },
+                "column_name": {
+                    "title": "Column Name",
+                    "type": "string"
+                },
+                "sort_ascending": {
+                    "title": "Sort Ascending",
+                    "default": true,
+                    "type": "boolean"
+                },
+                "method_name": {
+                    "title": "Method Name",
+                    "default": "partition_on_mod_integer",
+                    "enum": [
+                        "partition_on_mod_integer"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "mod",
+                "column_name"
+            ]
+        },
+        "ColumnPartitionerYearly": {
+            "title": "ColumnPartitionerYearly",
+            "type": "object",
+            "properties": {
+                "column_name": {
+                    "title": "Column Name",
+                    "type": "string"
+                },
+                "sort_ascending": {
+                    "title": "Sort Ascending",
+                    "default": true,
+                    "type": "boolean"
+                },
+                "method_name": {
+                    "title": "Method Name",
+                    "default": "partition_on_year",
+                    "enum": [
+                        "partition_on_year"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "column_name"
+            ]
+        },
+        "ColumnPartitionerMonthly": {
+            "title": "ColumnPartitionerMonthly",
+            "type": "object",
+            "properties": {
+                "column_name": {
+                    "title": "Column Name",
+                    "type": "string"
+                },
+                "sort_ascending": {
+                    "title": "Sort Ascending",
+                    "default": true,
+                    "type": "boolean"
+                },
+                "method_name": {
+                    "title": "Method Name",
+                    "default": "partition_on_year_and_month",
+                    "enum": [
+                        "partition_on_year_and_month"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "column_name"
+            ]
+        },
+        "ColumnPartitionerDaily": {
+            "title": "ColumnPartitionerDaily",
+            "type": "object",
+            "properties": {
+                "column_name": {
+                    "title": "Column Name",
+                    "type": "string"
+                },
+                "sort_ascending": {
+                    "title": "Sort Ascending",
+                    "default": true,
+                    "type": "boolean"
+                },
+                "method_name": {
+                    "title": "Method Name",
+                    "default": "partition_on_year_and_month_and_day",
+                    "enum": [
+                        "partition_on_year_and_month_and_day"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "column_name"
+            ]
+        },
+        "PartitionerDatetimePart": {
+            "title": "PartitionerDatetimePart",
+            "type": "object",
+            "properties": {
+                "datetime_parts": {
+                    "title": "Datetime Parts",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "column_name": {
+                    "title": "Column Name",
+                    "type": "string"
+                },
+                "sort_ascending": {
+                    "title": "Sort Ascending",
+                    "default": true,
+                    "type": "boolean"
+                },
+                "method_name": {
+                    "title": "Method Name",
+                    "default": "partition_on_date_parts",
+                    "enum": [
+                        "partition_on_date_parts"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "datetime_parts",
+                "column_name"
+            ]
+        },
+        "PartitionerConvertedDatetime": {
+            "title": "PartitionerConvertedDatetime",
+            "type": "object",
+            "properties": {
+                "column_name": {
+                    "title": "Column Name",
+                    "type": "string"
+                },
+                "sort_ascending": {
+                    "title": "Sort Ascending",
+                    "default": true,
+                    "type": "boolean"
+                },
+                "method_name": {
+                    "title": "Method Name",
+                    "default": "partition_on_converted_datetime",
+                    "enum": [
+                        "partition_on_converted_datetime"
+                    ],
+                    "type": "string"
+                },
+                "date_format_string": {
+                    "title": "Date Format String",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "column_name",
+                "date_format_string"
+            ]
+        },
+        "BatchDefinition_Union_PartitionerColumnValue__PartitionerMultiColumnValue__PartitionerDividedInteger__PartitionerModInteger__ColumnPartitionerYearly__ColumnPartitionerMonthly__ColumnPartitionerDaily__PartitionerDatetimePart__PartitionerConvertedDatetime__": {
+            "title": "BatchDefinition[Union[PartitionerColumnValue, PartitionerMultiColumnValue, PartitionerDividedInteger, PartitionerModInteger, ColumnPartitionerYearly, ColumnPartitionerMonthly, ColumnPartitionerDaily, PartitionerDatetimePart, PartitionerConvertedDatetime]]",
+            "description": "--Public API--Configuration for a batch of data.\n\nReferences the DataAsset to be used, and any additional parameters needed to fetch the data.",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "Id",
+                    "type": "string"
+                },
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "partitioner": {
+                    "title": "Partitioner",
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/PartitionerColumnValue"
+                        },
+                        {
+                            "$ref": "#/definitions/PartitionerMultiColumnValue"
+                        },
+                        {
+                            "$ref": "#/definitions/PartitionerDividedInteger"
+                        },
+                        {
+                            "$ref": "#/definitions/PartitionerModInteger"
+                        },
+                        {
+                            "$ref": "#/definitions/ColumnPartitionerYearly"
+                        },
+                        {
+                            "$ref": "#/definitions/ColumnPartitionerMonthly"
+                        },
+                        {
+                            "$ref": "#/definitions/ColumnPartitionerDaily"
+                        },
+                        {
+                            "$ref": "#/definitions/PartitionerDatetimePart"
+                        },
+                        {
+                            "$ref": "#/definitions/PartitionerConvertedDatetime"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "name"
+            ]
+        },
+        "TableAsset": {
+            "title": "TableAsset",
+            "description": "--Public API--A class representing a table from a SQL database\n\nArgs:\n    table_name: The name of the database table to be added\n    schema_name: The name of the schema containing the database table to be added.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "type": {
+                    "title": "Type",
+                    "default": "table",
+                    "enum": [
+                        "table"
+                    ],
+                    "type": "string"
+                },
+                "id": {
+                    "title": "Id",
+                    "description": "DataAsset id",
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "order_by": {
+                    "title": "Order By",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Sorter"
+                    }
+                },
+                "batch_metadata": {
+                    "title": "Batch Metadata",
+                    "type": "object"
+                },
+                "batch_definitions": {
+                    "title": "Batch Definitions",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/BatchDefinition_Union_PartitionerColumnValue__PartitionerMultiColumnValue__PartitionerDividedInteger__PartitionerModInteger__ColumnPartitionerYearly__ColumnPartitionerMonthly__ColumnPartitionerDaily__PartitionerDatetimePart__PartitionerConvertedDatetime__"
+                    }
+                },
+                "table_name": {
+                    "title": "Table Name",
+                    "description": "Name of the SQL table. Will default to the value of `name` if not provided.",
+                    "default": "",
+                    "type": "string"
+                },
+                "schema_name": {
+                    "title": "Schema Name",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": false
+        },
+        "QueryAsset": {
+            "title": "QueryAsset",
+            "description": "--Public API--An asset made from a SQL query\n\nArgs:\n    query: The query to be used to construct the underlying Data Asset",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "type": {
+                    "title": "Type",
+                    "default": "query",
+                    "enum": [
+                        "query"
+                    ],
+                    "type": "string"
+                },
+                "id": {
+                    "title": "Id",
+                    "description": "DataAsset id",
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "order_by": {
+                    "title": "Order By",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Sorter"
+                    }
+                },
+                "batch_metadata": {
+                    "title": "Batch Metadata",
+                    "type": "object"
+                },
+                "batch_definitions": {
+                    "title": "Batch Definitions",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/BatchDefinition_Union_PartitionerColumnValue__PartitionerMultiColumnValue__PartitionerDividedInteger__PartitionerModInteger__ColumnPartitionerYearly__ColumnPartitionerMonthly__ColumnPartitionerDaily__PartitionerDatetimePart__PartitionerConvertedDatetime__"
+                    }
+                },
+                "query": {
+                    "title": "Query",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "query"
+            ],
+            "additionalProperties": false
+        },
+        "SQLServerAuthConnectionDetails": {
+            "title": "SQLServerAuthConnectionDetails",
+            "description": "SQL Server authentication (username/password).",
+            "type": "object",
+            "properties": {
+                "host": {
+                    "title": "Host",
+                    "type": "string"
+                },
+                "port": {
+                    "title": "Port",
+                    "default": 1433,
+                    "type": "integer"
+                },
+                "database": {
+                    "title": "Database",
+                    "type": "string"
+                },
+                "schema": {
+                    "title": "Schema",
+                    "type": "string"
+                },
+                "driver": {
+                    "title": "Driver",
+                    "default": "ODBC Driver 18 for SQL Server",
+                    "type": "string"
+                },
+                "encrypt": {
+                    "title": "Encrypt",
+                    "default": "Mandatory",
+                    "enum": [
+                        "Mandatory",
+                        "Optional",
+                        "Strict"
+                    ],
+                    "type": "string"
+                },
+                "authentication": {
+                    "title": "Authentication",
+                    "default": "SQL Server",
+                    "enum": [
+                        "SQL Server"
+                    ],
+                    "type": "string"
+                },
+                "username": {
+                    "title": "Username",
+                    "type": "string"
+                },
+                "password": {
+                    "title": "Password",
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "writeOnly": true,
+                            "format": "password",
+                            "description": "Contains config templates to be substituted at runtime. Runtime values will never be serialized.",
+                            "pattern": ".*(?<!\\\\)\\$\\{(.*?)\\}|(?<!\\\\)\\$([_a-zA-Z][_a-zA-Z0-9]*).*",
+                            "examples": [
+                                "hello_${NAME}",
+                                "${MY_CFG_VAR}"
+                            ]
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "host",
+                "database",
+                "schema",
+                "username",
+                "password"
+            ],
+            "additionalProperties": false
+        },
+        "EntraIDPasswordAuthConnectionDetails": {
+            "title": "EntraIDPasswordAuthConnectionDetails",
+            "description": "Entra ID Password authentication.",
+            "type": "object",
+            "properties": {
+                "host": {
+                    "title": "Host",
+                    "type": "string"
+                },
+                "port": {
+                    "title": "Port",
+                    "default": 1433,
+                    "type": "integer"
+                },
+                "database": {
+                    "title": "Database",
+                    "type": "string"
+                },
+                "schema": {
+                    "title": "Schema",
+                    "type": "string"
+                },
+                "driver": {
+                    "title": "Driver",
+                    "default": "ODBC Driver 18 for SQL Server",
+                    "type": "string"
+                },
+                "encrypt": {
+                    "title": "Encrypt",
+                    "default": "Mandatory",
+                    "enum": [
+                        "Mandatory",
+                        "Optional",
+                        "Strict"
+                    ],
+                    "type": "string"
+                },
+                "authentication": {
+                    "title": "Authentication",
+                    "default": "Entra ID Password",
+                    "enum": [
+                        "Entra ID Password"
+                    ],
+                    "type": "string"
+                },
+                "username": {
+                    "title": "Username",
+                    "type": "string"
+                },
+                "password": {
+                    "title": "Password",
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "writeOnly": true,
+                            "format": "password",
+                            "description": "Contains config templates to be substituted at runtime. Runtime values will never be serialized.",
+                            "pattern": ".*(?<!\\\\)\\$\\{(.*?)\\}|(?<!\\\\)\\$([_a-zA-Z][_a-zA-Z0-9]*).*",
+                            "examples": [
+                                "hello_${NAME}",
+                                "${MY_CFG_VAR}"
+                            ]
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "host",
+                "database",
+                "schema",
+                "username",
+                "password"
+            ],
+            "additionalProperties": false
+        },
+        "EntraIDServicePrincipalAuthConnectionDetails": {
+            "title": "EntraIDServicePrincipalAuthConnectionDetails",
+            "description": "Entra ID Service Principal authentication.",
+            "type": "object",
+            "properties": {
+                "host": {
+                    "title": "Host",
+                    "type": "string"
+                },
+                "port": {
+                    "title": "Port",
+                    "default": 1433,
+                    "type": "integer"
+                },
+                "database": {
+                    "title": "Database",
+                    "type": "string"
+                },
+                "schema": {
+                    "title": "Schema",
+                    "type": "string"
+                },
+                "driver": {
+                    "title": "Driver",
+                    "default": "ODBC Driver 18 for SQL Server",
+                    "type": "string"
+                },
+                "encrypt": {
+                    "title": "Encrypt",
+                    "default": "Mandatory",
+                    "enum": [
+                        "Mandatory",
+                        "Optional",
+                        "Strict"
+                    ],
+                    "type": "string"
+                },
+                "authentication": {
+                    "title": "Authentication",
+                    "default": "Entra ID Service Principal",
+                    "enum": [
+                        "Entra ID Service Principal"
+                    ],
+                    "type": "string"
+                },
+                "client_id": {
+                    "title": "Client Id",
+                    "type": "string"
+                },
+                "client_secret": {
+                    "title": "Client Secret",
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "writeOnly": true,
+                            "format": "password",
+                            "description": "Contains config templates to be substituted at runtime. Runtime values will never be serialized.",
+                            "pattern": ".*(?<!\\\\)\\$\\{(.*?)\\}|(?<!\\\\)\\$([_a-zA-Z][_a-zA-Z0-9]*).*",
+                            "examples": [
+                                "hello_${NAME}",
+                                "${MY_CFG_VAR}"
+                            ]
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
+                },
+                "tenant_id": {
+                    "title": "Tenant Id",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "host",
+                "database",
+                "schema",
+                "client_id",
+                "client_secret",
+                "tenant_id"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

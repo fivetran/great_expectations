@@ -76,6 +76,20 @@ class SessionSQLEngineManager:
             logger.info(f"Cache hit for engine: {cache_key}")
         return self._engine_cache[cache_key]
 
+    def dispose_engine(self, connection_details: ConnectionDetails) -> None:
+        """Dispose a specific cached engine and remove it from the cache.
+
+        Useful before teardown operations (e.g. DROP SCHEMA) that require all
+        connections to be released, such as MSSQL which holds schema locks.
+        """
+        if connection_details in self._engine_cache:
+            engine = self._engine_cache.pop(connection_details)
+            logger.info(f"Disposing engine for teardown: {connection_details}")
+            try:
+                engine.dispose()
+            except Exception:
+                logger.exception(f"Error disposing engine '{connection_details}'")
+
     def dispose_all_engines(self):
         logger.info("Disposing all cached SQLAlchemy engines.")
         for key, engine in self._engine_cache.items():

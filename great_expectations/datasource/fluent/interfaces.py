@@ -675,6 +675,11 @@ class Datasource(
     _execution_engine: Union[_ExecutionEngineT, None] = pydantic.PrivateAttr(None)
 
     @property
+    def execution_engine(self) -> Optional[_ExecutionEngineT]:
+        """The execution engine for this datasource. This is not guaranteed to be set."""
+        return self._execution_engine
+
+    @property
     def _config_provider(self) -> Union[_ConfigurationProvider, None]:
         return getattr(self._data_context, "config_provider", None)
 

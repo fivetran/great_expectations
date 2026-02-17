@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Final, List, Literal, Mapping, Union, overload
+from typing import Any, Final, List, Mapping, Union, overload
 
 from great_expectations.compatibility.sqlalchemy import quoted_name
 from great_expectations.compatibility.typing_extensions import override
@@ -63,30 +63,33 @@ class GXSqlDialect(Enum):
         return [dialect for dialect in cls if dialect != GXSqlDialect.OTHER]
 
 
-DIALECT_IDENTIFIER_QUOTE_STRINGS: Final[Mapping[GXSqlDialect, Literal['"', "`"]]] = {
-    # TODO: add other dialects
-    GXSqlDialect.DATABRICKS: "`",
-    GXSqlDialect.MYSQL: "`",
-    GXSqlDialect.POSTGRESQL: '"',
-    GXSqlDialect.SNOWFLAKE: '"',
-    GXSqlDialect.SQLITE: '"',
-    GXSqlDialect.TRINO: "`",
+DIALECT_IDENTIFIER_QUOTE_STRINGS: Final[Mapping[GXSqlDialect, tuple[str, str]]] = {
+    GXSqlDialect.DATABRICKS: ("`", "`"),
+    GXSqlDialect.MSSQL: ("[", "]"),
+    GXSqlDialect.MYSQL: ("`", "`"),
+    GXSqlDialect.POSTGRESQL: ('"', '"'),
+    GXSqlDialect.SNOWFLAKE: ('"', '"'),
+    GXSqlDialect.SQLITE: ('"', '"'),
+    GXSqlDialect.TRINO: ("`", "`"),
 }
 
 
 def quote_str(unquoted_identifier: str, dialect: GXSqlDialect) -> str:
     """Quote a string using the specified dialect's quote character."""
-    quote_char = DIALECT_IDENTIFIER_QUOTE_STRINGS[dialect]
-    if unquoted_identifier.startswith(quote_char) or unquoted_identifier.endswith(quote_char):
+    open_q, close_q = DIALECT_IDENTIFIER_QUOTE_STRINGS[dialect]
+    if unquoted_identifier.startswith(open_q) or unquoted_identifier.endswith(close_q):
         raise ValueError(  # noqa: TRY003 # FIXME CoP
-            f"Identifier {unquoted_identifier} already uses quote character {quote_char}"
+            f"Identifier {unquoted_identifier} already uses quote characters {open_q}{close_q}"
         )
-    return f"{quote_char}{unquoted_identifier}{quote_char}"
+    return f"{open_q}{unquoted_identifier}{close_q}"
 
 
 def _strip_quotes(s: str, dialect: GXSqlDialect) -> str:
-    quote_str = DIALECT_IDENTIFIER_QUOTE_STRINGS[dialect]
-    if s.startswith(quote_str) and s.endswith(quote_str):
+    open_q, close_q = DIALECT_IDENTIFIER_QUOTE_STRINGS[dialect]
+    if s.startswith(open_q) and s.endswith(close_q):
+        return s[len(open_q) : -len(close_q)]
+    # MSSQL also accepts double quotes when QUOTED_IDENTIFIER is ON
+    if dialect == GXSqlDialect.MSSQL and s.startswith('"') and s.endswith('"'):
         return s[1:-1]
     return s
 
