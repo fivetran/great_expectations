@@ -106,35 +106,6 @@ class SQLServerAuthConnectionDetails(_SQLServerConnectionDetailsBase):
         return SqlServerDsn.from_url(url)
 
 
-class EntraIDPasswordAuthConnectionDetails(_SQLServerConnectionDetailsBase):
-    """Entra ID Password authentication."""
-
-    authentication: Literal["Entra ID Password"] = "Entra ID Password"
-    username: str
-    password: Union[ConfigStr, str]
-
-    @override
-    def build_connection_string(
-        self,
-        config_provider: Optional[Any] = None,
-    ) -> SqlServerDsn:
-        password = _resolve_config_str(self.password, config_provider)
-        username = quote(self.username, safe="")
-        password_encoded = quote(password, safe="")
-        query_params = {
-            "driver": quote_plus(self.driver),
-            "Encrypt": _ENCRYPT_VALUE_MAP.get(self.encrypt, "yes"),
-            "authentication": "ActiveDirectoryPassword",
-        }
-        query_string = "&".join(f"{k}={v}" for k, v in query_params.items())
-        url = (
-            f"mssql+pyodbc://{username}:{password_encoded}"
-            f"@{self.host}:{self.port}/{self.database}"
-            f"?{query_string}"
-        )
-        return SqlServerDsn.from_url(url)
-
-
 class EntraIDServicePrincipalAuthConnectionDetails(_SQLServerConnectionDetailsBase):
     """Entra ID Service Principal authentication."""
 
@@ -168,7 +139,6 @@ class EntraIDServicePrincipalAuthConnectionDetails(_SQLServerConnectionDetailsBa
 SQLServerConnectionDetails = Annotated[
     Union[
         SQLServerAuthConnectionDetails,
-        EntraIDPasswordAuthConnectionDetails,
         EntraIDServicePrincipalAuthConnectionDetails,
     ],
     Field(discriminator="authentication"),
@@ -180,7 +150,6 @@ _CONNECTION_DETAIL_FIELDS: Final[frozenset[str]] = frozenset(
         "schema",  # alias for schema_
         *_SQLServerConnectionDetailsBase.__fields__.keys(),
         *SQLServerAuthConnectionDetails.__fields__.keys(),
-        *EntraIDPasswordAuthConnectionDetails.__fields__.keys(),
         *EntraIDServicePrincipalAuthConnectionDetails.__fields__.keys(),
     }
 )

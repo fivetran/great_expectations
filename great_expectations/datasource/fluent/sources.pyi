@@ -854,21 +854,6 @@ class DataSourceManager:
         schema: str = ...,
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
-        authentication: Literal["Entra ID Password"] = ...,
-        username: str = ...,
-        password: Union[ConfigStr, str] = ...,
-    ) -> SQLServerDatasource: ...
-    @overload
-    def add_sql_server(
-        self,
-        name: str,
-        *,
-        host: str = ...,
-        port: int = ...,
-        database: str = ...,
-        schema: str = ...,
-        driver: str = ...,
-        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
         authentication: Literal["Entra ID Service Principal"] = ...,
         client_id: str = ...,
         client_secret: Union[ConfigStr, str] = ...,
@@ -907,21 +892,6 @@ class DataSourceManager:
         schema: str = ...,
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
-        authentication: Literal["Entra ID Password"] = ...,
-        username: str = ...,
-        password: Union[ConfigStr, str] = ...,
-    ) -> SQLServerDatasource: ...
-    @overload
-    def update_sql_server(
-        self,
-        name: str,
-        *,
-        host: str = ...,
-        port: int = ...,
-        database: str = ...,
-        schema: str = ...,
-        driver: str = ...,
-        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
         authentication: Literal["Entra ID Service Principal"] = ...,
         client_id: str = ...,
         client_secret: Union[ConfigStr, str] = ...,
@@ -946,21 +916,6 @@ class DataSourceManager:
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
         authentication: Literal["SQL Server"] = ...,
-        username: str = ...,
-        password: Union[ConfigStr, str] = ...,
-    ) -> SQLServerDatasource: ...
-    @overload
-    def add_or_update_sql_server(
-        self,
-        name: str,
-        *,
-        host: str = ...,
-        port: int = ...,
-        database: str = ...,
-        schema: str = ...,
-        driver: str = ...,
-        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
-        authentication: Literal["Entra ID Password"] = ...,
         username: str = ...,
         password: Union[ConfigStr, str] = ...,
     ) -> SQLServerDatasource: ...
