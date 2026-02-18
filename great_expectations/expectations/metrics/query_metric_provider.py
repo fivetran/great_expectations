@@ -18,6 +18,75 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+_ORDER_BY_TOKEN = "ORDER BY"
+_OFFSET_TOKEN = "OFFSET"
+
+
+def has_top_level_token(query: str, token: str) -> bool:
+    """Return True if *token* appears at parentheses depth 0 (case-insensitive).
+
+    Tokens nested inside parenthesised subqueries or window-function
+    OVER() clauses are ignored.
+    """
+    upper = query.upper()
+    upper_token = token.upper()
+    depth = 0
+    token_len = len(upper_token)
+    query_len = len(upper)
+    i = 0
+    while i < query_len:
+        char = upper[i]
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        elif depth == 0 and upper[i : i + token_len] == upper_token:
+            return True
+        i += 1
+    return False
+
+
+def find_last_top_level_order_by(query: str) -> int:
+    """Return the character position of the last top-level ORDER BY, or -1.
+
+    ORDER BY inside parenthesised subqueries or window-function OVER()
+    clauses (depth > 0) is ignored.
+    """
+    upper = query.upper()
+    last_pos = -1
+    depth = 0
+    token_len = len(_ORDER_BY_TOKEN)
+    query_len = len(upper)
+    i = 0
+    while i < query_len:
+        char = upper[i]
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        elif depth == 0 and upper[i : i + token_len] == _ORDER_BY_TOKEN:
+            last_pos = i
+        i += 1
+    return last_pos
+
+
+def strip_top_level_order_by(query: str) -> str:
+    """Strip the last top-level ORDER BY clause from a SQL query.
+
+    Used when wrapping user queries in COUNT(*) for MSSQL, where ORDER BY
+    in a subquery is invalid unless TOP or OFFSET is present.  Returns the
+    query unchanged if no top-level ORDER BY exists or a top-level OFFSET
+    is present (stripping would remove the pagination clause).
+    """
+    if has_top_level_token(query, _OFFSET_TOKEN):
+        return query
+
+    pos = find_last_top_level_order_by(query)
+    if pos == -1:
+        return query
+
+    return query[:pos].rstrip()
+
 
 class MissingElementError(TypeError):
     def __init__(self):

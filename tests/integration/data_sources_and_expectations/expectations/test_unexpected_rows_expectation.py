@@ -74,8 +74,10 @@ PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig
     # SqliteDatasourceTestConfig(),  # fix me
 ]
 
-# NOTE: MSSQL requires the TOP expression to be used in nested queries that use ORDER BY,
-#       so we have to group by this requirement.
+# NOTE: MSSQL historically required the TOP expression in nested queries that use ORDER BY,
+#       so tests were grouped by this requirement.  Since GX-2551, ORDER BY is automatically
+#       stripped for the COUNT(*) path, so MSSQL can handle ORDER BY without TOP transparently.
+#       The existing TOP/non-TOP test split is kept for backwards-compatibility coverage.
 # strings correspond to `label` property on TestConfig instances
 DATA_SOURCE_TYPES_THAT_REQUIRE_TOP_EXPRESSION = {
     MSSQLDatasourceTestConfig().label,
@@ -577,3 +579,49 @@ def test_success_with_suite_param_other_table_name_with_top_expression(
         expectation, expectation_parameters={suite_param_key: unexpected_rows_query}
     )
     assert result.success
+
+
+MSSQL_ORDER_BY_WITHOUT_TOP_SUCCESS_QUERIES = [
+    "SELECT * FROM {batch} WHERE quantity > 2 ORDER BY quantity DESC",
+    "SELECT * FROM {batch} WHERE quantity > 2 ORDER BY quantity ASC, temperature DESC",
+]
+
+MSSQL_ORDER_BY_WITHOUT_TOP_FAILURE_QUERIES = [
+    "SELECT * FROM {batch} WHERE quantity > 0 ORDER BY quantity DESC",
+]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION,
+    data=TABLE_1,
+)
+@pytest.mark.parametrize("unexpected_rows_query", MSSQL_ORDER_BY_WITHOUT_TOP_SUCCESS_QUERIES)
+def test_mssql_order_by_without_top_works_transparently_success(
+    batch_for_datasource,
+    unexpected_rows_query,
+) -> None:
+    expectation = gxe.UnexpectedRowsExpectation(
+        description="ORDER BY without TOP should work on MSSQL",
+        unexpected_rows_query=unexpected_rows_query,
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+    assert result.exception_info.get("raised_exception") is False
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION,
+    data=TABLE_1,
+)
+@pytest.mark.parametrize("unexpected_rows_query", MSSQL_ORDER_BY_WITHOUT_TOP_FAILURE_QUERIES)
+def test_mssql_order_by_without_top_works_transparently_failure(
+    batch_for_datasource,
+    unexpected_rows_query,
+) -> None:
+    expectation = gxe.UnexpectedRowsExpectation(
+        description="ORDER BY without TOP should work on MSSQL (failing case)",
+        unexpected_rows_query=unexpected_rows_query,
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success is False
+    assert result.exception_info.get("raised_exception") is False

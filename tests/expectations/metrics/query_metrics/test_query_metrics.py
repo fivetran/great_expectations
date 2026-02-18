@@ -1,5 +1,6 @@
 from typing import ClassVar, Optional
 from unittest import mock
+from unittest.mock import create_autospec
 
 import pytest
 from sqlalchemy.dialects import mysql
@@ -10,6 +11,9 @@ from great_expectations.compatibility.sqlalchemy import (
 from great_expectations.expectations.metrics.query_metric_provider import (
     QueryMetricProvider,
     QueryParameters,
+    find_last_top_level_order_by,
+    has_top_level_token,
+    strip_top_level_order_by,
 )
 from great_expectations.expectations.metrics.query_metrics import (
     QueryColumn,
@@ -259,3 +263,391 @@ def test_get_substituted_batch_subquery_uses_dialect_for_compilation(
     # Verify that the batch selectable was actually compiled
     # (should contain table and column references)
     assert "test_table" in result.lower() or "reportingdate" in result.lower()
+
+
+class TestHasTopLevelToken:
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "query, token, expected",
+        [
+            pytest.param("SELECT * FROM t ORDER BY x", "ORDER BY", True, id="simple_match"),
+            pytest.param("SELECT * FROM t", "ORDER BY", False, id="no_match"),
+            pytest.param("select * from t order by x", "ORDER BY", True, id="case_insensitive"),
+            pytest.param(
+                "SELECT * FROM (SELECT * FROM t ORDER BY x) sub",
+                "ORDER BY",
+                False,
+                id="nested_not_matched",
+            ),
+            pytest.param(
+                "SELECT * FROM t ORDER BY x OFFSET 5 ROWS",
+                "OFFSET",
+                True,
+                id="offset_at_top_level",
+            ),
+            pytest.param(
+                "SELECT * FROM (SELECT * FROM t ORDER BY x OFFSET 0 ROWS) sub",
+                "OFFSET",
+                False,
+                id="offset_nested_not_matched",
+            ),
+            pytest.param("", "ORDER BY", False, id="empty_string"),
+            pytest.param(
+                "SELECT *, ROW_NUMBER() OVER (ORDER BY x) FROM t",
+                "ORDER BY",
+                False,
+                id="window_function_not_matched",
+            ),
+        ],
+    )
+    def test_has_top_level_token(self, query: str, token: str, expected: bool) -> None:
+        assert has_top_level_token(query, token) is expected
+
+
+class TestFindLastTopLevelOrderBy:
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "query, expected_pos",
+        [
+            pytest.param("SELECT * FROM t ORDER BY x", 16, id="simple"),
+            pytest.param("SELECT * FROM t", -1, id="none"),
+            pytest.param("", -1, id="empty"),
+            pytest.param(
+                "SELECT * FROM (SELECT * FROM t ORDER BY x) sub ORDER BY y",
+                47,
+                id="inner_and_outer_returns_outer",
+            ),
+            pytest.param(
+                "SELECT *, ROW_NUMBER() OVER (ORDER BY x) FROM t",
+                -1,
+                id="window_function_ignored",
+            ),
+            pytest.param(
+                "SELECT * FROM t1 ORDER BY a UNION ALL SELECT * FROM t2 ORDER BY b",
+                55,
+                id="multiple_returns_last",
+            ),
+        ],
+    )
+    def test_find_last_top_level_order_by(self, query: str, expected_pos: int) -> None:
+        assert find_last_top_level_order_by(query) == expected_pos
+
+
+class TestStripTopLevelOrderBy:
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "query, expected",
+        [
+            # --- basic stripping ---
+            pytest.param(
+                "SELECT * FROM t WHERE x > 1 ORDER BY x DESC",
+                "SELECT * FROM t WHERE x > 1",
+                id="where_then_order_by",
+            ),
+            pytest.param(
+                "SELECT * FROM t ORDER BY x",
+                "SELECT * FROM t",
+                id="simple_order_by",
+            ),
+            pytest.param(
+                "SELECT * FROM t ORDER BY x ASC, y DESC",
+                "SELECT * FROM t",
+                id="multi_column_order_by",
+            ),
+            pytest.param(
+                "SELECT * FROM t GROUP BY color HAVING SUM(x) > 3 ORDER BY color",
+                "SELECT * FROM t GROUP BY color HAVING SUM(x) > 3",
+                id="group_having_order_by",
+            ),
+            # --- no-op (no ORDER BY) ---
+            pytest.param(
+                "SELECT * FROM t WHERE x > 1",
+                "SELECT * FROM t WHERE x > 1",
+                id="no_order_by",
+            ),
+            pytest.param("SELECT * FROM t", "SELECT * FROM t", id="plain_select"),
+            pytest.param("", "", id="empty_string"),
+            # --- case insensitivity ---
+            pytest.param(
+                "select * from t order by x",
+                "select * from t",
+                id="all_lowercase",
+            ),
+            pytest.param(
+                "SELECT * FROM t Order By x",
+                "SELECT * FROM t",
+                id="mixed_case",
+            ),
+            pytest.param(
+                "SELECT * FROM t ORDER  BY x",
+                "SELECT * FROM t ORDER  BY x",
+                id="extra_space_not_matched",
+            ),
+            # --- window functions preserved ---
+            pytest.param(
+                "SELECT *, ROW_NUMBER() OVER (ORDER BY x) FROM t",
+                "SELECT *, ROW_NUMBER() OVER (ORDER BY x) FROM t",
+                id="window_function_preserved",
+            ),
+            pytest.param(
+                "SELECT *, ROW_NUMBER() OVER (PARTITION BY a ORDER BY x) as rn FROM t",
+                "SELECT *, ROW_NUMBER() OVER (PARTITION BY a ORDER BY x) as rn FROM t",
+                id="window_partition_preserved",
+            ),
+            pytest.param(
+                "SELECT *, ROW_NUMBER() OVER (ORDER BY x) FROM t ORDER BY rn",
+                "SELECT *, ROW_NUMBER() OVER (ORDER BY x) FROM t",
+                id="window_preserved_outer_stripped",
+            ),
+            # --- subqueries ---
+            pytest.param(
+                "SELECT * FROM (SELECT TOP 5 * FROM t ORDER BY x) sub",
+                "SELECT * FROM (SELECT TOP 5 * FROM t ORDER BY x) sub",
+                id="inner_only_preserved",
+            ),
+            pytest.param(
+                "SELECT * FROM (SELECT TOP 5 * FROM t ORDER BY x) sub ORDER BY y",
+                "SELECT * FROM (SELECT TOP 5 * FROM t ORDER BY x) sub",
+                id="inner_preserved_outer_stripped",
+            ),
+            pytest.param(
+                "SELECT * FROM (SELECT * FROM (SELECT TOP 3 * FROM t ORDER BY x) a) b ORDER BY z",
+                "SELECT * FROM (SELECT * FROM (SELECT TOP 3 * FROM t ORDER BY x) a) b",
+                id="deeply_nested",
+            ),
+            # --- OFFSET guard (returns unchanged) ---
+            pytest.param(
+                "SELECT * FROM t ORDER BY x OFFSET 5 ROWS FETCH NEXT 10 ROWS ONLY",
+                "SELECT * FROM t ORDER BY x OFFSET 5 ROWS FETCH NEXT 10 ROWS ONLY",
+                id="offset_fetch_preserved",
+            ),
+            pytest.param(
+                "SELECT * FROM t ORDER BY x OFFSET 0 ROWS",
+                "SELECT * FROM t ORDER BY x OFFSET 0 ROWS",
+                id="offset_only_preserved",
+            ),
+            pytest.param(
+                "SELECT * FROM (SELECT * FROM t ORDER BY x OFFSET 0 ROWS) sub ORDER BY y",
+                "SELECT * FROM (SELECT * FROM t ORDER BY x OFFSET 0 ROWS) sub",
+                id="nested_offset_does_not_prevent_outer_strip",
+            ),
+            # --- TOP does not prevent stripping ---
+            pytest.param(
+                "SELECT TOP 10 * FROM t ORDER BY x DESC",
+                "SELECT TOP 10 * FROM t",
+                id="top_without_offset_still_strips",
+            ),
+            pytest.param(
+                "SELECT * FROM (SELECT TOP 5 * FROM t ORDER BY x) sub ORDER BY y",
+                "SELECT * FROM (SELECT TOP 5 * FROM t ORDER BY x) sub",
+                id="nested_top_does_not_prevent_outer_strip",
+            ),
+            # --- complex patterns ---
+            pytest.param(
+                "SELECT * FROM t1 UNION ALL SELECT * FROM t2 ORDER BY x",
+                "SELECT * FROM t1 UNION ALL SELECT * FROM t2",
+                id="union_trailing_stripped",
+            ),
+            pytest.param(
+                "SELECT t1.* FROM t1 JOIN t2 ON t1.id = t2.id ORDER BY t1.x",
+                "SELECT t1.* FROM t1 JOIN t2 ON t1.id = t2.id",
+                id="join_stripped",
+            ),
+            pytest.param(
+                "SELECT * FROM t ORDER BY CASE WHEN x > 1 THEN 0 ELSE 1 END",
+                "SELECT * FROM t",
+                id="case_expression_stripped",
+            ),
+            pytest.param(
+                "SELECT * FROM t ORDER BY COALESCE(x, 0)",
+                "SELECT * FROM t",
+                id="function_call_stripped",
+            ),
+            # --- multi-line ---
+            pytest.param(
+                "SELECT *\nFROM t\nWHERE x > 1\nORDER BY x DESC",
+                "SELECT *\nFROM t\nWHERE x > 1",
+                id="multiline",
+            ),
+            pytest.param(
+                "SELECT *\r\nFROM t\r\nORDER BY x",
+                "SELECT *\r\nFROM t",
+                id="crlf_line_endings",
+            ),
+            # --- trailing content ---
+            pytest.param(
+                "SELECT * FROM t ORDER BY x   ",
+                "SELECT * FROM t",
+                id="trailing_whitespace",
+            ),
+            pytest.param(
+                "SELECT * FROM t ORDER BY x;",
+                "SELECT * FROM t",
+                id="trailing_semicolon",
+            ),
+            # --- edge cases ---
+            pytest.param("ORDER BY x", "", id="just_order_by"),
+            pytest.param(
+                "SELECT * FROM t1 ORDER BY a UNION ALL SELECT * FROM t2 ORDER BY b",
+                "SELECT * FROM t1 ORDER BY a UNION ALL SELECT * FROM t2",
+                id="multiple_top_level_strips_last",
+            ),
+        ],
+    )
+    def test_strip_top_level_order_by(self, query: str, expected: str) -> None:
+        assert strip_top_level_order_by(query) == expected
+
+    @pytest.mark.unit
+    def test_large_query_does_not_hang(self) -> None:
+        base = "SELECT col FROM table_name WHERE " + " AND ".join(
+            f"col_{i} > {i}" for i in range(500)
+        )
+        query = base + " ORDER BY col"
+        assert strip_top_level_order_by(query) == base
+
+    @pytest.mark.unit
+    def test_sql_comment_containing_order_by_is_known_limitation(self) -> None:
+        """Naive parser treats comments as real SQL — known limitation."""
+        query = "SELECT * FROM t -- ORDER BY x"
+        assert strip_top_level_order_by(query) != query
+
+    @pytest.mark.unit
+    def test_string_literal_containing_order_by_is_known_limitation(self) -> None:
+        """Naive parser treats string literals as real SQL — known limitation."""
+        query = "SELECT * FROM t WHERE name = 'ORDER BY'"
+        assert strip_top_level_order_by(query) != query
+
+
+class MockMSSQLSqlAlchemyExecutionEngine(MockSqlAlchemyExecutionEngine):
+    """Mock engine that reports dialect_name as 'mssql'."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from tests.expectations.metrics.conftest import Dialect, MockSaEngine
+
+        self.engine = MockSaEngine(dialect=Dialect("mssql"))  # type: ignore[assignment]
+
+
+@pytest.fixture
+def mock_mssql_execution_engine():
+    from tests.expectations.metrics.conftest import MockBatchManager
+
+    engine = MockMSSQLSqlAlchemyExecutionEngine()
+    engine._batch_manager = MockBatchManager()
+    return engine
+
+
+class TestQueryRowCountMSSQLOrderByStripping:
+    @pytest.mark.unit
+    @mock.patch.object(sa, "text")
+    @mock.patch.object(
+        QueryMetricProvider, "_get_substituted_batch_subquery_from_query_and_batch_selectable"
+    )
+    @pytest.mark.parametrize(
+        "substituted_query, assert_order_by_present, assert_fragments",
+        [
+            pytest.param(
+                "SELECT * FROM (my_table) AS subselect WHERE x > 1 ORDER BY x DESC",
+                False,
+                ["COUNT(*)"],
+                id="plain_order_by_stripped",
+            ),
+            pytest.param(
+                "SELECT TOP 10 * FROM (my_table) AS subselect WHERE x > 1 ORDER BY x DESC",
+                False,
+                ["TOP 10"],
+                id="top_present_order_by_still_stripped",
+            ),
+            pytest.param(
+                "SELECT * FROM (my_table) AS subselect "
+                "ORDER BY x OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY",
+                True,
+                ["OFFSET"],
+                id="offset_present_order_by_preserved",
+            ),
+            pytest.param(
+                "SELECT * FROM (my_table) AS subselect WHERE x > 1",
+                False,
+                [],
+                id="no_order_by_passes_through",
+            ),
+            pytest.param(
+                "SELECT * FROM (SELECT TOP 5 * FROM my_table ORDER BY x) sub ORDER BY y",
+                False,
+                ["TOP 5", "ORDER BY x"],
+                id="nested_top_outer_order_by_stripped",
+            ),
+        ],
+    )
+    def test_mssql_query_row_count(
+        self,
+        mock_get_sub,
+        mock_text,
+        mock_mssql_execution_engine: MockMSSQLSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+        substituted_query: str,
+        assert_order_by_present: bool,
+        assert_fragments: list[str],
+    ) -> None:
+        mock_get_sub.return_value = substituted_query
+        mock_text.return_value = "*"
+        mock_result = create_autospec(sa.engine.CursorResult)
+        mock_result.fetchone.return_value = (42,)
+
+        with mock.patch.object(
+            mock_mssql_execution_engine, "execute_query", return_value=mock_result
+        ):
+            MyQueryRowCount._sqlalchemy(
+                cls=MyQueryRowCount,
+                execution_engine=mock_mssql_execution_engine,
+                metric_domain_kwargs={},
+                metric_value_kwargs={
+                    "query_param": "my_query",
+                    "my_query": "SELECT * FROM {batch}",
+                },
+                metrics={},
+                runtime_configuration={},
+            )
+
+        actual_sql = mock_text.call_args[0][0]
+        if assert_order_by_present:
+            assert "ORDER BY" in actual_sql
+        for fragment in assert_fragments:
+            assert fragment in actual_sql
+
+    @pytest.mark.unit
+    @mock.patch.object(sa, "text")
+    @mock.patch.object(
+        QueryMetricProvider, "_get_substituted_batch_subquery_from_query_and_batch_selectable"
+    )
+    def test_non_mssql_preserves_order_by(
+        self,
+        mock_get_sub,
+        mock_text,
+        mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        mock_get_sub.return_value = (
+            "SELECT * FROM (my_table) AS subselect WHERE x > 1 ORDER BY x DESC"
+        )
+        mock_text.return_value = "*"
+        mock_result = create_autospec(sa.engine.CursorResult)
+        mock_result.fetchone.return_value = (3,)
+
+        with mock.patch.object(
+            mock_sqlalchemy_execution_engine, "execute_query", return_value=mock_result
+        ):
+            MyQueryRowCount._sqlalchemy(
+                cls=MyQueryRowCount,
+                execution_engine=mock_sqlalchemy_execution_engine,
+                metric_domain_kwargs={},
+                metric_value_kwargs={
+                    "query_param": "my_query",
+                    "my_query": "SELECT * FROM {batch} WHERE x > 1 ORDER BY x DESC",
+                },
+                metrics={},
+                runtime_configuration={},
+            )
+
+        actual_sql = mock_text.call_args[0][0]
+        assert "ORDER BY" in actual_sql
