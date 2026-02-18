@@ -521,15 +521,15 @@ class TestStripTopLevelOrderBy:
 class MockMSSQLSqlAlchemyExecutionEngine(MockSqlAlchemyExecutionEngine):
     """Mock engine that reports dialect_name as 'mssql'."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def]
         super().__init__(*args, **kwargs)
-        from tests.expectations.metrics.conftest import Dialect, MockSaEngine
+        from tests.expectations.metrics.conftest import MockSaEngine
 
-        self.engine = MockSaEngine(dialect=Dialect("mssql"))  # type: ignore[assignment]
+        self.engine = MockSaEngine(dialect=sa.dialects.mssql.dialect())  # type: ignore[assignment]
 
 
 @pytest.fixture
-def mock_mssql_execution_engine():
+def mock_mssql_execution_engine() -> MockMSSQLSqlAlchemyExecutionEngine:
     from tests.expectations.metrics.conftest import MockBatchManager
 
     engine = MockMSSQLSqlAlchemyExecutionEngine()

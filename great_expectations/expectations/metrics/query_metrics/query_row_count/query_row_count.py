@@ -44,7 +44,7 @@ class QueryRowCount(QueryMetricProvider):
                 execution_engine=execution_engine,
             )
         )
-        if getattr(execution_engine, "dialect_name", None) == "mssql":
+        if execution_engine.dialect_name == "mssql":
             substituted_batch_subquery = strip_top_level_order_by(substituted_batch_subquery)
 
         count_column_name = "unexpected_row_count"
