@@ -11,13 +11,8 @@ from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
 
 
-class Dialect:
-    def __init__(self, dialect: str):
-        self.name = dialect
-
-
 class MockSaEngine:
-    def __init__(self, dialect: Dialect):
+    def __init__(self, dialect: sa.engine.interfaces.Dialect):
         self.dialect = dialect
 
     def connect(self) -> None:
@@ -44,7 +39,7 @@ def batch_selectable() -> sa.Table:
 
 class MockSqlAlchemyExecutionEngine(SqlAlchemyExecutionEngine):
     def __init__(self, create_temp_table: bool = True, *args, **kwargs):
-        self.engine = MockSaEngine(dialect=Dialect("sqlite"))  # type: ignore[assignment] # FIXME CoP
+        self.engine = MockSaEngine(dialect=sa.dialects.sqlite.dialect())  # type: ignore[assignment] # FIXME CoP
         self._create_temp_table = create_temp_table
         self._connection = MockConnection()
 

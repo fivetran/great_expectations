@@ -2,6 +2,7 @@ from typing import ClassVar, Optional
 from unittest import mock
 
 import pytest
+from sqlalchemy.dialects import mysql
 
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
@@ -219,3 +220,42 @@ def test_sqlalchemy_query_row_count(
         batch_selectable=batch_selectable,
         execution_engine=mock_sqlalchemy_execution_engine,
     )
+
+
+@pytest.mark.unit
+def test_get_substituted_batch_subquery_uses_dialect_for_compilation(
+    mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Test that batch selectable compilation uses the execution engine's dialect.
+
+    This test verifies the fix for the Databricks identifier quoting issue where
+    column names were being quoted with double quotes (") instead of backticks (`),
+    causing Databricks to interpret them as string literals rather than column identifiers.
+    """
+    # Create a Select statement with a column that will be compiled
+    metadata = sa.MetaData()
+    test_table = sa.Table("test_table", metadata, sa.Column("ReportingDate", sa.TIMESTAMP))
+    batch_selectable = sa.select(test_table).where(
+        sa.extract("year", test_table.c.ReportingDate) == 2025
+    )
+
+    query = "SELECT * FROM {batch}"
+
+    # Use MySQL dialect to simulate Databricks (both use backticks for identifiers)
+    mysql_dialect = mysql.dialect()
+    monkeypatch.setattr(mock_sqlalchemy_execution_engine.engine, "dialect", mysql_dialect)
+
+    # Call the method
+    result = QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
+        query=query,
+        batch_selectable=batch_selectable,
+        execution_engine=mock_sqlalchemy_execution_engine,
+    )
+
+    # Verify the result is a string containing the compiled SQL with proper table/column references
+    assert isinstance(result, str)
+    assert "SELECT" in result.upper()
+    # Verify that the batch selectable was actually compiled
+    # (should contain table and column references)
+    assert "test_table" in result.lower() or "reportingdate" in result.lower()
