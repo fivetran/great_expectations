@@ -73,8 +73,8 @@ class ColumnQuantileValues(ColumnAggregateMetricProvider):
         quantiles = metric_value_kwargs["quantiles"]
         allow_relative_error = metric_value_kwargs.get("allow_relative_error", False)
         table_row_count = metrics.get("table.row_count")
-        if dialect_name == GXSqlDialect.MSSQL:
-            return _get_column_quantiles_mssql(
+        if dialect_name == GXSqlDialect.SQL_SERVER:
+            return _get_column_quantiles_sql_server(
                 column=column,
                 quantiles=quantiles,
                 selectable=selectable,
@@ -183,10 +183,10 @@ class ColumnQuantileValues(ColumnAggregateMetricProvider):
         return df.approxQuantile(column, list(quantiles), allow_relative_error)  # type: ignore[attr-defined] # FIXME CoP
 
 
-def _get_column_quantiles_mssql(
+def _get_column_quantiles_sql_server(
     column, quantiles: Iterable, selectable, execution_engine: SqlAlchemyExecutionEngine
 ) -> list:
-    # mssql requires over(), so we add an empty over() clause
+    # SQL Server requires over(), so we add an empty over() clause
     selects: list[sqlalchemy.WithinGroup] = [
         sa.func.percentile_disc(quantile).within_group(column.asc()).over()  # type: ignore[misc] # FIXME CoP
         for quantile in quantiles

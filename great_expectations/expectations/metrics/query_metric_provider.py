@@ -73,7 +73,7 @@ def find_last_top_level_order_by(query: str) -> int:
 def strip_top_level_order_by(query: str) -> str:
     """Strip the last top-level ORDER BY clause from a SQL query.
 
-    Used when wrapping user queries in COUNT(*) for MSSQL, where ORDER BY
+    Used when wrapping user queries in COUNT(*) for SQL Server, where ORDER BY
     in a subquery is invalid unless TOP or OFFSET is present.  Returns the
     query unchanged if no top-level ORDER BY exists or a top-level OFFSET
     is present (stripping would remove the pagination clause).

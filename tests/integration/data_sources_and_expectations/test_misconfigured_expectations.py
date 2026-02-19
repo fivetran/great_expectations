@@ -13,9 +13,9 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     DataSourceTestConfig,
-    MSSQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
+    SQLServerDatasourceTestConfig,
 )
 
 PANDAS_DATA_SOURCES: list[DataSourceTestConfig] = [
@@ -71,10 +71,10 @@ class TestNumericExpectationAgainstStrDataMisconfiguration:
         )
 
     @parameterize_batch_for_data_sources(
-        data_source_configs=[MSSQLDatasourceTestConfig()],
+        data_source_configs=[SQLServerDatasourceTestConfig()],
         data=_DATA,
     )
-    def test_mssql(self, batch_for_datasource) -> None:
+    def test_sql_server(self, batch_for_datasource) -> None:
         self._assert_misconfiguration(
             batch_for_datasource=batch_for_datasource,
             exception_message="Error converting data type varchar to float",

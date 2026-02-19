@@ -673,7 +673,7 @@ jobs:
           - bigquery
           - databricks
           - filesystem
-          - mssql
+          - sql_server
           - mysql
           - postgresql
           - snowflake
@@ -728,9 +728,9 @@ jobs:
           pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
           invoke deps --gx-install -m '${{ matrix.markers }}' -r test
 
-      - name: Install mssql odbc driver
-        if: matrix.markers == 'mssql'
-        run: ./scripts/install_mssql_odbc_driver.sh
+      - name: Install SQL Server odbc driver
+        if: matrix.markers == 'sql_server'
+        run: ./scripts/install_sql_server_odbc_driver.sh
 
       - name: Configure ECR AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4

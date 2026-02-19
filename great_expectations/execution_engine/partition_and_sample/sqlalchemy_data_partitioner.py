@@ -49,7 +49,7 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
     ) -> sqlalchemy.ColumnElement:
         """Extract a date part from a column, using dialect-appropriate function.
 
-        For MSSQL, uses DATEPART() instead of EXTRACT() since EXTRACT is not supported.
+        For SQL Server, uses DATEPART() instead of EXTRACT() since EXTRACT is not supported.
         For other dialects, uses SQLAlchemy's extract() function.
 
         Args:
@@ -59,7 +59,7 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
         Returns:
             A SQLAlchemy column element representing the extracted date part
         """
-        if self._dialect == GXSqlDialect.MSSQL:
+        if self._dialect == GXSqlDialect.SQL_SERVER:
             return sa.func.datepart(sa.text(date_part), column)
         return sa.func.extract(date_part, column)
 
@@ -248,7 +248,7 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
                 == batch_identifiers[column_name]
             )
 
-        if self._dialect == GXSqlDialect.MSSQL:
+        if self._dialect == GXSqlDialect.SQL_SERVER:
             return (
                 sa.cast(
                     sa.func.round((sa.cast(sa.column(column_name), sa.Integer) / divisor), 0, 1),
@@ -283,7 +283,7 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
         """Divide the values in the named column by `mod`, and partition on that"""
         if self._dialect in [
             GXSqlDialect.SQLITE,
-            GXSqlDialect.MSSQL,
+            GXSqlDialect.SQL_SERVER,
         ]:
             return (
                 sa.cast(sa.column(column_name), sa.Integer) % mod == batch_identifiers[column_name]
@@ -493,7 +493,7 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
         concat_clause: list[sqlalchemy.Label]
         concat_date_parts: sqlalchemy.Cast | sqlalchemy.ColumnOperators
         if len(date_parts) == 1:
-            # MSSql does not accept single item concatenation
+            # SQL Server does not accept single item concatenation
             concat_clause = sa.func.distinct(  # type: ignore[assignment] # FIXME CoP
                 self._extract_date_part(date_parts[0].value, sa.column(column_name)).label(
                     date_parts[0].value
@@ -794,7 +794,7 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
                 )
             ).select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
 
-        if self._dialect == GXSqlDialect.MSSQL:
+        if self._dialect == GXSqlDialect.SQL_SERVER:
             return sa.select(
                 sa.func.distinct(
                     sa.cast(
@@ -836,7 +836,7 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
         """Divide the values in the named column by `mod`, and partition on that"""
         if self._dialect in [
             GXSqlDialect.SQLITE,
-            GXSqlDialect.MSSQL,
+            GXSqlDialect.SQL_SERVER,
         ]:
             return sa.select(
                 sa.func.distinct(sa.cast(sa.column(column_name), sa.Integer) % mod)

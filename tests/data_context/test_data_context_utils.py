@@ -221,7 +221,7 @@ def test_password_masker_mask_db_url(  # noqa: PLR0915, C901 # 11 complexity
         == f"mssql+pyodbc://scott:{PasswordMasker.MASKED_PASSWORD_STRING}@mydsn"
     )
 
-    # pymssql (if installed in test environment)
+    # pymssql driver (if installed in test environment)
     try:
         assert (
             PasswordMasker.mask_db_url(f"mssql+pymssql://scott:tiger@{db_hostname}:12345/dbname")
