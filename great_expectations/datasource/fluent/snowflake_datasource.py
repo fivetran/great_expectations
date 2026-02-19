@@ -408,8 +408,8 @@ class KeyPairConnectionDetails(FluentBaseModel):
         description="`database` that the Datasource is mapped to.",
     )
     schema_: str = pydantic.Field(..., alias="schema")  # schema is a reserved attr in BaseModel
-    warehouse: str
-    role: str
+    warehouse: str | None
+    role: str | None
     private_key: Union[ConfigStr, str]
 
     @classmethod
