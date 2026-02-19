@@ -274,8 +274,8 @@ jobs:
       - name: Start services
         if: ${{ matrix.start_services }}
         run: |
-          docker compose --progress quiet -f assets/docker/mercury/docker-compose.yml up -d --wait --wait-timeout 150 && \
-          docker compose --progress quiet -f assets/docker/spark/docker-compose.yml up -d --wait --wait-timeout 90
+          docker compose --progress quiet -f assets/docker/mercury/docker-compose.yml up -d --wait --wait-timeout 180 && \
+          docker compose --progress quiet -f assets/docker/spark/docker-compose.yml 180
 
       - name: Run the tests
         run: invoke docs-snippet-tests '${{ matrix.doc-step }}' --up-services --verbose  --reports
@@ -536,8 +536,8 @@ jobs:
 
       - name: Start services
         run: |
-          docker compose --progress quiet -f assets/docker/mercury/docker-compose.yml up -d --wait --wait-timeout 150 && \
-          docker compose --progress quiet -f assets/docker/spark/docker-compose.yml up -d --wait --wait-timeout 90
+          docker compose --progress quiet -f assets/docker/mercury/docker-compose.yml up -d --wait --wait-timeout 180 && \
+          docker compose --progress quiet -f assets/docker/spark/docker-compose.yml up -d --wait --wait-timeout 180
 
       - name: Show logs for debugging
         if: failure()
