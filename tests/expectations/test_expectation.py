@@ -867,7 +867,9 @@ class TestGetSuccessKwarg:
             pytest.param("nonexistent_key", "custom", "custom", id="unknown_key_custom_default"),
         ],
     )
-    def test_returns_default_and_warns_for_missing_non_field(self, key, default, expected_value, caplog):
+    def test_returns_default_and_warns_for_missing_non_field(
+        self, key, default, expected_value, caplog
+    ):
         """Keys that aren't Pydantic fields should return the provided default and warn."""
         exp = gxe.ExpectColumnToExist(column="test_col")
         with caplog.at_level(logging.WARNING, logger="great_expectations.expectations.expectation"):
