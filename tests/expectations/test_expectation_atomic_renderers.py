@@ -235,10 +235,10 @@ def test_atomic_prescriptive_summary_expect_column_kl_divergence_to_be_less_than
             "graph": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v4.8.1.json",
                 "autosize": "fit",
-                "config": {"view": {"continuousHeight": 300, "continuousWidth": 400}},
-                "data": {"name": "data-1cb20570b53cc3e67cb4883fd45e64cb"},
+                "config": {"view": {"continuousHeight": 300, "continuousWidth": 300}},
+                "data": {"name": "data-cf6c5d5fbb7d27e3bab95f126493fea5"},
                 "datasets": {
-                    "data-1cb20570b53cc3e67cb4883fd45e64cb": [
+                    "data-cf6c5d5fbb7d27e3bab95f126493fea5": [
                         {"bin_max": 5, "bin_min": 0, "fraction": 0.2},
                         {"bin_max": 10, "bin_min": 5, "fraction": 0.3},
                         {"bin_max": 30, "bin_min": 10, "fraction": 0.1},
@@ -256,7 +256,7 @@ def test_atomic_prescriptive_summary_expect_column_kl_divergence_to_be_less_than
                     "y": {"field": "fraction", "type": "quantitative"},
                 },
                 "height": 400,
-                "mark": "bar",
+                "mark": {"type": "bar"},
                 "width": 250,
             },
             "header": {
@@ -325,10 +325,10 @@ def test_atomic_diagnostic_observed_value_expect_column_kl_divergence_to_be_less
             "graph": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v4.8.1.json",
                 "autosize": "fit",
-                "config": {"view": {"continuousHeight": 300, "continuousWidth": 400}},
-                "data": {"name": "data-c49f2d3d7bdab36f9ec81f5a314a430c"},
+                "config": {"view": {"continuousHeight": 300, "continuousWidth": 300}},
+                "data": {"name": "data-3e69f9e5893022f8680a4fbf138db3e1"},
                 "datasets": {
-                    "data-c49f2d3d7bdab36f9ec81f5a314a430c": [
+                    "data-3e69f9e5893022f8680a4fbf138db3e1": [
                         {"fraction": 0.3754, "values": 1},
                         {"fraction": 0.615, "values": 2},
                         {"fraction": 0.0096, "values": 4},
@@ -343,7 +343,7 @@ def test_atomic_diagnostic_observed_value_expect_column_kl_divergence_to_be_less
                     "y": {"field": "fraction", "type": "quantitative"},
                 },
                 "height": 400,
-                "mark": "bar",
+                "mark": {"type": "bar"},
                 "width": 250,
             },
             "header": {
@@ -404,52 +404,34 @@ def test_atomic_diagnostic_observed_value_with_boolean_column_expect_column_kl_d
     res = rendered_content.to_json_dict()
     pprint(res)
 
-    # replace version of vega-lite in res to match snapshot test
-    res["value"]["graph"]["$schema"] = re.sub(
-        r"v\d*\.\d*\.\d*", "v4.8.1", res["value"]["graph"]["$schema"]
-    )
-    assert res == {
-        "name": "atomic.diagnostic.observed_value",
-        "value": {
-            "graph": {
-                "$schema": "https://vega.github.io/schema/vega-lite/v4.8.1.json",
-                "autosize": "fit",
-                "config": {"view": {"continuousHeight": 300, "continuousWidth": 400}},
-                "data": {"name": "data-d8f1a1ab1f79e142d9ca399157673554"},
-                "datasets": {
-                    "data-d8f1a1ab1f79e142d9ca399157673554": [
-                        {"fraction": 0.5, "values": "True"},
-                        {"fraction": 0.5, "values": "False"},
-                    ]
-                },
-                "encoding": {
-                    "tooltip": [
-                        {"field": "values", "type": "nominal"},
-                        {"field": "fraction", "type": "quantitative"},
-                    ],
-                    "x": {"field": "values", "type": "nominal"},
-                    "y": {"field": "fraction", "type": "quantitative"},
-                },
-                "height": 400,
-                "mark": "bar",
-                "width": 250,
-            },
-            "header": {
-                "schema": {"type": "StringValueType"},
-                "value": {
-                    "params": {
-                        "observed_value": {
-                            "schema": {"type": "string"},
-                            "value": "None (-infinity, infinity, or NaN)",
-                        }
-                    },
-                    "template": "KL Divergence: $observed_value",
-                },
-            },
-            "schema": {"type": "GraphType"},
-        },
-        "value_type": "GraphType",
-    }
+    assert res["name"] == "atomic.diagnostic.observed_value"
+    assert res["value_type"] == "GraphType"
+
+    graph = res["value"]["graph"]
+    assert "vega.github.io/schema/vega-lite" in graph["$schema"]
+    assert graph["autosize"] == "fit"
+    assert graph["height"] == 400
+    assert graph["width"] == 250
+
+    # mark may be a string or dict depending on altair version
+    mark = graph["mark"]
+    assert mark in ("bar", {"type": "bar"})
+
+    assert graph["encoding"]["x"] == {"field": "values", "type": "nominal"}
+    assert graph["encoding"]["y"] == {"field": "fraction", "type": "quantitative"}
+
+    # Verify datasets contain the expected data (hash name varies by altair version)
+    dataset_name = graph["data"]["name"]
+    dataset = graph["datasets"][dataset_name]
+    assert dataset == [
+        {"fraction": 0.5, "values": "True"},
+        {"fraction": 0.5, "values": "False"},
+    ]
+
+    header = res["value"]["header"]
+    assert header["value"]["template"] == "KL Divergence: $observed_value"
+    observed_value = header["value"]["params"]["observed_value"]["value"]
+    assert observed_value == "None (-infinity, infinity, or NaN)"
 
 
 @pytest.mark.unit

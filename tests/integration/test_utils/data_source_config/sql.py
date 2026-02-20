@@ -81,6 +81,10 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             date: sqltypes.DATE,
             datetime: sqltypes.DATETIME,
             pd.Timestamp: sqltypes.DATETIME,
+            # Add numpy types for better compatibility
+            np.integer: sqltypes.INTEGER,
+            np.floating: sqltypes.DECIMAL,
+            np.bool_: sqltypes.BOOLEAN,
         }
 
     def __init__(
@@ -287,6 +291,21 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             raise RuntimeError(message)
         return all_column_types
 
+    def _normalize_python_type(self, value_type: type) -> type:
+        """Normalize numpy types to their Python equivalents for type inference."""
+        try:
+            if issubclass(value_type, np.integer):
+                return int
+            if issubclass(value_type, np.floating):
+                return float
+            if issubclass(value_type, np.bool_):
+                return bool
+        except TypeError:
+            # value_type is not a class or doesn't support issubclass check
+            # This shouldn't happen since type() always returns a class, but be defensive
+            pass
+        return value_type
+
     def _infer_column_types(self, data: pd.DataFrame) -> InferredColumnTypes:
         inferred_column_types: InferredColumnTypes = {}
         for column, value_list in data.to_dict("list").items():
@@ -295,13 +314,22 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
                 # if we have an all null column, just arbitrarily use INTEGER
                 inferred_column_types[str(column)] = sqltypes.INTEGER
             else:
-                python_type = type(non_null_value_list[0])
-                if not all(isinstance(val, python_type) for val in non_null_value_list):
+                # Normalize the first value's type (e.g., numpy.int64 -> int)
+                first_value_type = type(non_null_value_list[0])
+                normalized_type = self._normalize_python_type(first_value_type)
+
+                # Check if all values match the normalized type
+                if not all(
+                    self._normalize_python_type(type(val)) == normalized_type
+                    for val in non_null_value_list
+                ):
                     raise RuntimeError(
                         f"Cannot infer type of column {column}. "
                         "Please provide an explicit column type in the test config."
                     )
-                inferred_type = self.inferrable_types_lookup.get(python_type)
+                # Get inferred type from lookup using normalized type
+                # (normalized_type handles numpy types -> Python types conversion)
+                inferred_type = self.inferrable_types_lookup.get(normalized_type)
                 if inferred_type:
                     inferred_column_types[str(column)] = inferred_type
         return inferred_column_types
