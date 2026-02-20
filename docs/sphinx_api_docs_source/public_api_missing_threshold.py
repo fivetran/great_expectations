@@ -226,9 +226,6 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
         name="GXCloudIdentifier",
     ),
     PrintableDefinition(
-        file=pathlib.Path("great_expectations/datasource/fluent/config.py"), name="yaml"
-    ),
-    PrintableDefinition(
         file=pathlib.Path("great_expectations/datasource/fluent/config_str.py"),
         name="ConfigStr",
     ),
@@ -287,10 +284,6 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     PrintableDefinition(
         file=pathlib.Path("great_expectations/datasource/fluent/fabric.py"),
         name="get_batch",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path("great_expectations/datasource/fluent/fluent_base_model.py"),
-        name="yaml",
     ),
     PrintableDefinition(
         file=pathlib.Path("great_expectations/datasource/fluent/invalid_datasource.py"),
