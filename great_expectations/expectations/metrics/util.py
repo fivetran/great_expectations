@@ -420,7 +420,7 @@ def get_sqlalchemy_column_metadata(
             is_quoted_name,
         )
 
-        # Use fallback for mssql/trino or when primary introspection fails
+        # Use fallback for SQL Server/trino or when primary introspection fails
         if not columns:
             columns = column_reflection_fallback(
                 selectable=table_selectable,
@@ -1331,7 +1331,7 @@ def _substitute_with_render_postcompile(
     parameter_style = _detect_parameter_style(query_template, compiled)
 
     if parameter_style == "positional":
-        # Positional placeholders (?) - e.g. SQLite, Trino, MSSQL
+        # Positional placeholders (?) - e.g. SQLite, Trino, SQL Server
         query_as_string = _substitute_positional_parameters(query_template, compiled)
 
     elif parameter_style == "pyformat":

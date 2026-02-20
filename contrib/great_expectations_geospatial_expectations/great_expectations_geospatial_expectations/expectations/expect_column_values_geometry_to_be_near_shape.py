@@ -87,7 +87,7 @@ class ExpectColumnValuesGeometryToBeNearShape(ColumnMapExpectation):
         column (str): \
             The column name. \
             Column values must be provided in WKT or WKB format, which are commom formats for GIS Database formats. \
-            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and MSSQL.
+            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and SQL Server.
 
     Keyword Args:
         shape (str or list of str): \
@@ -97,7 +97,7 @@ class ExpectColumnValuesGeometryToBeNearShape(ColumnMapExpectation):
             Must be one of: [wkt, wkb, geojson]. Default: wkt
         column_shape_format (str): \
             Geometry format for 'column'. Column values must be provided in WKT or WKB format, which are commom formats for GIS Database formats. \
-            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and MSSQL.
+            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and SQL Server.
         distance_tol (float): \
             Distance tolerance for the column value geometries to the reference shape. Note that 0 evaluates to expect_column_values_to_be_within_shape. \
             Distance values are always positive. Negative tolerances will always evaluate to False. Default: 0

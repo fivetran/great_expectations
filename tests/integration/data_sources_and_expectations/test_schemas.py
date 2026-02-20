@@ -7,13 +7,13 @@ from tests.integration.test_utils.data_source_config.databricks import (
     DatabricksBatchTestSetup,
     DatabricksDatasourceTestConfig,
 )
-from tests.integration.test_utils.data_source_config.mssql import (
-    MSSQLBatchTestSetup,
-    MSSQLDatasourceTestConfig,
-)
 from tests.integration.test_utils.data_source_config.snowflake import (
     SnowflakeBatchTestSetup,
     SnowflakeDatasourceTestConfig,
+)
+from tests.integration.test_utils.data_source_config.sql_server import (
+    SQLServerBatchTestSetup,
+    SQLServerDatasourceTestConfig,
 )
 
 DATA_FRAME = pd.DataFrame(
@@ -51,14 +51,14 @@ class TestSchemaSupport:
 
             assert result.success
 
-    @pytest.mark.mssql
+    @pytest.mark.sql_server
     @pytest.mark.parametrize("schema_name", TEST_SCHEMAS)
-    def test_mssql(
+    def test_sql_server(
         self,
         schema_name: str | None,
     ) -> None:
-        batch_setup = MSSQLBatchTestSetup(
-            config=MSSQLDatasourceTestConfig(schema_name=schema_name),
+        batch_setup = SQLServerBatchTestSetup(
+            config=SQLServerDatasourceTestConfig(schema_name=schema_name),
             data=DATA_FRAME,
             extra_data={},
             context=get_context(mode="ephemeral"),

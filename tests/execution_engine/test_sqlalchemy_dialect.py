@@ -43,7 +43,7 @@ def test_get_all_dialects_no_other_dialects():
     "dialect,expected",
     [
         (GXSqlDialect.DATABRICKS, "`col`"),
-        (GXSqlDialect.MSSQL, "[col]"),
+        (GXSqlDialect.SQL_SERVER, "[col]"),
         (GXSqlDialect.MYSQL, "`col`"),
         (GXSqlDialect.POSTGRESQL, '"col"'),
         (GXSqlDialect.SNOWFLAKE, '"col"'),
@@ -60,7 +60,7 @@ def test_quote_str(dialect, expected):
     "dialect,quoted_input",
     [
         (GXSqlDialect.DATABRICKS, "`col`"),
-        (GXSqlDialect.MSSQL, "[col]"),
+        (GXSqlDialect.SQL_SERVER, "[col]"),
         (GXSqlDialect.MYSQL, "`col`"),
         (GXSqlDialect.POSTGRESQL, '"col"'),
         (GXSqlDialect.SNOWFLAKE, '"col"'),
@@ -78,8 +78,8 @@ def test_quote_str_already_quoted_raises(dialect, quoted_input):
     "dialect,quoted_input",
     [
         (GXSqlDialect.DATABRICKS, "`col`"),
-        (GXSqlDialect.MSSQL, "[col]"),
-        (GXSqlDialect.MSSQL, '"col"'),
+        (GXSqlDialect.SQL_SERVER, "[col]"),
+        (GXSqlDialect.SQL_SERVER, '"col"'),
         (GXSqlDialect.MYSQL, "`col`"),
         (GXSqlDialect.POSTGRESQL, '"col"'),
         (GXSqlDialect.SNOWFLAKE, '"col"'),
@@ -96,7 +96,7 @@ def test_strip_quotes(dialect, quoted_input):
     "dialect",
     [
         GXSqlDialect.DATABRICKS,
-        GXSqlDialect.MSSQL,
+        GXSqlDialect.SQL_SERVER,
         GXSqlDialect.MYSQL,
         GXSqlDialect.POSTGRESQL,
         GXSqlDialect.SNOWFLAKE,
@@ -113,8 +113,8 @@ def test_strip_quotes_unquoted_noop(dialect):
     "dialect,quoted_input",
     [
         (GXSqlDialect.DATABRICKS, "`col`"),
-        (GXSqlDialect.MSSQL, "[col]"),
-        (GXSqlDialect.MSSQL, '"col"'),
+        (GXSqlDialect.SQL_SERVER, "[col]"),
+        (GXSqlDialect.SQL_SERVER, '"col"'),
         (GXSqlDialect.MYSQL, "`col`"),
         (GXSqlDialect.POSTGRESQL, '"col"'),
         (GXSqlDialect.SNOWFLAKE, '"col"'),

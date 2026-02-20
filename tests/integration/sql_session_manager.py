@@ -80,7 +80,7 @@ class SessionSQLEngineManager:
         """Dispose a specific cached engine and remove it from the cache.
 
         Useful before teardown operations (e.g. DROP SCHEMA) that require all
-        connections to be released, such as MSSQL which holds schema locks.
+        connections to be released, such as SQL Server which holds schema locks.
         """
         if connection_details in self._engine_cache:
             engine = self._engine_cache.pop(connection_details)

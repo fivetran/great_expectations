@@ -1,7 +1,6 @@
 from .base import DataSourceTestConfig
 from .big_query import BigQueryDatasourceTestConfig
 from .databricks import DatabricksDatasourceTestConfig
-from .mssql import MSSQLDatasourceTestConfig
 from .mysql import MySQLDatasourceTestConfig
 from .pandas_data_frame import PandasDataFrameDatasourceTestConfig
 from .pandas_filesystem_csv import PandasFilesystemCsvDatasourceTestConfig
@@ -9,4 +8,5 @@ from .postgres import PostgreSQLDatasourceTestConfig
 from .redshift import RedshiftDatasourceTestConfig
 from .snowflake import SnowflakeDatasourceTestConfig
 from .spark_filesystem_csv import SparkFilesystemCsvDatasourceTestConfig
+from .sql_server import SQLServerDatasourceTestConfig
 from .sqlite import SqliteDatasourceTestConfig

@@ -133,7 +133,7 @@
                         "BigQuery",
                         "Snowflake",
                         "Databricks (SQL)",
-                        "MSSQL"
+                        "SQL Server"
                     ]
                 }
             }
