@@ -480,6 +480,8 @@ def truncate_list_of_indices(indices: list[int | str], max_index: int = 10) -> s
         string of indices that are joined using ` `
 
     """  # noqa: E501 # FIXME CoP
+    if not isinstance(indices, list):
+        indices = list(indices)
     if len(indices) > max_index:
         indices = indices[:max_index]
         indices.append("...")

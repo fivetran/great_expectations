@@ -385,7 +385,7 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
 
     @classmethod
     @renderer(renderer_type=LegacyDescriptiveRendererType.VALUE_COUNTS_BAR_CHART)
-    def _descriptive_value_counts_bar_chart_renderer(
+    def _descriptive_value_counts_bar_chart_renderer(  # noqa: C901 #  134 lines
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
@@ -406,6 +406,10 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
                 "count": counts,
             }
         )
+        # Convert StringDtype columns to object dtype for Altair compatibility
+        for col in df.columns:
+            if isinstance(df[col].dtype, pd.StringDtype):
+                df[col] = df[col].astype("object")
 
         if len(values) > 60:  # noqa: PLR2004 # FIXME CoP
             return None
