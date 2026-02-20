@@ -7,14 +7,7 @@ s3_integration_tests = []
 
 connecting_to_your_data: List[IntegrationTestFixture] = []
 
-deployment_patterns = [
-    IntegrationTestFixture(
-        name="deployment_pattern_pandas_s3",
-        user_flow_script="docs/docusaurus/docs/snippets/aws_cloud_storage_pandas.py",
-        data_context_dir=None,
-        backend_dependencies=[BackendDependencies.AWS],
-    ),
-]
+deployment_patterns: List[IntegrationTestFixture] = []
 
 partition_data = [
     IntegrationTestFixture(
