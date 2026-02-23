@@ -17,7 +17,6 @@ from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
-    MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
@@ -25,6 +24,7 @@ from tests.integration.test_utils.data_source_config import (
     SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
     SqliteDatasourceTestConfig,
+    SQLServerDatasourceTestConfig,
 )
 
 try:
@@ -257,7 +257,7 @@ SPARK_TEST_CASES = SQL_TEST_CASES
                 "updated_at": BIGQUERY_TYPES.DATE,
             }
         ),
-        MSSQLDatasourceTestConfig(),
+        SQLServerDatasourceTestConfig(),
         MySQLDatasourceTestConfig(
             column_types={
                 "created_at": sqltypes.TIMESTAMP(timezone=True),
@@ -615,7 +615,7 @@ class TestSQLConditionClassAcrossExpectationTypes:
                     "updated_at": BIGQUERY_TYPES.DATE,
                 }
             ),
-            MSSQLDatasourceTestConfig(),
+            SQLServerDatasourceTestConfig(),
             MySQLDatasourceTestConfig(
                 column_types={
                     "created_at": sqltypes.TIMESTAMP(timezone=True),
@@ -654,7 +654,7 @@ class TestSQLConditionClassAcrossExpectationTypes:
                     "updated_at": BIGQUERY_TYPES.DATE,
                 }
             ),
-            MSSQLDatasourceTestConfig(),
+            SQLServerDatasourceTestConfig(),
             MySQLDatasourceTestConfig(
                 column_types={
                     "created_at": sqltypes.TIMESTAMP(timezone=True),
@@ -693,7 +693,7 @@ class TestSQLConditionClassAcrossExpectationTypes:
                     "updated_at": BIGQUERY_TYPES.DATE,
                 }
             ),
-            MSSQLDatasourceTestConfig(),
+            SQLServerDatasourceTestConfig(),
             MySQLDatasourceTestConfig(
                 column_types={
                     "created_at": sqltypes.TIMESTAMP(timezone=True),
@@ -731,7 +731,7 @@ class TestSQLConditionClassAcrossExpectationTypes:
                     "updated_at": BIGQUERY_TYPES.DATE,
                 }
             ),
-            MSSQLDatasourceTestConfig(),
+            SQLServerDatasourceTestConfig(),
             MySQLDatasourceTestConfig(
                 column_types={
                     "created_at": sqltypes.TIMESTAMP(timezone=True),
@@ -768,7 +768,7 @@ class TestSQLConditionClassAcrossExpectationTypes:
                     "updated_at": BIGQUERY_TYPES.DATE,
                 }
             ),
-            MSSQLDatasourceTestConfig(),
+            SQLServerDatasourceTestConfig(),
             MySQLDatasourceTestConfig(
                 column_types={
                     "created_at": sqltypes.TIMESTAMP(timezone=True),

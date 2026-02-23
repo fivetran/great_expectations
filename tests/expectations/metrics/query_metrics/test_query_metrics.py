@@ -518,8 +518,8 @@ class TestStripTopLevelOrderBy:
         assert strip_top_level_order_by(query) != query
 
 
-class MockMSSQLSqlAlchemyExecutionEngine(MockSqlAlchemyExecutionEngine):
-    """Mock engine that reports dialect_name as 'mssql'."""
+class MockSQLServerSqlAlchemyExecutionEngine(MockSqlAlchemyExecutionEngine):
+    """Mock engine that reports dialect_name as 'mssql' (SQL Server)."""
 
     def __init__(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def]
         super().__init__(*args, **kwargs)
@@ -529,15 +529,15 @@ class MockMSSQLSqlAlchemyExecutionEngine(MockSqlAlchemyExecutionEngine):
 
 
 @pytest.fixture
-def mock_mssql_execution_engine() -> MockMSSQLSqlAlchemyExecutionEngine:
+def mock_sql_server_execution_engine() -> MockSQLServerSqlAlchemyExecutionEngine:
     from tests.expectations.metrics.conftest import MockBatchManager
 
-    engine = MockMSSQLSqlAlchemyExecutionEngine()
+    engine = MockSQLServerSqlAlchemyExecutionEngine()
     engine._batch_manager = MockBatchManager()
     return engine
 
 
-class TestQueryRowCountMSSQLOrderByStripping:
+class TestQueryRowCountSQLServerOrderByStripping:
     @pytest.mark.unit
     @mock.patch.object(sa, "text")
     @mock.patch.object(
@@ -579,11 +579,11 @@ class TestQueryRowCountMSSQLOrderByStripping:
             ),
         ],
     )
-    def test_mssql_query_row_count(
+    def test_sql_server_query_row_count(
         self,
         mock_get_sub,
         mock_text,
-        mock_mssql_execution_engine: MockMSSQLSqlAlchemyExecutionEngine,
+        mock_sql_server_execution_engine: MockSQLServerSqlAlchemyExecutionEngine,
         batch_selectable: sa.Table,
         substituted_query: str,
         assert_order_by_present: bool,
@@ -595,11 +595,11 @@ class TestQueryRowCountMSSQLOrderByStripping:
         mock_result.fetchone.return_value = (42,)
 
         with mock.patch.object(
-            mock_mssql_execution_engine, "execute_query", return_value=mock_result
+            mock_sql_server_execution_engine, "execute_query", return_value=mock_result
         ):
             MyQueryRowCount._sqlalchemy(
                 cls=MyQueryRowCount,
-                execution_engine=mock_mssql_execution_engine,
+                execution_engine=mock_sql_server_execution_engine,
                 metric_domain_kwargs={},
                 metric_value_kwargs={
                     "query_param": "my_query",
@@ -620,7 +620,7 @@ class TestQueryRowCountMSSQLOrderByStripping:
     @mock.patch.object(
         QueryMetricProvider, "_get_substituted_batch_subquery_from_query_and_batch_selectable"
     )
-    def test_non_mssql_preserves_order_by(
+    def test_non_sql_server_preserves_order_by(
         self,
         mock_get_sub,
         mock_text,

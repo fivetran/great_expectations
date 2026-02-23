@@ -9,7 +9,7 @@ class BackendDependencies(enum.Enum):
     BIGQUERY = "BIGQUERY"
     GCS = "GCS"
     MYSQL = "MYSQL"
-    MSSQL = "MSSQL"
+    SQL_SERVER = "SQL_SERVER"
     PANDAS = "PANDAS"
     POSTGRESQL = "POSTGRESQL"
     REDSHIFT = "REDSHIFT"

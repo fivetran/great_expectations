@@ -210,8 +210,8 @@ class SqlAlchemyBatchData(BatchData):
         """  # noqa: E501 # FIXME CoP
 
         temp_table_name = generate_temporary_table_name()
-        # mssql expects all temporary table names to have a prefix '#'
-        if dialect == GXSqlDialect.MSSQL:
+        # SQL Server expects all temporary table names to have a prefix '#'
+        if dialect == GXSqlDialect.SQL_SERVER:
             temp_table_name = f"#{temp_table_name}"
 
         dialect = self.dialect
@@ -243,14 +243,14 @@ class SqlAlchemyBatchData(BatchData):
             stmt = f"CREATE TEMPORARY TABLE {temp_table_name} AS {query}"
         elif dialect == GXSqlDialect.HIVE:
             stmt = f"CREATE TEMPORARY TABLE `{temp_table_name}` AS {query}"
-        elif dialect == GXSqlDialect.MSSQL:
+        elif dialect == GXSqlDialect.SQL_SERVER:
             # Insert "into #{temp_table_name}" in the custom sql query right before the "from" clause  # noqa: E501 # FIXME CoP
             # Partition is case-sensitive so detect case.
             # Note: transforming query to uppercase/lowercase has unintended consequences (i.e.,
             # changing column names), so this is not an option!
             # noinspection PyUnresolvedReferences
             if isinstance(query, sa.dialects.mssql.base.MSSQLCompiler):
-                query = query.string  # extracting string from MSSQLCompiler object
+                query = query.string  # extracting string from SQL Server compiler object
 
             if "from" in query:
                 strsep = "from"
@@ -414,8 +414,10 @@ class SqlAlchemyBatchData(BatchData):
         if not create_temp_table:
             return selectable.alias()
 
-        if dialect in [GXSqlDialect.ORACLE, GXSqlDialect.MSSQL] and isinstance(selectable, str):
-            # oracle, mssql query could already be passed as a string
+        if dialect in [GXSqlDialect.ORACLE, GXSqlDialect.SQL_SERVER] and isinstance(
+            selectable, str
+        ):
+            # oracle, SQL Server query could already be passed as a string
             query = selectable
         else:
             # compile selectable to sql statement

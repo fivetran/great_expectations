@@ -221,7 +221,7 @@ class TestSQLServerDatasource:
         )
         assert ds.schema_ == "dbo"
 
-    def test_mssql_dsn_rejects_non_pyodbc_scheme(self) -> None:
+    def test_sql_server_dsn_rejects_non_pyodbc_scheme(self) -> None:
         with pytest.raises(ValidationError, match="URL scheme not permitted"):
             SqlServerDsn.from_url("mssql+pymssql://user:pass@host:1433/db")
 
@@ -657,7 +657,7 @@ def azure_ad_service_principal_datasource() -> SQLServerDatasource:
     )
 
 
-@pytest.mark.mssql
+@pytest.mark.sql_server
 class TestSQLServerDatasourceTestConnectionErrors:
     """Tests for error handling in SQLServerDatasource.test_connection."""
 

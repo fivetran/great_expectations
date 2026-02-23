@@ -11,7 +11,6 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
-    MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
@@ -20,6 +19,7 @@ from tests.integration.test_utils.data_source_config import (
     SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
     SqliteDatasourceTestConfig,
+    SQLServerDatasourceTestConfig,
 )
 
 INTEGER_COLUMN = "integers"
@@ -68,7 +68,7 @@ def test_success_for_type__int(batch_for_datasource: Batch) -> None:
 @parameterize_batch_for_data_sources(
     data_source_configs=[
         BigQueryDatasourceTestConfig(),
-        MSSQLDatasourceTestConfig(),
+        SQLServerDatasourceTestConfig(),
         MySQLDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(),
         RedshiftDatasourceTestConfig(),

@@ -128,7 +128,7 @@ REQUIRED_MARKERS: Final[set[str]] = {
     "docs",
     "integration",
     "filesystem",
-    "mssql",
+    "sql_server",
     "mysql",
     "openpyxl",
     "performance",
@@ -231,9 +231,9 @@ def pytest_addoption(parser):
         help="If set, execute tests against mysql",
     )
     parser.addoption(
-        "--mssql",
+        "--sql-server",
         action="store_true",
-        help="If set, execute tests against mssql",
+        help="If set, execute tests against SQL Server",
     )
     parser.addoption(
         "--bigquery",
@@ -310,7 +310,7 @@ def build_test_backends_list_v3_api(metafunc):
     include_sqlalchemy: bool = not metafunc.config.getoption("--no-sqlalchemy")
     include_postgresql: bool = metafunc.config.getoption("--postgresql")
     include_mysql: bool = metafunc.config.getoption("--mysql")
-    include_mssql: bool = metafunc.config.getoption("--mssql")
+    include_sql_server: bool = metafunc.config.getoption("--sql-server")
     include_bigquery: bool = metafunc.config.getoption("--bigquery")
     include_aws: bool = metafunc.config.getoption("--aws")
     include_trino: bool = metafunc.config.getoption("--trino")
@@ -325,7 +325,7 @@ def build_test_backends_list_v3_api(metafunc):
         include_sqlalchemy=include_sqlalchemy,
         include_postgresql=include_postgresql,
         include_mysql=include_mysql,
-        include_mssql=include_mssql,
+        include_sql_server=include_sql_server,
         include_bigquery=include_bigquery,
         include_aws=include_aws,
         include_trino=include_trino,

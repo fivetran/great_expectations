@@ -677,7 +677,7 @@ markers = [
     "external_sqldialect: mark test as requiring install of an external sql dialect.",
     "filesystem: mark tests using the filesystem as the storage backend.",
     "integration: mark test as an integration test.",
-    "mssql: mark a test as mssql-dependent.",
+    "sql_server: mark a test as SQL Server-dependent.",
     "mysql: mark a test as mysql-dependent.",
     "openpyxl: mark a test for openpyxl-dependent, which is for Excel files.",
     "performance: mark a test as a performance test for BigQuery. These aren't run in our PR or release pipeline",
