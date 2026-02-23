@@ -1479,7 +1479,18 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             # Connection has an invalid transaction from a previous failed operation
             # Roll back and retry with the same connection
             connection.rollback()
-            return connection.execute(query)  # type: ignore[arg-type] # Selectable union type too broad
+            try:
+                return connection.execute(query)  # type: ignore[arg-type] # Selectable union type too broad
+            except Exception:
+                # Retry also failed - roll back again so the connection is left clean.
+                # Without this, the deactivated transaction causes pyodbc to issue a
+                # blocking ROLLBACK when the persistent SQL Server connection is closed
+                # during teardown, which causes intermittent test hangs.
+                try:
+                    connection.rollback()
+                except Exception:
+                    pass
+                raise
 
     @new_method_or_class(version="0.16.14")
     def execute_query(
