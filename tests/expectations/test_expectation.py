@@ -841,3 +841,57 @@ class TestLegacyRowConditionTransformation:
 
         # Should have two warnings: one for condition_parser, one for string row_condition
         assert len(warning_list) == 2
+
+
+@pytest.mark.unit
+class TestGetSuccessKwarg:
+    """Tests for the _get_success_kwarg() single-key accessor method."""
+
+    @pytest.mark.parametrize(
+        "key,expected_value",
+        [
+            pytest.param("column", "test_col", id="string_value"),
+            pytest.param("column_index", 5, id="int_value"),
+        ],
+    )
+    def test_returns_configured_value(self, key, expected_value):
+        """Values in configuration.kwargs should be returned directly."""
+        exp = gxe.ExpectColumnToExist(column="test_col", column_index=5)
+        assert exp._get_success_kwarg(key) == expected_value
+
+    @pytest.mark.parametrize(
+        "key,default,expected_value",
+        [
+            pytest.param("table", None, None, id="non_field_key_default_none"),
+            pytest.param("table", "fallback", "fallback", id="non_field_key_custom_default"),
+            pytest.param("nonexistent_key", "custom", "custom", id="unknown_key_custom_default"),
+        ],
+    )
+    def test_returns_default_and_warns_for_missing_non_field(
+        self, key, default, expected_value, caplog
+    ):
+        """Keys that aren't Pydantic fields should return the provided default and warn."""
+        exp = gxe.ExpectColumnToExist(column="test_col")
+        with caplog.at_level(logging.WARNING, logger="great_expectations.expectations.expectation"):
+            result = exp._get_success_kwarg(key, default=default)
+        assert result == expected_value
+        assert f'_get_success_kwarg called with key "{key}"' in caplog.text
+
+    def test_returns_field_default_for_optional_field(self):
+        """Optional Pydantic fields should return their field default."""
+        exp = gxe.ExpectColumnToExist(column="test_col")
+        # column_index is an optional field with default=None
+        assert exp._get_success_kwarg("column_index") is None
+
+    @pytest.mark.parametrize(
+        "key",
+        [
+            pytest.param("column", id="domain_key"),
+            pytest.param("value_set", id="success_key"),
+            pytest.param("mostly", id="success_key_with_default"),
+        ],
+    )
+    def test_equivalent_to_get_success_kwargs_get(self, key):
+        """_get_success_kwarg should return same values as _get_success_kwargs().get()."""
+        exp = gxe.ExpectColumnValuesToBeInSet(column="status", value_set=["a", "b"], mostly=0.95)
+        assert exp._get_success_kwarg(key) == exp._get_success_kwargs().get(key)
