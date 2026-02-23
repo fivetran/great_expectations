@@ -43,7 +43,7 @@ This Expectation validates that the proportion of non-null values in a column is
 <br/>
 
 :::tip Automate this rule with GX Cloud
-When you use the GX Cloud UI to [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation), you can enable Anomaly Detection on each column to test that column completeness doesn't change drastically between Validation runs. Note that these conveniences have some [Data Source limitations](/docs/cloud/data_sources/manage_data_sources/#workflow-and-feature-support). 
+When you use the GX Cloud UI to [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add an Expectation](/cloud/expectations/manage_expectations.md#create-an-expectation), you can enable Anomaly Detection on each column to test that column completeness doesn't change drastically between Validation runs. Note that these conveniences have some [Data Source limitations](/docs/cloud/data_sources/manage_data_sources/#workflow-and-feature-support). 
 :::
 
 

@@ -71,7 +71,7 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.CITUS.value,
     SupportedDataSources.ALLOY.value,
     SupportedDataSources.NEON.value,
-    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.SQL_SERVER.value,
     SupportedDataSources.BIGQUERY.value,
     SupportedDataSources.REDSHIFT.value,
 ]

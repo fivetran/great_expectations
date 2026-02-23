@@ -32,7 +32,7 @@ Requirements
     - reqs/requirements-dev-clickhouse.txt: `pip install ".[clickhouse]"`
     - reqs/requirements-dev-dremio.txt: `pip install ".[dremio]"`
     - reqs/requirements-dev-hive.txt: `pip install ".[hive]"`
-    - reqs/requirements-dev-mssql.txt: `pip install ".[mssql]"`
+    - reqs/requirements-dev-sql-server.txt: `pip install ".[sql-server]"`
     - reqs/requirements-dev-mysql.txt: `pip install ".[mysql]"`
     - reqs/requirements-dev-postgresql.txt: `pip install ".[postgresql]"`
     - reqs/requirements-dev-redshift.txt: `pip install ".[redshift]"`

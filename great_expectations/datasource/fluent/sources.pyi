@@ -8,6 +8,7 @@ from typing import (
     Final,
     Generator,
     List,
+    Literal,
     NamedTuple,
     Optional,
     Type,
@@ -41,6 +42,7 @@ from great_expectations.datasource.fluent import (
     SparkS3Datasource,
     SQLDatasource,
     SqliteDatasource,
+    SQLServerDatasource,
 )
 from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.datasource.fluent.databricks_sql_datasource import DatabricksDsn
@@ -59,6 +61,9 @@ from great_expectations.datasource.fluent.snowflake_datasource import (
     SnowflakeDsn,
 )
 from great_expectations.datasource.fluent.spark_datasource import SparkConfig
+from great_expectations.datasource.fluent.sql_server_datasource import (
+    SQLServerConnectionDetails,
+)
 from great_expectations.datasource.fluent.sqlite_datasource import SqliteDsn
 from great_expectations.datasource.fluent.type_lookup import TypeLookup
 
@@ -813,6 +818,124 @@ class DataSourceManager:
         create_temp_table: bool = True,
     ) -> DatabricksSQLDatasource: ...
     def delete_databricks_sql(
+        self,
+        name: str,
+    ) -> None: ...
+    @overload
+    def add_sql_server(
+        self,
+        name: str,
+        *,
+        connection_string: SQLServerConnectionDetails = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
+    def add_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        authentication: Literal["SQL Server"] = ...,
+        username: str = ...,
+        password: Union[ConfigStr, str] = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
+    def add_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        authentication: Literal["Entra ID Service Principal"] = ...,
+        client_id: str = ...,
+        client_secret: Union[ConfigStr, str] = ...,
+        tenant_id: str = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
+    def update_sql_server(
+        self,
+        name: str,
+        *,
+        connection_string: SQLServerConnectionDetails = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
+    def update_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        authentication: Literal["SQL Server"] = ...,
+        username: str = ...,
+        password: Union[ConfigStr, str] = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
+    def update_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        authentication: Literal["Entra ID Service Principal"] = ...,
+        client_id: str = ...,
+        client_secret: Union[ConfigStr, str] = ...,
+        tenant_id: str = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
+    def add_or_update_sql_server(
+        self,
+        name: str,
+        *,
+        connection_string: SQLServerConnectionDetails = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
+    def add_or_update_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        authentication: Literal["SQL Server"] = ...,
+        username: str = ...,
+        password: Union[ConfigStr, str] = ...,
+    ) -> SQLServerDatasource: ...
+    @overload
+    def add_or_update_sql_server(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        authentication: Literal["Entra ID Service Principal"] = ...,
+        client_id: str = ...,
+        client_secret: Union[ConfigStr, str] = ...,
+        tenant_id: str = ...,
+    ) -> SQLServerDatasource: ...
+    def delete_sql_server(
         self,
         name: str,
     ) -> None: ...

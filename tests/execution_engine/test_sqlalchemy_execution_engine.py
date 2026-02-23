@@ -46,7 +46,7 @@ from great_expectations.validator.metric_configuration import MetricConfiguratio
 from great_expectations.validator.validator import Validator
 from tests.expectations.test_util import get_table_columns_metric
 from tests.test_utils import (
-    get_default_mssql_url,
+    get_default_sql_server_url,
     get_sqlite_table_names,
     get_sqlite_temp_table_names,
     get_sqlite_temp_table_names_from_engine,
@@ -1138,7 +1138,7 @@ class TestExecuteQuery:
 class TestConnectionPersistence:
     """What does this test and why?
 
-    sqlite/mssql temp tables only persist within a connection, so we need to keep the connection alive.
+    sqlite/SQL Server temp tables only persist within a connection, so we need to keep the connection alive.
     These tests ensure that we use the existing connection if one is available.
     """  # noqa: E501 # FIXME CoP
 
@@ -1224,8 +1224,8 @@ class TestGetConnection:
 
 @pytest.mark.unit
 class TestDialectRequiresPersistedConnection:
-    def test__dialect_requires_persisted_connection_mssql(self):
-        connection_string = get_default_mssql_url()
+    def test__dialect_requires_persisted_connection_sql_server(self):
+        connection_string = get_default_sql_server_url()
         assert _dialect_requires_persisted_connection(connection_string=connection_string)
 
     def test__dialect_requires_persisted_connection_sqlite(self):

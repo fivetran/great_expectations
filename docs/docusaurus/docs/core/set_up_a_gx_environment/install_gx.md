@@ -9,11 +9,10 @@ import GxData from '../_core_components/_data.jsx'
 import PrereqPythonInstalled from '../_core_components/prerequisites/_python_installation.md';
 import InstallLocal from './_install_gx/_local_installation.md';
 import InstallEmrSpark from './_install_gx/_emr_spark_installation.md';
-import InstallDatabricks from './_install_gx/_databricks_installation.md';
 
 import PythonVersion from '../_core_components/_python_version.md';
 
-GX Core is a Python library.  Follow the instructions in this guide to install GX in your local Python environment, or as a notebook-scoped library in hosted environments such as Databricks or EMR Spark clusters.
+GX Core is a Python library.  Follow the instructions in this guide to install GX Core in your local Python environment, or as a notebook-scoped library in hosted environments such as EMR Spark clusters.
 
 ## Prerequisites
 
@@ -26,27 +25,15 @@ GX Core is a Python library.  Follow the instructions in this guide to install G
 
 <Tabs queryString="install-location" groupId="install-location" defaultValue='local' values={[{label: 'Local', value:'local'}, {label: 'Hosted environment', value:'hosted'}]}>
 
-  <TabItem value="local" label="Local">
+<TabItem value="local" label="Local">
 <InstallLocal/>
-  </TabItem>
+</TabItem>
 
-  <TabItem value="hosted" label="Hosted">
+<TabItem value="hosted" label="Hosted">
+Hosted environments such as EMR Spark do not provide a filesystem to install your GX Core instance. Instead, you must install GX Core in memory using the Python-style notebooks available on those platforms.
 
-Hosted environments such as EMR Spark or Databricks clusters do not provide a filesystem to install your GX instance.  Instead, you must install GX in memory using the Python-style notebooks available on those platforms.
-
-<Tabs queryString="hosted-type" groupId="hosted-type" defaultValue='spark-notebook' values={[{label: 'EMR Spark notebook', value:'spark-notebook'}, {label: 'Databricks notebook', value:'databricks-notebook'}]}>
-
-  <TabItem value="spark-notebook">
 <InstallEmrSpark/>
-  </TabItem>
-
-  <TabItem value="databricks-notebook">
-<InstallDatabricks/>
-  </TabItem>
-
-</Tabs>
-
-  </TabItem>
+</TabItem>
 
 </Tabs>
 

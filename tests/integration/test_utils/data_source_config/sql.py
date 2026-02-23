@@ -138,7 +138,12 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
     @cached_property
     def schema(self) -> Union[str, None]:
         if self.use_schema:
-            return f"{self.SCHEMA_PREFIX}{self._random_resource_name()}"
+            schema_name = self.config.schema_name or self._random_resource_name()
+            return f"{self.SCHEMA_PREFIX}{schema_name}"
+        elif self.config.schema_name:
+            raise ValueError(
+                "Schema name provided but use_schema is False for this datasource type."
+            )
         else:
             return None
 

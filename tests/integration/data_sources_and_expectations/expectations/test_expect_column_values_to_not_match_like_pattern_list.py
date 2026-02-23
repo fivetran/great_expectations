@@ -8,12 +8,12 @@ from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     DataSourceTestConfig,
-    MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     RedshiftDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SqliteDatasourceTestConfig,
+    SQLServerDatasourceTestConfig,
 )
 
 COL_NAME = "col_name"
@@ -116,7 +116,7 @@ class TestNormalSql:
         assert "ac" in unexpected_rows_str
 
 
-class TestMSSQL:
+class TestSQLServer:
     @pytest.mark.parametrize(
         "expectation",
         [
@@ -135,7 +135,7 @@ class TestMSSQL:
         ],
     )
     @parameterize_batch_for_data_sources(
-        data_source_configs=[MSSQLDatasourceTestConfig()], data=DATA
+        data_source_configs=[SQLServerDatasourceTestConfig()], data=DATA
     )
     def test_success(
         self,
@@ -163,7 +163,7 @@ class TestMSSQL:
         ],
     )
     @parameterize_batch_for_data_sources(
-        data_source_configs=[MSSQLDatasourceTestConfig()], data=DATA
+        data_source_configs=[SQLServerDatasourceTestConfig()], data=DATA
     )
     def test_failure(
         self,

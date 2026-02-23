@@ -46,7 +46,7 @@ class ColumnStandardDeviation(ColumnAggregateMetricProvider):
     @column_aggregate_partial(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(cls, column, _dialect, _metrics, **kwargs):
         """SqlAlchemy Standard Deviation implementation"""
-        if _dialect.name.lower() == GXSqlDialect.MSSQL:
+        if _dialect.name.lower() == GXSqlDialect.SQL_SERVER:
             standard_deviation = sa.func.stdev(column)
         else:
             standard_deviation = sa.func.stddev_samp(column)

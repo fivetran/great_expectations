@@ -83,7 +83,7 @@ class ExpectColumnValuesGeometryCentroidsToBeWithinShape(ColumnMapExpectation):
         column (str): \
             The column name. \
             Column values must be provided in WKT or WKB format, which are commom formats for GIS Database formats. \
-            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and MSSQL.
+            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and SQL Server.
 
     Keyword Args:
         shape (str or list of str): \
@@ -93,7 +93,7 @@ class ExpectColumnValuesGeometryCentroidsToBeWithinShape(ColumnMapExpectation):
             Must be one of: [wkt, wkb, geojson]. Default: wkt
         column_shape_format (str): \
             Geometry format for 'column'. Column values must be provided in WKT or WKB format, which are commom formats for GIS Database formats. \
-            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and MSSQL.
+            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and SQL Server.
 
     Returns:
         An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)

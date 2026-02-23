@@ -17,7 +17,7 @@ PYPROJECT_TOML: Final = PROJECT_ROOT / "pyproject.toml"
 # Markers that are used to launch CI but map to a different marker for tests.
 # eg, gx-redshift should run the redshift test so, while a marker for CI
 # there should be no tests with this marker.
-NO_TEST_MARKERS: Final = ["gx-redshift"]
+NO_TEST_MARKERS: Final = ["gx-redshift", "mssql"]
 
 
 @pytest.fixture(scope="module")

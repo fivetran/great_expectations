@@ -31,6 +31,7 @@ _ColumnTypes = TypeVar("_ColumnTypes")
 class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
     name: Optional[str] = None
     table_name: Optional[str] = None  # Overrides random table name generation
+    schema_name: Optional[str] = None  # Overrides random schema name generation
     column_types: Optional[Mapping[str, _ColumnTypes]] = None
     extra_column_types: Mapping[str, Mapping[str, _ColumnTypes]] = field(default_factory=dict)
 

@@ -89,3 +89,72 @@ def test_fails_if_data_is_not_equal(batch_for_datasource: Batch, value_set: list
     expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=value_set)
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES,
+    data=pd.DataFrame(
+        {
+            COL_NAME: pd.to_datetime(
+                [datetime(2025, 9, 1), datetime(2025, 9, 2), datetime(2025, 9, 3)]  # noqa: DTZ001 # FIXME CoP
+            ),
+        }
+    ),
+)
+def test_datetime64_ns_with_str_value_set(batch_for_datasource: Batch) -> None:
+    """Test that datetime64[ns] columns work with string-formatted datetime value_set."""
+    value_set = [
+        d.strftime("%Y-%m-%dT%H:%M:%S")
+        for d in pd.date_range(
+            start=datetime(2025, 9, 1),  # noqa: DTZ001 # FIXME CoP
+            end=datetime(2025, 9, 3),  # noqa: DTZ001 # FIXME CoP
+            freq="1d",
+        )
+    ]
+    expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=value_set)
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES,
+    data=pd.DataFrame(
+        {
+            COL_NAME: pd.to_datetime(
+                [datetime(2025, 9, 1), datetime(2025, 9, 2), datetime(2025, 9, 3)]  # noqa: DTZ001 # FIXME CoP
+            ),
+        }
+    ),
+)
+def test_datetime64_ns_with_datetime_value_set(batch_for_datasource: Batch) -> None:
+    """Test that datetime64[ns] columns work with datetime objects in value_set."""
+    value_set = [
+        datetime(2025, 9, 1),  # noqa: DTZ001 # FIXME CoP
+        datetime(2025, 9, 2),  # noqa: DTZ001 # FIXME CoP
+        datetime(2025, 9, 3),  # noqa: DTZ001 # FIXME CoP
+    ]
+    expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=value_set)
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES,
+    data=pd.DataFrame(
+        {
+            COL_NAME: pd.to_datetime(
+                [datetime(2025, 9, 1), datetime(2025, 9, 2), datetime(2025, 9, 3)]  # noqa: DTZ001 # FIXME CoP
+            ),
+        }
+    ),
+)
+def test_datetime64_ns_with_pd_timestamp_value_set(batch_for_datasource: Batch) -> None:
+    """Test that datetime64[ns] columns work with pd.Timestamp objects in value_set."""
+    value_set = pd.date_range(
+        start=datetime(2025, 9, 1),  # noqa: DTZ001 # FIXME CoP
+        end=datetime(2025, 9, 3),  # noqa: DTZ001 # FIXME CoP
+        freq="1d",
+    ).tolist()
+    expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=value_set)
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
