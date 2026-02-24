@@ -81,10 +81,6 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             date: sqltypes.DATE,
             datetime: sqltypes.DATETIME,
             pd.Timestamp: sqltypes.DATETIME,
-            # Add numpy types for better compatibility
-            np.integer: sqltypes.INTEGER,
-            np.floating: sqltypes.DECIMAL,
-            np.bool_: sqltypes.BOOLEAN,
         }
 
     def __init__(
