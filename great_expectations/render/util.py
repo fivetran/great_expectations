@@ -467,7 +467,7 @@ def _convert_unexpected_indices_to_df(
     return filtered_unexpected_indices
 
 
-def truncate_list_of_indices(indices: list[int | str], max_index: int = 10) -> str:
+def truncate_list_of_indices(indices: Sequence[int | str], max_index: int = 10) -> str:
     """
     Lambda function used to take unexpected_indices and turn into a string
     that can be rendered in DataDocs.For lists that are greater than max_index,
@@ -481,8 +481,7 @@ def truncate_list_of_indices(indices: list[int | str], max_index: int = 10) -> s
         string of indices that are joined using ` `
     """
     if len(indices) > max_index:
-        indices = indices[:max_index]
-        indices.append("...")
+        indices = list(indices[:max_index]) + ["..."]
     return ", ".join(map(str, indices))
 
 
