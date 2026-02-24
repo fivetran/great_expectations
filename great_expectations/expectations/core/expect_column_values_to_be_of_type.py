@@ -438,6 +438,7 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
             GXSqlDialect.DATABRICKS,
             GXSqlDialect.POSTGRESQL,
             GXSqlDialect.SNOWFLAKE,
+            GXSqlDialect.SQL_SERVER,
             GXSqlDialect.TRINO,
         ]:
             # For these dialects, actual_column_type should be a string or CaseInsensitiveString

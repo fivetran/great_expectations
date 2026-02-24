@@ -1116,3 +1116,58 @@ def test_column_reflection_fallback_redshift_schema_qualified(
         f"Expected '{expected_table_ref}' in sa.text() calls, but got: {text_calls}"
     )
     assert isinstance(result, list)
+
+
+class TestBuildColumnMetadataResultSQLServer:
+    """Tests for _build_column_metadata_result with SQL Server dialect."""
+
+    @staticmethod
+    def _make_mock_engine(mocker: MockerFixture, dialect_name: str = "mssql"):
+        mock_engine = mocker.MagicMock(spec=SqlAlchemyExecutionEngine)
+        mock_dialect = mocker.MagicMock(spec=Dialect)
+        mock_dialect.name = dialect_name
+        mock_engine.dialect = mock_dialect
+        return mock_engine
+
+    @pytest.mark.unit
+    def test_uses_class_name_avoiding_collate(self, mocker: MockerFixture):
+        from great_expectations.expectations.metrics.util import _build_column_metadata_result
+
+        mock_type = mocker.MagicMock(spec=sa.types.VARCHAR)
+        mock_type.__class__ = type("VARCHAR", (), {})
+
+        columns = [{"name": "col1", "type": mock_type}]
+        engine = self._make_mock_engine(mocker)
+
+        result = _build_column_metadata_result(columns, set(), engine)
+
+        assert str(result[0]["type"]) == "VARCHAR"
+        mock_type.compile.assert_not_called()
+
+    @pytest.mark.unit
+    def test_handles_string_type_from_fallback(self, mocker: MockerFixture):
+        from great_expectations.expectations.metrics.util import _build_column_metadata_result
+
+        columns = [{"name": "col1", "type": "VARCHAR"}]
+        engine = self._make_mock_engine(mocker)
+
+        result = _build_column_metadata_result(columns, set(), engine)
+
+        assert isinstance(result[0]["type"], CaseInsensitiveString)
+        assert str(result[0]["type"]) == "VARCHAR"
+
+    @pytest.mark.unit
+    def test_case_insensitive_comparison(self, mocker: MockerFixture):
+        from great_expectations.expectations.metrics.util import _build_column_metadata_result
+
+        mock_type = mocker.MagicMock()
+        mock_type.__class__ = type("INTEGER", (), {})
+
+        columns = [{"name": "col1", "type": mock_type}]
+        engine = self._make_mock_engine(mocker)
+
+        result = _build_column_metadata_result(columns, set(), engine)
+
+        assert result[0]["type"] == "integer"
+        assert result[0]["type"] == "INTEGER"
+        assert result[0]["type"] == "Integer"
