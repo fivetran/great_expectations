@@ -25,6 +25,7 @@ from great_expectations.exceptions import MetricResolutionError
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 from great_expectations.expectations.metrics.util import (
     CaseInsensitiveString,
+    _build_column_metadata_result,
     column_reflection_fallback,
     get_dbms_compatible_metric_domain_kwargs,
     get_dialect_like_pattern_expression,
@@ -1119,55 +1120,37 @@ def test_column_reflection_fallback_redshift_schema_qualified(
 
 
 class TestBuildColumnMetadataResultSQLServer:
-    """Tests for _build_column_metadata_result with SQL Server dialect."""
-
     @staticmethod
-    def _make_mock_engine(mocker: MockerFixture, dialect_name: str = "mssql"):
+    def _make_mock_engine(mocker: MockerFixture):
         mock_engine = mocker.MagicMock(spec=SqlAlchemyExecutionEngine)
         mock_dialect = mocker.MagicMock(spec=Dialect)
-        mock_dialect.name = dialect_name
+        mock_dialect.name = "mssql"
         mock_engine.dialect = mock_dialect
         return mock_engine
 
     @pytest.mark.unit
-    def test_uses_class_name_avoiding_collate(self, mocker: MockerFixture):
-        from great_expectations.expectations.metrics.util import _build_column_metadata_result
-
-        mock_type = mocker.MagicMock(spec=sa.types.VARCHAR)
-        mock_type.__class__ = type("VARCHAR", (), {})
-
-        columns = [{"name": "col1", "type": mock_type}]
+    @pytest.mark.parametrize(
+        "col_type,expected_str",
+        [
+            pytest.param("VARCHAR", "VARCHAR", id="string_from_fallback"),
+            pytest.param("NVARCHAR", "NVARCHAR", id="string_nvarchar_from_fallback"),
+            pytest.param("INTEGER", "INTEGER", id="string_integer_from_fallback"),
+            pytest.param(sa.types.VARCHAR(), "VARCHAR", id="type_engine_varchar"),
+            pytest.param(
+                sa.types.VARCHAR(collation="SQL_Latin1_General_CP1_CI_AS"),
+                "VARCHAR",
+                id="type_engine_varchar_with_collation",
+            ),
+            pytest.param(sa.types.NVARCHAR(), "NVARCHAR", id="type_engine_nvarchar"),
+            pytest.param(sa.types.INTEGER(), "INTEGER", id="type_engine_integer"),
+        ],
+    )
+    def test_type_normalized_to_case_insensitive_string(
+        self, mocker: MockerFixture, col_type, expected_str: str
+    ):
         engine = self._make_mock_engine(mocker)
-
-        result = _build_column_metadata_result(columns, set(), engine)
-
-        assert str(result[0]["type"]) == "VARCHAR"
-        mock_type.compile.assert_not_called()
-
-    @pytest.mark.unit
-    def test_handles_string_type_from_fallback(self, mocker: MockerFixture):
-        from great_expectations.expectations.metrics.util import _build_column_metadata_result
-
-        columns = [{"name": "col1", "type": "VARCHAR"}]
-        engine = self._make_mock_engine(mocker)
-
-        result = _build_column_metadata_result(columns, set(), engine)
+        result = _build_column_metadata_result([{"name": "col1", "type": col_type}], set(), engine)
 
         assert isinstance(result[0]["type"], CaseInsensitiveString)
-        assert str(result[0]["type"]) == "VARCHAR"
-
-    @pytest.mark.unit
-    def test_case_insensitive_comparison(self, mocker: MockerFixture):
-        from great_expectations.expectations.metrics.util import _build_column_metadata_result
-
-        mock_type = mocker.MagicMock()
-        mock_type.__class__ = type("INTEGER", (), {})
-
-        columns = [{"name": "col1", "type": mock_type}]
-        engine = self._make_mock_engine(mocker)
-
-        result = _build_column_metadata_result(columns, set(), engine)
-
-        assert result[0]["type"] == "integer"
-        assert result[0]["type"] == "INTEGER"
-        assert result[0]["type"] == "Integer"
+        assert str(result[0]["type"]) == expected_str
+        assert result[0]["type"] == expected_str.lower()
