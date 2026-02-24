@@ -22,7 +22,6 @@ from great_expectations.self_check.util import (
     drop_table,
     get_test_validator_with_data,
 )
-from great_expectations.util import build_in_memory_runtime_context
 
 pytestmark = pytest.mark.postgresql
 
@@ -59,7 +58,7 @@ def setup_module():
         data=dataset,
         table_name=TABLE_NAME,
         schemas=schemas,
-        context=build_in_memory_runtime_context(),
+        context=gx.get_context(mode="ephemeral"),
         pk_column=pk_column,
     )
     yield
