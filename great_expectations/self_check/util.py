@@ -55,6 +55,7 @@ from great_expectations.core.batch import Batch, LegacyBatchDefinition
 from great_expectations.core.util import (
     get_sql_dialect_floating_point_infinity_value,
 )
+from great_expectations.data_context.data_context.context_factory import get_context
 from great_expectations.datasource.fluent.batch_identifier_util import make_batch_identifier
 from great_expectations.exceptions.exceptions import (
     ExecutionEngineError,
@@ -78,7 +79,6 @@ from great_expectations.self_check.sqlalchemy_connection_manager import (
     LockingConnectionCheck,
 )
 from great_expectations.util import (
-    build_in_memory_runtime_context,
     import_library_module,
 )
 from great_expectations.validator.validator import Validator
@@ -731,7 +731,7 @@ def build_pandas_validator_with_data(
     batch = Batch(data=df, batch_definition=batch_definition)  # type: ignore[arg-type] # FIXME CoP
 
     if context is None:
-        context = build_in_memory_runtime_context()
+        context = get_context(mode="ephemeral")
 
     return Validator(
         execution_engine=PandasExecutionEngine(),
@@ -949,7 +949,7 @@ def build_sa_validator_with_data(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIX
         _debug(f"Took {_end - _start} seconds to df.to_sql for {sa_engine_name} {extra_debug_info}")
 
     if context is None:
-        context = build_in_memory_runtime_context()
+        context = get_context(mode="ephemeral")
 
     if batch_definition is None:
         # maintain legacy behavior - standup a dummy LegacyBatchDefinition
@@ -1013,7 +1013,7 @@ def build_spark_validator_with_data(
     )
 
     if context is None:
-        context = build_in_memory_runtime_context()
+        context = get_context(mode="ephemeral")
 
     return Validator(
         execution_engine=execution_engine,
