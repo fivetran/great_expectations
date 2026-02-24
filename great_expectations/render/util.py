@@ -469,8 +469,9 @@ def _convert_unexpected_indices_to_df(
 
 def truncate_list_of_indices(indices: list[int | str], max_index: int = 10) -> str:
     """
-    Lambda function used to take unexpected_indices and turn into a string that can be rendered in DataDocs.
-    For lists that are greater than max_index, it will truncate the list and add a "..."
+    Lambda function used to take unexpected_indices and turn into a string
+    that can be rendered in DataDocs.For lists that are greater than max_index,
+    it will truncate the list and add a "..."
 
     Args:
         indices: indices to show
@@ -478,14 +479,19 @@ def truncate_list_of_indices(indices: list[int | str], max_index: int = 10) -> s
 
     Returns:
         string of indices that are joined using ` `
-
-    """  # noqa: E501 # FIXME CoP
-    if not isinstance(indices, list):
-        indices = list(indices)
+    """
     if len(indices) > max_index:
         indices = indices[:max_index]
         indices.append("...")
     return ", ".join(map(str, indices))
+
+
+def coerce_stringdtype_to_object(df: pd.DataFrame) -> pd.DataFrame:
+    """Convert StringDtype columns to object dtype for Altair compatibility."""
+    for col in df.columns:
+        if isinstance(df[col].dtype, pd.StringDtype):
+            df[col] = df[col].astype("object")
+    return df
 
 
 def parse_row_condition_string(condition_string: str) -> str:

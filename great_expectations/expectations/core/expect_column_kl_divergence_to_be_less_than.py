@@ -45,6 +45,7 @@ from great_expectations.render.renderer_configuration import (
     RendererValueType,
 )
 from great_expectations.render.util import (
+    coerce_stringdtype_to_object,
     num_to_str,
     parse_row_condition_string,
     substitute_none_for_missing,
@@ -1027,7 +1028,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
         return expected_distribution
 
     @classmethod
-    def _atomic_kl_divergence_chart_template(cls, partition_object: dict) -> tuple:  # noqa: C901 #  134 lines
+    def _atomic_kl_divergence_chart_template(cls, partition_object: dict) -> tuple:
         weights = partition_object.get("weights", [])
 
         chart_pixel_width = (len(weights) / 60.0) * 500
@@ -1079,10 +1080,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
                 values = partition_object["values"]
 
             df = pd.DataFrame({"values": values, "fraction": weights})
-            # Convert StringDtype columns to object dtype for Altair compatibility
-            for col in df.columns:
-                if isinstance(df[col].dtype, pd.StringDtype):
-                    df[col] = df[col].astype("object")
+            coerce_stringdtype_to_object(df)
 
             bars = (
                 alt.Chart(df)

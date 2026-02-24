@@ -497,7 +497,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
                 except ImportError:
                     raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                         "pandas.read_gbq was removed in pandas 3.0.0. "
-                        "Please install pandas-gbq and use pandas_gbq.read_gbq instead. "
+                        "Please install pandas-gbq, `pip install pandas-gbq`"
                         "See https://pandas-gbq.readthedocs.io/ for more information."
                     )
             else:
