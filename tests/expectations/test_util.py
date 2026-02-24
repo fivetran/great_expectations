@@ -330,7 +330,7 @@ def test_table_column_reflection_fallback(test_backends, sa):
     include_sqlalchemy: bool = "sqlite" in test_backends
     include_postgresql: bool = "postgresql" in test_backends
     include_mysql: bool = "mysql" in test_backends
-    include_mssql: bool = "mssql" in test_backends
+    include_sql_server: bool = "mssql" in test_backends
     include_bigquery: bool = "bigquery" in test_backends
     include_trino: bool = "trino" in test_backends
     include_clickhouse: bool = "clickhouse" in test_backends
@@ -344,7 +344,7 @@ def test_table_column_reflection_fallback(test_backends, sa):
         include_sqlalchemy=include_sqlalchemy,
         include_postgresql=include_postgresql,
         include_mysql=include_mysql,
-        include_mssql=include_mssql,
+        include_sql_server=include_sql_server,
         include_bigquery=include_bigquery,
         include_trino=include_trino,
         include_clickhouse=include_clickhouse,

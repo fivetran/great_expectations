@@ -17,7 +17,7 @@ class GXSqlDialect(Enum):
     DATABRICKS = "databricks"
     DREMIO = "dremio"
     HIVE = "hive"
-    MSSQL = "mssql"
+    SQL_SERVER = "mssql"
     MYSQL = "mysql"
     ORACLE = "oracle"
     POSTGRESQL = "postgresql"
@@ -65,7 +65,7 @@ class GXSqlDialect(Enum):
 
 DIALECT_IDENTIFIER_QUOTE_STRINGS: Final[Mapping[GXSqlDialect, tuple[str, str]]] = {
     GXSqlDialect.DATABRICKS: ("`", "`"),
-    GXSqlDialect.MSSQL: ("[", "]"),
+    GXSqlDialect.SQL_SERVER: ("[", "]"),
     GXSqlDialect.MYSQL: ("`", "`"),
     GXSqlDialect.POSTGRESQL: ('"', '"'),
     GXSqlDialect.SNOWFLAKE: ('"', '"'),
@@ -88,8 +88,8 @@ def _strip_quotes(s: str, dialect: GXSqlDialect) -> str:
     open_q, close_q = DIALECT_IDENTIFIER_QUOTE_STRINGS[dialect]
     if s.startswith(open_q) and s.endswith(close_q):
         return s[len(open_q) : -len(close_q)]
-    # MSSQL also accepts double quotes when QUOTED_IDENTIFIER is ON
-    if dialect == GXSqlDialect.MSSQL and s.startswith('"') and s.endswith('"'):
+    # SQL Server also accepts double quotes when QUOTED_IDENTIFIER is ON
+    if dialect == GXSqlDialect.SQL_SERVER and s.startswith('"') and s.endswith('"'):
         return s[1:-1]
     return s
 

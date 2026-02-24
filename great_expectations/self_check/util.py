@@ -104,7 +104,7 @@ expectationSuiteValidationResultSchema = ExpectationSuiteValidationResultSchema(
 expectationConfigurationSchema = ExpectationConfigurationSchema()
 expectationSuiteSchema = ExpectationSuiteSchema()
 
-# mysql and mssql allow table names to be a maximum of 128 characters
+# mysql and SQL Server allow table names to be a maximum of 128 characters
 # for postgres it is 63.
 MAX_TABLE_NAME_LENGTH: int = 63
 
@@ -204,53 +204,53 @@ except (ImportError, KeyError):
 try:
     # SQLAlchemy does not export the "INT" type for the MS SQL Server dialect; however "INT" is supported by the engine.  # noqa: E501 # FIXME CoP
     # Since SQLAlchemy exports the "INTEGER" type for the MS SQL Server dialect, alias "INT" to the "INTEGER" type.  # noqa: E501 # FIXME CoP
-    import sqlalchemy.dialects.mssql as mssqltypes  # noqa: TID251 # FIXME CoP
+    import sqlalchemy.dialects.mssql as sql_server_types  # noqa: TID251 # FIXME CoP
 
     # noinspection PyPep8Naming
-    from sqlalchemy.dialects.mssql import dialect as mssqlDialect  # noqa: TID251 # FIXME CoP
+    from sqlalchemy.dialects.mssql import dialect as sql_server_dialect  # noqa: TID251 # FIXME CoP
 
     try:
-        mssqltypes.INT  # type: ignore[attr-defined] # noqa: B018 # reassigning if attr not found
+        sql_server_types.INT  # type: ignore[attr-defined] # noqa: B018 # reassigning if attr not found
     except AttributeError:
-        mssqltypes.INT = mssqltypes.INTEGER  # type: ignore[attr-defined] # FIXME CoP
+        sql_server_types.INT = sql_server_types.INTEGER  # type: ignore[attr-defined] # FIXME CoP
 
     # noinspection PyUnresolvedReferences
-    MSSQL_TYPES = {
-        "BIGINT": mssqltypes.BIGINT,
-        "BINARY": mssqltypes.BINARY,
-        "BIT": mssqltypes.BIT,
-        "CHAR": mssqltypes.CHAR,
-        "DATE": mssqltypes.DATE,
-        "DATETIME": mssqltypes.DATETIME,
-        "DATETIME2": mssqltypes.DATETIME2,
-        "DATETIMEOFFSET": mssqltypes.DATETIMEOFFSET,
-        "DECIMAL": mssqltypes.DECIMAL,
-        "FLOAT": mssqltypes.FLOAT,
-        "IMAGE": mssqltypes.IMAGE,
-        "INT": mssqltypes.INT,  # type: ignore[attr-defined] # FIXME CoP
-        "INTEGER": mssqltypes.INTEGER,
-        "MONEY": mssqltypes.MONEY,
-        "NCHAR": mssqltypes.NCHAR,
-        "NTEXT": mssqltypes.NTEXT,
-        "NUMERIC": mssqltypes.NUMERIC,
-        "NVARCHAR": mssqltypes.NVARCHAR,
-        "REAL": mssqltypes.REAL,
-        "SMALLDATETIME": mssqltypes.SMALLDATETIME,
-        "SMALLINT": mssqltypes.SMALLINT,
-        "SMALLMONEY": mssqltypes.SMALLMONEY,
-        "SQL_VARIANT": mssqltypes.SQL_VARIANT,
-        "TEXT": mssqltypes.TEXT,
-        "TIME": mssqltypes.TIME,
-        "TIMESTAMP": mssqltypes.TIMESTAMP,
-        "TINYINT": mssqltypes.TINYINT,
-        "UNIQUEIDENTIFIER": mssqltypes.UNIQUEIDENTIFIER,
-        "VARBINARY": mssqltypes.VARBINARY,
-        "VARCHAR": mssqltypes.VARCHAR,
+    SQL_SERVER_TYPES = {
+        "BIGINT": sql_server_types.BIGINT,
+        "BINARY": sql_server_types.BINARY,
+        "BIT": sql_server_types.BIT,
+        "CHAR": sql_server_types.CHAR,
+        "DATE": sql_server_types.DATE,
+        "DATETIME": sql_server_types.DATETIME,
+        "DATETIME2": sql_server_types.DATETIME2,
+        "DATETIMEOFFSET": sql_server_types.DATETIMEOFFSET,
+        "DECIMAL": sql_server_types.DECIMAL,
+        "FLOAT": sql_server_types.FLOAT,
+        "IMAGE": sql_server_types.IMAGE,
+        "INT": sql_server_types.INT,  # type: ignore[attr-defined] # FIXME CoP
+        "INTEGER": sql_server_types.INTEGER,
+        "MONEY": sql_server_types.MONEY,
+        "NCHAR": sql_server_types.NCHAR,
+        "NTEXT": sql_server_types.NTEXT,
+        "NUMERIC": sql_server_types.NUMERIC,
+        "NVARCHAR": sql_server_types.NVARCHAR,
+        "REAL": sql_server_types.REAL,
+        "SMALLDATETIME": sql_server_types.SMALLDATETIME,
+        "SMALLINT": sql_server_types.SMALLINT,
+        "SMALLMONEY": sql_server_types.SMALLMONEY,
+        "SQL_VARIANT": sql_server_types.SQL_VARIANT,
+        "TEXT": sql_server_types.TEXT,
+        "TIME": sql_server_types.TIME,
+        "TIMESTAMP": sql_server_types.TIMESTAMP,
+        "TINYINT": sql_server_types.TINYINT,
+        "UNIQUEIDENTIFIER": sql_server_types.UNIQUEIDENTIFIER,
+        "VARBINARY": sql_server_types.VARBINARY,
+        "VARCHAR": sql_server_types.VARCHAR,
     }
 except (ImportError, KeyError):
-    mssqltypes = None  # type: ignore[assignment] # FIXME CoP
-    mssqlDialect = None  # type: ignore[assignment] # FIXME CoP
-    MSSQL_TYPES = {}
+    sql_server_types = None  # type: ignore[assignment] # FIXME CoP
+    sql_server_dialect = None  # type: ignore[assignment] # FIXME CoP
+    SQL_SERVER_TYPES = {}
 
 
 try:
@@ -789,8 +789,8 @@ def build_sa_validator_with_data(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIX
         pass
 
     try:
-        dialect_classes["mssql"] = mssqltypes.dialect
-        dialect_types["mssql"] = MSSQL_TYPES
+        dialect_classes["mssql"] = sql_server_types.dialect
+        dialect_types["mssql"] = SQL_SERVER_TYPES
     except AttributeError:
         pass
 
@@ -1209,7 +1209,7 @@ def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME C
     include_sqlite=True,
     include_postgresql=False,
     include_mysql=False,
-    include_mssql=False,
+    include_sql_server=False,
     include_bigquery=False,
     include_aws=False,
     include_clickhouse=False,
@@ -1295,7 +1295,7 @@ def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME C
             else:
                 test_backends += ["mysql"]
 
-        if include_mssql:
+        if include_sql_server:
             connection_string = (
                 "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@127.0.0.1:1433/test_ci"
                 "?driver=ODBC Driver 18 for SQL Server&charset=utf8"
@@ -1308,13 +1308,13 @@ def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME C
             except (ImportError, sa.exc.SQLAlchemyError):
                 if raise_exceptions_for_backends is True:
                     raise ImportError(  # noqa: TRY003 # FIXME CoP
-                        "mssql tests are requested, but unable to connect to the mssql database at "
-                        f"{connection_string}",
+                        "SQL Server tests are requested, but unable to connect"
+                        f" to the SQL Server database at {connection_string}",
                     )
                 else:
                     logger.warning(
-                        "mssql tests are requested, but unable to connect to the mssql database at "
-                        f"{connection_string}",
+                        "SQL Server tests are requested, but unable to connect"
+                        f" to the SQL Server database at {connection_string}",
                     )
             else:
                 test_backends += ["mssql"]
@@ -1516,7 +1516,7 @@ def generate_expectation_tests(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME
         include_sqlite=dialects_to_include.get("sqlite", False),
         include_postgresql=dialects_to_include.get("postgresql", False),
         include_mysql=dialects_to_include.get("mysql", False),
-        include_mssql=dialects_to_include.get("mssql", False),
+        include_sql_server=dialects_to_include.get("mssql", False),
         include_bigquery=dialects_to_include.get("bigquery", False),
         include_clickhouse=dialects_to_include.get("clickhouse", False),
         include_trino=dialects_to_include.get("trino", False),

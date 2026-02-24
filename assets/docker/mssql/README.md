@@ -1,8 +1,8 @@
-After running `docker compose up -d` in this directory to start the mssql container.
+After running `docker compose up -d` in this directory to start the SQL Server container.
 
 A second service will create the `test_ci` database required for the tests. This service will exit once it has created the database. If the database exists, it will noop. This is normal.
 
-You should now be able to run the tests via `pytest --mssql`
+You should now be able to run the tests via `pytest --sql-server`
 
 ## If your Mac computer has an Apple M1 chip, you might need to
 

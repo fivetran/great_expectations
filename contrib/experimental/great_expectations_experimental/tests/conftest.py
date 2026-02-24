@@ -35,7 +35,7 @@ def pytest_addoption(parser):
         help="If set, execute tests against mysql",
     )
     parser.addoption(
-        "--mssql",
+        "--sql-server",
         action="store_true",
         help="If set, execute tests against mssql",
     )

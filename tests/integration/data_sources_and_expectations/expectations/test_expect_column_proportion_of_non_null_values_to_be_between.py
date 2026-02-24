@@ -20,7 +20,6 @@ from tests.integration.test_utils.data_source_config.big_query import BigQueryDa
 from tests.integration.test_utils.data_source_config.databricks import (
     DatabricksDatasourceTestConfig,
 )
-from tests.integration.test_utils.data_source_config.mssql import MSSQLDatasourceTestConfig
 from tests.integration.test_utils.data_source_config.mysql import MySQLDatasourceTestConfig
 from tests.integration.test_utils.data_source_config.pandas_data_frame import (
     PandasDataFrameDatasourceTestConfig,
@@ -33,6 +32,7 @@ from tests.integration.test_utils.data_source_config.snowflake import SnowflakeD
 from tests.integration.test_utils.data_source_config.spark_filesystem_csv import (
     SparkFilesystemCsvDatasourceTestConfig,
 )
+from tests.integration.test_utils.data_source_config.sql_server import SQLServerDatasourceTestConfig
 from tests.integration.test_utils.data_source_config.sqlite import SqliteDatasourceTestConfig
 
 ALL_NONNULL_COL = "all_nonnull"
@@ -75,7 +75,7 @@ except ModuleNotFoundError:
 ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(column_types=COLUMN_TYPES),
     DatabricksDatasourceTestConfig(column_types=COLUMN_TYPES),
-    MSSQLDatasourceTestConfig(column_types=COLUMN_TYPES),
+    SQLServerDatasourceTestConfig(column_types=COLUMN_TYPES),
     MySQLDatasourceTestConfig(column_types=COLUMN_TYPES),
     PandasDataFrameDatasourceTestConfig(),
     PandasFilesystemCsvDatasourceTestConfig(),

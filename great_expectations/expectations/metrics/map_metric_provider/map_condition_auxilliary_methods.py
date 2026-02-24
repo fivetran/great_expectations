@@ -310,7 +310,7 @@ def _sqlalchemy_map_condition_unexpected_count_value(
         count_selectable = count_selectable.select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
 
     try:
-        if execution_engine.dialect_name == GXSqlDialect.MSSQL:
+        if execution_engine.dialect_name == GXSqlDialect.SQL_SERVER:
             with execution_engine.get_connection() as connection:
                 if not connection.closed:
                     temp_table_obj = _generate_temp_table(

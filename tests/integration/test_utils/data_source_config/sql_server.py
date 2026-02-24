@@ -16,12 +16,12 @@ from tests.integration.test_utils.data_source_config.base import (
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
-from tests.test_utils import get_default_mssql_url
+from tests.test_utils import get_default_sql_server_url
 
 logger = logging.getLogger(__name__)
 
 
-class MSSQLDatasourceTestConfig(DataSourceTestConfig):
+class SQLServerDatasourceTestConfig(DataSourceTestConfig):
     @property
     @override
     def label(self) -> str:
@@ -30,7 +30,7 @@ class MSSQLDatasourceTestConfig(DataSourceTestConfig):
     @property
     @override
     def pytest_mark(self) -> pytest.MarkDecorator:
-        return pytest.mark.mssql
+        return pytest.mark.sql_server
 
     @override
     def create_batch_setup(
@@ -41,7 +41,7 @@ class MSSQLDatasourceTestConfig(DataSourceTestConfig):
         context: AbstractDataContext,
         engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
-        return MSSQLBatchTestSetup(
+        return SQLServerBatchTestSetup(
             data=data,
             config=self,
             extra_data=extra_data,
@@ -51,11 +51,11 @@ class MSSQLDatasourceTestConfig(DataSourceTestConfig):
         )
 
 
-class MSSQLBatchTestSetup(SQLBatchTestSetup[MSSQLDatasourceTestConfig]):
+class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
     @property
     @override
     def connection_string(self) -> str:
-        return get_default_mssql_url()
+        return get_default_sql_server_url()
 
     @property
     @override
@@ -87,7 +87,7 @@ class MSSQLBatchTestSetup(SQLBatchTestSetup[MSSQLDatasourceTestConfig]):
     def teardown(self) -> None:
         """Override teardown to dispose cached engines before DROP SCHEMA.
 
-        MSSQL holds schema locks on connections. Disposing the session manager's
+        SQL Server holds schema locks on connections. Disposing the session manager's
         cached engine releases all pool connections before we run DROP, avoiding
         hangs. We use a fresh engine for the drop since the cached one was disposed.
         """

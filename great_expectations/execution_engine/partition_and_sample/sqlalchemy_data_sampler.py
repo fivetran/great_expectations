@@ -71,9 +71,9 @@ class SqlAlchemyDataSampler(DataSampler):
             )
             query += "\nAND ROWNUM <= %d" % batch_spec["sampling_kwargs"]["n"]  # noqa: UP031 # FIXME CoP
             return query
-        elif dialect_name == GXSqlDialect.MSSQL:
+        elif dialect_name == GXSqlDialect.SQL_SERVER:
             # Note that this code path exists because the limit parameter is not getting rendered
-            # successfully in the resulting mssql query.
+            # successfully in the resulting SQL Server query.
             selectable_query: sqlalchemy.Selectable = (
                 sa.select("*")
                 .select_from(sa.table(table_name, schema=batch_spec.get("schema_name", None)))
@@ -87,7 +87,7 @@ class SqlAlchemyDataSampler(DataSampler):
                 )
             )
             n: Union[str, int] = batch_spec["sampling_kwargs"]["n"]
-            self._validate_mssql_limit_param(n)
+            self._validate_sql_server_limit_param(n)
             # This string replacement is here because the limit parameter is not substituted during query.compile()  # noqa: E501 # FIXME CoP
             string_of_query = string_of_query.replace("?", str(n))
             return string_of_query
@@ -100,11 +100,11 @@ class SqlAlchemyDataSampler(DataSampler):
             )
 
     @staticmethod
-    def _validate_mssql_limit_param(n: Union[str, int]) -> None:
-        """Validate that the mssql limit param is passed as an int or a string representation of an int.
+    def _validate_sql_server_limit_param(n: Union[str, int]) -> None:
+        """Validate that the SQL Server limit param is passed as an int or a string representation of an int.
 
         Args:
-            n: mssql limit parameter.
+            n: SQL Server limit parameter.
 
         Returns:
             None

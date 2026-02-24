@@ -13,13 +13,13 @@ from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
     DataSourceTestConfig,
-    MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     RedshiftDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
     # SqliteDatasourceTestConfig,
+    SQLServerDatasourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.base import Mapping
 
@@ -27,7 +27,7 @@ from tests.integration.test_utils.data_source_config.base import Mapping
 ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
-    MSSQLDatasourceTestConfig(),
+    SQLServerDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
@@ -41,7 +41,7 @@ ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
 # pandas not currently supported by this Expecatation
 EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     DatabricksDatasourceTestConfig(),
-    MSSQLDatasourceTestConfig(),
+    SQLServerDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
@@ -53,7 +53,7 @@ EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
 _PARTITIONER_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
-    MSSQLDatasourceTestConfig(),
+    SQLServerDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
@@ -66,7 +66,7 @@ _PARTITIONER_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
 # pandas and spark not currently supporting partitioners
 PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     DatabricksDatasourceTestConfig(),
-    MSSQLDatasourceTestConfig(),
+    SQLServerDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
@@ -74,11 +74,13 @@ PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig
     # SqliteDatasourceTestConfig(),  # fix me
 ]
 
-# NOTE: MSSQL requires the TOP expression to be used in nested queries that use ORDER BY,
-#       so we have to group by this requirement.
+# NOTE: SQL Server historically required the TOP expression in nested queries that use ORDER BY,
+#       so tests were grouped by this requirement.  Since GX-2551, ORDER BY is automatically
+#       stripped for the COUNT(*) path, so SQL Server can handle ORDER BY without TOP transparently.
+#       The existing TOP/non-TOP test split is kept for backwards-compatibility coverage.
 # strings correspond to `label` property on TestConfig instances
 DATA_SOURCE_TYPES_THAT_REQUIRE_TOP_EXPRESSION = {
-    MSSQLDatasourceTestConfig().label,
+    SQLServerDatasourceTestConfig().label,
 }
 
 DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION: Sequence[DataSourceTestConfig] = [
@@ -577,3 +579,49 @@ def test_success_with_suite_param_other_table_name_with_top_expression(
         expectation, expectation_parameters={suite_param_key: unexpected_rows_query}
     )
     assert result.success
+
+
+SQL_SERVER_ORDER_BY_WITHOUT_TOP_SUCCESS_QUERIES = [
+    "SELECT * FROM {batch} WHERE quantity > 2 ORDER BY quantity DESC",
+    "SELECT * FROM {batch} WHERE quantity > 2 ORDER BY quantity ASC, temperature DESC",
+]
+
+SQL_SERVER_ORDER_BY_WITHOUT_TOP_FAILURE_QUERIES = [
+    "SELECT * FROM {batch} WHERE quantity > 0 ORDER BY quantity DESC",
+]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION,
+    data=TABLE_1,
+)
+@pytest.mark.parametrize("unexpected_rows_query", SQL_SERVER_ORDER_BY_WITHOUT_TOP_SUCCESS_QUERIES)
+def test_sql_server_order_by_without_top_works_transparently_success(
+    batch_for_datasource,
+    unexpected_rows_query,
+) -> None:
+    expectation = gxe.UnexpectedRowsExpectation(
+        description="ORDER BY without TOP should work on SQL Server",
+        unexpected_rows_query=unexpected_rows_query,
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+    assert result.exception_info.get("raised_exception") is False
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES_THAT_REQUIRE_TOP_EXPRESSION,
+    data=TABLE_1,
+)
+@pytest.mark.parametrize("unexpected_rows_query", SQL_SERVER_ORDER_BY_WITHOUT_TOP_FAILURE_QUERIES)
+def test_sql_server_order_by_without_top_works_transparently_failure(
+    batch_for_datasource,
+    unexpected_rows_query,
+) -> None:
+    expectation = gxe.UnexpectedRowsExpectation(
+        description="ORDER BY without TOP should work on SQL Server (failing case)",
+        unexpected_rows_query=unexpected_rows_query,
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success is False
+    assert result.exception_info.get("raised_exception") is False
