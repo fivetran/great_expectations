@@ -973,29 +973,6 @@ jobs:
       - name: Run the tests
         run: invoke ci-tests -m unit --xdist --slowest=10  --timeout=2.0
 
-  pandas3-test:
-    needs: [unit-tests, static-analysis, check-actor-permissions]
-    if: github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-          cache: "pip"
-          cache-dependency-path: reqs/requirements-dev-test.txt
-
-      - name: Install dependencies
-        run: pip install . -c ci/constraints-test/pandas3-min-install.txt -r reqs/requirements-dev-test.txt
-
-      - name: Run the tests
-        run: invoke ci-tests -m unit --xdist --slowest=10  --timeout=2.0
-
   airflow-min-versions:
     needs: [unit-tests, static-analysis, check-actor-permissions]
     runs-on: ubuntu-latest
@@ -1069,7 +1046,6 @@ jobs:
         py313-min-versions,
         pydantic-v1,
         pandas2-test,
-        pandas3-test,
         airflow-min-versions,
         import_gx,
       ]
@@ -1121,7 +1097,6 @@ jobs:
         py313-min-versions,
         pydantic-v1,
         pandas2-test,
-        pandas3-test,
         airflow-min-versions,
         import_gx,
         build-n-publish,
