@@ -77,7 +77,6 @@ from great_expectations.self_check.util import (
     expectationSuiteValidationResultSchema,
 )
 from great_expectations.util import (
-    build_in_memory_runtime_context,
     is_library_loadable,
 )
 from great_expectations.validator.metric_configuration import MetricConfiguration
@@ -2052,7 +2051,7 @@ def multibatch_generic_csv_generator():
 
 @pytest.fixture
 def in_memory_runtime_context() -> AbstractDataContext:
-    return build_in_memory_runtime_context()
+    return gx.get_context(mode="ephemeral")
 
 
 @pytest.fixture
