@@ -308,17 +308,12 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     def _normalize_python_type(self, value_type: type) -> type:
         """Normalize numpy types to their Python equivalents for type inference."""
-        try:
-            if issubclass(value_type, np.integer):
-                return int
-            if issubclass(value_type, np.floating):
-                return float
-            if issubclass(value_type, np.bool_):
-                return bool
-        except TypeError:
-            # value_type is not a class or doesn't support issubclass check
-            # This shouldn't happen since type() always returns a class, but be defensive
-            pass
+        if issubclass(value_type, np.integer):
+            return int
+        if issubclass(value_type, np.floating):
+            return float
+        if issubclass(value_type, np.bool_):
+            return bool
         return value_type
 
     def _infer_column_types(self, data: pd.DataFrame) -> InferredColumnTypes:
