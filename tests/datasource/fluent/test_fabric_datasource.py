@@ -29,9 +29,9 @@ def entra_id_connection_details() -> ConnectionDetailsDict:
         "driver": "ODBC Driver 18 for SQL Server",
         "encrypt": "Mandatory",
         "authentication": "Entra ID Service Principal",
+        "tenant_id": "my-tenant-id-456",
         "client_id": "my-client-id-123",
         "client_secret": "my-secret",
-        "tenant_id": "my-tenant-id-456",
     }
 
 
@@ -85,9 +85,9 @@ class TestAddFabricDatasourceAPI:
                 host="myserver.database.fabric.microsoft.com",
                 database="mydb",
                 schema="dbo",
+                tenant_id="my-tenant-id-456",
                 client_id="my-client-id-123",
                 client_secret="my-secret",
-                tenant_id="my-tenant-id-456",
             ),
         )
         assert isinstance(source, FabricDatasource)
@@ -103,9 +103,9 @@ class TestAddFabricDatasourceAPI:
             host="myserver.database.fabric.microsoft.com",
             database="mydb",
             schema="dbo",
+            tenant_id="my-tenant-id-456",
             client_id="my-client-id-123",
             client_secret="my-secret",
-            tenant_id="my-tenant-id-456",
         )
         assert isinstance(source.connection_string, EntraIDServicePrincipalAuthConnectionDetails)
         assert source.connection_string.authentication == "Entra ID Service Principal"

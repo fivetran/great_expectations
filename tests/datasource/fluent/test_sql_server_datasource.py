@@ -97,9 +97,9 @@ def entra_id_service_principal_connection_details_default() -> ConnectionDetails
         "driver": "ODBC Driver 18 for SQL Server",
         "encrypt": "Mandatory",
         "authentication": "Entra ID Service Principal",
+        "tenant_id": "my-tenant-id-456",
         "client_id": "my-client-id-123",
         "client_secret": "my-secret",
-        "tenant_id": "my-tenant-id-456",
     }
 
 
@@ -258,9 +258,9 @@ class TestEntraIDServicePrincipalAuthConnectionDetails:
             host="myserver.database.windows.net",
             database="mydb",
             schema="dbo",
+            tenant_id="my-tenant-id-456",
             client_id="my-client-id-123",
             client_secret="my-secret",
-            tenant_id="my-tenant-id-456",
         )
         assert details.dict(by_alias=True, exclude_unset=False) == {
             "host": "myserver.database.windows.net",
@@ -280,9 +280,9 @@ class TestEntraIDServicePrincipalAuthConnectionDetails:
             host="myserver",
             database="mydb",
             schema="dbo",
+            tenant_id="my-tenant-id",
             client_id="my-client-id",
             client_secret="${MY_CLIENT_SECRET}",
-            tenant_id="my-tenant-id",
         )
         assert isinstance(details.client_secret, ConfigStr)
         assert str(details.client_secret) == "${MY_CLIENT_SECRET}"
@@ -325,9 +325,9 @@ class TestBuildConnectionStringEntraID:
                 host="myserver.database.windows.net",
                 database="mydb",
                 schema="dbo",
+                tenant_id="my-tenant-id",
                 client_id="my-client-id",
                 client_secret="p@ss:w/rd",
-                tenant_id="my-tenant-id",
             ),
         )
         result = ds._build_connection_string()
@@ -342,9 +342,9 @@ class TestBuildConnectionStringEntraID:
                 database="mydb",
                 schema="dbo",
                 encrypt="Optional",
+                tenant_id="my-tenant-id",
                 client_id="my-client-id",
                 client_secret="secret",
-                tenant_id="my-tenant-id",
             ),
         )
         result = ds._build_connection_string()
@@ -541,9 +541,9 @@ class TestAddSQLServerDatasourceAPI:
             database="mydb",
             schema="dbo",
             authentication="Entra ID Service Principal",
+            tenant_id="my-tenant-id-456",
             client_id="my-client-id-123",
             client_secret="my-secret",
-            tenant_id="my-tenant-id-456",
         )
         assert source.dict(by_alias=True, exclude_unset=False, exclude={"id"}) == {
             "type": "sql_server",
@@ -650,9 +650,9 @@ def azure_ad_service_principal_datasource() -> SQLServerDatasource:
             host="myserver.database.windows.net",
             database="mydb",
             schema="dbo",
+            tenant_id="my-tenant-id",
             client_id="my-client-id",
             client_secret="my-secret",
-            tenant_id="my-tenant-id",
         ),
     )
 
