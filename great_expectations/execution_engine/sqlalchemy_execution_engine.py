@@ -179,7 +179,7 @@ SQLAColumnClause: TypeAlias = object  # sqlalchemy isn't installed in all enviro
 
 _PERSISTED_CONNECTION_DIALECTS = (
     GXSqlDialect.SQLITE,
-    GXSqlDialect.MSSQL,
+    GXSqlDialect.SQL_SERVER,
     GXSqlDialect.BIGQUERY,
     GXSqlDialect.DATABRICKS,
 )
@@ -253,7 +253,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
         engine (Engine): A SqlAlchemy Engine used to set the SqlAlchemyExecutionEngine being configured, \
             useful if an Engine has already been configured and should be reused. Will override Credentials if \
             provided. If you are passing an engine that requires a single connection e.g. if temporary tables are \
-            not persisted if the connection is closed (e.g. sqlite, mssql) then you should create the engine with \
+            not persisted if the connection is closed (e.g. sqlite, SQL Server) then you should create the engine with \
             a StaticPool e.g. engine = sa.create_engine(connection_url, poolclass=sa.pool.StaticPool)
         connection_string (string): If neither the engines nor the credentials have been provided, a \
             connection string can be used to access the data. This will be overridden by both the engine and \
@@ -292,7 +292,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
         self._create_temp_table = create_temp_table
         os.environ["SF_PARTNER"] = "great_expectations_oss"  # noqa: TID251 # FIXME CoP
 
-        # sqlite/mssql temp tables only persist within a connection, so we need to keep the connection alive by  # noqa: E501 # FIXME CoP
+        # sqlite/SQL Server temp tables only persist within a connection, so we need to keep the connection alive by  # noqa: E501 # FIXME CoP
         # keeping a reference to it.
         # Even though we use a single connection pool for dialects that need a single persisted connection  # noqa: E501 # FIXME CoP
         # (e.g. for accessing temporary tables), if we don't keep a reference
@@ -336,7 +336,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             GXSqlDialect.MYSQL,
             GXSqlDialect.SQLITE,
             GXSqlDialect.ORACLE,
-            GXSqlDialect.MSSQL,
+            GXSqlDialect.SQL_SERVER,
         ]:
             # These are the officially included and supported dialects by sqlalchemy
             self.dialect_module = import_library_module(
@@ -377,7 +377,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
         self._engine_backup = None
         if self.engine and self.dialect_name in [
             GXSqlDialect.SQLITE,
-            GXSqlDialect.MSSQL,
+            GXSqlDialect.SQL_SERVER,
             GXSqlDialect.SNOWFLAKE,
             GXSqlDialect.MYSQL,
         ]:
@@ -625,10 +625,15 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             # (i.e. multiple record sets (tables) in one batch
             if domain_kwargs["table"] != data_object.selectable.name:
                 # noinspection PyProtectedMember
+                # _schema_name is set when using the table_name path in SqlAlchemyBatchData.
+                # _source_schema_name is set when using the selectable path (fluent API).
+                # We need to check both to properly schema-qualify the "other" table in queries that
+                # join across tables.
+                schema = data_object._schema_name or data_object._source_schema_name
                 selectable = sa.Table(
                     domain_kwargs["table"],
                     sa.MetaData(),
-                    schema=data_object._schema_name,
+                    schema=schema,
                 )
             else:
                 selectable = data_object.selectable
@@ -1429,7 +1434,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
     def get_connection(self) -> Generator[sqlalchemy.Connection, None, None]:
         """Get a connection for executing queries.
 
-        Some databases sqlite/mssql temp tables only persist within a connection,
+        Some databases sqlite/SQL Server temp tables only persist within a connection,
         so we need to keep the connection alive by keeping a reference to it.
         Even though we use a single connection pool for dialects that need a single persisted connection
         (e.g. for accessing temporary tables), if we don't keep a reference
@@ -1474,7 +1479,18 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             # Connection has an invalid transaction from a previous failed operation
             # Roll back and retry with the same connection
             connection.rollback()
-            return connection.execute(query)  # type: ignore[arg-type] # Selectable union type too broad
+            try:
+                return connection.execute(query)  # type: ignore[arg-type] # Selectable union type too broad
+            except Exception:
+                # Retry also failed - roll back again so the connection is left clean.
+                # Without this, the deactivated transaction causes pyodbc to issue a
+                # blocking ROLLBACK when the persistent SQL Server connection is closed
+                # during teardown, which causes intermittent test hangs.
+                try:
+                    connection.rollback()
+                except Exception:
+                    pass
+                raise
 
     @new_method_or_class(version="0.16.14")
     def execute_query(

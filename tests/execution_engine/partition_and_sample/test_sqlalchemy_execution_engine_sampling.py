@@ -95,7 +95,7 @@ def dialect_name_to_sql_statement():
             GXSqlDialect.POSTGRESQL: "SELECT * FROM TEST_SCHEMA_NAME.TEST_TABLE WHERE TRUE LIMIT 10",  # noqa: E501 # FIXME CoP
             GXSqlDialect.MYSQL: "SELECT * FROM TEST_SCHEMA_NAME.TEST_TABLE WHERE TRUE = 1 LIMIT 10",
             GXSqlDialect.ORACLE: "SELECT * FROM test_schema_name.test_table WHERE 1 = 1 AND ROWNUM <= 10",  # noqa: E501 # FIXME CoP
-            GXSqlDialect.MSSQL: "SELECT TOP 10 * FROM TEST_SCHEMA_NAME.TEST_TABLE WHERE 1 = 1",
+            GXSqlDialect.SQL_SERVER: "SELECT TOP 10 * FROM TEST_SCHEMA_NAME.TEST_TABLE WHERE 1 = 1",
             GXSqlDialect.SQLITE: "SELECT * FROM TEST_SCHEMA_NAME.TEST_TABLE WHERE 1 = 1 LIMIT 10 OFFSET 0",  # noqa: E501 # FIXME CoP
             GXSqlDialect.BIGQUERY: "SELECT * FROM `TEST_SCHEMA_NAME`.`TEST_TABLE` WHERE TRUE LIMIT 10",  # noqa: E501 # FIXME CoP
             GXSqlDialect.SNOWFLAKE: "SELECT * FROM TEST_SCHEMA_NAME.TEST_TABLE WHERE TRUE LIMIT 10",
@@ -158,7 +158,7 @@ def test_sample_using_limit_builds_correct_query_where_clause_none(  # noqa: C90
             GXSqlDialect.POSTGRESQL: "postgresql://",
             GXSqlDialect.MYSQL: "mysql+pymysql://",
             GXSqlDialect.ORACLE: "oracle+cx_oracle://",
-            GXSqlDialect.MSSQL: "mssql+pyodbc://",
+            GXSqlDialect.SQL_SERVER: "mssql+pyodbc://",
             GXSqlDialect.SQLITE: "sqlite:///",
             GXSqlDialect.BIGQUERY: "bigquery://",
             GXSqlDialect.SNOWFLAKE: "snowflake://",

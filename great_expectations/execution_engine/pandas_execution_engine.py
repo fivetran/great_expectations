@@ -20,6 +20,7 @@ from typing import (
 )
 
 import pandas as pd
+from packaging.version import Version
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility import aws, azure, google
@@ -484,15 +485,34 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
                 "reader_options"
             )  # This may not be there; use None in that case
 
-        try:
-            reader_fn = getattr(pd, reader_method)
-            if reader_options:
-                reader_fn = partial(reader_fn, **reader_options)
-            return reader_fn
-        except AttributeError:
-            raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
-                f'Unable to find reader_method "{reader_method}" in pandas.'
-            )
+        # Handle read_gbq which was removed from pandas 3.0.0+
+        # Use pandas_gbq.read_gbq instead
+        if reader_method == "read_gbq":
+            pandas_version = Version(pd.__version__)
+            if pandas_version >= Version("3.0.0"):
+                try:
+                    import pandas_gbq  # type: ignore[import-not-found] # Import  is only available when installing BigQuery Dependencies
+
+                    reader_fn = pandas_gbq.read_gbq
+                except ImportError:
+                    raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
+                        "pandas.read_gbq was removed in pandas 3.0.0. "
+                        "Please install pandas-gbq, `pip install pandas-gbq`"
+                        "See https://pandas-gbq.readthedocs.io/ for more information."
+                    )
+            else:
+                reader_fn = getattr(pd, reader_method)
+        else:
+            try:
+                reader_fn = getattr(pd, reader_method)
+            except AttributeError:
+                raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
+                    f'Unable to find reader_method "{reader_method}" in pandas.'
+                )
+
+        if reader_options:
+            reader_fn = partial(reader_fn, **reader_options)
+        return reader_fn
 
     @override
     def resolve_metric_bundle(self, metric_fn_bundle) -> dict[MetricConfigurationID, Any]:

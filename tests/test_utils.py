@@ -732,7 +732,7 @@ def introspect_db(  # noqa: C901, PLR0912 # FIXME CoP
     # This code was broken out from the InferredAssetSqlDataConnector when it was removed
     if information_schemas is None:
         information_schemas = [
-            "INFORMATION_SCHEMA",  # snowflake, mssql, mysql, oracle
+            "INFORMATION_SCHEMA",  # snowflake, SQL Server, mysql, oracle
             "information_schema",  # postgres, redshift, mysql
             "performance_schema",  # mysql
             "sys",  # mysql
@@ -904,8 +904,8 @@ def get_default_trino_url() -> str:
     return "trino://test@localhost:8088/memory/schema"
 
 
-def get_default_mssql_url() -> str:
-    """Get connection string to mssql container
+def get_default_sql_server_url() -> str:
+    """Get connection string to SQL Server container
     Returns:
         String of default connection to Docker container
     """

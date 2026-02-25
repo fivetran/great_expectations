@@ -63,7 +63,7 @@ class ExpectColumnMinimumBoundingRadiusToBeBetween(ColumnAggregateExpectation):
         column (str): \
             The column name.
             Column values must be provided in WKT or WKB format, which are commom formats for GIS Database formats.
-            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and MSSQL.
+            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and SQL Server.
             Column values can alternately be given in x,y tuple or list pairs.
             The user is responsible for the coordinate reference system and the units. e.g. values may be given in easting-northing pairs.
         min_value (float or None): \
@@ -80,7 +80,7 @@ class ExpectColumnMinimumBoundingRadiusToBeBetween(ColumnAggregateExpectation):
         column_shape_format: str
             Geometry format for 'column' (wkt, wkb, xy). Column values can be provided in WKT or WKB format, which are commom formats for GIS Database formats.
             xy also supports tuple pairs or list pairs for points only
-            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and MSSQL.
+            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and SQL Server.
             Must be one of: [wkt, wkb, xy]
             Default: wkt
         diameter_flag (boolean): \

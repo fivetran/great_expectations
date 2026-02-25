@@ -56,7 +56,7 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.ALLOY.value,
     SupportedDataSources.NEON.value,
     SupportedDataSources.MYSQL.value,
-    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.SQL_SERVER.value,
     SupportedDataSources.BIGQUERY.value,
     SupportedDataSources.SNOWFLAKE.value,
     SupportedDataSources.DATABRICKS.value,

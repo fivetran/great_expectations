@@ -84,7 +84,7 @@ class ExpectColumnValuesGeometryToBeWithinShape(ColumnMapExpectation):
         column (str): \
             The column name. \
             Column values must be provided in WKT or WKB format, which are commom formats for GIS Database formats. \
-            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and MSSQL.
+            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and SQL Server.
 
     Keyword Args:
         shape (str or list of str): \
@@ -94,7 +94,7 @@ class ExpectColumnValuesGeometryToBeWithinShape(ColumnMapExpectation):
             Must be one of: [wkt, wkb, geojson]. Default: wkt
         column_shape_format (str): \
             Geometry format for 'column'. Column values must be provided in WKT or WKB format, which are commom formats for GIS Database formats. \
-            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and MSSQL.
+            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and SQL Server.
         properly (boolean): \
             Whether the 'column' values should be properly within in the reference 'shape'. \
             The method allows for shapes to be 'properly contained' within the reference, meaning no points of a given geometry can touch the boundary of the reference. \
