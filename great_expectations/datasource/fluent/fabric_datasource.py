@@ -10,6 +10,16 @@ from great_expectations.datasource.fluent.sql_server_datasource import (
 )
 
 
+class UnsupportedAuthenticationError(ValueError):
+    """Raised when a non-Entra ID authentication method is used with FabricDatasource."""
+
+    def __init__(self, authentication: str) -> None:
+        super().__init__(
+            f"FabricDatasource only supports Entra ID Service Principal "
+            f"authentication, got {authentication!r}."
+        )
+
+
 class FabricDatasource(SQLServerDatasource):
     """Adds a Microsoft Fabric datasource to the data context.
 
@@ -41,6 +51,9 @@ class FabricDatasource(SQLServerDatasource):
                     raise ValueError(_MUTUALLY_EXCLUSIVE_MSG)
                 connection_details[field_name] = values.pop(field_name)
         if connection_details:
-            connection_details.setdefault("authentication", "Entra ID Service Principal")
+            auth = connection_details.get("authentication", "Entra ID Service Principal")
+            if auth != "Entra ID Service Principal":
+                raise UnsupportedAuthenticationError(auth)
+            connection_details["authentication"] = auth
             values["connection_string"] = connection_details
         return values

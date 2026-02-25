@@ -59,6 +59,18 @@ class TestFabricDatasource:
                 ),
             )
 
+    def test_flat_kwargs_rejects_non_entra_id_authentication(self) -> None:
+        with pytest.raises(ValidationError, match="only supports Entra ID Service Principal"):
+            FabricDatasource(
+                name="test_ds",
+                host="myserver",
+                database="mydb",
+                schema="dbo",
+                authentication="SQL Server",
+                username="myuser",
+                password="mypassword",
+            )
+
 
 @pytest.mark.unit
 @pytest.mark.usefixtures("mock_test_connection")
