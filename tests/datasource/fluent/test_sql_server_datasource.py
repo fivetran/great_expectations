@@ -270,9 +270,9 @@ class TestEntraIDServicePrincipalAuthConnectionDetails:
             "driver": "ODBC Driver 18 for SQL Server",
             "encrypt": "Mandatory",
             "authentication": "Entra ID Service Principal",
+            "tenant_id": "my-tenant-id-456",
             "client_id": "my-client-id-123",
             "client_secret": "my-secret",
-            "tenant_id": "my-tenant-id-456",
         }
 
     def test_client_secret_accepts_config_str(self) -> None:
@@ -491,9 +491,9 @@ class TestAddSQLServerDatasourceAPI:
                 "driver": "ODBC Driver 18 for SQL Server",
                 "encrypt": "Mandatory",
                 "authentication": "Entra ID Service Principal",
+                "tenant_id": "my-tenant-id-456",
                 "client_id": "my-client-id-123",
                 "client_secret": "my-secret",
-                "tenant_id": "my-tenant-id-456",
             },
             "create_temp_table": False,
             "kwargs": {},
@@ -556,9 +556,9 @@ class TestAddSQLServerDatasourceAPI:
                 "driver": "ODBC Driver 18 for SQL Server",
                 "encrypt": "Mandatory",
                 "authentication": "Entra ID Service Principal",
+                "tenant_id": "my-tenant-id-456",
                 "client_id": "my-client-id-123",
                 "client_secret": "my-secret",
-                "tenant_id": "my-tenant-id-456",
             },
             "create_temp_table": False,
             "kwargs": {},
