@@ -166,7 +166,7 @@ stages:
               summaryFileLocation: "$(System.DefaultWorkingDirectory)/**/coverage.xml"
               reportDirectory: "$(System.DefaultWorkingDirectory)/**/htmlcov"
 
-      - job: compatibility_mssql
+      - job: compatibility_sql_server
         timeoutInMinutes: 90
         condition: eq(stageDependencies.scope_check.changes.outputs['CheckChanges.GXChanged'], true)
         strategy:
@@ -191,12 +191,12 @@ stages:
           - bash: python -m pip install --upgrade pip
             displayName: "Update pip"
 
-          - script: ./scripts/install_mssql_odbc_driver.sh
-            displayName: "Install mssql odbc driver and mssql-tools"
+          - script: ./scripts/install_sql_server_odbc_driver.sh
+            displayName: "Install SQL Server odbc driver and mssql-tools"
 
           - script: |
               /opt/mssql-tools18/bin/sqlcmd -U sa -P "ReallyStrongPwd1234%^&*" -Q "CREATE DATABASE test_ci;" -C
-            displayName: "Create mssql database"
+            displayName: "Create SQL Server database"
 
           - script: |
               cp constraints-dev.txt constraints-dev-temp.txt
@@ -206,13 +206,13 @@ stages:
               # Constrain numpy to prevent running into a number of DeprecationWarnings
               echo "numpy<1.25" >> constraints-dev-temp.txt
 
-              pip install --constraint constraints-dev-temp.txt ".[test, mssql]" pytest-azurepipelines
+              pip install --constraint constraints-dev-temp.txt ".[test, sql-server]" pytest-azurepipelines
             displayName: "Install dependencies using SQLAlchemy base version $(sqlalchemy_base_version)"
 
           - script: |
               # Run pytest
-              pytest --mssql -m sqlalchemy_version_compatibility
-              pytest --mssql -m unit
+              pytest --sql-server -m sqlalchemy_version_compatibility
+              pytest --sql-server -m unit
 
             displayName: "pytest"
             env:

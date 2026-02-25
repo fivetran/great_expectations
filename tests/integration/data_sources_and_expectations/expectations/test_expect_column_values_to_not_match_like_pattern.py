@@ -9,12 +9,12 @@ from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     DatabricksDatasourceTestConfig,
     DataSourceTestConfig,
-    MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     RedshiftDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SqliteDatasourceTestConfig,
+    SQLServerDatasourceTestConfig,
 )
 
 COL_A = "col_a"
@@ -30,7 +30,7 @@ DATA = pd.DataFrame(
 
 SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     DatabricksDatasourceTestConfig(),
-    MSSQLDatasourceTestConfig(),
+    SQLServerDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
@@ -126,7 +126,7 @@ class TestNormalSql:
         assert "ac" in unexpected_rows_str
 
 
-class TestMSSQL:
+class TestSQLServer:
     @pytest.mark.parametrize(
         "expectation",
         [
@@ -137,7 +137,7 @@ class TestMSSQL:
         ],
     )
     @parameterize_batch_for_data_sources(
-        data_source_configs=[MSSQLDatasourceTestConfig()], data=DATA
+        data_source_configs=[SQLServerDatasourceTestConfig()], data=DATA
     )
     def test_success(
         self,
@@ -157,7 +157,7 @@ class TestMSSQL:
         ],
     )
     @parameterize_batch_for_data_sources(
-        data_source_configs=[MSSQLDatasourceTestConfig()], data=DATA
+        data_source_configs=[SQLServerDatasourceTestConfig()], data=DATA
     )
     def test_failure(
         self,

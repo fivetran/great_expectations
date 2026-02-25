@@ -3,8 +3,8 @@ from typing import Optional
 import pandas as pd
 import pytest
 
+import great_expectations as gx
 from great_expectations.self_check.util import get_test_validator_with_data
-from great_expectations.util import build_in_memory_runtime_context
 
 
 @pytest.mark.unit
@@ -51,7 +51,7 @@ def test_expect_table_row_count_to_equal_with_row_condition(
         }
     )
 
-    context = build_in_memory_runtime_context()
+    context = gx.get_context(mode="ephemeral")
     validator = get_test_validator_with_data(
         execution_engine="pandas",
         data=df,  # type: ignore[arg-type] # pandas DataFrame is valid data type

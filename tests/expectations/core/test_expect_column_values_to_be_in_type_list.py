@@ -1,6 +1,7 @@
 import pandas as pd
 import pytest
 
+import great_expectations as gx
 from great_expectations.compatibility import aws
 from great_expectations.core.expectation_validation_result import (
     ExpectationValidationResult,
@@ -9,7 +10,7 @@ from great_expectations.self_check.util import (
     build_sa_validator_with_data,
     get_test_validator_with_data,
 )
-from great_expectations.util import build_in_memory_runtime_context, is_library_loadable
+from great_expectations.util import is_library_loadable
 
 
 @pytest.mark.skipif(
@@ -123,7 +124,7 @@ def test_expect_column_values_to_be_in_type_list_nullable_int():
 
     df = pd.DataFrame({"col": pd.Series([1, 2, None], dtype=pd.Int32Dtype())})
 
-    context = build_in_memory_runtime_context()
+    context = gx.get_context(mode="ephemeral")
 
     validator = get_test_validator_with_data(
         execution_engine="pandas",

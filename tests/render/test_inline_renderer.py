@@ -301,7 +301,7 @@ def test_inline_renderer_instantiation_error_message(
                             "config": {
                                 "view": {
                                     "continuousHeight": 300,
-                                    "continuousWidth": 400,
+                                    "continuousWidth": 300,
                                 }
                             },
                             "encoding": {
@@ -313,7 +313,7 @@ def test_inline_renderer_instantiation_error_message(
                                 "y": {"field": "fraction", "type": "quantitative"},
                             },
                             "height": 400,
-                            "mark": "bar",
+                            "mark": {"type": "bar"},
                             "width": 250,
                         },
                         "header": {
@@ -340,7 +340,7 @@ def test_inline_renderer_instantiation_error_message(
                             "config": {
                                 "view": {
                                     "continuousHeight": 300,
-                                    "continuousWidth": 400,
+                                    "continuousWidth": 300,
                                 }
                             },
                             "encoding": {
@@ -352,7 +352,7 @@ def test_inline_renderer_instantiation_error_message(
                                 "y": {"field": "fraction", "type": "quantitative"},
                             },
                             "height": 400,
-                            "mark": "bar",
+                            "mark": {"type": "bar"},
                             "width": 250,
                         },
                         "header": {
@@ -576,7 +576,7 @@ def test_inline_renderer_expectation_validation_result_serialization(
                             "config": {
                                 "view": {
                                     "continuousHeight": 300,
-                                    "continuousWidth": 400,
+                                    "continuousWidth": 300,
                                 }
                             },
                             "encoding": {
@@ -588,7 +588,7 @@ def test_inline_renderer_expectation_validation_result_serialization(
                                 "y": {"field": "fraction", "type": "quantitative"},
                             },
                             "height": 400,
-                            "mark": "bar",
+                            "mark": {"type": "bar"},
                             "width": 250,
                         },
                         "header": {

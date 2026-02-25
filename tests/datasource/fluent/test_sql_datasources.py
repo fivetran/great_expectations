@@ -10,7 +10,6 @@ import pytest
 from pytest import param
 
 from great_expectations.compatibility import sqlalchemy
-from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.datasource.fluent import GxDatasourceWarning, SQLDatasource
 from great_expectations.datasource.fluent.sql_datasource import (
     DEFAULT_INITIAL_QUOTE_CHARACTERS,
@@ -31,14 +30,6 @@ LOGGER = logging.getLogger(__name__)
 
 
 @pytest.fixture
-def create_engine_spy(mocker: MockerFixture) -> Generator[mock.MagicMock, None, None]:  # noqa: TID251 # FIXME CoP
-    spy = mocker.spy(sa, "create_engine")
-    yield spy
-    if not spy.call_count:
-        LOGGER.warning("SQLAlchemy create_engine was not called")
-
-
-@pytest.fixture
 def gx_sqlalchemy_execution_engine_spy(
     mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch
 ) -> Generator[mock.MagicMock, None, None]:  # noqa: TID251 # FIXME CoP
@@ -53,20 +44,6 @@ def gx_sqlalchemy_execution_engine_spy(
     yield spy
     if not spy.call_count:
         LOGGER.warning("SqlAlchemyExecutionEngine.__init__() was not called")
-
-
-@pytest.fixture
-def create_engine_fake(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:
-    """Monkeypatch sqlalchemy.create_engine to always return a in-memory sqlite engine."""
-    in_memory_sqlite_engine = sa.create_engine("sqlite:///")
-
-    def _fake_create_engine(*args, **kwargs) -> sa.engine.Engine:
-        LOGGER.info(f"Mock create_engine called with {args=} {kwargs=}")
-        return in_memory_sqlite_engine
-
-    monkeypatch.setattr(sa, "create_engine", _fake_create_engine, raising=True)
-    yield
-    in_memory_sqlite_engine.dispose()
 
 
 @pytest.mark.unit

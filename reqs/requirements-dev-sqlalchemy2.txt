@@ -1,6 +1,6 @@
 # TODO: remove this file once SQLAlchemy 2 is the only supported version
 --requirement requirements-dev-databricks.txt
---requirement requirements-dev-mssql.txt
+--requirement requirements-dev-sql-server.txt
 --requirement requirements-dev-mysql.txt
 --requirement requirements-dev-postgresql.txt
 --requirement requirements-dev-trino.txt

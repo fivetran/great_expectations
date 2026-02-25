@@ -24,6 +24,11 @@ services:
     ports:
       - 8042:15672
       - 5672:5672
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
   db-provisioner:
     image: 258143015559.dkr.ecr.us-east-1.amazonaws.com/mercury/provisioner:0.4.1
     platform: linux/amd64
@@ -74,12 +79,15 @@ services:
     healthcheck:
       test: bash -c ':> /dev/tcp/0.0.0.0/6002' || exit 1
       interval: 5s
-      timeout: 2s
+      timeout: 5s
       retries: 20
+      start_period: 90s
     depends_on:
       db-provisioner:
         condition: service_completed_successfully
       localstack:
+        condition: service_healthy
+      mq:
         condition: service_healthy
     entrypoint:
       - /bin/bash
