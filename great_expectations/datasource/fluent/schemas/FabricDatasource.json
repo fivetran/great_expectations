@@ -562,6 +562,10 @@
                     ],
                     "type": "string"
                 },
+                "tenant_id": {
+                    "title": "Tenant Id",
+                    "type": "string"
+                },
                 "client_id": {
                     "title": "Client Id",
                     "type": "string"
@@ -584,19 +588,15 @@
                             "type": "string"
                         }
                     ]
-                },
-                "tenant_id": {
-                    "title": "Tenant Id",
-                    "type": "string"
                 }
             },
             "required": [
                 "host",
                 "database",
                 "schema",
+                "tenant_id",
                 "client_id",
-                "client_secret",
-                "tenant_id"
+                "client_secret"
             ],
             "additionalProperties": false
         }
