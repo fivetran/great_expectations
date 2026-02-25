@@ -39,6 +39,7 @@ from great_expectations.render.renderer_configuration import (
     RendererValueType,
 )
 from great_expectations.render.util import (
+    coerce_stringdtype_to_object,
     parse_row_condition_string,
     substitute_none_for_missing,
 )
@@ -66,7 +67,7 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.ALLOY.value,
     SupportedDataSources.NEON.value,
     SupportedDataSources.MYSQL.value,
-    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.SQL_SERVER.value,
     SupportedDataSources.BIGQUERY.value,
     SupportedDataSources.SNOWFLAKE.value,
     SupportedDataSources.DATABRICKS.value,
@@ -406,6 +407,7 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
                 "count": counts,
             }
         )
+        coerce_stringdtype_to_object(df)
 
         if len(values) > 60:  # noqa: PLR2004 # FIXME CoP
             return None

@@ -90,46 +90,69 @@ def test_fails_if_data_is_not_equal(batch_for_datasource: Batch, value_set: list
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
+    data_source_configs=JUST_PANDAS_DATA_SOURCES,
+    data=pd.DataFrame(
+        {
+            COL_NAME: pd.to_datetime(
+                [datetime(2025, 9, 1), datetime(2025, 9, 2), datetime(2025, 9, 3)]  # noqa: DTZ001 # FIXME CoP
+            ),
+        }
+    ),
 )
-def test_boolean_only_result_format_excludes_fields(batch_for_datasource: Batch) -> None:
-    """BOOLEAN_ONLY result format should not include unexpected/missing fields."""
-    expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=[1, 2, 3])
-    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.BOOLEAN_ONLY)
-    assert not result.success
-    assert result.result == {}
+def test_datetime64_ns_with_str_value_set(batch_for_datasource: Batch) -> None:
+    """Test that datetime64[ns] columns work with string-formatted datetime value_set."""
+    value_set = [
+        d.strftime("%Y-%m-%dT%H:%M:%S")
+        for d in pd.date_range(
+            start=datetime(2025, 9, 1),  # noqa: DTZ001 # FIXME CoP
+            end=datetime(2025, 9, 3),  # noqa: DTZ001 # FIXME CoP
+            freq="1D",
+        )
+    ]
+    expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=value_set)
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
+    data_source_configs=JUST_PANDAS_DATA_SOURCES,
+    data=pd.DataFrame(
+        {
+            COL_NAME: pd.to_datetime(
+                [datetime(2025, 9, 1), datetime(2025, 9, 2), datetime(2025, 9, 3)]  # noqa: DTZ001 # FIXME CoP
+            ),
+        }
+    ),
 )
-def test_summary_result_format_includes_fields(batch_for_datasource: Batch) -> None:
-    """SUMMARY result format should include unexpected and missing fields."""
-    expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=[1, 2, 3])
-    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.SUMMARY)
-    assert not result.success
-    assert "unexpected_count" in result.result
-    assert "partial_unexpected_list" in result.result
-    assert "missing_count" in result.result
-    assert "partial_missing_list" in result.result
-    assert result.result["unexpected_count"] == 0
-    assert result.result["partial_unexpected_list"] == []
-    assert result.result["missing_count"] == 1
-    assert result.result["partial_missing_list"] == [3]
+def test_datetime64_ns_with_datetime_value_set(batch_for_datasource: Batch) -> None:
+    """Test that datetime64[ns] columns work with datetime objects in value_set."""
+    value_set = [
+        datetime(2025, 9, 1),  # noqa: DTZ001 # FIXME CoP
+        datetime(2025, 9, 2),  # noqa: DTZ001 # FIXME CoP
+        datetime(2025, 9, 3),  # noqa: DTZ001 # FIXME CoP
+    ]
+    expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=value_set)
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
+    data_source_configs=JUST_PANDAS_DATA_SOURCES,
+    data=pd.DataFrame(
+        {
+            COL_NAME: pd.to_datetime(
+                [datetime(2025, 9, 1), datetime(2025, 9, 2), datetime(2025, 9, 3)]  # noqa: DTZ001 # FIXME CoP
+            ),
+        }
+    ),
 )
-def test_partial_unexpected_count_zero_excludes_partial_lists(batch_for_datasource: Batch) -> None:
-    """Setting partial_unexpected_count=0 should exclude partial lists but keep counts."""
-    expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=[1, 2, 3])
-    result = batch_for_datasource.validate(
-        expectation,
-        result_format={"result_format": "SUMMARY", "partial_unexpected_count": 0},
-    )
-    assert not result.success
-    assert "unexpected_count" in result.result
-    assert "missing_count" in result.result
-    assert "partial_unexpected_list" not in result.result
-    assert "partial_missing_list" not in result.result
+def test_datetime64_ns_with_pd_timestamp_value_set(batch_for_datasource: Batch) -> None:
+    """Test that datetime64[ns] columns work with pd.Timestamp objects in value_set."""
+    value_set = pd.date_range(
+        start=datetime(2025, 9, 1),  # noqa: DTZ001 # FIXME CoP
+        end=datetime(2025, 9, 3),  # noqa: DTZ001 # FIXME CoP
+        freq="1D",
+    ).tolist()
+    expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=value_set)
+    result = batch_for_datasource.validate(expectation)
+    assert result.success

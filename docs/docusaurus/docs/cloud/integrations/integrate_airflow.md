@@ -21,7 +21,7 @@ Apache Airflow is an orchestration tool that allows you to schedule and monitor 
 
 - You have [connected GX Cloud to a Data Asset on a Data Source](/cloud/data_assets/manage_data_assets.md). (Note that this automatically creates the Checkpoint your DAG will run.)
 
-- You have [added Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation).
+- You have [added Expectations](/cloud/expectations/manage_expectations.md#create-an-expectation).
 
 
 ## Run Airflow Standalone to create a fresh local Airflow environment

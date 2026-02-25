@@ -28,6 +28,7 @@ from typing_extensions import TypeAlias, override
 
 import great_expectations as gx
 from great_expectations.compatibility import aws
+from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.core.batch import BatchData
 from great_expectations.core.batch_spec import (
     BatchMarkers,
@@ -66,6 +67,7 @@ if TYPE_CHECKING:
     import responses
     from botocore.client import BaseClient as BotoBaseClient
     from pytest import FixtureRequest
+    from pytest_mock import MockerFixture, MockType
 
     from great_expectations.data_context import CloudDataContext
     from great_expectations.data_context.data_context.abstract_data_context import (
@@ -509,3 +511,38 @@ def sql_datasource_table_asset_test_connection_noop(
 
     monkeypatch.setattr(TableAsset, "test_connection", noop, raising=True)
     return sql_datasource
+
+
+@pytest.fixture
+def create_engine_spy(mocker: MockerFixture) -> Generator[MockType, None, None]:
+    spy = mocker.spy(sa, "create_engine")
+    yield spy
+    if not spy.call_count:
+        CNF_TEST_LOGGER.warning("SQLAlchemy create_engine was not called")
+
+
+@pytest.fixture
+def mock_test_connection(monkeypatch: pytest.MonkeyPatch):
+    """Patches test_connection on Datasource and SQLDatasource to be a no-op."""
+
+    def _mock_test_connection(self: Datasource, test_assets: bool = True) -> None:
+        CNF_TEST_LOGGER.warning(
+            f"Mocked {self.__class__.__name__}.test_connection() called (no-op)"
+        )
+
+    monkeypatch.setattr(Datasource, "test_connection", _mock_test_connection)
+    monkeypatch.setattr(SQLDatasource, "test_connection", _mock_test_connection)
+
+
+@pytest.fixture
+def create_engine_fake(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:
+    """Monkeypatch sqlalchemy.create_engine to always return an in-memory sqlite engine."""
+    in_memory_sqlite_engine = sa.create_engine("sqlite:///")
+
+    def _fake_create_engine(*args, **kwargs) -> sa.engine.Engine:
+        CNF_TEST_LOGGER.info(f"Mock create_engine called with {args=} {kwargs=}")
+        return in_memory_sqlite_engine
+
+    monkeypatch.setattr(sa, "create_engine", _fake_create_engine, raising=True)
+    yield
+    in_memory_sqlite_engine.dispose()

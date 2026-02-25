@@ -66,7 +66,7 @@ If you apply both an entity filter and a data quality issue filter, the filters 
 
 ## Next steps for improving data health
 
-If **Active Coverage** is low, drill into it for a list of **Inactive Data Assets**. Then [schedule recurring Validations](/docs/cloud/schedules/manage_schedules.md) and/or [add Expectations](/docs/cloud/expectations/manage_expectations.md#add-an-expectation) for those Data Assets to improve your coverage both overall and for specific data quality issues.
+If **Active Coverage** is low, drill into it for a list of **Inactive Data Assets**. Then [schedule recurring Validations](/docs/cloud/schedules/manage_schedules.md) and/or [add Expectations](/docs/cloud/expectations/manage_expectations.md#create-an-expectation) for those Data Assets to improve your coverage both overall and for specific data quality issues.
 
 ![The Inactive Data Assets table has the following columns: Data Asset, Data Source name, and last validated.](/img/data_health_active_coverage.png)
 

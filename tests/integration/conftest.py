@@ -261,12 +261,35 @@ def multi_source_batch(
 
 
 @pytest.fixture
+def schema_name_for_datasource(
+    _batch_setup_for_datasource: BatchTestSetup,
+) -> Generator[str | None, None, None]:
+    """Fixture that yields extra table names"""
+    assert isinstance(_batch_setup_for_datasource, SQLBatchTestSetup)
+    yield _batch_setup_for_datasource.schema
+
+
+@pytest.fixture
 def extra_table_names_for_datasource(
     _batch_setup_for_datasource: BatchTestSetup,
 ) -> Generator[Mapping[str, str], None, None]:
-    """Fixture that yields extra table names"""
     assert isinstance(_batch_setup_for_datasource, SQLBatchTestSetup)
     yield {key: t.name for key, t in _batch_setup_for_datasource.extra_table_data.items()}
+
+
+@pytest.fixture
+def fully_qualified_extra_table_names_for_datasource(
+    extra_table_names_for_datasource: Mapping[str, str],
+    schema_name_for_datasource: str | None,
+) -> Generator[Mapping[str, str], None, None]:
+    """Fixture that yields extra table names"""
+    if schema_name_for_datasource:
+        yield {
+            key: f"{schema_name_for_datasource}.{table_name}"
+            for key, table_name in extra_table_names_for_datasource.items()
+        }
+    else:
+        yield extra_table_names_for_datasource
 
 
 @pytest.fixture(scope="session")

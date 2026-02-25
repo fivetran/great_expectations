@@ -417,7 +417,7 @@ def get_sqlalchemy_column_metadata(
             is_quoted_name,
         )
 
-        # Use fallback for mssql/trino or when primary introspection fails
+        # Use fallback for SQL Server/trino or when primary introspection fails
         if not columns:
             columns = column_reflection_fallback(
                 selectable=table_selectable,
@@ -489,13 +489,21 @@ def _build_column_metadata_result(
         GXSqlDialect.DATABRICKS,
         GXSqlDialect.POSTGRESQL,
         GXSqlDialect.SNOWFLAKE,
+        GXSqlDialect.SQL_SERVER,
         GXSqlDialect.TRINO,
     }
     if dialect_name in case_insensitive_dialects:
         for col in result:
             if col.get("type"):
-                compiled_type = col["type"].compile(dialect=execution_engine.dialect)
-                col["type"] = CaseInsensitiveString(str(compiled_type))
+                # column_reflection_fallback() returns plain strings
+                # if inspector.get_columns() ever fails.
+                if isinstance(col["type"], str):
+                    type_str = col["type"]
+                elif dialect_name == GXSqlDialect.SQL_SERVER:
+                    type_str = type(col["type"]).__name__
+                else:
+                    type_str = str(col["type"].compile(dialect=execution_engine.dialect))
+                col["type"] = CaseInsensitiveString(type_str)
         return [CaseInsensitiveNameDict(col) for col in result]
 
     return result
@@ -1328,7 +1336,7 @@ def _substitute_with_render_postcompile(
     parameter_style = _detect_parameter_style(query_template, compiled)
 
     if parameter_style == "positional":
-        # Positional placeholders (?) - e.g. SQLite, Trino, MSSQL
+        # Positional placeholders (?) - e.g. SQLite, Trino, SQL Server
         query_as_string = _substitute_positional_parameters(query_template, compiled)
 
     elif parameter_style == "pyformat":
