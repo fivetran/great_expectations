@@ -46,6 +46,9 @@ from great_expectations.datasource.fluent import (
 )
 from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.datasource.fluent.databricks_sql_datasource import DatabricksDsn
+from great_expectations.datasource.fluent.fabric_datasource import (
+    FabricDatasource,
+)
 from great_expectations.datasource.fluent.interfaces import (
     DataAsset,
     Datasource,
@@ -62,6 +65,7 @@ from great_expectations.datasource.fluent.snowflake_datasource import (
 )
 from great_expectations.datasource.fluent.spark_datasource import SparkConfig
 from great_expectations.datasource.fluent.sql_server_datasource import (
+    EntraIDServicePrincipalAuthConnectionDetails,
     SQLServerConnectionDetails,
 )
 from great_expectations.datasource.fluent.sqlite_datasource import SqliteDsn
@@ -936,6 +940,76 @@ class DataSourceManager:
         tenant_id: str = ...,
     ) -> SQLServerDatasource: ...
     def delete_sql_server(
+        self,
+        name: str,
+    ) -> None: ...
+    @overload
+    def add_fabric(
+        self,
+        name: str,
+        *,
+        connection_string: EntraIDServicePrincipalAuthConnectionDetails = ...,
+    ) -> FabricDatasource: ...
+    @overload
+    def add_fabric(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        client_id: str = ...,
+        client_secret: Union[ConfigStr, str] = ...,
+        tenant_id: str = ...,
+    ) -> FabricDatasource: ...
+    @overload
+    def update_fabric(
+        self,
+        name: str,
+        *,
+        connection_string: EntraIDServicePrincipalAuthConnectionDetails = ...,
+    ) -> FabricDatasource: ...
+    @overload
+    def update_fabric(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        client_id: str = ...,
+        client_secret: Union[ConfigStr, str] = ...,
+        tenant_id: str = ...,
+    ) -> FabricDatasource: ...
+    @overload
+    def add_or_update_fabric(
+        self,
+        name: str,
+        *,
+        connection_string: EntraIDServicePrincipalAuthConnectionDetails = ...,
+    ) -> FabricDatasource: ...
+    @overload
+    def add_or_update_fabric(
+        self,
+        name: str,
+        *,
+        host: str = ...,
+        port: int = ...,
+        database: str = ...,
+        schema: str = ...,
+        driver: str = ...,
+        encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        client_id: str = ...,
+        client_secret: Union[ConfigStr, str] = ...,
+        tenant_id: str = ...,
+    ) -> FabricDatasource: ...
+    def delete_fabric(
         self,
         name: str,
     ) -> None: ...
