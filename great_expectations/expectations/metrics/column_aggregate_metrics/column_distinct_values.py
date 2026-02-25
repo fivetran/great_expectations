@@ -44,17 +44,19 @@ _SQLALCHEMY_1_4_OR_GREATER = SQLALCHEMY_VERSION is not None and is_version_great
 
 
 # Type alias for scalar values that can appear in columns or value sets
-ScalarValue = Union[str, int, float, bool, datetime.date, datetime.datetime, None]
+ScalarValue = Union[str, int, float, bool, datetime.date, datetime.datetime, np.datetime64, None]
 
 
 def _coerce_scalar_to_datetime64(v: ScalarValue) -> ScalarValue:
     """Coerce a single value to numpy.datetime64 via pd.Timestamp."""
     if isinstance(v, np.datetime64):
         return v
-    try:
-        return pd.Timestamp(v).to_datetime64()
-    except (ValueError, TypeError):
-        return v
+    if isinstance(v, (str, int, float, datetime.date, datetime.datetime)):
+        try:
+            return pd.Timestamp(v).to_datetime64()
+        except (ValueError, TypeError):
+            pass
+    return v
 
 
 def _coerce_scalar_to_datetime(v: ScalarValue, target_is_date_only: bool) -> ScalarValue:
