@@ -50,6 +50,7 @@ def get_extras_require():
     extra_key_mapping = {
         "aws_secrets": "boto",
         "azure_secrets": "azure",
+        "fabric": "sql-server",
         "gcp": "bigquery",
         "s3": "boto",
     }
