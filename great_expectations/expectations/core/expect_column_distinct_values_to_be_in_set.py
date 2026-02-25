@@ -36,7 +36,6 @@ from great_expectations.render.renderer_configuration import (
     RendererValueType,
 )
 from great_expectations.render.util import (
-    coerce_stringdtype_to_object,
     parse_row_condition_string,
     substitute_none_for_missing,
 )
