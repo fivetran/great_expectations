@@ -13,12 +13,12 @@ from great_expectations.datasource.fluent.interfaces import TestConnectionError
 from great_expectations.datasource.fluent.sql_server_datasource import (
     EntraIDServicePrincipalAuthConnectionDetails,
     MissingODBCDriverError,
+    MSSQLNetworkError,
+    MSSQLPasswordAuthError,
+    MSSQLPrincipalAuthError,
     SQLServerAuthConnectionDetails,
     SQLServerDatasource,
     SqlServerDsn,
-    SQLServerNetworkError,
-    SQLServerPasswordAuthError,
-    SQLServerPrincipalAuthError,
 )
 
 if TYPE_CHECKING:
@@ -667,16 +667,16 @@ class TestSQLServerDatasourceTestConnectionErrors:
     def test_login_failure_sql_server_auth_raises_sql_password_auth_error(
         self, sql_server_datasource: SQLServerDatasource
     ) -> None:
-        """OperationalError with 'Login' and SQL Server auth -> SQLServerPasswordAuthError."""
-        with pytest.raises(SQLServerPasswordAuthError):
+        """OperationalError with 'Login' and SQL Server auth -> MSSQLPasswordAuthError."""
+        with pytest.raises(MSSQLPasswordAuthError):
             sql_server_datasource.test_connection()
 
     @with_mock_engine_raising(sa.exc.OperationalError("Login failed for user", None, Exception()))
     def test_login_failure_azure_ad_service_principal_raises_sql_principal_auth_error(
         self, azure_ad_service_principal_datasource: SQLServerDatasource
     ) -> None:
-        """OperationalError with 'Login' -> SQLServerPrincipalAuthError."""
-        with pytest.raises(SQLServerPrincipalAuthError):
+        """OperationalError with 'Login' -> MSSQLPrincipalAuthError."""
+        with pytest.raises(MSSQLPrincipalAuthError):
             azure_ad_service_principal_datasource.test_connection()
 
     @with_mock_engine_raising(
@@ -685,8 +685,8 @@ class TestSQLServerDatasourceTestConnectionErrors:
     def test_network_error_raises_sql_server_network_error(
         self, sql_server_datasource: SQLServerDatasource
     ) -> None:
-        """OperationalError without 'Login' -> SQLServerNetworkError."""
-        with pytest.raises(SQLServerNetworkError):
+        """OperationalError without 'Login' -> MSSQLNetworkError."""
+        with pytest.raises(MSSQLNetworkError):
             sql_server_datasource.test_connection()
 
     @with_mock_engine_raising(
@@ -705,8 +705,8 @@ class TestSQLServerDatasourceTestConnectionErrors:
     def test_pyodbc_operational_error_login_raises_sql_password_auth_error(
         self, sql_server_datasource: SQLServerDatasource
     ) -> None:
-        """pyodbc.OperationalError with 'Login' -> SQLServerPasswordAuthError."""
-        with pytest.raises(SQLServerPasswordAuthError):
+        """pyodbc.OperationalError with 'Login' -> MSSQLPasswordAuthError."""
+        with pytest.raises(MSSQLPasswordAuthError):
             sql_server_datasource.test_connection()
 
     @with_mock_engine_raising(ValueError("Something unexpected happened"))
