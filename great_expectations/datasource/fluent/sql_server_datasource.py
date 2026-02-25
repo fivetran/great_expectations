@@ -296,9 +296,3 @@ class MissingODBCDriverError(TestConnectionError):
         super().__init__(
             cause=cause, message="ODBC driver not found. Ensure the specified driver is installed."
         )
-
-
-# Backwards-compatible aliases
-SQLServerNetworkError = MSSQLNetworkError
-SQLServerPasswordAuthError = MSSQLPasswordAuthError
-SQLServerPrincipalAuthError = MSSQLPrincipalAuthError
