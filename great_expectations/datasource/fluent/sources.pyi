@@ -859,9 +859,9 @@ class DataSourceManager:
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
         authentication: Literal["Entra ID Service Principal"] = ...,
+        tenant_id: str = ...,
         client_id: str = ...,
         client_secret: Union[ConfigStr, str] = ...,
-        tenant_id: str = ...,
     ) -> SQLServerDatasource: ...
     @overload
     def update_sql_server(
@@ -897,9 +897,9 @@ class DataSourceManager:
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
         authentication: Literal["Entra ID Service Principal"] = ...,
+        tenant_id: str = ...,
         client_id: str = ...,
         client_secret: Union[ConfigStr, str] = ...,
-        tenant_id: str = ...,
     ) -> SQLServerDatasource: ...
     @overload
     def add_or_update_sql_server(
@@ -935,9 +935,9 @@ class DataSourceManager:
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
         authentication: Literal["Entra ID Service Principal"] = ...,
+        tenant_id: str = ...,
         client_id: str = ...,
         client_secret: Union[ConfigStr, str] = ...,
-        tenant_id: str = ...,
     ) -> SQLServerDatasource: ...
     def delete_sql_server(
         self,
@@ -961,9 +961,9 @@ class DataSourceManager:
         schema: str = ...,
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        tenant_id: str = ...,
         client_id: str = ...,
         client_secret: Union[ConfigStr, str] = ...,
-        tenant_id: str = ...,
     ) -> FabricDatasource: ...
     @overload
     def update_fabric(
@@ -983,9 +983,9 @@ class DataSourceManager:
         schema: str = ...,
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        tenant_id: str = ...,
         client_id: str = ...,
         client_secret: Union[ConfigStr, str] = ...,
-        tenant_id: str = ...,
     ) -> FabricDatasource: ...
     @overload
     def add_or_update_fabric(
@@ -1005,9 +1005,9 @@ class DataSourceManager:
         schema: str = ...,
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        tenant_id: str = ...,
         client_id: str = ...,
         client_secret: Union[ConfigStr, str] = ...,
-        tenant_id: str = ...,
     ) -> FabricDatasource: ...
     def delete_fabric(
         self,

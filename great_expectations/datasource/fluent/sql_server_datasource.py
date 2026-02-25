@@ -112,9 +112,9 @@ class EntraIDServicePrincipalAuthConnectionDetails(_SQLServerConnectionDetailsBa
     """Entra ID Service Principal authentication."""
 
     authentication: Literal["Entra ID Service Principal"] = "Entra ID Service Principal"
+    tenant_id: str
     client_id: str
     client_secret: Union[ConfigStr, str]
-    tenant_id: str
 
     @override
     def build_connection_string(
