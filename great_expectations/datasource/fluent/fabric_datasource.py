@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.sql_server_datasource import (
     EntraIDServicePrincipalAuthConnectionDetails,
     SQLServerDatasource,
@@ -21,8 +22,9 @@ class FabricDatasource(SQLServerDatasource):
     """
 
     type: Literal["fabric"] = "fabric"  # type: ignore[assignment]
-    connection_string: EntraIDServicePrincipalAuthConnectionDetails  # type: ignore[assignment]
+    connection_string: EntraIDServicePrincipalAuthConnectionDetails
 
+    @override
     @pydantic.root_validator(pre=True)
     def _convert_root_connection_detail_fields(cls, values: dict[str, Any]) -> dict[str, Any]:
         """Pack top-level connection detail kwargs into ``connection_string``."""
