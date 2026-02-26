@@ -175,8 +175,23 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             conn.commit()
 
     @staticmethod
+    def _sanitize_null_values(values: list[dict]) -> list[dict]:
+        """Replace pandas/numpy null sentinels with Python None.
+
+        ``df.where(pd.notna(df), None)`` does **not** work for numeric columns
+        because ``None`` is silently cast back to ``np.nan`` in float dtypes.
+        Post-processing the dict representation guarantees every null-like
+        scalar (``np.nan``, ``pd.NA``, ``pd.NaT``) becomes a real ``None``
+        that SQL drivers can bind as NULL.
+        """
+        return [{k: None if pd.isna(v) else v for k, v in row.items()} for row in values]
+
+    @staticmethod
     def _safe_bulk_insert(
-        conn: sa.Connection, table: Table, values: list[tuple], max_params: int | None = None
+        conn: sa.Connection,
+        table: Table,
+        values: Sequence[dict[Any, Any] | tuple[Any, ...]],
+        max_params: int | None = None,
     ) -> None:
         """
         Allows insertion of multiple values paying attention to parameter limits
@@ -223,10 +238,14 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
                 # Then we pass that list of dicts in as parameters to our insert statement.
                 #   INSERT INTO test_table (my_int_column, my_str_column) VALUES (?, ?)
                 #   [...] [('1', 'foo'), ('2', 'bar')]
-                df = table_data.df.replace(np.nan, None)
-                values = list(df.to_dict("index").values())
+                # Convert to dicts, then sanitize: replace all pandas/numpy null
+                # sentinels (NaN, NA, NaT) with Python None so SQL drivers can
+                # handle them.  df.where() cannot do this for float columns
+                # because None is cast back to np.nan in numeric dtypes.
+                values = list(table_data.df.to_dict("index").values())
+                values = self._sanitize_null_values(values)
                 max_params = 250 if dialect == GXSqlDialect.DATABRICKS else None
-                self._safe_bulk_insert(conn, table_data.table, values, max_params)  # type: ignore[arg-type] # FIXME
+                self._safe_bulk_insert(conn, table_data.table, values, max_params)
 
             # Commit transaction (safe for databases without transaction support)
             self._safe_commit(conn)
@@ -287,21 +306,40 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             raise RuntimeError(message)
         return all_column_types
 
+    def _normalize_python_type(self, value_type: type) -> type:
+        """Normalize numpy types to their Python equivalents for type inference."""
+        if issubclass(value_type, np.integer):
+            return int
+        if issubclass(value_type, np.floating):
+            return float
+        if issubclass(value_type, np.bool_):
+            return bool
+        return value_type
+
     def _infer_column_types(self, data: pd.DataFrame) -> InferredColumnTypes:
         inferred_column_types: InferredColumnTypes = {}
         for column, value_list in data.to_dict("list").items():
-            non_null_value_list = [val for val in value_list if val is not None]
+            non_null_value_list = [val for val in value_list if not (val is None or pd.isna(val))]
             if not non_null_value_list:
                 # if we have an all null column, just arbitrarily use INTEGER
                 inferred_column_types[str(column)] = sqltypes.INTEGER
             else:
-                python_type = type(non_null_value_list[0])
-                if not all(isinstance(val, python_type) for val in non_null_value_list):
+                # Normalize the first value's type (e.g., numpy.int64 -> int)
+                first_value_type = type(non_null_value_list[0])
+                normalized_type = self._normalize_python_type(first_value_type)
+
+                # Check if all values match the normalized type
+                if not all(
+                    self._normalize_python_type(type(val)) == normalized_type
+                    for val in non_null_value_list
+                ):
                     raise RuntimeError(
                         f"Cannot infer type of column {column}. "
                         "Please provide an explicit column type in the test config."
                     )
-                inferred_type = self.inferrable_types_lookup.get(python_type)
+                # Get inferred type from lookup using normalized type
+                # (normalized_type handles numpy types -> Python types conversion)
+                inferred_type = self.inferrable_types_lookup.get(normalized_type)
                 if inferred_type:
                     inferred_column_types[str(column)] = inferred_type
         return inferred_column_types

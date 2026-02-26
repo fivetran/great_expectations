@@ -193,7 +193,7 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
     )
 
     # Polish and ratchet this number down as low as possible
-    assert len(sorted_packages_with_pins_or_upper_bounds) == 35
+    assert len(sorted_packages_with_pins_or_upper_bounds) == 33
     assert set(sorted_packages_with_pins_or_upper_bounds) == {
         (
             "requirements-dev-api-docs-test.txt",
@@ -205,7 +205,6 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         ("requirements-dev-excel.txt", "xlrd", (("<", "2.0.0"), (">=", "1.1.0"))),
         ("requirements-dev-lite.txt", "moto", (("<", "5.0"), (">=", "4.2.13"))),
         ("requirements-dev-lite.txt", "pact-python", (("<", "3"), (">=", "2.0.1"))),
-        ("requirements-dev.txt", "pandas", (("<", "3.0.0"), (">=", "1.3.0"))),
         ("requirements-dev-pagerduty.txt", "pypd", (("==", "1.1.0"),)),
         (
             "requirements-dev-spark.txt",
@@ -236,7 +235,7 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         ("requirements-dev-test.txt", "moto", (("<", "5.0"), (">=", "4.2.13"))),
         ("requirements-dev-test.txt", "pact-python", (("<", "3"), (">=", "2.0.1"))),
         ("requirements-dev.txt", "adr-tools-python", (("==", "1.0.3"),)),
-        ("requirements-dev.txt", "altair", (("<", "5.0.0"), (">=", "4.2.1"))),
+        ("requirements-dev.txt", "altair", (("<", "7.0.0"), (">=", "5.0.0"))),
         ("requirements-dev.txt", "docstring-parser", (("==", "0.16"),)),
         ("requirements-dev.txt", "marshmallow", (("<", "4.0.0"), (">=", "3.7.1"))),
         ("requirements-dev.txt", "moto", (("<", "5.0"), (">=", "4.2.13"))),
@@ -251,7 +250,6 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         ("requirements-dev.txt", "sqlalchemy-dremio", (("==", "1.2.1"),)),
         ("requirements-dev.txt", "teradatasqlalchemy", (("==", "17.0.0.5"),)),
         ("requirements-dev.txt", "xlrd", (("<", "2.0.0"), (">=", "1.1.0"))),
-        ("requirements.txt", "altair", (("<", "5.0.0"), (">=", "4.2.1"))),
+        ("requirements.txt", "altair", (("<", "7.0.0"), (">=", "5.0.0"))),
         ("requirements.txt", "marshmallow", (("<", "4.0.0"), (">=", "3.7.1"))),
-        ("requirements.txt", "pandas", (("<", "3.0.0"), (">=", "1.3.0"))),
     }

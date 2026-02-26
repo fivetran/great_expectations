@@ -243,40 +243,6 @@ def test_ProfilingResultsColumnSectionRenderer_render_header_with_unescaped_doll
     }
 
 
-@pytest.mark.unit
-def test_ProfilingResultsColumnSectionRenderer_render_bar_chart_table(
-    titanic_profiled_evrs_1,
-):
-    print(titanic_profiled_evrs_1.results[0])
-    distinct_values_evrs = [
-        evr
-        for evr in titanic_profiled_evrs_1.results
-        if evr.expectation_config.type == "expect_column_distinct_values_to_be_in_set"
-    ]
-
-    assert len(distinct_values_evrs) == 4
-
-    content_blocks = []
-    for evr in distinct_values_evrs:
-        content_blocks.append(
-            ProfilingResultsColumnSectionRenderer()
-            ._render_value_counts_bar_chart(distinct_values_evrs)
-            .to_json_dict()
-        )
-
-    assert len(content_blocks) == 4
-
-    for content_block in content_blocks:
-        assert content_block["content_block_type"] == "graph"
-        assert set(content_block.keys()) == {
-            "header",
-            "content_block_type",
-            "graph",
-            "styling",
-        }
-        assert json.loads(content_block["graph"])
-
-
 @pytest.mark.xfail(reason="legacy test failing with 1.0 refactor")
 @pytest.mark.unit
 def test_ExpectationSuiteColumnSectionRenderer_render_header(

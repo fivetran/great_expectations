@@ -112,9 +112,9 @@ class EntraIDServicePrincipalAuthConnectionDetails(_SQLServerConnectionDetailsBa
     """Entra ID Service Principal authentication."""
 
     authentication: Literal["Entra ID Service Principal"] = "Entra ID Service Principal"
+    tenant_id: str
     client_id: str
     client_secret: Union[ConfigStr, str]
-    tenant_id: str
 
     @override
     def build_connection_string(
@@ -223,11 +223,11 @@ class SQLServerDatasource(SQLDatasource):
                     if isinstance(
                         self.connection_string, EntraIDServicePrincipalAuthConnectionDetails
                     ):
-                        raise SQLServerPrincipalAuthError(e.cause) from e
+                        raise MSSQLPrincipalAuthError(e.cause) from e
                     else:
-                        raise SQLServerPasswordAuthError(e.cause) from e
+                        raise MSSQLPasswordAuthError(e.cause) from e
                 else:
-                    raise SQLServerNetworkError(e.cause) from e
+                    raise MSSQLNetworkError(e.cause) from e
             elif isinstance(
                 e.cause, (pyodbc.InterfaceError, sa.exc.DBAPIError)
             ) and "file not found" in str(e.cause):
@@ -254,7 +254,7 @@ class ConfigStrError(ValueError):
         )
 
 
-class SQLServerNetworkError(TestConnectionError):
+class MSSQLNetworkError(TestConnectionError):
     """Raised when a connection test fails due to a network error."""
 
     def __init__(self, cause: pyodbc.OperationalError) -> None:
@@ -262,15 +262,15 @@ class SQLServerNetworkError(TestConnectionError):
             cause=cause,
             message=" ".join(
                 [
-                    "Unable to connect to SQL Server.",
+                    "Unable to connect to the database server.",
                     "Verify the host and port are correct and the server is accessible.",
                 ]
             ),
         )
 
 
-class SQLServerPasswordAuthError(TestConnectionError):
-    """Raised when a connection test fails due to a authentication error."""
+class MSSQLPasswordAuthError(TestConnectionError):
+    """Raised when a connection test fails due to an authentication error."""
 
     def __init__(self, cause: pyodbc.OperationalError) -> None:
         super().__init__(
@@ -279,8 +279,8 @@ class SQLServerPasswordAuthError(TestConnectionError):
         )
 
 
-class SQLServerPrincipalAuthError(TestConnectionError):
-    """Raised when a connection test fails due to a authentication error."""
+class MSSQLPrincipalAuthError(TestConnectionError):
+    """Raised when a connection test fails due to an authentication error."""
 
     def __init__(self, cause: pyodbc.OperationalError) -> None:
         super().__init__(

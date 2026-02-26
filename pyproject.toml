@@ -575,6 +575,10 @@ filterwarnings = [
     'ignore: Passing a BlockManager to PandasDataset is deprecated and will raise in a future version. Use public APIs instead.:DeprecationWarning',
     # Example Actual Warning: DeprecationWarning: Passing a BlockManager to CustomPandasDataset is deprecated and will raise in a future version. Use public APIs instead.
     'ignore: Passing a BlockManager to CustomPandasDataset is deprecated and will raise in a future version. Use public APIs instead.:DeprecationWarning',
+    # Example Actual Warning: Pandas4Warning/FutureWarning: The copy keyword is deprecated and will be removed in a future version. Copy-on-Write is active in pandas since 3.0 which utilizes a lazy copy mechanism that defers copies until necessary. Use .copy() to make an eager copy if necessary.
+    # Use both FutureWarning and Pandas4Warning filters to work across pandas versions (pandas 2.x uses FutureWarning, pandas 3.0+ may use Pandas4Warning)
+    'ignore: The copy keyword is deprecated:FutureWarning',
+    'ignore: The copy keyword is deprecated',
 
     # numpy
     # Example Actual Warning: RuntimeWarning: Mean of empty slice.

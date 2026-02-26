@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.constants import MAX_DISTINCT_VALUES
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     _style_row_condition,
-    parse_value_to_observed_type,
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
@@ -218,7 +218,12 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
     _library_metadata = library_metadata
 
     # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
-    metric_dependencies = ("column.value_counts",)
+    metric_dependencies = (
+        "column.distinct_values.not_in_set.count",
+        "column.distinct_values.not_in_set",
+        "column.distinct_values.missing_from_column.count",
+        "column.distinct_values.missing_from_column",
+    )
     success_keys = ("value_set",)
     args_keys = (
         "column",
@@ -362,25 +367,39 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
         runtime_configuration: Optional[dict] = None,
         execution_engine: Optional[ExecutionEngine] = None,
     ):
-        observed_value_counts = metrics["column.value_counts"]
-        observed_value_set = set(observed_value_counts.index)
-        value_set = self._get_success_kwargs()["value_set"]
+        # Get count of unexpected values (values in column but NOT in expected set)
+        unexpected_count = metrics.get("column.distinct_values.not_in_set.count", 0)
+        unexpected_values = metrics.get("column.distinct_values.not_in_set", [])
 
-        # Try to coerce string values to match the type of observed values
-        if observed_value_set and value_set:
-            first_observed = next(iter(observed_value_set))
-            expected_value_set = {
-                parse_value_to_observed_type(first_observed, value) for value in value_set
-            }
-        else:
-            expected_value_set = set(value_set)
+        # Get count of missing values (values in expected set but NOT in column)
+        missing_count = metrics.get("column.distinct_values.missing_from_column.count", 0)
+        missing_values = metrics.get("column.distinct_values.missing_from_column", [])
+
+        # Success if no unexpected values AND no missing values
+        success = (unexpected_count == 0) and (missing_count == 0)
+
+        # Check partial_unexpected_count setting to determine if partial lists should be included
+        # For distinct values Expectations, always use MAX_DISTINCT_VALUES as the limit
+        # but respect partial_unexpected_count: 0 to exclude the list entirely
+        result_format = (
+            runtime_configuration.get("result_format", {}) if runtime_configuration else {}
+        )
+        partial_unexpected_count = result_format.get("partial_unexpected_count", 20)
+        include_partial_lists = partial_unexpected_count > 0
+
+        result_dict: Dict[str, Any] = {
+            "observed_value": None,
+            "unexpected_count": unexpected_count,
+            "missing_count": missing_count,
+        }
+
+        if include_partial_lists:
+            result_dict["partial_unexpected_list"] = unexpected_values[:MAX_DISTINCT_VALUES]
+            result_dict["partial_missing_list"] = missing_values[:MAX_DISTINCT_VALUES]
 
         return {
-            "success": observed_value_set == expected_value_set,
-            "result": {
-                "observed_value": sorted(list(observed_value_set)),
-                "details": {"value_counts": observed_value_counts},
-            },
+            "success": success,
+            "result": result_dict,
         }
 
     @classmethod
@@ -397,69 +416,54 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
             result=result,
             runtime_configuration=runtime_configuration,
         )
-        expected_param_prefix = "exp__"
-        expected_param_name = "expected_value"
-        ov_param_prefix = "ov__"
+        # Use original prefixes that frontend expects
+        ov_param_prefix = "ov__"  # for unexpected values (observed but not expected)
         ov_param_name = "observed_value"
+        exp_param_prefix = "exp__"  # for missing values (expected but not observed)
+        exp_param_name = "expected_value"
 
-        renderer_configuration.add_param(
-            name=expected_param_name,
-            param_type=RendererValueType.ARRAY,
-            value=renderer_configuration.kwargs.get("value_set", []),
-        )
-        renderer_configuration = cls._add_array_params(
-            array_param_name=expected_param_name,
-            param_prefix=expected_param_prefix,
-            renderer_configuration=renderer_configuration,
-        )
+        # Get unexpected and missing values from result, limited to MAX_DISTINCT_VALUES
+        result_dict = result.get("result", {}) if result else {}
+        unexpected_values = result_dict.get("partial_unexpected_list", [])[:MAX_DISTINCT_VALUES]
+        missing_values = result_dict.get("partial_missing_list", [])[:MAX_DISTINCT_VALUES]
 
+        # Add unexpected values (values in column but NOT in expected set) using ov__ prefix
         renderer_configuration.add_param(
             name=ov_param_name,
             param_type=RendererValueType.ARRAY,
-            value=result.get("result", {}).get("observed_value", []) if result else [],
+            value=unexpected_values,
         )
         renderer_configuration = cls._add_array_params(
             array_param_name=ov_param_name,
             param_prefix=ov_param_prefix,
             renderer_configuration=renderer_configuration,
         )
-        observed_value_set = set(
-            result.get("result", {}).get("observed_value", []) if result else []
-        )
-        sample_observed_value = next(iter(observed_value_set)) if observed_value_set else None
-        expected_value_set = {
-            parse_value_to_observed_type(observed_value=sample_observed_value, value=value)
-            for value in renderer_configuration.kwargs.get("value_set", [])
-        }
 
-        observed_values = (
-            (name, schema)
-            for name, schema in renderer_configuration.params
-            if name.startswith(ov_param_prefix)
+        # Add missing values (values in expected set but NOT in column) using exp__ prefix
+        renderer_configuration.add_param(
+            name=exp_param_name,
+            param_type=RendererValueType.ARRAY,
+            value=missing_values,
         )
-
-        expected_values = (
-            (name, schema)
-            for name, schema in renderer_configuration.params
-            if name.startswith(expected_param_prefix)
+        renderer_configuration = cls._add_array_params(
+            array_param_name=exp_param_name,
+            param_prefix=exp_param_prefix,
+            renderer_configuration=renderer_configuration,
         )
 
         template_str_list = []
-        for name, schema in observed_values:
-            render_state = (
-                ObservedValueRenderState.EXPECTED.value
-                if schema.value in expected_value_set
-                else ObservedValueRenderState.UNEXPECTED.value
-            )
-            renderer_configuration.params.__dict__[name].render_state = render_state
-            template_str_list.append(f"${name}")
 
-        for name, schema in expected_values:
-            coerced_value = parse_value_to_observed_type(
-                observed_value=sample_observed_value,
-                value=schema.value,
-            )
-            if coerced_value not in observed_value_set:
+        # All unexpected values (ov__) get UNEXPECTED render state
+        for name, schema in renderer_configuration.params:
+            if name.startswith(ov_param_prefix):
+                renderer_configuration.params.__dict__[
+                    name
+                ].render_state = ObservedValueRenderState.UNEXPECTED.value
+                template_str_list.append(f"${name}")
+
+        # All missing values (exp__) get MISSING render state
+        for name, schema in renderer_configuration.params:
+            if name.startswith(exp_param_prefix):
                 renderer_configuration.params.__dict__[
                     name
                 ].render_state = ObservedValueRenderState.MISSING.value

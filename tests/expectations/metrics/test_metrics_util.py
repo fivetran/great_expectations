@@ -25,6 +25,7 @@ from great_expectations.exceptions import MetricResolutionError
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 from great_expectations.expectations.metrics.util import (
     CaseInsensitiveString,
+    _build_column_metadata_result,
     column_reflection_fallback,
     get_dbms_compatible_metric_domain_kwargs,
     get_dialect_like_pattern_expression,
@@ -1116,3 +1117,40 @@ def test_column_reflection_fallback_redshift_schema_qualified(
         f"Expected '{expected_table_ref}' in sa.text() calls, but got: {text_calls}"
     )
     assert isinstance(result, list)
+
+
+class TestBuildColumnMetadataResultSQLServer:
+    @staticmethod
+    def _make_mock_engine(mocker: MockerFixture):
+        mock_engine = mocker.MagicMock(spec=SqlAlchemyExecutionEngine)
+        mock_dialect = mocker.MagicMock(spec=Dialect)
+        mock_dialect.name = "mssql"
+        mock_engine.dialect = mock_dialect
+        return mock_engine
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "col_type,expected_str",
+        [
+            pytest.param("VARCHAR", "VARCHAR", id="string_from_fallback"),
+            pytest.param("NVARCHAR", "NVARCHAR", id="string_nvarchar_from_fallback"),
+            pytest.param("INTEGER", "INTEGER", id="string_integer_from_fallback"),
+            pytest.param(sa.types.VARCHAR(), "VARCHAR", id="type_engine_varchar"),
+            pytest.param(
+                sa.types.VARCHAR(collation="SQL_Latin1_General_CP1_CI_AS"),
+                "VARCHAR",
+                id="type_engine_varchar_with_collation",
+            ),
+            pytest.param(sa.types.NVARCHAR(), "NVARCHAR", id="type_engine_nvarchar"),
+            pytest.param(sa.types.INTEGER(), "INTEGER", id="type_engine_integer"),
+        ],
+    )
+    def test_type_normalized_to_case_insensitive_string(
+        self, mocker: MockerFixture, col_type, expected_str: str
+    ):
+        engine = self._make_mock_engine(mocker)
+        result = _build_column_metadata_result([{"name": "col1", "type": col_type}], set(), engine)
+
+        assert isinstance(result[0]["type"], CaseInsensitiveString)
+        assert str(result[0]["type"]) == expected_str
+        assert result[0]["type"] == expected_str.lower()

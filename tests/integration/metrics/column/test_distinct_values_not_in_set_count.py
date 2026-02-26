@@ -66,4 +66,5 @@ class TestColumnDistinctValuesNotInSetCount:
         metric_result = batch_for_datasource.compute_metrics(metric)
 
         assert isinstance(metric_result, ColumnDistinctValuesNotInSetCountResult)
-        assert metric_result.value == 3  # a, b, c
+        # Normalize type for Spark compatibility (may return numpy.int64 or Java long)
+        assert int(metric_result.value) == 3  # a, b, c

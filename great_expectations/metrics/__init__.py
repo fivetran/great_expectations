@@ -5,6 +5,12 @@ from .column.aggregate_non_null_count import ColumnAggregateNonNullCount
 from .column.descriptive_stats import ColumnDescriptiveStats
 from .column.distinct_values import ColumnDistinctValues
 from .column.distinct_values_count import ColumnDistinctValuesCount
+from .column.distinct_values_missing_from_column import ColumnDistinctValuesMissingFromColumn
+from .column.distinct_values_missing_from_column_count import (
+    ColumnDistinctValuesMissingFromColumnCount,
+)
+from .column.distinct_values_not_in_set import ColumnDistinctValuesNotInSet
+from .column.distinct_values_not_in_set_count import ColumnDistinctValuesNotInSetCount
 from .column.mean import ColumnMean
 from .column.null_count import ColumnNullCount
 from .column.sample_values import ColumnSampleValues

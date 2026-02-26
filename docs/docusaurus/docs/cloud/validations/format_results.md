@@ -186,13 +186,14 @@ Follow the steps below to select a base format, optionally configure additional 
     | Field within `result`         | Value                                                                                                                                                                                                  |
     |-------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
     | element_count                 | The total number of values in the column.                                                                                                                                                              |
-    | missing_count                 | The number of missing values in the column.                                                                                                                                                            |
+    | missing_count                 | The number of missing (null) values in the column. For distinct values Expectations, this is the count of expected values not found in the column.                                                        |
     | missing_percent               | The total percent of rows missing values for the column.                                                                                                                                               |
     | unexpected_count              | The total count of unexpected values in a column.                                                                                                                                                   |
     | unexpected_percent            | The overall percent of unexpected values in a column.                                                                                                                                                  |
     | unexpected_percent_nonmissing | The percent of unexpected values in a column, excluding rows that have no value for that column.                                                                                                       |
     | observed_value                | The aggregate statistic computed for the column. This only applies to Expectations that pertain to the aggregate value of a column, rather than the individual values in each row for the column.      |
     | partial_unexpected_list       | A partial list of values that violate the Expectation. (Up to 20 values by default.)                                                                                                                   |
+    | partial_missing_list          | A partial list of expected values that are missing from the column. Applies to distinct values Expectations. (Up to 20 values by default.)                                                             |
     | partial_unexpected_index_list | A partial list of the unexpected values in the column, as defined by the columns in `unexpected_index_column_names`. (Up to 20 indices by default.)                                                    |
     | partial_unexpected_counts     | A partial list of values and counts, showing the number of times each of the unexpected values occurs. (Up to 20 unexpected value/count pairs by default.)                                              |
     | unexpected_index_list         | A list of the indices of the unexpected values in the column, as defined by the columns in `unexpected_index_column_names`. This only applies to Expectations that have a yes/no answer for each row.  |
@@ -214,6 +215,7 @@ Follow the steps below to select a base format, optionally configure additional 
     | unexpected_percent_nonmissing      |no              |yes             |yes             |yes             |
     | observed_value                     |no              |yes             |yes             |yes             |
     | partial_unexpected_list            |no              |yes **          |yes **          |yes **          |
+    | partial_missing_list               |no              |yes **          |yes **          |yes **          |
     | partial_unexpected_index_list      |no              |no              |yes **          |yes **          |
     | partial_unexpected_counts          |no              |no              |yes **          |yes **          |
     | unexpected_index_list              |no              |no              |no              |yes             |

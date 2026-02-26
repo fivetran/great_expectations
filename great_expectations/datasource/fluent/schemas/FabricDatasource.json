@@ -1,13 +1,13 @@
 {
-    "title": "SQLServerDatasource",
-    "description": "Adds a SQL Server datasource to the data context.\n\nArgs:\n    name: The name of this SQL Server datasource.\n    connection_string: Structured connection details for SQL Server.\n        Alternatively, pass connection detail fields (host, database, schema,\n        username, password, etc.) as keyword arguments directly.\n    assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose\n        values are TableAsset or QueryAsset objects.",
+    "title": "FabricDatasource",
+    "description": "Adds a Microsoft Fabric datasource to the data context.\n\nArgs:\n    name: The name of this Fabric datasource.\n    connection_string: Structured connection details using Entra ID\n        Service Principal authentication.\n    assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose\n        values are TableAsset or QueryAsset objects.",
     "type": "object",
     "properties": {
         "type": {
             "title": "Type",
-            "default": "sql_server",
+            "default": "fabric",
             "enum": [
-                "sql_server"
+                "fabric"
             ],
             "type": "string"
         },
@@ -44,22 +44,7 @@
             }
         },
         "connection_string": {
-            "title": "Connection String",
-            "discriminator": {
-                "propertyName": "authentication",
-                "mapping": {
-                    "SQL Server": "#/definitions/SQLServerAuthConnectionDetails",
-                    "Entra ID Service Principal": "#/definitions/EntraIDServicePrincipalAuthConnectionDetails"
-                }
-            },
-            "oneOf": [
-                {
-                    "$ref": "#/definitions/SQLServerAuthConnectionDetails"
-                },
-                {
-                    "$ref": "#/definitions/EntraIDServicePrincipalAuthConnectionDetails"
-                }
-            ]
+            "$ref": "#/definitions/EntraIDServicePrincipalAuthConnectionDetails"
         },
         "create_temp_table": {
             "title": "Create Temp Table",
@@ -529,84 +514,6 @@
             "required": [
                 "name",
                 "query"
-            ],
-            "additionalProperties": false
-        },
-        "SQLServerAuthConnectionDetails": {
-            "title": "SQLServerAuthConnectionDetails",
-            "description": "SQL Server authentication (username/password).",
-            "type": "object",
-            "properties": {
-                "host": {
-                    "title": "Host",
-                    "type": "string"
-                },
-                "port": {
-                    "title": "Port",
-                    "default": 1433,
-                    "type": "integer"
-                },
-                "database": {
-                    "title": "Database",
-                    "type": "string"
-                },
-                "schema": {
-                    "title": "Schema",
-                    "type": "string"
-                },
-                "driver": {
-                    "title": "Driver",
-                    "default": "ODBC Driver 18 for SQL Server",
-                    "type": "string"
-                },
-                "encrypt": {
-                    "title": "Encrypt",
-                    "default": "Mandatory",
-                    "enum": [
-                        "Mandatory",
-                        "Optional",
-                        "Strict"
-                    ],
-                    "type": "string"
-                },
-                "authentication": {
-                    "title": "Authentication",
-                    "default": "SQL Server",
-                    "enum": [
-                        "SQL Server"
-                    ],
-                    "type": "string"
-                },
-                "username": {
-                    "title": "Username",
-                    "type": "string"
-                },
-                "password": {
-                    "title": "Password",
-                    "anyOf": [
-                        {
-                            "type": "string",
-                            "writeOnly": true,
-                            "format": "password",
-                            "description": "Contains config templates to be substituted at runtime. Runtime values will never be serialized.",
-                            "pattern": ".*(?<!\\\\)\\$\\{(.*?)\\}|(?<!\\\\)\\$([_a-zA-Z][_a-zA-Z0-9]*).*",
-                            "examples": [
-                                "hello_${NAME}",
-                                "${MY_CFG_VAR}"
-                            ]
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ]
-                }
-            },
-            "required": [
-                "host",
-                "database",
-                "schema",
-                "username",
-                "password"
             ],
             "additionalProperties": false
         },

@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING, Literal
 
 import pytest
 
+from great_expectations.constants import MAX_RESULT_RECORDS
 from great_expectations.data_context.util import file_relative_path
 from great_expectations.expectations import UnexpectedRowsExpectation
-from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
 from great_expectations.render.renderer.content_block.content_block import ContentBlockRenderer
 
 if TYPE_CHECKING:

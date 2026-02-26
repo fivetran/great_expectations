@@ -63,6 +63,9 @@ from great_expectations.datasource.fluent.pandas_azure_blob_storage_datasource i
     PandasAzureBlobStorageDatasource,
 )
 from great_expectations.datasource.fluent.fabric import FabricPowerBIDatasource
+from great_expectations.datasource.fluent.fabric_datasource import (
+    FabricDatasource,
+)
 from great_expectations.datasource.fluent.postgres_datasource import (
     PostgresDatasource,
 )

@@ -55,9 +55,12 @@ class TestNumericExpectationAgainstStrDataMisconfiguration:
         data=_DATA,
     )
     def test_pandas(self, batch_for_datasource) -> None:
-        self._assert_misconfiguration(
-            batch_for_datasource=batch_for_datasource,
-            exception_message="could not convert string to float",
+        result = batch_for_datasource.validate(self._EXPECTATION)
+        assert not result.success
+        exception_str = str(result.exception_info)
+        assert (
+            "could not convert string to float" in exception_str  # pandas <3.0
+            or "Cannot perform reduction 'std' with string dtype" in exception_str  # pandas 3.x
         )
 
     @parameterize_batch_for_data_sources(
