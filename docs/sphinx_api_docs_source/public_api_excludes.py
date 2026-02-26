@@ -144,16 +144,6 @@ DEFAULT_EXCLUDES: list[IncludeExcludeDefinition] = [
     IncludeExcludeDefinition(
         reason="False match for python dict `.get()`",
         name="get",
-        filepath=pathlib.Path("great_expectations/data_context/store/query_store.py"),
-    ),
-    IncludeExcludeDefinition(
-        reason="False match for python `set()`",
-        name="set",
-        filepath=pathlib.Path("great_expectations/data_context/store/query_store.py"),
-    ),
-    IncludeExcludeDefinition(
-        reason="False match for python dict `.get()`",
-        name="get",
         filepath=pathlib.Path("great_expectations/data_context/store/store.py"),
     ),
     IncludeExcludeDefinition(

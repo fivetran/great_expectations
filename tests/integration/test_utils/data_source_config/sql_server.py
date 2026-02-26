@@ -1,3 +1,4 @@
+import logging
 from typing import Mapping, Optional
 
 import pandas as pd
@@ -9,16 +10,18 @@ from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from great_expectations.datasource.fluent.sql_server_datasource import (
     SQLServerAuthConnectionDetails,
 )
-from tests.integration.sql_session_manager import SessionSQLEngineManager
+from tests.integration.sql_session_manager import ConnectionDetails, SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
-from tests.test_utils import get_default_mssql_url
+from tests.test_utils import get_default_sql_server_url
+
+logger = logging.getLogger(__name__)
 
 
-class MSSQLDatasourceTestConfig(DataSourceTestConfig):
+class SQLServerDatasourceTestConfig(DataSourceTestConfig):
     @property
     @override
     def label(self) -> str:
@@ -27,7 +30,7 @@ class MSSQLDatasourceTestConfig(DataSourceTestConfig):
     @property
     @override
     def pytest_mark(self) -> pytest.MarkDecorator:
-        return pytest.mark.mssql
+        return pytest.mark.sql_server
 
     @override
     def create_batch_setup(
@@ -38,7 +41,7 @@ class MSSQLDatasourceTestConfig(DataSourceTestConfig):
         context: AbstractDataContext,
         engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
-        return MSSQLBatchTestSetup(
+        return SQLServerBatchTestSetup(
             data=data,
             config=self,
             extra_data=extra_data,
@@ -48,11 +51,11 @@ class MSSQLDatasourceTestConfig(DataSourceTestConfig):
         )
 
 
-class MSSQLBatchTestSetup(SQLBatchTestSetup[MSSQLDatasourceTestConfig]):
+class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
     @property
     @override
     def connection_string(self) -> str:
-        return get_default_mssql_url()
+        return get_default_sql_server_url()
 
     @property
     @override
@@ -79,3 +82,23 @@ class MSSQLBatchTestSetup(SQLBatchTestSetup[MSSQLDatasourceTestConfig]):
             table_name=self.table_name,
             schema_name=self.schema,
         )
+
+    @override
+    def teardown(self) -> None:
+        """Override teardown to dispose cached engines before DROP SCHEMA.
+
+        SQL Server holds schema locks on connections. Disposing the session manager's
+        cached engine releases all pool connections before we run DROP, avoiding
+        hangs. We use a fresh engine for the drop since the cached one was disposed.
+        """
+        for datasource in self.context.data_sources.all().values():
+            execution_engine = datasource.execution_engine
+            if execution_engine:
+                execution_engine.close()
+
+        if self.engine_manager:
+            self.engine_manager.dispose_engine(
+                ConnectionDetails(connection_string=self.connection_string)
+            )
+
+        super().teardown()

@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, Optional
 
 import pytest
 
+import great_expectations as gx
 import great_expectations.expectations as gxe
-from great_expectations.util import build_in_memory_runtime_context
 
 if TYPE_CHECKING:
     from great_expectations.core.expectation_validation_result import (
@@ -100,7 +100,7 @@ def test_expect_table_row_count_to_equal_other_table(
     The row_condition should be applied only to the main table (self) before counting,
     while the other table should be counted without any filtering.
     """
-    context = build_in_memory_runtime_context()
+    context = gx.get_context(mode="ephemeral")
 
     # Create SQLite datasource
     datasource = context.data_sources.add_sqlite(

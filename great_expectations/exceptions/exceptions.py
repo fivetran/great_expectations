@@ -282,8 +282,6 @@ class PluginClassNotFoundError(DataContextError, AttributeError):
     def __init__(self, module_name, class_name) -> None:
         class_name_changes = {
             "FixedLengthTupleFilesystemStoreBackend": "TupleFilesystemStoreBackend",
-            "FixedLengthTupleS3StoreBackend": "TupleS3StoreBackend",
-            "FixedLengthTupleGCSStoreBackend": "TupleGCSStoreBackend",
             "SubdirReaderGenerator": "SubdirReaderBatchKwargsGenerator",
             "ExtractAndStoreSuiteParamsAction": "StoreSuiteParametersAction",
             "StoreAction": "StoreValidationResultAction",

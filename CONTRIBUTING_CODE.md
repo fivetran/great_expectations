@@ -103,7 +103,7 @@ Great Expectations requires a Python version from 3.10 to 3.13.
 
     To specify other dependencies, add a comma after `test` and enter the dependency name(s). **For example, ".[test, postgresql, trino]"**.
 
-    The supported extra dependencies include: `arrow`, `athena`, `aws_secrets`, `azure`, `azure_secrets`, `bigquery`, `clickhouse`, `cloud`, `dremio`, `excel`, `gcp`, `hive`, `mssql`, `mysql`, `postgresql`, `redshift`, `s3`, `snowflake`, `spark`, `teradata`, `test`, `trino`, `vertica`.
+    The supported extra dependencies include: `arrow`, `athena`, `aws_secrets`, `azure`, `azure_secrets`, `bigquery`, `clickhouse`, `cloud`, `dremio`, `excel`, `gcp`, `hive`, `sql-server`, `mysql`, `postgresql`, `redshift`, `s3`, `snowflake`, `spark`, `teradata`, `test`, `trino`, `vertica`.
 
     Check below to see if any of your desired dependencies need system packages installed, **before `pip install`**.
 
@@ -117,7 +117,7 @@ Great Expectations requires a Python version from 3.10 to 3.13.
     brew install postgresql
     ```
 
-3. Optional. If you're using Microsoft SQL Server (`mssql`) or Dremio (`dremio`), run one of the following commands to install `unixodbc`, which is required to install the `pyodbc` Python package:
+3. Optional. If you're using Microsoft SQL Server or Dremio (`dremio`), run one of the following commands to install `unixodbc`, which is required to install the `pyodbc` Python package:
 
     ```sh
     sudo apt-get install -y unixodbc-dev
@@ -286,14 +286,14 @@ Great Expectations code is not tested against all SQL database types. Continuous
 
 ### Unit testing
 
-To perform unit testing, run `pytest` in the `great_expectations` directory root. By default, tests are run against `pandas` and `sqlite`. You can use `pytest` flags to test additional backends like `postgresql`, `spark`, and `mssql`. For example, to run a test against PostgreSQL backend, you run `pytest --postgresql`.
+To perform unit testing, run `pytest` in the `great_expectations` directory root. By default, tests are run against `pandas` and `sqlite`. You can use `pytest` flags to test additional backends like `postgresql`, `spark`, and `sql-server`. For example, to run a test against PostgreSQL backend, you run `pytest --postgresql`.
 
 The following are the supported `pytest` flags for general testing:
 
 - `--spark`: Execute tests against Spark backend.
 - `--postgresql`: Execute tests against PostgreSQL.
 - `--mysql`: Execute tests against MySql.
-- `--mssql`: Execute tests against Microsoft SQL Server.
+- `--sql-server`: Execute tests against Microsoft SQL Server.
 - `--bigquery`: Execute tests against Google BigQuery (requires additional set up).
 - `--aws`: Execute tests against AWS resources such as Amazon S3, Amazon Redshift, and Athena (requires additional setup).
 

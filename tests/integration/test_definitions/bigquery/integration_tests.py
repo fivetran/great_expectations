@@ -40,14 +40,7 @@ partition_data = [
 
 sample_data: List[IntegrationTestFixture] = []
 
-deployment_patterns = [
-    IntegrationTestFixture(
-        name="deployment_patterns_file_bigquery",
-        user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/database/gcp_deployment_patterns_file_bigquery.py",
-        data_context_dir=None,
-        backend_dependencies=[BackendDependencies.BIGQUERY],
-    ),
-]
+deployment_patterns: List[IntegrationTestFixture] = []
 
 runtime_parameters: List[IntegrationTestFixture] = []
 

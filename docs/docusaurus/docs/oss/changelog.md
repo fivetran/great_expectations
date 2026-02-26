@@ -15,12 +15,13 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
-### 1.12
+### 1.12.3
 * [MINORBUMP] Add support for pd.Timestamp for datetime comparison operations ([#11637](https://github.com/great-expectations/great_expectations/pull/11637)) (thanks @subediparas5)
 * [FEATURE] Add sql server types stubs and use api in integration tests ([#11643](https://github.com/great-expectations/great_expectations/pull/11643))
 * [FEATURE] MSSQL support for UnexpectedRowsExpectation ([#11646](https://github.com/great-expectations/great_expectations/pull/11646))
 * [FEATURE] SQL Server Azure AD password authentication ([#11645](https://github.com/great-expectations/great_expectations/pull/11645))
 * [FEATURE] MSSQL schema support ([#11649](https://github.com/great-expectations/great_expectations/pull/11649))
+* [FEATURE] Support asymmetric quoted identifiers in dialect quoting ([#11652](https://github.com/great-expectations/great_expectations/pull/11652))
 * [BUGFIX] Remove table domain key from ExpectColumnToExist ([#11630](https://github.com/great-expectations/great_expectations/pull/11630))
 * [BUGFIX] Fix missing unexpected_index_query for ExpectCompoundColumnsToBeUnique on SQL ([#11639](https://github.com/great-expectations/great_expectations/pull/11639))
 * [DOCS] Agent request next steps ([#11619](https://github.com/great-expectations/great_expectations/pull/11619))
@@ -35,6 +36,9 @@ Before we completely remove the functionality in a new major release, there will
 * [MAINTENANCE] Add database-pushdown metrics for distinct values set comparisons ([#11629](https://github.com/great-expectations/great_expectations/pull/11629))
 * [MAINTENANCE] Bump webpack from 5.94.0 to 5.104.1 in /docs/docusaurus ([#11636](https://github.com/great-expectations/great_expectations/pull/11636))
 * [MAINTENANCE] `SQLServerDatasource` with SQL Server authentication ([#11640](https://github.com/great-expectations/great_expectations/pull/11640))
+* [MAINTENANCE] Add `start_period` to mercury healthcheck to prevent flaky CI failures ([#11655](https://github.com/great-expectations/great_expectations/pull/11655))
+* [MAINTENANCE] Bump docker compose timeout to 3 min ([#11659](https://github.com/great-expectations/great_expectations/pull/11659))
+* [MAINTENANCE] Dispose of mssql connections in integration tests ([#11663](https://github.com/great-expectations/great_expectations/pull/11663))
 
 ### 1.11.3
 * [BUGFIX] Fix Redshift fallback column detection for schema-qualified tables ([#11606](https://github.com/great-expectations/great_expectations/pull/11606)) (thanks @jni-bot)

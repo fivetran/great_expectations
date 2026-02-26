@@ -879,10 +879,15 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
     "gx-redshift": TestDependencies(
         requirement_files=("reqs/requirements-dev-gx-redshift.txt",),
     ),
-    "mssql": TestDependencies(
-        ("reqs/requirements-dev-mssql.txt",),
+    "sql_server": TestDependencies(
+        ("reqs/requirements-dev-sql-server.txt",),
         services=("mssql",),
-        extra_pytest_args=("--mssql",),
+        extra_pytest_args=("--sql-server",),
+    ),
+    "mssql": TestDependencies(
+        ("reqs/requirements-dev-sql-server.txt",),
+        services=("mssql",),
+        extra_pytest_args=("--sql-server",),
     ),
     "mysql": TestDependencies(
         ("reqs/requirements-dev-mysql.txt",),
@@ -925,9 +930,11 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
 def _marker_statement(marker: str) -> str:
     # Perhaps we should move this configuration to the MARKER_DEPENDENCY_MAP instead of
     # doing the mapping here.
+    if marker == "mssql":
+        marker = "sql_server"
     if marker in [
         "postgresql",
-        "mssql",
+        "sql_server",
         "mysql",
         "spark",
         "trino",

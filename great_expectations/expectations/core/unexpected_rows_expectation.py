@@ -57,7 +57,7 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.BIGQUERY.value,
     SupportedDataSources.SNOWFLAKE.value,
     SupportedDataSources.DATABRICKS.value,
-    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.SQL_SERVER.value,
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.SQL.value]
 

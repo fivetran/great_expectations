@@ -73,10 +73,13 @@ class QueryTemplateValues(QueryMetricProvider):
             selectable, sa.sql.Select
         ):  # Specifying a row_condition returns the active batch as a Select object, requiring compilation &  # noqa: E501 # FIXME CoP
             # aliasing when formatting the parameterized query
+            compiled_selectable = selectable.compile(
+                dialect=execution_engine.engine.dialect, compile_kwargs={"literal_binds": True}
+            )
             query = cls.get_query(
                 query,
                 template_dict,
-                f"({selectable.compile(compile_kwargs={'literal_binds': True})}) AS subselect",
+                f"({compiled_selectable}) AS subselect",
             )
 
         else:

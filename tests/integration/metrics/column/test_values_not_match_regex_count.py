@@ -34,7 +34,8 @@ class TestColumnValuesNotMatchRegexCount:
         metric_result = batch_for_datasource.compute_metrics(metric)
 
         assert isinstance(metric_result, ColumnValuesNotMatchRegexCountResult)
-        assert metric_result.value == 2
+        # Normalize type for Spark compatibility (may return numpy.int64 or Java long)
+        assert int(metric_result.value) == 2
 
     @parameterize_batch_for_data_sources(
         data_source_configs=SPARK_DATA_SOURCES + SQL_DATA_SOURCES,

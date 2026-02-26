@@ -174,9 +174,9 @@ ExpectAI is an analytical AI tool that you can use to generate tests.
 To accelerate test coverage, you can use ExpectAI to generate recommended Expectations for a Data Asset. These will be personalized based on an analysis of a sample of your data.
 
 Keep the following requirements in mind when working with ExpectAI:
-- Your organization must be using a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
 - The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake.
 - Generated Expectations will default to warning severity, which you can edit later.
+- If your organization is using an [agent-enabled deployment](/cloud/deploy/deployment_patterns.md), you must [deploy the GX Agent](/cloud/deploy/deploy_gx_agent.md#deploy-the-gx-agent) with credentials for your own LLM.
 
 To add AI-recommended Expectations:
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
@@ -207,8 +207,8 @@ AND passenger_count > 4
 ```
 
 Keep the following requirements in mind when working with ExpectAI:
-- Your organization must be using a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
 - The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake.
+- If your organization is using an [agent-enabled deployment](/cloud/deploy/deployment_patterns.md), you must [deploy the GX Agent](/cloud/deploy/deploy_gx_agent.md#deploy-the-gx-agent) with credentials for your own LLM.
 
 ## Edit an Expectation
 

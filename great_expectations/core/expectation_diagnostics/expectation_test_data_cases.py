@@ -16,7 +16,7 @@ class Backend(Enum):
     """Backends with some level of testing and support"""
 
     BIGQUERY = "CONCEPT_ONLY"
-    MSSQL = "EXPERIMENTAL"
+    SQL_SERVER = "EXPERIMENTAL"
     SQLITE = "BETA"
     PYSPARK = "PRODUCTION"
 

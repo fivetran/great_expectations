@@ -11,8 +11,8 @@ from typing import (
 )
 
 import great_expectations.exceptions as gx_exceptions
+from great_expectations.constants import MAX_RESULT_RECORDS
 from great_expectations.expectations.metrics.util import (
-    MAX_RESULT_RECORDS,
     get_dbms_compatible_metric_domain_kwargs,
 )
 

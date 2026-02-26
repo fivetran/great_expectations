@@ -24,7 +24,7 @@ class SupportedDataSources(str, Enum):
     SQLITE = "SQLite"
     POSTGRESQL = "PostgreSQL"
     MYSQL = "MySQL"
-    MSSQL = "MSSQL"
+    SQL_SERVER = "SQL Server"
     BIGQUERY = "BigQuery"
     SNOWFLAKE = "Snowflake"
     DATABRICKS = "Databricks (SQL)"
