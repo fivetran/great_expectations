@@ -551,7 +551,7 @@ def load_data_into_test_database(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     if engine.dialect.name.lower().startswith("mysql"):
         # Don't attempt to DROP TABLE IF EXISTS on a table that doesn't exist in mysql because it will error  # noqa: E501 # FIXME CoP
         inspector = inspect(engine)
-        db_name = connection_string.split("/")[-1]
+        db_name = connection_string.rsplit("/", maxsplit=1)[-1]
         table_names = [name for name in inspector.get_table_names(schema=db_name)]
         drop_existing_table = table_name in table_names
 
