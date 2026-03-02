@@ -1414,27 +1414,12 @@ class SQLDatasource(Datasource):
             eg, it could be a TableAsset or a SqliteTableAsset.
         """
         if schema_name is not _MISSING:
-            # deprecated-v1.14.0
-            warnings.warn(
-                "The `schema_name` argument is deprecated and will be removed in a future release."
-                " Pass the schema in your datasource's connection configuration instead.",
-                category=DeprecationWarning,
+            asset = self._TableAsset(
+                name=name,
+                table_name=table_name,
+                schema_name=schema_name,
+                batch_metadata=batch_metadata or {},
             )
-            if self.schema_ is not None and schema_name != self.schema_:
-                warnings.warn(
-                    f"schema_name {schema_name} does not match datasource schema {self.schema_}",
-                    category=GxDatasourceWarning,
-                )
-        if schema_name is not _MISSING:
-            # Catch this warning since we already warned about the deprecation
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", category=DeprecationWarning)
-                asset = self._TableAsset(
-                    name=name,
-                    table_name=table_name,
-                    schema_name=schema_name,
-                    batch_metadata=batch_metadata or {},
-                )
         else:
             asset = self._TableAsset(
                 name=name,
