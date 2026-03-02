@@ -1054,7 +1054,7 @@ class TableAsset(_SQLAsset):
     def _effective_schema_name(self) -> str | None:
         """Returns schema_name if explicitly set, otherwise falls back to the datasource schema."""
         if self.schema_name is not None:
-            return self.schema_name
+            return self._to_lower_if_not_bracketed_by_quotes(self.schema_name)
         try:
             datasource: SQLDatasource = self.datasource
         except AttributeError:
