@@ -104,7 +104,7 @@ class _Missing:
     def __new__(cls) -> Self:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-        return cls._instance
+        return cls._instance  # type: ignore[return-value] # singleton
 
     def __copy__(self) -> Self:
         return self
