@@ -342,22 +342,34 @@ def test_to_lower_if_not_quoted(
     assert to_lower_if_not_quoted(input_, quote_characters=quote_characters) == expected_output
 
 
+@pytest.fixture
+def sql_datasource_with_schema(
+    sql_datasource_table_asset_test_connection_noop: SQLDatasource,
+    monkeypatch: pytest.MonkeyPatch,
+    request: pytest.FixtureRequest,
+) -> SQLDatasource:
+    monkeypatch.setattr(
+        type(sql_datasource_table_asset_test_connection_noop),
+        "schema_",
+        property(lambda self: request.param),
+    )
+    return sql_datasource_table_asset_test_connection_noop
+
+
 @pytest.mark.unit
 class TestTableAsset:
-    @pytest.mark.parametrize("schema_name", ["my_schema", "MY_SCHEMA", "My_Schema"])
+    @pytest.mark.parametrize(
+        "sql_datasource_with_schema", ["my_schema", "MY_SCHEMA", "My_Schema"], indirect=True
+    )
     def test_unquoted_schema_names_are_added_as_lowercase(
         self,
-        sql_datasource_table_asset_test_connection_noop: SQLDatasource,
-        schema_name: str,
+        sql_datasource_with_schema: SQLDatasource,
     ):
-        my_datasource: SQLDatasource = sql_datasource_table_asset_test_connection_noop
-
-        table_asset = my_datasource.add_table_asset(
+        table_asset = sql_datasource_with_schema.add_table_asset(
             name="my_table_asset",
             table_name="my_table",
         )
-        table_asset.schema_name = schema_name
-        assert table_asset.schema_name == schema_name.lower()
+        assert table_asset.schema_name == sql_datasource_with_schema.schema_.lower()
 
     @pytest.mark.parametrize("table_name", ["my_table", "MY_TABLE", "My_Table"])
     def test_unquoted_table_names_are_unquoted(
@@ -376,7 +388,7 @@ class TestTableAsset:
         assert not table_asset.table_name.quote
 
     @pytest.mark.parametrize(
-        "schema_name",
+        "sql_datasource_with_schema",
         [
             '"my_schema"',
             '"MY_SCHEMA"',
@@ -387,20 +399,17 @@ class TestTableAsset:
             "`My_Schema`",
             "[My_Schema]",
         ],
+        indirect=True,
     )
     def test_quoted_schema_names_are_not_modified(
         self,
-        sql_datasource_table_asset_test_connection_noop: SQLDatasource,
-        schema_name: str,
+        sql_datasource_with_schema: SQLDatasource,
     ):
-        my_datasource: SQLDatasource = sql_datasource_table_asset_test_connection_noop
-
-        table_asset = my_datasource.add_table_asset(
+        table_asset = sql_datasource_with_schema.add_table_asset(
             name="my_table_asset",
             table_name="my_table",
         )
-        table_asset.schema_name = schema_name
-        assert table_asset.schema_name == schema_name
+        assert table_asset.schema_name == sql_datasource_with_schema.schema_
 
     @pytest.mark.parametrize(
         "table_name",
