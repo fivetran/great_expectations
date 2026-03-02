@@ -31,7 +31,7 @@ class RedshiftConnectionConfig(BaseSettings):
     REDSHIFT_USERNAME: str
     REDSHIFT_SSLMODE: str
 
-    def connection_string(self, schema: str | None = None) -> RedshiftDsn:
+    def build_connection_string(self, schema: str | None = None) -> RedshiftDsn:
         options = f"&{urlencode({'options': f'-c search_path={schema}'})}" if schema else ""
         return RedshiftDsn(
             f"redshift+psycopg2://{self.REDSHIFT_USERNAME}:{self.REDSHIFT_PASSWORD}@"
@@ -74,7 +74,7 @@ class RedshiftDatasourceTestConfig(DataSourceTestConfig):
 class RedshiftBatchTestSetup(SQLBatchTestSetup[RedshiftDatasourceTestConfig]):
     @override
     def build_connection_string(self, schema: str | None = None) -> RedshiftDsn:
-        return self.redshift_connection_config.connection_string(schema=schema)
+        return self.redshift_connection_config.build_connection_string(schema=schema)
 
     @property
     @override

@@ -58,7 +58,7 @@ class DatabricksDatasourceTestConfig(DataSourceTestConfig):
 class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]):
     @override
     def build_connection_string(self, schema: str | None = None) -> str:
-        return self._databrics_connection_config.connection_string(schema=schema)
+        return self._databrics_connection_config.build_connection_string(schema=schema)
 
     @property
     @override
@@ -95,7 +95,7 @@ class DatabricksConnectionConfig(BaseSettings):
     databricks_host: str
     databricks_http_path: str
 
-    def connection_string(self, schema: str | None = None) -> str:
+    def build_connection_string(self, schema: str | None = None) -> str:
         base = (
             "databricks://token:"
             f"{self.databricks_token}@{self.databricks_host}:443"

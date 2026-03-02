@@ -70,8 +70,7 @@ class SnowflakeConnectionConfig(BaseSettings):
     SNOWFLAKE_ROLE: str
     SNOWFLAKE_PRIVATE_KEY: Optional[str] = None  # base64-encoded private key
 
-    @property
-    def connection_string(self) -> str:
+    def build_connection_string(self) -> str:
         # Note: we don't specify the schema here because it will be created dynamically, and we pass
         # it into the `data_sources.add_snowflake` call.
 
@@ -103,7 +102,7 @@ class SnowflakeConnectionConfig(BaseSettings):
 class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
     @override
     def build_connection_string(self, schema: str | None = None) -> str:
-        return self.snowflake_connection_config.connection_string
+        return self.snowflake_connection_config.build_connection_string()
 
     @property
     def private_key(self) -> Optional[str]:
