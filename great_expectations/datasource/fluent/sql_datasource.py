@@ -25,7 +25,7 @@ from typing import (
     overload,
 )
 
-from typing_extensions import Annotated, Never
+from typing_extensions import Annotated, Never, Self
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import deprecated_argument, public_api
@@ -95,7 +95,25 @@ if TYPE_CHECKING:
 
 LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 
-_MISSING: Final = object()  # sentinel value to distinguish "not provided" from None
+
+class _Missing:
+    """Sentinel that survives Pydantic's deepcopy of field defaults."""
+
+    _instance: _Missing | None = None
+
+    def __new__(cls) -> Self:
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __copy__(self) -> Self:
+        return self
+
+    def __deepcopy__(self, memo: dict) -> Self:
+        return self
+
+
+_MISSING: Final = _Missing()
 
 DEFAULT_INITIAL_QUOTE_CHARACTERS: Final[Tuple[str, str, str, str]] = ('"', "'", "`", "[")
 DEFAULT_FINAL_QUOTE_CHARACTERS: Final[Mapping[str, str]] = {
@@ -1015,20 +1033,21 @@ class TableAsset(_SQLAsset):
         "",
         description="Name of the SQL table. Will default to the value of `name` if not provided.",
     )
-    schema_name: Optional[str] = None
+    schema_name: Optional[str] = _MISSING  # type: ignore[assignment] # sentinel value
 
     _quote_character: Optional[str] = None
 
     @pydantic.validator("schema_name", pre=True, always=True)
     @classmethod
     def _schema_name_deprecation_warning(cls, v: Optional[str]) -> Optional[str]:
-        if v is not None:
-            # deprecated-v1.14.0
-            warnings.warn(
-                "`schema_name` is deprecated."
-                " Pass the schema in your datasource's connection configuration instead.",
-                category=DeprecationWarning,
-            )
+        if v is _MISSING:
+            return None
+        # deprecated-v1.14.0
+        warnings.warn(
+            "`schema_name` is deprecated."
+            " Pass the schema in your datasource's connection configuration instead.",
+            category=DeprecationWarning,
+        )
         return v
 
     @property
