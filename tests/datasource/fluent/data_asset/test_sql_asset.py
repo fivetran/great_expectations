@@ -1,4 +1,3 @@
-import warnings
 from datetime import date, datetime, timezone
 from typing import Any
 
@@ -250,13 +249,10 @@ def test_add_batch_definition_fluent_sql__add_batch_definition_daily(
 
 
 def add_table_asset(datasource: SQLDatasource):
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", DeprecationWarning)
-        return datasource.add_table_asset(
-            name="my_table_asset",
-            table_name="my_table",
-            schema_name="my_schema",
-        )
+    return datasource.add_table_asset(
+        name="my_table_asset",
+        table_name="my_table",
+    )
 
 
 def add_query_asset(datasource: SQLDatasource):
