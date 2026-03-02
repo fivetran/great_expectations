@@ -10,6 +10,7 @@ from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.datasource.fluent.interfaces import TestConnectionError
+from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from great_expectations.datasource.fluent.sql_server_datasource import (
     EntraIDServicePrincipalAuthConnectionDetails,
     MissingODBCDriverError,
@@ -256,8 +257,6 @@ class TestSQLServerDatasource:
         connection_details_default: ConnectionDetailsDict,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        from great_expectations.datasource.fluent.sql_datasource import TableAsset
-
         monkeypatch.setattr(TableAsset, "test_connection", lambda self: None)
         ds = SQLServerDatasource(
             name="test_ds",

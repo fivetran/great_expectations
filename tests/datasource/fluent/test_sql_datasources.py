@@ -343,7 +343,6 @@ def test_to_lower_if_not_quoted(
 
 
 @pytest.mark.unit
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 class TestTableAsset:
     @pytest.mark.parametrize("schema_name", ["my_schema", "MY_SCHEMA", "My_Schema"])
     def test_unquoted_schema_names_are_added_as_lowercase(
@@ -356,8 +355,8 @@ class TestTableAsset:
         table_asset = my_datasource.add_table_asset(
             name="my_table_asset",
             table_name="my_table",
-            schema_name=schema_name,
         )
+        table_asset.schema_name = schema_name
         assert table_asset.schema_name == schema_name.lower()
 
     @pytest.mark.parametrize("table_name", ["my_table", "MY_TABLE", "My_Table"])
@@ -371,7 +370,6 @@ class TestTableAsset:
         table_asset = my_datasource.add_table_asset(
             name="my_table_asset",
             table_name=table_name,
-            schema_name="my_schema",
         )
         assert isinstance(table_asset.table_name, sqlalchemy.quoted_name)
         assert table_asset.table_name == table_name
@@ -400,8 +398,8 @@ class TestTableAsset:
         table_asset = my_datasource.add_table_asset(
             name="my_table_asset",
             table_name="my_table",
-            schema_name=schema_name,
         )
+        table_asset.schema_name = schema_name
         assert table_asset.schema_name == schema_name
 
     @pytest.mark.parametrize(
@@ -427,7 +425,6 @@ class TestTableAsset:
         table_asset = my_datasource.add_table_asset(
             name="my_table_asset",
             table_name=table_name,
-            schema_name="my_schema",
         )
         assert isinstance(table_asset.table_name, sqlalchemy.quoted_name)
         assert table_asset.table_name == table_name[1:-1]
