@@ -456,8 +456,9 @@ def test_valid_config(
                 },
                 {
                     "loc": ("connection_string",),
-                    "msg": "ConfigStr - contains no config template strings in the format "
-                    "'${MY_CONFIG_VAR}' or '$MY_CONFIG_VAR'",
+                    "msg": "ConfigStr - contains no config template strings in the format '${MY_CONFIG_VAR}'."
+                    " If your value contains a literal '$', it must be escaped as '\\$'."
+                    " See https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_credentials",
                     "type": "value_error",
                 },
                 {
@@ -491,8 +492,9 @@ def test_valid_config(
                 },
                 {
                     "loc": ("connection_string",),
-                    "msg": "ConfigStr - contains no config template strings in the format "
-                    "'${MY_CONFIG_VAR}' or '$MY_CONFIG_VAR'",
+                    "msg": "ConfigStr - contains no config template strings in the format '${MY_CONFIG_VAR}'."
+                    " If your value contains a literal '$', it must be escaped as '\\$'."
+                    " See https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_credentials",
                     "type": "value_error",
                 },
                 {
@@ -527,8 +529,9 @@ def test_valid_config(
                 },
                 {
                     "loc": ("connection_string",),
-                    "msg": "ConfigStr - contains no config template strings in the format "
-                    "'${MY_CONFIG_VAR}' or '$MY_CONFIG_VAR'",
+                    "msg": "ConfigStr - contains no config template strings in the format '${MY_CONFIG_VAR}'."
+                    " If your value contains a literal '$', it must be escaped as '\\$'."
+                    " See https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_credentials",
                     "type": "value_error",
                 },
                 {
@@ -562,8 +565,9 @@ def test_valid_config(
                 },
                 {
                     "loc": ("connection_string",),
-                    "msg": "ConfigStr - contains no config template strings in the format "
-                    "'${MY_CONFIG_VAR}' or '$MY_CONFIG_VAR'",
+                    "msg": "ConfigStr - contains no config template strings in the format '${MY_CONFIG_VAR}'."
+                    " If your value contains a literal '$', it must be escaped as '\\$'."
+                    " See https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_credentials",
                     "type": "value_error",
                 },
                 {
@@ -598,8 +602,9 @@ def test_valid_config(
                 },
                 {
                     "loc": ("connection_string",),
-                    "msg": "ConfigStr - contains no config template strings in the format "
-                    "'${MY_CONFIG_VAR}' or '$MY_CONFIG_VAR'",
+                    "msg": "ConfigStr - contains no config template strings in the format '${MY_CONFIG_VAR}'."
+                    " If your value contains a literal '$', it must be escaped as '\\$'."
+                    " See https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_credentials",
                     "type": "value_error",
                 },
                 {
@@ -655,8 +660,9 @@ def test_missing_required_params(
                 },
                 {
                     "loc": ("connection_string",),
-                    "msg": "ConfigStr - contains no config template strings in the format"
-                    " '${MY_CONFIG_VAR}' or '$MY_CONFIG_VAR'",
+                    "msg": "ConfigStr - contains no config template strings in the format '${MY_CONFIG_VAR}'."
+                    " If your value contains a literal '$', it must be escaped as '\\$'."
+                    " See https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_credentials",
                     "type": "value_error",
                 },
                 {
@@ -690,8 +696,9 @@ def test_missing_required_params(
                 },
                 {
                     "loc": ("connection_string",),
-                    "msg": "ConfigStr - contains no config template strings in the format"
-                    " '${MY_CONFIG_VAR}' or '$MY_CONFIG_VAR'",
+                    "msg": "ConfigStr - contains no config template strings in the format '${MY_CONFIG_VAR}'."
+                    " If your value contains a literal '$', it must be escaped as '\\$'."
+                    " See https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_credentials",
                     "type": "value_error",
                 },
                 {
@@ -725,8 +732,9 @@ def test_missing_required_params(
                 },
                 {
                     "loc": ("connection_string",),
-                    "msg": "ConfigStr - contains no config template strings in the format"
-                    " '${MY_CONFIG_VAR}' or '$MY_CONFIG_VAR'",
+                    "msg": "ConfigStr - contains no config template strings in the format '${MY_CONFIG_VAR}'."
+                    " If your value contains a literal '$', it must be escaped as '\\$'."
+                    " See https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_credentials",
                     "type": "value_error",
                 },
                 {
