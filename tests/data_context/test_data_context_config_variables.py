@@ -127,7 +127,7 @@ def test_substitute_config_variable():
         config_substitutor.substitute_config_variable(
             "abc${arg1} def${foo}", config_variables_dict
         )  # does NOT equal "abc${arg1}"
-    assert "Unable to find a match for config substitution variable: `arg1`." in exc.value.message
+    assert "Unable to find a match for a config substitution variable" in exc.value.message
     assert (
         config_substitutor.substitute_config_variable("${arg2}", config_variables_dict)
         == config_variables_dict["arg2"]

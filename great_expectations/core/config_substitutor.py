@@ -128,8 +128,9 @@ class _ConfigurationSubstitutor:
                 template_str = template_str.replace(m.group(), config_variable_value)
             else:
                 raise gx_exceptions.MissingConfigVariableError(  # noqa: TRY003 # FIXME CoP
-                    f"""\n\nUnable to find a match for config substitution variable: `{config_variable_name}`.
-    Please add this missing variable to your `uncommitted/config_variables.yml` file or your environment variables.
+                    """\n\nUnable to find a match for a config substitution variable.
+    Please add the missing variable to your `uncommitted/config_variables.yml` file or your environment variables.
+    If your value contains a literal `$`, it must be escaped as `\\$`.
     See https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_credentials""",  # noqa: E501 # FIXME CoP
                     missing_config_variable=config_variable_name,
                 )
