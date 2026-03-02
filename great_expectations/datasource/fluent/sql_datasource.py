@@ -1119,6 +1119,11 @@ class TableAsset(_SQLAsset):
                 f"{qc}{self.table_name}{DEFAULT_FINAL_QUOTE_CHARACTERS[qc]}"
             )
 
+        # Exclude schema_name from serialization so stored configs stop including it
+        # before the field is removed.
+        if original_dict.get("schema_name") is None:
+            original_dict.pop("schema_name", None)
+
         return original_dict
 
     @override
