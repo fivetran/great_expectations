@@ -28,7 +28,7 @@ from typing import (
 from typing_extensions import Annotated, Never
 
 import great_expectations.exceptions as gx_exceptions
-from great_expectations._docs_decorators import deprecated_method_or_class, public_api
+from great_expectations._docs_decorators import deprecated_argument, public_api
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pydantic import Field
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
@@ -994,6 +994,11 @@ class QueryAsset(_SQLAsset):
         return RuntimeQueryBatchSpec(**batch_spec_kwargs)
 
 
+@deprecated_argument(
+    argument_name="schema_name",
+    version="1.14.0",
+    message="Pass the schema in your datasource's connection configuration instead.",
+)
 @public_api
 class TableAsset(_SQLAsset):
     """A class representing a table from a SQL database
@@ -1014,9 +1019,37 @@ class TableAsset(_SQLAsset):
 
     _quote_character: Optional[str] = None
 
+    @pydantic.validator("schema_name", pre=True, always=True)
+    @classmethod
+    def _schema_name_deprecation_warning(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            # deprecated-v1.14.0
+            warnings.warn(
+                "`schema_name` is deprecated."
+                " Pass the schema in your datasource's connection configuration instead.",
+                category=DeprecationWarning,
+            )
+        return v
+
+    @property
+    def _effective_schema_name(self) -> str | None:
+        """Returns schema_name if explicitly set, otherwise falls back to the datasource schema."""
+        if self.schema_name is not None:
+            return self.schema_name
+        try:
+            datasource: SQLDatasource = self.datasource
+        except AttributeError:
+            # _datasource is unset during deserialization before the asset is attached
+            return None
+        schema = datasource.schema_
+        if schema is not None:
+            schema = self._to_lower_if_not_bracketed_by_quotes(schema)
+        return schema
+
     @property
     def qualified_name(self) -> str:
-        return f"{self.schema_name}.{self.table_name}" if self.schema_name else self.table_name
+        schema = self._effective_schema_name
+        return f"{schema}.{self.table_name}" if schema else self.table_name
 
     @pydantic.validator("table_name", pre=True, always=True)
     def _default_table_name(cls, table_name: str, values: dict, **kwargs) -> str:
@@ -1087,15 +1120,16 @@ class TableAsset(_SQLAsset):
             else []
         )
 
-        if self.schema_name and self.schema_name not in schema_names:
+        effective_schema = self._effective_schema_name
+        if effective_schema and effective_schema not in schema_names:
             raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
                 f'Attempt to connect to table: "{self.qualified_name}" failed because the schema '
-                f'"{self.schema_name}" does not exist.'
+                f'"{effective_schema}" does not exist.'
             )
 
         try:
             with engine.connect() as connection:
-                table = sa.table(self.table_name, schema=self.schema_name)
+                table = sa.table(self.table_name, schema=effective_schema)
                 # don't need to fetch any data, just want to make sure the table is accessible
                 connection.execute(sa.select(1, table).limit(1))
         except Exception as query_error:
@@ -1111,7 +1145,7 @@ class TableAsset(_SQLAsset):
 
         This can be used in a from clause for a query against this data.
         """
-        return sa.table(self.table_name, schema=self.schema_name)
+        return sa.table(self.table_name, schema=self._effective_schema_name)
 
     @override
     def _create_batch_spec_kwargs(self) -> Dict[str, Any]:
@@ -1119,7 +1153,7 @@ class TableAsset(_SQLAsset):
             "type": "table",
             "data_asset_name": self.name,
             "table_name": self.table_name,
-            "schema_name": self.schema_name,
+            "schema_name": self._effective_schema_name,
             "batch_identifiers": {},
         }
 
@@ -1327,10 +1361,10 @@ class SQLDatasource(Datasource):
                 asset._datasource = self
                 asset.test_connection()
 
-    @deprecated_method_or_class(
+    @deprecated_argument(
+        argument_name="schema_name",
         version="1.14.0",
-        message="`schema_name` is deprecated."
-        " Pass the schema in your datasource's connection configuration instead.",
+        message="Pass the schema in your datasource's connection configuration instead.",
     )
     @public_api
     def add_table_asset(
@@ -1355,9 +1389,7 @@ class SQLDatasource(Datasource):
             The type of this object will match the necessary type for this datasource.
             eg, it could be a TableAsset or a SqliteTableAsset.
         """
-        if schema_name is _MISSING:
-            schema_name = self.schema_
-        else:
+        if schema_name is not _MISSING:
             # deprecated-v1.14.0
             warnings.warn(
                 "The `schema_name` argument is deprecated and will be removed in a future release."
@@ -1369,12 +1401,9 @@ class SQLDatasource(Datasource):
                     f"schema_name {schema_name} does not match datasource schema {self.schema_}",
                     category=GxDatasourceWarning,
                 )
-        if schema_name:
-            schema_name = self._TableAsset._to_lower_if_not_bracketed_by_quotes(schema_name)
         asset = self._TableAsset(
             name=name,
             table_name=table_name,
-            schema_name=schema_name,
             batch_metadata=batch_metadata or {},
         )
         return self._add_asset(asset)

@@ -171,7 +171,6 @@ def test_table_quoted_name_type_does_not_exist(
         table_asset = TableAsset(
             name="my_table_asset",
             table_name="nonexistent_table_name",
-            schema_name="my_schema",
         )
         assert table_asset.table_name not in table_names_in_dbms_schema
 
@@ -212,7 +211,6 @@ def test_table_quoted_name_type_all_upper_case_normalizion_is_noop():
             table_asset = TableAsset(
                 name=asset_name,
                 table_name=table_name,
-                schema_name="my_schema",
             )
             assert str(table_asset.table_name) == table_name
             assert str(table_asset.table_name.casefold()) != table_name
@@ -271,7 +269,6 @@ def test_table_quoted_name_type_all_lower_case_normalizion_full():
             table_asset = TableAsset(
                 name=asset_name,
                 table_name=table_name,
-                schema_name="my_schema",
             )
             assert str(table_asset.table_name) == table_name
             assert str(table_asset.table_name.casefold()) == table_name
@@ -371,7 +368,7 @@ class TestTableAsset:
         )
         schema = sql_datasource_with_schema.schema_
         assert schema is not None
-        assert table_asset.schema_name == schema.lower()
+        assert table_asset._effective_schema_name == schema.lower()
 
     @pytest.mark.parametrize("table_name", ["my_table", "MY_TABLE", "My_Table"])
     def test_unquoted_table_names_are_unquoted(
@@ -411,7 +408,7 @@ class TestTableAsset:
             name="my_table_asset",
             table_name="my_table",
         )
-        assert table_asset.schema_name == sql_datasource_with_schema.schema_
+        assert table_asset._effective_schema_name == sql_datasource_with_schema.schema_
 
     @pytest.mark.parametrize(
         "table_name",

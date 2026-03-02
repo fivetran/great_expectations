@@ -263,7 +263,7 @@ class TestSQLServerDatasource:
             connection_string=SQLServerAuthConnectionDetails(**connection_details_default),
         )
         asset = ds.add_table_asset(name="my_asset", table_name="my_table")
-        assert asset.schema_name == ds.schema_
+        assert asset._effective_schema_name == ds.schema_
 
 
 @pytest.mark.unit
