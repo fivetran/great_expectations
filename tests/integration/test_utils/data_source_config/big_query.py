@@ -52,10 +52,9 @@ class BigQueryDatasourceTestConfig(DataSourceTestConfig):
 
 
 class BigQueryBatchTestSetup(SQLBatchTestSetup[BigQueryDatasourceTestConfig]):
-    @property
     @override
-    def connection_string(self) -> str:
-        return self.big_query_connection_config.connection_string()
+    def build_connection_string(self, schema: str | None = None) -> str:
+        return self.big_query_connection_config.connection_string(dataset=schema)
 
     @property
     @override
@@ -66,12 +65,9 @@ class BigQueryBatchTestSetup(SQLBatchTestSetup[BigQueryDatasourceTestConfig]):
 
     @override
     def make_asset(self) -> TableAsset:
-        datasource_connection_string = self.big_query_connection_config.connection_string(
-            dataset=self.schema
-        )
         return self.context.data_sources.add_bigquery(
             name=self._random_resource_name(),
-            connection_string=datasource_connection_string,
+            connection_string=self.build_connection_string(schema=self.schema),
         ).add_table_asset(
             name=self._random_resource_name(),
             table_name=self.table_name,

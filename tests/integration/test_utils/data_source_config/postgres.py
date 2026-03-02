@@ -48,9 +48,11 @@ class PostgreSQLDatasourceTestConfig(DataSourceTestConfig):
 class PostgresBatchTestSetup(SQLBatchTestSetup[PostgreSQLDatasourceTestConfig]):
     _BASE_CONNECTION_STRING = "postgresql+psycopg2://postgres@localhost:5432/test_ci"
 
-    @property
     @override
-    def connection_string(self) -> str:
+    def build_connection_string(self, schema: str | None = None) -> str:
+        if schema:
+            options = urlencode({"options": f"-c search_path={schema}"})
+            return f"{self._BASE_CONNECTION_STRING}?{options}"
         return self._BASE_CONNECTION_STRING
 
     @property
@@ -58,17 +60,11 @@ class PostgresBatchTestSetup(SQLBatchTestSetup[PostgreSQLDatasourceTestConfig]):
     def use_schema(self) -> bool:
         return True
 
-    def _connection_string_with_schema(self) -> str:
-        if self.schema:
-            options = f"?{urlencode({'options': f'-c search_path={self.schema}'})}"
-            return f"{self._BASE_CONNECTION_STRING}{options}"
-        return self._BASE_CONNECTION_STRING
-
     @override
     def make_asset(self) -> TableAsset:
         return self.context.data_sources.add_postgres(
             name=self._random_resource_name(),
-            connection_string=self._connection_string_with_schema(),
+            connection_string=self.build_connection_string(schema=self.schema),
         ).add_table_asset(
             name=self._random_resource_name(),
             table_name=self.table_name,

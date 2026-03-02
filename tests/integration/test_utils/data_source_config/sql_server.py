@@ -52,9 +52,8 @@ class SQLServerDatasourceTestConfig(DataSourceTestConfig):
 
 
 class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
-    @property
     @override
-    def connection_string(self) -> str:
+    def build_connection_string(self, schema: str | None = None) -> str:
         return get_default_sql_server_url()
 
     @property
@@ -97,7 +96,7 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
 
         if self.engine_manager:
             self.engine_manager.dispose_engine(
-                ConnectionDetails(connection_string=self.connection_string)
+                ConnectionDetails(connection_string=self.build_connection_string())
             )
 
         super().teardown()
