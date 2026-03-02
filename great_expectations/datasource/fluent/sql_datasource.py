@@ -96,10 +96,14 @@ if TYPE_CHECKING:
 LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 
 
-class _Missing:
-    """Sentinel that survives Pydantic's deepcopy of field defaults."""
+class Missing:
+    """Sentinel used to distinguish "not provided" from an explicit None.
 
-    _instance: _Missing | None = None
+    Implemented as a singleton with custom copy/deepcopy behavior so that
+    Pydantic V1's deepcopy of field defaults preserves identity checks (is).
+    """
+
+    _instance: Missing | None = None
 
     def __new__(cls) -> Self:
         if cls._instance is None:
@@ -113,7 +117,7 @@ class _Missing:
         return self
 
 
-_MISSING: Final = _Missing()
+MISSING: Final[Missing] = Missing()
 
 DEFAULT_INITIAL_QUOTE_CHARACTERS: Final[Tuple[str, str, str, str]] = ('"', "'", "`", "[")
 DEFAULT_FINAL_QUOTE_CHARACTERS: Final[Mapping[str, str]] = {
@@ -1033,15 +1037,15 @@ class TableAsset(_SQLAsset):
         "",
         description="Name of the SQL table. Will default to the value of `name` if not provided.",
     )
-    schema_name: Optional[str] = _MISSING  # type: ignore[assignment] # sentinel value
+    schema_name: Union[str, Missing, None] = MISSING
 
     _quote_character: Optional[str] = None
 
     @pydantic.validator("schema_name", pre=True, always=True)
     @classmethod
-    def _schema_name_deprecation_warning(cls, v: Optional[str]) -> Optional[str]:
-        if v is _MISSING:
-            return None
+    def _schema_name_deprecation_warning(cls, v: str | Missing | None) -> str | Missing | None:
+        if v is MISSING:
+            return v
         # deprecated-v1.14.0
         warnings.warn(
             "`schema_name` is deprecated."
@@ -1053,17 +1057,19 @@ class TableAsset(_SQLAsset):
     @property
     def _effective_schema_name(self) -> str | None:
         """Returns schema_name if explicitly set, otherwise falls back to the datasource schema."""
-        if self.schema_name is not None:
+        if self.schema_name is MISSING:
+            try:
+                datasource: SQLDatasource = self.datasource
+            except AttributeError:
+                # _datasource is unset during deserialization before the asset is attached
+                return None
+            schema = datasource.schema_
+            if schema is not None:
+                schema = self._to_lower_if_not_bracketed_by_quotes(schema)
+            return schema
+        if isinstance(self.schema_name, str):
             return self._to_lower_if_not_bracketed_by_quotes(self.schema_name)
-        try:
-            datasource: SQLDatasource = self.datasource
-        except AttributeError:
-            # _datasource is unset during deserialization before the asset is attached
-            return None
-        schema = datasource.schema_
-        if schema is not None:
-            schema = self._to_lower_if_not_bracketed_by_quotes(schema)
-        return schema
+        return None
 
     @property
     def qualified_name(self) -> str:
@@ -1119,9 +1125,12 @@ class TableAsset(_SQLAsset):
                 f"{qc}{self.table_name}{DEFAULT_FINAL_QUOTE_CHARACTERS[qc]}"
             )
 
-        # Exclude schema_name from serialization so stored configs stop including it
-        # before the field is removed.
-        if original_dict.get("schema_name") is None:
+        # Exclude schema_name from serialization when it wasn't explicitly provided
+        # or was set to None, so stored configs stop including it before the field
+        # is removed.
+        if original_dict.get("schema_name") is None or isinstance(
+            original_dict.get("schema_name"), Missing
+        ):
             original_dict.pop("schema_name", None)
 
         return original_dict
@@ -1395,7 +1404,7 @@ class SQLDatasource(Datasource):
         self,
         name: str,
         table_name: str = "",
-        schema_name: Optional[str] = _MISSING,  # type: ignore[assignment] # sentinel value
+        schema_name: str | Missing | None = MISSING,
         batch_metadata: Optional[BatchMetadata] = None,
     ) -> TableAsset:
         """Adds a table asset to this datasource.
@@ -1413,19 +1422,12 @@ class SQLDatasource(Datasource):
             The type of this object will match the necessary type for this datasource.
             eg, it could be a TableAsset or a SqliteTableAsset.
         """
-        if schema_name is not _MISSING:
-            asset = self._TableAsset(
-                name=name,
-                table_name=table_name,
-                schema_name=schema_name,
-                batch_metadata=batch_metadata or {},
-            )
-        else:
-            asset = self._TableAsset(
-                name=name,
-                table_name=table_name,
-                batch_metadata=batch_metadata or {},
-            )
+        asset = self._TableAsset(
+            name=name,
+            table_name=table_name,
+            schema_name=schema_name,
+            batch_metadata=batch_metadata or {},
+        )
         return self._add_asset(asset)
 
     @public_api
