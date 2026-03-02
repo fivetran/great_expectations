@@ -8,10 +8,12 @@ from pprint import pformat as pf
 from typing import (
     TYPE_CHECKING,
     Any,
+    Callable,
     ClassVar,
     Dict,
     Final,
     Generic,
+    Iterator,
     List,
     Literal,
     Mapping,
@@ -115,6 +117,16 @@ class Missing:
 
     def __deepcopy__(self, memo: dict) -> Self:
         return self
+
+    @classmethod
+    def __get_validators__(cls) -> Iterator[Callable[..., Any]]:
+        yield cls._validate
+
+    @classmethod
+    def _validate(cls, v: Any) -> Missing:
+        if isinstance(v, cls):
+            return v
+        raise ValueError("Expected Missing sentinel")  # noqa: TRY003  # not very re-usable
 
 
 MISSING: Final[Missing] = Missing()
