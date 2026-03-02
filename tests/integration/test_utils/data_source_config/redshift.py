@@ -75,7 +75,7 @@ class RedshiftBatchTestSetup(SQLBatchTestSetup[RedshiftDatasourceTestConfig]):
     @property
     @override
     def connection_string(self) -> RedshiftDsn:
-        return self.redshift_connection_config.connection_string(schema=self.schema)
+        return self.redshift_connection_config.connection_string()
 
     @property
     @override
@@ -103,8 +103,11 @@ class RedshiftBatchTestSetup(SQLBatchTestSetup[RedshiftDatasourceTestConfig]):
 
     @override
     def make_asset(self) -> TableAsset:
+        datasource_connection_string = self.redshift_connection_config.connection_string(
+            schema=self.schema
+        )
         return self.context.data_sources.add_redshift(
-            name=self._random_resource_name(), connection_string=self.connection_string
+            name=self._random_resource_name(), connection_string=datasource_connection_string
         ).add_table_asset(
             name=self._random_resource_name(),
             table_name=self.table_name,
