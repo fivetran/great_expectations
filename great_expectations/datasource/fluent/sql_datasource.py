@@ -1425,11 +1425,22 @@ class SQLDatasource(Datasource):
                     f"schema_name {schema_name} does not match datasource schema {self.schema_}",
                     category=GxDatasourceWarning,
                 )
-        asset = self._TableAsset(
-            name=name,
-            table_name=table_name,
-            batch_metadata=batch_metadata or {},
-        )
+        if schema_name is not _MISSING:
+            # Catch this warning since we already warned about the deprecation
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=DeprecationWarning)
+                asset = self._TableAsset(
+                    name=name,
+                    table_name=table_name,
+                    schema_name=schema_name,
+                    batch_metadata=batch_metadata or {},
+                )
+        else:
+            asset = self._TableAsset(
+                name=name,
+                table_name=table_name,
+                batch_metadata=batch_metadata or {},
+            )
         return self._add_asset(asset)
 
     @public_api
