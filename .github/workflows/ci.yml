@@ -261,7 +261,7 @@ jobs:
           invoke deps --gx-install -m '${{ matrix.doc-step }}'
 
       - name: Install SQL Server odbc driver
-        if: ${{ matrix.start_services }}
+        if: matrix.doc-step == 'docs-creds-needed'
         run: ./scripts/install_sql_server_odbc_driver.sh
 
       - name: Run docs_snippet_checker
