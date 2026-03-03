@@ -1,0 +1,45 @@
+"""
+This is an example script for editing the paramters of an expectation.
+
+To test, run:
+pytest --docs-tests -k "doc_example_edit_an_expectation_for_cloud" tests/integration/test_script_runner.py
+"""
+
+
+def set_up_context_for_example(context):
+   expectation = gx.expectations.ExpectColumnMaxToBeBetween(
+      column="passenger_count", min_value=1, max_value=6, severity="warning"
+   )
+   suite_name = "my_expectation_suite"
+   suite = gx.ExpectationSuite(name=suite_name)
+   context.suites.add(suite)
+   suite.add_expectation(expectation)
+   suite.save()
+
+
+
+# EXAMPLE SCRIPT STARTS HERE:
+# <snippet name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - get cloud context">
+import great_expectations as gx
+
+context = gx.get_context()
+# </snippet>
+# Hide this
+set_up_context_for_example(context)
+
+# <snippet name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - get the expectation suite">
+suite = context.suites.get(name="my_expectation_suite")
+# </snippet>
+
+# <snippet name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation_for_cloud.py - find the expectation">
+expectation = [exp for exp in suite.expectations if exp.type == "expect_column_max_to_be_between" and exp.kwargs["column"] == "passenger_count"][0]
+# </snippet>
+
+# <snippet name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation_for_cloud.py - edit the expectation">
+expectation.min_value = 0
+expectation.max_value = 9
+# </snippet>
+
+# <snippet name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation_for_cloud.py - save the expectation">
+expectation.save()
+# </snippet>

@@ -246,6 +246,37 @@ You must have the following prerequisites fulfilled before editing an Expectatio
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
 
+Follow the instructions below to edit an Expectation within an Expectation Suite:
+
+1. Create a Data Context object.
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - get cloud context" 
+   ```
+
+2. Get the Expectation Suite that contains the Expectation you would like to edit using its name:
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - get the expectation suite"
+   ```
+
+3. Get the Expectation from the Expectation Suite.
+
+   Expectations can be found within the Expectation Suite using a variety of methods. In the example below, the expectation is found by matching on the Expectation type and the column name:
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - find the expectation"
+   ```
+
+4. Edit the Expectation.
+
+   To determine the parameters your Expectation uses to evaluate data, reference the Expectation's entry in the [Expectation Gallery](https://greatexpectations.io/expectations/).  Under the **Args** section you will find a list of parameters that are necessary for the Expectation to be evaluated, along with a description of the value(s) that should be provided. Edit any of the parameters in this step. In the example below, the min and max values are updated:
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - edit the expectation"
+   ```
+
+5. Save the Expectation:
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - save the expectation"
+   ```
+
 </TabItem>
 
 </Tabs>
