@@ -15,6 +15,10 @@ module.exports = {
   favicon: '/img/gx-mark.png',
   organizationName: 'great-expectations',
   projectName: 'great_expectations',
+  customFields: {
+    sentryDsn: process.env.SENTRY_DSN,
+  },
+  clientModules: [require.resolve('./src/sentry.js')],
   plugins: [
     '@docusaurus-terminology/parser',
     'docusaurus-plugin-sass',
