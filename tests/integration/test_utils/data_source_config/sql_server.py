@@ -66,6 +66,8 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
 
     @override
     def build_connection_string(self, schema: str | None = None) -> str:
+        # autocommit prevents implicit transactions from holding schema locks
+        # during setup/teardown DDL (CREATE/DROP SCHEMA, CREATE/DROP TABLE)
         url = self._connection_details(schema).build_connection_string()
         return f"{url}&autocommit=true"
 
