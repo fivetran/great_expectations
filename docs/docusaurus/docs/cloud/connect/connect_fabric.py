@@ -105,7 +105,6 @@ with _engine.connect() as _conn:
             f"CREATE TABLE {table_name} (column1 VARCHAR(255), column2 INT)"
         )
     )
-    _conn.commit()
 _engine.dispose()
 # Hide end
 
@@ -135,6 +134,5 @@ context.data_sources.delete(datasource_name)
 _engine = sa.create_engine(get_default_sql_server_url())
 with _engine.connect() as _conn:
     _conn.execute(sa.text(f"DROP TABLE IF EXISTS {table_name}"))
-    _conn.commit()
 _engine.dispose()
 # Hide end
