@@ -40,7 +40,7 @@ client_id = "${ENTRA_ID_CLIENT_ID}"
 client_secret = "${ENTRA_ID_CLIENT_SECRET}"
 # </snippet>
 
-# Hide this
+# Hide start
 host = SQL_SERVER_HOST
 port = SQL_SERVER_PORT
 database = SQL_SERVER_DATABASE
@@ -51,7 +51,7 @@ client_id = "ci_placeholder"
 client_secret = "ci_placeholder"
 _patcher = patch.object(FabricDatasource, "test_connection")
 _patcher.start()
-# Hide this
+# Hide end
 
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_fabric.py - add source">
 data_source = context.data_sources.add_fabric(
@@ -67,7 +67,7 @@ data_source = context.data_sources.add_fabric(
 )
 # </snippet>
 
-# Hide this
+# Hide start
 _patcher.stop()
 context.data_sources.delete(datasource_name)
 data_source = context.data_sources.add_sql_server(
@@ -81,7 +81,7 @@ data_source = context.data_sources.add_sql_server(
     username=SQL_SERVER_USERNAME,
     password=SQL_SERVER_PASSWORD,
 )
-# Hide this
+# Hide end
 
 # Add a Table Data Asset
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_fabric.py - define table data asset">
