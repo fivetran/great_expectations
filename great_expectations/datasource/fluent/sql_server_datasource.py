@@ -189,7 +189,7 @@ class SQLServerDatasource(SQLDatasource):
         trust_server_certificate: If you set `encrypt` to `Mandatory`, you can set
         `trust_server_certificate` to `True` to enable using an encrypted connection
         without a valid publicly trusted server certificate (default is "False"). This
-        lets you, for example, use a self-signed certificate with an encrypted connection. 
+        lets you, for example, use a self-signed certificate with an encrypted connection.
         driver: The name of the ODBC driver your environment uses to connect to
             Microsoft SQL Server. Common values include the following:
             - "ODBC Driver 18 for SQL Server"
