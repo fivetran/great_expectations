@@ -344,8 +344,10 @@ connect_to_cloud = [
         # pytest --docs-tests -k "cloud_docs_connect_fabric" tests/integration/test_script_runner.py
         name="cloud_docs_connect_fabric",
         user_flow_script="docs/docusaurus/docs/cloud/connect/connect_fabric.py",
-        # data_context_dir="",
-        backend_dependencies=[BackendDependencies.CLOUD],
+        backend_dependencies=[
+            BackendDependencies.CLOUD,
+            BackendDependencies.SQL_SERVER,
+        ],
     ),
     # Microsoft SQL Server
     IntegrationTestFixture(
@@ -353,8 +355,10 @@ connect_to_cloud = [
         # pytest --docs-tests -k "cloud_docs_connect_sqlserver" tests/integration/test_script_runner.py
         name="cloud_docs_connect_sqlserver",
         user_flow_script="docs/docusaurus/docs/cloud/connect/connect_sqlserver.py",
-        # data_context_dir="",
-        backend_dependencies=[BackendDependencies.CLOUD],
+        backend_dependencies=[
+            BackendDependencies.CLOUD,
+            BackendDependencies.SQL_SERVER,
+        ],
     ),
 ]
 
