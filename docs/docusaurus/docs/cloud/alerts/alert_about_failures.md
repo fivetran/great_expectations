@@ -16,6 +16,12 @@ Integrations for rich notifications in Jira, Microsoft Teams, PagerDuty, and Ser
 
 To keep your email alerts secure, your GX Cloud organization has an allowlist of email domains that all alert recipient email addresses must belong to. By default, this includes the email domain of the Organization Owner who created the organization and domains for sending basic email notifications to [Microsoft Teams](https://support.microsoft.com/en-us/office/send-an-email-to-a-channel-in-microsoft-teams-d91db004-d9d7-4a47-82e6-fb1b16dfd51e), and [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide).
 
+Here is an example of how a team might configure alerts on their Data Assets to make sure the right people get the right information at the right time.
+
+![Silver Data Asset has 3 alerts configured - "Data team awareness" sends notifications about info and warning failures to data@my-company.com, "Data team urgent" sends notifications about critical failures to the slack channel #data-team pinging @data-engineers, and "Sales" sends notifications about warning and critical failures to sales-managers@my-company.com. Gold Data Asset has 2 alerts confirgured - "Rapid response" sends notifcations about all failures to the slack channel #data-team pinging @on-call-data and to the #analytics channel pinging @alex and @bela; meanwhile "Marketing" alert sends notifications about critical failures to marketing@my-company.com, contractors@contractor-company.com, and slack channel #campaign-alerts](/img/alerts.png)
+
+![A silver Data Asset and gold Data Asset each have multiple alerts configured. ](/img/alerts.png)
+
 Note that you must have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater to manage alerts.
 
 ## Create an alert
