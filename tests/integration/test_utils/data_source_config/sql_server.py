@@ -4,6 +4,7 @@ from typing import Mapping, Optional
 import pandas as pd
 import pytest
 
+from great_expectations.compatibility.sqlalchemy import TextClause, create_engine
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
@@ -87,11 +88,13 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
 
     @override
     def teardown(self) -> None:
-        """Override teardown to dispose cached engines before DROP SCHEMA.
+        """Override teardown to avoid lingering pooled connections.
 
-        SQL Server holds schema locks on connections. We must close execution
-        engines and dispose the session manager's cached engine to release all
-        pool connections before running DROP.
+        SQL Server holds schema locks on connections, so every engine and
+        connection must be fully closed before DROP TABLE / DROP SCHEMA.
+        Instead of delegating to super().teardown() (which creates a new
+        pooled engine via the session manager), we dispose everything first,
+        then run the DDL with a standalone, immediately-disposed engine.
         """
         for datasource in self.context.data_sources.all().values():
             execution_engine = datasource.execution_engine
@@ -106,4 +109,13 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
                 ConnectionDetails(connection_string=self.build_connection_string())
             )
 
-        super().teardown()
+        engine = create_engine(url=self.build_connection_string())
+        try:
+            with engine.connect() as conn:
+                for table in self.tables:
+                    table.drop(conn)
+                if self.schema:
+                    logger.info(f"DROPPING SCHEMA {self.schema}")
+                    conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
+        finally:
+            engine.dispose()
