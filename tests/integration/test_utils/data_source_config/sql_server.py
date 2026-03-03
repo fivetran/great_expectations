@@ -10,7 +10,7 @@ from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from great_expectations.datasource.fluent.sql_server_datasource import (
     SQLServerAuthConnectionDetails,
 )
-from tests.integration.sql_session_manager import SessionSQLEngineManager
+from tests.integration.sql_session_manager import ConnectionDetails, SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
@@ -61,13 +61,12 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
             password="ReallyStrongPwd1234%^&*",
             driver="ODBC Driver 18 for SQL Server",
             encrypt="Optional",
-            trust_server_certificate=True,
         )
 
     @override
     def build_connection_string(self, schema: str | None = None) -> str:
         # autocommit prevents implicit transactions from holding schema locks
-        # during setup/teardown DDL (CREATE/DROP SCHEMA, CREATE/DROP TABLE)
+        # that block DDL (CREATE/DROP SCHEMA, CREATE/DROP TABLE)
         url = self._connection_details(schema).build_connection_string()
         return f"{url}&autocommit=true"
 
@@ -85,3 +84,23 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
             name=self._random_resource_name(),
             table_name=self.table_name,
         )
+
+    @override
+    def teardown(self) -> None:
+        """Override teardown to dispose cached engines before DROP SCHEMA.
+
+        SQL Server holds schema locks on connections. We must close execution
+        engines and dispose the session manager's cached engine to release all
+        pool connections before running DROP.
+        """
+        for datasource in self.context.data_sources.all().values():
+            execution_engine = datasource.execution_engine
+            if execution_engine:
+                execution_engine.close()
+
+        if self.engine_manager:
+            self.engine_manager.dispose_engine(
+                ConnectionDetails(connection_string=self.build_connection_string())
+            )
+
+        super().teardown()
