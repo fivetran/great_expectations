@@ -4,7 +4,7 @@ import uuid
 import warnings
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple, Union, cast
+from typing import Dict, List, Literal, Optional, Tuple, Union, cast
 
 import pandas as pd
 from sqlalchemy.exc import ProgrammingError
@@ -911,7 +911,7 @@ SQL_SERVER_SCHEMA = "dbo"
 SQL_SERVER_USERNAME = "sa"
 SQL_SERVER_PASSWORD = "ReallyStrongPwd1234%^&*"
 SQL_SERVER_DRIVER = "ODBC Driver 18 for SQL Server"
-SQL_SERVER_ENCRYPT = "Optional"
+SQL_SERVER_ENCRYPT: Literal["Mandatory", "Optional", "Strict"] = "Optional"
 
 
 def get_default_sql_server_url() -> str:

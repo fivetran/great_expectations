@@ -67,6 +67,18 @@ data_source = context.data_sources.add_fabric(
 # </snippet>
 
 _patcher.stop()  # Hide this
+context.data_sources.delete(datasource_name)  # Hide this
+data_source = context.data_sources.add_sql_server(  # Hide this
+    name=datasource_name,  # Hide this
+    host=SQL_SERVER_HOST,  # Hide this
+    port=SQL_SERVER_PORT,  # Hide this
+    database=SQL_SERVER_DATABASE,  # Hide this
+    schema=SQL_SERVER_SCHEMA,  # Hide this
+    encrypt=SQL_SERVER_ENCRYPT,  # Hide this
+    authentication="SQL Server",  # Hide this
+    username=SQL_SERVER_USERNAME,  # Hide this
+    password=SQL_SERVER_PASSWORD,  # Hide this
+)  # Hide this
 
 # Add a Table Data Asset
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_fabric.py - define table data asset">
@@ -94,16 +106,3 @@ query_data_asset = data_source.add_query_asset(query=query, name=data_asset_name
 # </snippet>
 
 # </snippet>
-
-context.data_sources.delete(datasource_name)
-data_source = context.data_sources.add_sql_server(
-    name=datasource_name,
-    host=SQL_SERVER_HOST,
-    port=SQL_SERVER_PORT,
-    database=SQL_SERVER_DATABASE,
-    schema=SQL_SERVER_SCHEMA,
-    encrypt=SQL_SERVER_ENCRYPT,
-    authentication="SQL Server",
-    username=SQL_SERVER_USERNAME,
-    password=SQL_SERVER_PASSWORD,
-)
