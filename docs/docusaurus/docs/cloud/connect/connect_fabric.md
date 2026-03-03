@@ -39,9 +39,9 @@ To connect GX Cloud to data stored in Microsoft Fabric, you can use the GX Cloud
    - **Port**:  Enter the port configured for your Microsoft Fabric instance, typically `1433`.
    - **Encrypt**: Select a TLS encryption protocol:
      - **Optional**: Establish an encrypted connection if your Microsoft Fabric instance is configured to force encryption. Otherwise, establish an unencrypted connection.
-     - **Mandatory**: Require the connection to be encrypted. Validate the server certificate unless **Trust server certificate** is checked. Connection will fail if your Microsoft Fabric instance does not support TLS. If **Trust server certificate** is not checked, connection will fail if the certificate is not valid.
-     - **Strict**: Use TDS 8.0 where encryption begins before the TLS handshake. Require the connection to be encrypted and validate the server certificate. Connection will fail if your Microsoft Fabric instance does not support TLS or the certificate is not valid.
-   - **Trust server certificate**: If you set **Encrypt** to **Mandatory**, you can select **Trust server certificate** to enable using an encrypted connection without a valid server certificate. 
+     - **Mandatory**: Require the connection to be encrypted. Validate the server certificate unless **Trust server certificate** is checked. Connection will fail if your Microsoft Fabric instance does not support TLS. If **Trust server certificate** is not checked, connection will fail if the certificate is not valid and publicly trusted.
+     - **Strict**: Use TDS 8.0 where encryption begins before the TLS handshake. Require the connection to be encrypted and validate the server certificate. Connection will fail if your Microsoft Fabric instance does not support TLS or the certificate is not valid and publicly trusted.
+   - **Trust server certificate**: If you set **Encrypt** to **Mandatory**, you can select **Trust server certificate** to enable using an encrypted connection without a valid server certificate. This lets you, for example, use a self-signed certificate with an encrypted connection. 
    - **Driver**: If you are using an [agent-enabled deployment](/cloud/deploy/deployment_patterns.md) of GX Cloud, enter the name of the ODBC driver your environment uses to connect to Microsoft Fabric. Common values include the following:
      - `ODBC Driver 18 for SQL Server`
      - `ODBC Driver 17 for SQL Server` 
