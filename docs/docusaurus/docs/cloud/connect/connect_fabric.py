@@ -8,6 +8,7 @@ pytest --docs-tests -k "cloud_docs_connect_fabric" tests/integration/test_script
 
 from unittest.mock import patch
 
+import sqlalchemy as sa
 from great_expectations.datasource.fluent.fabric_datasource import FabricDatasource
 from tests.test_utils import (
     SQL_SERVER_DATABASE,
@@ -17,6 +18,7 @@ from tests.test_utils import (
     SQL_SERVER_PORT,
     SQL_SERVER_SCHEMA,
     SQL_SERVER_USERNAME,
+    get_default_sql_server_url,
 )
 
 # EXAMPLE SCRIPT STARTS HERE:
@@ -41,6 +43,10 @@ client_secret = "${ENTRA_ID_CLIENT_SECRET}"
 # </snippet>
 
 # Hide start
+try:
+    context.data_sources.delete(datasource_name)
+except Exception:
+    pass
 host = SQL_SERVER_HOST
 port = SQL_SERVER_PORT
 database = SQL_SERVER_DATABASE
@@ -89,6 +95,19 @@ data_asset_name = "my_table_asset"
 table_name = "my_table"
 # </snippet>
 
+# Hide start
+_engine = sa.create_engine(get_default_sql_server_url())
+with _engine.connect() as _conn:
+    _conn.execute(
+        sa.text(
+            f"IF NOT EXISTS (SELECT * FROM sys.tables WHERE name='{table_name}') "
+            f"CREATE TABLE {table_name} (column1 VARCHAR(255), column2 INT)"
+        )
+    )
+    _conn.commit()
+_engine.dispose()
+# Hide end
+
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_fabric.py - add table data asset">
 table_data_asset = data_source.add_table_asset(
     table_name=table_name, name=data_asset_name
@@ -109,3 +128,12 @@ query_data_asset = data_source.add_query_asset(query=query, name=data_asset_name
 # </snippet>
 
 # </snippet>
+
+# Hide start
+context.data_sources.delete(datasource_name)
+_engine = sa.create_engine(get_default_sql_server_url())
+with _engine.connect() as _conn:
+    _conn.execute(sa.text(f"DROP TABLE IF EXISTS {table_name}"))
+    _conn.commit()
+_engine.dispose()
+# Hide end

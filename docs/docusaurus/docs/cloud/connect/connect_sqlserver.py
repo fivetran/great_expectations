@@ -6,6 +6,7 @@ To test, run:
 pytest --docs-tests -k "cloud_docs_connect_sqlserver" tests/integration/test_script_runner.py
 """
 
+import sqlalchemy as sa
 from tests.test_utils import (
     SQL_SERVER_DATABASE,
     SQL_SERVER_ENCRYPT,
@@ -14,6 +15,7 @@ from tests.test_utils import (
     SQL_SERVER_PORT,
     SQL_SERVER_SCHEMA,
     SQL_SERVER_USERNAME,
+    get_default_sql_server_url,
 )
 
 # EXAMPLE SCRIPT STARTS HERE:
@@ -38,6 +40,10 @@ password = "${SQL_SERVER_PASSWORD}"
 # </snippet>
 
 # Hide start
+try:
+    context.data_sources.delete(datasource_name)
+except Exception:
+    pass
 host = SQL_SERVER_HOST
 port = SQL_SERVER_PORT
 database = SQL_SERVER_DATABASE
@@ -67,6 +73,19 @@ data_asset_name = "my_table_asset"
 table_name = "my_table"
 # </snippet>
 
+# Hide start
+_engine = sa.create_engine(get_default_sql_server_url())
+with _engine.connect() as _conn:
+    _conn.execute(
+        sa.text(
+            f"IF NOT EXISTS (SELECT * FROM sys.tables WHERE name='{table_name}') "
+            f"CREATE TABLE {table_name} (column1 VARCHAR(255), column2 INT)"
+        )
+    )
+    _conn.commit()
+_engine.dispose()
+# Hide end
+
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_sqlserver.py - add table data asset">
 table_data_asset = data_source.add_table_asset(
     table_name=table_name, name=data_asset_name
@@ -87,3 +106,12 @@ query_data_asset = data_source.add_query_asset(query=query, name=data_asset_name
 # </snippet>
 
 # </snippet>
+
+# Hide start
+context.data_sources.delete(datasource_name)
+_engine = sa.create_engine(get_default_sql_server_url())
+with _engine.connect() as _conn:
+    _conn.execute(sa.text(f"DROP TABLE IF EXISTS {table_name}"))
+    _conn.commit()
+_engine.dispose()
+# Hide end
