@@ -10,13 +10,12 @@ from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from great_expectations.datasource.fluent.sql_server_datasource import (
     SQLServerAuthConnectionDetails,
 )
-from tests.integration.sql_session_manager import ConnectionDetails, SessionSQLEngineManager
+from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
-from tests.test_utils import get_default_sql_server_url
 
 logger = logging.getLogger(__name__)
 
@@ -52,9 +51,21 @@ class SQLServerDatasourceTestConfig(DataSourceTestConfig):
 
 
 class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
+    def _connection_details(self, schema: str | None = None) -> SQLServerAuthConnectionDetails:
+        return SQLServerAuthConnectionDetails(
+            host="127.0.0.1",
+            port=1433,
+            database="test_ci",
+            schema=schema or "dbo",
+            username="sa",
+            password="ReallyStrongPwd1234%^&*",
+            driver="ODBC Driver 18 for SQL Server",
+            encrypt="Optional",
+        )
+
     @override
     def build_connection_string(self, schema: str | None = None) -> str:
-        return get_default_sql_server_url()
+        return self._connection_details(schema).build_connection_string()
 
     @property
     @override
@@ -63,44 +74,10 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
 
     @override
     def make_asset(self) -> TableAsset:
-        connection_details = SQLServerAuthConnectionDetails(
-            host="127.0.0.1",
-            port=1433,
-            database="test_ci",
-            schema=self.schema or "dbo",
-            username="sa",
-            password="ReallyStrongPwd1234%^&*",
-            driver="ODBC Driver 18 for SQL Server",
-            encrypt="Optional",
-        )
         return self.context.data_sources.add_sql_server(
             name=self._random_resource_name(),
-            connection_string=connection_details,
+            connection_string=self._connection_details(schema=self.schema),
         ).add_table_asset(
             name=self._random_resource_name(),
             table_name=self.table_name,
         )
-
-    @override
-    def teardown(self) -> None:
-        """Override teardown to dispose cached engines before DROP SCHEMA.
-
-        SQL Server holds schema locks on connections.  We must dispose *all*
-        engines — both the execution-engine and the get_engine() engine on each
-        datasource — before running DROP, otherwise lingering pool connections
-        can hold Sch-S locks that block DDL.
-        """
-        for datasource in self.context.data_sources.all().values():
-            execution_engine = datasource.execution_engine
-            if execution_engine:
-                execution_engine.close()
-            if datasource._engine:
-                datasource._engine.dispose()
-                datasource._engine = None
-
-        if self.engine_manager:
-            self.engine_manager.dispose_engine(
-                ConnectionDetails(connection_string=self.build_connection_string())
-            )
-
-        super().teardown()
