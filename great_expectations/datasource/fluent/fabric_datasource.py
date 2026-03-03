@@ -53,9 +53,9 @@ class FabricDatasource(SQLServerDatasource):
             Connection will fail if your Microsoft Fabric instance does not support TLS
             or the certificate is not valid and publicly trusted.
         trust_server_certificate: If you set `encrypt` to `Mandatory`, you can set
-        `trust_server_certificate` to `True` to enable using an encrypted connection
-        without a valid publicly trusted server certificate (default is "False"). This
-        lets you, for example, use a self-signed certificate with an encrypted connection.
+            `trust_server_certificate` to `True` to enable using an encrypted connection
+            without a valid publicly trusted server certificate (default is "False"). This
+            lets you, for example, use a self-signed certificate with an encrypted connection.
         driver: The name of the ODBC driver your environment uses to
             connect to Microsoft Fabric. Common values include:
             - "ODBC Driver 18 for SQL Server"
