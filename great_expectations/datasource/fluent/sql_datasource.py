@@ -1069,6 +1069,10 @@ class TableAsset(_SQLAsset):
     @property
     def _effective_schema_name(self) -> str | None:
         """Returns schema_name if explicitly set, otherwise falls back to the datasource schema."""
+        # schema_name is Union[str, Missing, None]:
+        #   MISSING  - not provided, fall back to the datasource schema
+        #   str      - explicitly provided, normalize and return
+        #   None     - explicitly set to None, meaning no schema
         if self.schema_name is MISSING:
             try:
                 datasource: SQLDatasource = self.datasource
@@ -1140,9 +1144,8 @@ class TableAsset(_SQLAsset):
         # Exclude schema_name from serialization when it wasn't explicitly provided
         # or was set to None, so stored configs stop including it before the field
         # is removed.
-        if original_dict.get("schema_name") is None or isinstance(
-            original_dict.get("schema_name"), Missing
-        ):
+        schema = original_dict.get("schema_name")
+        if schema is None or schema is MISSING:
             original_dict.pop("schema_name", None)
 
         return original_dict
