@@ -865,7 +865,6 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             "--bigquery",
             "--redshift",
             "--snowflake",
-            "--sql-server",
             "--cloud",
             "--docs-tests",
         ),
