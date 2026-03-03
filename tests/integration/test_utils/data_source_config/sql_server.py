@@ -61,11 +61,13 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
             password="ReallyStrongPwd1234%^&*",
             driver="ODBC Driver 18 for SQL Server",
             encrypt="Optional",
+            trust_server_certificate=True,
         )
 
     @override
     def build_connection_string(self, schema: str | None = None) -> str:
-        return self._connection_details(schema).build_connection_string()
+        url = self._connection_details(schema).build_connection_string()
+        return f"{url}&autocommit=true"
 
     @property
     @override
