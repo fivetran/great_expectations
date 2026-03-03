@@ -1,9 +1,20 @@
+# ruff: noqa: I001
 """
 This is an example script for how to connect GX Cloud to Microsoft SQL Server.
 
 To test, run:
 pytest --docs-tests -k "cloud_docs_connect_sqlserver" tests/integration/test_script_runner.py
 """
+
+from tests.test_utils import (
+    SQL_SERVER_DATABASE,
+    SQL_SERVER_ENCRYPT,
+    SQL_SERVER_HOST,
+    SQL_SERVER_PASSWORD,
+    SQL_SERVER_PORT,
+    SQL_SERVER_SCHEMA,
+    SQL_SERVER_USERNAME,
+)
 
 # EXAMPLE SCRIPT STARTS HERE:
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_sqlserver.py - full code example">
@@ -25,6 +36,14 @@ authentication = "SQL Server"
 username = "${SQL_SERVER_USER}"
 password = "${SQL_SERVER_PASSWORD}"
 # </snippet>
+
+host = SQL_SERVER_HOST  # Hide this
+port = SQL_SERVER_PORT  # Hide this
+database = SQL_SERVER_DATABASE  # Hide this
+schema = SQL_SERVER_SCHEMA  # Hide this
+encrypt = SQL_SERVER_ENCRYPT  # Hide this
+username = SQL_SERVER_USERNAME  # Hide this
+password = SQL_SERVER_PASSWORD  # Hide this
 
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_sqlserver.py - add source">
 data_source = context.data_sources.add_sql_server(
