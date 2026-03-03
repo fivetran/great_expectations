@@ -212,6 +212,15 @@ Keep the following requirements in mind when working with ExpectAI:
 
 ## Edit an Expectation
 
+<Tabs 
+   queryString="expectations-interface"
+   defaultValue="ui"
+   values={[
+      {value: 'ui', label: 'UI'},
+      {value: 'api', label: 'API'}
+   ]}
+>
+<TabItem value="ui" label="UI">
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. In the **Data Assets** list, click the Data Asset name.
@@ -227,6 +236,19 @@ Keep the following requirements in mind when working with ExpectAI:
 :::note Severity changes apply going forward
 If you edit the **Severity** of an Expectation, note that historical validation results will continue to indicate the severity that was recorded at the time of an Expectation failure. The newly assigned severity will apply to future validation failures only. 
 :::
+
+</TabItem>
+
+<TabItem value="api" label="API">
+You must have the following prerequisites fulfilled before editing an Expectation:
+
+- Your [Cloud credentials](/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
+- [Python version 3.10 to 3.13](https://www.python.org/downloads/).
+- [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
+
+</TabItem>
+
+</Tabs>
 
 ## Delete an Expectation
 
