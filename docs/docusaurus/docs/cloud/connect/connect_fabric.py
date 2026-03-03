@@ -76,6 +76,7 @@ data_source = context.data_sources.add_fabric(
 # Hide start
 _patcher.stop()
 context.data_sources.delete(datasource_name)
+# We don't have Fabric infrastructure, so we use SQL Server as an analog
 data_source = context.data_sources.add_sql_server(
     name=datasource_name,
     host=SQL_SERVER_HOST,
