@@ -1,82 +1,52 @@
 {
-    "title": "FabricDatasource",
-    "description": "Adds a Microsoft Fabric datasource to the data context.\n\nArgs:\n    name: The name of this Fabric datasource.\n    connection_string: Structured connection details using Entra ID\n        Service Principal authentication.\n    assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose\n        values are TableAsset or QueryAsset objects.",
+    "title": "QueryAsset",
+    "description": "--Public API--An asset made from a SQL query\n\nArgs:\n    query: The query to be used to construct the underlying Data Asset",
     "type": "object",
     "properties": {
-        "type": {
-            "title": "Type",
-            "default": "fabric",
-            "enum": [
-                "fabric"
-            ],
-            "type": "string"
-        },
         "name": {
             "title": "Name",
             "type": "string"
         },
+        "type": {
+            "title": "Type",
+            "default": "query",
+            "enum": [
+                "query"
+            ],
+            "type": "string"
+        },
         "id": {
             "title": "Id",
-            "description": "Datasource id",
+            "description": "DataAsset id",
             "type": "string",
             "format": "uuid"
         },
-        "assets": {
-            "title": "Assets",
-            "default": [],
+        "order_by": {
+            "title": "Order By",
             "type": "array",
             "items": {
-                "discriminator": {
-                    "propertyName": "type",
-                    "mapping": {
-                        "table": "#/definitions/TableAsset",
-                        "query": "#/definitions/QueryAsset"
-                    }
-                },
-                "oneOf": [
-                    {
-                        "$ref": "#/definitions/TableAsset"
-                    },
-                    {
-                        "$ref": "#/definitions/QueryAsset"
-                    }
-                ]
+                "$ref": "#/definitions/Sorter"
             }
         },
-        "connection_string": {
-            "$ref": "#/definitions/EntraIDServicePrincipalAuthConnectionDetails"
+        "batch_metadata": {
+            "title": "Batch Metadata",
+            "type": "object"
         },
-        "create_temp_table": {
-            "title": "Create Temp Table",
-            "default": false,
-            "type": "boolean"
-        },
-        "kwargs": {
-            "title": "Kwargs",
-            "description": "Optional dictionary of `kwargs` will be passed to the SQLAlchemy Engine as part of `create_engine(connection_string, **kwargs)`",
-            "default": {},
-            "type": "object",
-            "additionalProperties": {
-                "anyOf": [
-                    {
-                        "type": "string",
-                        "writeOnly": true,
-                        "format": "password",
-                        "description": "Contains config templates to be substituted at runtime. Runtime values will never be serialized.",
-                        "pattern": ".*(?<!\\\\)\\$\\{(.*?)\\}|(?<!\\\\)\\$([_a-zA-Z][_a-zA-Z0-9]*).*",
-                        "examples": [
-                            "hello_${NAME}",
-                            "${MY_CFG_VAR}"
-                        ]
-                    },
-                    {}
-                ]
+        "batch_definitions": {
+            "title": "Batch Definitions",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/BatchDefinition_Union_PartitionerColumnValue__PartitionerMultiColumnValue__PartitionerDividedInteger__PartitionerModInteger__ColumnPartitionerYearly__ColumnPartitionerMonthly__ColumnPartitionerDaily__PartitionerDatetimePart__PartitionerConvertedDatetime__"
             }
+        },
+        "query": {
+            "title": "Query",
+            "type": "string"
         }
     },
     "required": [
         "name",
-        "connection_string"
+        "query"
     ],
     "additionalProperties": false,
     "definitions": {
@@ -407,203 +377,6 @@
             "required": [
                 "name"
             ]
-        },
-        "TableAsset": {
-            "title": "TableAsset",
-            "description": "--Public API--A class representing a table from a SQL database\n\nArgs:\n    table_name: The name of the database table to be added\n    schema_name: The name of the schema containing the database table to be added.",
-            "type": "object",
-            "properties": {
-                "name": {
-                    "title": "Name",
-                    "type": "string"
-                },
-                "type": {
-                    "title": "Type",
-                    "default": "table",
-                    "enum": [
-                        "table"
-                    ],
-                    "type": "string"
-                },
-                "id": {
-                    "title": "Id",
-                    "description": "DataAsset id",
-                    "type": "string",
-                    "format": "uuid"
-                },
-                "order_by": {
-                    "title": "Order By",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/Sorter"
-                    }
-                },
-                "batch_metadata": {
-                    "title": "Batch Metadata",
-                    "type": "object"
-                },
-                "batch_definitions": {
-                    "title": "Batch Definitions",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/BatchDefinition_Union_PartitionerColumnValue__PartitionerMultiColumnValue__PartitionerDividedInteger__PartitionerModInteger__ColumnPartitionerYearly__ColumnPartitionerMonthly__ColumnPartitionerDaily__PartitionerDatetimePart__PartitionerConvertedDatetime__"
-                    }
-                },
-                "table_name": {
-                    "title": "Table Name",
-                    "description": "Name of the SQL table. Will default to the value of `name` if not provided.",
-                    "default": "",
-                    "type": "string"
-                },
-                "schema_name": {
-                    "title": "Schema Name",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "name"
-            ],
-            "additionalProperties": false
-        },
-        "QueryAsset": {
-            "title": "QueryAsset",
-            "description": "--Public API--An asset made from a SQL query\n\nArgs:\n    query: The query to be used to construct the underlying Data Asset",
-            "type": "object",
-            "properties": {
-                "name": {
-                    "title": "Name",
-                    "type": "string"
-                },
-                "type": {
-                    "title": "Type",
-                    "default": "query",
-                    "enum": [
-                        "query"
-                    ],
-                    "type": "string"
-                },
-                "id": {
-                    "title": "Id",
-                    "description": "DataAsset id",
-                    "type": "string",
-                    "format": "uuid"
-                },
-                "order_by": {
-                    "title": "Order By",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/Sorter"
-                    }
-                },
-                "batch_metadata": {
-                    "title": "Batch Metadata",
-                    "type": "object"
-                },
-                "batch_definitions": {
-                    "title": "Batch Definitions",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/BatchDefinition_Union_PartitionerColumnValue__PartitionerMultiColumnValue__PartitionerDividedInteger__PartitionerModInteger__ColumnPartitionerYearly__ColumnPartitionerMonthly__ColumnPartitionerDaily__PartitionerDatetimePart__PartitionerConvertedDatetime__"
-                    }
-                },
-                "query": {
-                    "title": "Query",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "name",
-                "query"
-            ],
-            "additionalProperties": false
-        },
-        "EntraIDServicePrincipalAuthConnectionDetails": {
-            "title": "EntraIDServicePrincipalAuthConnectionDetails",
-            "description": "Entra ID Service Principal authentication.",
-            "type": "object",
-            "properties": {
-                "host": {
-                    "title": "Host",
-                    "type": "string"
-                },
-                "port": {
-                    "title": "Port",
-                    "default": 1433,
-                    "type": "integer"
-                },
-                "database": {
-                    "title": "Database",
-                    "type": "string"
-                },
-                "schema": {
-                    "title": "Schema",
-                    "type": "string"
-                },
-                "driver": {
-                    "title": "Driver",
-                    "default": "ODBC Driver 18 for SQL Server",
-                    "type": "string"
-                },
-                "encrypt": {
-                    "title": "Encrypt",
-                    "default": "Mandatory",
-                    "enum": [
-                        "Mandatory",
-                        "Optional",
-                        "Strict"
-                    ],
-                    "type": "string"
-                },
-                "trust_server_certificate": {
-                    "title": "Trust Server Certificate",
-                    "default": false,
-                    "type": "boolean"
-                },
-                "authentication": {
-                    "title": "Authentication",
-                    "default": "Entra ID Service Principal",
-                    "enum": [
-                        "Entra ID Service Principal"
-                    ],
-                    "type": "string"
-                },
-                "tenant_id": {
-                    "title": "Tenant Id",
-                    "type": "string"
-                },
-                "client_id": {
-                    "title": "Client Id",
-                    "type": "string"
-                },
-                "client_secret": {
-                    "title": "Client Secret",
-                    "anyOf": [
-                        {
-                            "type": "string",
-                            "writeOnly": true,
-                            "format": "password",
-                            "description": "Contains config templates to be substituted at runtime. Runtime values will never be serialized.",
-                            "pattern": ".*(?<!\\\\)\\$\\{(.*?)\\}|(?<!\\\\)\\$([_a-zA-Z][_a-zA-Z0-9]*).*",
-                            "examples": [
-                                "hello_${NAME}",
-                                "${MY_CFG_VAR}"
-                            ]
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ]
-                }
-            },
-            "required": [
-                "host",
-                "database",
-                "schema",
-                "tenant_id",
-                "client_id",
-                "client_secret"
-            ],
-            "additionalProperties": false
         }
     }
 }
