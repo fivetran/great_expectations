@@ -178,7 +178,7 @@ class SQLServerDatasource(SQLDatasource):
             Microsoft SQL Server instance is configured to force encryption.
             Otherwise, establish an unencrypted connection.
             - "Mandatory" - Require the connection to be encrypted.
-            Validate the server certificate unless "trust_server_certificate" set to "True".
+            Validate the server certificate unless "trust_server_certificate" is set to "True".
             Connection will fail if your Microsoft SQL Server instance does not support TLS.
             If "trust_server_certificate" is set to "False", connection will fail if
             the certificate is not valid and publicly trusted.
