@@ -186,8 +186,8 @@ class SQLServerDatasource(SQLDatasource):
             Require the connection to be encrypted and validate the server certificate.
             Connection will fail if your Microsoft SQL Server instance does not support TLS
             or the certificate is not valid and publicly trusted.
-        trust_server_certificate: If you set `encrypt` to `Mandatory`, you can set
-            `trust_server_certificate` to `True` to enable using an encrypted connection
+        trust_server_certificate: If you set "encrypt" to "Mandatory", you can set
+            "trust_server_certificate" to "True" to enable using an encrypted connection
             without a valid publicly trusted server certificate (default is "False"). This
             lets you, for example, use a self-signed certificate with an encrypted connection.
         driver: The name of the ODBC driver your environment uses to connect to
