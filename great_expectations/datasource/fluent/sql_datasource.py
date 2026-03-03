@@ -1068,11 +1068,12 @@ class TableAsset(_SQLAsset):
 
     @property
     def _effective_schema_name(self) -> str | None:
-        """Returns schema_name if explicitly set, otherwise falls back to the datasource schema."""
-        # schema_name is Union[str, Missing, None]:
-        #   MISSING  - not provided, fall back to the datasource schema
-        #   str      - explicitly provided, normalize and return
-        #   None     - explicitly set to None, meaning no schema
+        """Returns the schema to use based on schema_name (Union[str, Missing, None]):
+
+        - MISSING: not provided, fall back to the datasource schema
+        - str: explicitly provided, normalize and return
+        - None: explicitly set to None, meaning no schema
+        """
         if self.schema_name is MISSING:
             try:
                 datasource: SQLDatasource = self.datasource
