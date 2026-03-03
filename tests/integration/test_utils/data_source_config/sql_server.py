@@ -97,6 +97,9 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
             execution_engine = datasource.execution_engine
             if execution_engine:
                 execution_engine.close()
+            if datasource._engine:
+                datasource._engine.dispose()
+                datasource._engine = None
 
         if self.engine_manager:
             self.engine_manager.dispose_engine(
