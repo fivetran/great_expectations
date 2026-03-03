@@ -89,6 +89,21 @@ def connection_details_special_chars() -> ConnectionDetailsDict:
 
 
 @pytest.fixture
+def connection_details_trust_server_certificate() -> ConnectionDetailsDict:
+    return {
+        "host": "host",
+        "port": 1433,
+        "database": "db",
+        "schema": "dbo",
+        "driver": "ODBC Driver 18 for SQL Server",
+        "encrypt": "Mandatory",
+        "trust_server_certificate": True,
+        "username": "u",
+        "password": "p",
+    }
+
+
+@pytest.fixture
 def entra_id_service_principal_connection_details_default() -> ConnectionDetailsDict:
     return {
         "host": "myserver.database.windows.net",
@@ -121,6 +136,7 @@ class TestSQLServerAuthConnectionDetails:
             "schema": "dbo",
             "driver": "ODBC Driver 18 for SQL Server",
             "encrypt": "Mandatory",
+            "trust_server_certificate": False,
             "authentication": "SQL Server",
             "username": "myuser",
             "password": "mypassword",
@@ -155,6 +171,7 @@ class TestSQLServerAuthConnectionDetails:
             "schema": "custom_schema",
             "driver": "ODBC Driver 17 for SQL Server",
             "encrypt": "Optional",
+            "trust_server_certificate": False,
             "authentication": "SQL Server",
             "username": "admin",
             "password": "secret",
@@ -174,7 +191,7 @@ class TestBuildConnectionString:
         assert result == (
             "mssql+pyodbc://myuser:mypassword"
             "@myserver.database.windows.net:1433/mydb"
-            "?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes"
+            "?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes&TrustServerCertificate=no"
         )
 
     def test_encrypt_optional(
@@ -186,6 +203,18 @@ class TestBuildConnectionString:
         )
         result = ds._build_connection_string()
         assert "Encrypt=no" in result
+
+    def test_trust_server_certificate(
+        self, connection_details_trust_server_certificate: ConnectionDetailsDict
+    ) -> None:
+        ds = SQLServerDatasource(
+            name="test_ds",
+            connection_string=SQLServerAuthConnectionDetails(
+                **connection_details_trust_server_certificate
+            ),
+        )
+        result = ds._build_connection_string()
+        assert "TrustServerCertificate=yes" in result
 
     def test_encrypt_strict(self, connection_details_encrypt_strict: ConnectionDetailsDict) -> None:
         ds = SQLServerDatasource(
@@ -284,6 +313,7 @@ class TestEntraIDServicePrincipalAuthConnectionDetails:
             "schema": "dbo",
             "driver": "ODBC Driver 18 for SQL Server",
             "encrypt": "Mandatory",
+            "trust_server_certificate": False,
             "authentication": "Entra ID Service Principal",
             "tenant_id": "my-tenant-id-456",
             "client_id": "my-client-id-123",
@@ -347,6 +377,23 @@ class TestBuildConnectionStringEntraID:
         )
         result = ds._build_connection_string()
         assert "p%40ss%3Aw%2Frd" in result
+        assert "authentication=ActiveDirectoryServicePrincipal" in result
+
+    def test_entra_id_service_principal_trust_server_certificate(self) -> None:
+        ds = SQLServerDatasource(
+            name="test_ds",
+            connection_string=EntraIDServicePrincipalAuthConnectionDetails(
+                host="myserver.database.windows.net",
+                database="mydb",
+                schema="dbo",
+                trust_server_certificate=True,
+                tenant_id="my-tenant-id",
+                client_id="my-client-id",
+                client_secret="secret",
+            ),
+        )
+        result = ds._build_connection_string()
+        assert "TrustServerCertificate=yes" in result
         assert "authentication=ActiveDirectoryServicePrincipal" in result
 
     def test_entra_id_service_principal_encrypt_optional(self) -> None:
@@ -471,6 +518,7 @@ class TestAddSQLServerDatasourceAPI:
                 "schema": "dbo",
                 "driver": "ODBC Driver 18 for SQL Server",
                 "encrypt": "Mandatory",
+                "trust_server_certificate": False,
                 "authentication": "SQL Server",
                 "username": "myuser",
                 "password": "mypassword",
@@ -505,6 +553,7 @@ class TestAddSQLServerDatasourceAPI:
                 "schema": "dbo",
                 "driver": "ODBC Driver 18 for SQL Server",
                 "encrypt": "Mandatory",
+                "trust_server_certificate": False,
                 "authentication": "Entra ID Service Principal",
                 "tenant_id": "my-tenant-id-456",
                 "client_id": "my-client-id-123",
@@ -537,6 +586,7 @@ class TestAddSQLServerDatasourceAPI:
                 "schema": "dbo",
                 "driver": "ODBC Driver 18 for SQL Server",
                 "encrypt": "Mandatory",
+                "trust_server_certificate": False,
                 "authentication": "SQL Server",
                 "username": "myuser",
                 "password": "mypassword",
@@ -570,6 +620,7 @@ class TestAddSQLServerDatasourceAPI:
                 "schema": "dbo",
                 "driver": "ODBC Driver 18 for SQL Server",
                 "encrypt": "Mandatory",
+                "trust_server_certificate": False,
                 "authentication": "Entra ID Service Principal",
                 "tenant_id": "my-tenant-id-456",
                 "client_id": "my-client-id-123",

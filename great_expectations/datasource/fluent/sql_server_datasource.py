@@ -66,6 +66,7 @@ class _SQLServerConnectionDetailsBase(FluentBaseModel):
     schema_: str = Field(..., alias="schema")
     driver: str = "ODBC Driver 18 for SQL Server"
     encrypt: Literal["Mandatory", "Optional", "Strict"] = "Mandatory"
+    trust_server_certificate: bool = False
 
     class Config:
         allow_population_by_field_name = (
@@ -98,6 +99,7 @@ class SQLServerAuthConnectionDetails(_SQLServerConnectionDetailsBase):
         query_params = {
             "driver": quote_plus(self.driver),
             "Encrypt": _ENCRYPT_VALUE_MAP.get(self.encrypt, "yes"),
+            "TrustServerCertificate": "yes" if self.trust_server_certificate else "no",
         }
         query_string = "&".join(f"{k}={v}" for k, v in query_params.items())
         url = (
@@ -127,6 +129,7 @@ class EntraIDServicePrincipalAuthConnectionDetails(_SQLServerConnectionDetailsBa
         query_params = {
             "driver": quote_plus(self.driver),
             "Encrypt": _ENCRYPT_VALUE_MAP.get(self.encrypt, "yes"),
+            "TrustServerCertificate": "yes" if self.trust_server_certificate else "no",
             "authentication": "ActiveDirectoryServicePrincipal",
             "TenantId": self.tenant_id,
             "UID": client_id,
