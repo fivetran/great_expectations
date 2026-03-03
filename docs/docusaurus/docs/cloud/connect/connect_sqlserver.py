@@ -37,13 +37,15 @@ username = "${SQL_SERVER_USER}"
 password = "${SQL_SERVER_PASSWORD}"
 # </snippet>
 
-host = SQL_SERVER_HOST  # Hide this
-port = SQL_SERVER_PORT  # Hide this
-database = SQL_SERVER_DATABASE  # Hide this
-schema = SQL_SERVER_SCHEMA  # Hide this
-encrypt = SQL_SERVER_ENCRYPT  # Hide this
-username = SQL_SERVER_USERNAME  # Hide this
-password = SQL_SERVER_PASSWORD  # Hide this
+# Hide this
+host = SQL_SERVER_HOST
+port = SQL_SERVER_PORT
+database = SQL_SERVER_DATABASE
+schema = SQL_SERVER_SCHEMA
+encrypt = SQL_SERVER_ENCRYPT
+username = SQL_SERVER_USERNAME
+password = SQL_SERVER_PASSWORD
+# Hide this
 
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_sqlserver.py - add source">
 data_source = context.data_sources.add_sql_server(
