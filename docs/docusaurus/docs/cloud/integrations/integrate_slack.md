@@ -4,7 +4,7 @@ title: 'Integrate GX Cloud with Slack'
 description: Connect your GX Cloud workspace to Slack so you can configure alerts that @mention stakeholders or yourself in Slack.
 ---
 
-With GX Cloud [alerts](/cloud/alerts/alert_about_failures.md), you can notify [Slack](https://slack.com/) channels about Expectation failures. Connect your GX Cloud workspace to Slack to enable the following:
+With GX Cloud [alerts](/cloud/alerts/alert_about_failures.md), you can notify public [Slack](https://slack.com/) channels about Expectation failures. Connect your GX Cloud workspace to Slack to enable the following:
 
 - **Channel selection.** Your team will be able to use a dropdown in the alert configuration form to select the target channel. 
 - **At-mentions to highlight notifications for stakeholders or yourself.** Your team will be able to configure @mentions to include in the notification message in Slack to help bring the notification to the attention of key collaborators and manage noise for other channel members.
@@ -22,7 +22,7 @@ Keep the following in mind when integrating Slack :
 
 ## Reconnect to Slack
 
-Your Slack integration may become **Disconnected** if, for example, the GX Cloud Slack app is removed or its bot token is revoked. If the integration becomes disconnected, notifications will not be sent to Slack channels, but your existing alert configurations will be kept intact so that Slack notifications will resume when the integration is reconnected. To reconnect the integration, do the following:
+Your Slack integration may **Error** if, for example, the GX Cloud Slack app is removed or its bot token is revoked. If this happens, notifications will not be sent to Slack channels, but your existing alert configurations will be kept intact so that Slack notifications will resume when the integration is reconnected. To reconnect the integration, do the following:
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Integrations**.
 2. Locate the **Slack** integration and click <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/>  **Edit connection**.
@@ -34,5 +34,5 @@ Your Slack integration may become **Disconnected** if, for example, the GX Cloud
 1. In GX Cloud, select the relevant **Workspace** and then click **Integrations**.
 2. Locate the **Slack** integration and click  <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/> **Edit connection**.
 3. Click <img src="/img/trash.png" alt="trash icon" width="20" height="20"/> **Remove**.
-4. Note that removing the integration may impact existing alert configurations. If any alerts are configured with Slack recipients, the channel and @mention configuration details will be deleted. If an alert is also configured with email recipients, that portion of the alert’s configuration will be left as-is, and notifications will continue to be sent to those email addresses. Click **Remove** to confirm you understand the impact to existing alert configurations and finalize deleting the connection.
+4. Note that removing the integration may impact existing alert configurations. If an alert’s **Recipients** include **Slack channels**, the channel and @mention configuration details will be deleted. If the alert is also configured with **Emails** as recipients, that portion of the alert’s configuration will be left as-is, and notifications will continue to be sent to those email addresses. Click **Remove** to confirm you understand the impact to existing alert configurations and finalize deleting the connection.
 

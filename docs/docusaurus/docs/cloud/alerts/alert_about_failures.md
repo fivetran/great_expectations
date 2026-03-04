@@ -8,7 +8,7 @@ Keep yourself and your stakeholders informed about the health of Data Assets and
 
 Alerts are configured at the Data Asset level. A single Data Asset can have multiple alerts configured. An alert can be configured to notify about all Expectation failures or only failures of certain [severities](/cloud/expectations/expectations_overview.md#failure-severity).
 
-Alerts can send basic notifications to email addresses or notifications with @mentions to Slack. Note that to enable @mentions for Slack, your GX Cloud workspace must be [integrated with Slack](/cloud/integrations/integrate_slack.md).
+Alerts can send basic notifications to email addresses or notifications with @mentions to public Slack channels. Note that to enable @mentions for Slack, your GX Cloud workspace must be [integrated with Slack](/cloud/integrations/integrate_slack.md).
 
 :::note More integrations are coming soon
 Integrations for rich notifications in Jira, Microsoft Teams, PagerDuty, and ServiceNow are coming soon.
@@ -36,7 +36,7 @@ Note that you must have [Workspace Editor permissions](/cloud/access/manage_acce
       - [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide) - `*.pagerduty.com`
    - If you want to send notifications with user @mentions to Slack, note that your GX Cloud workspace must be [integrated with Slack](/cloud/integrations/integrate_slack.md). 
 8. To alert an email address, under **Recipients**, next to **Emails**, click **+** and enter an email address for the alert to send notifications to.
-9. To alert a Slack channel, under **Recipients**, next to **Slack channels**, click **+** and select a channel for the alert to send notifications to. After selecting the channel, you will have the option to specify @mentions to include in the notification message. You can mention any user in the channel or the group aliases @here or @channel. (supported group mentions pending confirmation in question numbers 5 and 9 above)
+9. To alert a Slack channel, under **Recipients**, next to **Slack channels**, click **+** and select a channel for the alert to send notifications to. After selecting the channel, you will have the option to specify @mentions to include in the notification message. You can mention any user in the channel or any user group.
 10. Optional. To send the same notification to another recipient, click **+** and enter another email address or Slack channel. Repeat as needed.
 11. Click Save.
 
