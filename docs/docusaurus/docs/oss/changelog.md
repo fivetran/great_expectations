@@ -15,6 +15,15 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.13.1
+* [FEATURE] Add `trust_server_certificate` to `SQLServerDatasource` ([#11694](https://github.com/great-expectations/great_expectations/pull/11694))
+* [DOCS] Add ServiceNow to email alerts Cloud documentation ([#11669](https://github.com/great-expectations/great_expectations/pull/11669))
+* [MAINTENANCE] Bump qs from 6.14.1 to 6.14.2 in /docs/docusaurus ([#11660](https://github.com/great-expectations/great_expectations/pull/11660))
+* [MAINTENANCE] Improve error message on ConfigStr substitution ([#11693](https://github.com/great-expectations/great_expectations/pull/11693))
+* [MAINTENANCE] Add sentry error tracking for the Doc Site ([#11695](https://github.com/great-expectations/great_expectations/pull/11695))
+* [MAINTENANCE] Install ODBC driver in `docs-creds-needed` ([#11698](https://github.com/great-expectations/great_expectations/pull/11698))
+* [MAINTENANCE] Deprecate `schema_name` on all `TableAsset`s ([#11689](https://github.com/great-expectations/great_expectations/pull/11689))
+
 ### 1.13.0
 * [MINORBUMP] `ExpectColumnDistinctValuesToBeInSet` with database-pushed comparison ([#11614](https://github.com/great-expectations/great_expectations/pull/11614))
 * [MINORBUMP] `ExpectColumnDistinctValuesToContainSet` with database-pushed comparison ([#11615](https://github.com/great-expectations/great_expectations/pull/11615))
