@@ -10,6 +10,7 @@ from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.datasource.fluent.interfaces import TestConnectionError
+from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from great_expectations.datasource.fluent.sql_server_datasource import (
     EntraIDServicePrincipalAuthConnectionDetails,
     MissingODBCDriverError,
@@ -278,6 +279,20 @@ class TestSQLServerDatasource:
         engine1 = ds.get_engine()
         engine2 = ds.get_engine()
         assert engine1 is engine2
+
+    @pytest.mark.usefixtures("create_engine_fake")
+    def test_add_table_asset_inherits_schema_from_datasource(
+        self,
+        connection_details_default: ConnectionDetailsDict,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setattr(TableAsset, "test_connection", lambda self: None)
+        ds = SQLServerDatasource(
+            name="test_ds",
+            connection_string=SQLServerAuthConnectionDetails(**connection_details_default),
+        )
+        asset = ds.add_table_asset(name="my_asset", table_name="my_table")
+        assert asset._effective_schema_name == ds.schema_
 
 
 @pytest.mark.unit

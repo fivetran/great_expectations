@@ -502,6 +502,11 @@ filterwarnings = [
     # --------------------------------------- Great Expectations Deprecation Warnings ----------------------------------
     "once:The condition_parser parameter is deprecated:DeprecationWarning",
     "once:Passing a string to the row_condition parameter is deprecated:DeprecationWarning",
+    # Existing cloud configs store "schema_name": null. During deserialization, Pydantic passes
+    # None to the validator which triggers the deprecation warning. The TableAsset.dict() override
+    # strips schema_name from new serializations, so these will clean up over time.
+    'once:The `schema_name` argument is deprecated:DeprecationWarning',
+    'once:`schema_name` is deprecated:DeprecationWarning',
 
     # --------------------------------------- TEMPORARY IGNORES --------------------------------------------------------
     # The warnings in this section should be addressed (fixed or ignored) but are ignored here temporarily to help allow

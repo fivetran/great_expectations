@@ -56,11 +56,9 @@ class DatabricksDatasourceTestConfig(DataSourceTestConfig):
 
 
 class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]):
-    @property
     @override
-    def connection_string(self) -> str:
-        assert self.schema
-        return self._databrics_connection_config.connection_string(self.schema)
+    def build_connection_string(self, schema: str | None = None) -> str:
+        return self._databrics_connection_config.build_connection_string(schema=schema)
 
     @property
     @override
@@ -82,13 +80,13 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
 
     @override
     def make_asset(self) -> TableAsset:
+        assert self.schema
         return self.context.data_sources.add_databricks_sql(
             name=self._random_resource_name(),
-            connection_string=self.connection_string,
+            connection_string=self.build_connection_string(schema=self.schema),
         ).add_table_asset(
             name=self._random_resource_name(),
             table_name=self.table_name,
-            schema_name=self.schema,
         )
 
 
@@ -97,9 +95,12 @@ class DatabricksConnectionConfig(BaseSettings):
     databricks_host: str
     databricks_http_path: str
 
-    def connection_string(self, schema: str) -> str:
-        return (
+    def build_connection_string(self, schema: str | None = None) -> str:
+        base = (
             "databricks://token:"
             f"{self.databricks_token}@{self.databricks_host}:443"
-            f"?http_path={self.databricks_http_path}&catalog=ci&schema={schema}"
+            f"?http_path={self.databricks_http_path}&catalog=ci"
         )
+        if schema:
+            return f"{base}&schema={schema}"
+        return base
