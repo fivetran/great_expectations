@@ -26,7 +26,6 @@ from tests.test_utils import (
     SQL_SERVER_PORT,
     SQL_SERVER_SCHEMA,
     SQL_SERVER_USERNAME,
-    get_default_sql_server_url,
 )
 
 logger = logging.getLogger(__name__)
