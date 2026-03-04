@@ -4,7 +4,7 @@ title: 'Integrate GX Cloud with Slack'
 description: Connect your GX Cloud workspace to Slack so you can configure alerts that @mention stakeholders or yourself in Slack.
 ---
 
-With GX Cloud [alerts](/cloud/alerts/alert_about_failures.md), you can notify public [Slack](https://slack.com/) channels about Expectation failures. Connect your GX Cloud workspace to Slack to enable the following:
+With GX Cloud's Slack integration and [alerts](/cloud/alerts/alert_about_failures.md), you can notify public [Slack](https://slack.com/) channels about Expectation failures. Connect your GX Cloud workspace to Slack to enable the following alert configuration options:
 
 - **Channel selection.** Your team will be able to use a dropdown in the alert configuration form to select the target channel. 
 - **At-mentions to highlight notifications for stakeholders or yourself.** Your team will be able to configure @mentions to include in the notification message in Slack to help bring the notification to the attention of key collaborators and manage noise for other channel members.
