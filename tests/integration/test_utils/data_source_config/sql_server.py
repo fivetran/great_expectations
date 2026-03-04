@@ -4,6 +4,7 @@ from typing import Mapping, Optional
 import pandas as pd
 import pytest
 
+from great_expectations.compatibility.sqlalchemy import TextClause, create_engine
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
@@ -88,20 +89,34 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
 
     @override
     def teardown(self) -> None:
-        """Override teardown to dispose cached engines before DROP SCHEMA.
+        """Override teardown to dispose engines and fail fast on lock waits.
 
         SQL Server holds schema locks on connections. Disposing the session manager's
-        cached engine releases all pool connections before we run DROP, avoiding
-        hangs. We use a fresh engine for the drop since the cached one was disposed.
+        cached engine releases all pool connections before we run DROP.
+        We set LOCK_TIMEOUT to avoid indefinite hangs if another session still holds
+        an incompatible lock.
         """
         for datasource in self.context.data_sources.all().values():
             execution_engine = datasource.execution_engine
             if execution_engine:
                 execution_engine.close()
+            if datasource._engine:
+                datasource._engine.dispose()
+                datasource._engine = None
 
         if self.engine_manager:
             self.engine_manager.dispose_engine(
                 ConnectionDetails(connection_string=self.build_connection_string())
             )
 
-        super().teardown()
+        engine = create_engine(url=self.build_connection_string())
+        try:
+            with engine.connect() as conn:
+                conn.execute(TextClause("SET LOCK_TIMEOUT 30000"))
+                for table in self.tables:
+                    table.drop(conn)
+                if self.schema:
+                    logger.info(f"DROPPING SCHEMA {self.schema}")
+                    conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
+        finally:
+            engine.dispose()
