@@ -1402,7 +1402,8 @@ class SQLDatasource(Datasource):
         """  # noqa: E501 # FIXME CoP
         try:
             engine: sqlalchemy.Engine = self.get_engine()
-            engine.connect()
+            with engine.connect():
+                pass
         except Exception as e:
             raise TestConnectionError(cause=e) from e
         if self.assets and test_assets:
