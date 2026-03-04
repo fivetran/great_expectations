@@ -191,6 +191,7 @@ class SQLServerDatasource(SQLDatasource):
         return values
 
     @property
+    @override
     def schema_(self) -> str:
         return self.connection_string.schema_
 

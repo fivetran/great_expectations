@@ -1,4 +1,5 @@
 from typing import Mapping, Optional
+from urllib.parse import urlencode
 
 import pandas as pd
 import pytest
@@ -45,22 +46,26 @@ class PostgreSQLDatasourceTestConfig(DataSourceTestConfig):
 
 
 class PostgresBatchTestSetup(SQLBatchTestSetup[PostgreSQLDatasourceTestConfig]):
-    @property
+    _BASE_CONNECTION_STRING = "postgresql+psycopg2://postgres@localhost:5432/test_ci"
+
     @override
-    def connection_string(self) -> str:
-        return "postgresql+psycopg2://postgres@localhost:5432/test_ci"
+    def build_connection_string(self, schema: str | None = None) -> str:
+        if schema:
+            options = urlencode({"options": f"-c search_path={schema}"})
+            return f"{self._BASE_CONNECTION_STRING}?{options}"
+        return self._BASE_CONNECTION_STRING
 
     @property
     @override
     def use_schema(self) -> bool:
-        return False
+        return True
 
     @override
     def make_asset(self) -> TableAsset:
         return self.context.data_sources.add_postgres(
-            name=self._random_resource_name(), connection_string=self.connection_string
+            name=self._random_resource_name(),
+            connection_string=self.build_connection_string(schema=self.schema),
         ).add_table_asset(
             name=self._random_resource_name(),
             table_name=self.table_name,
-            schema_name=self.schema,
         )

@@ -622,7 +622,7 @@ class TestTableIdentifiers:
 
         sql_server_ds.add_table_asset(asset_name, table_name=table_name)
 
-    @pytest.mark.filterwarnings(  # snowflake `add_table_asset` raises warning on passing a schema
+    @pytest.mark.filterwarnings(  # `add_table_asset` raises warning on passing a schema
         "once::great_expectations.datasource.fluent.GxDatasourceWarning"
     )
     @pytest.mark.parametrize(
@@ -739,7 +739,7 @@ def _raw_query_check_column_exists(
 
 @pytest.mark.filterwarnings(
     "once::DeprecationWarning"
-)  # snowflake `add_table_asset` raises warning on passing a schema
+)  # `add_table_asset` raises warning on passing a schema
 class TestColumnExpectations:
     @pytest.mark.parametrize(
         "column_name",

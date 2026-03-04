@@ -52,10 +52,9 @@ class BigQueryDatasourceTestConfig(DataSourceTestConfig):
 
 
 class BigQueryBatchTestSetup(SQLBatchTestSetup[BigQueryDatasourceTestConfig]):
-    @property
     @override
-    def connection_string(self) -> str:
-        return self.big_query_connection_config.connection_string
+    def build_connection_string(self, schema: str | None = None) -> str:
+        return self.big_query_connection_config.build_connection_string(dataset=schema)
 
     @property
     @override
@@ -67,11 +66,11 @@ class BigQueryBatchTestSetup(SQLBatchTestSetup[BigQueryDatasourceTestConfig]):
     @override
     def make_asset(self) -> TableAsset:
         return self.context.data_sources.add_bigquery(
-            name=self._random_resource_name(), connection_string=self.connection_string
+            name=self._random_resource_name(),
+            connection_string=self.build_connection_string(schema=self.schema),
         ).add_table_asset(
             name=self._random_resource_name(),
             table_name=self.table_name,
-            schema_name=self.schema,
         )
 
     @cached_property
@@ -89,6 +88,6 @@ class BigQueryConnectionConfig(BaseSettings):
     GE_TEST_BIGQUERY_DATASET: str
     GOOGLE_APPLICATION_CREDENTIALS: str
 
-    @property
-    def connection_string(self) -> str:
-        return f"bigquery://{self.GE_TEST_GCP_PROJECT}/{self.GE_TEST_BIGQUERY_DATASET}?credentials_path={self.GOOGLE_APPLICATION_CREDENTIALS}"
+    def build_connection_string(self, dataset: str | None = None) -> str:
+        dataset = dataset or self.GE_TEST_BIGQUERY_DATASET
+        return f"bigquery://{self.GE_TEST_GCP_PROJECT}/{dataset}?credentials_path={self.GOOGLE_APPLICATION_CREDENTIALS}"
