@@ -90,9 +90,9 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
     def teardown(self) -> None:
         """Override teardown to dispose cached engines before DROP SCHEMA.
 
-        SQL Server holds schema locks on connections. We must close execution
-        engines and dispose the session manager's cached engine to release all
-        pool connections before running DROP.
+        SQL Server holds schema locks on connections. Disposing the session manager's
+        cached engine releases all pool connections before we run DROP, avoiding
+        hangs. We use a fresh engine for the drop since the cached one was disposed.
         """
         for datasource in self.context.data_sources.all().values():
             execution_engine = datasource.execution_engine
