@@ -30,20 +30,15 @@ set_up_context_for_example(context)
 suite = context.suites.get(name="my_expectation_suite")
 # </snippet>
 
-# <snippet name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation_for_cloud.py - find the expectation">
-expectation = [
-    exp
-    for exp in suite.expectations
-    if exp.type == "expect_column_max_to_be_between"
-    and exp.kwargs["column"] == "passenger_count"
-][0]
+# <snippet name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - find the expectation">
+expectation = [exp for exp in suite.expectations if exp.type == "expect_column_max_to_be_between" and exp.kwargs["column"] == "passenger_count"][0]
 # </snippet>
 
-# <snippet name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation_for_cloud.py - edit the expectation">
+# <snippet name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - edit the expectation">
 expectation.min_value = 0
 expectation.max_value = 9
 # </snippet>
 
-# <snippet name="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation_for_cloud.py - save the expectation">
+# <snippet name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - save the expectation">
 expectation.save()
 # </snippet>
