@@ -115,6 +115,19 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
                     table.drop(conn)
                 if self.schema:
                     logger.info(f"DROPPING SCHEMA {self.schema}")
-                    conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
+                    try:
+                        conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
+                    except Exception as err:
+                        # Best-effort cleanup: SQL Server can intermittently keep schema
+                        # locks after tests complete. Avoid failing tests on teardown-only
+                        # lock contention in ephemeral CI containers.
+                        if "Lock request time out period exceeded" in str(err) and "(1222)" in str(
+                            err
+                        ):
+                            logger.warning(
+                                f"Skipping DROP SCHEMA for {self.schema} due to lock timeout: {err}"
+                            )
+                        else:
+                            raise
         finally:
             engine.dispose()
