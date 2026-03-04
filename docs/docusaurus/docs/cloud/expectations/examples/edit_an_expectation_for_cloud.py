@@ -34,10 +34,10 @@ suite = context.suites.get(name="my_expectation_suite")
 # Find the Expectation to edit by matching on the type and column
 # <snippet name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - find the expectation">
 expectation = [
-   exp
-   for exp in suite.expectations
-   if type(exp).__name__ == "ExpectColumnMaxToBeBetween"
-   and exp.column == "passenger_count"
+    exp
+    for exp in suite.expectations
+    if type(exp).__name__ == "ExpectColumnMaxToBeBetween"
+    and exp.column == "passenger_count"
 ][0]
 # </snippet>
 
