@@ -7,14 +7,14 @@ pytest --docs-tests -k "doc_example_edit_an_expectation_for_cloud" tests/integra
 
 
 def set_up_context_for_example(context):
-   expectation = gx.expectations.ExpectColumnMaxToBeBetween(
-      column="passenger_count", min_value=1, max_value=6, severity="warning"
-   )
-   suite_name = "my_expectation_suite"
-   suite = gx.ExpectationSuite(name=suite_name)
-   context.suites.add(suite)
-   suite.add_expectation(expectation)
-   suite.save()
+    expectation = gx.expectations.ExpectColumnMaxToBeBetween(
+        column="passenger_count", min_value=1, max_value=6, severity="warning"
+    )
+    suite_name = "my_expectation_suite"
+    suite = gx.ExpectationSuite(name=suite_name)
+    context.suites.add(suite)
+    suite.add_expectation(expectation)
+    suite.save()
 
 
 # EXAMPLE SCRIPT STARTS HERE:
