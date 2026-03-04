@@ -9,7 +9,7 @@ With GX Cloud [alerts](/cloud/alerts/alert_about_failures.md), you can notify pu
 - **Channel selection.** Your team will be able to use a dropdown in the alert configuration form to select the target channel. 
 - **At-mentions to highlight notifications for stakeholders or yourself.** Your team will be able to configure @mentions to include in the notification message in Slack to help bring the notification to the attention of key collaborators and manage noise for other channel members.
 
-Keep the following in mind when integrating Slack :
+Keep the following in mind when integrating Slack:
 
 - The integration is configured at the [workspace](/cloud/access/manage_access.md#workspaces) level. A GX Cloud workspace can connect to only one Slack workspace. Each different workspace in a GX Cloud organization can connect to a different Slack workspace, the same Slack workspace as another GX Cloud workspace, or no Slack workspace.
 - You must have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater to manage the integration.

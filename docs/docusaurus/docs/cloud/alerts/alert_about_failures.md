@@ -39,7 +39,7 @@ Note that you must have [Workspace Editor permissions](/cloud/access/manage_acce
 8. To alert an email address, under **Recipients**, next to **Emails**, click **+** and enter an email address for the alert to send notifications to.
 9. To alert a Slack channel, under **Recipients**, next to **Slack channels**, click **+** and select a channel for the alert to send notifications to. After selecting the channel, you will have the option to specify @mentions to include in the notification message. You can mention any user in the channel or any user group.
 10. Optional. To send the same notification to another recipient, click **+** and enter another email address or Slack channel. Repeat as needed.
-11. Click Save.
+11. Click **Save**.
 
 ## Edit an alert
 
