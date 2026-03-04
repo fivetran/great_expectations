@@ -7,14 +7,14 @@ pytest --docs-tests -k "doc_example_edit_an_expectation_for_cloud" tests/integra
 
 
 def set_up_context_for_example(context):
-    expectation = gx.expectations.ExpectColumnMaxToBeBetween(
-        column="passenger_count", min_value=1, max_value=6, severity="warning"
-    )
-    suite_name = "my_expectation_suite"
-    suite = gx.ExpectationSuite(name=suite_name)
-    context.suites.add(suite)
-    suite.add_expectation(expectation)
-    suite.save()
+   expectation = gx.expectations.ExpectColumnMaxToBeBetween(
+      column="passenger_count", min_value=1, max_value=6, severity="warning"
+   )
+   suite_name = "my_expectation_suite"
+   suite = gx.ExpectationSuite(name=suite_name)
+   context.suites.add(suite)
+   suite.add_expectation(expectation)
+   suite.save()
 
 
 # EXAMPLE SCRIPT STARTS HERE:
@@ -26,10 +26,12 @@ context = gx.get_context()
 # Hide this
 set_up_context_for_example(context)
 
+# Get the Expectation Suite using its name
 # <snippet name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - get the expectation suite">
 suite = context.suites.get(name="my_expectation_suite")
 # </snippet>
 
+# Find the Expectation to edit by matching on the type and column
 # <snippet name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - find the expectation">
 expectation = [
     exp
@@ -39,11 +41,13 @@ expectation = [
 ][0]
 # </snippet>
 
+# Update the desired paramters in the Expectation
 # <snippet name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - edit the expectation">
 expectation.min_value = 0
 expectation.max_value = 9
 # </snippet>
 
+# Save the Expectation
 # <snippet name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - save the expectation">
 expectation.save()
 # </snippet>
