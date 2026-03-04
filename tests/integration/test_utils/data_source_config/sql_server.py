@@ -61,7 +61,8 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
             username="sa",
             password="ReallyStrongPwd1234%^&*",
             driver="ODBC Driver 18 for SQL Server",
-            encrypt="Optional",
+            encrypt="Mandatory",
+            trust_server_certificate=True,
         )
 
     @override
