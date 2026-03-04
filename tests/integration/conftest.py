@@ -162,6 +162,18 @@ def _cleanup(
 ) -> Generator[None, None, None]:
     """Fixture to do all teardown at the end of the test session."""
     yield
+    # Two-phase teardown for SQL Server:
+    # 1) dispose connections for all setups first
+    # 2) run schema/table drops
+    all_batch_setups = [
+        *_cached_test_configs.values(),
+        *_cached_secondary_test_configs.values(),
+    ]
+    for batch_setup in all_batch_setups:
+        dispose_connections = getattr(batch_setup, "dispose_connections_for_teardown", None)
+        if callable(dispose_connections):
+            dispose_connections()
+
     for batch_setup in _cached_test_configs.values():
         batch_setup.teardown()
     for batch_setup in _cached_secondary_test_configs.values():

@@ -87,15 +87,8 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
             table_name=self.table_name,
         )
 
-    @override
-    def teardown(self) -> None:
-        """Override teardown to dispose engines and fail fast on lock waits.
-
-        SQL Server holds schema locks on connections. Disposing the session manager's
-        cached engine releases all pool connections before we run DROP.
-        We set LOCK_TIMEOUT to avoid indefinite hangs if another session still holds
-        an incompatible lock.
-        """
+    def dispose_connections_for_teardown(self) -> None:
+        """Close/dispose SQL Server engines before schema teardown."""
         for datasource in self.context.data_sources.all().values():
             execution_engine = datasource.execution_engine
             if execution_engine:
@@ -108,6 +101,11 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
             self.engine_manager.dispose_engine(
                 ConnectionDetails(connection_string=self.build_connection_string())
             )
+
+    @override
+    def teardown(self) -> None:
+        """Override teardown to dispose engines and fail fast on lock waits."""
+        self.dispose_connections_for_teardown()
 
         engine = create_engine(url=self.build_connection_string())
         try:
