@@ -30,13 +30,9 @@ def test_success_complete_results(batch_for_datasource: Batch) -> None:
     result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
     assert result.success
     assert result.to_json_dict()["result"] == {
-        "details": {
-            "value_counts": [
-                {"value": 1, "count": 1},
-                {"value": 2, "count": 3},
-            ]
-        },
-        "observed_value": [1, 2],
+        "observed_value": None,
+        "unexpected_count": 0,
+        "partial_unexpected_list": [],
     }
 
 
@@ -109,3 +105,43 @@ def test_failure(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=[1])
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
+)
+def test_boolean_only_result_format_excludes_fields(batch_for_datasource: Batch) -> None:
+    """BOOLEAN_ONLY result format should not include unexpected_count or partial_unexpected_list."""
+    expectation = gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=[1])
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.BOOLEAN_ONLY)
+    assert not result.success
+    assert result.result == {}
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
+)
+def test_summary_result_format_includes_fields(batch_for_datasource: Batch) -> None:
+    """SUMMARY result format should include unexpected_count and partial_unexpected_list."""
+    expectation = gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=[1])
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.SUMMARY)
+    assert not result.success
+    assert "unexpected_count" in result.result
+    assert "partial_unexpected_list" in result.result
+    assert result.result["unexpected_count"] == 1
+    assert result.result["partial_unexpected_list"] == [2]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
+)
+def test_partial_unexpected_count_zero_excludes_partial_lists(batch_for_datasource: Batch) -> None:
+    """Setting partial_unexpected_count=0 should exclude partial_unexpected_list but keep count."""
+    expectation = gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=[1])
+    result = batch_for_datasource.validate(
+        expectation,
+        result_format={"result_format": "SUMMARY", "partial_unexpected_count": 0},
+    )
+    assert not result.success
+    assert "unexpected_count" in result.result
+    assert "partial_unexpected_list" not in result.result

@@ -38,10 +38,13 @@ def test_pandas_success(batch_for_datasource: Batch) -> None:
     metric = BatchColumnTypes()
     metric_result = batch.compute_metrics(metric)
     assert isinstance(metric_result, BatchColumnTypesResult)
-    assert metric_result.value == [
-        {"name": "numbers", "type": dtype("int64")},
-        {"name": "strings", "type": dtype("O")},
-    ]
+    assert metric_result.value[0] == {"name": "numbers", "type": dtype("int64")}
+    # pandas 3.x uses StringDtype for string columns instead of object dtype
+    strings_entry = metric_result.value[1]
+    assert strings_entry.name == "strings"
+    assert strings_entry.type == dtype("O") or isinstance(strings_entry.type, pd.StringDtype), (
+        f"Expected dtype('O') or StringDtype, got {strings_entry.type}"
+    )
 
 
 @parameterize_batch_for_data_sources(

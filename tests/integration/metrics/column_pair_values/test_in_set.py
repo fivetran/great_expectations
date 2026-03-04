@@ -92,16 +92,8 @@ class TestColumnPairValuesInSetUnexpectedValues:
     @pytest.mark.parametrize(
         "ignore_row_if,unexpected_count",
         [
-            pytest.param(
-                "either_value_is_missing",
-                1,
-                marks=pytest.mark.xfail(reason="returns 2", strict=True),
-            ),
-            pytest.param(
-                "both_values_are_missing",
-                3,
-                marks=pytest.mark.xfail(reason="returns 6", strict=True),
-            ),
+            pytest.param("either_value_is_missing", 1),
+            pytest.param("both_values_are_missing", 3),
             pytest.param("neither", 6),
         ],
     )

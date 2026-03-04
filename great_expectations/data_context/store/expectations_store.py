@@ -9,9 +9,6 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core import ExpectationSuite
 from great_expectations.core.expectation_suite import ExpectationSuiteSchema
 from great_expectations.data_context.cloud_constants import GXCloudRESTResource
-from great_expectations.data_context.store.database_store_backend import (
-    DatabaseStoreBackend,
-)
 from great_expectations.data_context.store.store import Store
 from great_expectations.data_context.store.tuple_store_backend import TupleStoreBackend
 from great_expectations.data_context.types.refs import GXCloudResourceRef
@@ -82,14 +79,6 @@ class ExpectationsStore(Store):
             if issubclass(store_backend_class, TupleStoreBackend):
                 # Provide defaults for this common case
                 store_backend["filepath_suffix"] = store_backend.get("filepath_suffix", ".json")
-            elif issubclass(store_backend_class, DatabaseStoreBackend):
-                # Provide defaults for this common case
-                store_backend["table_name"] = store_backend.get(
-                    "table_name", "ge_expectations_store"
-                )
-                store_backend["key_columns"] = store_backend.get(
-                    "key_columns", ["expectation_suite_name"]
-                )
 
         super().__init__(
             store_backend=store_backend,

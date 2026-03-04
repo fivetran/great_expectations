@@ -1,6 +1,5 @@
 import pandas as pd
 import pytest
-from typing_extensions import override
 
 from great_expectations import get_context
 from great_expectations.compatibility.aws import REDSHIFT_TYPES, redshiftdialect
@@ -391,13 +390,7 @@ class TestRedshiftSchemaQualifiedTables:
             "value": REDSHIFT_TYPES.DECIMAL,
         }
 
-        class RedshiftWithSchemaBatchTestSetup(RedshiftBatchTestSetup):
-            @property
-            @override
-            def use_schema(self) -> bool:
-                return True
-
-        batch_setup = RedshiftWithSchemaBatchTestSetup(
+        batch_setup = RedshiftBatchTestSetup(
             config=RedshiftDatasourceTestConfig(column_types=column_types),
             data=pd.DataFrame(
                 {
@@ -433,13 +426,7 @@ class TestRedshiftSchemaQualifiedTables:
             self.COLUMN: REDSHIFT_TYPES.INTEGER,
         }
 
-        class RedshiftWithSchemaBatchTestSetup(RedshiftBatchTestSetup):
-            @property
-            @override
-            def use_schema(self) -> bool:
-                return True
-
-        batch_setup = RedshiftWithSchemaBatchTestSetup(
+        batch_setup = RedshiftBatchTestSetup(
             config=RedshiftDatasourceTestConfig(column_types=column_types),
             data=pd.DataFrame({self.COLUMN: [1, 2, 3]}),
             extra_data={},

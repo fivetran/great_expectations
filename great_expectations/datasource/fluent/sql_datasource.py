@@ -8,10 +8,12 @@ from pprint import pformat as pf
 from typing import (
     TYPE_CHECKING,
     Any,
+    Callable,
     ClassVar,
     Dict,
     Final,
     Generic,
+    Iterator,
     List,
     Literal,
     Mapping,
@@ -25,10 +27,10 @@ from typing import (
     overload,
 )
 
-from typing_extensions import Annotated, Never
+from typing_extensions import Annotated, Never, Self
 
 import great_expectations.exceptions as gx_exceptions
-from great_expectations._docs_decorators import public_api
+from great_expectations._docs_decorators import deprecated_argument, public_api
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pydantic import Field
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
@@ -94,6 +96,40 @@ if TYPE_CHECKING:
     )
 
 LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
+
+
+class Missing:
+    """Sentinel used to distinguish "not provided" from an explicit None.
+
+    Implemented as a singleton with custom copy/deepcopy behavior so that
+    Pydantic V1's deepcopy of field defaults preserves identity checks (is).
+    """
+
+    _instance: Missing | None = None
+
+    def __new__(cls) -> Self:
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance  # type: ignore[return-value] # singleton
+
+    def __copy__(self) -> Self:
+        return self
+
+    def __deepcopy__(self, memo: dict) -> Self:
+        return self
+
+    @classmethod
+    def __get_validators__(cls) -> Iterator[Callable[..., Any]]:
+        yield cls._validate
+
+    @classmethod
+    def _validate(cls, v: Any) -> Missing:
+        if isinstance(v, cls):
+            return v
+        raise ValueError("Expected Missing sentinel")  # noqa: TRY003  # not very re-usable
+
+
+MISSING: Final[Missing] = Missing()
 
 DEFAULT_INITIAL_QUOTE_CHARACTERS: Final[Tuple[str, str, str, str]] = ('"', "'", "`", "[")
 DEFAULT_FINAL_QUOTE_CHARACTERS: Final[Mapping[str, str]] = {
@@ -992,6 +1028,11 @@ class QueryAsset(_SQLAsset):
         return RuntimeQueryBatchSpec(**batch_spec_kwargs)
 
 
+@deprecated_argument(
+    argument_name="schema_name",
+    version="1.14.0",
+    message="Pass the schema in your datasource's connection configuration instead.",
+)
 @public_api
 class TableAsset(_SQLAsset):
     """A class representing a table from a SQL database
@@ -1008,13 +1049,49 @@ class TableAsset(_SQLAsset):
         "",
         description="Name of the SQL table. Will default to the value of `name` if not provided.",
     )
-    schema_name: Optional[str] = None
+    schema_name: Union[str, Missing, None] = MISSING
 
     _quote_character: Optional[str] = None
 
+    @pydantic.validator("schema_name", pre=True, always=True)
+    @classmethod
+    def _schema_name_deprecation_warning(cls, v: str | Missing | None) -> str | Missing | None:
+        if v is MISSING:
+            return v
+        # deprecated-v1.14.0
+        warnings.warn(
+            "`schema_name` is deprecated."
+            " Pass the schema in your datasource's connection configuration instead.",
+            category=DeprecationWarning,
+        )
+        return v
+
+    @property
+    def _effective_schema_name(self) -> str | None:
+        """Returns the schema to use based on schema_name (Union[str, Missing, None]):
+
+        - MISSING: not provided, fall back to the datasource schema
+        - str: explicitly provided, normalize and return
+        - None: explicitly set to None, meaning no schema
+        """
+        if self.schema_name is MISSING:
+            try:
+                datasource: SQLDatasource = self.datasource
+            except AttributeError:
+                # _datasource is unset during deserialization before the asset is attached
+                return None
+            schema = datasource.schema_
+            if schema is not None:
+                schema = self._to_lower_if_not_bracketed_by_quotes(schema)
+            return schema
+        if isinstance(self.schema_name, str):
+            return self._to_lower_if_not_bracketed_by_quotes(self.schema_name)
+        return None
+
     @property
     def qualified_name(self) -> str:
-        return f"{self.schema_name}.{self.table_name}" if self.schema_name else self.table_name
+        schema = self._effective_schema_name
+        return f"{schema}.{self.table_name}" if schema else self.table_name
 
     @pydantic.validator("table_name", pre=True, always=True)
     def _default_table_name(cls, table_name: str, values: dict, **kwargs) -> str:
@@ -1065,6 +1142,13 @@ class TableAsset(_SQLAsset):
                 f"{qc}{self.table_name}{DEFAULT_FINAL_QUOTE_CHARACTERS[qc]}"
             )
 
+        # Exclude schema_name from serialization when it wasn't explicitly provided
+        # or was set to None, so stored configs stop including it before the field
+        # is removed.
+        schema = original_dict.get("schema_name")
+        if schema is None or schema is MISSING:
+            original_dict.pop("schema_name", None)
+
         return original_dict
 
     @override
@@ -1085,15 +1169,16 @@ class TableAsset(_SQLAsset):
             else []
         )
 
-        if self.schema_name and self.schema_name not in schema_names:
+        effective_schema = self._effective_schema_name
+        if effective_schema and effective_schema not in schema_names:
             raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
                 f'Attempt to connect to table: "{self.qualified_name}" failed because the schema '
-                f'"{self.schema_name}" does not exist.'
+                f'"{effective_schema}" does not exist.'
             )
 
         try:
             with engine.connect() as connection:
-                table = sa.table(self.table_name, schema=self.schema_name)
+                table = sa.table(self.table_name, schema=effective_schema)
                 # don't need to fetch any data, just want to make sure the table is accessible
                 connection.execute(sa.select(1, table).limit(1))
         except Exception as query_error:
@@ -1109,7 +1194,7 @@ class TableAsset(_SQLAsset):
 
         This can be used in a from clause for a query against this data.
         """
-        return sa.table(self.table_name, schema=self.schema_name)
+        return sa.table(self.table_name, schema=self._effective_schema_name)
 
     @override
     def _create_batch_spec_kwargs(self) -> Dict[str, Any]:
@@ -1117,7 +1202,7 @@ class TableAsset(_SQLAsset):
             "type": "table",
             "data_asset_name": self.name,
             "table_name": self.table_name,
-            "schema_name": self.schema_name,
+            "schema_name": self._effective_schema_name,
             "batch_identifiers": {},
         }
 
@@ -1239,6 +1324,17 @@ class SQLDatasource(Datasource):
         validate_assignment = True
 
     @property
+    def schema_(self) -> str | None:
+        """The schema for this datasource, if available.
+
+        There is no standard way to encode schema in a database connection URL,
+        so the base implementation returns ``None``.  Subclasses with structured
+        connection details (e.g. SnowflakeDatasource, SQLServerDatasource)
+        override this to expose the schema.
+        """
+        return None
+
+    @property
     @override
     def execution_engine_type(self) -> Type[SqlAlchemyExecutionEngine]:
         """Returns the default execution engine type."""
@@ -1306,7 +1402,8 @@ class SQLDatasource(Datasource):
         """  # noqa: E501 # FIXME CoP
         try:
             engine: sqlalchemy.Engine = self.get_engine()
-            engine.connect()
+            with engine.connect():
+                pass
         except Exception as e:
             raise TestConnectionError(cause=e) from e
         if self.assets and test_assets:
@@ -1314,12 +1411,17 @@ class SQLDatasource(Datasource):
                 asset._datasource = self
                 asset.test_connection()
 
+    @deprecated_argument(
+        argument_name="schema_name",
+        version="1.14.0",
+        message="Pass the schema in your datasource's connection configuration instead.",
+    )
     @public_api
     def add_table_asset(
         self,
         name: str,
         table_name: str = "",
-        schema_name: Optional[str] = None,
+        schema_name: str | Missing | None = MISSING,
         batch_metadata: Optional[BatchMetadata] = None,
     ) -> TableAsset:
         """Adds a table asset to this datasource.
@@ -1327,16 +1429,16 @@ class SQLDatasource(Datasource):
         Args:
             name: The name of this table asset.
             table_name: The table where the data resides.
-            schema_name: The schema that holds the table.
-            batch_metadata: BatchMetadata we want to associate with this DataAsset and all batches derived from it.
+            schema_name: The schema that holds the table. Will use the datasource schema if not
+                provided.
+            batch_metadata: BatchMetadata we want to associate with this DataAsset and all batches
+                derived from it.
 
         Returns:
             The table asset that is added to the datasource.
             The type of this object will match the necessary type for this datasource.
             eg, it could be a TableAsset or a SqliteTableAsset.
-        """  # noqa: E501 # FIXME CoP
-        if schema_name:
-            schema_name = self._TableAsset._to_lower_if_not_bracketed_by_quotes(schema_name)
+        """
         asset = self._TableAsset(
             name=name,
             table_name=table_name,

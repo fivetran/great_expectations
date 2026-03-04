@@ -8,9 +8,9 @@ from typing_extensions import NotRequired, TypedDict
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
+from great_expectations.constants import MAX_RESULT_RECORDS
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from great_expectations.expectations.metrics.metric_provider import MetricProvider
-from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
 from great_expectations.util import get_sqlalchemy_subquery_type
 
 if TYPE_CHECKING:

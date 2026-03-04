@@ -1,11 +1,11 @@
 import pandas as pd
 import pytest
 
+import great_expectations as gx
 from great_expectations.core.expectation_validation_result import (
     ExpectationValidationResult,
 )
 from great_expectations.self_check.util import get_test_validator_with_data
-from great_expectations.util import build_in_memory_runtime_context
 
 
 @pytest.fixture
@@ -47,7 +47,7 @@ def test_pandas_expect_column_value_z_scores_to_be_less_than_impl(
 ):
     df = pd.DataFrame({"a": [1, 5, 22, 3, 5, 10]})
 
-    context = build_in_memory_runtime_context()
+    context = gx.get_context(mode="ephemeral")
 
     validator = get_test_validator_with_data(
         execution_engine="pandas",
@@ -71,7 +71,7 @@ def test_sa_expect_column_value_z_scores_to_be_less_than_impl(
 
     df = pd.DataFrame({"a": [1, 5, 22, 3, 5, 10]})
 
-    context = build_in_memory_runtime_context()
+    context = gx.get_context(mode="ephemeral")
 
     validator = get_test_validator_with_data(
         execution_engine="postgresql",
@@ -94,7 +94,7 @@ def test_spark_expect_column_value_z_scores_to_be_less_than_impl(
 ):
     df = pd.DataFrame({"a": [1, 5, 22, 3, 5, 10]})
 
-    context = build_in_memory_runtime_context()
+    context = gx.get_context(mode="ephemeral")
 
     validator = get_test_validator_with_data(
         execution_engine="spark",

@@ -472,6 +472,7 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
             GXSqlDialect.DATABRICKS,
             GXSqlDialect.POSTGRESQL,
             GXSqlDialect.SNOWFLAKE,
+            GXSqlDialect.SQL_SERVER,
             GXSqlDialect.TRINO,
         ]:
             if isinstance(actual_column_type, str):

@@ -24,10 +24,7 @@ def test_incomplete_uncommitted(tmp_path):
     with pytest.raises(InvalidConfigError) as exc:
         _ = get_context(context_root_dir=local_dir)
 
-    assert (
-        "Unable to find a match for config substitution variable: "
-        "`secret_validation_results_store_name`." in exc.value.message
-    )
+    assert "Unable to find a match for a config substitution variable" in exc.value.message
     assert (
         "See https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_credentials"
         in exc.value.message

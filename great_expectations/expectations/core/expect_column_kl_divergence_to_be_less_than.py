@@ -45,6 +45,7 @@ from great_expectations.render.renderer_configuration import (
     RendererValueType,
 )
 from great_expectations.render.util import (
+    coerce_stringdtype_to_object,
     num_to_str,
     parse_row_condition_string,
     substitute_none_for_missing,
@@ -1079,6 +1080,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
                 values = partition_object["values"]
 
             df = pd.DataFrame({"values": values, "fraction": weights})
+            coerce_stringdtype_to_object(df)
 
             bars = (
                 alt.Chart(df)

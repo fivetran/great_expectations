@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Dict, List
 
+from great_expectations.constants import MAX_RESULT_RECORDS
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.execution_engine import (
     SparkDFExecutionEngine,
@@ -11,7 +12,6 @@ from great_expectations.expectations.metrics.metric_provider import metric_value
 from great_expectations.expectations.metrics.query_metric_provider import (
     QueryMetricProvider,
 )
-from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
 
 if TYPE_CHECKING:
     from great_expectations.compatibility import pyspark

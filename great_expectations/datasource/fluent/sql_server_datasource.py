@@ -66,6 +66,7 @@ class _SQLServerConnectionDetailsBase(FluentBaseModel):
     schema_: str = Field(..., alias="schema")
     driver: str = "ODBC Driver 18 for SQL Server"
     encrypt: Literal["Mandatory", "Optional", "Strict"] = "Mandatory"
+    trust_server_certificate: bool = False
 
     class Config:
         allow_population_by_field_name = (
@@ -98,6 +99,7 @@ class SQLServerAuthConnectionDetails(_SQLServerConnectionDetailsBase):
         query_params = {
             "driver": quote_plus(self.driver),
             "Encrypt": _ENCRYPT_VALUE_MAP.get(self.encrypt, "yes"),
+            "TrustServerCertificate": "yes" if self.trust_server_certificate else "no",
         }
         query_string = "&".join(f"{k}={v}" for k, v in query_params.items())
         url = (
@@ -112,9 +114,9 @@ class EntraIDServicePrincipalAuthConnectionDetails(_SQLServerConnectionDetailsBa
     """Entra ID Service Principal authentication."""
 
     authentication: Literal["Entra ID Service Principal"] = "Entra ID Service Principal"
+    tenant_id: str
     client_id: str
     client_secret: Union[ConfigStr, str]
-    tenant_id: str
 
     @override
     def build_connection_string(
@@ -127,6 +129,7 @@ class EntraIDServicePrincipalAuthConnectionDetails(_SQLServerConnectionDetailsBa
         query_params = {
             "driver": quote_plus(self.driver),
             "Encrypt": _ENCRYPT_VALUE_MAP.get(self.encrypt, "yes"),
+            "TrustServerCertificate": "yes" if self.trust_server_certificate else "no",
             "authentication": "ActiveDirectoryServicePrincipal",
             "TenantId": self.tenant_id,
             "UID": client_id,
@@ -188,6 +191,7 @@ class SQLServerDatasource(SQLDatasource):
         return values
 
     @property
+    @override
     def schema_(self) -> str:
         return self.connection_string.schema_
 
@@ -223,11 +227,11 @@ class SQLServerDatasource(SQLDatasource):
                     if isinstance(
                         self.connection_string, EntraIDServicePrincipalAuthConnectionDetails
                     ):
-                        raise SQLServerPrincipalAuthError(e.cause) from e
+                        raise MSSQLPrincipalAuthError(e.cause) from e
                     else:
-                        raise SQLServerPasswordAuthError(e.cause) from e
+                        raise MSSQLPasswordAuthError(e.cause) from e
                 else:
-                    raise SQLServerNetworkError(e.cause) from e
+                    raise MSSQLNetworkError(e.cause) from e
             elif isinstance(
                 e.cause, (pyodbc.InterfaceError, sa.exc.DBAPIError)
             ) and "file not found" in str(e.cause):
@@ -254,7 +258,7 @@ class ConfigStrError(ValueError):
         )
 
 
-class SQLServerNetworkError(TestConnectionError):
+class MSSQLNetworkError(TestConnectionError):
     """Raised when a connection test fails due to a network error."""
 
     def __init__(self, cause: pyodbc.OperationalError) -> None:
@@ -262,15 +266,15 @@ class SQLServerNetworkError(TestConnectionError):
             cause=cause,
             message=" ".join(
                 [
-                    "Unable to connect to SQL Server.",
+                    "Unable to connect to the database server.",
                     "Verify the host and port are correct and the server is accessible.",
                 ]
             ),
         )
 
 
-class SQLServerPasswordAuthError(TestConnectionError):
-    """Raised when a connection test fails due to a authentication error."""
+class MSSQLPasswordAuthError(TestConnectionError):
+    """Raised when a connection test fails due to an authentication error."""
 
     def __init__(self, cause: pyodbc.OperationalError) -> None:
         super().__init__(
@@ -279,8 +283,8 @@ class SQLServerPasswordAuthError(TestConnectionError):
         )
 
 
-class SQLServerPrincipalAuthError(TestConnectionError):
-    """Raised when a connection test fails due to a authentication error."""
+class MSSQLPrincipalAuthError(TestConnectionError):
+    """Raised when a connection test fails due to an authentication error."""
 
     def __init__(self, cause: pyodbc.OperationalError) -> None:
         super().__init__(
