@@ -103,7 +103,8 @@ module.exports = {
         },
         {
           className: 'code-block-hide-line',
-          line: 'Hide this'
+          line: 'Hide this',
+          block: { start: 'Hide start', end: 'Hide end' }
         }
       ]
     },

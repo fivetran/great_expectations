@@ -56,6 +56,16 @@ from great_expectations.execution_engine.sqlalchemy_dialect import (
 from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
 from tests.integration.fluent.conftest import TEST_TABLE_NAME
 from tests.integration.test_utils.data_source_config.sql import _AUTO_COMMIT_DIALECTS
+from tests.test_utils import (
+    SQL_SERVER_DATABASE,
+    SQL_SERVER_DRIVER,
+    SQL_SERVER_ENCRYPT,
+    SQL_SERVER_HOST,
+    SQL_SERVER_PASSWORD,
+    SQL_SERVER_PORT,
+    SQL_SERVER_SCHEMA,
+    SQL_SERVER_USERNAME,
+)
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
@@ -510,14 +520,14 @@ def sql_server_ds(context: EphemeralDataContext) -> SQLServerDatasource:
     ds = context.data_sources.add_sql_server(
         "mssql",
         connection_string=SQLServerAuthConnectionDetails(
-            host="127.0.0.1",
-            port=1433,
-            database="test_ci",
-            schema="dbo",
-            username="sa",
-            password="ReallyStrongPwd1234%^&*",
-            driver="ODBC Driver 18 for SQL Server",
-            encrypt="Optional",
+            host=SQL_SERVER_HOST,
+            port=SQL_SERVER_PORT,
+            database=SQL_SERVER_DATABASE,
+            schema=SQL_SERVER_SCHEMA,
+            username=SQL_SERVER_USERNAME,
+            password=SQL_SERVER_PASSWORD,
+            driver=SQL_SERVER_DRIVER,
+            encrypt=SQL_SERVER_ENCRYPT,
         ),
     )
     return ds
