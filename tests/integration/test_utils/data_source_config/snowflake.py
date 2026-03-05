@@ -70,8 +70,7 @@ class SnowflakeConnectionConfig(BaseSettings):
     SNOWFLAKE_ROLE: str
     SNOWFLAKE_PRIVATE_KEY: Optional[str] = None  # base64-encoded private key
 
-    @property
-    def connection_string(self) -> str:
+    def build_connection_string(self) -> str:
         # Note: we don't specify the schema here because it will be created dynamically, and we pass
         # it into the `data_sources.add_snowflake` call.
 
@@ -101,10 +100,9 @@ class SnowflakeConnectionConfig(BaseSettings):
 
 
 class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
-    @property
     @override
-    def connection_string(self) -> str:
-        return self.snowflake_connection_config.connection_string
+    def build_connection_string(self, schema: str | None = None) -> str:
+        return self.snowflake_connection_config.build_connection_string()
 
     @property
     def private_key(self) -> Optional[str]:
@@ -142,7 +140,7 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
 
         if self.engine_manager:
             connection_details = ConnectionDetails(
-                connection_string=self.connection_string,
+                connection_string=self.build_connection_string(),
             )
             connect_args: ConnectArgs = {"private_key": self.private_key}
             engine = self.engine_manager.get_engine(connection_details, connect_args=connect_args)
@@ -151,9 +149,11 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
             # For key-pair auth, pass private key via connect_args
             if private_key := self.snowflake_connection_config.private_key:
                 connect_args = _get_snowflake_connect_args(private_key)
-                engine = create_engine(url=self.connection_string, connect_args=connect_args)
+                engine = create_engine(
+                    url=self.build_connection_string(), connect_args=connect_args
+                )
             else:
-                engine = create_engine(url=self.connection_string)
+                engine = create_engine(url=self.build_connection_string())
             return engine, engine.dispose
 
     @override

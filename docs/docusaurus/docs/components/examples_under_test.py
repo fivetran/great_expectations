@@ -337,6 +337,25 @@ connect_to_dataframe_data = [
     ),
 ]
 
+connect_to_cloud = [
+    # Microsoft Fabric
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "cloud_docs_connect_fabric" tests/integration/test_script_runner.py
+        name="cloud_docs_connect_fabric",
+        user_flow_script="docs/docusaurus/docs/cloud/connect/connect_fabric.py",
+        backend_dependencies=[BackendDependencies.CLOUD],
+    ),
+    # Microsoft SQL Server
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "cloud_docs_connect_sqlserver" tests/integration/test_script_runner.py
+        name="cloud_docs_connect_sqlserver",
+        user_flow_script="docs/docusaurus/docs/cloud/connect/connect_sqlserver.py",
+        backend_dependencies=[BackendDependencies.CLOUD],
+    ),
+]
+
 docs_example_scripts_run_validations = [
     # Create a Validation Definition
     IntegrationTestFixture(
@@ -778,6 +797,7 @@ docs_tests.extend(connect_to_filesystem_data_create_a_data_source)
 docs_tests.extend(connect_to_filesystem_data_create_a_data_asset)
 docs_tests.extend(connect_to_filesystem_data_create_a_batch_definition)
 docs_tests.extend(connect_to_dataframe_data)
+docs_tests.extend(connect_to_cloud)
 docs_tests.extend(docs_example_scripts_run_validations)
 docs_tests.extend(example_scripts_for_define_expectations)
 docs_tests.extend(docs_examples_customize_expectations)

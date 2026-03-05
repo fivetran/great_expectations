@@ -56,10 +56,14 @@ InferredColumnTypes = dict[str, Union[type[TypeEngine], TypeEngine]]
 class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_ConfigT]):
     SCHEMA_PREFIX = "test_"
 
-    @property
     @abstractmethod
-    def connection_string(self) -> str:
-        """Connection string used to connect to SQL backend."""
+    def build_connection_string(self, schema: str | None = None) -> str:
+        """Connection string used to connect to SQL backend.
+
+        When called without a schema, returns the base connection string for
+        setup/teardown.  When called with a schema, returns a connection string
+        that targets the given schema (for the GX datasource).
+        """
 
     @property
     @abstractmethod
@@ -150,12 +154,12 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
     def _get_engine(self) -> tuple[sa.engine.Engine, Callable[[], None]]:
         if self.engine_manager:
             connection_details = ConnectionDetails(
-                connection_string=self.connection_string,
+                connection_string=self.build_connection_string(),
             )
             engine = self.engine_manager.get_engine(connection_details)
             return engine, lambda: None
         else:
-            engine = create_engine(url=self.connection_string)
+            engine = create_engine(url=self.build_connection_string())
             return engine, engine.dispose
 
     @staticmethod
