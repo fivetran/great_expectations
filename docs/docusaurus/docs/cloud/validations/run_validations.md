@@ -527,5 +527,3 @@ When the Validation is complete, you can [view the results in the GX Cloud UI](#
    - A <img src="/img/calendar.png" alt="calendar icon" width="20" height="20"/> calendar icon indicates a Validation ran by a GX-managed schedule.
    - **Batch** information is included for any Validation ran on a subset of a Data Asset. 
     :::
-
-6. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
