@@ -248,7 +248,7 @@ If you edit the **Severity** of an Expectation, note that historical validation 
 Note that the report is limited to the last 100 changes.
 
 :::tip Looking for deleted Expectations?
-For an audit trail of who removed which Expectations and when, [view Data Asset history](/cloud/data_assets/manage_data_assets#view-data-asset-history).
+For an audit trail of who removed which Expectations and when, [view Data Asset history](/cloud/data_assets/manage_data_assets.md#view-data-asset-history).
 :::
 
 ## Delete an Expectation
