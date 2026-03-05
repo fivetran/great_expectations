@@ -25,8 +25,10 @@ This page provides instructions for working with Expectations. To learn about Ex
 <TabItem value="ui" label="UI">
 
 You must have the following prerequisites fulfilled before creating an Expectation:
+
 - You have a [Data Asset](/cloud/data_assets/manage_data_assets.md).
 - You have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
+
 Follow the steps below to create an Expectation:
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
