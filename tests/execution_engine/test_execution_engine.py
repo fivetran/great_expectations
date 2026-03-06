@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Dict, Tuple
+from unittest.mock import patch
 
 import pandas as pd
 import pytest
@@ -12,6 +13,7 @@ from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
 from great_expectations.execution_engine import ExecutionEngine, PandasExecutionEngine
+from great_expectations.execution_engine.execution_engine import MetricComputationConfiguration
 from great_expectations.expectations.legacy_row_conditions import (
     RowCondition,
     RowConditionParserType,
@@ -340,3 +342,68 @@ def test_resolve_metrics_with_incomplete_metric_input():
     # Ensuring that incomplete metrics given raises a GreatExpectationsError
     with pytest.raises(gx_exceptions.GreatExpectationsError):
         engine.resolve_metrics(metrics_to_resolve=(desired_metric,), metrics={})
+
+
+@pytest.mark.unit
+def test_bundle_failure_falls_back_to_individual_metric_computation(
+    test_execution_engine,
+):
+    """When a bulk metric query fails, each metric should be computed individually.
+
+    Metrics that succeed individually should be returned; only metrics that also
+    fail individually should appear in the MetricResolutionError.failed_metrics.
+    This ensures one bad metric cannot poison unrelated metrics in the same bundle.
+    """
+    engine = test_execution_engine
+
+    metric_a = MetricConfiguration(
+        metric_name="column.mean",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    metric_b = MetricConfiguration(
+        metric_name="column.mean",
+        metric_domain_kwargs={"column": "b"},
+        metric_value_kwargs=None,
+    )
+
+    config_a = MetricComputationConfiguration(
+        metric_configuration=metric_a,
+        metric_fn=lambda: None,  # unused — resolve_metric_bundle is mocked
+        metric_provider_kwargs={},
+    )
+    config_b = MetricComputationConfiguration(
+        metric_configuration=metric_b,
+        metric_fn=lambda: None,  # unused — resolve_metric_bundle is mocked
+        metric_provider_kwargs={},
+    )
+
+    individual_error = Exception("column b is not numeric")
+
+    call_count = 0
+
+    def mock_resolve_bundle(metric_fn_bundle):
+        nonlocal call_count
+        call_count += 1
+        configs = list(metric_fn_bundle)
+        if call_count == 1:
+            # First call is the bulk query — fail to trigger fallback
+            raise RuntimeError("bulk query failed")
+        # Individual fallback calls: succeed for metric_a, fail for metric_b
+        assert len(configs) == 1
+        if configs[0].metric_configuration == metric_a:
+            return {metric_a.id: 2.0}
+        raise individual_error
+
+    with patch.object(engine, "resolve_metric_bundle", side_effect=mock_resolve_bundle):
+        with pytest.raises(gx_exceptions.MetricResolutionError) as exc_info:
+            engine._process_direct_and_bundled_metric_computation_configurations(
+                metric_fn_direct_configurations=[],
+                metric_fn_bundle_configurations=[config_a, config_b],
+            )
+
+    err = exc_info.value
+    # Only metric_b should be reported as failed
+    assert list(err.failed_metrics) == [metric_b]
+    # resolve_metric_bundle was called once for the bulk attempt and once per metric
+    assert call_count == 3
