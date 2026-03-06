@@ -24,7 +24,7 @@ except (ImportError, AttributeError):
 try:
     import trino.drivers as trinodrivers
 except (ImportError, AttributeError):
-    trinodrivers = TRINO_NOT_IMPORTED  # type: ignore[assignment] # NotImported is used at runtime when trino is not installed
+    trinodrivers = TRINO_NOT_IMPORTED
 
 try:
     import trino.exceptions as trinoexceptions
