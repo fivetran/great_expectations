@@ -87,7 +87,8 @@ class TestColumnValuesNonNullCount:
         metric = ColumnValuesNonNullCount(column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, ColumnValuesNonNullCountResult)
-        assert metric_result.value == self.NON_NULL_COUNT
+        # Normalize type for Spark compatibility (may return numpy.int64 or Java long)
+        assert int(metric_result.value) == self.NON_NULL_COUNT
 
     @parameterize_batch_for_data_sources(
         data_source_configs=SQL_DATA_SOURCES,

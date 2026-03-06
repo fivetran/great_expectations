@@ -10,6 +10,7 @@ from great_expectations.compatibility.sqlalchemy import (
     __version__ as SQLALCHEMY_VERSION,
 )
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
+from great_expectations.constants import MAX_DISTINCT_VALUES
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.execution_engine import (
     PandasExecutionEngine,
@@ -148,7 +149,11 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
 
     @column_aggregate_value(engine=PandasExecutionEngine)
     def _pandas(
-        cls, column: pd.Series, value_set: List[Any], limit: int = 20, **kwargs
+        cls,
+        column: pd.Series,
+        value_set: List[Any],
+        limit: int = MAX_DISTINCT_VALUES,
+        **kwargs,
     ) -> List[Any]:
         column_set = set(column.dropna().unique())
         expected_set = _coerce_value_set_to_column_type(column_set, value_set)
@@ -170,7 +175,7 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
     ) -> List[Any]:
         """Return sample of distinct values in column that are NOT in the expected set."""
         value_set = _coerce_value_set_for_sql(metric_value_kwargs.get("value_set", []))
-        limit = metric_value_kwargs.get("limit", 20)
+        limit = metric_value_kwargs.get("limit") or MAX_DISTINCT_VALUES
 
         selectable: sqlalchemy.Selectable
         accessor_domain_kwargs: Dict[str, str]
@@ -233,7 +238,7 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
     ) -> List[Any]:
         """Return sample of distinct values in column that are NOT in the expected set."""
         value_set = metric_value_kwargs.get("value_set", [])
-        limit = metric_value_kwargs.get("limit", 20)
+        limit = metric_value_kwargs.get("limit") or MAX_DISTINCT_VALUES
 
         df: pyspark.DataFrame
         accessor_domain_kwargs: Dict[str, str]

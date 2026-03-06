@@ -10,12 +10,12 @@ from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
     DataSourceTestConfig,
-    MSSQLDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
     SqliteDatasourceTestConfig,
+    SQLServerDatasourceTestConfig,
 )
 
 DATA_FRAME = pandas.DataFrame(
@@ -28,7 +28,7 @@ DATA_FRAME = pandas.DataFrame(
 
 DATA_SOURCES_WITHOUT_SPARK_DATABRICKS_SQLITE: list[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
-    MSSQLDatasourceTestConfig(),
+    SQLServerDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     PandasDataFrameDatasourceTestConfig(),

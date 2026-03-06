@@ -20,6 +20,7 @@ from great_expectations.compatibility.pyspark import pyspark
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
+from great_expectations.constants import MAX_RESULT_RECORDS
 from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
@@ -28,7 +29,6 @@ from great_expectations.expectations.metrics.map_metric_provider.is_sqlalchemy_m
     _is_sqlalchemy_metric_selectable,
 )
 from great_expectations.expectations.metrics.util import (
-    MAX_RESULT_RECORDS,
     compute_unexpected_pandas_indices,
     get_dbms_compatible_metric_domain_kwargs,
     get_sqlalchemy_source_table_and_schema,
@@ -310,7 +310,7 @@ def _sqlalchemy_map_condition_unexpected_count_value(
         count_selectable = count_selectable.select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
 
     try:
-        if execution_engine.dialect_name == GXSqlDialect.MSSQL:
+        if execution_engine.dialect_name == GXSqlDialect.SQL_SERVER:
             with execution_engine.get_connection() as connection:
                 if not connection.closed:
                     temp_table_obj = _generate_temp_table(

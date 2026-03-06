@@ -502,6 +502,11 @@ filterwarnings = [
     # --------------------------------------- Great Expectations Deprecation Warnings ----------------------------------
     "once:The condition_parser parameter is deprecated:DeprecationWarning",
     "once:Passing a string to the row_condition parameter is deprecated:DeprecationWarning",
+    # Existing cloud configs store "schema_name": null. During deserialization, Pydantic passes
+    # None to the validator which triggers the deprecation warning. The TableAsset.dict() override
+    # strips schema_name from new serializations, so these will clean up over time.
+    'once:The `schema_name` argument is deprecated:DeprecationWarning',
+    'once:`schema_name` is deprecated:DeprecationWarning',
 
     # --------------------------------------- TEMPORARY IGNORES --------------------------------------------------------
     # The warnings in this section should be addressed (fixed or ignored) but are ignored here temporarily to help allow
@@ -575,6 +580,10 @@ filterwarnings = [
     'ignore: Passing a BlockManager to PandasDataset is deprecated and will raise in a future version. Use public APIs instead.:DeprecationWarning',
     # Example Actual Warning: DeprecationWarning: Passing a BlockManager to CustomPandasDataset is deprecated and will raise in a future version. Use public APIs instead.
     'ignore: Passing a BlockManager to CustomPandasDataset is deprecated and will raise in a future version. Use public APIs instead.:DeprecationWarning',
+    # Example Actual Warning: Pandas4Warning/FutureWarning: The copy keyword is deprecated and will be removed in a future version. Copy-on-Write is active in pandas since 3.0 which utilizes a lazy copy mechanism that defers copies until necessary. Use .copy() to make an eager copy if necessary.
+    # Use both FutureWarning and Pandas4Warning filters to work across pandas versions (pandas 2.x uses FutureWarning, pandas 3.0+ may use Pandas4Warning)
+    'ignore: The copy keyword is deprecated:FutureWarning',
+    'ignore: The copy keyword is deprecated',
 
     # numpy
     # Example Actual Warning: RuntimeWarning: Mean of empty slice.
@@ -677,7 +686,7 @@ markers = [
     "external_sqldialect: mark test as requiring install of an external sql dialect.",
     "filesystem: mark tests using the filesystem as the storage backend.",
     "integration: mark test as an integration test.",
-    "mssql: mark a test as mssql-dependent.",
+    "sql_server: mark a test as SQL Server-dependent.",
     "mysql: mark a test as mysql-dependent.",
     "openpyxl: mark a test for openpyxl-dependent, which is for Excel files.",
     "performance: mark a test as a performance test for BigQuery. These aren't run in our PR or release pipeline",

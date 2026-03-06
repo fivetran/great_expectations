@@ -569,6 +569,11 @@
                     ],
                     "type": "string"
                 },
+                "trust_server_certificate": {
+                    "title": "Trust Server Certificate",
+                    "default": false,
+                    "type": "boolean"
+                },
                 "authentication": {
                     "title": "Authentication",
                     "default": "SQL Server",
@@ -647,12 +652,21 @@
                     ],
                     "type": "string"
                 },
+                "trust_server_certificate": {
+                    "title": "Trust Server Certificate",
+                    "default": false,
+                    "type": "boolean"
+                },
                 "authentication": {
                     "title": "Authentication",
                     "default": "Entra ID Service Principal",
                     "enum": [
                         "Entra ID Service Principal"
                     ],
+                    "type": "string"
+                },
+                "tenant_id": {
+                    "title": "Tenant Id",
                     "type": "string"
                 },
                 "client_id": {
@@ -677,19 +691,15 @@
                             "type": "string"
                         }
                     ]
-                },
-                "tenant_id": {
-                    "title": "Tenant Id",
-                    "type": "string"
                 }
             },
             "required": [
                 "host",
                 "database",
                 "schema",
+                "tenant_id",
                 "client_id",
-                "client_secret",
-                "tenant_id"
+                "client_secret"
             ],
             "additionalProperties": false
         }

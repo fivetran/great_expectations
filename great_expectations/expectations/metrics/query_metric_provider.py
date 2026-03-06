@@ -8,9 +8,9 @@ from typing_extensions import NotRequired, TypedDict
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
+from great_expectations.constants import MAX_RESULT_RECORDS
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from great_expectations.expectations.metrics.metric_provider import MetricProvider
-from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
 from great_expectations.util import get_sqlalchemy_subquery_type
 
 if TYPE_CHECKING:
@@ -73,7 +73,7 @@ def find_last_top_level_order_by(query: str) -> int:
 def strip_top_level_order_by(query: str) -> str:
     """Strip the last top-level ORDER BY clause from a SQL query.
 
-    Used when wrapping user queries in COUNT(*) for MSSQL, where ORDER BY
+    Used when wrapping user queries in COUNT(*) for SQL Server, where ORDER BY
     in a subquery is invalid unless TOP or OFFSET is present.  Returns the
     query unchanged if no top-level ORDER BY exists or a top-level OFFSET
     is present (stripping would remove the pagination clause).

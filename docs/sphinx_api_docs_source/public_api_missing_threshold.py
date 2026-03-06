@@ -182,12 +182,6 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     ),
     PrintableDefinition(
         file=pathlib.Path(
-            "great_expectations/data_context/store/database_store_backend.py"
-        ),
-        name="DatabaseStoreBackend",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path(
             "great_expectations/data_context/store/expectations_store.py"
         ),
         name="ExpectationsStore",
@@ -195,10 +189,6 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     PrintableDefinition(
         file=pathlib.Path("great_expectations/data_context/store/metric_store.py"),
         name="MetricStore",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path("great_expectations/data_context/store/query_store.py"),
-        name="SqlAlchemyQueryStore",
     ),
     PrintableDefinition(
         file=pathlib.Path("great_expectations/data_context/store/store.py"), name="add"
@@ -211,25 +201,7 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
         file=pathlib.Path(
             "great_expectations/data_context/store/tuple_store_backend.py"
         ),
-        name="TupleAzureBlobStoreBackend",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path(
-            "great_expectations/data_context/store/tuple_store_backend.py"
-        ),
         name="TupleFilesystemStoreBackend",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path(
-            "great_expectations/data_context/store/tuple_store_backend.py"
-        ),
-        name="TupleGCSStoreBackend",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path(
-            "great_expectations/data_context/store/tuple_store_backend.py"
-        ),
-        name="TupleS3StoreBackend",
     ),
     PrintableDefinition(
         file=pathlib.Path(
@@ -252,9 +224,6 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
             "great_expectations/data_context/types/resource_identifiers.py"
         ),
         name="GXCloudIdentifier",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path("great_expectations/datasource/fluent/config.py"), name="yaml"
     ),
     PrintableDefinition(
         file=pathlib.Path("great_expectations/datasource/fluent/config_str.py"),
@@ -315,10 +284,6 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     PrintableDefinition(
         file=pathlib.Path("great_expectations/datasource/fluent/fabric.py"),
         name="get_batch",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path("great_expectations/datasource/fluent/fluent_base_model.py"),
-        name="yaml",
     ),
     PrintableDefinition(
         file=pathlib.Path("great_expectations/datasource/fluent/invalid_datasource.py"),

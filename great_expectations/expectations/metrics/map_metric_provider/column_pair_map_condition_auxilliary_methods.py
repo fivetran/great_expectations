@@ -11,11 +11,11 @@ from typing import (
 
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
+from great_expectations.constants import MAX_RESULT_RECORDS
 from great_expectations.expectations.metrics.map_metric_provider.is_sqlalchemy_metric_selectable import (  # noqa: E501 # FIXME CoP
     _is_sqlalchemy_metric_selectable,
 )
 from great_expectations.expectations.metrics.util import (
-    MAX_RESULT_RECORDS,
     get_dbms_compatible_metric_domain_kwargs,
 )
 from great_expectations.util import (

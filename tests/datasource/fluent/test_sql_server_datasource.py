@@ -10,15 +10,16 @@ from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.datasource.fluent.interfaces import TestConnectionError
+from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from great_expectations.datasource.fluent.sql_server_datasource import (
     EntraIDServicePrincipalAuthConnectionDetails,
     MissingODBCDriverError,
+    MSSQLNetworkError,
+    MSSQLPasswordAuthError,
+    MSSQLPrincipalAuthError,
     SQLServerAuthConnectionDetails,
     SQLServerDatasource,
     SqlServerDsn,
-    SQLServerNetworkError,
-    SQLServerPasswordAuthError,
-    SQLServerPrincipalAuthError,
 )
 
 if TYPE_CHECKING:
@@ -88,6 +89,21 @@ def connection_details_special_chars() -> ConnectionDetailsDict:
 
 
 @pytest.fixture
+def connection_details_trust_server_certificate() -> ConnectionDetailsDict:
+    return {
+        "host": "host",
+        "port": 1433,
+        "database": "db",
+        "schema": "dbo",
+        "driver": "ODBC Driver 18 for SQL Server",
+        "encrypt": "Mandatory",
+        "trust_server_certificate": True,
+        "username": "u",
+        "password": "p",
+    }
+
+
+@pytest.fixture
 def entra_id_service_principal_connection_details_default() -> ConnectionDetailsDict:
     return {
         "host": "myserver.database.windows.net",
@@ -97,9 +113,9 @@ def entra_id_service_principal_connection_details_default() -> ConnectionDetails
         "driver": "ODBC Driver 18 for SQL Server",
         "encrypt": "Mandatory",
         "authentication": "Entra ID Service Principal",
+        "tenant_id": "my-tenant-id-456",
         "client_id": "my-client-id-123",
         "client_secret": "my-secret",
-        "tenant_id": "my-tenant-id-456",
     }
 
 
@@ -120,6 +136,7 @@ class TestSQLServerAuthConnectionDetails:
             "schema": "dbo",
             "driver": "ODBC Driver 18 for SQL Server",
             "encrypt": "Mandatory",
+            "trust_server_certificate": False,
             "authentication": "SQL Server",
             "username": "myuser",
             "password": "mypassword",
@@ -154,6 +171,7 @@ class TestSQLServerAuthConnectionDetails:
             "schema": "custom_schema",
             "driver": "ODBC Driver 17 for SQL Server",
             "encrypt": "Optional",
+            "trust_server_certificate": False,
             "authentication": "SQL Server",
             "username": "admin",
             "password": "secret",
@@ -173,7 +191,7 @@ class TestBuildConnectionString:
         assert result == (
             "mssql+pyodbc://myuser:mypassword"
             "@myserver.database.windows.net:1433/mydb"
-            "?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes"
+            "?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes&TrustServerCertificate=no"
         )
 
     def test_encrypt_optional(
@@ -185,6 +203,18 @@ class TestBuildConnectionString:
         )
         result = ds._build_connection_string()
         assert "Encrypt=no" in result
+
+    def test_trust_server_certificate(
+        self, connection_details_trust_server_certificate: ConnectionDetailsDict
+    ) -> None:
+        ds = SQLServerDatasource(
+            name="test_ds",
+            connection_string=SQLServerAuthConnectionDetails(
+                **connection_details_trust_server_certificate
+            ),
+        )
+        result = ds._build_connection_string()
+        assert "TrustServerCertificate=yes" in result
 
     def test_encrypt_strict(self, connection_details_encrypt_strict: ConnectionDetailsDict) -> None:
         ds = SQLServerDatasource(
@@ -221,7 +251,7 @@ class TestSQLServerDatasource:
         )
         assert ds.schema_ == "dbo"
 
-    def test_mssql_dsn_rejects_non_pyodbc_scheme(self) -> None:
+    def test_sql_server_dsn_rejects_non_pyodbc_scheme(self) -> None:
         with pytest.raises(ValidationError, match="URL scheme not permitted"):
             SqlServerDsn.from_url("mssql+pymssql://user:pass@host:1433/db")
 
@@ -250,6 +280,20 @@ class TestSQLServerDatasource:
         engine2 = ds.get_engine()
         assert engine1 is engine2
 
+    @pytest.mark.usefixtures("create_engine_fake")
+    def test_add_table_asset_inherits_schema_from_datasource(
+        self,
+        connection_details_default: ConnectionDetailsDict,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setattr(TableAsset, "test_connection", lambda self: None)
+        ds = SQLServerDatasource(
+            name="test_ds",
+            connection_string=SQLServerAuthConnectionDetails(**connection_details_default),
+        )
+        asset = ds.add_table_asset(name="my_asset", table_name="my_table")
+        assert asset._effective_schema_name == ds.schema_
+
 
 @pytest.mark.unit
 class TestEntraIDServicePrincipalAuthConnectionDetails:
@@ -258,9 +302,9 @@ class TestEntraIDServicePrincipalAuthConnectionDetails:
             host="myserver.database.windows.net",
             database="mydb",
             schema="dbo",
+            tenant_id="my-tenant-id-456",
             client_id="my-client-id-123",
             client_secret="my-secret",
-            tenant_id="my-tenant-id-456",
         )
         assert details.dict(by_alias=True, exclude_unset=False) == {
             "host": "myserver.database.windows.net",
@@ -269,10 +313,11 @@ class TestEntraIDServicePrincipalAuthConnectionDetails:
             "schema": "dbo",
             "driver": "ODBC Driver 18 for SQL Server",
             "encrypt": "Mandatory",
+            "trust_server_certificate": False,
             "authentication": "Entra ID Service Principal",
+            "tenant_id": "my-tenant-id-456",
             "client_id": "my-client-id-123",
             "client_secret": "my-secret",
-            "tenant_id": "my-tenant-id-456",
         }
 
     def test_client_secret_accepts_config_str(self) -> None:
@@ -280,9 +325,9 @@ class TestEntraIDServicePrincipalAuthConnectionDetails:
             host="myserver",
             database="mydb",
             schema="dbo",
+            tenant_id="my-tenant-id",
             client_id="my-client-id",
             client_secret="${MY_CLIENT_SECRET}",
-            tenant_id="my-tenant-id",
         )
         assert isinstance(details.client_secret, ConfigStr)
         assert str(details.client_secret) == "${MY_CLIENT_SECRET}"
@@ -325,13 +370,30 @@ class TestBuildConnectionStringEntraID:
                 host="myserver.database.windows.net",
                 database="mydb",
                 schema="dbo",
+                tenant_id="my-tenant-id",
                 client_id="my-client-id",
                 client_secret="p@ss:w/rd",
-                tenant_id="my-tenant-id",
             ),
         )
         result = ds._build_connection_string()
         assert "p%40ss%3Aw%2Frd" in result
+        assert "authentication=ActiveDirectoryServicePrincipal" in result
+
+    def test_entra_id_service_principal_trust_server_certificate(self) -> None:
+        ds = SQLServerDatasource(
+            name="test_ds",
+            connection_string=EntraIDServicePrincipalAuthConnectionDetails(
+                host="myserver.database.windows.net",
+                database="mydb",
+                schema="dbo",
+                trust_server_certificate=True,
+                tenant_id="my-tenant-id",
+                client_id="my-client-id",
+                client_secret="secret",
+            ),
+        )
+        result = ds._build_connection_string()
+        assert "TrustServerCertificate=yes" in result
         assert "authentication=ActiveDirectoryServicePrincipal" in result
 
     def test_entra_id_service_principal_encrypt_optional(self) -> None:
@@ -342,9 +404,9 @@ class TestBuildConnectionStringEntraID:
                 database="mydb",
                 schema="dbo",
                 encrypt="Optional",
+                tenant_id="my-tenant-id",
                 client_id="my-client-id",
                 client_secret="secret",
-                tenant_id="my-tenant-id",
             ),
         )
         result = ds._build_connection_string()
@@ -456,6 +518,7 @@ class TestAddSQLServerDatasourceAPI:
                 "schema": "dbo",
                 "driver": "ODBC Driver 18 for SQL Server",
                 "encrypt": "Mandatory",
+                "trust_server_certificate": False,
                 "authentication": "SQL Server",
                 "username": "myuser",
                 "password": "mypassword",
@@ -490,10 +553,11 @@ class TestAddSQLServerDatasourceAPI:
                 "schema": "dbo",
                 "driver": "ODBC Driver 18 for SQL Server",
                 "encrypt": "Mandatory",
+                "trust_server_certificate": False,
                 "authentication": "Entra ID Service Principal",
+                "tenant_id": "my-tenant-id-456",
                 "client_id": "my-client-id-123",
                 "client_secret": "my-secret",
-                "tenant_id": "my-tenant-id-456",
             },
             "create_temp_table": False,
             "kwargs": {},
@@ -522,6 +586,7 @@ class TestAddSQLServerDatasourceAPI:
                 "schema": "dbo",
                 "driver": "ODBC Driver 18 for SQL Server",
                 "encrypt": "Mandatory",
+                "trust_server_certificate": False,
                 "authentication": "SQL Server",
                 "username": "myuser",
                 "password": "mypassword",
@@ -541,9 +606,9 @@ class TestAddSQLServerDatasourceAPI:
             database="mydb",
             schema="dbo",
             authentication="Entra ID Service Principal",
+            tenant_id="my-tenant-id-456",
             client_id="my-client-id-123",
             client_secret="my-secret",
-            tenant_id="my-tenant-id-456",
         )
         assert source.dict(by_alias=True, exclude_unset=False, exclude={"id"}) == {
             "type": "sql_server",
@@ -555,10 +620,11 @@ class TestAddSQLServerDatasourceAPI:
                 "schema": "dbo",
                 "driver": "ODBC Driver 18 for SQL Server",
                 "encrypt": "Mandatory",
+                "trust_server_certificate": False,
                 "authentication": "Entra ID Service Principal",
+                "tenant_id": "my-tenant-id-456",
                 "client_id": "my-client-id-123",
                 "client_secret": "my-secret",
-                "tenant_id": "my-tenant-id-456",
             },
             "create_temp_table": False,
             "kwargs": {},
@@ -650,14 +716,14 @@ def azure_ad_service_principal_datasource() -> SQLServerDatasource:
             host="myserver.database.windows.net",
             database="mydb",
             schema="dbo",
+            tenant_id="my-tenant-id",
             client_id="my-client-id",
             client_secret="my-secret",
-            tenant_id="my-tenant-id",
         ),
     )
 
 
-@pytest.mark.mssql
+@pytest.mark.sql_server
 class TestSQLServerDatasourceTestConnectionErrors:
     """Tests for error handling in SQLServerDatasource.test_connection."""
 
@@ -667,16 +733,16 @@ class TestSQLServerDatasourceTestConnectionErrors:
     def test_login_failure_sql_server_auth_raises_sql_password_auth_error(
         self, sql_server_datasource: SQLServerDatasource
     ) -> None:
-        """OperationalError with 'Login' and SQL Server auth -> SQLServerPasswordAuthError."""
-        with pytest.raises(SQLServerPasswordAuthError):
+        """OperationalError with 'Login' and SQL Server auth -> MSSQLPasswordAuthError."""
+        with pytest.raises(MSSQLPasswordAuthError):
             sql_server_datasource.test_connection()
 
     @with_mock_engine_raising(sa.exc.OperationalError("Login failed for user", None, Exception()))
     def test_login_failure_azure_ad_service_principal_raises_sql_principal_auth_error(
         self, azure_ad_service_principal_datasource: SQLServerDatasource
     ) -> None:
-        """OperationalError with 'Login' -> SQLServerPrincipalAuthError."""
-        with pytest.raises(SQLServerPrincipalAuthError):
+        """OperationalError with 'Login' -> MSSQLPrincipalAuthError."""
+        with pytest.raises(MSSQLPrincipalAuthError):
             azure_ad_service_principal_datasource.test_connection()
 
     @with_mock_engine_raising(
@@ -685,8 +751,8 @@ class TestSQLServerDatasourceTestConnectionErrors:
     def test_network_error_raises_sql_server_network_error(
         self, sql_server_datasource: SQLServerDatasource
     ) -> None:
-        """OperationalError without 'Login' -> SQLServerNetworkError."""
-        with pytest.raises(SQLServerNetworkError):
+        """OperationalError without 'Login' -> MSSQLNetworkError."""
+        with pytest.raises(MSSQLNetworkError):
             sql_server_datasource.test_connection()
 
     @with_mock_engine_raising(
@@ -705,8 +771,8 @@ class TestSQLServerDatasourceTestConnectionErrors:
     def test_pyodbc_operational_error_login_raises_sql_password_auth_error(
         self, sql_server_datasource: SQLServerDatasource
     ) -> None:
-        """pyodbc.OperationalError with 'Login' -> SQLServerPasswordAuthError."""
-        with pytest.raises(SQLServerPasswordAuthError):
+        """pyodbc.OperationalError with 'Login' -> MSSQLPasswordAuthError."""
+        with pytest.raises(MSSQLPasswordAuthError):
             sql_server_datasource.test_connection()
 
     @with_mock_engine_raising(ValueError("Something unexpected happened"))

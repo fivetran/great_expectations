@@ -70,9 +70,8 @@ class SiteBuilder:
         local_site:
             class_name: SiteBuilder
             store_backend:
-                class_name: TupleS3StoreBackend
-                bucket: data_docs.my_company.com
-                prefix: /data_docs/
+                class_name: TupleFilesystemStoreBackend
+                base_directory: uncommitted/data_docs/local_site/
 
 
     A more verbose configuration can also control individual sections and
@@ -81,9 +80,8 @@ class SiteBuilder:
         local_site:
             class_name: SiteBuilder
             store_backend:
-                class_name: TupleS3StoreBackend
-                bucket: data_docs.my_company.com
-                prefix: /data_docs/
+                class_name: TupleFilesystemStoreBackend
+                base_directory: uncommitted/data_docs/local_site/
             site_index_builder:
                 class_name: DefaultSiteIndexBuilder
 

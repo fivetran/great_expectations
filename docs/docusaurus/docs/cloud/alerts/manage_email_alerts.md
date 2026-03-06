@@ -8,7 +8,7 @@ Keep yourself and your stakeholders informed about the health of Data Assets and
 
 Alerts are configured at the Data Asset level. A single Data Asset can have multiple alerts configured. An alert can be configured to notify about all Expectation failures or only failures of certain [severities](/cloud/expectations/expectations_overview.md#failure-severity).
 
-To keep your email alerts secure,  your GX Cloud organization has an allowlist of email domains that all alert recipient email addresses must belong to. By default, this includes the email domain of the Organization Owner who created the organization and domains for sending emails to the following third-party services: [Slack](https://slack.com/help/articles/206819278-Send-emails-to-Slack), [Microsoft Teams](https://support.microsoft.com/en-us/office/send-an-email-to-a-channel-in-microsoft-teams-d91db004-d9d7-4a47-82e6-fb1b16dfd51e), and [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide).
+To keep your email alerts secure,  your GX Cloud organization has an allowlist of email domains that all alert recipient email addresses must belong to. By default, this includes the email domain of the Organization Owner who created the organization and domains for sending emails to the following third-party services: [Slack](https://slack.com/help/articles/206819278-Send-emails-to-Slack), [Microsoft Teams](https://support.microsoft.com/en-us/office/send-an-email-to-a-channel-in-microsoft-teams-d91db004-d9d7-4a47-82e6-fb1b16dfd51e), [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide), and [ServiceNow](https://www.servicenow.com/docs/r/washingtondc/build-workflows/create-inbound-email-flow.html).
 
 Note that you must have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater to manage email alerts.
 
@@ -25,6 +25,7 @@ Note that you must have [Workspace Editor permissions](/cloud/access/manage_acce
    - [Slack](https://slack.com/help/articles/206819278-Send-emails-to-Slack) - `*.slack.com`
    - [Microsoft Teams](https://support.microsoft.com/en-us/office/send-an-email-to-a-channel-in-microsoft-teams-d91db004-d9d7-4a47-82e6-fb1b16dfd51e) - `*.teams.ms`
    - [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide) - `*.pagerduty.com`
+   - [ServiceNow](https://www.servicenow.com/docs/r/washingtondc/build-workflows/create-inbound-email-flow.html) - `*.service-now.com`
 
 
 8. Optional. To send the same notification to another recipient, click **+** and enter another email address. Repeat as needed. 
@@ -67,6 +68,7 @@ By default, your organization’s email domain allowlist includes the following:
 - `*.slack.com`
 - `*.teams.ms`
 - `*.pagerduty.com`
+- `*.service-now.com`
 
 
 To request changes to your organization’s email domain allowlist, have an Organization Owner [contact support](mailto:support@greatexpectations.io).

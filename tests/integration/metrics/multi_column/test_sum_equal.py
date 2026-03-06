@@ -91,15 +91,9 @@ class TestMultiColumnSumEqualsUnexpectedCount:
     @pytest.mark.parametrize(
         "ignore_row_if,unexpected_count",
         [
-            pytest.param(
-                "any_value_is_missing", 1, marks=pytest.mark.xfail(reason="returns 6", strict=True)
-            ),
-            pytest.param(
-                "all_values_are_missing",
-                3,
-                marks=pytest.mark.xfail(reason="returns 6", strict=True),
-            ),
-            pytest.param("never", 6),
+            pytest.param("any_value_is_missing", 1),
+            pytest.param("all_values_are_missing", 3),
+            pytest.param("never", 3),
         ],
     )
     @parameterize_batch_for_data_sources(

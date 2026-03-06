@@ -44,9 +44,6 @@ from tests.integration.test_definitions.bigquery.integration_tests import (
 from tests.integration.test_definitions.gcs.integration_tests import (
     gcs_integration_tests,
 )
-from tests.integration.test_definitions.mssql.integration_tests import (
-    mssql_integration_tests,
-)
 from tests.integration.test_definitions.multiple_backend.integration_tests import (
     multiple_backend,
 )
@@ -65,6 +62,9 @@ from tests.integration.test_definitions.snowflake.integration_tests import (
 )
 from tests.integration.test_definitions.spark.integration_tests import (
     spark_integration_tests,
+)
+from tests.integration.test_definitions.sql_server.integration_tests import (
+    sql_server_integration_tests,
 )
 from tests.integration.test_definitions.sqlite.integration_tests import (
     sqlite_integration_tests,
@@ -314,7 +314,7 @@ docs_test_matrix += spark_integration_tests
 docs_test_matrix += sqlite_integration_tests
 docs_test_matrix += mysql_integration_tests
 docs_test_matrix += postgresql_integration_tests
-docs_test_matrix += mssql_integration_tests
+docs_test_matrix += sql_server_integration_tests
 docs_test_matrix += trino_integration_tests
 docs_test_matrix += snowflake_integration_tests
 docs_test_matrix += redshift_integration_tests
@@ -528,10 +528,10 @@ def _check_for_skipped_tests(  # noqa: C901, PLR0912 # FIXME CoP
         not pytest_args.mysql or pytest_args.no_sqlalchemy
     ):
         pytest.skip("Skipping mysql tests")
-    elif BackendDependencies.MSSQL in dependencies and (
-        not pytest_args.mssql or pytest_args.no_sqlalchemy
+    elif BackendDependencies.SQL_SERVER in dependencies and (
+        not pytest_args.sql_server or pytest_args.no_sqlalchemy
     ):
-        pytest.skip("Skipping mssql tests")
+        pytest.skip("Skipping SQL Server tests")
     elif BackendDependencies.BIGQUERY in dependencies and (
         pytest_args.no_sqlalchemy or not pytest_args.bigquery
     ):

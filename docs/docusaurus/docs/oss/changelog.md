@@ -15,6 +15,37 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.14.0
+* [FEATURE] Add `trust_server_certificate` to `SQLServerDatasource` ([#11694](https://github.com/great-expectations/great_expectations/pull/11694))
+* [DOCS] Add ServiceNow to email alerts Cloud documentation ([#11669](https://github.com/great-expectations/great_expectations/pull/11669))
+* [MAINTENANCE] Bump qs from 6.14.1 to 6.14.2 in /docs/docusaurus ([#11660](https://github.com/great-expectations/great_expectations/pull/11660))
+* [MAINTENANCE] Improve error message on ConfigStr substitution ([#11693](https://github.com/great-expectations/great_expectations/pull/11693))
+* [MAINTENANCE] Add sentry error tracking for the Doc Site ([#11695](https://github.com/great-expectations/great_expectations/pull/11695))
+* [MAINTENANCE] Install ODBC driver in `docs-creds-needed` ([#11698](https://github.com/great-expectations/great_expectations/pull/11698))
+* [MAINTENANCE] Deprecate `schema_name` on all `TableAsset`s ([#11689](https://github.com/great-expectations/great_expectations/pull/11689))
+
+### 1.13.0
+* [MINORBUMP] `ExpectColumnDistinctValuesToBeInSet` with database-pushed comparison ([#11614](https://github.com/great-expectations/great_expectations/pull/11614))
+* [MINORBUMP] `ExpectColumnDistinctValuesToContainSet` with database-pushed comparison ([#11615](https://github.com/great-expectations/great_expectations/pull/11615))
+* [MINORBUMP] `ExpectColumnDistinctValuesToEqualSet` with database-pushed comparison ([#11616](https://github.com/great-expectations/great_expectations/pull/11616))
+* [FEATURE] Auto-strip ORDER BY for MSSQL COUNT(*) subqueries ([#11670](https://github.com/great-expectations/great_expectations/pull/11670))
+* [FEATURE] Add `FabricDatasource` ([#11685](https://github.com/great-expectations/great_expectations/pull/11685))
+* [BUGFIX] Fix Databricks identifier quoting in batch query compilation. ([#11671](https://github.com/great-expectations/great_expectations/pull/11671))
+* [BUGFIX] Roll back connection after failed retry in _execute_query_with_recovery to prevent SQL Server teardown hang ([#11680](https://github.com/great-expectations/great_expectations/pull/11680))
+* [DOCS] ExpectAI for the agent ([#11644](https://github.com/great-expectations/great_expectations/pull/11644))
+* [DOCS] fix ExpectAI for the agent prereqs ([#11678](https://github.com/great-expectations/great_expectations/pull/11678))
+* [MAINTENANCE] Add azure ad service principal auth connection details ([#11653](https://github.com/great-expectations/great_expectations/pull/11653))
+* [MAINTENANCE] Add `SQLServerDatasource` schema ([#11662](https://github.com/great-expectations/great_expectations/pull/11662))
+* [MAINTENANCE] Remove unsupported Entra ID Password authentication ([#11665](https://github.com/great-expectations/great_expectations/pull/11665))
+* [MAINTENANCE] Human-readable MSSQL test connection exceptions ([#11661](https://github.com/great-expectations/great_expectations/pull/11661))
+* [MAINTENANCE] Only run python 3.13 marker tests on PRs ([#11666](https://github.com/great-expectations/great_expectations/pull/11666))
+* [MAINTENANCE] Rename MSSQL references to SQL Server for brand consistency ([#11674](https://github.com/great-expectations/great_expectations/pull/11674))
+* [MAINTENANCE] Avoid unnecessary _get_default_value() calls for non-field keys ([#11626](https://github.com/great-expectations/great_expectations/pull/11626)) (thanks @jni-bot)
+* [MAINTENANCE] Remove problematic runtime context fixture ([#11683](https://github.com/great-expectations/great_expectations/pull/11683))
+* [MAINTENANCE] Remove Pandas Upper Pin ([#11677](https://github.com/great-expectations/great_expectations/pull/11677))
+* [MAINTENANCE] Normalize SQL Server column type metrics ([#11684](https://github.com/great-expectations/great_expectations/pull/11684))
+* [MAINTENANCE] remove deprecated store backends ([#11675](https://github.com/great-expectations/great_expectations/pull/11675))
+
 ### 1.12.3
 * [MINORBUMP] Add support for pd.Timestamp for datetime comparison operations ([#11637](https://github.com/great-expectations/great_expectations/pull/11637)) (thanks @subediparas5)
 * [FEATURE] Add sql server types stubs and use api in integration tests ([#11643](https://github.com/great-expectations/great_expectations/pull/11643))

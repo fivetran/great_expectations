@@ -1,10 +1,8 @@
 import datetime
 import uuid
 
-import boto3
 import pytest
 from freezegun import freeze_time
-from moto import mock_s3
 
 from great_expectations.core import ExpectationSuiteValidationResult
 from great_expectations.data_context.store import ValidationResultsStore
@@ -13,93 +11,6 @@ from great_expectations.data_context.types.resource_identifiers import (
     ValidationResultIdentifier,
 )
 from great_expectations.util import gen_directory_tree_str
-from tests import test_utils
-
-
-@freeze_time("09/26/2019 13:42:41")
-@mock_s3
-@pytest.mark.filterwarnings(
-    "ignore:String run_ids are deprecated*:DeprecationWarning:great_expectations.data_context.types.resource_identifiers"  # noqa: E501 # FIXME CoP
-)
-@pytest.mark.aws_deps
-def test_ValidationResultsStore_with_TupleS3StoreBackend(aws_credentials):
-    bucket = "test_validation_store_bucket"
-    prefix = "test/prefix"
-
-    # create a bucket in Moto's mock AWS environment
-    conn = boto3.resource("s3", region_name="us-east-1")
-    conn.create_bucket(Bucket=bucket)
-
-    # First, demonstrate that we pick up default configuration including from an S3TupleS3StoreBackend  # noqa: E501 # FIXME CoP
-    my_store = ValidationResultsStore(
-        store_backend={
-            "class_name": "TupleS3StoreBackend",
-            "bucket": bucket,
-            "prefix": prefix,
-        }
-    )
-
-    with pytest.raises(TypeError):
-        my_store.get("not_a_ValidationResultIdentifier")
-
-    ns_1 = ValidationResultIdentifier(
-        expectation_suite_identifier=ExpectationSuiteIdentifier(
-            name="asset.quarantine",
-        ),
-        run_id="20191007T151224.1234Z_prod_100",
-        batch_identifier="batch_id",
-    )
-    my_store.set(
-        ns_1,
-        ExpectationSuiteValidationResult(success=True, results=[], suite_name="asset.quarantine"),
-    )
-    assert my_store.get(ns_1) == ExpectationSuiteValidationResult(
-        success=True, statistics={}, results=[], suite_name="asset.quarantine"
-    )
-
-    ns_2 = ValidationResultIdentifier(
-        expectation_suite_identifier=ExpectationSuiteIdentifier(
-            name="asset.quarantine",
-        ),
-        run_id="20191007T151224.1234Z_prod_200",
-        batch_identifier="batch_id",
-    )
-
-    my_store.set(
-        ns_2,
-        ExpectationSuiteValidationResult(success=False, results=[], suite_name="asset.quarantine"),
-    )
-    assert my_store.get(ns_2) == ExpectationSuiteValidationResult(
-        success=False, statistics={}, results=[], suite_name="asset.quarantine"
-    )
-
-    # Verify that internals are working as expected, including the default filepath
-    assert {
-        s3_object_info["Key"]
-        for s3_object_info in boto3.client("s3").list_objects_v2(Bucket=bucket, Prefix=prefix)[
-            "Contents"
-        ]
-    } == {
-        "test/prefix/.ge_store_backend_id",
-        "test/prefix/asset/quarantine/20191007T151224.1234Z_prod_100/20190926T134241.000000Z/batch_id.json",
-        "test/prefix/asset/quarantine/20191007T151224.1234Z_prod_200/20190926T134241.000000Z/batch_id.json",
-    }
-
-    print(my_store.list_keys())
-    assert set(my_store.list_keys()) == {
-        ns_1,
-        ns_2,
-    }
-
-    """
-    What does this test and why?
-    A Store should be able to report it's store_backend_id
-    which is set when the StoreBackend is instantiated.
-    """
-    # Check that store_backend_id exists can be read
-    assert my_store.store_backend_id is not None
-    # Check that store_backend_id is a valid UUID
-    assert isinstance(my_store.store_backend_id, uuid.UUID)
 
 
 @freeze_time("09/26/2019 13:42:41")
@@ -261,72 +172,6 @@ def test_ValidationResultsStore_with_TupleFileSystemStoreBackend(tmp_path_factor
         runtime_environment={"root_directory": path},
     )
     assert my_store.store_backend_id == my_store_duplicate.store_backend_id
-
-
-@pytest.mark.filterwarnings(
-    "ignore:String run_ids are deprecated*:DeprecationWarning:great_expectations.data_context.types.resource_identifiers"  # noqa: E501 # FIXME CoP
-)
-@pytest.mark.big
-def test_ValidationResultsStore_with_DatabaseStoreBackend(sa):
-    # Use sqlite so we don't require postgres for this test.
-    connection_kwargs = {"drivername": "sqlite"}
-
-    # First, demonstrate that we pick up default configuration
-    my_store = ValidationResultsStore(
-        store_backend={
-            "class_name": "DatabaseStoreBackend",
-            "credentials": connection_kwargs,
-        }
-    )
-
-    with pytest.raises(TypeError):
-        my_store.get("not_a_ValidationResultIdentifier")
-
-    ns_1 = ValidationResultIdentifier(
-        expectation_suite_identifier=ExpectationSuiteIdentifier(
-            name="asset.quarantine",
-        ),
-        run_id="20191007T151224.1234Z_prod_100",
-        batch_identifier="batch_id",
-    )
-    my_store.set(
-        ns_1,
-        ExpectationSuiteValidationResult(success=True, results=[], suite_name="asset.quarantine"),
-    )
-    assert my_store.get(ns_1) == ExpectationSuiteValidationResult(
-        success=True, statistics={}, results=[], suite_name="asset.quarantine"
-    )
-
-    ns_2 = ValidationResultIdentifier(
-        expectation_suite_identifier=ExpectationSuiteIdentifier(
-            name="asset.quarantine",
-        ),
-        run_id="20191007T151224.1234Z_prod_200",
-        batch_identifier="batch_id",
-    )
-
-    my_store.set(
-        ns_2,
-        ExpectationSuiteValidationResult(success=False, results=[], suite_name="asset.quarantine"),
-    )
-    assert my_store.get(ns_2) == ExpectationSuiteValidationResult(
-        success=False, statistics={}, results=[], suite_name="asset.quarantine"
-    )
-
-    assert set(my_store.list_keys()) == {
-        ns_1,
-        ns_2,
-    }
-
-    """
-    What does this test and why?
-    A Store should be able to report it's store_backend_id
-    which is set when the StoreBackend is instantiated.
-    """
-    # Check that store_backend_id exists can be read
-    assert my_store.store_backend_id is not None
-    # Check that store_backend_id is a valid UUID
-    assert test_utils.validate_uuid4(my_store.store_backend_id)
 
 
 @pytest.mark.cloud

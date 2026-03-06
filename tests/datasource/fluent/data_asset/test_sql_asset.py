@@ -252,7 +252,6 @@ def add_table_asset(datasource: SQLDatasource):
     return datasource.add_table_asset(
         name="my_table_asset",
         table_name="my_table",
-        schema_name="my_schema",
     )
 
 

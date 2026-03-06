@@ -24,13 +24,11 @@ def test_success_complete_results(batch_for_datasource: Batch) -> None:
     result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
     assert result.success
     assert result.to_json_dict()["result"] == {
-        "details": {
-            "value_counts": [
-                {"value": 1, "count": 1},
-                {"value": 2, "count": 3},
-            ]
-        },
-        "observed_value": [1, 2],
+        "observed_value": None,
+        "unexpected_count": 0,
+        "partial_unexpected_list": [],
+        "missing_count": 0,
+        "partial_missing_list": [],
     }
 
 
@@ -108,7 +106,7 @@ def test_datetime64_ns_with_str_value_set(batch_for_datasource: Batch) -> None:
         for d in pd.date_range(
             start=datetime(2025, 9, 1),  # noqa: DTZ001 # FIXME CoP
             end=datetime(2025, 9, 3),  # noqa: DTZ001 # FIXME CoP
-            freq="1d",
+            freq="1D",
         )
     ]
     expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=value_set)
@@ -153,7 +151,7 @@ def test_datetime64_ns_with_pd_timestamp_value_set(batch_for_datasource: Batch) 
     value_set = pd.date_range(
         start=datetime(2025, 9, 1),  # noqa: DTZ001 # FIXME CoP
         end=datetime(2025, 9, 3),  # noqa: DTZ001 # FIXME CoP
-        freq="1d",
+        freq="1D",
     ).tolist()
     expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=value_set)
     result = batch_for_datasource.validate(expectation)

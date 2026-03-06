@@ -7,7 +7,7 @@ import pytest
 import great_expectations as gx
 import great_expectations.compatibility.postgresql as postgresql_dialect
 import great_expectations.expectations as gxe
-from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
+from great_expectations.constants import MAX_RESULT_RECORDS
 from great_expectations.render.components import (
     AtomicDiagnosticRendererType,
     RenderedAtomicContent,

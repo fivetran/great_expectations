@@ -148,8 +148,7 @@ Use the GX Cloud UI to walk through the following steps.
     * Mostly: 90%
 
 6. Click the **Validate** button to validate the purchase data with the distribution Expectations.
-7. Click **Validate**.
-8. Review Validation Results.
+7. Review Validation Results.
 
 **Result**: All Expectations pass.
 

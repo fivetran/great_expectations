@@ -358,6 +358,21 @@ XMLAsset: Type[_PandasDataAsset] = _PANDAS_ASSET_MODELS.get(
     "xml", _PandasDataAsset
 )  # read_xml doesn't exist for pandas < 1.3
 
+# GBQAsset may not be generated if read_gbq is not available (requires pandas-gbq package)
+# Create a manual GBQAsset class if it wasn't generated
+_GBQ_ASSET_MANUALLY_CREATED = False
+if GBQAsset is _PandasDataAsset:
+
+    class GBQAsset(_PandasDataAsset):  # type: ignore[no-redef]
+        # instance attributes
+        type: Literal["gbq"] = "gbq"
+        query: str
+
+        class Config:
+            extra = pydantic.Extra.forbid
+
+    _GBQ_ASSET_MANUALLY_CREATED = True
+
 
 def _short_id() -> str:
     """
@@ -617,6 +632,9 @@ class _PandasDatasource(Datasource, Generic[_DataAssetT]):
 
 
 _DYNAMIC_ASSET_TYPES = list(_PANDAS_ASSET_MODELS.values())
+# Add manually created GBQAsset if it wasn't generated
+if _GBQ_ASSET_MANUALLY_CREATED:
+    _DYNAMIC_ASSET_TYPES.append(GBQAsset)
 
 
 @public_api
@@ -989,7 +1007,8 @@ class PandasDatasource(_PandasDatasource):
         Args:
             name: The name of the GBQ asset. This can be any arbitrary string.
             query: The SQL query to send to Google BigQuery.
-            **kwargs: Additional keyword arguments to pass to pandas.read_gbq().
+            **kwargs: Additional keyword arguments to pass to pandas.read_gbq()
+            (or pandas_gbq.read_gbq() for pandas 3.0+).
 
         Returns:
             The GBQAsset that has been added to this datasource.
@@ -1014,7 +1033,8 @@ class PandasDatasource(_PandasDatasource):
         Args:
             query: The SQL query to send to Google BigQuery.
             asset_name: The name of the GBQ asset, should you wish to use it again.
-            **kwargs: Additional keyword arguments to pass to pandas.read_gbq().
+            **kwargs: Additional keyword arguments to pass to pandas.read_gbq()
+            (or pandas_gbq.read_gbq() for pandas 3.0+).
 
         Returns:
             A Batch using an ephemeral GBQAsset.

@@ -4,7 +4,7 @@ import uuid
 import warnings
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple, Union, cast
+from typing import Dict, List, Literal, Optional, Tuple, Union, cast
 
 import pandas as pd
 from sqlalchemy.exc import ProgrammingError
@@ -732,7 +732,7 @@ def introspect_db(  # noqa: C901, PLR0912 # FIXME CoP
     # This code was broken out from the InferredAssetSqlDataConnector when it was removed
     if information_schemas is None:
         information_schemas = [
-            "INFORMATION_SCHEMA",  # snowflake, mssql, mysql, oracle
+            "INFORMATION_SCHEMA",  # snowflake, SQL Server, mysql, oracle
             "information_schema",  # postgres, redshift, mysql
             "performance_schema",  # mysql
             "sys",  # mysql
@@ -904,14 +904,25 @@ def get_default_trino_url() -> str:
     return "trino://test@localhost:8088/memory/schema"
 
 
-def get_default_mssql_url() -> str:
-    """Get connection string to mssql container
+SQL_SERVER_HOST = "127.0.0.1"
+SQL_SERVER_PORT = 1433
+SQL_SERVER_DATABASE = "test_ci"
+SQL_SERVER_SCHEMA = "dbo"
+SQL_SERVER_USERNAME = "sa"
+SQL_SERVER_PASSWORD = "ReallyStrongPwd1234%^&*"
+SQL_SERVER_DRIVER = "ODBC Driver 18 for SQL Server"
+SQL_SERVER_ENCRYPT: Literal["Mandatory", "Optional", "Strict"] = "Optional"
+
+
+def get_default_sql_server_url() -> str:
+    """Get connection string to SQL Server container
     Returns:
         String of default connection to Docker container
     """
     return (
-        "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@127.0.0.1:1433/test_ci"
-        "?driver=ODBC Driver 18 for SQL Server&charset=utf8"
+        f"mssql+pyodbc://{SQL_SERVER_USERNAME}:{SQL_SERVER_PASSWORD}"
+        f"@{SQL_SERVER_HOST}:{SQL_SERVER_PORT}/{SQL_SERVER_DATABASE}"
+        f"?driver={SQL_SERVER_DRIVER}&charset=utf8"
         "&autocommit=true&TrustServerCertificate=yes"
     )
 

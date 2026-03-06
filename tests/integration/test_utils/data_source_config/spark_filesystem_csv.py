@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, Mapping, Optional, Union
 import pandas as pd
 import pytest
 
+from great_expectations.compatibility.pyspark import types as pyspark_types
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.data_asset.path.spark.csv_asset import CSVAsset
@@ -79,8 +80,6 @@ class SparkFilesystemCsvBatchTestSetup(
 
     @property
     def _spark_schema(self) -> Union["pyspark_types.StructType", None]:
-        from great_expectations.compatibility.pyspark import types as pyspark_types
-
         column_types = self.config.column_types or {}
         struct_fields = [
             pyspark_types.StructField(column_name, column_type())
@@ -90,10 +89,46 @@ class SparkFilesystemCsvBatchTestSetup(
 
     @property
     def _spark_data(self) -> "pyspark.DataFrame":
-        if self._spark_schema:
-            return self._spark_session.createDataFrame(self.data, schema=self._spark_schema)
-        else:
-            return self._spark_session.createDataFrame(self.data)
+        from pyspark.sql.types import _acceptable_types as spark_acceptable_types
+
+        # Pandas 3's pd.NA and StringDtype inference break PySpark's
+        # createDataFrame, so we extract plain-Python rows via itertuples,
+        # replacing NA → None and coercing to PySpark-compatible types.
+        schema = self._spark_schema
+
+        # Per-column (target_type, acceptable_types) from PySpark's internal
+        # _acceptable_types dict, e.g. IntegerType → (int, (int,)).
+        # PySpark checks exact types (not isinstance), so we do the same.
+        _TypeInfo = tuple[type, tuple[type, ...]]
+        type_info_for_col: dict[str, _TypeInfo] = {
+            f.name: (accepted[0], accepted)
+            for f in (schema or [])
+            if (accepted := spark_acceptable_types.get(type(f.dataType)))
+        }
+        column_type_info: tuple[_TypeInfo | None, ...] = tuple(
+            type_info_for_col.get(c) for c in self.data.columns
+        )
+
+        def _clean(val: object, info: _TypeInfo | None) -> object:
+            if pd.isna(val):  # type: ignore[call-overload]  # scalar from itertuples
+                return None
+            if info is not None:
+                target, acceptable = info
+                if type(val) not in acceptable:
+                    # pd.Timestamp subclasses datetime but PySpark checks exact types
+                    if isinstance(val, pd.Timestamp):
+                        return val.to_pydatetime()
+                    return target(val)
+            return val
+
+        rows = [
+            tuple(_clean(val, info) for val, info in zip(record, column_type_info, strict=True))
+            for record in self.data.itertuples(index=False, name=None)
+        ]
+
+        if schema:
+            return self._spark_session.createDataFrame(rows, schema=schema)
+        return self._spark_session.createDataFrame(rows, list(self.data.columns))
 
     @override
     def make_asset(self) -> CSVAsset:

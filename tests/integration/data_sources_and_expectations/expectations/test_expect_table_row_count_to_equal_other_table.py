@@ -9,17 +9,17 @@ from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     DatabricksDatasourceTestConfig,
     DataSourceTestConfig,
-    MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     RedshiftDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SqliteDatasourceTestConfig,
+    SQLServerDatasourceTestConfig,
 )
 
 MULTI_ASSET_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     DatabricksDatasourceTestConfig(),
-    MSSQLDatasourceTestConfig(),
+    SQLServerDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
