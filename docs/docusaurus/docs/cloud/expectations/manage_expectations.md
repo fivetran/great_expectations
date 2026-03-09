@@ -242,18 +242,21 @@ If you edit the **Severity** of an Expectation, note that historical validation 
 <TabItem value="api" label="API">
 You must have the following prerequisites fulfilled before editing an Expectation:
 
+- You have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - Your [Cloud credentials](/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
 
 Follow the instructions below to edit an Expectation within an Expectation Suite:
 
-1. Create a Data Context object.
+1. Create a Data Context object:
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - get cloud context" 
    ```
 
-2. Get the Expectation Suite that contains the Expectation you would like to edit using its name:
+2. Get the Expectation Suite that contains the Expectation you would like to edit.
+
+You can find the names of all Expectation Suites associated with a Data Asset on the Data Asset's **Validations** tab. Then you can retrieve the Expectation Suite using its name: 
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - get the expectation suite"
    ```

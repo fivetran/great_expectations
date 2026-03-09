@@ -1,5 +1,5 @@
 """
-This is an example script for editing the paramters of an expectation.
+This is an example script for editing the parameters of an expectation.
 
 To test, run:
 pytest --docs-tests -k "doc_example_edit_an_expectation_for_cloud" tests/integration/test_script_runner.py
@@ -41,7 +41,7 @@ expectation = [
 ][0]
 # </snippet>
 
-# Update the desired paramters in the Expectation
+# Update the desired parameters in the Expectation
 # <snippet name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - edit the expectation">
 expectation.min_value = 0
 expectation.max_value = 9
