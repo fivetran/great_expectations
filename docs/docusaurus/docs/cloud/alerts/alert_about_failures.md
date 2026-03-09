@@ -4,7 +4,7 @@ title: 'Alert about failures'
 description: Create and manage alerts in GX Cloud.
 ---
 
-Keep yourself and your stakeholders informed about about Expectation failures by configuring alerts in GX Cloud. When a Validation run fails, GX Cloud will send notifications according to your alert settings. Notifications provide high-level information about how many Expectations failed and include a link to detailed Validation Results, where you can investigate the failures to determine next steps. 
+Keep yourself and your stakeholders informed about Expectation failures by configuring alerts in GX Cloud. When a Validation run fails, GX Cloud will send notifications according to your alert settings. Notifications provide high-level information about how many Expectations failed and include a link to detailed Validation Results, where you can investigate the failures to determine next steps. 
 
 Alerts are configured at the Data Asset level. A single Data Asset can have multiple alerts configured. An alert can be configured to notify about all Expectation failures or only failures of certain [severities](/cloud/expectations/expectations_overview.md#failure-severity).
 
