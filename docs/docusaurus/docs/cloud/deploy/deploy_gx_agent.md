@@ -61,7 +61,7 @@ You can continue following the steps below to deploy the GX Agent while you wait
 You need your GX Cloud access token, organization ID, and a workspace ID to deploy the GX Agent.
 
 :::note Do you have multiple workspaces?
-If you have multiple [workspaces](/cloud/access/manage_access.md#workspaces), note that the GX Agent is deployed at the organization level and handles jobs for all of your workspaces. When you deploy the GX Agent, you set a default workspace for the GX Cloud API with the **GX_CLOUD_WORKSPACE_ID** environment variable. If you use the GX Cloud API in the environment where you've deployed the GX Agent, you can pass a workspace ID in your  [`get_context` call](/reference/api/data_context/data_context/context_factory.mdx) to override the default workspace ID set in your environment variables.
+If you have multiple [workspaces](/cloud/access/manage_access.md#workspaces), note that the GX Agent is deployed at the organization level and handles jobs for all of your workspaces. When you deploy the GX Agent, you set a default workspace with the **GX_CLOUD_WORKSPACE_ID** environment variable. When you perform tasks with the GX Cloud UI, the GX Agent will operate in the approriate workspace. If you use the GX Cloud API in the environment where you've deployed the GX Agent, you can pass a workspace ID in your  [`get_context` call](/reference/api/data_context/data_context/context_factory.mdx) to override the default workspace ID set in your environment variables.
 ::: 
 
 If you want to use [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai), you will also need your OpenAI API key.
