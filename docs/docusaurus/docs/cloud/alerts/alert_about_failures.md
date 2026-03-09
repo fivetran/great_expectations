@@ -11,7 +11,7 @@ Alerts are configured at the Data Asset level. A single Data Asset can have mult
 Alerts can send notifications to email addresses or notifications with @mentions to public Slack channels. Note that to enable @mentions for Slack, your GX Cloud workspace must be [integrated with Slack](/cloud/integrations/integrate_slack.md).
 
 :::note More integrations are coming soon
-Integrations for Jira, Microsoft Teams, PagerDuty, and ServiceNow are coming soon. In the meantime, you can use email alerts as described below. [Contact sales](https://greatexpectations.io/pricing/) to learn more or to request a different integration.
+Integrations for Jira, Microsoft Teams, PagerDuty, and ServiceNow are coming soon. In the meantime, you can use email alerts as described below. [Contact us](mailto:sales@greatexpectations.io) to learn more or to request a different integration.
 :::
 
 To keep your email alerts secure, your GX Cloud organization has an allowlist of email domains that all alert recipient email addresses must belong to. By default, this includes the email domain of the Organization Owner who created the organization and domains for sending email notifications to the following third-party services: [Microsoft Teams](https://support.microsoft.com/en-us/office/send-an-email-to-a-channel-in-microsoft-teams-d91db004-d9d7-4a47-82e6-fb1b16dfd51e), [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide), and [ServiceNow](https://www.servicenow.com/docs/r/washingtondc/build-workflows/create-inbound-email-flow.html).
@@ -27,7 +27,7 @@ Note that you must have [Workspace Editor permissions](/cloud/access/manage_acce
 1. In the GX Cloud UI, select the relevant **Workspace** and then click **Data Assets**.
 2. In the **Data Assets** list, click the Data Asset name.
 3. Click **Settings**.
-4. In the **Alerts** section, click **+ ADD**.specify @mentions to include in the notification message. You can mention any user in the channel or a
+4. In the **Alerts** section, click **+ ADD**.
 5. In the **Alert name** field, enter a name for the alert that will help you quickly identify it later.
 6. Under **Severity**, select one or more failure severities for the alert to notify about. 
 7. To alert an email address, do the following. Under **Recipients**, next to **Emails**, click **+** and enter an email address for the alert to send notifications to.
