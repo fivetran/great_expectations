@@ -252,7 +252,7 @@ Follow the instructions below to edit an Expectation within an Expectation Suite
 
 2. Get the Expectation Suite that contains the Expectation you would like to edit:
 
-You can find the names of all Expectation Suites associated with a Data Asset on the Data Asset's **Validations** tab. Then you can retrieve the Expectation Suite using its name: 
+   You can find the names of all Expectation Suites associated with a Data Asset on the Data Asset's **Validations** tab. Then you can retrieve the Expectation Suite using its name: 
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - get the expectation suite"
    ```
