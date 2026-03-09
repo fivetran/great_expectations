@@ -17,7 +17,7 @@ To add a Data Asset from a new Data Source, refer to [Connect GX Cloud](/cloud/c
 
 ## Add a Data Asset from an existing Data Source
 
-You can use the GX Cloud UI to add a Data Asset from an existing Databricks SQL, PostgreSQL, Redshift, or Snowflake Data Source. You can use the GX Cloud API to add a Data Asset from any Data Source. 
+You can use the GX Cloud UI to add a Table Data Asset from an existing Databricks SQL, Microsoft Fabric, Microsoft SQL Server, PostgreSQL, Redshift, or Snowflake Data Source. You can use the GX Cloud API to add any Data Asset from any Data Source. 
 
 <Tabs 
    queryString="interface"
@@ -33,7 +33,7 @@ You can use the GX Cloud UI to add a Data Asset from an existing Databricks SQL,
 ### Prerequisites
 
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
-- A Databricks SQL, PostgreSQL, Redshift, or Snowflake [Data Source](/docs/cloud/connect/connect_lp).
+- A Databricks SQL, Microsoft Fabric, Microsoft SQL Server, PostgreSQL, Redshift, or Snowflake [Data Source](/docs/cloud/connect/connect_lp).
 
 ### Procedure
 
@@ -119,7 +119,7 @@ Now you can [add an Expectation](/cloud/expectations/manage_expectations.md#crea
 
 ## View Data Asset metrics
 
-Data Asset metrics provide insights into your data that you can use to inform your Expectations. Schema data is automatically fetched when you create a new Databricks SQL, PostgreSQL, Redshift, or Snowflake Data Asset. For Amazon S3 Data Assets, you can manually fetch metrics.
+Data Asset metrics provide insights into your data that you can use to inform your Expectations. Schema data is automatically fetched when you create a new Databricks SQL, Microsoft Fabric, Microsoft SQL Server, PostgreSQL, Redshift, or Snowflake Table Data Asset. For Amazon S3 Data Assets, you can manually fetch metrics.
 
 To view Data Asset metrics, do the following:
 
@@ -174,3 +174,25 @@ If you encounter an issue performing a GX Cloud task, review log information to 
 2. Click **Show log** next to a log entry to display additional log details.
 
 3. Optional. Click **Hide log** to close the log details view.
+
+## Data Asset options for SQL Data Sources
+
+SQL Data Sources support validating the records in a single table or the records returned by a SQL query.
+
+- To validate the records in a single table, create a Table Data Asset using the [GX Cloud UI](/cloud/data_assets/manage_data_assets.md?interface=ui#add-a-data-asset-from-an-existing-data-source) or the GX Cloud API [`add_table_asset` method](/reference/api/datasource/fluent/SQLDatasource_class.mdx).
+- To validate the records returned by a SQL query, create a Query Data Asset with the GX Cloud API [`add_query_asset` method](/reference/api/datasource/fluent/SQLDatasource_class.mdx).
+
+Query Data Assets have some limitations compared to Table Data Assets, as outlined in the following table.
+
+
+| Capability                                                                                             | Table Data Asset                                                                                          | Query Data Asset                                                                                                                                                                                                                                         |
+|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Workflow to [add a Data Asset](#add-a-data-asset-from-an-existing-data-source)                         | UI  / API                                                                                                 | API only                                                                                                                                                                                                                                                 |
+| [Data Asset metrics](#view-data-asset-metrics)                                                         | Supported                                                                                                 | Not supported                                                                                                                                                                                                                                            |
+| [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai)                                     | Supported                                                                                                 | Not supported                                                                                                                                                                                                                                            |
+| Expectation support                                                                                    | Varies by Data Source (see [Expectation Gallery](https://greatexpectations.io/expectations/) for details) | Varies by Data Source (see [Expectation Gallery](https://greatexpectations.io/expectations/)  for details); excludes:<br />`ExpectColumnValuesToBeInTypeList`<br />`ExpectColumnValuesToBeOfType`<br />`ExpectTableRowCountToEqualOtherTable`            |
+| Column dropdown in the UI when adding or editing an Expectation that supports specific data types only | Supported                                                                                                 | Not supported                                                                                                                                                                                                                                            |
+| Configure numeric Expectations with datetime values in the UI                                          | Supported                                                                                                 | Not supported                                                                                                                                                                                                                                            |
+| Supported datatypes in Custom SQL Expectations                                                         | All                                                                                                       | JSON-serializable datatypes only. Binary datatypes such as `bytearray` are not supported as they cannot be serialized.                                                                                                                                   |
+| Define a [time-based batch](/cloud/validations/run_validations.md) in the UI                           | Supported                                                                                                 | Not supported                                                                                                                                                                                                                                            |
+| [Column filter](/cloud/overview/data_health.md#filters) on Data Health dashboard                       | Supported                                                                                                 | Not supported                                                                                                                                                                                                                                            |

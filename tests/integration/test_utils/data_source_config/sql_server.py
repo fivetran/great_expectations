@@ -17,6 +17,16 @@ from tests.integration.test_utils.data_source_config.base import (
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
+from tests.test_utils import (
+    SQL_SERVER_DATABASE,
+    SQL_SERVER_DRIVER,
+    SQL_SERVER_ENCRYPT,
+    SQL_SERVER_HOST,
+    SQL_SERVER_PASSWORD,
+    SQL_SERVER_PORT,
+    SQL_SERVER_SCHEMA,
+    SQL_SERVER_USERNAME,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -54,14 +64,14 @@ class SQLServerDatasourceTestConfig(DataSourceTestConfig):
 class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
     def _connection_details(self, schema: str | None = None) -> SQLServerAuthConnectionDetails:
         return SQLServerAuthConnectionDetails(
-            host="127.0.0.1",
-            port=1433,
-            database="test_ci",
-            schema=schema or "dbo",
-            username="sa",
-            password="ReallyStrongPwd1234%^&*",
-            driver="ODBC Driver 18 for SQL Server",
-            encrypt="Mandatory",
+            host=SQL_SERVER_HOST,
+            port=SQL_SERVER_PORT,
+            database=SQL_SERVER_DATABASE,
+            schema=schema or SQL_SERVER_SCHEMA,
+            username=SQL_SERVER_USERNAME,
+            password=SQL_SERVER_PASSWORD,
+            driver=SQL_SERVER_DRIVER,
+            encrypt=SQL_SERVER_ENCRYPT,
             trust_server_certificate=True,
         )
 

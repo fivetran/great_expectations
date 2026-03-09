@@ -124,14 +124,14 @@ Use the GX Cloud UI to walk through the following steps.
 3. Add an **Expect table row count to be between** Expectation to the freshly created Data Asset.
 4. Populate the Expectation with a **Min Value** of `1` and a **Max Value** of `5`.
 5. Save the Expectation.
-6. Click **Define batch**.
-7. For **Validate by**, select **Day**.
-8. Set the **Batch column** to `transfer_ts`.
+6. Click **Edit batch**.
+7. For **Batch interval**, select **Day**.
+8. Set **Validate by** to `transfer_ts`.
 9. Click **Save**.
 10. Click the **Validate** button and define which batch to validate.
-   * **Latest** validates data for the most recent batch found in the Data Asset.
-   * **Custom** validates data for the batch provided.
-11. Click **Validate**.
+   * **Latest Batch** validates data for the most recent batch found in the Data Asset.
+   * **Custom Batch** validates data for the batch provided.
+11. Click **Run**.
 12. Review Validation Results.
 
 </TabItem>

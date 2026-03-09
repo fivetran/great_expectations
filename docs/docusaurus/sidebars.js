@@ -174,6 +174,8 @@ module.exports = {
       items: [
         'cloud/connect/connect_s3',
         'cloud/connect/connect_databrickssql',
+        'cloud/connect/connect_fabric',
+        'cloud/connect/connect_sqlserver',
         'cloud/connect/connect_postgresql',
         'cloud/connect/connect_redshift',
         'cloud/connect/connect_snowflake',

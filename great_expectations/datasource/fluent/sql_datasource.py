@@ -1457,7 +1457,7 @@ class SQLDatasource(Datasource):
         """Adds a query asset to this datasource.
 
         Args:
-            name: The name of this table asset.
+            name: The name of this query asset.
             query: The SELECT query to selects the data to validate. It must begin with the "SELECT".
             batch_metadata: BatchMetadata we want to associate with this DataAsset and all batches derived from it.
 
