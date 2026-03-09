@@ -233,10 +233,6 @@ Keep the following requirements in mind when working with ExpectAI:
 
 6. Click **Save**.
 
-:::note Severity changes apply going forward
-If you edit the **Severity** of an Expectation, note that historical validation results will continue to indicate the severity that was recorded at the time of an Expectation failure. The newly assigned severity will apply to future validation failures only. 
-:::
-
 </TabItem>
 
 <TabItem value="api" label="API">
@@ -268,9 +264,14 @@ You can find the names of all Expectation Suites associated with a Data Asset on
    ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - find the expectation"
    ```
 
+   As another example, for a Custom SQL Expectation, you can match on the Expectation description:
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - find the custom sql expectation"
+   ```
+
 4. Edit the Expectation.
 
-   To determine the parameters your Expectation uses to evaluate data, reference the Expectation's entry in the [Expectation Gallery](https://greatexpectations.io/expectations/).  Under the **Args** section you will find a list of parameters that are necessary for the Expectation to be evaluated, along with a description of the value(s) that should be provided. Edit any of the parameters in this step. In the example below, the min and max values are updated:
+   Any of the parameters in the Expectation can be edited. To find a full list of available parameters for your Expectation, reference the Expectation's entry in the [Expectation Gallery](https://greatexpectations.io/expectations/).  Under the **Args** section you will find a list of parameters that are necessary for the Expectation to be evaluated, along with a description of the value(s) that should be provided. The **Other Paramters** section lists optional parameters for the Expectation. Edit any of the parameters in this step. In the example below, the min and max values are updated:
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - edit the expectation"
    ```
@@ -281,6 +282,10 @@ You can find the names of all Expectation Suites associated with a Data Asset on
    ```
 
 </TabItem>
+
+:::note Severity changes apply going forward
+If you edit the **Severity** of an Expectation, note that historical validation results will continue to indicate the severity that was recorded at the time of an Expectation failure. The newly assigned severity will apply to future validation failures only. 
+:::
 
 </Tabs>
 
