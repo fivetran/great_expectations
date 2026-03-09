@@ -44,9 +44,7 @@ expectation = [
 # Find the Expectation to edit by matching on the description
 # <snippet name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - find the custom sql expectation">
 expectation = [
-    exp
-    for exp in suite.expectations
-    if exp.description == "My custom SQL Expectation"
+    exp for exp in suite.expectations if exp.description == "My custom SQL Expectation"
 ][0]
 # </snippet>
 
