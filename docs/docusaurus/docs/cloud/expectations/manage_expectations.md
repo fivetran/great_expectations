@@ -283,11 +283,11 @@ You can find the names of all Expectation Suites associated with a Data Asset on
 
 </TabItem>
 
+</Tabs>
+
 :::note Severity changes apply going forward
 If you edit the **Severity** of an Expectation, note that historical validation results will continue to indicate the severity that was recorded at the time of an Expectation failure. The newly assigned severity will apply to future validation failures only. 
 :::
-
-</Tabs>
 
 ## Delete an Expectation
 
