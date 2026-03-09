@@ -30,8 +30,7 @@ Note that you must have [Workspace Editor permissions](/cloud/access/manage_acce
 4. In the **Alerts** section, click **+ ADD**.
 5. In the **Alert name** field, enter a name for the alert that will help you quickly identify it later.
 6. Under **Severity**, select one or more failure severities for the alert to notify about. 
-7. To alert an email address, do the following. Under **Recipients**, next to **Emails**, click **+** and enter an email address for the alert to send notifications to.
-   Note that the domain of the email address must belong to your organization’s [email domain allowlist](#update-your-organizations-email-domain-allowlist). By default, the following third-party domains are allowed for email notifications to third-party services.
+7. To alert an email address, do the following. Under **Recipients**, next to **Emails**, click **+** and enter an email address for the alert to send notifications to. Note that the domain of the email address must belong to your organization’s [email domain allowlist](#update-your-organizations-email-domain-allowlist). By default, the following third-party domains are allowed for email notifications to third-party services.
       - [Microsoft Teams](https://support.microsoft.com/en-us/office/send-an-email-to-a-channel-in-microsoft-teams-d91db004-d9d7-4a47-82e6-fb1b16dfd51e) - `*.teams.ms`
       - [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide) - `*.pagerduty.com`
       - [ServiceNow](https://www.servicenow.com/docs/r/washingtondc/build-workflows/create-inbound-email-flow.html) - `*.service-now.com`
