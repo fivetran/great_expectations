@@ -14,6 +14,7 @@ import great_expectations as gx
 import great_expectations.expectations as gxe
 from great_expectations import RunIdentifier
 from great_expectations import __version__ as GX_VERSION
+from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.expectation_validation_result import (
     ExpectationSuiteValidationResult,
@@ -60,7 +61,6 @@ if TYPE_CHECKING:
 
     from pytest_mock import MockerFixture
 
-    from great_expectations.core.batch_definition import BatchDefinition
     from great_expectations.data_context.data_context.cloud_data_context import (
         CloudDataContext,
     )
@@ -993,8 +993,6 @@ class TestGetUnexpectedRows:
     def test_calls_compute_metrics_with_correct_args(
         self, validation_definition: ValidationDefinition, mocker: MockerFixture
     ):
-        from great_expectations.core.batch_definition import BatchDefinition
-
         expectation = gxe.UnexpectedRowsExpectation(
             unexpected_rows_query="SELECT * FROM {batch} WHERE col > 5"
         )
@@ -1021,8 +1019,6 @@ class TestGetUnexpectedRows:
     def test_passes_batch_parameters(
         self, validation_definition: ValidationDefinition, mocker: MockerFixture
     ):
-        from great_expectations.core.batch_definition import BatchDefinition
-
         expectation = gxe.UnexpectedRowsExpectation(
             unexpected_rows_query="SELECT * FROM {batch} WHERE col > 5"
         )
