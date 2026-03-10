@@ -179,6 +179,7 @@ def test_sqlalchemy_query_metrics_that_return_records(
     mock_get_sqlalchemy_records_from_substituted_batch_subquery.assert_called_once_with(
         substituted_batch_subquery=mock_substituted_batch_subquery,
         execution_engine=mock_sqlalchemy_execution_engine,
+        fetch_all=False,
     )
 
 
