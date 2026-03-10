@@ -1065,9 +1065,7 @@ class TestGetUnexpectedRows:
         assert call_arg.fetch_all is True
 
     @pytest.mark.unit
-    def test_raises_when_suite_parameter_missing(
-        self, validation_definition: ValidationDefinition
-    ):
+    def test_raises_when_suite_parameter_missing(self, validation_definition: ValidationDefinition):
         expectation = gxe.UnexpectedRowsExpectation(
             unexpected_rows_query={"$PARAMETER": "my_query"}
         )
