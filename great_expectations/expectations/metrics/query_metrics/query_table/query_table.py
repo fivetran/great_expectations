@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Sequence, Union
+from typing import TYPE_CHECKING, Any, Dict, List
 
-from great_expectations.compatibility.sqlalchemy import (
-    sqlalchemy as sa,
-)
 from great_expectations.constants import MAX_RESULT_RECORDS
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.execution_engine import (
@@ -45,30 +42,11 @@ class QueryTable(QueryMetricProvider):
             )
         )
         fetch_all = metric_value_kwargs.get("fetch_all", False)
-        if fetch_all:
-            return cls._get_sqlalchemy_all_records_from_substituted_batch_subquery(
-                substituted_batch_subquery=substituted_batch_subquery,
-                execution_engine=execution_engine,
-            )
         return cls._get_sqlalchemy_records_from_substituted_batch_subquery(
             substituted_batch_subquery=substituted_batch_subquery,
             execution_engine=execution_engine,
+            fetch_all=fetch_all,
         )
-
-    @classmethod
-    def _get_sqlalchemy_all_records_from_substituted_batch_subquery(
-        cls,
-        substituted_batch_subquery: str,
-        execution_engine: SqlAlchemyExecutionEngine,
-    ) -> list[dict]:
-        result: Union[Sequence[sa.Row[Any]], Any] = execution_engine.execute_query(
-            sa.text(substituted_batch_subquery)
-        ).fetchall()
-
-        if isinstance(result, Sequence):
-            return [element._asdict() for element in result]
-        else:
-            return [result]
 
     @metric_value(engine=SparkDFExecutionEngine)
     def _spark(
