@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy_compatibility_wrappers import (
     add_dataframe_to_db,
 )
@@ -20,6 +21,9 @@ from great_expectations.expectations.metrics import (
 from great_expectations.expectations.metrics.map_metric_provider.column_map_condition_auxilliary_methods import (  # noqa: E501 # FIXME CoP
     _spark_column_map_condition_values,
     _sqlalchemy_column_map_condition_values,
+)
+from great_expectations.expectations.metrics.map_metric_provider.multicolumn_map_condition_auxilliary_methods import (  # noqa: E501 # FIXME CoP
+    _spark_multicolumn_map_condition_values,
 )
 from great_expectations.validator.metric_configuration import MetricConfiguration
 from tests.expectations.test_util import get_table_columns_metric
@@ -278,3 +282,103 @@ def test_spark_column_map_condition_values(
     )
     # one value is out of range with row condition
     assert res == expected_result
+
+
+@pytest.mark.spark
+def test_spark_multicolumn_map_condition_values_complete_preserves_timestamp(
+    spark_session,
+):
+    conf: List[tuple] = spark_session.sparkContext.getConf().getAll()
+    spark_config: Dict[str, Any] = dict(conf)
+
+    pandas_df = pd.DataFrame(
+        {
+            "event_ts": pd.to_datetime(
+                ["2019-01-15 03:36:12", "2019-01-25 18:20:32", "2019-01-05 06:47:31"]
+            ),
+            "message": ["keep", "unexpected", "unexpected"],
+            "is_unexpected": [False, True, True],
+        }
+    )
+
+    spark_df = spark_session.createDataFrame(pandas_df)
+    execution_engine = SparkDFExecutionEngine(spark_config=spark_config)
+    execution_engine.load_batch_data(batch_id="1234", batch_data=spark_df)
+
+    metrics = {
+        "unexpected_condition": (
+            F.col("is_unexpected"),
+            {},
+            {"column_list": ["event_ts", "message"]},
+        ),
+        "table.columns": ["event_ts", "message", "is_unexpected"],
+    }
+    metric_value_kwargs = {
+        "result_format": {
+            "result_format": "COMPLETE",
+            "partial_unexpected_count": 1,
+            "include_unexpected_rows": False,
+        }
+    }
+
+    res = _spark_multicolumn_map_condition_values(
+        cls=MapMetricProvider(),
+        execution_engine=execution_engine,
+        metric_domain_kwargs={},
+        metric_value_kwargs=metric_value_kwargs,
+        metrics=metrics,
+    )
+
+    assert len(res) == 2
+    assert [row["message"] for row in res] == ["unexpected", "unexpected"]
+    assert all(isinstance(row["event_ts"], pd.Timestamp) for row in res)
+
+
+@pytest.mark.spark
+def test_spark_multicolumn_map_condition_values_non_complete_honors_partial_count(
+    spark_session,
+):
+    conf: List[tuple] = spark_session.sparkContext.getConf().getAll()
+    spark_config: Dict[str, Any] = dict(conf)
+
+    pandas_df = pd.DataFrame(
+        {
+            "event_ts": pd.to_datetime(
+                ["2019-01-15 03:36:12", "2019-01-25 18:20:32", "2019-01-05 06:47:31"]
+            ),
+            "message": ["keep", "unexpected", "unexpected"],
+            "is_unexpected": [False, True, True],
+        }
+    )
+
+    spark_df = spark_session.createDataFrame(pandas_df)
+    execution_engine = SparkDFExecutionEngine(spark_config=spark_config)
+    execution_engine.load_batch_data(batch_id="1234", batch_data=spark_df)
+
+    metrics = {
+        "unexpected_condition": (
+            F.col("is_unexpected"),
+            {},
+            {"column_list": ["event_ts", "message"]},
+        ),
+        "table.columns": ["event_ts", "message", "is_unexpected"],
+    }
+    metric_value_kwargs = {
+        "result_format": {
+            "result_format": "SUMMARY",
+            "partial_unexpected_count": 1,
+            "include_unexpected_rows": False,
+        }
+    }
+
+    res = _spark_multicolumn_map_condition_values(
+        cls=MapMetricProvider(),
+        execution_engine=execution_engine,
+        metric_domain_kwargs={},
+        metric_value_kwargs=metric_value_kwargs,
+        metrics=metrics,
+    )
+
+    assert len(res) == 1
+    assert res[0]["message"] == "unexpected"
+    assert isinstance(res[0]["event_ts"], pd.Timestamp)
