@@ -384,6 +384,7 @@ class ValidationDefinition(BaseModel):
         self,
         expectation: Expectation,
         batch_parameters: Optional[BatchParameters] = None,
+        expectation_parameters: Optional[SuiteParameterDict] = None,
     ) -> list[dict]:
         """Fetch all failing rows for an UnexpectedRowsExpectation without the 200-row limit.
 
@@ -392,6 +393,9 @@ class ValidationDefinition(BaseModel):
                 UnexpectedRowsExpectation is currently supported; other types raise ValueError.
             batch_parameters: Optional batch parameters for selecting the correct batch.
                 Pass result.batch_parameters when using partitioned data.
+            expectation_parameters: Optional suite parameter values for resolving
+                parameterized queries (the $PARAMETER syntax). Only needed if the
+                expectation uses a suite parameter reference for unexpected_rows_query.
 
         Returns:
             A list of dicts, one per failing row.
@@ -399,6 +403,7 @@ class ValidationDefinition(BaseModel):
         Raises:
             ValueError: If the expectation is not an UnexpectedRowsExpectation.
         """
+        from great_expectations.core.suite_parameters import parse_suite_parameter
         from great_expectations.expectations.core.unexpected_rows_expectation import (
             UnexpectedRowsExpectation,
         )
@@ -410,9 +415,25 @@ class ValidationDefinition(BaseModel):
                 f"Got {type(expectation).__name__}."
             )
         query = expectation.unexpected_rows_query
-        if not isinstance(query, str):
-            raise ValueError(  # noqa: TRY003, TRY004
-                "unexpected_rows_query must be a resolved string, not a suite parameter reference."
+        if isinstance(query, dict) and "$PARAMETER" in query:
+            if not expectation_parameters:
+                raise ValueError(  # noqa: TRY003
+                    "unexpected_rows_query is a suite parameter reference "
+                    f"({query['$PARAMETER']!r}) but no expectation_parameters were provided."
+                )
+            resolved = parse_suite_parameter(
+                query["$PARAMETER"],
+                suite_parameters=expectation_parameters,
+            )
+            if not isinstance(resolved, str):
+                raise ValueError(  # noqa: TRY003
+                    f"Suite parameter {query['$PARAMETER']!r} did not resolve to a string."
+                )
+            query = resolved
+        elif not isinstance(query, str):
+            raise TypeError(  # noqa: TRY003
+                "unexpected_rows_query must be a string or suite parameter reference, "
+                f"got {type(query).__name__}."
             )
         batch = self.batch_definition.get_batch(batch_parameters)
         metric_result = batch.compute_metrics(QueryBatchTable(query=query, fetch_all=True))
