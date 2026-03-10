@@ -12,10 +12,11 @@ def set_up_context_for_example(context):
     )
     suite = context.suites.get(name="my_expectation_suite")
     suite.add_expectation(expectation)
-    expectation = gx.expectations.UnexpectedRowsExpectation(
-        description="My custom SQL Expectation"
+    sql_expectation = gx.expectations.UnexpectedRowsExpectation(
+        description="My custom SQL Expectation", 
+        type=""
     )
-    suite.add_expectation(expectation)
+    suite.add_expectation(sql_expectation)
     suite.save()
 
 
