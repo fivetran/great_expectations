@@ -250,14 +250,14 @@ Follow the instructions below to edit an Expectation within an Expectation Suite
    ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - get cloud context" 
    ```
 
-2. Get the Expectation Suite that contains the Expectation you would like to edit:
+2. Get the Expectation Suite that contains the Expectation you would like to edit.
 
    You can find the names of all Expectation Suites associated with a Data Asset on the Data Asset's **Validations** tab. Then you can retrieve the Expectation Suite using its name: 
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - get the expectation suite"
    ```
 
-3. Get the Expectation from the Expectation Suite:
+3. Get the Expectation from the Expectation Suite.
 
    Expectations can be found within the Expectation Suite using a variety of methods. In the example below, the Expectation is found by iterating through all of the Expectations within the Expectation Suite and then matching on the Expectation class name and the column name:
 
@@ -269,9 +269,9 @@ Follow the instructions below to edit an Expectation within an Expectation Suite
    ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - find the custom sql expectation"
    ```
 
-4. Edit the Expectation:
+4. Edit the Expectation.
 
-   Any of the parameters in the Expectation can be edited. To find a full list of available parameters for your Expectation, reference the Expectation's entry in the [Expectation Gallery](https://greatexpectations.io/expectations/).  Under the **Args** section you will find a list of parameters that are necessary for the Expectation to be evaluated, along with a description of the value(s) that should be provided. The **Other Paramters** section lists optional parameters for the Expectation. Edit any of the parameters in this step. In the example below, the min and max values are updated:
+   Any of the parameters in the Expectation can be edited. To find a full list of available parameters for your Expectation, reference the Expectation's entry in the [Expectation Gallery](https://greatexpectations.io/expectations/).  Under the **Args** section you will find a list of parameters that are necessary for the Expectation to be evaluated, along with a description of the value(s) that should be provided. The **Other Parameters** section lists optional parameters for the Expectation. Edit any of the parameters in this step. In the example below, the min and max values are updated:
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - edit the expectation"
    ```
