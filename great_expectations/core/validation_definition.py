@@ -442,7 +442,9 @@ class ValidationDefinition(BaseModel):
             )
         batch = self.batch_definition.get_batch(batch_parameters)
         metric_result = batch.compute_metrics(QueryBatchTable(query=query, fetch_all=True))
-        return metric_result.value  # type: ignore[return-value] # always list[dict] for this metric
+        if isinstance(metric_result, MetricErrorResult):
+            raise RuntimeError(metric_result.value.exception_message)
+        return metric_result.value
 
     def _add_to_store(self) -> None:
         """This is used to persist a validation_definition before we run it.
