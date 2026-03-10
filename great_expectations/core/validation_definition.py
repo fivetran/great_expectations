@@ -401,7 +401,13 @@ class ValidationDefinition(BaseModel):
             A list of dicts, one per failing row.
 
         Raises:
-            ValueError: If the expectation is not an UnexpectedRowsExpectation.
+            ValueError: If the expectation is not an UnexpectedRowsExpectation, if
+                unexpected_rows_query is a suite parameter reference but no
+                expectation_parameters are provided, or if the suite parameter does
+                not resolve to a string.
+            TypeError: If unexpected_rows_query is neither a string nor a supported
+                suite parameter reference.
+            SuiteParameterError: If a referenced suite parameter is missing or invalid.
         """
         from great_expectations.core.suite_parameters import parse_suite_parameter
         from great_expectations.expectations.core.unexpected_rows_expectation import (
