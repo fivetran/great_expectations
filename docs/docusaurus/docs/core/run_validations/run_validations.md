@@ -32,4 +32,12 @@ import OverviewCard from '@site/src/components/OverviewCard';
     icon="/img/expectation_icon.svg" 
   />
 
+  <LinkCard 
+    topIcon 
+    label="Retrieve all unexpected rows"
+    description="Fetch every failing row from an UnexpectedRowsExpectation without the 200-row cap."
+    to="/core/run_validations/retrieve_all_unexpected_rows" 
+    icon="/img/expectation_icon.svg" 
+  />
+
 </LinkCardGrid>

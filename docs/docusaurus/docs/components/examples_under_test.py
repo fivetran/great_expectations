@@ -396,6 +396,15 @@ docs_example_scripts_run_validations = [
         # data_context_dir="",
         backend_dependencies=[],
     ),
+    # Retrieve all unexpected rows
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "docs_example_retrieve_all_unexpected_rows" tests/integration/test_script_runner.py
+        name="docs_example_retrieve_all_unexpected_rows",
+        user_flow_script="docs/docusaurus/docs/core/run_validations/_examples/retrieve_all_unexpected_rows.py",
+        data_dir="tests/test_sets/taxi_yellow_tripdata_samples/sqlite",
+        backend_dependencies=[],
+    ),
 ]
 
 example_scripts_for_define_expectations = [
