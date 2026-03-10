@@ -253,9 +253,7 @@ def _spark_multicolumn_map_condition_values(
 
     result_format = metric_value_kwargs["result_format"]
     if result_format["result_format"] == "COMPLETE":
-        pandas_df = (
-            filtered.select(column_selector).limit(MAX_RESULT_RECORDS).toPandas()
-        )
+        pandas_df = filtered.select(column_selector).limit(MAX_RESULT_RECORDS).toPandas()
     else:
         limit = min(result_format["partial_unexpected_count"], MAX_RESULT_RECORDS)
         pandas_df = filtered.select(column_selector).limit(limit).toPandas()
