@@ -43,6 +43,7 @@ from great_expectations.exceptions.exceptions import (
 from great_expectations.expectations.core.unexpected_rows_expectation import (
     UnexpectedRowsExpectation,
 )
+from great_expectations.metrics.metric_results import MetricErrorResult
 from great_expectations.metrics.query.batch_table import QueryBatchTable
 from great_expectations.validator.v1_validator import Validator
 
