@@ -22,6 +22,7 @@ from great_expectations.core.freshness_diagnostics import (
 from great_expectations.core.result_format import DEFAULT_RESULT_FORMAT
 from great_expectations.core.run_identifier import RunIdentifier
 from great_expectations.core.serdes import _EncodedValidationData, _IdentifierBundle
+from great_expectations.core.suite_parameters import parse_suite_parameter
 from great_expectations.data_context.cloud_constants import GXCloudRESTResource
 from great_expectations.data_context.data_context.context_factory import project_manager
 from great_expectations.data_context.types.refs import GXCloudResourceRef
@@ -39,6 +40,10 @@ from great_expectations.exceptions.exceptions import (
     StoreBackendError,
     ValidationDefinitionNotFoundError,
 )
+from great_expectations.expectations.core.unexpected_rows_expectation import (
+    UnexpectedRowsExpectation,
+)
+from great_expectations.metrics.query.batch_table import QueryBatchTable
 from great_expectations.validator.v1_validator import Validator
 
 if TYPE_CHECKING:
@@ -409,12 +414,6 @@ class ValidationDefinition(BaseModel):
                 suite parameter reference.
             SuiteParameterError: If a referenced suite parameter is missing or invalid.
         """
-        from great_expectations.core.suite_parameters import parse_suite_parameter
-        from great_expectations.expectations.core.unexpected_rows_expectation import (
-            UnexpectedRowsExpectation,
-        )
-        from great_expectations.metrics.query.batch_table import QueryBatchTable
-
         if not isinstance(expectation, UnexpectedRowsExpectation):
             raise ValueError(  # noqa: TRY003, TRY004
                 "Only UnexpectedRowsExpectation is currently supported. "
