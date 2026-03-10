@@ -444,7 +444,7 @@ class ValidationDefinition(BaseModel):
         batch = self.batch_definition.get_batch(batch_parameters)
         metric_result = batch.compute_metrics(QueryBatchTable(query=query, fetch_all=True))
         if isinstance(metric_result, MetricErrorResult):
-            raise RuntimeError(metric_result.value.exception_message)
+            raise RuntimeError(metric_result.value.exception_message)  # noqa: TRY004
         return metric_result.value
 
     def _add_to_store(self) -> None:
