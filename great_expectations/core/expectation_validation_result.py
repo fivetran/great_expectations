@@ -32,6 +32,7 @@ from great_expectations.util import (
 )
 
 if TYPE_CHECKING:
+    from great_expectations.expectations.expectation import Expectation
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
     )
@@ -113,6 +114,12 @@ class ExpectationValidationResult(SerializableDictDot):
             "exception_message": None,
         }
         self.rendered_content = rendered_content
+
+    @property
+    @public_api
+    def expectation(self) -> Expectation:
+        """The Expectation object that produced this result."""
+        return self.expectation_config.to_domain_obj()
 
     @override
     def __eq__(self, other):
@@ -528,6 +535,12 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         if "active_batch_definition" in self.meta:
             return self.meta["active_batch_definition"].get("data_asset_name")
         return None
+
+    @property
+    @public_api
+    def batch_parameters(self) -> dict | None:
+        """The batch parameters used for this validation run, if any."""
+        return self.meta.get("batch_parameters")
 
     def __eq__(self, other):  # type: ignore[explicit-override] # FIXME
         """ExpectationSuiteValidationResult equality ignores instance identity, relying only on properties."""  # noqa: E501 # FIXME CoP

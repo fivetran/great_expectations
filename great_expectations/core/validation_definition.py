@@ -52,6 +52,7 @@ if TYPE_CHECKING:
     )
     from great_expectations.datasource.fluent.batch_request import BatchParameters
     from great_expectations.datasource.fluent.interfaces import DataAsset, Datasource
+    from great_expectations.expectations.expectation import Expectation
 
 
 @public_api
@@ -377,6 +378,41 @@ class ValidationDefinition(BaseModel):
         key = store.get_key(name=self.name, id=self.id)
 
         store.update(key=key, value=self)
+
+    @public_api
+    def get_unexpected_rows(
+        self,
+        expectation: Expectation,
+        batch_parameters: Optional[BatchParameters] = None,
+    ) -> list[dict]:
+        """Fetch all failing rows for an UnexpectedRowsExpectation without the 200-row limit.
+
+        Args:
+            expectation: The UnexpectedRowsExpectation to fetch rows for. Only
+                UnexpectedRowsExpectation is currently supported; other types raise ValueError.
+            batch_parameters: Optional batch parameters for selecting the correct batch.
+                Pass result.batch_parameters when using partitioned data.
+
+        Returns:
+            A list of dicts, one per failing row.
+
+        Raises:
+            ValueError: If the expectation is not an UnexpectedRowsExpectation.
+        """
+        from great_expectations.expectations.core.unexpected_rows_expectation import (
+            UnexpectedRowsExpectation,
+        )
+        from great_expectations.metrics.query.batch_table import QueryBatchTable
+
+        if not isinstance(expectation, UnexpectedRowsExpectation):
+            raise ValueError(  # noqa: TRY003, TRY004
+                "Only UnexpectedRowsExpectation is currently supported. "
+                f"Got {type(expectation).__name__}."
+            )
+        query = expectation.unexpected_rows_query
+        batch = self.batch_definition.get_batch(batch_parameters)
+        metric_result = batch.compute_metrics(QueryBatchTable(query=query, fetch_all=True))
+        return metric_result.value
 
     def _add_to_store(self) -> None:
         """This is used to persist a validation_definition before we run it.
