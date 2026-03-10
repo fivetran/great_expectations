@@ -410,9 +410,13 @@ class ValidationDefinition(BaseModel):
                 f"Got {type(expectation).__name__}."
             )
         query = expectation.unexpected_rows_query
+        if not isinstance(query, str):
+            raise ValueError(  # noqa: TRY003, TRY004
+                "unexpected_rows_query must be a resolved string, not a suite parameter reference."
+            )
         batch = self.batch_definition.get_batch(batch_parameters)
         metric_result = batch.compute_metrics(QueryBatchTable(query=query, fetch_all=True))
-        return metric_result.value
+        return metric_result.value  # type: ignore[return-value] # always list[dict] for this metric
 
     def _add_to_store(self) -> None:
         """This is used to persist a validation_definition before we run it.

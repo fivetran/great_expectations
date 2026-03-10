@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 class QueryTable(QueryMetricProvider):
     metric_name = "query.table"
-    value_keys = ("query", "fetch_all")
+    value_keys: tuple[str, ...] = ("query", "fetch_all")
 
     @metric_value(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(

@@ -119,6 +119,8 @@ class ExpectationValidationResult(SerializableDictDot):
     @public_api
     def expectation(self) -> Expectation:
         """The Expectation object that produced this result."""
+        if self.expectation_config is None:
+            raise TypeError("Cannot construct Expectation: expectation_config is None.")  # noqa: TRY003
         return self.expectation_config.to_domain_obj()
 
     @override
