@@ -71,7 +71,7 @@ The following table lists the available GX Cloud Expectations. Note that some Da
 
 GX Cloud offers the ability to write a custom Expectation using SQL. It is designed to fail validation if the provided SQL query returns one or more rows.
 
-The provided query should be written in the dialect of the Data Source in which a given Data Asset lives. To simplify working with custom SQL Expectations, you can use ExpectAI to [generate a SQL query](/docs/cloud/expectations/manage_expectations.md#generate-sql) based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
+The provided query should be written in the dialect of the Data Source in which a given Data Asset lives. If you are working with a Query Data Asset, note that there are some [limitations on allowed datatypes](/cloud/data_assets/manage_data_assets.md#data-asset-options-for-sql-data-sources) in the provided query. To simplify working with custom SQL Expectations, you can use ExpectAI to [generate a SQL query](/docs/cloud/expectations/manage_expectations.md#generate-sql) based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
 
 :::info Optional `{batch}` named query
 

@@ -38,7 +38,8 @@ Use Actions to notify the appropriate parties of the results of your Validation 
    ```
 
    :::tip The GX-managed Checkpoint name can be found through the UI
-   For the Data Asset of interest, go to the **Validations** tab. If you have more than one **Expectation Suite**, select the **GX-managed** one. Then, click the code snippet icon next to the **Validate** button and click **Generate snippet**.
+   For the Data Asset of interest, go to the **Expectations** tab. Then, click the code snippet icon next to the **Validate** button and click **Generate snippet**.
+   :::
 
 3. Define the Actions that the Checkpoint will trigger.
     
