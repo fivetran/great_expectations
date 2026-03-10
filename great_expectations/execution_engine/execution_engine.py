@@ -590,14 +590,25 @@ class ExecutionEngine(ABC, Generic[TFilter]):
                 self.resolve_metric_bundle(metric_fn_bundle=metric_fn_bundle_configurations)
             )
             resolved_metrics.update(resolved_metric_bundle)
-        except Exception as e:
-            raise gx_exceptions.MetricResolutionError(
-                message=str(e),
-                failed_metrics=[
-                    metric_computation_configuration.metric_configuration
-                    for metric_computation_configuration in metric_fn_bundle_configurations
-                ],
-            ) from e
+        except Exception:
+            # The bulk query failed; fall back to computing each metric individually
+            # so that unrelated metrics can still succeed.
+            failed_metrics: list[MetricConfiguration] = []
+            last_exception: Optional[Exception] = None
+            for metric_computation_configuration in metric_fn_bundle_configurations:
+                try:
+                    individual_result = self.resolve_metric_bundle(
+                        metric_fn_bundle=[metric_computation_configuration]
+                    )
+                    resolved_metrics.update(individual_result)
+                except Exception as individual_e:
+                    failed_metrics.append(metric_computation_configuration.metric_configuration)
+                    last_exception = individual_e
+            if failed_metrics:
+                raise gx_exceptions.MetricResolutionError(
+                    message=str(last_exception),
+                    failed_metrics=failed_metrics,
+                ) from last_exception
 
         if self._caching:
             self._metric_cache.update(resolved_metrics)
