@@ -72,6 +72,7 @@ The following table lists GX Cloud roles and permissions.
 | Manage Organization Owners                           | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> |
 | Manage organization access tokens                    | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> |
 | Manage workspace users *                             | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> |
+| Manage workspace integrations *                      | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> |
 | Manage user access tokens *                          | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> |
 | Manage Data Sources, Data Assets, and Expectations * | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> |
 | View Validation Results *                            | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> |
@@ -129,7 +130,7 @@ Workspace user access is managed on a workspace basis. To remove a workspace use
 4. Click **Remove**.
 
 :::note Alerts are managed separately
-When you delete a user’s access, any [email alerts](/cloud/alerts/manage_email_alerts.md) configured with that user as a recipient are left as they are. Depending on the reason for removing the user, you may want to update your alert configuration so that the person no longer receives emails about failing Expectations.
+When you delete a user’s access, any [alerts](/cloud/alerts/alert_about_failures.md) configured with that user as a recipient are left as they are. Depending on the reason for removing the user, you may want to update your alert configuration so that the person no longer receives notifications about failing Expectations.
 :::
 
 ## Tokens

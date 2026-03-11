@@ -76,7 +76,7 @@ There are a variety of GX Cloud features that support additional enhancements to
 
 * **Schedule Validations.** GX Cloud enables you to schedule validations, so that you can test and assess your data on a regular cadence and monitor data quality over time. See [Manage schedules](/cloud/schedules/manage_schedules.md) for more detail.
 
-* **Alerting.** GX Cloud provides the ability to send alerts when validations fail, enabling your business to remain proactively aware of the health of your Data Assets. See [Respond to results](/cloud/alerts/alerts_lp.md) for more detail.
+* **Alerting.** GX Cloud provides the ability to notify individuals and third-party tools when validations fail, enabling your business to remain proactively aware of the health of your Data Assets. See [Respond to results](/cloud/alerts/alerts_lp.md) for more detail.
 
 * **Monitor Data Health.** GX Cloud provides metric summaries and trends to help you understand and improve test coverage and success across your business. See [Data Health](/cloud/overview/data_health.md) for more detail.
 
