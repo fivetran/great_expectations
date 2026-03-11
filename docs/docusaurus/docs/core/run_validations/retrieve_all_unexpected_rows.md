@@ -9,7 +9,7 @@ import PrereqGxInstalled from '../_core_components/prerequisites/_gx_installatio
 import PrereqPreconfiguredDataContext from '../_core_components/prerequisites/_preconfigured_data_context.md';
 import PrereqValidationDefinition from '../_core_components/prerequisites/_validation_definition.md';
 
-By default, Validation Results include up to 200 unexpected rows in the `unexpected_rows` field.  If your data contains more than 200 failing rows, the `ValidationDefinition.get_unexpected_rows()` method lets you retrieve **all** of them.  It re-executes the Expectation's query against the same batch -- including any partitioning filters -- without the 200-row cap.
+By default, Validation Results include up to 200 unexpected rows in the `unexpected_rows` field. If your data contains more than 200 failing rows, use `ValidationDefinition.get_unexpected_rows()` to retrieve **all** of them. This method runs the Expectation's query against the same batch and respects any partitioning filters, but removes the 200-row cap.
 
 This method currently supports `UnexpectedRowsExpectation` on SQL and Spark Data Sources.
 
@@ -47,12 +47,18 @@ This method currently supports `UnexpectedRowsExpectation` on SQL and Spark Data
 
 3. Iterate over the results and call `get_unexpected_rows()` for each failing Expectation.
 
-   Use `evr.expectation` to get the typed Expectation object from an `ExpectationValidationResult`, and pass `result.batch_parameters` to ensure the same batch is queried:
+   The `evr.expectation` property returns the typed Expectation object from an `ExpectationValidationResult`. Pass `result.batch_parameters` to ensure the same batch is queried:
 
    ```python title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/retrieve_all_unexpected_rows.py - retrieve unexpected rows"
    ```
 
-   `get_unexpected_rows()` returns a `list[dict]` with one dictionary per failing row.  You can convert this to a DataFrame, write it to a quarantine table, or process it however you need.
+   `get_unexpected_rows()` returns a `list[dict]` with one dictionary per failing row. You can convert this to a DataFrame, write it to a quarantine table, or process it however you need.
+
+   :::note Suite parameter queries
+
+   If your Expectation uses a suite parameter reference (`$PARAMETER` syntax) for `unexpected_rows_query`, pass the `expectation_parameters` argument with the resolved parameter values. Without it, `get_unexpected_rows()` raises a `ValueError`.
+
+   :::
 
 </TabItem>
 
