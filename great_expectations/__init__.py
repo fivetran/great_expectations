@@ -3,7 +3,7 @@
 # Set up version information immediately
 from ._version import get_versions as _get_versions
 
-__version__ = _get_versions()["version"]
+__version__: str = _get_versions()["version"]
 del _get_versions
 
 # Submodules must be imported first to avoid circular dependencies

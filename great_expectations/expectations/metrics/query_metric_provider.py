@@ -205,10 +205,12 @@ class QueryMetricProvider(MetricProvider):
         cls,
         substituted_batch_subquery: str,
         execution_engine: SqlAlchemyExecutionEngine,
+        fetch_all: bool = False,
     ) -> list[dict]:
-        result: Union[Sequence[sa.Row[Any]], Any] = execution_engine.execute_query(
-            sa.text(substituted_batch_subquery)
-        ).fetchmany(MAX_RESULT_RECORDS)
+        query_result = execution_engine.execute_query(sa.text(substituted_batch_subquery))
+        result: Union[Sequence[sa.Row[Any]], Any] = (
+            query_result.fetchall() if fetch_all else query_result.fetchmany(MAX_RESULT_RECORDS)
+        )
 
         if isinstance(result, Sequence):
             return [element._asdict() for element in result]
