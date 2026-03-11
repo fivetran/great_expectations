@@ -413,6 +413,7 @@ class ValidationDefinition(BaseModel):
                 not resolve to a string.
             TypeError: If unexpected_rows_query is neither a string nor a supported
                 suite parameter reference.
+            RuntimeError: If the underlying metric computation fails.
             SuiteParameterError: If a referenced suite parameter is missing or invalid.
         """
         if not isinstance(expectation, UnexpectedRowsExpectation):
