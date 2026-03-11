@@ -16,15 +16,15 @@ def set_up_context_for_example(context):
         table_name="yellow_tripdata_sample_2019_01", name="my_data_asset"
     )
 
-    batch_definition = data_asset.add_batch_definition_whole_table("my_batch_definition")
+    batch_definition = data_asset.add_batch_definition_whole_table(
+        "my_batch_definition"
+    )
 
     import great_expectations as gx
     from great_expectations.expectations import UnexpectedRowsExpectation
 
     class ExpectNoLongTrips(UnexpectedRowsExpectation):
-        unexpected_rows_query: str = (
-            "SELECT * FROM {batch} WHERE trip_distance > 20"
-        )
+        unexpected_rows_query: str = "SELECT * FROM {batch} WHERE trip_distance > 20"
         description = "No trip should exceed 20 miles."
 
     suite = context.suites.add(
