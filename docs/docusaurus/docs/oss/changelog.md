@@ -15,6 +15,20 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.15.0
+* [MINORBUMP] SQL Server and Fabric Data Sources ([#11686](https://github.com/great-expectations/great_expectations/pull/11686))
+* [MINORBUMP] Add ValidationDefinition.get_unexpected_rows() ([#11711](https://github.com/great-expectations/great_expectations/pull/11711))
+* [BUGFIX] retry individual metrics when bulk resolution fails ([#11708](https://github.com/great-expectations/great_expectations/pull/11708))
+* [DOCS] reflect changes to Validate button ([#11691](https://github.com/great-expectations/great_expectations/pull/11691))
+* [DOCS] loose ends for new result format option ([#11705](https://github.com/great-expectations/great_expectations/pull/11705))
+* [DOCS] Set workspace ID for the agent ([#11709](https://github.com/great-expectations/great_expectations/pull/11709))
+* [DOCS] DOC-1168 - How to edit expectations using the API ([#11697](https://github.com/great-expectations/great_expectations/pull/11697))
+* [DOCS] Slack alerts ([#11681](https://github.com/great-expectations/great_expectations/pull/11681))
+* [MAINTENANCE] Bump immutable from 4.3.7 to 4.3.8 in /docs/docusaurus ([#11703](https://github.com/great-expectations/great_expectations/pull/11703))
+* [MAINTENANCE] Bump svgo from 3.3.2 to 3.3.3 in /docs/docusaurus ([#11701](https://github.com/great-expectations/great_expectations/pull/11701))
+* [MAINTENANCE] Bump dompurify from 3.3.1 to 3.3.2 in /docs/docusaurus ([#11706](https://github.com/great-expectations/great_expectations/pull/11706))
+* [MAINTENANCE] Suppress mypy assignment errors in Trino compatibility module ([#11707](https://github.com/great-expectations/great_expectations/pull/11707))
+
 ### 1.14.0
 * [FEATURE] Add `trust_server_certificate` to `SQLServerDatasource` ([#11694](https://github.com/great-expectations/great_expectations/pull/11694))
 * [DOCS] Add ServiceNow to email alerts Cloud documentation ([#11669](https://github.com/great-expectations/great_expectations/pull/11669))
