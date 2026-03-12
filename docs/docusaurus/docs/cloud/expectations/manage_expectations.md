@@ -259,7 +259,7 @@ Follow the instructions below to edit an Expectation within an Expectation Suite
 
 3. Get the Expectation from the Expectation Suite.
 
-   Expectations can be found within the Expectation Suite using a variety of methods. In the example below, the Expectation is found by iterating through all of the Expectations within the Expectation Suite and then matching on the Expectation class name and the column name:
+   Expectations can be found within the Expectation Suite using a variety of methods. In the example below, the Expectation is found by iterating through all of the Expectations within the Expectation Suite and then matching the first Expectation on its class name and column name:
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - find the expectation"
    ```
