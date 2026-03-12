@@ -730,21 +730,6 @@ class CloudDataContext(SerializableDataContext):
                 self._open_url_in_browser(url)
 
     @override
-    def _add_datasource(
-        self,
-        name: str | None = None,
-        initialize: bool = True,
-        datasource: FluentDatasource | None = None,
-        **kwargs,
-    ) -> FluentDatasource | None:
-        return super()._add_datasource(
-            name=name,
-            initialize=initialize,
-            datasource=datasource,
-            **kwargs,
-        )
-
-    @override
     def prepare_checkpoint_run(
         self,
         checkpoint: Checkpoint,
