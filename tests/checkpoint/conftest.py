@@ -12,15 +12,7 @@ from great_expectations.datasource.fluent import BatchRequest as FluentBatchRequ
 def update_data_docs_action():
     return {
         "name": "update_data_docs",
-        "action": {"class_name": "UpdateDataDocsAction"},
-    }
-
-
-@pytest.fixture
-def store_validation_result_action():
-    return {
-        "name": "store_validation_result",
-        "action": {"class_name": "StoreValidationResultAction"},
+        "type": "update_data_docs",
     }
 
 
@@ -33,26 +25,22 @@ def webhook() -> str:
 def slack_notification_action(webhook):
     return {
         "name": "send_slack_notification",
-        "action": {
-            "class_name": "SlackNotificationAction",
-            "slack_webhook": webhook,
-            "notify_on": "all",
-            "notify_with": None,
-            "renderer": {
-                "module_name": "great_expectations.render.renderer.slack_renderer",
-                "class_name": "SlackRenderer",
-            },
+        "type": "slack",
+        "slack_webhook": webhook,
+        "notify_on": "all",
+        "notify_with": None,
+        "renderer": {
+            "module_name": "great_expectations.render.renderer.slack_renderer",
+            "class_name": "SlackRenderer",
         },
     }
 
 
 @pytest.fixture
 def common_action_list(
-    store_validation_result_action: dict,
     update_data_docs_action: dict,
 ) -> List[dict]:
     return [
-        store_validation_result_action,
         update_data_docs_action,
     ]
 
