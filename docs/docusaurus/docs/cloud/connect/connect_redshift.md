@@ -74,5 +74,5 @@ description: Connect GX Cloud to a Redshift Data Source.
 
 - [Add an Expectation](/cloud/expectations/manage_expectations.md#create-an-expectation)
 - [Run a Validation](/cloud/validations/run_validations.md)
-- [Configure an alert](/cloud/alerts/manage_email_alerts.md)
+- [Configure an alert](/cloud/alerts/alert_about_failures.md)
 

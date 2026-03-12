@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 class QueryTable(QueryMetricProvider):
     metric_name = "query.table"
-    value_keys = ("query",)
+    value_keys: tuple[str, ...] = ("query", "fetch_all")
 
     @metric_value(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(
@@ -41,9 +41,11 @@ class QueryTable(QueryMetricProvider):
                 execution_engine=execution_engine,
             )
         )
+        fetch_all = metric_value_kwargs.get("fetch_all", False)
         return cls._get_sqlalchemy_records_from_substituted_batch_subquery(
             substituted_batch_subquery=substituted_batch_subquery,
             execution_engine=execution_engine,
+            fetch_all=fetch_all,
         )
 
     @metric_value(engine=SparkDFExecutionEngine)
@@ -66,6 +68,10 @@ class QueryTable(QueryMetricProvider):
         query = query.format(batch="tmp_view")
 
         engine: pyspark.SparkSession = execution_engine.spark
-        result: List[pyspark.Row] = engine.sql(query).limit(MAX_RESULT_RECORDS).collect()
+        fetch_all = metric_value_kwargs.get("fetch_all", False)
+        if fetch_all:
+            result: List[pyspark.Row] = engine.sql(query).collect()
+        else:
+            result = engine.sql(query).limit(MAX_RESULT_RECORDS).collect()
 
         return [element.asDict() for element in result]

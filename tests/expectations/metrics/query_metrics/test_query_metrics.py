@@ -176,9 +176,14 @@ def test_sqlalchemy_query_metrics_that_return_records(
             batch_selectable=batch_selectable,
             execution_engine=mock_sqlalchemy_execution_engine,
         )
+    expected_kwargs = {
+        "substituted_batch_subquery": mock_substituted_batch_subquery,
+        "execution_engine": mock_sqlalchemy_execution_engine,
+    }
+    if issubclass(metric_class, QueryTable):
+        expected_kwargs["fetch_all"] = False
     mock_get_sqlalchemy_records_from_substituted_batch_subquery.assert_called_once_with(
-        substituted_batch_subquery=mock_substituted_batch_subquery,
-        execution_engine=mock_sqlalchemy_execution_engine,
+        **expected_kwargs,
     )
 
 
