@@ -60,7 +60,6 @@ from great_expectations.data_context.types.base import (
 from great_expectations.data_context.types.resource_identifiers import GXCloudIdentifier
 from great_expectations.data_context.util import instantiate_class_from_config
 from great_expectations.datasource.datasource_dict import DatasourceDict
-from great_expectations.datasource.fluent import Datasource as FluentDatasource
 from great_expectations.exceptions.exceptions import DataContextError
 
 if TYPE_CHECKING:
@@ -68,7 +67,6 @@ if TYPE_CHECKING:
     from great_expectations.checkpoint.checkpoint import Checkpoint, CheckpointResult
     from great_expectations.core.suite_parameters import SuiteParameterDict
     from great_expectations.data_context.store.store import StoreConfigTypedDict
-    from great_expectations.datasource.fluent import Datasource as FluentDatasource
     from great_expectations.render.renderer.site_builder import SiteBuilder
 
 logger = logging.getLogger(__name__)
