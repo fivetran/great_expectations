@@ -68,6 +68,7 @@ def mock_checkpoint_json() -> dict:
         "actions": [
             {
                 "name": "my_slack_action",
+                "type": "slack",
                 "slack_webhook": "https://hooks.slack.com/services/ABC123/DEF456/XYZ789",
                 "notify_on": "all",
                 "notify_with": ["my_data_docs_site"],
@@ -176,6 +177,7 @@ def test_add_cloud(cloud_backed_store: CheckpointStore, checkpoint: Checkpoint):
                 "actions": [
                     {
                         "name": "my_slack_action",
+                        "type": "slack",
                         "notify_on": "all",
                         "notify_with": ["my_data_docs_site"],
                         "renderer": {"class_name": "SlackRenderer"},
