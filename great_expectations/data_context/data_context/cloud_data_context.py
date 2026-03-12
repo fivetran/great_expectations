@@ -771,7 +771,7 @@ class CloudDataContext(SerializableDataContext):
                 base=base_url,
                 url=f"/api/v1/organizations/{org_id}/checkpoints/{checkpoint.id}/expectation-parameters",
             )
-        with create_session(access_token=self.ge_cloud_config.access_token) as session:
+        with create_session(access_token=self.ge_cloud_config.access_token, timeout=600) as session:
             response = session.get(url=expectation_parameters_url)
 
         if not response.ok:
