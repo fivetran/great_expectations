@@ -307,7 +307,7 @@ If you edit the **Severity** of an Expectation, note that historical validation 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 2. In the **Data Assets** list, click the Data Asset name.
 3. On the **Expectations** tab, find the Expectation of interest.
-4. Click  <img src="/img/history.png" alt="history icon" width="20" height="20"/> **Expectation history** for the Expectation that you want to explore.
+4. Click  <img src="/img/history.png" alt="history icon" width="20" height="20"/> **View Expectation history** for the Expectation that you want to explore.
 
 Note that the report is limited to the last 100 changes.
 
