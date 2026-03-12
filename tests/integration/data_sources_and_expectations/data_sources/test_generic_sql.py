@@ -20,14 +20,15 @@ from tests.integration.test_utils.data_source_config.generic_sql import (
     GenericSQLDatasourceTestConfig,
 )
 
-DEFAULT_CONNECTION_STRING = "postgresql+psycopg2://postgres@localhost:5432/test_ci"
-
-pytestmark = pytest.mark.postgresql
+pytestmark = pytest.mark.generic_sql
 
 
 @pytest.fixture()
 def connection_string() -> str:
-    return os.environ.get("GX_TEST_GENERIC_SQL_CONNECTION_STRING", DEFAULT_CONNECTION_STRING)
+    connection_string = os.environ.get("GX_TEST_GENERIC_SQL_CONNECTION_STRING")
+    if not connection_string:
+        raise ValueError("GX_TEST_GENERIC_SQL_CONNECTION_STRING environment variable is not set")
+    return connection_string
 
 
 class TestGenericSQL:

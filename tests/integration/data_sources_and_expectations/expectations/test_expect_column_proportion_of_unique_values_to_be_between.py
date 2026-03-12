@@ -11,7 +11,10 @@ from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
     JUST_PANDAS_DATA_SOURCES,
 )
-from tests.integration.test_utils.data_source_config import RedshiftDatasourceTestConfig
+from tests.integration.test_utils.data_source_config import (
+    GenericSQLDatasourceTestConfig,
+    RedshiftDatasourceTestConfig,
+)
 from tests.integration.test_utils.data_source_config.base import DataSourceTestConfig
 from tests.integration.test_utils.data_source_config.big_query import BigQueryDatasourceTestConfig
 from tests.integration.test_utils.data_source_config.databricks import (
@@ -71,6 +74,7 @@ ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     PandasFilesystemCsvDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(column_types=COLUMN_TYPES),
     RedshiftDatasourceTestConfig(column_types=COLUMN_TYPES),
+    GenericSQLDatasourceTestConfig(column_types=COLUMN_TYPES),
     SnowflakeDatasourceTestConfig(column_types=COLUMN_TYPES),
     SparkFilesystemCsvDatasourceTestConfig(column_types=SPARK_COLUMN_TYPES),
     SqliteDatasourceTestConfig(column_types=COLUMN_TYPES),

@@ -11,6 +11,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
+    GenericSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
@@ -72,6 +73,7 @@ def test_success_for_type__int(batch_for_datasource: Batch) -> None:
         MySQLDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(),
         RedshiftDatasourceTestConfig(),
+        GenericSQLDatasourceTestConfig(),
         SqliteDatasourceTestConfig(),
     ],
     data=DATA,

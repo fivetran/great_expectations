@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 # Dialects that auto-commit and may not have active transactions
-_AUTO_COMMIT_DIALECTS = {GXSqlDialect.DATABRICKS}
+_AUTO_COMMIT_DIALECTS = {GXSqlDialect.DATABRICKS, GXSqlDialect.SINGLESTORE}
 
 
 @dataclass(frozen=True)
@@ -176,7 +176,10 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
         # Skip commit for auto-commit databases (they commit automatically)
         if dialect_name not in _AUTO_COMMIT_DIALECTS:
-            conn.commit()
+            try:
+                conn.commit()
+            except AttributeError:
+                pass
 
     @staticmethod
     def _sanitize_null_values(values: list[dict]) -> list[dict]:

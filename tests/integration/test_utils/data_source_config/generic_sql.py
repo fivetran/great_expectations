@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Mapping, Optional
 
 import pytest
 
+from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context import AbstractDataContext
 from tests.integration.sql_session_manager import SessionSQLEngineManager
@@ -12,7 +14,10 @@ from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
-from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
+from tests.integration.test_utils.data_source_config.sql import (
+    InferrableTypesLookup,
+    SQLBatchTestSetup,
+)
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -42,7 +47,7 @@ class GenericSQLDatasourceTestConfig(DataSourceTestConfig):
     @property
     @override
     def pytest_mark(self) -> pytest.MarkDecorator:
-        return pytest.mark.sql
+        return pytest.mark.generic_sql
 
     @override
     def create_batch_setup(
@@ -53,10 +58,6 @@ class GenericSQLDatasourceTestConfig(DataSourceTestConfig):
         context: AbstractDataContext,
         engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
-        if not self.connection_string:
-            raise ValueError(
-                "GenericSQLDatasourceTestConfig requires a non-empty connection_string."
-            )
         return GenericSQLBatchTestSetup(
             data=data,
             config=self,
@@ -72,11 +73,42 @@ class GenericSQLBatchTestSetup(SQLBatchTestSetup[GenericSQLDatasourceTestConfig]
 
     Uses ``context.data_sources.add_sql`` — the dialect-agnostic datasource —
     so callers only need to provide a valid connection string.
+
+    If no connection_string is provided in the config, reads from the
+    GX_TEST_GENERIC_SQL_CONNECTION_STRING environment variable.
     """
+
+    def __init__(
+        self,
+        config: GenericSQLDatasourceTestConfig,
+        data: pd.DataFrame,
+        extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
+        table_name: Optional[str] = None,
+        engine_manager: Optional[SessionSQLEngineManager] = None,
+    ) -> None:
+        # Read from environment variable if connection_string is empty
+        self._connection_string = config.connection_string
+        if not self._connection_string:
+            self._connection_string = os.environ.get("GX_TEST_GENERIC_SQL_CONNECTION_STRING", "")
+        if not self._connection_string:
+            raise ValueError(
+                "GenericSQLBatchTestSetup requires a connection string. "
+                "Either pass connection_string to GenericSQLDatasourceTestConfig "
+                "or set GX_TEST_GENERIC_SQL_CONNECTION_STRING environment variable."
+            )
+        super().__init__(
+            config=config,
+            data=data,
+            extra_data=extra_data,
+            table_name=table_name,
+            engine_manager=engine_manager,
+            context=context,
+        )
 
     @override
     def build_connection_string(self, schema: str | None = None) -> str:
-        return self.config.connection_string
+        return self._connection_string
 
     @property
     @override
@@ -92,3 +124,12 @@ class GenericSQLBatchTestSetup(SQLBatchTestSetup[GenericSQLDatasourceTestConfig]
             name=self._random_resource_name(),
             table_name=self.table_name,
         )
+
+    @property
+    @override
+    def inferrable_types_lookup(self) -> InferrableTypesLookup:
+        # databricks requires a length for VARCHAR
+        overrides: InferrableTypesLookup = {
+            str: sqltypes.VARCHAR(255),
+        }
+        return super().inferrable_types_lookup | overrides
