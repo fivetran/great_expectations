@@ -47,7 +47,7 @@ This method currently supports `UnexpectedRowsExpectation` on SQL and Spark Data
 
 3. Iterate over the results and call `get_unexpected_rows()` for each failing Expectation.
 
-   The `evr.expectation` property returns the typed Expectation object from an `ExpectationValidationResult`. Pass `result.batch_parameters` to ensure the same batch is queried:
+   `get_unexpected_rows()` only supports `UnexpectedRowsExpectation`.  If your Expectation Suite contains other expectation types, check `isinstance(evr.expectation, UnexpectedRowsExpectation)` before calling the method.  Pass `result.batch_parameters` to ensure the same batch is queried:
 
    ```python title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/retrieve_all_unexpected_rows.py - retrieve unexpected rows"
    ```

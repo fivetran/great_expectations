@@ -46,6 +46,7 @@ def set_up_context_for_example(context):
 # EXAMPLE SCRIPT STARTS HERE:
 # <snippet name="docs/docusaurus/docs/core/run_validations/_examples/retrieve_all_unexpected_rows.py - full code example">
 import great_expectations as gx
+from great_expectations.expectations import UnexpectedRowsExpectation
 
 context = gx.get_context()
 # Hide this
@@ -65,7 +66,8 @@ result = validation_definition.run()
 # Iterate over results and retrieve all unexpected rows for each failing Expectation
 # <snippet name="docs/docusaurus/docs/core/run_validations/_examples/retrieve_all_unexpected_rows.py - retrieve unexpected rows">
 for evr in result.results:
-    if not evr.success:
+    # get_unexpected_rows() only supports UnexpectedRowsExpectation
+    if not evr.success and isinstance(evr.expectation, UnexpectedRowsExpectation):
         unexpected_rows = validation_definition.get_unexpected_rows(
             evr.expectation,
             batch_parameters=result.batch_parameters,
