@@ -22,6 +22,7 @@ from great_expectations.core.freshness_diagnostics import (
 from great_expectations.core.result_format import DEFAULT_RESULT_FORMAT
 from great_expectations.core.run_identifier import RunIdentifier
 from great_expectations.core.serdes import _EncodedValidationData, _IdentifierBundle
+from great_expectations.core.suite_parameters import parse_suite_parameter
 from great_expectations.data_context.cloud_constants import GXCloudRESTResource
 from great_expectations.data_context.data_context.context_factory import project_manager
 from great_expectations.data_context.types.refs import GXCloudResourceRef
@@ -39,6 +40,11 @@ from great_expectations.exceptions.exceptions import (
     StoreBackendError,
     ValidationDefinitionNotFoundError,
 )
+from great_expectations.expectations.core.unexpected_rows_expectation import (
+    UnexpectedRowsExpectation,
+)
+from great_expectations.metrics.metric_results import MetricErrorResult
+from great_expectations.metrics.query.batch_table import QueryBatchTable
 from great_expectations.validator.v1_validator import Validator
 
 if TYPE_CHECKING:
@@ -52,6 +58,7 @@ if TYPE_CHECKING:
     )
     from great_expectations.datasource.fluent.batch_request import BatchParameters
     from great_expectations.datasource.fluent.interfaces import DataAsset, Datasource
+    from great_expectations.expectations.expectation import Expectation
 
 
 @public_api
@@ -377,6 +384,69 @@ class ValidationDefinition(BaseModel):
         key = store.get_key(name=self.name, id=self.id)
 
         store.update(key=key, value=self)
+
+    @public_api
+    def get_unexpected_rows(
+        self,
+        expectation: Expectation,
+        batch_parameters: Optional[BatchParameters] = None,
+        expectation_parameters: Optional[SuiteParameterDict] = None,
+    ) -> list[dict]:
+        """Fetch all failing rows for an UnexpectedRowsExpectation without the 200-row limit.
+
+        Args:
+            expectation: The UnexpectedRowsExpectation to fetch rows for. Only
+                UnexpectedRowsExpectation is currently supported; other types raise ValueError.
+            batch_parameters: Optional batch parameters for selecting the correct batch.
+                Pass result.batch_parameters when using partitioned data.
+            expectation_parameters: Optional suite parameter values for resolving
+                parameterized queries (the $PARAMETER syntax). Only needed if the
+                expectation uses a suite parameter reference for unexpected_rows_query.
+
+        Returns:
+            A list of dicts, one per failing row.
+
+        Raises:
+            ValueError: If the expectation is not an UnexpectedRowsExpectation, if
+                unexpected_rows_query is a suite parameter reference but no
+                expectation_parameters are provided, or if the suite parameter does
+                not resolve to a string.
+            TypeError: If unexpected_rows_query is neither a string nor a supported
+                suite parameter reference.
+            RuntimeError: If the underlying metric computation fails.
+            SuiteParameterError: If a referenced suite parameter is missing or invalid.
+        """
+        if not isinstance(expectation, UnexpectedRowsExpectation):
+            raise ValueError(  # noqa: TRY003, TRY004
+                "Only UnexpectedRowsExpectation is currently supported. "
+                f"Got {type(expectation).__name__}."
+            )
+        query = expectation.unexpected_rows_query
+        if isinstance(query, dict) and "$PARAMETER" in query:
+            if not expectation_parameters:
+                raise ValueError(  # noqa: TRY003
+                    "unexpected_rows_query is a suite parameter reference "
+                    f"({query['$PARAMETER']!r}) but no expectation_parameters were provided."
+                )
+            resolved = parse_suite_parameter(
+                query["$PARAMETER"],
+                suite_parameters=expectation_parameters,
+            )
+            if not isinstance(resolved, str):
+                raise ValueError(  # noqa: TRY003
+                    f"Suite parameter {query['$PARAMETER']!r} did not resolve to a string."
+                )
+            query = resolved
+        elif not isinstance(query, str):
+            raise TypeError(  # noqa: TRY003
+                "unexpected_rows_query must be a string or suite parameter reference, "
+                f"got {type(query).__name__}."
+            )
+        batch = self.batch_definition.get_batch(batch_parameters)
+        metric_result = batch.compute_metrics(QueryBatchTable(query=query, fetch_all=True))
+        if isinstance(metric_result, MetricErrorResult):
+            raise RuntimeError(metric_result.value.exception_message)  # noqa: TRY004
+        return metric_result.value
 
     def _add_to_store(self) -> None:
         """This is used to persist a validation_definition before we run it.
