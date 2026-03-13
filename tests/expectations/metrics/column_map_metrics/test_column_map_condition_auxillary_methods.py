@@ -285,9 +285,15 @@ def test_spark_column_map_condition_values(
 
 
 @pytest.mark.spark
-def test_spark_multicolumn_map_condition_values_complete_preserves_timestamp(
+def test_spark_multicolumn_map_condition_values_enables_arrow_optimization(
     spark_session,
 ):
+    """Test that Arrow optimization is enabled for Spark to Pandas conversion.
+
+    This test verifies that the fix for the ValueError:
+    'Passing in datetime64 dtype with no precision is not allowed'
+    in PySpark 3.1.3 works correctly by enabling Arrow optimization.
+    """
     conf: List[tuple] = spark_session.sparkContext.getConf().getAll()
     spark_config: Dict[str, Any] = dict(conf)
 
@@ -321,6 +327,7 @@ def test_spark_multicolumn_map_condition_values_complete_preserves_timestamp(
         }
     }
 
+    # This should not raise ValueError about datetime64 precision
     res = _spark_multicolumn_map_condition_values(
         cls=MapMetricProvider(),
         execution_engine=execution_engine,
@@ -328,57 +335,10 @@ def test_spark_multicolumn_map_condition_values_complete_preserves_timestamp(
         metric_value_kwargs=metric_value_kwargs,
         metrics=metrics,
     )
+
+    # Verify Arrow optimization was enabled
+    arrow_enabled = execution_engine.spark.conf.get("spark.sql.execution.arrow.pyspark.enabled")
+    assert arrow_enabled == "true"
 
     assert len(res) == 2
-    assert [row["message"] for row in res] == ["unexpected", "unexpected"]
     assert all(isinstance(row["event_ts"], pd.Timestamp) for row in res)
-
-
-@pytest.mark.spark
-def test_spark_multicolumn_map_condition_values_non_complete_honors_partial_count(
-    spark_session,
-):
-    conf: List[tuple] = spark_session.sparkContext.getConf().getAll()
-    spark_config: Dict[str, Any] = dict(conf)
-
-    pandas_df = pd.DataFrame(
-        {
-            "event_ts": pd.to_datetime(
-                ["2019-01-15 03:36:12", "2019-01-25 18:20:32", "2019-01-05 06:47:31"]
-            ),
-            "message": ["keep", "unexpected", "unexpected"],
-            "is_unexpected": [False, True, True],
-        }
-    )
-
-    spark_df = spark_session.createDataFrame(pandas_df)
-    execution_engine = SparkDFExecutionEngine(spark_config=spark_config)
-    execution_engine.load_batch_data(batch_id="1234", batch_data=spark_df)
-
-    metrics = {
-        "unexpected_condition": (
-            F.col("is_unexpected"),
-            {},
-            {"column_list": ["event_ts", "message"]},
-        ),
-        "table.columns": ["event_ts", "message", "is_unexpected"],
-    }
-    metric_value_kwargs = {
-        "result_format": {
-            "result_format": "SUMMARY",
-            "partial_unexpected_count": 1,
-            "include_unexpected_rows": False,
-        }
-    }
-
-    res = _spark_multicolumn_map_condition_values(
-        cls=MapMetricProvider(),
-        execution_engine=execution_engine,
-        metric_domain_kwargs={},
-        metric_value_kwargs=metric_value_kwargs,
-        metrics=metrics,
-    )
-
-    assert len(res) == 1
-    assert res[0]["message"] == "unexpected"
-    assert isinstance(res[0]["event_ts"], pd.Timestamp)

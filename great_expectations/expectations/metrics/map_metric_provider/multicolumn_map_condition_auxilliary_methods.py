@@ -251,22 +251,17 @@ def _spark_multicolumn_map_condition_values(
 
     column_selector = [F.col(column_name).alias(column_name) for column_name in column_list]
 
+    # Enabled arrow for better data type compatibility b/w spark and pandas. Useful for pyspark versions < 3.0
+    execution_engine.spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
+    
     result_format = metric_value_kwargs["result_format"]
     if result_format["result_format"] == "COMPLETE":
-        pandas_df = filtered.select(column_selector).limit(MAX_RESULT_RECORDS).toPandas()
+        domain_values = (
+            filtered.select(column_selector).limit(MAX_RESULT_RECORDS).toPandas().to_dict("records")
+        )
     else:
         limit = min(result_format["partial_unexpected_count"], MAX_RESULT_RECORDS)
-        pandas_df = filtered.select(column_selector).limit(limit).toPandas()
-
-    # Convert timestamp columns to datetime64[ns]
-    for col in pandas_df.columns:
-        if pandas_df[col].dtype == "object":
-            try:
-                pandas_df[col] = pandas_df[col].astype("datetime64[ns]")
-            except (ValueError, TypeError):
-                pass
-
-    domain_values = pandas_df.to_dict("records")
+        domain_values = filtered.select(column_selector).limit(limit).toPandas().to_dict("records")
 
     return domain_values
 
