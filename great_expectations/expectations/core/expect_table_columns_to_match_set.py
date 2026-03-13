@@ -286,7 +286,7 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
             )
 
             exact_match_str = (
-                "exactly" if params.exact_match and params.exact_match.value is True else "at least"
+                "exactly" if params.exact_match is None or params.exact_match.value is True else "at least"
             )
 
             template_str = (
@@ -323,7 +323,7 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
                 [f"$column_list_{idx}" for idx in range(len(params["column_list"]))]
             )
 
-            exact_match_str = "exactly" if params["exact_match"] is True else "at least"
+            exact_match_str = "exactly" if params["exact_match"] is not False else "at least"
 
             template_str = f"Must have {exact_match_str} these columns (in any order): {column_list_template_str}"  # noqa: E501 # FIXME CoP
 
