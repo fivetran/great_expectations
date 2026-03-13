@@ -9,7 +9,7 @@ import Tabs from '@theme/Tabs';
 
 You can manually create Expectations via both the UI and API, and use several different GX Cloud features to generate Expectations via the UI.
 
-This page provides instructions for working with Expectations. To learn about Expectation types and options, see the [Expectations overview](/cloud/expectations/expectations_overview.md). To learn about the Expectation changelog at the Data Asset level, visit [Manage Data Assets](/cloud/data_assets/manage_data_assets.md#view-data-asset-history).
+This page provides instructions for working with Expectations. To learn about Expectation types and options, see the [Expectations overview](/cloud/expectations/expectations_overview.md).
 
 ## Create an Expectation
 
@@ -24,7 +24,12 @@ This page provides instructions for working with Expectations. To learn about Ex
 
 <TabItem value="ui" label="UI">
 
-You must have a [Data Asset](/cloud/data_assets/manage_data_assets.md) before creating an Expectation.
+You must have the following prerequisites fulfilled before creating an Expectation:
+
+- You have a [Data Asset](/cloud/data_assets/manage_data_assets.md).
+- You have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
+
+Follow the steps below to create an Expectation:
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
@@ -56,6 +61,7 @@ You must have a [Data Asset](/cloud/data_assets/manage_data_assets.md) before cr
 
 You must have the following prerequisites fulfilled before creating an Expectation:
 
+- You have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - Your [Cloud credentials](/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
@@ -177,6 +183,7 @@ Keep the following requirements in mind when working with ExpectAI:
 - The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Microsoft Fabric, Microsoft SQL Server, Neon, PostgreSQL, Redshift, or Snowflake.
 - Generated Expectations will default to warning severity, which you can edit later.
 - If your organization is using an [agent-enabled deployment](/cloud/deploy/deployment_patterns.md), you must [deploy the GX Agent](/cloud/deploy/deploy_gx_agent.md#deploy-the-gx-agent) with credentials for your own LLM.
+- You must have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 
 To add AI-recommended Expectations:
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
@@ -209,6 +216,7 @@ AND passenger_count > 4
 Keep the following requirements in mind when working with ExpectAI:
 - The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Microsoft Fabric, Microsoft SQL Server, Neon, PostgreSQL, Redshift, or Snowflake.
 - If your organization is using an [agent-enabled deployment](/cloud/deploy/deployment_patterns.md), you must [deploy the GX Agent](/cloud/deploy/deploy_gx_agent.md#deploy-the-gx-agent) with credentials for your own LLM.
+- You must have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 
 ## Edit an Expectation
 
@@ -221,6 +229,9 @@ Keep the following requirements in mind when working with ExpectAI:
    ]}
 >
 <TabItem value="ui" label="UI">
+  
+You must have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater to edit an Expectation.
+
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. In the **Data Assets** list, click the Data Asset name.
@@ -289,7 +300,24 @@ Follow the instructions below to edit an Expectation within an Expectation Suite
 If you edit the **Severity** of an Expectation, note that historical validation results will continue to indicate the severity that was recorded at the time of an Expectation failure. The newly assigned severity will apply to future validation failures only. 
 :::
 
+## View Expectation history
+
+**Expectation history** provides an audit trail to all workspace members of how an Expectation has been edited, including who made each change and when. To view an Expectation’s history, follow the steps below:
+
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
+2. In the **Data Assets** list, click the Data Asset name.
+3. On the **Expectations** tab, find the Expectation of interest.
+4. Click  <img src="/img/history.png" alt="history icon" width="20" height="20"/> **View Expectation history** for the Expectation that you want to explore.
+
+Note that the report is limited to the last 100 changes.
+
+:::tip Looking for deleted Expectations?
+For an audit trail of who removed which Expectations and when, [view Data Asset history](/cloud/data_assets/manage_data_assets.md#view-data-asset-history).
+:::
+
 ## Delete an Expectation
+
+You must have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater to delete an Expectation.
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
