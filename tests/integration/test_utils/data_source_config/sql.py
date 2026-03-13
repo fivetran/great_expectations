@@ -61,7 +61,7 @@ def _register_generic_sql_driver() -> None:
         dialect_member = object.__new__(GXSqlDialect)
         dialect_member._name_ = f"_GENERIC_TEST_{driver.upper()}"
         dialect_member._value_ = driver
-        dialect_member.__objclass__ = GXSqlDialect
+        dialect_member.__objclass__ = GXSqlDialect  # type: ignore[attr-defined] # mypy doesn't know about this CPython enum internal
         GXSqlDialect._value2member_map_[driver] = dialect_member
         GXSqlDialect._member_map_[dialect_member._name_] = dialect_member
 
