@@ -253,7 +253,7 @@ def _spark_multicolumn_map_condition_values(
 
     # Enabled arrow for better data type compatibility b/w spark and pandas. Useful for pyspark versions < 3.0
     execution_engine.spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
-    
+
     result_format = metric_value_kwargs["result_format"]
     if result_format["result_format"] == "COMPLETE":
         domain_values = (
