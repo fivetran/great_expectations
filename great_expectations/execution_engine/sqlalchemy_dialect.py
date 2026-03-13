@@ -29,7 +29,6 @@ class GXSqlDialect(Enum):
     VERTICA = "vertica"
     CLICKHOUSE = "clickhouse"
     OTHER = "other"
-    SINGLESTORE = "singlestoredb"
 
     @override
     def __eq__(self, other: Union[str, bytes, GXSqlDialect]):  # type: ignore[override] # supertype uses `object`

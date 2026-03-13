@@ -1,11 +1,7 @@
-"""Tests for the generic SQL datasource test helper.
+"""Ad-hoc integration tests for arbitrary SQL backends.
 
-These tests exercise ``GenericSQLBatchTestSetup`` by connecting to a real
-database (Postgres by default) via a plain connection string, proving that the
-helper works end-to-end without any dialect-specific config class.
-
-Override the default connection string by setting the
-``GX_TEST_GENERIC_SQL_CONNECTION_STRING`` environment variable.
+See the ``TestGenericSQL`` docstring for required environment variables
+and usage instructions.
 """
 
 import os
@@ -32,6 +28,31 @@ def connection_string() -> str:
 
 
 class TestGenericSQL:
+    """Ad-hoc smoke tests for SQL datasources not covered by CI.
+
+    Use this class to verify basic Great Expectations functionality against
+    any SQLAlchemy-compatible database.  These tests are **not** run in CI;
+    they are intended for local, on-demand validation of new or uncommon SQL
+    backends.
+
+    Configure the target database with environment variables, then run::
+
+        pytest -v -m generic_sql
+
+    Environment variables
+    ---------------------
+    ``GX_TEST_GENERIC_SQL_CONNECTION_STRING`` (required)
+        SQLAlchemy connection string for the target database, e.g.
+        ``singlestoredb://user:pass@host:3306/db``.
+    ``GX_TEST_GENERIC_SQL_DRIVER``
+        SQLAlchemy dialect name (e.g. ``singlestoredb``).  When set, the
+        driver is dynamically registered as a ``GXSqlDialect`` member.
+        Leave unset if the dialect is already in ``GXSqlDialect``.
+    ``GX_TEST_GENERIC_SQL_AUTOCOMMIT``
+        Set to any non-empty value to mark the dialect as auto-committing,
+        Leave unset or empty for databases that use normal transactions.
+    """
+
     DATA = pd.DataFrame(
         {
             "name": ["alice", "bob", "charlie"],
