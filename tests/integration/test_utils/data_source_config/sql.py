@@ -176,10 +176,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
         # Skip commit for auto-commit databases (they commit automatically)
         if dialect_name not in _AUTO_COMMIT_DIALECTS:
-            try:
-                conn.commit()
-            except AttributeError:
-                pass
+            conn.commit()
 
     @staticmethod
     def _sanitize_null_values(values: list[dict]) -> list[dict]:
