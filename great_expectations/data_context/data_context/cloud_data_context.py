@@ -771,7 +771,13 @@ class CloudDataContext(SerializableDataContext):
                 base=base_url,
                 url=f"/api/v1/organizations/{org_id}/checkpoints/{checkpoint.id}/expectation-parameters",
             )
-        with create_session(access_token=self.ge_cloud_config.access_token) as session:
+
+        # temporarily extend expectation parameter timeout to 10 minutes
+        # while a more robust solution is implemented
+        EXPECTATION_PARAMS_TIMEOUT = 600
+        with create_session(
+            access_token=self.ge_cloud_config.access_token, timeout=EXPECTATION_PARAMS_TIMEOUT
+        ) as session:
             response = session.get(url=expectation_parameters_url)
 
         if not response.ok:
