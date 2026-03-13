@@ -251,7 +251,7 @@ def _spark_multicolumn_map_condition_values(
 
     column_selector = [F.col(column_name).alias(column_name) for column_name in column_list]
 
-    # Enabled arrow for better data type compatibility b/w spark and pandas. Useful for pyspark versions < 3.0
+    # Enabled arrow for better data type compatibility b/w spark and pandas
     execution_engine.spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
 
     result_format = metric_value_kwargs["result_format"]
