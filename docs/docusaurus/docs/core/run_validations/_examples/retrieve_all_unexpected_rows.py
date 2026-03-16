@@ -63,10 +63,10 @@ validation_definition = context.validation_definitions.get(validation_definition
 result = validation_definition.run()
 # </snippet>
 
-# Iterate over results and retrieve all unexpected rows for each failing Expectation
+# Iterate over results and retrieve all unexpected rows for each failing UnexpectedRowsExpectation
 # <snippet name="docs/docusaurus/docs/core/run_validations/_examples/retrieve_all_unexpected_rows.py - retrieve unexpected rows">
 for evr in result.results:
-    # get_unexpected_rows() only supports UnexpectedRowsExpectation
+    # Filter by status and type because get_unexpected_rows() supports only UnexpectedRowsExpectation
     if not evr.success and isinstance(evr.expectation, UnexpectedRowsExpectation):
         unexpected_rows = validation_definition.get_unexpected_rows(
             evr.expectation,
