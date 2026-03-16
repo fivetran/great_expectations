@@ -46,7 +46,7 @@ By default, Validation Results summarize why Expectations failed or succeeded. T
 
 3. Iterate over the results and call `get_unexpected_rows()` for each failing custom SQL Expectation.
 
-   The `get_unexpected_rows()` method only supports `UnexpectedRowsExpectation`.  If your Expectation Suite contains other Expectation types, check `isinstance(evr.expectation, UnexpectedRowsExpectation)` before calling the method.  Pass `result.batch_parameters` to ensure the same batch is queried:
+   The `get_unexpected_rows()` method only supports `UnexpectedRowsExpectation`.  If your Expectation Suite contains other Expectation types, check `isinstance(evr.expectation, UnexpectedRowsExpectation)` before calling the method.  If your Batch Definition uses partitioning, pass `result.batch_parameters`:
 
    ```python title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/retrieve_all_unexpected_rows.py - retrieve unexpected rows"
    ```
