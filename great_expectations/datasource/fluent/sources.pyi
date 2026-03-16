@@ -1,36 +1,15 @@
-from __future__ import annotations
-
 import sys
-from typing import TYPE_CHECKING, Any, Dict, Literal, Optional, Type
+from typing import Any, Dict, Optional
 
 if sys.version_info >= (3, 11):
-    from typing import Self
+    pass
 else:
-    from typing_extensions import Self
+    pass
 
-from great_expectations.compatibility import google, pydantic
+from great_expectations.compatibility import pydantic
 from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.datasource.fluent.interfaces import (
-    BatchSlice,
     DataAsset,
-    Datasource,
-    Sorter,
-    TestConnectionError,
-)
-from great_expectations.datasource.fluent.pandas_datasource import (
-    CSVAsset,
-    DataFrameAsset,
-    ExcelAsset,
-    FeatherAsset,
-    FWFAsset,
-    HDFAsset,
-    JSONAsset,
-    ORCAsset,
-    ParquetAsset,
-    PickleAsset,
-    SASAsset,
-    SPSSAsset,
-    StataAsset,
 )
 from great_expectations.datasource.fluent.pandas_file_path_datasource import (
     PandasFilePathDatasource,
@@ -43,11 +22,7 @@ from great_expectations.datasource.fluent.spark_file_path_datasource import (
 )
 from great_expectations.datasource.fluent.sql_datasource import (
     SQLDatasource,
-    TableAsset as SQLTableAsset,
 )
-
-if TYPE_CHECKING:
-    from great_expectations.datasource.fluent import BatchRequest
 
 class _SourceFactories:
     """
