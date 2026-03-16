@@ -66,7 +66,7 @@ Among the available Expectations, the `UnexpectedRowsExpectation` is designed to
 
    :::tip Retrieving all unexpected rows
 
-   By default, Validation Results include up to 200 unexpected rows. To retrieve **all** failing rows from an `UnexpectedRowsExpectation`, use `ValidationDefinition.get_unexpected_rows()`. See [Retrieve all unexpected rows](/core/run_validations/retrieve_all_unexpected_rows.md).
+   By default, Validation Results include up to 200 unexpected rows. To retrieve all failing rows from an `UnexpectedRowsExpectation`, use `ValidationDefinition.get_unexpected_rows()`. See [Retrieve all unexpected rows](/core/run_validations/retrieve_all_unexpected_rows.md).
 
    :::
 
