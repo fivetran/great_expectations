@@ -1,6 +1,6 @@
 ---
 title: "Run Validations"
-description: Learn how to associate a Batch Definition with an Expectation Suite, set a format for results, and run a Validation Definition using default parameters or parameters provided at runtime.
+description: Validate your Expectations against your data and explore the results.
 hide_feedback_survey: true
 hide_title: true
 ---
@@ -10,7 +10,7 @@ import LinkCard from '@site/src/components/LinkCard';
 import OverviewCard from '@site/src/components/OverviewCard';
 
 <OverviewCard title={frontMatter.title}>
-  Learn how to associate a Batch Definition with an Expectation Suite, set a format for results, and run a Validation Definition using default parameters or parameters provided at runtime.
+  Validate your Expectations against your data and explore the results.
 </OverviewCard>
 
 
