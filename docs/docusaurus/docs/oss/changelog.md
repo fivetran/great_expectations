@@ -15,6 +15,11 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.15.1
+* [DOCS] Expectation history ([#11704](https://github.com/great-expectations/great_expectations/pull/11704))
+* [MAINTENANCE] remove nested actions format ([#11713](https://github.com/great-expectations/great_expectations/pull/11713))
+* [MAINTENANCE] increase expectation parameter timeout ([#11716](https://github.com/great-expectations/great_expectations/pull/11716))
+
 ### 1.15.0
 * [MINORBUMP] SQL Server and Fabric Data Sources ([#11686](https://github.com/great-expectations/great_expectations/pull/11686))
 * [MINORBUMP] Add ValidationDefinition.get_unexpected_rows() ([#11711](https://github.com/great-expectations/great_expectations/pull/11711))

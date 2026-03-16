@@ -41,6 +41,38 @@ logger = logging.getLogger(__name__)
 _AUTO_COMMIT_DIALECTS = {GXSqlDialect.DATABRICKS}
 
 
+def _register_generic_sql_driver() -> None:
+    """Dynamically register a SQL dialect from environment variables.
+
+    Reads ``GX_TEST_GENERIC_SQL_DRIVER`` and, when set, ensures the driver
+    string is a valid ``GXSqlDialect`` member.  If
+    ``GX_TEST_GENERIC_SQL_AUTOCOMMIT`` is also set (non-empty), the dialect is
+    added to ``_AUTO_COMMIT_DIALECTS``.
+    """
+    import os
+
+    driver = os.environ.get("GX_TEST_GENERIC_SQL_DRIVER", "")
+    if not driver:
+        return
+
+    try:
+        dialect_member = GXSqlDialect(driver)
+    except ValueError:
+        dialect_member = object.__new__(GXSqlDialect)
+        dialect_member._name_ = f"_GENERIC_TEST_{driver.upper()}"
+        dialect_member._value_ = driver
+        dialect_member.__objclass__ = GXSqlDialect  # type: ignore[attr-defined] # mypy doesn't know about this CPython enum internal
+        GXSqlDialect._value2member_map_[driver] = dialect_member
+        GXSqlDialect._member_map_[dialect_member._name_] = dialect_member
+
+    autocommit = os.environ.get("GX_TEST_GENERIC_SQL_AUTOCOMMIT", "")
+    if autocommit:
+        _AUTO_COMMIT_DIALECTS.add(dialect_member)
+
+
+_register_generic_sql_driver()
+
+
 @dataclass(frozen=True)
 class _TableData:
     name: str
