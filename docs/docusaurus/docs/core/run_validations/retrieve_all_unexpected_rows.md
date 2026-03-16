@@ -39,7 +39,7 @@ By default, Validation Results summarize why Expectations failed or succeeded. T
 
 2. Run the Validation Definition to get a result.
 
-   If your [Batch Definition is partitioned](/core/connect_to_data/sql_data.md/?batch_definition=partitioned#create-a-batch-definition), pass the appropriate `batch_parameters`:
+   If your [Batch Definition is partitioned](/core/connect_to_data/sql_data/sql_data.md?batch_definition=partitioned#create-a-batch-definition), pass the appropriate `batch_parameters`:
 
    ```python title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/retrieve_all_unexpected_rows.py - run validation"
    ```
