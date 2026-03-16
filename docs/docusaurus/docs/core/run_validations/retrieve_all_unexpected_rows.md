@@ -1,5 +1,6 @@
 ---
 title: Retrieve all unexpected rows
+description: Retrieve all failing rows from a custom SQL Expectation so you can quarantine them or process them however you need.
 ---
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
