@@ -286,7 +286,9 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
             )
 
             exact_match_str = (
-                "exactly" if params.exact_match is None or params.exact_match.value is True else "at least"
+                "exactly"
+                if params.exact_match is None or params.exact_match.value is True
+                else "at least"
             )
 
             template_str = (
