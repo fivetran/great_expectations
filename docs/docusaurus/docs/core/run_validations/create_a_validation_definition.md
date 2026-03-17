@@ -67,7 +67,7 @@ A Validation Definition is a fixed reference that links a Batch of data to an Ex
 
 <TabItem value="sample_code" label="Sample code">
 
-```python showLineNumbers title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/create_a_validation_definition.py - full code example"
+```python title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/create_a_validation_definition.py - full code example"
 ```
 
 </TabItem>

@@ -68,7 +68,7 @@ import PrereqValidationDefinition from '../_core_components/prerequisites/_valid
 
 <TabItem value="sample_code" label="Sample code">
 
-```python showLineNumbers title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - full code example"
+```python title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - full code example"
 ```
 
 </TabItem>

@@ -18,7 +18,6 @@ context = gx.get_context()
 # Hide this
 set_up_context_for_example(context)
 
-
 # Use the `pandas_default` Data Source to retrieve a Batch of sample Data from a data file:
 file_path = "./data/folder_with_data/yellow_tripdata_sample_2019-01.csv"
 batch = context.data_sources.pandas_default.read_csv(file_path)
