@@ -1,3 +1,0 @@
-numpy==2.1.0
-pandas==2.2.3
-sqlalchemy==2.0.31

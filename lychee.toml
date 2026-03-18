@@ -1,7 +1,0 @@
-# Lychee configuration to handle transient network errors
-
-accept = ["200"]
-
-timeout = 20
-
-max_retries = 3

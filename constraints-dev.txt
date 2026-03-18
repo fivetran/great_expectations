@@ -1,7 +1,0 @@
-# The pip resolver became more strict starting with version 20.3
-# This constraints file is "a way to specify global (version) limits for packages"
-# without specifying the install of these packages.
-# See also: https://pip.pypa.io/en/stable/user_guide/#constraints-files
-# We use it to place limits on certain packages to help the resolver come to a compatible configuration more quickly
-# To install dev dependencies using the new pip resolver (recommended) please use the following syntax:
-# `python -m pip install -c constraints-dev.txt ".[test, postgresql, spark]"`

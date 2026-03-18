@@ -1,7 +1,0 @@
-{
-  "name": "yellow_tripdata_validations",
-  "expectations": [],
-  "meta": {
-    "great_expectations_version": "0.13.17+49.g44630e38f.dirty"
-  }
-}

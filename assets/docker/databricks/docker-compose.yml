@@ -1,3 +1,0 @@
-services:
-  databricks:
-    image: ${ECR_PULL_THROUGH_REPOSITORY_URL}databricksruntime/python
