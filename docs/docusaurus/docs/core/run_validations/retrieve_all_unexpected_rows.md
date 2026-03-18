@@ -63,7 +63,7 @@ By default, Validation Results summarize why Expectations failed or succeeded. T
 
 <TabItem value="sample_code" label="Sample code">
 
-```python title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/retrieve_all_unexpected_rows.py - full code example"
+```python showLineNumbers title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/retrieve_all_unexpected_rows.py - full code example"
 ```
 
 </TabItem>
