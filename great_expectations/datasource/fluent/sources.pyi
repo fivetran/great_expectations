@@ -313,6 +313,7 @@ class DataSourceManager:
         *,
         connection_string: Union[ConfigStr, str] = ...,
         create_temp_table: bool = True,
+        kwargs: dict[str, Any] = ...,
     ) -> BigQueryDatasource: ...
     def update_bigquery(
         self,
@@ -322,6 +323,7 @@ class DataSourceManager:
         *,
         connection_string: Union[ConfigStr, str] = ...,
         create_temp_table: bool = True,
+        kwargs: dict[str, Any] = ...,
     ) -> BigQueryDatasource: ...
     def add_or_update_bigquery(
         self,
@@ -331,6 +333,7 @@ class DataSourceManager:
         *,
         connection_string: Union[ConfigStr, str] = ...,
         create_temp_table: bool = True,
+        kwargs: dict[str, Any] = ...,
     ) -> BigQueryDatasource: ...
     def delete_bigquery(
         self,
