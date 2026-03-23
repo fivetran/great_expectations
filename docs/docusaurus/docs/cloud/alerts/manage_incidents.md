@@ -63,11 +63,11 @@ You can create an incident from the **Incidents** tab or the **Validations** tab
    - From a [slack or email notification](https://docs.greatexpectations.io/docs/cloud/alerts/alert_about_failures) about Expectation failures, click **View Validation Results** or **View details**.
    - In GX Cloud, do the following:
    
-      a. Select the relevant **Workspace** and then click **Data Assets**.
-      b. In the **Data Assets** list, click the Data Asset name.
-      c. Click the **Validations** tab.
-      d. If you have multiple **Expectation Suites**, select the suite of interest.
-      e. Select an entry in the **Batches & run history** pane.
+      1. Select the relevant **Workspace** and then click **Data Assets**.
+      2. In the **Data Assets** list, click the Data Asset name.
+      3. Click the **Validations** tab.
+      4. If you have multiple **Expectation Suites**, select the suite of interest.
+      5. Select an entry in the **Batches & run history** pane.
 
 2. Find the Expectation failure you want to link and click <img src="/img/link_icon.png" alt="link icon" width="20" height="20"/> **Link an issue**.
 3. Select one or more Jira **Issues**.
