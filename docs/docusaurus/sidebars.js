@@ -220,7 +220,9 @@ module.exports = {
       label: 'Respond to results',
       link: { type: 'doc', id: 'cloud/alerts/alerts_lp' },
       items: [
+        { type: 'doc', id: 'cloud/alerts/responses_overview' },
         { type: 'doc', id: 'cloud/alerts/alert_about_failures' },
+        { type: 'doc', id: 'cloud/alerts/manage_incidents' },
         { type: 'doc', id: 'cloud/alerts/trigger_actions' },
         { type: 'doc', id: 'cloud/alerts/custom_actions' }
       ]
@@ -237,6 +239,7 @@ module.exports = {
       items: [
         'cloud/integrations/integrate_atlan',
         'cloud/integrations/integrate_airflow',
+        'cloud/integrations/integrate_jira',
         'cloud/integrations/integrate_slack'
       ]
     },
