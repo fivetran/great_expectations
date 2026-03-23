@@ -59,13 +59,16 @@ You can create an incident from the **Incidents** tab or the **Validations** tab
 
 <TabItem value="validations" label="Validations">
 1. Navigate to a failed Validation run in one of the following ways:
+
    - From a [slack or email notification](https://docs.greatexpectations.io/docs/cloud/alerts/alert_about_failures) about Expectation failures, click **View Validation Results** or **View details**.
    - In GX Cloud, do the following:
+   
       a. Select the relevant **Workspace** and then click **Data Assets**.
       b. In the **Data Assets** list, click the Data Asset name.
       c. Click the **Validations** tab.
       d. If you have multiple **Expectation Suites**, select the suite of interest.
       e. Select an entry in the **Batches & run history** pane.
+
 2. Find the Expectation failure you want to link and click <img src="/img/link_icon.png" alt="link icon" width="20" height="20"/> **Link an issue**.
 3. Select one or more Jira **Issues**.
 4. Click **Save**.
@@ -74,7 +77,7 @@ You can create an incident from the **Incidents** tab or the **Validations** tab
 </Tabs>
 
 
-## Edit or resolve an incident.
+## Edit or resolve an incident
 
 As data quality problems are addressed, you can unlink Expectation failures and Jira issues to resolve incidents. You can unlink a single Expectation failure or all Expectation failures that were linked to a Jira issue. 
 
@@ -96,6 +99,7 @@ As data quality problems are addressed, you can unlink Expectation failures and 
 6. Find the Expectation failure you want to unlink and hover over the <img src="/img/jira_logo.png" alt="jira logo" width="20" height="20"/> **Jira** icon.
 7. Find the issue you want to unlink and click <img src="/img/unlink_icon.png" alt="unlink icon" width="20" height="20"/>  **Unlink issue**.
 8. Review the warning and click **Unlink** to confirm.
+
 If the issue was linked to multiple Expectation failures, it will remain on the **Incidents** tab to track those remaining links. If the issue was linked to only the one Expectation failure, the issue will be removed from the **Incidents** tab as fully resolved.
 </TabItem>
 
@@ -105,6 +109,7 @@ If the issue was linked to multiple Expectation failures, it will remain on the 
 3. Click the **Incidents** tab.
 4. Find the issue you want to unlink and click <img src="/img/unlink_icon.png" alt="unlink icon" width="20" height="20"/> **Unlink issue**.
 5. Review the warning and click **Unlink** to confirm.
+
 The issue will be removed from the **Incidents** tab as fully resolved.
 </TabItem>
 
