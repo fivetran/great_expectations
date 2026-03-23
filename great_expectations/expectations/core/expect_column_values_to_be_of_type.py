@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 
 from great_expectations.compatibility import aws, pydantic, pyspark, trino
+from great_expectations.core.metric_function_types import SummarizationMetricNameSuffixes
 from great_expectations.compatibility.bigquery import (
     BIGQUERY_GEO_SUPPORT,
     bigquery_types_tuple,
@@ -26,9 +27,11 @@ from great_expectations.execution_engine.sqlalchemy_dialect import (
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
+    _format_map_output,
     _style_row_condition,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.expectation_configuration import parse_result_format
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
@@ -512,6 +515,7 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
         ).get_validation_dependencies(execution_engine, runtime_configuration)
 
         configuration = self.configuration
+        map_dependencies = False
 
         # Only PandasExecutionEngine supports the column map version of the expectation.
         kwargs = configuration.kwargs if configuration else {}
@@ -559,6 +563,7 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
                 validation_dependencies = super().get_validation_dependencies(
                     execution_engine, runtime_configuration
                 )
+                map_dependencies = True
 
         # this adds table.column_types dependency for both aggregate and map versions of expectation
         column_types_metric_kwargs = get_metric_kwargs(
@@ -575,7 +580,98 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
             ),
         )
 
+        if not map_dependencies:
+            self._register_aggregate_row_metrics(validation_dependencies, runtime_configuration)
+
         return validation_dependencies
+
+    def _register_aggregate_row_metrics(
+        self,
+        validation_dependencies: ValidationDependencies,
+        runtime_configuration: Optional[dict],
+    ) -> None:
+        nonnull_metric = (
+            f"column_values.nonnull.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}"
+        )
+        metric_kwargs = get_metric_kwargs(
+            metric_name=nonnull_metric,
+            configuration=self.configuration,
+            runtime_configuration=runtime_configuration,
+        )
+        validation_dependencies.set_metric_configuration(
+            metric_name=nonnull_metric,
+            metric_configuration=MetricConfiguration(
+                metric_name=nonnull_metric,
+                metric_domain_kwargs=metric_kwargs["metric_domain_kwargs"],
+                metric_value_kwargs=metric_kwargs["metric_value_kwargs"],
+            ),
+        )
+        metric_kwargs = get_metric_kwargs(
+            metric_name="table.row_count",
+            configuration=self.configuration,
+            runtime_configuration=runtime_configuration,
+        )
+        validation_dependencies.set_metric_configuration(
+            metric_name="table.row_count",
+            metric_configuration=MetricConfiguration(
+                metric_name="table.row_count",
+                metric_domain_kwargs=metric_kwargs["metric_domain_kwargs"],
+                metric_value_kwargs=metric_kwargs["metric_value_kwargs"],
+            ),
+        )
+
+    def _format_aggregate_map_style_result(
+        self,
+        metrics: Dict,
+        inner: Dict[str, Any],
+        runtime_configuration: Optional[dict],
+    ) -> Dict[str, Any]:
+        success = inner["success"]
+        result_format = self._get_result_format(runtime_configuration=runtime_configuration)
+        include_unexpected_rows: bool
+        unexpected_index_column_names: int | str | list[str] | None
+        if isinstance(result_format, dict):
+            include_unexpected_rows = result_format.get("include_unexpected_rows", False)
+            unexpected_index_column_names = result_format.get("unexpected_index_column_names", None)
+        else:
+            include_unexpected_rows = False
+            unexpected_index_column_names = None
+
+        parsed_result_format = parse_result_format(result_format)
+        total_count: Optional[int] = metrics.get("table.row_count")
+        null_count: Optional[int] = metrics.get(
+            f"column_values.nonnull.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}"
+        )
+        if total_count is None or null_count is None:
+            total_count = 0
+            nonnull_count = 0
+        else:
+            nonnull_count = total_count - null_count
+
+        unexpected_count = 0 if success else total_count
+
+        unexpected_rows = None
+        if include_unexpected_rows:
+            unexpected_rows = metrics.get(
+                f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_ROWS.value}"
+            )
+
+        formatted = _format_map_output(
+            result_format=parsed_result_format,
+            success=success,
+            element_count=total_count,
+            nonnull_count=nonnull_count,
+            unexpected_count=unexpected_count,
+            unexpected_list=[],
+            unexpected_index_list=None,
+            unexpected_rows=unexpected_rows,
+            unexpected_index_query=None,
+            unexpected_index_column_names=unexpected_index_column_names,
+        )
+        inner_result = inner.get("result")
+        if inner_result and "result" in formatted:
+            formatted["result"].update(inner_result)
+        return formatted
 
     @override
     def _validate(
@@ -611,18 +707,27 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
             ]:
                 # this calls ColumnMapMetric._validate
                 return super()._validate(metrics, runtime_configuration, execution_engine)
-            return self._validate_pandas(
+            inner = self._validate_pandas(
                 actual_column_type=actual_column_type, expected_type=expected_type
             )
+            return self._format_aggregate_map_style_result(
+                metrics, inner, runtime_configuration
+            )
         elif isinstance(execution_engine, SqlAlchemyExecutionEngine):
-            return self._validate_sqlalchemy(
+            inner = self._validate_sqlalchemy(
                 actual_column_type=actual_column_type,
                 expected_type=expected_type,
                 execution_engine=execution_engine,
             )
+            return self._format_aggregate_map_style_result(
+                metrics, inner, runtime_configuration
+            )
         elif isinstance(execution_engine, SparkDFExecutionEngine):
-            return self._validate_spark(
+            inner = self._validate_spark(
                 actual_column_type=actual_column_type, expected_type=expected_type
+            )
+            return self._format_aggregate_map_style_result(
+                metrics, inner, runtime_configuration
             )
 
 
