@@ -11,7 +11,7 @@ GX Cloud provides incident management [integrations](/cloud/integrations/integra
 
 [Screenshot of Jira link in individual validation results]
 
-:::notes More integrations are coming soon
+:::note More integrations are coming soon
 Integrations for PagerDuty and ServiceNow are coming soon. [Contact us](mailto:sales@greatexpectations.io) to learn more or to request a different integration.
 :::
 

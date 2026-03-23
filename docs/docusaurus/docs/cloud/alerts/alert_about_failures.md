@@ -4,14 +4,14 @@ title: 'Alert about failures'
 description: Create and manage alerts in GX Cloud.
 ---
 
-Keep yourself and your stakeholders informed about Expectation failures by configuring alerts in GX Cloud. When a Validation run fails, GX Cloud will send notifications according to your alert settings. Notifications provide high-level information about how many Expectations failed and include a link to detailed Validation Results, where you can investigate the failures to determine next steps. 
+Keep yourself and your stakeholders informed about Expectation failures by configuring alerts in GX Cloud. When a Validation run fails, GX Cloud will send notifications according to your alert settings. Notifications provide high-level information about how many Expectations failed and include a link to detailed Validation Results, where you can investigate the failures to determine next steps and optionally create an [incident](/cloud/alerts/manage_incidents.md) to track resolving the issue that led to the failure. 
 
 Alerts are configured at the Data Asset level. A single Data Asset can have multiple alerts configured. An alert can be configured to notify about all Expectation failures or only failures of certain [severities](/cloud/expectations/expectations_overview.md#failure-severity).
 
 Alerts can send notifications to email addresses or notifications with @mentions to public Slack channels. Note that to enable @mentions for Slack, your GX Cloud workspace must be [integrated with Slack](/cloud/integrations/integrate_slack.md).
 
 :::note More integrations are coming soon
-Integrations for Jira, Microsoft Teams, PagerDuty, and ServiceNow are coming soon. In the meantime, you can use email alerts as described below. [Contact us](mailto:sales@greatexpectations.io) to learn more or to request a different integration.
+Integrations for Microsoft Teams, PagerDuty, and ServiceNow are coming soon. In the meantime, you can use email alerts as described below. [Contact us](mailto:sales@greatexpectations.io) to learn more or to request a different integration.
 :::
 
 To keep your email alerts secure, your GX Cloud organization has an allowlist of email domains that all alert recipient email addresses must belong to. By default, this includes the email domain of the Organization Owner who created the organization and domains for sending email notifications to the following third-party services: [Microsoft Teams](https://support.microsoft.com/en-us/office/send-an-email-to-a-channel-in-microsoft-teams-d91db004-d9d7-4a47-82e6-fb1b16dfd51e), [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide), and [ServiceNow](https://www.servicenow.com/docs/r/washingtondc/build-workflows/create-inbound-email-flow.html).
