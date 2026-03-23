@@ -49,7 +49,7 @@ Follow the steps below to add credentials for the Atlassian service account:
 
 ## Connect to Jira
 
-1. In GX Cloud, select the relevant **Workspac** and then click **Integrations**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Integrations**.
 2. Locate the **Jira** integration and click **Connect**.
 3. Enter the **Client ID** and **Client secret** from your Atlassian service account.
 3. Click **Connect**.

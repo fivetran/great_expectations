@@ -1,6 +1,6 @@
 ---
 sidebar_label: 'Responses overview'
-title: 'Responses overivew'
+title: 'Responses overview'
 description: When Expectations fail, you can notify stakeholders to raise awareness, open an incident to track resolution, or trigger programmatic actions for custom business logic.
 ---
 
