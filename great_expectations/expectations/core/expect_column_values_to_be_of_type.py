@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 
 from great_expectations.compatibility import aws, pydantic, pyspark, trino
-from great_expectations.core.metric_function_types import SummarizationMetricNameSuffixes
 from great_expectations.compatibility.bigquery import (
     BIGQUERY_GEO_SUPPORT,
     bigquery_types_tuple,
@@ -19,6 +18,7 @@ from great_expectations.compatibility.bigquery import (
 )
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.core.metric_function_types import SummarizationMetricNameSuffixes
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )
@@ -710,25 +710,19 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
             inner = self._validate_pandas(
                 actual_column_type=actual_column_type, expected_type=expected_type
             )
-            return self._format_aggregate_map_style_result(
-                metrics, inner, runtime_configuration
-            )
+            return self._format_aggregate_map_style_result(metrics, inner, runtime_configuration)
         elif isinstance(execution_engine, SqlAlchemyExecutionEngine):
             inner = self._validate_sqlalchemy(
                 actual_column_type=actual_column_type,
                 expected_type=expected_type,
                 execution_engine=execution_engine,
             )
-            return self._format_aggregate_map_style_result(
-                metrics, inner, runtime_configuration
-            )
+            return self._format_aggregate_map_style_result(metrics, inner, runtime_configuration)
         elif isinstance(execution_engine, SparkDFExecutionEngine):
             inner = self._validate_spark(
                 actual_column_type=actual_column_type, expected_type=expected_type
             )
-            return self._format_aggregate_map_style_result(
-                metrics, inner, runtime_configuration
-            )
+            return self._format_aggregate_map_style_result(metrics, inner, runtime_configuration)
 
 
 def _get_potential_sqlalchemy_types(execution_engine, expected_type):
