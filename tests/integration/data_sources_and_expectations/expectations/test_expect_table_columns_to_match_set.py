@@ -16,6 +16,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
     DataSourceTestConfig,
+    GenericSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     RedshiftDatasourceTestConfig,
@@ -185,6 +186,7 @@ SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT: Sequence[DataSourceTestConfig] = [
     SQLServerDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
+    GenericSQLDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
 ]
 

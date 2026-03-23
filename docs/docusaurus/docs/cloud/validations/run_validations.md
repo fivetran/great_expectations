@@ -500,6 +500,8 @@ When the Validation is complete, you can [view the results in the GX Cloud UI](#
 
 ## View Validation run history
 
+All workspace members can view Validation Results.
+
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. In the **Data Assets** list, click the Data Asset name.

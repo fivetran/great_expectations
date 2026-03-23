@@ -694,6 +694,7 @@ markers = [
     "project: mark a test that verifies properties of the gx project",
     "pyarrow: mark a test as PyArrow-dependent.",
     "redshift: mark a test as redshift-dependent.",
+    "generic_sql: mark a test as generic SQL database-dependent.",
     "snowflake: mark a test as snowflake-dependent.",
     "sqlalchemy_version_compatibility: mark test as required for sqlalchemy version compatibility.",
     "sqlite: mark test requiring sqlite",

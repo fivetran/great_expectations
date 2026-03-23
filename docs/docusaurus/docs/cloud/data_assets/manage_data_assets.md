@@ -157,6 +157,10 @@ For an audit trail of who added or removed which Expectations and when, visit a 
 
 Note that the report is limited to the last 100 changes. 
 
+:::tip Looking for changes to a specific Expectation?
+For an audit trail of edits to an Expectation’s configuration, such as changes in Expectation parameters or row conditions, [view the Expectation history](/cloud/expectations/manage_expectations.md#view-expectation-history).
+:::
+
 ## Delete a Data Asset
 
 

@@ -9,6 +9,7 @@ from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
     DataSourceTestConfig,
+    GenericSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
@@ -29,6 +30,7 @@ ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     PandasFilesystemCsvDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
+    GenericSQLDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     SparkFilesystemCsvDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
@@ -47,6 +49,7 @@ SQL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
+    GenericSQLDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
 ]
@@ -59,6 +62,7 @@ DATA_SOURCES_THAT_SUPPORT_DATE_COMPARISONS: Sequence[DataSourceTestConfig] = [
     PandasDataFrameDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
+    GenericSQLDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     SparkFilesystemCsvDatasourceTestConfig(),
 ]
