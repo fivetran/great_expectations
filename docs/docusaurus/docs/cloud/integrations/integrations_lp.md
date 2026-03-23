@@ -19,5 +19,7 @@ import OverviewCard from '@site/src/components/OverviewCard';
 
   <LinkCard topIcon label="Airflow" description="Validate data directly from a DAG." to="/cloud/integrations/integrate_airflow" icon="/img/airflow_icon.png"/>
 
+  <LinkCard topIcon label="Jira" description="Enable incident management that links Expectation failures to Jira issues." to="/cloud/integrations/integrate_jira" icon="/img/jira_icon.png"/>
+
   <LinkCard topIcon label="Slack" description="Enable configuring alerts that @mention stakeholders or yourself in Slack." to="/cloud/integrations/integrate_slack" icon="/img/slack_logo.svg"/>
 </LinkCardGrid>
