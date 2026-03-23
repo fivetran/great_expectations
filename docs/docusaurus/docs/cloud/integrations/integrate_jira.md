@@ -24,7 +24,7 @@ Follow the steps below to create an Atlassian service account:
 6. For the optional **Description**, enter `GX Cloud integration authorizing user` or something similar.
 7. Click **Next**.
 8. On the **Select app roles** screen, find your **Jira** app, and under **Roles** select **User**. 
-   ::: Want to restrict the integration to specific Jira spaces?
+   :::note Want to restrict the integration to specific Jira spaces?
    By default, the GX Cloud Jira integration lets your team link Expectation failures to Jira issues in any space of your Jira site. To restrict the integration to specific Jira spaces, you can add [Groups](https://www.atlassian.com/software/jira/guides/permissions/overview#what-are-users-and-groups) for your service account’s app roles instead of granting User permissions for your whole Jira app.
    :::
 9. Click **Create**.
