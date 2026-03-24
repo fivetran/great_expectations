@@ -32,7 +32,12 @@ By default, Validation Results summarize why Expectations failed or succeeded. T
 
 <TabItem value="instructions" label="Instructions">
 
-1. Retrieve your Validation Definition:
+1. Retrieve your Validation Definition:
+
+   :::tip You can use a Checkpoint instead.
+   While this example shows how to retrieve all unexpected rows after running a Validation Definition, you can use the `ValidationDefinition.get_unexpected_rows()` method after running a [Checkpoint](/docs/core/trigger_actions_based_on_results/run_a_checkpoint.md). 
+   :::
+
 
    ```python title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/retrieve_all_unexpected_rows.py - retrieve Validation Definition"
    ```
