@@ -77,7 +77,7 @@ _MISSING: Final = object()
 
 JSON_ENCODERS: dict[Type, Callable] = {}
 if TextClause:  # type: ignore[truthy-function] # FIXME CoP
-    JSON_ENCODERS[TextClause] = lambda v: str(v)
+    JSON_ENCODERS[TextClause] = str
 
 T = TypeVar("T")
 

@@ -515,8 +515,8 @@ def deep_filter_properties_iterable(  # noqa: C901, PLR0913 # FIXME CoP
         # Upon unwinding the call stack, do a sanity check to ensure cleaned properties.
         keys_to_delete: List[str] = list(
             filter(
-                lambda k: (
-                    k not in keep_fields  # type: ignore[arg-type] # FIXME CoP
+                lambda k: (  # type: ignore[arg-type]
+                    k not in keep_fields  # FIXME CoP
                     and _is_to_be_removed_from_deep_filter_properties_iterable(
                         value=properties[k],
                         clean_nulls=clean_nulls,
