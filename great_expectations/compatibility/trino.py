@@ -9,17 +9,17 @@ TRINO_NOT_IMPORTED = NotImported(
 try:
     import trino
 except ImportError:
-    trino = TRINO_NOT_IMPORTED
+    trino = TRINO_NOT_IMPORTED  # type: ignore[assignment] # NotImported is used at runtime when trino is not installed
 
 try:
     from trino.sqlalchemy import datatype as trinotypes
 except (ImportError, AttributeError):
-    trinotypes = TRINO_NOT_IMPORTED
+    trinotypes = TRINO_NOT_IMPORTED  # type: ignore[assignment] # NotImported is used at runtime when trino is not installed
 
 try:
     from trino.sqlalchemy import dialect as trinodialect
 except (ImportError, AttributeError):
-    trinodialect = TRINO_NOT_IMPORTED
+    trinodialect = TRINO_NOT_IMPORTED  # type: ignore[assignment] # NotImported is used at runtime when trino is not installed
 
 try:
     import trino.drivers as trinodrivers
@@ -29,4 +29,4 @@ except (ImportError, AttributeError):
 try:
     import trino.exceptions as trinoexceptions
 except (ImportError, AttributeError):
-    trinoexceptions = TRINO_NOT_IMPORTED
+    trinoexceptions = TRINO_NOT_IMPORTED  # type: ignore[assignment] # NotImported is used at runtime when trino is not installed

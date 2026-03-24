@@ -15,7 +15,7 @@ import OverviewCard from '@site/src/components/OverviewCard';
 </OverviewCard>
 
 <LinkCardGrid>
-  <LinkCard topIcon label="Manage email alerts" description="Configure and manage email alerts for your Data Assets." to="/cloud/alerts/manage_email_alerts" icon="/img/email_action_icon.svg" />
-  <LinkCard topIcon label="Trigger actions" description="Create and manage Actions based on the results of Validation runs." to="/cloud/alerts/trigger_actions" icon="/img/actions_icon.svg" />
+  <LinkCard topIcon label="Alert about failures" description="Configure and manage alerts for your Data Assets with a no-code workflow." to="/cloud/alerts/alert_about_failures" icon="/img/alarm_icon.png" />
+  <LinkCard topIcon label="Trigger actions" description="Programmatically create and manage Actions based on the results of Validation runs." to="/cloud/alerts/trigger_actions" icon="/img/actions_icon.svg" />
   <LinkCard topIcon label="Create a custom action" description="Apply custom business logic based on Validation Results." to="/cloud/alerts/custom_actions" icon="/img/add_feature_icon.svg" />
 </LinkCardGrid>

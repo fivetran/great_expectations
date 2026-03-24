@@ -70,9 +70,8 @@ class SqliteBatchTestSetup(SQLBatchTestSetup[SqliteDatasourceTestConfig]):
             context=context,
         )
 
-    @property
     @override
-    def connection_string(self) -> str:
+    def build_connection_string(self, schema: str | None = None) -> str:
         return f"sqlite:///{self.db_file_path}"
 
     @property
@@ -88,5 +87,5 @@ class SqliteBatchTestSetup(SQLBatchTestSetup[SqliteDatasourceTestConfig]):
     def make_asset(self) -> TableAsset:
         return self.context.data_sources.add_sqlite(
             name=self._random_resource_name(),
-            connection_string=self.connection_string,
+            connection_string=self.build_connection_string(),
         ).add_table_asset(name=self._random_resource_name(), table_name=self.table_name)

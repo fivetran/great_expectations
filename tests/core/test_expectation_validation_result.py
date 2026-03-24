@@ -708,6 +708,59 @@ class TestExpectationSuiteValidationResultHash:
         assert hash1 == hash2 == hash3
 
 
+class TestExpectationProperty:
+    @pytest.mark.unit
+    def test_returns_typed_expectation_from_config(self):
+        config = ExpectationConfiguration(
+            type="expect_column_values_to_not_be_null",
+            kwargs={"column": "foo"},
+        )
+        evr = ExpectationValidationResult(
+            success=True,
+            expectation_config=config,
+        )
+        expectation = evr.expectation
+        assert isinstance(expectation, gxe.ExpectColumnValuesToNotBeNull)
+        assert expectation.column == "foo"
+
+    @pytest.mark.unit
+    def test_works_for_unexpected_rows_expectation(self):
+        config = ExpectationConfiguration(
+            type="unexpected_rows_expectation",
+            kwargs={"unexpected_rows_query": "SELECT * FROM {batch} WHERE col > 5"},
+        )
+        evr = ExpectationValidationResult(
+            success=False,
+            expectation_config=config,
+        )
+        expectation = evr.expectation
+        assert isinstance(expectation, gxe.UnexpectedRowsExpectation)
+        assert expectation.unexpected_rows_query == "SELECT * FROM {batch} WHERE col > 5"
+
+
+class TestBatchParametersProperty:
+    @pytest.mark.unit
+    def test_returns_batch_parameters_from_meta(self):
+        params = {"year": 2026, "month": 3}
+        esvr = ExpectationSuiteValidationResult(
+            success=True,
+            results=[],
+            suite_name="test_suite",
+            meta={"batch_parameters": params},
+        )
+        assert esvr.batch_parameters == params
+
+    @pytest.mark.unit
+    def test_returns_none_when_missing(self):
+        esvr = ExpectationSuiteValidationResult(
+            success=True,
+            results=[],
+            suite_name="test_suite",
+            meta={},
+        )
+        assert esvr.batch_parameters is None
+
+
 class TestGetMaxSeverityFailure:
     @pytest.mark.unit
     def test_get_max_severity_failure_no_results(self):

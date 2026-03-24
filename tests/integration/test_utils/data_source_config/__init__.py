@@ -1,6 +1,7 @@
 from .base import DataSourceTestConfig
 from .big_query import BigQueryDatasourceTestConfig
 from .databricks import DatabricksDatasourceTestConfig
+from .generic_sql import GenericSQLDatasourceTestConfig
 from .mysql import MySQLDatasourceTestConfig
 from .pandas_data_frame import PandasDataFrameDatasourceTestConfig
 from .pandas_filesystem_csv import PandasFilesystemCsvDatasourceTestConfig

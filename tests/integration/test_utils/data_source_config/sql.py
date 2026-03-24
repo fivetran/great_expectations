@@ -41,6 +41,38 @@ logger = logging.getLogger(__name__)
 _AUTO_COMMIT_DIALECTS = {GXSqlDialect.DATABRICKS}
 
 
+def _register_generic_sql_driver() -> None:
+    """Dynamically register a SQL dialect from environment variables.
+
+    Reads ``GX_TEST_GENERIC_SQL_DRIVER`` and, when set, ensures the driver
+    string is a valid ``GXSqlDialect`` member.  If
+    ``GX_TEST_GENERIC_SQL_AUTOCOMMIT`` is also set (non-empty), the dialect is
+    added to ``_AUTO_COMMIT_DIALECTS``.
+    """
+    import os
+
+    driver = os.environ.get("GX_TEST_GENERIC_SQL_DRIVER", "")
+    if not driver:
+        return
+
+    try:
+        dialect_member = GXSqlDialect(driver)
+    except ValueError:
+        dialect_member = object.__new__(GXSqlDialect)
+        dialect_member._name_ = f"_GENERIC_TEST_{driver.upper()}"
+        dialect_member._value_ = driver
+        dialect_member.__objclass__ = GXSqlDialect  # type: ignore[attr-defined] # mypy doesn't know about this CPython enum internal
+        GXSqlDialect._value2member_map_[driver] = dialect_member
+        GXSqlDialect._member_map_[dialect_member._name_] = dialect_member
+
+    autocommit = os.environ.get("GX_TEST_GENERIC_SQL_AUTOCOMMIT", "")
+    if autocommit:
+        _AUTO_COMMIT_DIALECTS.add(dialect_member)
+
+
+_register_generic_sql_driver()
+
+
 @dataclass(frozen=True)
 class _TableData:
     name: str
@@ -56,10 +88,14 @@ InferredColumnTypes = dict[str, Union[type[TypeEngine], TypeEngine]]
 class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_ConfigT]):
     SCHEMA_PREFIX = "test_"
 
-    @property
     @abstractmethod
-    def connection_string(self) -> str:
-        """Connection string used to connect to SQL backend."""
+    def build_connection_string(self, schema: str | None = None) -> str:
+        """Connection string used to connect to SQL backend.
+
+        When called without a schema, returns the base connection string for
+        setup/teardown.  When called with a schema, returns a connection string
+        that targets the given schema (for the GX datasource).
+        """
 
     @property
     @abstractmethod
@@ -150,12 +186,12 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
     def _get_engine(self) -> tuple[sa.engine.Engine, Callable[[], None]]:
         if self.engine_manager:
             connection_details = ConnectionDetails(
-                connection_string=self.connection_string,
+                connection_string=self.build_connection_string(),
             )
             engine = self.engine_manager.get_engine(connection_details)
             return engine, lambda: None
         else:
-            engine = create_engine(url=self.connection_string)
+            engine = create_engine(url=self.build_connection_string())
             return engine, engine.dispose
 
     @staticmethod

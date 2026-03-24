@@ -86,7 +86,6 @@ assert context.list_datasources() == [
                 "order_by": [],
                 "batch_metadata": {},
                 "table_name": "postgres_taxi_data",
-                "schema_name": None,
             }
         ],
         "connection_string": ConfigStr("${POSTGRES_CONNECTION_STRING}"),
@@ -114,7 +113,6 @@ assert context.list_datasources() == [
                 "order_by": [],
                 "batch_metadata": {},
                 "table_name": "postgres_taxi_data",
-                "schema_name": None,
             }
         ],
         "connection_string": ConfigStr("${my_postgres_db_yaml_creds}"),

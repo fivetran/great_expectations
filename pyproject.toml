@@ -502,6 +502,11 @@ filterwarnings = [
     # --------------------------------------- Great Expectations Deprecation Warnings ----------------------------------
     "once:The condition_parser parameter is deprecated:DeprecationWarning",
     "once:Passing a string to the row_condition parameter is deprecated:DeprecationWarning",
+    # Existing cloud configs store "schema_name": null. During deserialization, Pydantic passes
+    # None to the validator which triggers the deprecation warning. The TableAsset.dict() override
+    # strips schema_name from new serializations, so these will clean up over time.
+    'once:The `schema_name` argument is deprecated:DeprecationWarning',
+    'once:`schema_name` is deprecated:DeprecationWarning',
 
     # --------------------------------------- TEMPORARY IGNORES --------------------------------------------------------
     # The warnings in this section should be addressed (fixed or ignored) but are ignored here temporarily to help allow
@@ -689,6 +694,7 @@ markers = [
     "project: mark a test that verifies properties of the gx project",
     "pyarrow: mark a test as PyArrow-dependent.",
     "redshift: mark a test as redshift-dependent.",
+    "generic_sql: mark a test as generic SQL database-dependent.",
     "snowflake: mark a test as snowflake-dependent.",
     "sqlalchemy_version_compatibility: mark test as required for sqlalchemy version compatibility.",
     "sqlite: mark test requiring sqlite",

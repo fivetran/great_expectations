@@ -707,65 +707,32 @@ def test_validate_invalid_postgres_connection_string(
             pass
 
 
-def bad_connection_string_config() -> tuple[str, str, str]:
-    connection_string = "postgresql+psycopg2://postgres:@localhost/bad_database"
-    table_name = "good_table"
-    schema_name = "good_schema"
-    return (
-        connection_string,
-        table_name,
-        schema_name,
-    )
+def bad_connection_string_config() -> tuple[str, str]:
+    return ("postgresql+psycopg2://postgres:@localhost/bad_database", "good_table")
 
 
-def bad_table_name_config() -> tuple[str, str, str]:
-    connection_string = "postgresql+psycopg2://postgres:@localhost/test_ci"
-    table_name = "bad_table"
-    schema_name = "good_schema"
-    return (
-        connection_string,
-        table_name,
-        schema_name,
-    )
-
-
-def bad_schema_name_config() -> tuple[str, str, str]:
-    connection_string = "postgresql+psycopg2://postgres:@localhost/test_ci"
-    table_name = "good_table"
-    schema_name = "bad_schema"
-    return (
-        connection_string,
-        table_name,
-        schema_name,
-    )
+def bad_table_name_config() -> tuple[str, str]:
+    return ("postgresql+psycopg2://postgres:@localhost/test_ci", "bad_table")
 
 
 @pytest.fixture(
     params=[
         bad_connection_string_config,
         bad_table_name_config,
-        bad_schema_name_config,
     ]
 )
 def bad_configuration_datasource(
     request,
 ) -> PostgresDatasource:
-    (
-        connection_string,
-        table_name,
-        schema_name,
-    ) = request.param()
+    connection_string, table_name = request.param()
     table_asset = TableAsset(
         name="table_asset",
         table_name=table_name,
-        schema_name=schema_name,
     )
     return PostgresDatasource(
         name="postgres_datasource",
         connection_string=connection_string,
-        assets=[
-            table_asset,
-        ],
+        assets=[table_asset],
     )
 
 

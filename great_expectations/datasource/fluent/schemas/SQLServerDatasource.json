@@ -569,6 +569,11 @@
                     ],
                     "type": "string"
                 },
+                "trust_server_certificate": {
+                    "title": "Trust Server Certificate",
+                    "default": false,
+                    "type": "boolean"
+                },
                 "authentication": {
                     "title": "Authentication",
                     "default": "SQL Server",
@@ -646,6 +651,11 @@
                         "Strict"
                     ],
                     "type": "string"
+                },
+                "trust_server_certificate": {
+                    "title": "Trust Server Certificate",
+                    "default": false,
+                    "type": "boolean"
                 },
                 "authentication": {
                     "title": "Authentication",

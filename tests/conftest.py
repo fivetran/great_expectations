@@ -125,9 +125,9 @@ REQUIRED_MARKERS: Final[set[str]] = {
     "cloud",
     "databricks",
     "docs",
-    "integration",
     "filesystem",
-    "sql_server",
+    "generic_sql",
+    "integration",
     "mysql",
     "openpyxl",
     "performance",
@@ -138,6 +138,7 @@ REQUIRED_MARKERS: Final[set[str]] = {
     "snowflake",
     "spark",
     "spark_connect",
+    "sql_server",
     "sqlite",
     "trino",
     "unit",
@@ -400,6 +401,9 @@ def pytest_collection_finish(session):
             print("*** The required markers follow. ***")
             print(
                 "*** Tests marked with 'performance' are not run in the PR or release pipeline. ***"
+            )
+            print(
+                "*** Tests marked with 'generic_sql' are not run in the PR or release pipeline. ***"
             )
             print("*** All other tests are. ***")
             for m in REQUIRED_MARKERS:

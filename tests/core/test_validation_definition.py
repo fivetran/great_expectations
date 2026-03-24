@@ -14,6 +14,7 @@ import great_expectations as gx
 import great_expectations.expectations as gxe
 from great_expectations import RunIdentifier
 from great_expectations import __version__ as GX_VERSION
+from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.expectation_validation_result import (
     ExpectationSuiteValidationResult,
@@ -60,7 +61,6 @@ if TYPE_CHECKING:
 
     from pytest_mock import MockerFixture
 
-    from great_expectations.core.batch_definition import BatchDefinition
     from great_expectations.data_context.data_context.cloud_data_context import (
         CloudDataContext,
     )
@@ -978,6 +978,99 @@ def test_is_fresh_raises_error_when_validation_definition_not_found(in_memory_ru
     assert diagnostics.success is False
     assert len(diagnostics.errors) == 1
     assert isinstance(diagnostics.errors[0], ValidationDefinitionNotFoundError)
+
+
+class TestGetUnexpectedRows:
+    @pytest.mark.unit
+    def test_raises_value_error_for_non_unexpected_rows_expectation(
+        self, validation_definition: ValidationDefinition
+    ):
+        expectation = gxe.ExpectColumnValuesToNotBeNull(column="foo")
+        with pytest.raises(ValueError, match="Only UnexpectedRowsExpectation"):
+            validation_definition.get_unexpected_rows(expectation)
+
+    @pytest.mark.unit
+    def test_calls_compute_metrics_with_correct_args(
+        self, validation_definition: ValidationDefinition, mocker: MockerFixture
+    ):
+        expectation = gxe.UnexpectedRowsExpectation(
+            unexpected_rows_query="SELECT * FROM {batch} WHERE col > 5"
+        )
+        mock_batch = mocker.MagicMock()
+        mock_metric_result = mocker.MagicMock()
+        mock_metric_result.value = [{"col": 10}]
+        mock_batch.compute_metrics.return_value = mock_metric_result
+
+        mocker.patch.object(
+            BatchDefinition,
+            "get_batch",
+            return_value=mock_batch,
+        )
+
+        result = validation_definition.get_unexpected_rows(expectation)
+        assert result == [{"col": 10}]
+        mock_batch.compute_metrics.assert_called_once()
+        call_arg = mock_batch.compute_metrics.call_args[0][0]
+        assert call_arg.name == "query.table"
+        assert call_arg.query == "SELECT * FROM {batch} WHERE col > 5"
+        assert call_arg.fetch_all is True
+
+    @pytest.mark.unit
+    def test_passes_batch_parameters(
+        self, validation_definition: ValidationDefinition, mocker: MockerFixture
+    ):
+        expectation = gxe.UnexpectedRowsExpectation(
+            unexpected_rows_query="SELECT * FROM {batch} WHERE col > 5"
+        )
+        mock_batch = mocker.MagicMock()
+        mock_metric_result = mocker.MagicMock()
+        mock_metric_result.value = []
+        mock_batch.compute_metrics.return_value = mock_metric_result
+
+        mock_get_batch = mocker.patch.object(
+            BatchDefinition,
+            "get_batch",
+            return_value=mock_batch,
+        )
+
+        batch_params = {"year": 2026, "month": 3}
+        validation_definition.get_unexpected_rows(expectation, batch_parameters=batch_params)
+        mock_get_batch.assert_called_once_with(batch_params)
+
+    @pytest.mark.unit
+    def test_resolves_suite_parameter_query(
+        self, validation_definition: ValidationDefinition, mocker: MockerFixture
+    ):
+        expectation = gxe.UnexpectedRowsExpectation(
+            unexpected_rows_query={"$PARAMETER": "my_query"}
+        )
+        mock_batch = mocker.MagicMock()
+        mock_metric_result = mocker.MagicMock()
+        mock_metric_result.value = [{"col": 99}]
+        mock_batch.compute_metrics.return_value = mock_metric_result
+
+        mocker.patch.object(
+            BatchDefinition,
+            "get_batch",
+            return_value=mock_batch,
+        )
+
+        result = validation_definition.get_unexpected_rows(
+            expectation,
+            expectation_parameters={"my_query": "SELECT * FROM {batch} WHERE col > 5"},
+        )
+        assert result == [{"col": 99}]
+        call_arg = mock_batch.compute_metrics.call_args[0][0]
+        assert call_arg.query == "SELECT * FROM {batch} WHERE col > 5"
+        assert call_arg.fetch_all is True
+
+    @pytest.mark.unit
+    def test_raises_when_suite_parameter_missing(self, validation_definition: ValidationDefinition):
+        expectation = gxe.UnexpectedRowsExpectation(
+            unexpected_rows_query={"$PARAMETER": "my_query"}
+        )
+        with pytest.raises(ValueError, match="no expectation_parameters were provided"):
+            validation_definition.get_unexpected_rows(expectation)
 
 
 @pytest.mark.unit

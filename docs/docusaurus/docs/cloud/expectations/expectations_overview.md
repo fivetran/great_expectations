@@ -71,7 +71,7 @@ The following table lists the available GX Cloud Expectations. Note that some Da
 
 GX Cloud offers the ability to write a custom Expectation using SQL. It is designed to fail validation if the provided SQL query returns one or more rows.
 
-The provided query should be written in the dialect of the Data Source in which a given Data Asset lives. To simplify working with custom SQL Expectations, you can use ExpectAI to [generate a SQL query](/docs/cloud/expectations/manage_expectations.md#generate-sql) based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
+The provided query should be written in the dialect of the Data Source in which a given Data Asset lives. If you are working with a Query Data Asset, note that there are some [limitations on allowed datatypes](/cloud/data_assets/manage_data_assets.md#data-asset-options-for-sql-data-sources) in the provided query. To simplify working with custom SQL Expectations, you can use ExpectAI to [generate a SQL query](/docs/cloud/expectations/manage_expectations.md#generate-sql) based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
 
 :::info Optional `{batch}` named query
 
@@ -174,7 +174,7 @@ An Expectation can have up to 100 condition statements grouped in any number of 
 Every Expectation is assigned a severity level of critical, warning, or info that indicates the impact of the Expectation failing. Failure severity indicators are surfaced throughout GX Cloud to help your team understand the quality of your data. This includes high-level information like the overall status of a Data Asset as well as granular details like individual results in Validation run history.  
 
 You can use the following to create severity-based responses to results:
-- [Email alerts](/cloud/alerts/manage_email_alerts.md).
+- [Alerts](/cloud/alerts/alert_about_failures.md).
 - Built-in [Actions](/cloud/alerts/trigger_actions.md).
 - Pipeline conditioning with the `get_maximum_severity_failure` helper method in the [`ExpectationSuiteValidationResult` class](/reference/api/core//ExpectationSuiteValidationResult_class.mdx).
 

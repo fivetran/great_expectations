@@ -9,7 +9,7 @@ import Tabs from '@theme/Tabs';
 
 You can manually create Expectations via both the UI and API, and use several different GX Cloud features to generate Expectations via the UI.
 
-This page provides instructions for working with Expectations. To learn about Expectation types and options, see the [Expectations overview](/cloud/expectations/expectations_overview.md). To learn about the Expectation changelog at the Data Asset level, visit [Manage Data Assets](/cloud/data_assets/manage_data_assets.md#view-data-asset-history).
+This page provides instructions for working with Expectations. To learn about Expectation types and options, see the [Expectations overview](/cloud/expectations/expectations_overview.md).
 
 ## Create an Expectation
 
@@ -24,7 +24,12 @@ This page provides instructions for working with Expectations. To learn about Ex
 
 <TabItem value="ui" label="UI">
 
-You must have a [Data Asset](/cloud/data_assets/manage_data_assets.md) before creating an Expectation.
+You must have the following prerequisites fulfilled before creating an Expectation:
+
+- You have a [Data Asset](/cloud/data_assets/manage_data_assets.md).
+- You have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
+
+Follow the steps below to create an Expectation:
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
@@ -56,6 +61,7 @@ You must have a [Data Asset](/cloud/data_assets/manage_data_assets.md) before cr
 
 You must have the following prerequisites fulfilled before creating an Expectation:
 
+- You have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - Your [Cloud credentials](/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
@@ -174,9 +180,10 @@ ExpectAI is an analytical AI tool that you can use to generate tests.
 To accelerate test coverage, you can use ExpectAI to generate recommended Expectations for a Data Asset. These will be personalized based on an analysis of a sample of your data.
 
 Keep the following requirements in mind when working with ExpectAI:
-- The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake.
+- The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Microsoft Fabric, Microsoft SQL Server, Neon, PostgreSQL, Redshift, or Snowflake.
 - Generated Expectations will default to warning severity, which you can edit later.
 - If your organization is using an [agent-enabled deployment](/cloud/deploy/deployment_patterns.md), you must [deploy the GX Agent](/cloud/deploy/deploy_gx_agent.md#deploy-the-gx-agent) with credentials for your own LLM.
+- You must have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 
 To add AI-recommended Expectations:
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
@@ -207,10 +214,23 @@ AND passenger_count > 4
 ```
 
 Keep the following requirements in mind when working with ExpectAI:
-- The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake.
+- The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Microsoft Fabric, Microsoft SQL Server, Neon, PostgreSQL, Redshift, or Snowflake.
 - If your organization is using an [agent-enabled deployment](/cloud/deploy/deployment_patterns.md), you must [deploy the GX Agent](/cloud/deploy/deploy_gx_agent.md#deploy-the-gx-agent) with credentials for your own LLM.
+- You must have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 
 ## Edit an Expectation
+
+<Tabs 
+   queryString="expectations-interface"
+   defaultValue="ui"
+   values={[
+      {value: 'ui', label: 'UI'},
+      {value: 'api', label: 'API'}
+   ]}
+>
+<TabItem value="ui" label="UI">
+  
+You must have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater to edit an Expectation.
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
@@ -224,11 +244,80 @@ Keep the following requirements in mind when working with ExpectAI:
 
 6. Click **Save**.
 
+</TabItem>
+
+<TabItem value="api" label="API">
+You must have the following prerequisites fulfilled before editing an Expectation:
+
+- You have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
+- Your [Cloud credentials](/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
+- [Python version 3.10 to 3.13](https://www.python.org/downloads/).
+- [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
+
+Follow the instructions below to edit an Expectation within an Expectation Suite:
+
+1. Create a Data Context object:
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - get cloud context" 
+   ```
+
+2. Get the Expectation Suite that contains the Expectation you would like to edit.
+
+   You can find the names of all Expectation Suites associated with a Data Asset on the Data Asset's **Validations** tab. Then you can retrieve the Expectation Suite using its name: 
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - get the expectation suite"
+   ```
+
+3. Get the Expectation from the Expectation Suite.
+
+   Expectations can be found within the Expectation Suite using a variety of methods. In the example below, the Expectation is found by iterating through all of the Expectations within the Expectation Suite and then selecting the first Expectation that matches the specified class name and column name:
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - find the expectation"
+   ```
+
+   As another example, for a Custom SQL Expectation, you can match on the Expectation description:
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - find the custom sql expectation"
+   ```
+
+4. Edit the Expectation.
+
+   Any of the parameters in the Expectation can be edited. To find a full list of available parameters for your Expectation, reference the Expectation's entry in the [Expectation Gallery](https://greatexpectations.io/expectations/).  Under the **Args** section you will find a list of parameters that are necessary for the Expectation to be evaluated, along with a description of the value(s) that should be provided. The **Other Parameters** section lists optional parameters for the Expectation. Edit any of the parameters in this step. In the example below, the min and max values are updated:
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - edit the expectation"
+   ```
+
+5. Save the Expectation:
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py - save the expectation"
+   ```
+
+</TabItem>
+
+</Tabs>
+
 :::note Severity changes apply going forward
 If you edit the **Severity** of an Expectation, note that historical validation results will continue to indicate the severity that was recorded at the time of an Expectation failure. The newly assigned severity will apply to future validation failures only. 
 :::
 
+## View Expectation history
+
+**Expectation history** provides an audit trail to all workspace members of how an Expectation has been edited, including who made each change and when. To view an Expectation’s history, follow the steps below:
+
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
+2. In the **Data Assets** list, click the Data Asset name.
+3. On the **Expectations** tab, find the Expectation of interest.
+4. Click  <img src="/img/history.png" alt="history icon" width="20" height="20"/> **View Expectation history** for the Expectation that you want to explore.
+
+Note that the report is limited to the last 100 changes.
+
+:::tip Looking for deleted Expectations?
+For an audit trail of who removed which Expectations and when, [view Data Asset history](/cloud/data_assets/manage_data_assets.md#view-data-asset-history).
+:::
+
 ## Delete an Expectation
+
+You must have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater to delete an Expectation.
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
