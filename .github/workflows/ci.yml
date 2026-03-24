@@ -139,11 +139,11 @@ jobs:
           - docs-basic
           - docs-spark
         include:
-          - doc_step: docs-creds-needed
+          - doc-step: docs-creds-needed
             start_services: 1
-          - doc_step: docs-basic
+          - doc-step: docs-basic
             start_services: 0
-          - doc_step: docs-spark
+          - doc-step: docs-spark
             start_services: 0
     env:
       # gx cloud
@@ -278,8 +278,8 @@ jobs:
       - name: Start services
         if: ${{ matrix.start_services }}
         run: |
-          docker compose --progress quiet -f assets/docker/mercury/docker-compose.yml up -d --wait --wait-timeout 180 && \
-          docker compose --progress quiet -f assets/docker/spark/docker-compose.yml 180
+          docker compose --progress quiet -f assets/docker/mercury/docker-compose.yml up -d --wait --wait-timeout 300 && \
+          docker compose --progress quiet -f assets/docker/spark/docker-compose.yml up -d --wait --wait-timeout 300
 
       - name: Run the tests
         run: invoke docs-snippet-tests '${{ matrix.doc-step }}' --up-services --verbose  --reports
@@ -540,8 +540,8 @@ jobs:
 
       - name: Start services
         run: |
-          docker compose --progress quiet -f assets/docker/mercury/docker-compose.yml up -d --wait --wait-timeout 180 && \
-          docker compose --progress quiet -f assets/docker/spark/docker-compose.yml up -d --wait --wait-timeout 180
+          docker compose --progress quiet -f assets/docker/mercury/docker-compose.yml up -d --wait --wait-timeout 300 && \
+          docker compose --progress quiet -f assets/docker/spark/docker-compose.yml up -d --wait --wait-timeout 300
 
       - name: Show logs for debugging
         if: failure()

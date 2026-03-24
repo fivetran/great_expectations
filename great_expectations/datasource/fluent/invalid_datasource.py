@@ -159,7 +159,7 @@ class InvalidDatasource(Datasource):
         arbitrary_types_allowed = True
         json_encoders = {
             pydantic.ValidationError: lambda v: v.errors(),
-            LookupError: lambda v: repr(v),
+            LookupError: repr,
         }
 
     @override

@@ -231,7 +231,7 @@ PARAM_TYPE_TESTERS: Dict[
     ),
     RendererValueType.OBJECT: (lambda x: True, make_exception_msg),
     RendererValueType.STRING: (
-        lambda x: safe_str(x),
+        safe_str,
         make_str_exception_msg,
     ),
 }

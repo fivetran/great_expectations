@@ -515,12 +515,14 @@ def deep_filter_properties_iterable(  # noqa: C901, PLR0913 # FIXME CoP
         # Upon unwinding the call stack, do a sanity check to ensure cleaned properties.
         keys_to_delete: List[str] = list(
             filter(
-                lambda k: k not in keep_fields  # type: ignore[arg-type] # FIXME CoP
-                and _is_to_be_removed_from_deep_filter_properties_iterable(
-                    value=properties[k],
-                    clean_nulls=clean_nulls,
-                    clean_falsy=clean_falsy,
-                    keep_falsy_numerics=keep_falsy_numerics,
+                lambda k: (  # type: ignore[arg-type]
+                    k not in keep_fields  # FIXME CoP
+                    and _is_to_be_removed_from_deep_filter_properties_iterable(
+                        value=properties[k],
+                        clean_nulls=clean_nulls,
+                        clean_falsy=clean_falsy,
+                        keep_falsy_numerics=keep_falsy_numerics,
+                    )
                 ),
                 properties.keys(),
             )
@@ -547,11 +549,13 @@ def deep_filter_properties_iterable(  # noqa: C901, PLR0913 # FIXME CoP
         properties_type: type = type(properties)
         properties = properties_type(
             filter(
-                lambda v: not _is_to_be_removed_from_deep_filter_properties_iterable(
-                    value=v,
-                    clean_nulls=clean_nulls,
-                    clean_falsy=clean_falsy,
-                    keep_falsy_numerics=keep_falsy_numerics,
+                lambda v: (
+                    not _is_to_be_removed_from_deep_filter_properties_iterable(
+                        value=v,
+                        clean_nulls=clean_nulls,
+                        clean_falsy=clean_falsy,
+                        keep_falsy_numerics=keep_falsy_numerics,
+                    )
                 ),
                 properties,
             )
@@ -627,8 +631,10 @@ def convert_decimal_to_float(d: SupportsFloat) -> float:
         len(
             list(
                 filter(
-                    lambda frame_info: Path(frame_info.filename).name == "parameter_builder.py"
-                    and frame_info.function == "get_metrics",
+                    lambda frame_info: (
+                        Path(frame_info.filename).name == "parameter_builder.py"
+                        and frame_info.function == "get_metrics"
+                    ),
                     stack(),
                 )
             )

@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pandas as pd
 import pytest
 
@@ -26,7 +28,8 @@ DATA_FRAME = pd.DataFrame(
     }
 )
 
-TEST_SCHEMAS = ["regular_ol_lowercase", "FANCY_UPPER_CASE", None]
+_SUFFIX = uuid4().hex[:8]
+TEST_SCHEMAS = [f"regular_ol_lowercase_{_SUFFIX}", f"FANCY_UPPER_CASE_{_SUFFIX}", None]
 
 
 class TestSchemaSupport:
