@@ -22,7 +22,8 @@ GX Cloud supports a many-to-many relationship between Expectation failures and J
 
 Here’s an example of how an organization might manage incidents on a Data Asset.
 
-[diagram]
+![order_id values not being unique is linked to an engineering issue for resolving duplicates and a marketing issue for updating a forecast presentation. order_date values not being of type "DATE" is linked to an engineering issue for normalizing timestamps and the marketing issue for updating the forecast presentation. usage exceeding allowance is linked to sales issues for investigating overconsumption and preparing upgrade offers.](/img/incidents.png)
+
 
 Keep the following in mind when working with incidents:
 
