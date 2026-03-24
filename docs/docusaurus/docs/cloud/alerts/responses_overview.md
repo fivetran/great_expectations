@@ -16,6 +16,6 @@ GX Cloud provides the following to support these kinds of responses to results.
 - [**Incidents**](/cloud/alerts/manage_incidents.md): You can link Expectation failures to Jira issues to triage, prioritize, assign, and track the resolution of data quality problems. Linked issues are made accessible at the Data Asset level and in Validation Results for visibility.
 - [**Actions**](/cloud/alerts/custom_actions.md): You can programmatically apply custom business logic that does anything that can be done with Python code. For example, you might trigger different webhooks depending on which Expectations fail or run follow-up ETL jobs to fill in missing values.
 
-Here’s an example of how an organization might use alerts and incidents together to make sure the right people have the right info at the right time. 
+Here’s an example of how an organization might use alerts, incidents, and Actions together to ensure data quality. Actions handle problems where the solution can be automated. Meanwhile, alerts and incidents help make sure the right people have the right info at the right time to address important problems that need human intervention.
 
-[diagram]
+![A critical Expectation failure triggers an alert that sends a Slack notification. A team member reviews the Validation Results and decides to link the Expectation failure to a Jira issue to open an incident. A warning Expectation failure triggers a Custom Action that backfills null values.](/img/responses.png)
