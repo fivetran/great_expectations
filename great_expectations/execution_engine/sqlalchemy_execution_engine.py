@@ -685,7 +685,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                 sa.select(sa.text("*"))
                 .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
                 .where(parsed_condition)
-            ) 
+            )
 
         # Filtering by filter_conditions
         filter_conditions: List[RowCondition] = domain_kwargs.get("filter_conditions", [])
