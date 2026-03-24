@@ -7,7 +7,7 @@ description: Link Expectation failures to Jira issues to streamline collaboratio
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
-GX Cloud provides incident management [integrations](/cloud/integrations/integrate_jira.md) to help you triage, prioritize, assign, and track the resolution of data quality problems. When a Validation run fails, you can link Expectation failures to Jira issues to create incidents in GX Cloud. Linked issues are made accessible at the Data Asset level on the **Incidents** tab and in Validation Results for visibility.
+GX Cloud provides incident management [integrations](/cloud/integrations/integrate_jira.md) to help you triage, prioritize, assign, and track the resolution of data quality problems. When a Validation run fails, you can link Expectation failures to Jira issues to create incidents in GX Cloud. Linked issues are made accessible at the Data Asset level on the **Incidents** tab and on individual Validation runs on the **Validations** tab  for visibility.
 
 [Screenshot of Jira link in individual validation results]
 

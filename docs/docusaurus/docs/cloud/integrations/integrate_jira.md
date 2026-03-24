@@ -62,7 +62,7 @@ Your Jira integration may **Error** if, for example, the user who created the au
 1. In GX Cloud, select the relevant **Workspace** and then click **Integrations**.
 2. Locate the **Jira** integration and click <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/>  **Edit connection**.
 3. Click **Reconnect**.
-4. Enter the **Client ID** and **Client secret** from an active Atlassian service account.
+4. Enter the **Client ID** and **Client secret** from an active Atlassian service account with permissions for your Jira site.
 5. Click **Connect**.
 6. Click **Finish**.
 
