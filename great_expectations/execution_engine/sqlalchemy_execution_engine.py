@@ -660,7 +660,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
 
             # PassThroughCondition is not supported for SQLAlchemy
             if isinstance(row_condition, PassThroughCondition):
-                raise GreatExpectationsError(  # noqa: TRY003 # FIXME
+                raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
                     "PassThroughCondition (pandas/spark syntax) is not supported for "
                     "SqlAlchemyExecutionEngine. Please use the latest documented "
                     "row_condition syntax, which does not require condition_parser."
@@ -677,7 +677,15 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                 raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
                     "SqlAlchemyExecutionEngine only supports the great_expectations condition_parser."  # noqa: E501 # FIXME CoP
                 )
-            selectable = sa.select(sa.text("*")).select_from(selectable).where(parsed_condition)  # type: ignore[arg-type] # FIXME CoP
+
+            if not isinstance(selectable, (sa.Table, Subquery)):
+                selectable = selectable.subquery()  # type: ignore[attr-defined] # FIXME CoP
+
+            selectable = (
+                sa.select(sa.text("*"))
+                .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
+                .where(parsed_condition)
+            ) 
 
         # Filtering by filter_conditions
         filter_conditions: List[RowCondition] = domain_kwargs.get("filter_conditions", [])
