@@ -238,7 +238,9 @@ class PandasDataPartitioner(DataPartitioner):
                 )
             )
         matching_rows = df[column_name].map(
-            lambda x: hash_method(str(x).encode()).hexdigest()[-1 * hash_digits :]
-            == batch_identifiers["hash_value"]
+            lambda x: (
+                hash_method(str(x).encode()).hexdigest()[-1 * hash_digits :]
+                == batch_identifiers["hash_value"]
+            )
         )
         return df[matching_rows]

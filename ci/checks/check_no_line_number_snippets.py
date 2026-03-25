@@ -53,7 +53,7 @@ def main() -> None:
     grep_output = run_grep(docs_dir)
     grep_output = list(
         filter(
-            lambda filename: EXCLUDED_FILENAMES_PATTERN.match(filename),
+            EXCLUDED_FILENAMES_PATTERN.match,
             grep_output,
         )
     )

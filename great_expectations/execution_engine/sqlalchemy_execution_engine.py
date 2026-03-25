@@ -385,7 +385,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
 
                 def _add_sqlite_functions(connection):
                     logger.info(f"Adding custom sqlite functions to connection {connection}")
-                    connection.create_function("sqrt", 1, lambda x: math.sqrt(x))
+                    connection.create_function("sqrt", 1, math.sqrt)
                     connection.create_function(
                         "md5",
                         2,

@@ -474,7 +474,7 @@ def verify_asset_names_mock(
     def verify_asset_name_cb(request: PreparedRequest) -> CallbackResult:
         if request.body:
             parsed_url_path = str(urllib.parse.urlparse(request.url).path)
-            datasource_id = parsed_url_path.split("/")[-1]
+            datasource_id = parsed_url_path.rsplit("/", maxsplit=1)[-1]
 
             payload = CloudResponseSchema.from_datasource_json(request.body)
             LOGGER.info(f"PUT payload: ->\n{pf(payload.dict())}")
