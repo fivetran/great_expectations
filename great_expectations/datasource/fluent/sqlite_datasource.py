@@ -19,12 +19,14 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.partitioners import PartitionerConvertedDatetime
 from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.datasource.fluent.sql_datasource import (
-    QueryAsset as SqlQueryAsset,
-)
-from great_expectations.datasource.fluent.sql_datasource import (
+    MISSING,
+    Missing,
     SQLDatasource,
     SqlitePartitionerConvertedDateTime,
     _PartitionerOneColumnOneParam,
+)
+from great_expectations.datasource.fluent.sql_datasource import (
+    QueryAsset as SqlQueryAsset,
 )
 from great_expectations.datasource.fluent.sql_datasource import (
     TableAsset as SqlTableAsset,
@@ -177,7 +179,7 @@ class SqliteDatasource(SQLDatasource):
         self,
         name: str,
         table_name: str = "",
-        schema_name: Optional[str] = None,
+        schema_name: str | Missing | None = MISSING,
         batch_metadata: Optional[BatchMetadata] = None,
     ) -> SqliteTableAsset:
         """Adds a table asset to this SQLite datasource
@@ -201,7 +203,7 @@ class SqliteDatasource(SQLDatasource):
             ),
         )
 
-    add_table_asset.__doc__ = SQLDatasource.add_table_asset.__doc__
+    add_table_asset.__doc__ = SQLDatasource.add_table_asset.__doc__  # type: ignore[has-type] # mypy can't resolve the type due to the MISSING sentinel default
 
     @public_api
     @override

@@ -14,13 +14,15 @@ from great_expectations.render import (
 )
 from great_expectations.render.renderer_configuration import RendererSchema, RendererValueType
 from tests.integration.conftest import parameterize_batch_for_data_sources
-from tests.integration.test_utils.data_source_config import RedshiftDatasourceTestConfig
+from tests.integration.test_utils.data_source_config import (
+    GenericSQLDatasourceTestConfig,
+    RedshiftDatasourceTestConfig,
+)
 from tests.integration.test_utils.data_source_config.base import DataSourceTestConfig
 from tests.integration.test_utils.data_source_config.big_query import BigQueryDatasourceTestConfig
 from tests.integration.test_utils.data_source_config.databricks import (
     DatabricksDatasourceTestConfig,
 )
-from tests.integration.test_utils.data_source_config.mssql import MSSQLDatasourceTestConfig
 from tests.integration.test_utils.data_source_config.mysql import MySQLDatasourceTestConfig
 from tests.integration.test_utils.data_source_config.pandas_data_frame import (
     PandasDataFrameDatasourceTestConfig,
@@ -33,6 +35,7 @@ from tests.integration.test_utils.data_source_config.snowflake import SnowflakeD
 from tests.integration.test_utils.data_source_config.spark_filesystem_csv import (
     SparkFilesystemCsvDatasourceTestConfig,
 )
+from tests.integration.test_utils.data_source_config.sql_server import SQLServerDatasourceTestConfig
 from tests.integration.test_utils.data_source_config.sqlite import SqliteDatasourceTestConfig
 
 ALL_NONNULL_COL = "all_nonnull"
@@ -75,12 +78,13 @@ except ModuleNotFoundError:
 ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(column_types=COLUMN_TYPES),
     DatabricksDatasourceTestConfig(column_types=COLUMN_TYPES),
-    MSSQLDatasourceTestConfig(column_types=COLUMN_TYPES),
+    SQLServerDatasourceTestConfig(column_types=COLUMN_TYPES),
     MySQLDatasourceTestConfig(column_types=COLUMN_TYPES),
     PandasDataFrameDatasourceTestConfig(),
     PandasFilesystemCsvDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(column_types=COLUMN_TYPES),
     RedshiftDatasourceTestConfig(column_types=COLUMN_TYPES),
+    GenericSQLDatasourceTestConfig(column_types=COLUMN_TYPES),
     SnowflakeDatasourceTestConfig(column_types=COLUMN_TYPES),
     SparkFilesystemCsvDatasourceTestConfig(column_types=SPARK_COLUMN_TYPES),
     SqliteDatasourceTestConfig(column_types=COLUMN_TYPES),

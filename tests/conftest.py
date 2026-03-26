@@ -77,7 +77,6 @@ from great_expectations.self_check.util import (
     expectationSuiteValidationResultSchema,
 )
 from great_expectations.util import (
-    build_in_memory_runtime_context,
     is_library_loadable,
 )
 from great_expectations.validator.metric_configuration import MetricConfiguration
@@ -126,9 +125,9 @@ REQUIRED_MARKERS: Final[set[str]] = {
     "cloud",
     "databricks",
     "docs",
-    "integration",
     "filesystem",
-    "mssql",
+    "generic_sql",
+    "integration",
     "mysql",
     "openpyxl",
     "performance",
@@ -139,6 +138,7 @@ REQUIRED_MARKERS: Final[set[str]] = {
     "snowflake",
     "spark",
     "spark_connect",
+    "sql_server",
     "sqlite",
     "trino",
     "unit",
@@ -231,9 +231,9 @@ def pytest_addoption(parser):
         help="If set, execute tests against mysql",
     )
     parser.addoption(
-        "--mssql",
+        "--sql-server",
         action="store_true",
-        help="If set, execute tests against mssql",
+        help="If set, execute tests against SQL Server",
     )
     parser.addoption(
         "--bigquery",
@@ -310,7 +310,7 @@ def build_test_backends_list_v3_api(metafunc):
     include_sqlalchemy: bool = not metafunc.config.getoption("--no-sqlalchemy")
     include_postgresql: bool = metafunc.config.getoption("--postgresql")
     include_mysql: bool = metafunc.config.getoption("--mysql")
-    include_mssql: bool = metafunc.config.getoption("--mssql")
+    include_sql_server: bool = metafunc.config.getoption("--sql-server")
     include_bigquery: bool = metafunc.config.getoption("--bigquery")
     include_aws: bool = metafunc.config.getoption("--aws")
     include_trino: bool = metafunc.config.getoption("--trino")
@@ -325,7 +325,7 @@ def build_test_backends_list_v3_api(metafunc):
         include_sqlalchemy=include_sqlalchemy,
         include_postgresql=include_postgresql,
         include_mysql=include_mysql,
-        include_mssql=include_mssql,
+        include_sql_server=include_sql_server,
         include_bigquery=include_bigquery,
         include_aws=include_aws,
         include_trino=include_trino,
@@ -401,6 +401,9 @@ def pytest_collection_finish(session):
             print("*** The required markers follow. ***")
             print(
                 "*** Tests marked with 'performance' are not run in the PR or release pipeline. ***"
+            )
+            print(
+                "*** Tests marked with 'generic_sql' are not run in the PR or release pipeline. ***"
             )
             print("*** All other tests are. ***")
             for m in REQUIRED_MARKERS:
@@ -2052,7 +2055,7 @@ def multibatch_generic_csv_generator():
 
 @pytest.fixture
 def in_memory_runtime_context() -> AbstractDataContext:
-    return build_in_memory_runtime_context()
+    return gx.get_context(mode="ephemeral")
 
 
 @pytest.fixture
@@ -2361,7 +2364,7 @@ def param_id(request: pytest.FixtureRequest) -> str:
     ```
     """
     raw_name: str = request.node.name
-    return raw_name.split("[")[1].split("]")[0]
+    return raw_name.split("[")[1].split("]", maxsplit=1)[0]
 
 
 def random_name() -> str:

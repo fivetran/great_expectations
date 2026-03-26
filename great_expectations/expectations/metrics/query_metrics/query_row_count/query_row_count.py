@@ -13,6 +13,7 @@ from great_expectations.execution_engine import (
 from great_expectations.expectations.metrics.metric_provider import metric_value
 from great_expectations.expectations.metrics.query_metric_provider import (
     QueryMetricProvider,
+    strip_top_level_order_by,
 )
 
 if TYPE_CHECKING:
@@ -43,6 +44,9 @@ class QueryRowCount(QueryMetricProvider):
                 execution_engine=execution_engine,
             )
         )
+        if execution_engine.dialect_name == "mssql":
+            substituted_batch_subquery = strip_top_level_order_by(substituted_batch_subquery)
+
         count_column_name = "unexpected_row_count"
         row_count_query = (
             f"SELECT COUNT(*) as {count_column_name} FROM "

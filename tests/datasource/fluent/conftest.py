@@ -522,6 +522,19 @@ def create_engine_spy(mocker: MockerFixture) -> Generator[MockType, None, None]:
 
 
 @pytest.fixture
+def mock_test_connection(monkeypatch: pytest.MonkeyPatch):
+    """Patches test_connection on Datasource and SQLDatasource to be a no-op."""
+
+    def _mock_test_connection(self: Datasource, test_assets: bool = True) -> None:
+        CNF_TEST_LOGGER.warning(
+            f"Mocked {self.__class__.__name__}.test_connection() called (no-op)"
+        )
+
+    monkeypatch.setattr(Datasource, "test_connection", _mock_test_connection)
+    monkeypatch.setattr(SQLDatasource, "test_connection", _mock_test_connection)
+
+
+@pytest.fixture
 def create_engine_fake(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:
     """Monkeypatch sqlalchemy.create_engine to always return an in-memory sqlite engine."""
     in_memory_sqlite_engine = sa.create_engine("sqlite:///")

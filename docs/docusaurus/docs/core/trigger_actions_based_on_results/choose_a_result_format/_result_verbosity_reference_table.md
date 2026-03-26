@@ -9,6 +9,7 @@ The following table lists the fields that can be found in the `result` dictionar
 |    unexpected_percent                 |no              |yes             |yes             |yes             |
 |    unexpected_percent_nonmissing      |no              |yes             |yes             |yes             |
 |    observed_value                     |no              |yes             |yes             |yes             |
+|    partial_missing_list               |no              |yes **          |yes **          |yes **          |
 |    partial_unexpected_list            |no              |yes **          |yes **          |yes **          |
 |    partial_unexpected_index_list      |no              |no              |yes **          |yes **          |
 |    partial_unexpected_counts          |no              |no              |yes **          |yes **          |

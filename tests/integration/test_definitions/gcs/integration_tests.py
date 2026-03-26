@@ -49,14 +49,7 @@ partition_data = [
 
 sample_data: List[IntegrationTestFixture] = []
 
-deployment_patterns = [
-    IntegrationTestFixture(
-        name="deployment_patterns_file_gcs",
-        user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/database/gcp_deployment_patterns_file_gcs.py",
-        data_context_dir=None,
-        backend_dependencies=[BackendDependencies.GCS],
-    ),
-]
+deployment_patterns: List[IntegrationTestFixture] = []
 
 fluent_datasources = [
     IntegrationTestFixture(

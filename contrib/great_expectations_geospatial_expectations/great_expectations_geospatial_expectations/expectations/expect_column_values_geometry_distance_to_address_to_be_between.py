@@ -162,7 +162,7 @@ class ExpectColumnValuesGeometryDistanceToAddressToBeBetween(ColumnMapExpectatio
         column (str): \
             The column name. \
             Column values must be provided in lon-lat or lat-long tuples/lists, WKT or WKB format, which are commom formats for GIS Database formats. \
-            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and MSSQL. \
+            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and SQL Server. \
             Values must be in longitude - latitude coordinates for this method to work with geocoding.
 
     Keyword Args:
@@ -172,7 +172,7 @@ class ExpectColumnValuesGeometryDistanceToAddressToBeBetween(ColumnMapExpectatio
         column_shape_format (str): \
             Geometry format for 'column' (wkt, wkb, lonlat, latlon). Column values can be provided in WKT or WKB format, which are commom formats for GIS Database formats. \
             latlon or lonlat also supports tuple pairs or list pairs in either Longtitude or Latitude first formats. \
-            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and MSSQL.
+            WKT can be accessed thhrough the ST_AsText() or ST_AsBinary() functions in queries for PostGIS and SQL Server.
         geocoder (str): \
             Geocoder from GeoPy to use to return the shape. While this is generic, the api is required to be available from GeoPy and must return a geometry.
         geocoder_config (dict str): \

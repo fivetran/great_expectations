@@ -67,10 +67,6 @@ if TYPE_CHECKING:
     from typing_extensions import TypeAlias, TypeGuard
 
     from great_expectations.alias_types import JSONValues, PathStr
-    from great_expectations.data_context import (
-        AbstractDataContext,
-    )
-    from great_expectations.data_context.types.base import DataContextConfig
 
 
 try:
@@ -267,35 +263,6 @@ def load_class(class_name: str, module_name: str) -> type:
         raise PluginClassNotFoundError(module_name=module_name, class_name=class_name)
 
     return klass_
-
-
-def build_in_memory_runtime_context() -> AbstractDataContext:
-    """
-    Create generic in-memory "BaseDataContext" context for manipulations as required by tests.
-
-    Args:
-        include_pandas (bool): If True, include pandas datasource
-        include_spark (bool): If True, include spark datasource
-    """
-    from great_expectations.data_context.types.base import (
-        DataContextConfig,
-        InMemoryStoreBackendDefaults,
-    )
-
-    data_context_config: DataContextConfig = DataContextConfig(
-        expectations_store_name="expectations_store",
-        validation_results_store_name="validation_results_store",
-        checkpoint_store_name="checkpoint_store",
-        store_backend_defaults=InMemoryStoreBackendDefaults(),
-    )
-
-    from great_expectations.data_context.data_context.context_factory import (
-        get_context as context_factory,
-    )
-
-    context = context_factory(project_config=data_context_config, mode="ephemeral")
-
-    return context
 
 
 # https://stackoverflow.com/questions/9727673/list-directory-tree-structure-in-python
@@ -548,12 +515,14 @@ def deep_filter_properties_iterable(  # noqa: C901, PLR0913 # FIXME CoP
         # Upon unwinding the call stack, do a sanity check to ensure cleaned properties.
         keys_to_delete: List[str] = list(
             filter(
-                lambda k: k not in keep_fields  # type: ignore[arg-type] # FIXME CoP
-                and _is_to_be_removed_from_deep_filter_properties_iterable(
-                    value=properties[k],
-                    clean_nulls=clean_nulls,
-                    clean_falsy=clean_falsy,
-                    keep_falsy_numerics=keep_falsy_numerics,
+                lambda k: (  # type: ignore[arg-type]
+                    k not in keep_fields  # FIXME CoP
+                    and _is_to_be_removed_from_deep_filter_properties_iterable(
+                        value=properties[k],
+                        clean_nulls=clean_nulls,
+                        clean_falsy=clean_falsy,
+                        keep_falsy_numerics=keep_falsy_numerics,
+                    )
                 ),
                 properties.keys(),
             )
@@ -580,11 +549,13 @@ def deep_filter_properties_iterable(  # noqa: C901, PLR0913 # FIXME CoP
         properties_type: type = type(properties)
         properties = properties_type(
             filter(
-                lambda v: not _is_to_be_removed_from_deep_filter_properties_iterable(
-                    value=v,
-                    clean_nulls=clean_nulls,
-                    clean_falsy=clean_falsy,
-                    keep_falsy_numerics=keep_falsy_numerics,
+                lambda v: (
+                    not _is_to_be_removed_from_deep_filter_properties_iterable(
+                        value=v,
+                        clean_nulls=clean_nulls,
+                        clean_falsy=clean_falsy,
+                        keep_falsy_numerics=keep_falsy_numerics,
+                    )
                 ),
                 properties,
             )
@@ -660,8 +631,10 @@ def convert_decimal_to_float(d: SupportsFloat) -> float:
         len(
             list(
                 filter(
-                    lambda frame_info: Path(frame_info.filename).name == "parameter_builder.py"
-                    and frame_info.function == "get_metrics",
+                    lambda frame_info: (
+                        Path(frame_info.filename).name == "parameter_builder.py"
+                        and frame_info.function == "get_metrics"
+                    ),
                     stack(),
                 )
             )

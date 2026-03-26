@@ -7,9 +7,6 @@ from great_expectations.core.expectation_validation_result import (
     ExpectationSuiteValidationResult,
     ExpectationSuiteValidationResultSchema,
 )
-from great_expectations.data_context.store.database_store_backend import (
-    DatabaseStoreBackend,
-)
 from great_expectations.data_context.store.store import Store
 from great_expectations.data_context.store.tuple_store_backend import TupleStoreBackend
 from great_expectations.data_context.types.resource_identifiers import (
@@ -67,7 +64,7 @@ class ValidationResultsStore(Store):
         title: Validations Store - GCS
         icon:
         short_description:
-        description: # What it does  <br /> Store validation results in a Google Cloud Storage bucket. You may optionally specify a key to use. <br /> <br /> See the GCS Store backend [module docs](https://docs.greatexpectations.io/en/latest/autoapi/great_expectations/data_context/store/tuple_store_backend/index.html#great_expectations.data_context.store.tuple_store_backend.TupleGCSStoreBackend) for more information."
+        description: Store validation results in a Google Cloud Storage bucket. You may optionally specify a key to use.
         how_to_guide_url: https://docs.greatexpectations.io/en/latest/how_to_guides/configuring_metadata_stores/how_to_configure_a_validation_result_store_in_gcs.html
         maturity: Beta
         maturity_details:
@@ -113,20 +110,6 @@ class ValidationResultsStore(Store):
             if issubclass(store_backend_class, TupleStoreBackend):
                 # Provide defaults for this common case
                 store_backend["filepath_suffix"] = store_backend.get("filepath_suffix", ".json")
-            elif issubclass(store_backend_class, DatabaseStoreBackend):
-                # Provide defaults for this common case
-                store_backend["table_name"] = store_backend.get(
-                    "table_name", "ge_validation_results_store"
-                )
-                store_backend["key_columns"] = store_backend.get(
-                    "key_columns",
-                    [
-                        "expectation_suite_name",
-                        "run_name",
-                        "run_time",
-                        "batch_identifier",
-                    ],
-                )
         super().__init__(
             store_backend=store_backend,
             runtime_environment=runtime_environment,

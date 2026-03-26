@@ -467,7 +467,8 @@ http://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 /docs/application_integration_support /docs/help/compatibility_reference
 /docs/cloud/overview/automating_rules /docs/cloud/overview/accelerating_test_coverage
 /docs/cloud/overview/coverage_health /docs/cloud/overview/data_health
-/docs/cloud/alerts/manage_alerts /docs/cloud/alerts/manage_email_alerts
+/docs/cloud/alerts/manage_alerts /docs/cloud/alerts/alert_about_failures
+/docs/cloud/alerts/manage_email_alerts /docs/cloud/alerts/alert_about_failures
 /docs/cloud/users/manage_users /docs/cloud/access/manage_access
 /docs/cloud/validations/manage_validations /docs/cloud/validations/run_validations
 /docs/cloud/connect/connect_airflow /docs/cloud/integrations/integrate_airflow

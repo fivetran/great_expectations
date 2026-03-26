@@ -337,6 +337,25 @@ connect_to_dataframe_data = [
     ),
 ]
 
+connect_to_cloud = [
+    # Microsoft Fabric
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "cloud_docs_connect_fabric" tests/integration/test_script_runner.py
+        name="cloud_docs_connect_fabric",
+        user_flow_script="docs/docusaurus/docs/cloud/connect/connect_fabric.py",
+        backend_dependencies=[BackendDependencies.CLOUD],
+    ),
+    # Microsoft SQL Server
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "cloud_docs_connect_sqlserver" tests/integration/test_script_runner.py
+        name="cloud_docs_connect_sqlserver",
+        user_flow_script="docs/docusaurus/docs/cloud/connect/connect_sqlserver.py",
+        backend_dependencies=[BackendDependencies.CLOUD],
+    ),
+]
+
 docs_example_scripts_run_validations = [
     # Create a Validation Definition
     IntegrationTestFixture(
@@ -377,6 +396,15 @@ docs_example_scripts_run_validations = [
         # data_context_dir="",
         backend_dependencies=[],
     ),
+    # Retrieve all unexpected rows
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "docs_example_retrieve_all_unexpected_rows" tests/integration/test_script_runner.py
+        name="docs_example_retrieve_all_unexpected_rows",
+        user_flow_script="docs/docusaurus/docs/core/run_validations/_examples/retrieve_all_unexpected_rows.py",
+        data_dir="tests/test_sets/taxi_yellow_tripdata_samples/sqlite",
+        backend_dependencies=[],
+    ),
 ]
 
 example_scripts_for_define_expectations = [
@@ -389,6 +417,24 @@ example_scripts_for_define_expectations = [
         # data_dir="docs/docusaurus/docs/components/_testing/test_data_sets/single_test_file",
         # data_context_dir="",
         backend_dependencies=[],
+    ),
+    # Create an Expectation for Cloud
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "doc_example_create_an_expectation_for_cloud" tests/integration/test_script_runner.py
+        name="doc_example_create_an_expectation_for_cloud",
+        user_flow_script="docs/docusaurus/docs/cloud/expectations/examples/create_an_expectation_for_cloud.py",
+        # data_context_dir="",
+        backend_dependencies=[BackendDependencies.CLOUD],
+    ),
+    # Edit an Expectation for Cloud
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "doc_example_edit_an_expectation_for_cloud" tests/integration/test_script_runner.py
+        name="doc_example_edit_an_expectation_for_cloud",
+        user_flow_script="docs/docusaurus/docs/cloud/expectations/examples/edit_an_expectation_for_cloud.py",
+        # data_context_dir="",
+        backend_dependencies=[BackendDependencies.CLOUD],
     ),
     # Retrieve a Batch of test data (using pandas_default)
     IntegrationTestFixture(
@@ -769,6 +815,7 @@ docs_tests.extend(connect_to_filesystem_data_create_a_data_source)
 docs_tests.extend(connect_to_filesystem_data_create_a_data_asset)
 docs_tests.extend(connect_to_filesystem_data_create_a_batch_definition)
 docs_tests.extend(connect_to_dataframe_data)
+docs_tests.extend(connect_to_cloud)
 docs_tests.extend(docs_example_scripts_run_validations)
 docs_tests.extend(example_scripts_for_define_expectations)
 docs_tests.extend(docs_examples_customize_expectations)

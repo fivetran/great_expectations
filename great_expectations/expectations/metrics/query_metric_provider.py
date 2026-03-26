@@ -8,15 +8,84 @@ from typing_extensions import NotRequired, TypedDict
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
+from great_expectations.constants import MAX_RESULT_RECORDS
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from great_expectations.expectations.metrics.metric_provider import MetricProvider
-from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
 from great_expectations.util import get_sqlalchemy_subquery_type
 
 if TYPE_CHECKING:
     from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 
 logger = logging.getLogger(__name__)
+
+_ORDER_BY_TOKEN = "ORDER BY"
+_OFFSET_TOKEN = "OFFSET"
+
+
+def has_top_level_token(query: str, token: str) -> bool:
+    """Return True if *token* appears at parentheses depth 0 (case-insensitive).
+
+    Tokens nested inside parenthesised subqueries or window-function
+    OVER() clauses are ignored.
+    """
+    upper = query.upper()
+    upper_token = token.upper()
+    depth = 0
+    token_len = len(upper_token)
+    query_len = len(upper)
+    i = 0
+    while i < query_len:
+        char = upper[i]
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        elif depth == 0 and upper[i : i + token_len] == upper_token:
+            return True
+        i += 1
+    return False
+
+
+def find_last_top_level_order_by(query: str) -> int:
+    """Return the character position of the last top-level ORDER BY, or -1.
+
+    ORDER BY inside parenthesised subqueries or window-function OVER()
+    clauses (depth > 0) is ignored.
+    """
+    upper = query.upper()
+    last_pos = -1
+    depth = 0
+    token_len = len(_ORDER_BY_TOKEN)
+    query_len = len(upper)
+    i = 0
+    while i < query_len:
+        char = upper[i]
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        elif depth == 0 and upper[i : i + token_len] == _ORDER_BY_TOKEN:
+            last_pos = i
+        i += 1
+    return last_pos
+
+
+def strip_top_level_order_by(query: str) -> str:
+    """Strip the last top-level ORDER BY clause from a SQL query.
+
+    Used when wrapping user queries in COUNT(*) for SQL Server, where ORDER BY
+    in a subquery is invalid unless TOP or OFFSET is present.  Returns the
+    query unchanged if no top-level ORDER BY exists or a top-level OFFSET
+    is present (stripping would remove the pagination clause).
+    """
+    if has_top_level_token(query, _OFFSET_TOKEN):
+        return query
+
+    pos = find_last_top_level_order_by(query)
+    if pos == -1:
+        return query
+
+    return query[:pos].rstrip()
 
 
 class MissingElementError(TypeError):
@@ -115,7 +184,9 @@ class QueryMetricProvider(MetricProvider):
         ):  # specifying a row_condition returns the active batch as a Select
             # specifying an unexpected_rows_query returns the active batch as a Subquery or Alias
             # this requires compilation & aliasing when formatting the parameterized query
-            batch = batch_selectable.compile(compile_kwargs={"literal_binds": True})
+            batch = batch_selectable.compile(
+                dialect=execution_engine.engine.dialect, compile_kwargs={"literal_binds": True}
+            )
             # all join queries require the user to have taken care of aliasing themselves
             if "JOIN" in query.upper():
                 query = query.format(batch=f"({batch})", **parameters)
@@ -124,6 +195,9 @@ class QueryMetricProvider(MetricProvider):
         else:
             query = query.format(batch=f"({batch_selectable})", **parameters)
 
+        if getattr(execution_engine, "dialect_name", None) == "mssql":  # fix for batch error
+            query = query.replace("WHERE true", "WHERE 1=1")
+
         return query
 
     @classmethod
@@ -131,10 +205,12 @@ class QueryMetricProvider(MetricProvider):
         cls,
         substituted_batch_subquery: str,
         execution_engine: SqlAlchemyExecutionEngine,
+        fetch_all: bool = False,
     ) -> list[dict]:
-        result: Union[Sequence[sa.Row[Any]], Any] = execution_engine.execute_query(
-            sa.text(substituted_batch_subquery)
-        ).fetchmany(MAX_RESULT_RECORDS)
+        query_result = execution_engine.execute_query(sa.text(substituted_batch_subquery))
+        result: Union[Sequence[sa.Row[Any]], Any] = (
+            query_result.fetchall() if fetch_all else query_result.fetchmany(MAX_RESULT_RECORDS)
+        )
 
         if isinstance(result, Sequence):
             return [element._asdict() for element in result]

@@ -11,12 +11,13 @@ from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     DataSourceTestConfig,
-    MSSQLDatasourceTestConfig,
+    GenericSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     RedshiftDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SqliteDatasourceTestConfig,
+    SQLServerDatasourceTestConfig,
 )
 
 BASIC_PATTERNS = "basic_patterns"
@@ -35,10 +36,11 @@ DATA = pd.DataFrame(
 
 SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
-    MSSQLDatasourceTestConfig(),
+    SQLServerDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
+    GenericSQLDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
 ]
@@ -188,7 +190,9 @@ def test_failure(
         ),
     ],
 )
-@parameterize_batch_for_data_sources(data_source_configs=[MSSQLDatasourceTestConfig()], data=DATA)
+@parameterize_batch_for_data_sources(
+    data_source_configs=[SQLServerDatasourceTestConfig()], data=DATA
+)
 def test_msql_fancy_syntax(
     batch_for_datasource: Batch,
     expectation: gxe.ExpectColumnValuesToMatchLikePattern,

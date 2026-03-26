@@ -5,6 +5,12 @@ from .column.aggregate_non_null_count import ColumnAggregateNonNullCount
 from .column.descriptive_stats import ColumnDescriptiveStats
 from .column.distinct_values import ColumnDistinctValues
 from .column.distinct_values_count import ColumnDistinctValuesCount
+from .column.distinct_values_missing_from_column import ColumnDistinctValuesMissingFromColumn
+from .column.distinct_values_missing_from_column_count import (
+    ColumnDistinctValuesMissingFromColumnCount,
+)
+from .column.distinct_values_not_in_set import ColumnDistinctValuesNotInSet
+from .column.distinct_values_not_in_set_count import ColumnDistinctValuesNotInSetCount
 from .column.mean import ColumnMean
 from .column.null_count import ColumnNullCount
 from .column.sample_values import ColumnSampleValues
@@ -16,5 +22,6 @@ from .column.values_not_match_regex_values import ColumnValuesNotMatchRegexValue
 from .column_pair.values_in_set import ColumnPairValuesInSetUnexpectedCount
 from .metric import Metric
 from .multi_column.sum_equal import MultiColumnSumEqualUnexpectedCount
+from .query.batch_table import QueryBatchTable
 from .query.data_source_table import QueryDataSourceTable
 from .query.row_count import QueryRowCount

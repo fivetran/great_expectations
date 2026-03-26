@@ -86,7 +86,6 @@ assert context.list_datasources() == [
                 "type": "table",
                 "batch_metadata": {},
                 "table_name": "postgres_taxi_data",
-                "schema_name": None,
                 "id": mock.ANY,
             }
         ],
@@ -115,7 +114,6 @@ assert context.list_datasources() == [
                 "type": "table",
                 "batch_metadata": {},
                 "table_name": "postgres_taxi_data",
-                "schema_name": None,
                 "id": mock.ANY,
             }
         ],

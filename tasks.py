@@ -855,9 +855,10 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             "reqs/requirements-dev-cloud.txt",
             "reqs/requirements-dev-redshift.txt",
             "reqs/requirements-dev-snowflake.txt",
+            "reqs/requirements-dev-sql-server.txt",
             # "Deprecated API features detected" warning/error for test_docs[split_data_on_whole_table_bigquery] when pandas>=2.0  # noqa: E501
         ),
-        services=("mercury",),
+        services=("mercury", "mssql"),
         extra_pytest_args=(
             "--aws",
             "--azure",
@@ -879,10 +880,15 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
     "gx-redshift": TestDependencies(
         requirement_files=("reqs/requirements-dev-gx-redshift.txt",),
     ),
-    "mssql": TestDependencies(
-        ("reqs/requirements-dev-mssql.txt",),
+    "sql_server": TestDependencies(
+        ("reqs/requirements-dev-sql-server.txt",),
         services=("mssql",),
-        extra_pytest_args=("--mssql",),
+        extra_pytest_args=("--sql-server",),
+    ),
+    "mssql": TestDependencies(
+        ("reqs/requirements-dev-sql-server.txt",),
+        services=("mssql",),
+        extra_pytest_args=("--sql-server",),
     ),
     "mysql": TestDependencies(
         ("reqs/requirements-dev-mysql.txt",),
@@ -925,9 +931,11 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
 def _marker_statement(marker: str) -> str:
     # Perhaps we should move this configuration to the MARKER_DEPENDENCY_MAP instead of
     # doing the mapping here.
+    if marker == "mssql":
+        marker = "sql_server"
     if marker in [
         "postgresql",
-        "mssql",
+        "sql_server",
         "mysql",
         "spark",
         "trino",
@@ -1234,7 +1242,7 @@ def service(
                     "up",
                     "-d",
                     "--wait",
-                    "--wait-timeout 120",
+                    "--wait-timeout 300",
                 ]
             )
             ctx.run(" ".join(cmds), echo=True, pty=pty)

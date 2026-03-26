@@ -9,6 +9,10 @@ import Tabs from '@theme/Tabs';
 
 Use Actions to notify the appropriate parties of the results of your Validation runs. Actions can be triggered on failure severity, Validation success, or all Validations. Validations are executed using Checkpoints, which each have a list of Actions that will be executed when each run has finished. By default, GX Cloud creates a Checkpoint for each Data Asset that you create. Optionally, you can also use a Checkpoint that you have created manually. This example will demonstrate how to create a `SlackNotificationAction` and append it to the list of Actions on a given Checkpoint.
 
+:::tip Consider zero-code alerts instead
+If you want to send notifications to email addresses, Slack, Microsoft Teams, PagerDuty, or ServiceNow, consider using [zero-code alerts](/cloud/alerts/alert_about_failures.md) instead of coding Actions. While Actions can be scaled programmatically, alerts give you more control over which severities of failures trigger which notifications. Alerts also give you the ability to @mention collaborators in Slack. 
+:::
+
 ## Prerequisites
 - A [GX Cloud account](https://greatexpectations.io/cloud).
 - Your [Cloud credentials](/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
@@ -38,7 +42,8 @@ Use Actions to notify the appropriate parties of the results of your Validation 
    ```
 
    :::tip The GX-managed Checkpoint name can be found through the UI
-   For the Data Asset of interest, go to the **Validations** tab. If you have more than one **Expectation Suite**, select the **GX-managed** one. Then, click the code snippet icon next to the **Validate** button and click **Generate snippet**.
+   For the Data Asset of interest, go to the **Expectations** tab. Then, click the code snippet icon next to the **Validate** button and click **Generate snippet**.
+   :::
 
 3. Define the Actions that the Checkpoint will trigger.
     

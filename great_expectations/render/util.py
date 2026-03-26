@@ -451,7 +451,7 @@ def _convert_unexpected_indices_to_df(
 
     # 2. add count
     col_to_count: str = unexpected_index_column_names[0]
-    all_unexpected_indices["Count"] = all_unexpected_indices[col_to_count].apply(lambda x: len(x))
+    all_unexpected_indices["Count"] = all_unexpected_indices[col_to_count].apply(len)
 
     # 3. ensure index is a string
     all_unexpected_indices.index = all_unexpected_indices.index.map(str)
@@ -459,7 +459,7 @@ def _convert_unexpected_indices_to_df(
     # 4. truncate indices and replace with `...` if necessary
     for column in unexpected_index_column_names:
         all_unexpected_indices[column] = all_unexpected_indices[column].apply(
-            lambda row: truncate_list_of_indices(row)
+            truncate_list_of_indices
         )
 
     # 5. only keep the rows we are rendering
@@ -467,10 +467,11 @@ def _convert_unexpected_indices_to_df(
     return filtered_unexpected_indices
 
 
-def truncate_list_of_indices(indices: list[int | str], max_index: int = 10) -> str:
+def truncate_list_of_indices(indices: Sequence[int | str], max_index: int = 10) -> str:
     """
-    Lambda function used to take unexpected_indices and turn into a string that can be rendered in DataDocs.
-    For lists that are greater than max_index, it will truncate the list and add a "..."
+    Lambda function used to take unexpected_indices and turn into a string
+    that can be rendered in DataDocs.For lists that are greater than max_index,
+    it will truncate the list and add a "..."
 
     Args:
         indices: indices to show
@@ -478,12 +479,18 @@ def truncate_list_of_indices(indices: list[int | str], max_index: int = 10) -> s
 
     Returns:
         string of indices that are joined using ` `
-
-    """  # noqa: E501 # FIXME CoP
+    """
     if len(indices) > max_index:
-        indices = indices[:max_index]
-        indices.append("...")
+        indices = list(indices[:max_index]) + ["..."]
     return ", ".join(map(str, indices))
+
+
+def coerce_stringdtype_to_object(df: pd.DataFrame) -> pd.DataFrame:
+    """Convert StringDtype columns to object dtype for Altair compatibility."""
+    for col in df.columns:
+        if isinstance(df[col].dtype, pd.StringDtype):
+            df[col] = df[col].astype("object")
+    return df
 
 
 def parse_row_condition_string(condition_string: str) -> str:

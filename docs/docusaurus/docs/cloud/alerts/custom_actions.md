@@ -7,7 +7,7 @@ description: Run custom logic based on Validation Results.
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
-Great Expectations provides [Actions for common workflows](cloud/alerts/trigger_actions.md), such as sending emails and Microsoft Teams notifications. If these don't meet your needs, you can create a custom Action to integrate with different tools, such as Atlassian Jira, or apply custom business logic based on Validation Results. Example use cases for custom Actions include:
+Great Expectations Cloud provides [zero-code alerts](/cloud/alerts/alert_about_failures.md) and [programmable built-in Actions](cloud/alerts/trigger_actions.md) for common workflows, such as sending emails and Microsoft Teams notifications. If these don't meet your needs, you can create a custom Action to integrate with different tools, such as Atlassian Jira, or apply custom business logic based on Validation Results. Example use cases for custom Actions include:
 
 - Opening tickets in an issue tracker when Validation runs fail.
 - Triggering different webhooks depending on which Expectations fail.

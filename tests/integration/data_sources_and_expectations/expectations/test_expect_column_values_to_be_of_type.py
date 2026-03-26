@@ -11,7 +11,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
-    MSSQLDatasourceTestConfig,
+    GenericSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
@@ -20,6 +20,7 @@ from tests.integration.test_utils.data_source_config import (
     SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
     SqliteDatasourceTestConfig,
+    SQLServerDatasourceTestConfig,
 )
 
 INTEGER_COLUMN = "integers"
@@ -68,10 +69,11 @@ def test_success_for_type__int(batch_for_datasource: Batch) -> None:
 @parameterize_batch_for_data_sources(
     data_source_configs=[
         BigQueryDatasourceTestConfig(),
-        MSSQLDatasourceTestConfig(),
+        SQLServerDatasourceTestConfig(),
         MySQLDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(),
         RedshiftDatasourceTestConfig(),
+        GenericSQLDatasourceTestConfig(),
         SqliteDatasourceTestConfig(),
     ],
     data=DATA,
@@ -152,20 +154,21 @@ def test_failure(batch_for_datasource: Batch) -> None:
         DatabricksDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(),
         SnowflakeDatasourceTestConfig(),
+        SQLServerDatasourceTestConfig(),
     ],
     data=DATA,
 )
 def test_case_insensitive_dialects(batch_for_datasource: Batch) -> None:
     dialect_name = batch_for_datasource.data.execution_engine.engine.dialect.name.lower()
 
-    expected_dialects = ["snowflake", "databricks", "postgresql"]
+    expected_dialects = ["snowflake", "databricks", "postgresql", "mssql"]
     assert dialect_name in expected_dialects, f"Unexpected dialect: {dialect_name}"
 
     if dialect_name == "snowflake":
         base_type = "DECIMAL(38, 0)"
     elif dialect_name == "databricks":
         base_type = "INT"
-    elif dialect_name == "postgresql":
+    elif dialect_name in {"postgresql", "mssql"}:
         base_type = "INTEGER"
     else:
         raise AssertionError(f"Unexpected dialect: {dialect_name}")

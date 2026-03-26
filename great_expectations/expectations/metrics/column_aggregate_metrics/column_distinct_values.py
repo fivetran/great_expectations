@@ -3,6 +3,8 @@ from __future__ import annotations
 import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
+import numpy as np
+import pandas as pd
 from dateutil.parser import parse
 
 from great_expectations.compatibility.not_imported import is_version_greater_or_equal
@@ -30,8 +32,6 @@ from great_expectations.expectations.metrics.metric_provider import metric_value
 from great_expectations.validator.metric_configuration import MetricConfiguration
 
 if TYPE_CHECKING:
-    import pandas as pd
-
     from great_expectations.compatibility import pyspark, sqlalchemy
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
@@ -44,7 +44,29 @@ _SQLALCHEMY_1_4_OR_GREATER = SQLALCHEMY_VERSION is not None and is_version_great
 
 
 # Type alias for scalar values that can appear in columns or value sets
-ScalarValue = Union[str, int, float, bool, datetime.date, datetime.datetime, None]
+ScalarValue = Union[str, int, float, bool, datetime.date, datetime.datetime, np.datetime64, None]
+
+
+def _coerce_scalar_to_datetime64(v: ScalarValue) -> ScalarValue:
+    """Coerce a single value to numpy.datetime64 via pd.Timestamp."""
+    if isinstance(v, np.datetime64):
+        return v
+    if isinstance(v, (str, int, float, datetime.date, datetime.datetime)):
+        try:
+            return pd.Timestamp(v).to_datetime64()
+        except (ValueError, TypeError):
+            pass
+    return v
+
+
+def _coerce_scalar_to_datetime(v: ScalarValue, target_is_date_only: bool) -> ScalarValue:
+    """Coerce a string value to datetime.date or datetime.datetime."""
+    if not isinstance(v, str):
+        return v
+    try:
+        return parse(v).date() if target_is_date_only else parse(v)
+    except (ValueError, TypeError):
+        return v
 
 
 def _coerce_value_set_to_column_type(
@@ -52,7 +74,8 @@ def _coerce_value_set_to_column_type(
 ) -> Set[ScalarValue]:
     """Coerce value_set items to match the type of values in column_set.
 
-    This handles cases like comparing string dates to datetime.date objects.
+    This handles cases like comparing string dates to datetime.date objects,
+    and numpy.datetime64 values from pandas datetime columns.
     Used by Pandas metrics where we have access to actual column values.
 
     Args:
@@ -65,26 +88,16 @@ def _coerce_value_set_to_column_type(
     if not column_set or not value_set:
         return set(value_set) if value_set else set()
 
-    # Get a sample value from the column to determine its type
     sample_value = next(iter(column_set))
 
-    # If column contains datetime types and value_set contains strings, try to parse
+    # numpy.datetime64 (from pandas 3.x datetime columns) doesn't hash consistently
+    # with Python datetime types, so coerce value_set items to numpy.datetime64.
+    if isinstance(sample_value, np.datetime64):
+        return {_coerce_scalar_to_datetime64(v) for v in value_set}
+
     if isinstance(sample_value, (datetime.date, datetime.datetime)):
-        coerced_set: Set[ScalarValue] = set()
-        for v in value_set:
-            if isinstance(v, str):
-                try:
-                    if isinstance(sample_value, datetime.date) and not isinstance(
-                        sample_value, datetime.datetime
-                    ):
-                        coerced_set.add(parse(v).date())
-                    else:
-                        coerced_set.add(parse(v))
-                except (ValueError, TypeError):
-                    coerced_set.add(v)
-            else:
-                coerced_set.add(v)
-        return coerced_set
+        target_is_date_only = not isinstance(sample_value, datetime.datetime)
+        return {_coerce_scalar_to_datetime(v, target_is_date_only) for v in value_set}
 
     return set(value_set)
 

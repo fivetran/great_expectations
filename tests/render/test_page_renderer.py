@@ -501,6 +501,67 @@ def ValidationResultsPageRenderer_render_with_run_info_at_start():
         return rendered_validation_results
 
 
+def _normalize_schema(graph: dict) -> None:
+    """Normalize $schema version to v4.8.1."""
+    if "$schema" in graph:
+        graph["$schema"] = re.sub(r"v\d*\.\d*\.\d*", "v4.8.1", graph["$schema"])
+
+
+def _normalize_mark(graph: dict) -> None:
+    """Normalize mark property: convert string to dict form if needed."""
+    if "mark" in graph and isinstance(graph["mark"], str):
+        graph["mark"] = {"type": graph["mark"]}
+
+
+def _normalize_continuous_width(graph: dict) -> None:
+    """Normalize continuousWidth to 300."""
+    config = graph.get("config")
+    if isinstance(config, dict):
+        view = config.get("view")
+        if isinstance(view, dict) and "continuousWidth" in view:
+            view["continuousWidth"] = 300
+
+
+def _normalize_dataset_names(graph: dict) -> None:
+    """Normalize dataset names to stable 'data-inline'."""
+    datasets = graph.get("datasets")
+    data = graph.get("data")
+    if isinstance(datasets, dict) and isinstance(data, dict):
+        old_name = data.get("name")
+        if old_name and old_name in datasets:
+            datasets["data-inline"] = datasets.pop(old_name)
+            data["name"] = "data-inline"
+
+
+def _normalize_single_graph(graph: dict) -> None:
+    """Normalize a single graph block."""
+    _normalize_schema(graph)
+    _normalize_mark(graph)
+    _normalize_continuous_width(graph)
+    _normalize_dataset_names(graph)
+
+
+def _normalize_graph_blocks(obj: dict | list) -> None:
+    """
+    Recursively normalize graph blocks in rendered output to make them
+    compatible across Altair versions.
+
+    Normalizes:
+    - $schema: strips version to v4.8.1
+    - mark: converts to dict form {"type": "bar"} if string
+    - config.view.continuousWidth: sets to 300
+    - dataset names: replaces with stable "data-inline"
+    """
+    if isinstance(obj, dict):
+        if "graph" in obj and isinstance(obj["graph"], dict):
+            _normalize_single_graph(obj["graph"])
+        for value in obj.values():
+            _normalize_graph_blocks(value)
+    elif isinstance(obj, list):
+        for item in obj:
+            _normalize_graph_blocks(item)
+
+
 def test_snapshot_ValidationResultsPageRenderer_render_with_run_info_at_end(
     titanic_profiled_evrs_1: ExpectationValidationResult,
     ValidationResultsPageRenderer_render_with_run_info_at_end,
@@ -510,14 +571,13 @@ def test_snapshot_ValidationResultsPageRenderer_render_with_run_info_at_end(
         titanic_profiled_evrs_1
     ).to_json_dict()
 
-    # replace version of vega-lite in res to match snapshot test
-    content_block = rendered_validation_results["sections"][5]["content_blocks"][1]["table"][10][2][
-        "content_blocks"
-    ][1]
-    content_block["graph"]["$schema"] = re.sub(
-        r"v\d*\.\d*\.\d*", "v4.8.1", content_block["graph"]["$schema"]
-    )
-    assert rendered_validation_results == ValidationResultsPageRenderer_render_with_run_info_at_end
+    # Normalize graph blocks for Altair version compatibility
+    _normalize_graph_blocks(rendered_validation_results)
+    # Also normalize the fixture for consistency
+    fixture_copy = json.loads(json.dumps(ValidationResultsPageRenderer_render_with_run_info_at_end))
+    _normalize_graph_blocks(fixture_copy)
+
+    assert rendered_validation_results == fixture_copy
 
 
 def test_snapshot_ValidationResultsPageRenderer_render_with_run_info_at_start(
@@ -529,16 +589,15 @@ def test_snapshot_ValidationResultsPageRenderer_render_with_run_info_at_start(
         titanic_profiled_evrs_1
     ).to_json_dict()
 
-    # replace version of vega-lite in res to match snapshot test
-    content_block = rendered_validation_results["sections"][5]["content_blocks"][1]["table"][10][2][
-        "content_blocks"
-    ][1]
-    content_block["graph"]["$schema"] = re.sub(
-        r"v\d*\.\d*\.\d*", "v4.8.1", content_block["graph"]["$schema"]
+    # Normalize graph blocks for Altair version compatibility
+    _normalize_graph_blocks(rendered_validation_results)
+    # Also normalize the fixture for consistency
+    fixture_copy = json.loads(
+        json.dumps(ValidationResultsPageRenderer_render_with_run_info_at_start)
     )
-    assert (
-        rendered_validation_results == ValidationResultsPageRenderer_render_with_run_info_at_start
-    )
+    _normalize_graph_blocks(fixture_copy)
+
+    assert rendered_validation_results == fixture_copy
 
 
 def test_asset_name_is_part_of_resource_info_index(mocker: MockerFixture):

@@ -50,6 +50,7 @@ def get_extras_require():
     extra_key_mapping = {
         "aws_secrets": "boto",
         "azure_secrets": "azure",
+        "fabric": "sql-server",
         "gcp": "bigquery",
         "s3": "boto",
     }
@@ -63,7 +64,7 @@ def get_extras_require():
         "bigquery",  # https://github.com/googleapis/python-bigquery-sqlalchemy/blob/main/setup.py
         "dremio",  # https://github.com/narendrans/sqlalchemy_dremio/blob/master/setup.py
         "hive",  # https://github.com/dropbox/PyHive/blob/master/setup.py
-        "mssql",  # https://github.com/mkleehammer/pyodbc/blob/master/setup.py
+        "sql-server",  # https://github.com/mkleehammer/pyodbc/blob/master/setup.py
         "mysql",  # https://github.com/PyMySQL/PyMySQL/blob/main/pyproject.toml
         "postgresql",  # https://github.com/psycopg/psycopg2/blob/master/setup.py
         "trino",  # https://github.com/trinodb/trino-python-client/blob/master/setup.py

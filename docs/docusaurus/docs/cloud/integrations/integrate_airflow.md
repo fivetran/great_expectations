@@ -21,7 +21,7 @@ Apache Airflow is an orchestration tool that allows you to schedule and monitor 
 
 - You have [connected GX Cloud to a Data Asset on a Data Source](/cloud/data_assets/manage_data_assets.md). (Note that this automatically creates the Checkpoint your DAG will run.)
 
-- You have [added Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation).
+- You have [added Expectations](/cloud/expectations/manage_expectations.md#create-an-expectation).
 
 
 ## Run Airflow Standalone to create a fresh local Airflow environment
@@ -80,8 +80,8 @@ Apache Airflow is an orchestration tool that allows you to schedule and monitor 
             # You can also set GX_CLOUD_ACCESS_TOKEN and GX_CLOUD_ORGANIZATION_ID as environment variables
             GX_CLOUD_ACCESS_TOKEN = "<YOUR_ACCESS_TOKEN>"
             GX_CLOUD_ORGANIZATION_ID = "<YOUR_CLOUD_ORGANIZATION_ID>"
-            # Find the Checkpoint name in the GX Cloud UI. 
-            # - Go to the "Validations" tab.
+            # Find the GX-managed Checkpoint name in the GX Cloud UI. 
+            # - Go to the "Expectations" tab.
             # - Next to the "Validate" button, click the code snippet icon.
             # - Click "Generate snippet". 
             # - Copy the Checkpoint name from the code snippet and use it below.

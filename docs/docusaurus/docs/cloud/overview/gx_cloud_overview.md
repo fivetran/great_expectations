@@ -68,7 +68,7 @@ There are a variety of GX Cloud features that support additional enhancements to
 
 * **Data Asset profiling.** GX Cloud introspects your data schema by default on Data Asset creation, and also offers one-click fetching of additional descriptive metrics including column type and statistical summaries. Data profiling results are used to suggest parameters for Expectations that you create.
 
-* **Automate rules for Anomaly Detection.** GX Cloud can automatically generate Expectations that detect column changes, volume changes that deviate from historical patterns, and changes to the proportion of null values in each column. This option is available in the GX Cloud UI when you [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation) for an existing Data Asset.
+* **Automate rules for Anomaly Detection.** GX Cloud can automatically generate Expectations that detect column changes, volume changes that deviate from historical patterns, and changes to the proportion of null values in each column. This option is available in the GX Cloud UI when you [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#create-an-expectation) for an existing Data Asset.
 
 * **Personalize rules with ExpectAI.** GX Cloud can generate [AI-recommended Expectations](/cloud/expectations/manage_expectations.md#generate-expectations) for a Data Asset. These will be personalized based on an analysis of a sample of your data.
 
@@ -76,7 +76,7 @@ There are a variety of GX Cloud features that support additional enhancements to
 
 * **Schedule Validations.** GX Cloud enables you to schedule validations, so that you can test and assess your data on a regular cadence and monitor data quality over time. See [Manage schedules](/cloud/schedules/manage_schedules.md) for more detail.
 
-* **Alerting.** GX Cloud provides the ability to send alerts when validations fail, enabling your business to remain proactively aware of the health of your Data Assets. See [Respond to results](/cloud/alerts/alerts_lp.md) for more detail.
+* **Alerting.** GX Cloud provides the ability to notify individuals and third-party tools when validations fail, enabling your business to remain proactively aware of the health of your Data Assets. See [Respond to results](/cloud/alerts/alerts_lp.md) for more detail.
 
 * **Monitor Data Health.** GX Cloud provides metric summaries and trends to help you understand and improve test coverage and success across your business. See [Data Health](/cloud/overview/data_health.md) for more detail.
 

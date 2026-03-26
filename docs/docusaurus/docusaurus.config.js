@@ -15,6 +15,10 @@ module.exports = {
   favicon: '/img/gx-mark.png',
   organizationName: 'great-expectations',
   projectName: 'great_expectations',
+  customFields: {
+    sentryDsn: process.env.SENTRY_DSN,
+  },
+  clientModules: [require.resolve('./src/sentry.js')],
   plugins: [
     '@docusaurus-terminology/parser',
     'docusaurus-plugin-sass',
@@ -99,7 +103,8 @@ module.exports = {
         },
         {
           className: 'code-block-hide-line',
-          line: 'Hide this'
+          line: 'Hide this',
+          block: { start: 'Hide start', end: 'Hide end' }
         }
       ]
     },
@@ -313,7 +318,7 @@ module.exports = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: '1.11.3',
+              label: '1.15.1',
             },
             ['0.18']: {
               label: '0.18.21',
