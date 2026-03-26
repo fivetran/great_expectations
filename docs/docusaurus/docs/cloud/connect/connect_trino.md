@@ -171,7 +171,7 @@ Keep the following limitations in mind when working with Trino Data Sources.
 
 - Trino Data Source connections cannot be edited in the GX Cloud UI. Use the GX Cloud API if you need to [edit the connection](/cloud/data_sources/manage_data_sources.md#edit-data-source-settings).
 - Trino Data Assets cannot be added through the GX Cloud UI. Use the GX Cloud API to [add more Data Assets](/docs/cloud/data_assets/manage_data_assets.md?interface=api#add-a-data-asset-from-an-existing-data-source) from your Trino Data Source.
-- Only Table Data Assets are supported. You cannot make a [Query Data Asset](/cloud/data_assets/manage_data_assets#query-data-assets) with a Trino Data Source.
+- Only Table Data Assets are supported. You cannot make a [Query Data Asset](/cloud/data_assets/manage_data_assets.md#data-asset-options-for-sql-data-sources) with a Trino Data Source.
 - [ExpectAI](/cloud/overview/accelerating_test_coverage#expectai) is not supported.
 - Data Asset metrics are not automatically fetched. You can [manually profile data](/docs/cloud/data_assets/manage_data_assets.md#view-data-asset-metrics) to return all available metrics for a Trino Data Asset.
 - When you add a Trino Data Asset, Expectations for Anomaly Detection are not automatically generated. You can [generate Anomaly Detection Expectations](/docs/cloud/expectations/manage_expectations#add-an-expectation) after the Data Asset is created.
