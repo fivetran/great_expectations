@@ -162,7 +162,7 @@ data_asset = data_source.add_table_asset(
 
 - [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation)
 - [Run a Validation](/cloud/validations/run_validations.md)
-- [Configure an alert](/cloud/alerts/manage_email_alerts.md)
+- [Configure an alert](/cloud/alerts/alert_about_failures.md)
 
 
 ## Limitations

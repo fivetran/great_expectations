@@ -168,9 +168,6 @@ Environment variables securely store your GX Cloud credentials.
 
 </Tabs>
 
-<TabItem value="instructions" label="Instructions">
-
-
 </TabItem>
 
 <TabItem value="sample_code" label="Sample code">
@@ -212,7 +209,7 @@ table_data_asset = data_source.add_table_asset(
 
 - [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation)
 - [Run a Validation](/cloud/validations/run_validations.md)
-- [Configure an alert](/cloud/alerts/manage_email_alerts.md)
+- [Configure an alert](/cloud/alerts/alert_about_failures.md)
 
 
 ## Limitations
