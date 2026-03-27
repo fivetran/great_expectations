@@ -129,7 +129,7 @@ Environment variables securely store your GX Cloud credentials.
 
 ## Next steps
 
-- [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation)
+- [Add an Expectation](/cloud/expectations/manage_expectations.md#create-an-expectation)
 - [Run a Validation](/cloud/validations/run_validations.md)
 - [Configure an alert](/cloud/alerts/alert_about_failures.md)
 
@@ -143,4 +143,4 @@ Keep the following limitations in mind when working with Trino Data Sources.
 - Only Table Data Assets are supported. You cannot make a [Query Data Asset](/cloud/data_assets/manage_data_assets.md#data-asset-options-for-sql-data-sources) with a Trino Data Source.
 - [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai) is not supported.
 - Data Asset metrics are not automatically fetched. You can [manually profile data](/docs/cloud/data_assets/manage_data_assets.md#view-data-asset-metrics) to return all available metrics for a Trino Data Asset.
-- When you add a Trino Data Asset, Expectations for Anomaly Detection are not automatically generated. You can [generate Anomaly Detection Expectations](/docs/cloud/expectations/manage_expectations.md#add-an-expectation) after the Data Asset is created.
+- When you add a Trino Data Asset, Expectations for Anomaly Detection are not automatically generated. You can [generate Anomaly Detection Expectations](/docs/cloud/expectations/manage_expectations.md#create-an-expectation) after the Data Asset is created.

@@ -165,7 +165,7 @@ Environment variables securely store your GX Cloud credentials.
 
 ## Next steps
 
-- [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation)
+- [Add an Expectation](/cloud/expectations/manage_expectations.md#create-an-expectation)
 - [Run a Validation](/cloud/validations/run_validations.md)
 - [Configure an alert](/cloud/alerts/alert_about_failures.md)
 
@@ -179,6 +179,6 @@ Keep the following limitations in mind when working with BigQuery Data Sources.
 - [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai) is not supported.
 - [Data Asset metrics](/cloud/data_assets/manage_data_assets.md#view-data-asset-metrics) are not supported.
 - The [Data Health](/cloud/overview/data_health.md) dashboard entity filter cannot detect the Data Asset’s columns.
-- Expectations for Anomaly Detection cannot be automatically generated. You can [manually configure Anomaly Detection](/docs/cloud/expectations/expectations_overview.md#add-an-expectation) by adding Expectations with Dynamic Parameters or forecasted ranges.
+- Expectations for Anomaly Detection cannot be automatically generated. You can [manually configure Anomaly Detection](/docs/cloud/expectations/expectations_overview.md#create-an-expectation) by adding Expectations with Dynamic Parameters or forecasted ranges.
 - Ad hoc Validations cannot be triggered through the GX Cloud UI. Use the API to [run an ad hoc Validation](/cloud/validations/run_validations.md).
 - Recurring Validations cannot be scheduled in GX Cloud. Use an [orchestrator to run recurring Validations](/cloud/integrations/integrate_airflow.md).
