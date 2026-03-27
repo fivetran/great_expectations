@@ -24,7 +24,7 @@ connection_string = "trino://my_user:@my_host:my_port/my_catalog/my_database"
 
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_trino.py - add source">
 data_source = context.data_sources.add_sql(
-   name=data_source_name, connection_string=connection_string
+    name=data_source_name, connection_string=connection_string
 )
 # </snippet>
 
@@ -34,9 +34,7 @@ table_name = "my_table"
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_trino.py - add asset">
-data_asset = data_source.add_table_asset(
-   table_name=table_name, name=data_asset_name
-)
+data_asset = data_source.add_table_asset(table_name=table_name, name=data_asset_name)
 # </snippet>
 
 # </snippet>
