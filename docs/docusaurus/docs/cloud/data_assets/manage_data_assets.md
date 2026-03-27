@@ -202,5 +202,5 @@ Query Data Assets have some limitations compared to Table Data Assets, as outlin
 | Define a [time-based batch](/cloud/validations/run_validations.md) in the UI                           | Supported *                                                                                               | Not supported                                                                                                                                                                                                                                            |
 | [Column filter](/cloud/overview/data_health.md#filters) on Data Health dashboard                       | Supported *                                                                                               | Not supported                                                                                                                                                                                                                                            |
 
-\* Depends on Data Source: not supported for BigQuery.
+\* Depends on Data Source: not supported for BigQuery.</ br>
 \*\* Depends on Data Source: not supported for BigQuery or Trino.
