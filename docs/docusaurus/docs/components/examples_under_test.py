@@ -367,7 +367,7 @@ connect_to_cloud = [
         # To test, run:
         # pytest --docs-tests -k "cloud_docs_connect_trino" tests/integration/test_script_runner.py
         name="cloud_docs_connect_trino",
-        user_flow_script="docs/docusaurus/docs/cloud/connect/connect_sqlserver.py",
+        user_flow_script="docs/docusaurus/docs/cloud/connect/connect_trino.py",
         backend_dependencies=[BackendDependencies.CLOUD],
     ),
 ]

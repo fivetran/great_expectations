@@ -126,7 +126,7 @@ Environment variables securely store your GX Cloud credentials.
    ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - define table asset" 
    ```
 
-6. Add the Data Asset to your Data Source. A new Data Asset is created and added to a Data Source simultaneously.
+6. Add the Data Asset to your Data Source. A new Data Asset is created and added to a Data Source simultaneously:
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - add table asset" 
    ```
@@ -143,7 +143,7 @@ Environment variables securely store your GX Cloud credentials.
    ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - define query asset" 
    ```
 
-6. Add the Data Asset to your Data Source. A new Data Asset is created and added to a Data Source simultaneously.
+6. Add the Data Asset to your Data Source. A new Data Asset is created and added to a Data Source simultaneously:
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - add query asset" 
    ```
