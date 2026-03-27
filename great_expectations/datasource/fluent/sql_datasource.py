@@ -1249,7 +1249,7 @@ def _warn_for_more_specific_datasource_type(connection_string: str) -> None:
     """  # noqa: E501 # FIXME CoP
     from great_expectations.datasource.fluent.sources import DataSourceManager
 
-    connector: str = connection_string.split("://")[0].split("+")[0]
+    connector: str = connection_string.split("://", maxsplit=1)[0].split("+", maxsplit=1)[0]
 
     type_lookup_plus: Dict[str, str] = {
         n: DataSourceManager.type_lookup[n].__name__

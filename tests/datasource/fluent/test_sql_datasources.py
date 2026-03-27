@@ -331,7 +331,7 @@ def test_specific_datasource_warnings(
         ("'My_Schema'", "'my_schema'", ("`")),
         ("[My_Schema]", "[My_Schema]", DEFAULT_INITIAL_QUOTE_CHARACTERS),
     ],
-    ids=lambda x: str(x),
+    ids=str,
 )
 def test_to_lower_if_not_quoted(
     input_: str | None, expected_output: str | None, quote_characters: tuple[str, ...]

@@ -2364,7 +2364,7 @@ def param_id(request: pytest.FixtureRequest) -> str:
     ```
     """
     raw_name: str = request.node.name
-    return raw_name.split("[")[1].split("]")[0]
+    return raw_name.split("[")[1].split("]", maxsplit=1)[0]
 
 
 def random_name() -> str:

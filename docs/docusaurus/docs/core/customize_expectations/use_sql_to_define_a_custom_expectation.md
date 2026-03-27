@@ -64,6 +64,12 @@ Among the available Expectations, the `UnexpectedRowsExpectation` is designed to
 
    Now that you've created a custom SQL Expectation, you can [add it to an Expectation Suite](/core/define_expectations/organize_expectation_suites.md) and [validate it](/docs/core/run_validations/run_a_validation_definition.md) like any other Expectation.
 
+   :::tip Retrieving all unexpected rows
+
+   By default, Validation Results include up to 200 unexpected rows. To retrieve all failing rows from an `UnexpectedRowsExpectation`, use `ValidationDefinition.get_unexpected_rows()`. See [Retrieve all unexpected rows](/core/run_validations/retrieve_all_unexpected_rows.md).
+
+   :::
+
 </TabItem>
 
 <TabItem value="sample_code" label="Sample code">
