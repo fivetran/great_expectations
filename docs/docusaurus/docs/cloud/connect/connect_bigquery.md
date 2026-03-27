@@ -180,4 +180,4 @@ Keep the following limitations in mind when working with BigQuery Data Sources.
 - The [Data Health](/cloud/overview/data_health.md) dashboard entity filter cannot detect the Data Asset’s columns.
 - Expectations for Anomaly Detection cannot be automatically generated. You can [manually configure Anomaly Detection](/docs/cloud/expectations/expectations_overview.md#add-an-expectation) by adding Expectations with Dynamic Parameters or forecasted ranges.
 - Ad hoc Validations cannot be triggered through the GX Cloud UI. Use the API to [run an ad hoc Validation](/cloud/validations/run_validations.md).
-- Recurring Validations cannot be scheduled in GX Cloud. Use an [orchestrator to run recurring Validations](/cloud/integrations/integrate_airflow.md). 
+- Recurring Validations cannot be scheduled in GX Cloud. Use an [orchestrator to run recurring Validations](/cloud/integrations/integrate_airflow.md).

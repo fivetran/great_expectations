@@ -135,7 +135,7 @@ Environment variables securely store your GX Cloud credentials.
 
 ## Limitations
 
-Keep the following limitations in mind when working with Trino Data Sources.
+Keep the following limitations in mind when working with Trino Data Sources. 
 
 - Trino Data Source connections cannot be edited in the GX Cloud UI. Use the GX Cloud API if you need to [edit the connection](/cloud/data_sources/manage_data_sources.md#edit-data-source-settings).
 - Trino Data Assets cannot be added through the GX Cloud UI. Use the GX Cloud API to [add more Data Assets](/docs/cloud/data_assets/manage_data_assets.md?interface=api#add-a-data-asset-from-an-existing-data-source) from your Trino Data Source.

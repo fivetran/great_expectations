@@ -17,7 +17,7 @@ context = gx.get_context(mode="cloud")
 assert type(context).__name__ == "CloudDataContext"
 # Hide this
 
-# Add a Data Source
+# Add a BigQuery Data Source
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - define source">
 data_source_name = "my_bigquery_datasource"
 connection_string = (
