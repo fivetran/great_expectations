@@ -119,7 +119,7 @@ Environment variables securely store your GX Cloud credentials.
 <TabItem value="table" label="Table Data Asset">
 5. Define your Table Data Asset's parameters.
 
-   The following information is required when you create a BigQuery Table Data Asset:
+   The following information is required when you create a Table Data Asset:
 
    - `name`: A name by which you can reference the Data Asset in the future. This should be unique within the Data Source.
    - `table_name`: The name of the SQL table that the Table Data Asset will retrieve records from.
@@ -136,7 +136,7 @@ Environment variables securely store your GX Cloud credentials.
 <TabItem value="query" label="Query Data Asset">
 5. Define your Query Data Asset's parameters.
 
-   The following information is required when you create a BigQuery Query Data Asset:
+   The following information is required when you create a Query Data Asset:
 
    - `name`: A name by which you can reference the Data Asset in the future. This should be unique within the Data Source.
    - `query`: The SQL query that the Data Asset will retrieve records from.

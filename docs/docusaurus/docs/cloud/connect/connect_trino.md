@@ -100,12 +100,12 @@ Environment variables securely store your GX Cloud credentials.
    ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_trino.py - add source" 
    ```
 
-4. Define your Table Data Asset's parameters.
+4. Define your Data Asset's parameters.
 
-   The following information is required when you create a Trino Table Data Asset:
+   The following information is required when you create a Trino Data Asset:
 
    - `name`: A name by which you can reference the Data Asset in the future. This should be unique within the Data Source.
-   - `table_name`: The name of the SQL table that the Table Data Asset will retrieve records from.
+   - `table_name`: The name of the SQL table that the Data Asset will retrieve records from.
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_trino.py - define asset" 
    ```
@@ -143,4 +143,4 @@ Keep the following limitations in mind when working with Trino Data Sources.
 - Only Table Data Assets are supported. You cannot make a [Query Data Asset](/cloud/data_assets/manage_data_assets.md#data-asset-options-for-sql-data-sources) with a Trino Data Source.
 - [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai) is not supported.
 - Data Asset metrics are not automatically fetched. You can [manually profile data](/docs/cloud/data_assets/manage_data_assets.md#view-data-asset-metrics) to return all available metrics for a Trino Data Asset.
-- When you add a Trino Data Asset, Expectations for Anomaly Detection are not automatically generated. You can [generate Anomaly Detection Expectations](/docs/cloud/expectations/manage_expectations.md#create-an-expectation) after the Data Asset is created.
+- When you add a Trino Data Asset, Expectations for Anomaly Detection are not automatically generated. You can [generate Anomaly Detection Expectations](/docs/cloud/expectations/manage_expectations.md#create-an-expectation) after the Data Asset is created and profiled.
