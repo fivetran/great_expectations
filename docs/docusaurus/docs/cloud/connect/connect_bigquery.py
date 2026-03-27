@@ -20,12 +20,14 @@ assert type(context).__name__ == "CloudDataContext"
 # Add a Data Source
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - define source">
 data_source_name = "my_bigquery_datasource"
-connection_string = "bigquery://my_project/my_dataset?credentials_path=/my/credentials.json"
+connection_string = (
+    "bigquery://my_project/my_dataset?credentials_path=/my/credentials.json"
+)
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - add source">
 data_source = context.data_sources.add_bigquery(
-   name=data_source_name, connection_string=connection_string
+    name=data_source_name, connection_string=connection_string
 )
 # </snippet>
 
@@ -37,7 +39,7 @@ table_name = "my_table"
 
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - add table asset">
 table_data_asset = data_source.add_table_asset(
-   table_name=table_name, name=data_asset_name
+    table_name=table_name, name=data_asset_name
 )
 # </snippet>
 
@@ -47,13 +49,11 @@ data_source = context.data_sources.get(data_source_name)
 # Add a Query Data Asset
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - define query asset">
 data_asset_name = "my_query_asset"
-query= "SELECT * from my_table WHERE column = 'value'"
+query = "SELECT * from my_table WHERE column = 'value'"
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - add query asset">
-query_data_asset = data_source.add_query_asset(
-   query=query, name=data_asset_name
-)
+query_data_asset = data_source.add_query_asset(query=query, name=data_asset_name)
 # </snippet>
 
 # </snippet>
