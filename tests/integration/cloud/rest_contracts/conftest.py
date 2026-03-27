@@ -195,9 +195,7 @@ def setup_data_context_config_interaction(
     )
     (
         pact_test.given(provider_state="the Data Context exists")
-        .upon_receiving(
-            scenario="a request for Data Context configuration (client-driven setup)"
-        )
+        .upon_receiving(scenario="a request for Data Context configuration (client-driven setup)")
         .with_request(
             method="GET",
             path=path,
