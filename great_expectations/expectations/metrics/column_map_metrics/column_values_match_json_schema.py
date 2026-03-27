@@ -34,7 +34,7 @@ class ColumnValuesMatchJsonSchema(ColumnMapMetricProvider):
                 return False
             except jsonschema.SchemaError:
                 raise
-            except:
+            except BaseException:
                 raise
 
         return column.map(matches_json_schema)
@@ -57,7 +57,7 @@ class ColumnValuesMatchJsonSchema(ColumnMapMetricProvider):
                 return False
             except jsonschema.SchemaError:
                 raise
-            except:
+            except BaseException:
                 raise
 
         matches_json_schema_udf = F.udf(
