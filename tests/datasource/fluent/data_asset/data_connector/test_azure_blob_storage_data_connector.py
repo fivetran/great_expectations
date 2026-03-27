@@ -647,9 +647,9 @@ def test_abs_data_connector_whole_directory_path_override(
         account_name=account_name,
         container=container,
         name_starts_with=prefix,
-        file_path_template_map_fn=lambda account_name,
-        container,
-        path: f"wasbs://{container}@{account_name}.blob.core.windows.net/{path}",
+        file_path_template_map_fn=lambda account_name, container, path: (
+            f"wasbs://{container}@{account_name}.blob.core.windows.net/{path}"
+        ),
         whole_directory_path_override=whole_directory_path if whole_directory_override else None,
     )
 

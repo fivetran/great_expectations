@@ -55,13 +55,15 @@ class ColumnValuesAreUSZipcodeWithinMileRadiusOfGivenZipcode(ColumnMapMetricProv
             return zipcode_object.dist_from(lat=center_lat, lng=center_long)
 
         return column.apply(
-            lambda loc: _find_distance_between_zipcodes(
-                center_lat=center_zipcode_object.lat,
-                center_long=center_zipcode_object.lng,
-                zipcode=int(loc),
-                search=search,
+            lambda loc: (
+                _find_distance_between_zipcodes(
+                    center_lat=center_zipcode_object.lat,
+                    center_long=center_zipcode_object.lng,
+                    zipcode=int(loc),
+                    search=search,
+                )
+                <= radius_in_miles
             )
-            <= radius_in_miles
         )
 
 
