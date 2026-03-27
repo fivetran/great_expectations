@@ -216,7 +216,7 @@ AND passenger_count > 4
 
 Keep the following requirements in mind when working with ExpectAI:
 - The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Microsoft Fabric, Microsoft SQL Server, Neon, PostgreSQL, Redshift, or Snowflake.
-- The Data Asset must be a [Table Data Asset](/cloud/data_assets/manage_data_assets#data-asset-options-for-sql-data-sources).
+- The Data Asset must be a [Table Data Asset](/cloud/data_assets/manage_data_assets.md#data-asset-options-for-sql-data-sources).
 - If your organization is using an [agent-enabled deployment](/cloud/deploy/deployment_patterns.md), you must [deploy the GX Agent](/cloud/deploy/deploy_gx_agent.md#deploy-the-gx-agent) with credentials for your own LLM.
 - You must have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 
