@@ -17,6 +17,7 @@ context = gx.get_context(mode="cloud")
 assert type(context).__name__ == "CloudDataContext"
 # Hide this
 
+# Add a Trino Data Source
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_trino.py - define source">
 data_source_name = "my_trino_datasource"
 connection_string = "trino://my_user:@my_host:my_port/my_catalog/my_database"
@@ -28,6 +29,7 @@ data_source = context.data_sources.add_sql(
 )
 # </snippet>
 
+# Add a Data Asset
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_trino.py - define asset">
 data_asset_name = "my_table_asset"
 table_name = "my_table"

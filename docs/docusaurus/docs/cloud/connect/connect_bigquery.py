@@ -17,6 +17,7 @@ context = gx.get_context(mode="cloud")
 assert type(context).__name__ == "CloudDataContext"
 # Hide this
 
+# Add a Data Source
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - define source">
 data_source_name = "my_bigquery_datasource"
 connection_string = "bigquery://my_project/my_dataset?credentials_path=/my/credentials.json"
@@ -28,6 +29,7 @@ data_source = context.data_sources.add_bigquery(
 )
 # </snippet>
 
+# Add a Table Data Asset
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - define table asset">
 data_asset_name = "my_table_asset"
 table_name = "my_table"
@@ -42,6 +44,7 @@ table_data_asset = data_source.add_table_asset(
 # Get the updated Data Source
 data_source = context.data_sources.get(data_source_name)
 
+# Add a Query Data Asset
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - define query asset">
 data_asset_name = "my_query_asset"
 query= "SELECT * from my_table WHERE column = 'value'"

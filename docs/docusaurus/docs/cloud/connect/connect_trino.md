@@ -91,7 +91,7 @@ Environment variables securely store your GX Cloud credentials.
 
    Replace the variable values with your own and run the following Python code:
 
-   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_s3.py - define source" 
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_trino.py - define source" 
    ```
 
 3. Add a Trino Data Source to your Data Context by executing the following code:
