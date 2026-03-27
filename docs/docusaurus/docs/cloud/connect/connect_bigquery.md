@@ -218,9 +218,9 @@ Keep the following limitations in mind when working with BigQuery Data Sources.
 
 - BigQuery Data Source connections cannot be edited in the GX Cloud UI. Use the GX Cloud API if you need to [edit the connection](/cloud/data_sources/manage_data_sources.md#edit-data-source-settings).
 - BigQuery Data Assets cannot be added through the GX Cloud UI. Use the GX Cloud API to [add more Data Assets](/docs/cloud/data_assets/manage_data_assets.md?interface=api#add-a-data-asset-from-an-existing-data-source) from your BigQuery Data Source.
-- [ExpectAI](/cloud/overview/accelerating_test_coverage#expectai) is not supported.
-- [Data Asset metrics](/cloud/data_assets/manage_data_assets#view-data-asset-metrics) are not supported.
-- The [Data Health](/cloud/overview/data_health) dashboard entity filter cannot detect the Data Asset’s columns.
-- Expectations for Anomaly Detection cannot be automatically generated. You can [manually configure Anomaly Detection](/docs/cloud/expectations/expectations_overview#add-an-expectation) by adding Expectations with Dynamic Parameters or forecasted ranges.
-- Ad hoc Validations cannot be triggered through the GX Cloud UI. Use the API to [run an ad hoc Validation](/cloud/validations/run_validations/).
-- Recurring Validations cannot be scheduled in GX Cloud. Use an [orchestrator to run recurring Validations](/cloud/integrations/integrate_airflow). 
+- [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai) is not supported.
+- [Data Asset metrics](/cloud/data_assets/manage_data_assets.md#view-data-asset-metrics) are not supported.
+- The [Data Health](/cloud/overview/data_health.md) dashboard entity filter cannot detect the Data Asset’s columns.
+- Expectations for Anomaly Detection cannot be automatically generated. You can [manually configure Anomaly Detection](/docs/cloud/expectations/expectations_overview.md#add-an-expectation) by adding Expectations with Dynamic Parameters or forecasted ranges.
+- Ad hoc Validations cannot be triggered through the GX Cloud UI. Use the API to [run an ad hoc Validation](/cloud/validations/run_validations.md).
+- Recurring Validations cannot be scheduled in GX Cloud. Use an [orchestrator to run recurring Validations](/cloud/integrations/integrate_airflow.md). 
