@@ -110,7 +110,7 @@ Environment variables securely store your GX Cloud credentials.
    ```
 
 
-5. Add the Data Asset to your Data Source. A new Data Asset is created and added to a Data Source simultaneousl:.
+5. Add the Data Asset to your Data Source. A new Data Asset is created and added to a Data Source simultaneously:
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_trino.py - add asset" 
    ```
