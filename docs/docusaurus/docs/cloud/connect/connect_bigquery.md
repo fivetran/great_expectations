@@ -1,7 +1,7 @@
 ---
 sidebar_label: 'Connect GX Cloud to BigQuery'
 title: 'Connect GX Cloud to BigQuery'
-description: Add a Bigquery Data Source in GX Cloud.
+description: Add a BigQuery Data Source in GX Cloud.
 ---
 
 import TabItem from '@theme/TabItem';
@@ -77,9 +77,7 @@ Environment variables securely store your GX Cloud credentials.
 
 1. Run the following Python code to create a Data Context object:
 
-   ```Python
-   import great_expectations as gx
-   context = gx.get_context(mode="cloud")
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - get cloud context" 
    ```
 
    The Data Context will detect the previously set environment variables and connect to your GX Cloud account.
@@ -94,19 +92,14 @@ Environment variables securely store your GX Cloud credentials.
 
    Replace the variable values with your own and run the following Python code:
 
-
-   ```Python
-   data_source_name = "my_bigquery_datasource"
-   connection_string = "bigquery://my_project/my_dataset?credentials_path=/my/credentials.json"
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - define source" 
    ```
 
 3. Add a BigQuery Data Source to your Data Context by executing the following code:
 
-   ```Python
-   data_source = context.data_sources.add_bigquery(
-      name=data_source_name, connection_string=connection_string
-   )
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - add source" 
    ```
+
 
 4. Decide whether you want to validate the records in a single table or the records returned by a SQL query.
 
@@ -130,17 +123,12 @@ Environment variables securely store your GX Cloud credentials.
    - `name`: A name by which you can reference the Data Asset in the future. This should be unique within the Data Source.
    - `table_name`: The name of the SQL table that the Table Data Asset will retrieve records from.
 
-   ```Python
-   data_asset_name = "my_table_asset"
-   table_name = "my_table"
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - define table asset" 
    ```
 
 6. Add the Data Asset to your Data Source. A new Data Asset is created and added to a Data Source simultaneously.
 
-   ```Python
-   table_data_asset = data_source.add_table_asset(
-      table_name=table_name, name=data_asset_name
-   )
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - add table asset" 
    ```
 </TabItem>
 
@@ -152,17 +140,12 @@ Environment variables securely store your GX Cloud credentials.
    - `name`: A name by which you can reference the Data Asset in the future. This should be unique within the Data Source.
    - `query`: The SQL query that the Data Asset will retrieve records from.
 
-   ```Python
-   data_asset_name = "my_query_asset"
-   query= "SELECT * from my_table WHERE column = 'value'"
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - define query asset" 
    ```
 
 6. Add the Data Asset to your Data Source. A new Data Asset is created and added to a Data Source simultaneously.
 
-   ```Python
-   query_data_asset = data_source.add_query_asset(
-      query=query, name=data_asset_name
-   )
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - add query asset" 
    ```
 </TabItem>
 
@@ -172,33 +155,7 @@ Environment variables securely store your GX Cloud credentials.
 
 <TabItem value="sample_code" label="Sample code">
 
-```Python
-import great_expectations as gx
-context = gx.get_context(mode="cloud")
-
-# Add a BigQuery Data Source
-data_source_name = "my_bigquery_datasource"
-connection_string = "bigquery://my_project/my_dataset?credentials_path=/my/credentials.json"
-
-data_source = context.data_sources.add_bigquery(
-    name=data_source_name, connection_string=connection_string
-)
-
-# Add a Table Data Asset
-data_asset_name = "my_table_asset"
-table_name = "my_table"
-
-table_data_asset = data_source.add_table_asset(
-    table_name=table_name, name=data_asset_name
-)
-
-# Add a Query Data Asset
-# data_asset_name = "my_query_asset"
-# query= "SELECT * from my_table WHERE column = 'value'”
-
-# query_data_asset = data_source.add_query_asset(
-#    query=query, name=data_asset_name
-# )
+```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - full code example" 
 ```
 
 </TabItem>

@@ -12,9 +12,6 @@ import great_expectations as gx
 
 context = gx.get_context(mode="cloud")
 # </snippet>
-# <snippet name="docs/docusaurus/docs/cloud/connect/connect_s3.py - verify context type">
-print(type(context).__name__)
-# </snippet>
 
 # Hide this
 assert type(context).__name__ == "CloudDataContext"

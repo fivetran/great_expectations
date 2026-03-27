@@ -76,9 +76,7 @@ Environment variables securely store your GX Cloud credentials.
 
 1. Run the following Python code to create a Data Context object:
 
-   ```Python
-   import great_expectations as gx
-   context = gx.get_context(mode="cloud")
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_trino.py - get cloud context" 
    ```
 
    The Data Context will detect the previously set environment variables and connect to your GX Cloud account.
@@ -93,18 +91,12 @@ Environment variables securely store your GX Cloud credentials.
 
    Replace the variable values with your own and run the following Python code:
 
-
-   ```Python
-   data_source_name = "my_trino_datasource"
-   connection_string = "trino://my_user:@my_host:my_port/my_catalog/my_database"
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_s3.py - define source" 
    ```
 
 3. Add a Trino Data Source to your Data Context by executing the following code:
 
-   ```Python
-   data_source = context.data_sources.add_sql(
-      name=data_source_name, connection_string=connection_string
-   )
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_trino.py - add source" 
    ```
 
 4. Define your Table Data Asset's parameters.
@@ -114,44 +106,20 @@ Environment variables securely store your GX Cloud credentials.
    - `name`: A name by which you can reference the Data Asset in the future. This should be unique within the Data Source.
    - `table_name`: The name of the SQL table that the Table Data Asset will retrieve records from.
 
-   ```Python
-   data_asset_name = "my_table_asset"
-   table_name = "my_table"
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_trino.py - define asset" 
    ```
+
 
 5. Add the Data Asset to your Data Source. A new Data Asset is created and added to a Data Source simultaneously.
 
-   ```Python
-   data_asset = data_source.add_table_asset(
-      table_name=table_name, name=data_asset_name
-   )
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_trino.py - add asset" 
    ```
+
 </TabItem>
 
 
 <TabItem value="sample_code" label="Sample code">
-
-```Python
-import great_expectations as gx
-context = gx.get_context(mode="cloud")
-
-# Add a Trino Data Source
-
-data_source_name = "my_trino_datasource"
-connection_string = "trino://my_user:@my_host:my_port/my_catalog/my_database"
-
-data_source = context.data_sources.add_sql(
-   name=data_source_name, connection_string=connection_string
-)
-
-# Add a Data Asset
-
-data_asset_name = "my_asset"
-table_name = "my_table"
-
-data_asset = data_source.add_table_asset(
-    table_name=table_name, name=data_asset_name
-)
+```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_trino.py - full code example" 
 ```
 
 </TabItem>
