@@ -12,6 +12,7 @@ To connect GX Cloud to data stored in Trino, use the GX Cloud API.
 ## Prerequisites
 
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
+- A Trino catalog with a schema that has a table or view.
 - [Python](https://www.python.org/downloads/) version 3.10 to 3.13.
 - Recommended. A [Python virtual environment](https://docs.python.org/3/library/venv.html).
 
