@@ -106,7 +106,7 @@ class TestNumericExpectationAgainstStrDataMisconfiguration:
     def _assert_misconfiguration(self, batch_for_datasource: Batch, exception_message: str) -> None:
         result = batch_for_datasource.validate(self._EXPECTATION)
         assert not result.success
-        assert exception_message in str(result.exception_info)
+        assert exception_message in result.exception_info["exception_message"]
 
 
 class TestNonExistentColumnMisconfiguration:
@@ -136,7 +136,7 @@ class TestNonExistentColumnMisconfiguration:
     def _assert_misconfiguration(self, batch_for_datasource: Batch, exception_message: str) -> None:
         result = batch_for_datasource.validate(self._EXPECTATION)
         assert not result.success
-        assert exception_message in str(result.exception_info)
+        assert exception_message in result.exception_info["exception_message"]
 
 
 @parameterize_batch_for_data_sources(

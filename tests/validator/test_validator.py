@@ -852,5 +852,5 @@ def test_validator_with_exception_info_in_result():
         assert len(result) == 3  # One to one mapping of Expectations to results
         for evr in result:
             assert evr.exception_info is not None
-            assert evr.exception_info[str(metric_id)].exception_traceback == exception_traceback
-            assert evr.exception_info[str(metric_id)].exception_message == exception_message
+            assert evr.exception_info["exception_traceback"] == exception_traceback
+            assert evr.exception_info["exception_message"] == exception_message

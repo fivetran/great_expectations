@@ -415,9 +415,9 @@ class ExpectationValidationGraph:
     def get_exception_info(
         self,
         metric_info: _AbortedMetricsInfoDict,
-    ) -> Dict[str, Union[MetricConfiguration, ExceptionInfo, int]]:
+    ) -> Dict[str, ExceptionInfo]:
         metric_info = self._filter_metric_info_in_graph(metric_info=metric_info)
-        metric_exception_info: Dict[str, Union[MetricConfiguration, ExceptionInfo, int]] = {}
+        metric_exception_info: Dict[str, ExceptionInfo] = {}
         metric_id: MetricConfigurationID
         metric_info_item: MetricsCalculatorErrorResultValue
         for metric_id, metric_info_item in metric_info.items():
