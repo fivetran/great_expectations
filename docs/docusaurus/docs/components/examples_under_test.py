@@ -357,18 +357,18 @@ connect_to_cloud = [
     # BigQuery
     IntegrationTestFixture(
         # To test, run:
-        # pytest --docs-tests -k "cloud_docs_connect_bigquery" tests/integration/test_script_runner.py
+        # pytest --docs-tests --cloud --bigquery -k "cloud_docs_connect_bigquery" tests/integration/test_script_runner.py
         name="cloud_docs_connect_bigquery",
         user_flow_script="docs/docusaurus/docs/cloud/connect/connect_bigquery.py",
-        backend_dependencies=[BackendDependencies.CLOUD],
+        backend_dependencies=[BackendDependencies.CLOUD, BackendDependencies.BIGQUERY],
     ),
     # Trino
     IntegrationTestFixture(
         # To test, run:
-        # pytest --docs-tests -k "cloud_docs_connect_trino" tests/integration/test_script_runner.py
+        # pytest --docs-tests --cloud --trino -k "cloud_docs_connect_trino" tests/integration/test_script_runner.py
         name="cloud_docs_connect_trino",
         user_flow_script="docs/docusaurus/docs/cloud/connect/connect_trino.py",
-        backend_dependencies=[BackendDependencies.CLOUD],
+        backend_dependencies=[BackendDependencies.CLOUD, BackendDependencies.TRINO],
     ),
 ]
 
