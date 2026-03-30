@@ -1,4 +1,3 @@
-# ruff: noqa: I001
 """
 This is an example script for how to connect GX Cloud to Trino.
 
@@ -8,12 +7,11 @@ pytest --docs-tests --cloud --trino -k "cloud_docs_connect_trino" tests/integrat
 
 import sqlalchemy as sa
 
-from tests.test_utils import get_default_trino_url
-
 # EXAMPLE SCRIPT STARTS HERE:
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_trino.py - full code example">
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_trino.py - get cloud context">
 import great_expectations as gx
+from tests.test_utils import get_default_trino_url
 
 context = gx.get_context(mode="cloud")
 # </snippet>
