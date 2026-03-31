@@ -50,7 +50,7 @@ You can create an incident from the **Incidents** tab or the **Validations** tab
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 2. In the **Data Assets** list, click the Data Asset name.
 3. Click the **Incidents** tab.
-4. Click <img src="/img/link_icon.png" alt="link icon" width="20" height="20"/> **Link an issue**.
+4. Click <img src="/img/link_icon.png" alt="link icon" width="20" height="20"/> **Link a Jira issue**.
 5. Select one or more **Expectation failures**.
 6. Select one or more Jira **Issues**.
 7. Click **Save**.
@@ -68,7 +68,7 @@ You can create an incident from the **Incidents** tab or the **Validations** tab
       4. If you have multiple **Expectation Suites**, select the suite of interest.
       5. Select an entry in the **Batches & run history** pane.
 
-2. Find the Expectation failure you want to link and click <img src="/img/link_icon.png" alt="link icon" width="20" height="20"/> **Link an issue**.
+2. Find the Expectation failure you want to link and click <img src="/img/link_icon.png" alt="link icon" width="20" height="20"/> **Link a Jira issue**.
 3. Select one or more Jira **Issues**.
 4. Click **Save**.
 </TabItem>
@@ -95,7 +95,7 @@ As data quality problems are addressed, you can unlink Expectation failures and 
 3. Click the **Validations** tab.
 4. If you have multiple **Expectation Suites**, select the suite of interest.
 5. Select the relevant entry in the **Batches & run history** pane.
-6. Find the Expectation failure you want to unlink and hover over the <img src="/img/jira_logo.png" alt="jira logo" width="20" height="20"/> **Jira** icon.
+6. Find the Expectation failure you want to unlink and click the <img src="/img/jira_logo.png" alt="jira logo" width="20" height="20"/> **Jira** icon.
 7. Find the issue you want to unlink and click <img src="/img/unlink_icon.png" alt="unlink icon" width="20" height="20"/>  **Unlink issue**.
 8. Review the warning and click **Unlink** to confirm.
 
