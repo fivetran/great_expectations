@@ -45,10 +45,11 @@ class SuiteFactory(Factory[ExpectationSuite]):
             )
         self._store.add(key=key, value=suite)
 
-        if suite._include_rendered_content:
-            suite.render()
-
-        return suite
+        # Re-fetch the suite from the store so the returned object is consistent
+        # with what was persisted. This ensures the suite passes freshness checks
+        # (e.g. when used in a ValidationDefinition), because serialization may
+        # normalize certain Python types (e.g. set -> list).
+        return self.get(name=suite.name)
 
     @public_api
     @override

@@ -68,8 +68,11 @@ def test_suite_factory_add_uses_store_add():
     # Arrange
     name = "test-suite"
     store = Mock(spec=ExpectationsStore)
-    store.has_key.return_value = False
+    # First call (duplicate check) returns False, second call (get check) returns True
+    store.has_key.side_effect = [False, True]
     key = store.get_key.return_value
+    suite_dict = {"name": name, "id": "3a758816-64c8-46cb-8f7e-03c12cea1d67"}
+    store.get.return_value = suite_dict
     factory = SuiteFactory(store=store)
     context = Mock(spec=AbstractDataContext)
     set_context(context)
@@ -306,6 +309,46 @@ def test_suite_factory_all_with_bad_pydantic_config(
 
     # Assert
     assert result == []
+
+
+@pytest.mark.unit
+def test_suite_add_returns_fresh_suite_in_ephemeral_context(
+    in_memory_runtime_context: AbstractDataContext,
+):
+    """Test that context.suites.add() returns a suite that can be used in a ValidationDefinition.
+
+    Regression test for GX-2891: In ephemeral contexts, the suite returned by
+    context.suites.add() was not equal to the suite fetched by context.suites.get(),
+    causing a ResourceFreshnessAggregateError when the suite was used in a
+    ValidationDefinition.
+    """
+    import great_expectations as gx
+    import great_expectations.expectations as gxe
+
+    context = in_memory_runtime_context
+
+    data_source = context.data_sources.add_pandas(name="my_pandas_datasource")
+    data_asset = data_source.add_dataframe_asset(name="my_dataframe_asset")
+    batch_definition = data_asset.add_batch_definition_whole_dataframe("my_batch_definition")
+
+    suite = gx.ExpectationSuite(name="my_suite")
+    expectation = gxe.ExpectTableColumnsToMatchSet(column_set={"value1"})
+    suite.add_expectation(expectation)
+    suite = context.suites.add(suite)
+
+    # The added suite should be considered fresh
+    diagnostics = suite.is_fresh()
+    assert diagnostics.success, (
+        f"Suite returned by add() should be fresh, but got errors: {diagnostics.errors}"
+    )
+
+    # This should not raise ResourceFreshnessAggregateError
+    validation_definition = gx.ValidationDefinition(
+        name="my_validation_definition",
+        data=batch_definition,
+        suite=suite,
+    )
+    validation_definition = context.validation_definitions.add(validation_definition)
 
 
 class TestSuiteFactoryAddOrUpdate:
