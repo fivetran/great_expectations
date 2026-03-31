@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 @public_api
 @deprecated_method_or_class(
-    version="1.0",
+    version="1.16.0",
     message="DBFS is deprecated by Databricks. Use Unity Catalog volumes, external locations, "
     "or workspace files with PandasFilesystemDatasource instead.",
 )

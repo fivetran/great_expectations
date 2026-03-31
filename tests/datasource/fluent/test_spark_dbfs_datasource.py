@@ -58,8 +58,9 @@ def spark_dbfs_datasource(fs: FakeFilesystem, test_backends) -> SparkDBFSDatasou
 
 @pytest.mark.unit
 def test_spark_dbfs_datasource_has_deprecation_notice():
-    assert SparkDBFSDatasource.__doc__ is not None
-    assert "deprecated" in SparkDBFSDatasource.__doc__.lower()
+    doc = SparkDBFSDatasource.__doc__
+    assert doc is not None
+    assert ".. deprecated::" in doc
 
 
 @pytest.mark.spark
