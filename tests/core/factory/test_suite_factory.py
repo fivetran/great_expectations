@@ -68,7 +68,7 @@ def test_suite_factory_add_uses_store_add():
     # Arrange
     name = "test-suite"
     store = Mock(spec=ExpectationsStore)
-    # First call (duplicate check) returns False, second call (get check) returns True
+    # First call (duplicate check) returns False, second call (re-fetch check) returns True
     store.has_key.side_effect = [False, True]
     key = store.get_key.return_value
     suite_dict = {"name": name, "id": "3a758816-64c8-46cb-8f7e-03c12cea1d67"}
@@ -79,10 +79,14 @@ def test_suite_factory_add_uses_store_add():
     suite = ExpectationSuite(name=name)
 
     # Act
-    factory.add(suite=suite)
+    result = factory.add(suite=suite)
 
     # Assert
     store.add.assert_called_once_with(key=key, value=suite)
+    # Verify the suite is re-fetched from the store after add
+    store.get.assert_called_once_with(key=key)
+    store.deserialize_suite_dict.assert_called_once_with(suite_dict)
+    assert result == store.deserialize_suite_dict.return_value
 
 
 @pytest.mark.unit
