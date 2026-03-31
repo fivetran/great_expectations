@@ -71,6 +71,12 @@ def pandas_dbfs_datasource(
     return pandas_dbfs_datasource
 
 
+@pytest.mark.unit
+def test_pandas_dbfs_datasource_has_deprecation_notice():
+    assert PandasDBFSDatasource.__doc__ is not None
+    assert "deprecated" in PandasDBFSDatasource.__doc__.lower()
+
+
 @pytest.mark.filesystem
 def test_construct_pandas_dbfs_datasource(pandas_dbfs_datasource: PandasDBFSDatasource):
     assert pandas_dbfs_datasource.name == "pandas_dbfs_datasource"
