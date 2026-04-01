@@ -10,7 +10,7 @@ Alerts are configured at the Data Asset level. A single Data Asset can have mult
 
 Alerts can send notifications to the following recipients:
 - Email addresses
-- Microsoft Teams standard channels in public Teams, optionally @mentioning users or tags
+- Microsoft Teams standard channels in public Teams, optionally @mentioning users or custom tags
 - Slack public channels, optionally @mentioning users or user groups
 Note that to enable @mentions for Microsoft Teams or Slack, your GX Cloud workspace must be [integrated with Microsoft Teams](/cloud/integrations/integrate_teams.md) or [integrated with Slack](/cloud/integrations/integrate_slack.md).
 
@@ -38,8 +38,8 @@ Note that you must have [Workspace Editor permissions](/cloud/access/manage_acce
       - [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide) - `*.pagerduty.com`
       - [ServiceNow](https://www.servicenow.com/docs/r/washingtondc/build-workflows/create-inbound-email-flow.html) - `*.service-now.com`
 8. To alert a Slack channel, do the following. First, make sure your GX Cloud workspace is [integrated with Slack](/cloud/integrations/integrate_slack.md). Then, under **Recipients**, next to **Slack channels**, click **+** and select a channel for the alert to send notifications to. After selecting the channel, you will have the option to specify @mentions to include in the notification message. You can mention any user or user group in your Slack workspace.
-9. To alert a Microsoft Teams channel, do the following. First, make sure your GX Cloud workspace is [integrated with Microsoft Teams](/cloud/integrations/integrate_teams.md). Then, under **Recipients**, next to **Teams channels**, click **+** and select a team and channel for the alert to send notifications to. After selecting a channel, you will have the option to specify @mentions to include in the notification message. You can mention any user in the channel or any tag in your Microsoft Teams tenant.
-10. Optional. To send the same notification to another recipient, click **+** and enter another email address or Slack channel. Repeat as needed.
+9. To alert a Microsoft Teams channel, do the following. First, make sure your GX Cloud workspace is [integrated with Microsoft Teams](/cloud/integrations/integrate_teams.md). Then, under **Recipients**, next to **Teams channels**, click **+** and select a team and channel for the alert to send notifications to. After selecting a channel, you will have the option to specify @mentions to include in the notification message. You can mention any user in the channel or any custom tag in your Microsoft Teams tenant.
+10. Optional. To send the same notification to another recipient, click **+** and enter another email address, Slack channel, or Teams channel. Repeat as needed.
 11. Click **Save**.
 
 ## Edit an alert
