@@ -10,8 +10,9 @@ Alerts are configured at the Data Asset level. A single Data Asset can have mult
 
 Alerts can send notifications to the following recipients:
 - Email addresses.
-- Microsoft Teams standard channels in public teams, optionally @mentioning users or custom tags
+- Microsoft Teams standard channels in public teams, optionally @mentioning users or custom tags.
 - Slack public channels, optionally @mentioning users or user groups.
+
 Note that to enable @mentions for Microsoft Teams or Slack, your GX Cloud workspace must be [integrated with Microsoft Teams](/cloud/integrations/integrate_teams.md) or [integrated with Slack](/cloud/integrations/integrate_slack.md).
 
 :::note More integrations are coming soon
