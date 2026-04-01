@@ -141,4 +141,9 @@ class SuiteFactory(Factory[ExpectationSuite]):
 
         suite.id = existing_suite.id
         suite.save()
-        return suite
+
+        # Re-fetch the suite from the store so the returned object is consistent
+        # with what was persisted. This ensures the suite passes freshness checks
+        # (e.g. when used in a ValidationDefinition), because serialization may
+        # normalize certain Python types (e.g. set -> list).
+        return self.get(name=suite.name)

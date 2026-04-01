@@ -315,44 +315,67 @@ def test_suite_factory_all_with_bad_pydantic_config(
     assert result == []
 
 
-@pytest.mark.unit
-def test_suite_add_returns_fresh_suite_in_ephemeral_context(
-    in_memory_runtime_context: AbstractDataContext,
-):
-    """Test that context.suites.add() returns a suite that can be used in a ValidationDefinition.
+class TestSuiteFactoryFreshness:
+    """Regression tests for GX-2891: suites returned by add/add_or_update must be fresh."""
 
-    Regression test for GX-2891: In ephemeral contexts, the suite returned by
-    context.suites.add() was not equal to the suite fetched by context.suites.get(),
-    causing a ResourceFreshnessAggregateError when the suite was used in a
-    ValidationDefinition.
-    """
-    import great_expectations as gx
-    import great_expectations.expectations as gxe
+    @pytest.mark.unit
+    def test_add_returns_fresh_suite_in_ephemeral_context(
+        self,
+        in_memory_runtime_context: AbstractDataContext,
+    ):
+        """Suite returned by add() should pass freshness checks and work in ValidationDefinition."""
+        import great_expectations as gx
+        import great_expectations.expectations as gxe
 
-    context = in_memory_runtime_context
+        context = in_memory_runtime_context
 
-    data_source = context.data_sources.add_pandas(name="my_pandas_datasource")
-    data_asset = data_source.add_dataframe_asset(name="my_dataframe_asset")
-    batch_definition = data_asset.add_batch_definition_whole_dataframe("my_batch_definition")
+        data_source = context.data_sources.add_pandas(name="my_pandas_datasource")
+        data_asset = data_source.add_dataframe_asset(name="my_dataframe_asset")
+        batch_definition = data_asset.add_batch_definition_whole_dataframe("my_batch_definition")
 
-    suite = gx.ExpectationSuite(name="my_suite")
-    expectation = gxe.ExpectTableColumnsToMatchSet(column_set={"value1"})
-    suite.add_expectation(expectation)
-    suite = context.suites.add(suite)
+        suite = gx.ExpectationSuite(name="my_suite")
+        expectation = gxe.ExpectTableColumnsToMatchSet(column_set={"value1"})
+        suite.add_expectation(expectation)
+        suite = context.suites.add(suite)
 
-    # The added suite should be considered fresh
-    diagnostics = suite.is_fresh()
-    assert diagnostics.success, (
-        f"Suite returned by add() should be fresh, but got errors: {diagnostics.errors}"
-    )
+        # The added suite should be considered fresh
+        diagnostics = suite.is_fresh()
+        assert diagnostics.success, (
+            f"Suite returned by add() should be fresh, but got errors: {diagnostics.errors}"
+        )
 
-    # This should not raise ResourceFreshnessAggregateError
-    validation_definition = gx.ValidationDefinition(
-        name="my_validation_definition",
-        data=batch_definition,
-        suite=suite,
-    )
-    validation_definition = context.validation_definitions.add(validation_definition)
+        # This should not raise ResourceFreshnessAggregateError
+        validation_definition = gx.ValidationDefinition(
+            name="my_validation_definition",
+            data=batch_definition,
+            suite=suite,
+        )
+        validation_definition = context.validation_definitions.add(validation_definition)
+
+    @pytest.mark.unit
+    def test_add_or_update_returns_fresh_suite_in_ephemeral_context(
+        self,
+        in_memory_runtime_context: AbstractDataContext,
+    ):
+        """Suite returned by add_or_update() should pass freshness checks."""
+        import great_expectations as gx
+        import great_expectations.expectations as gxe
+
+        context = in_memory_runtime_context
+
+        # First add the suite
+        suite = gx.ExpectationSuite(name="my_suite")
+        suite.add_expectation(gxe.ExpectTableColumnsToMatchSet(column_set={"value1"}))
+        suite = context.suites.add(suite)
+
+        # Now update via add_or_update with a set-type param to trigger normalization
+        suite.add_expectation(gxe.ExpectTableColumnsToMatchSet(column_set={"value2", "value3"}))
+        updated_suite = context.suites.add_or_update(suite)
+
+        diagnostics = updated_suite.is_fresh()
+        assert diagnostics.success, (
+            f"Suite returned by add_or_update() should be fresh, but got errors: {diagnostics.errors}"
+        )
 
 
 class TestSuiteFactoryAddOrUpdate:
