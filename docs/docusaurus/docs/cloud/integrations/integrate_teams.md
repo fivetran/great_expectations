@@ -5,7 +5,7 @@ description: Connect your GX Cloud workspace to Microsoft Teams so you can confi
 ---
 
 
-With GX Cloud's [Microsoft Teams](https://www.microsoft.com/en-us/microsoft-teams/group-chat-software) integration and [alerts](/cloud/alerts/alert_about_failures.md), you can notify standard channels in public Teams about Expectation failures. Connect your GX Cloud workspace to Microsoft Teams to enable the following alert configuration options:
+With GX Cloud's [Microsoft Teams](https://www.microsoft.com/en-us/microsoft-teams/group-chat-software) integration and [alerts](/cloud/alerts/alert_about_failures.md), you can notify standard channels in public teams about Expectation failures. Connect your GX Cloud workspace to Microsoft Teams to enable the following alert configuration options:
 
 - **Channel selection**. Your team will be able to use a dropdown in the alert configuration form to select the target channel.
 - **At-mentions to highlight notifications for stakeholders or yourself**. Your team will be able to configure @mentions to include in the notification message in Microsoft Teams to help bring the notification to the attention of key collaborators and manage noise for other channel members.
@@ -13,7 +13,7 @@ With GX Cloud's [Microsoft Teams](https://www.microsoft.com/en-us/microsoft-team
 Keep the following in mind when integrating Microsoft Teams:
 
 - The integration is configured at the [workspace](/cloud/access/manage_access.md#workspaces) level. A GX Cloud workspace can connect to only one Microsoft Teams tenant. Each different workspace in a GX Cloud organization can connect to a different Teams tenant, the same Teams tenant as another workspace, or no Teams tenant. 
-- The integration will connect to all of the public Teams that are in the Microsoft Teams tenant at the time the connection is authorized. If more Teams are added to the tenant after the integration is connected, you can [reconnect](#reconnect-to-microsoft-teams) to authorize the connection for the new Teams. 
+- The integration will connect to all of the public teams that are in the Microsoft Teams tenant at the time the connection is authorized. If more teams are added to the tenant after the integration is connected, you can [reconnect](#reconnect-to-microsoft-teams) to authorize the connection for the new teams. 
 - You must have [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater to manage the integration.
 
 
@@ -40,7 +40,7 @@ The integration will be **Pending** while the GX Cloud App is installed for your
 
 ## Reconnect to Microsoft Teams
 
-You can reconnect to authorize the connection for new Teams that were added after you initially connected to Microsoft Teams, or to resolve an error. Your integration may **Error** if, for example, the user who configured it has their MS 365 account desactivated. If the integration experiences an error, notifications might not be sent to Teams channels, but alert configurations will be kept intact so that Teams notifications will resume when the integration is reconnected.
+You can reconnect to authorize the connection for new teams that were added after you initially connected to Microsoft Teams, or to resolve an error. Your integration may **Error** if, for example, the user who configured it has their MS 365 account desactivated. If the integration experiences an error, notifications might not be sent to Teams channels, but alert configurations will be kept intact so that Teams notifications will resume when the integration is reconnected.
 
 To reconnect the integration, do the following.
 
