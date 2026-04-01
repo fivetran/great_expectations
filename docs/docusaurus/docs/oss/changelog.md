@@ -15,6 +15,20 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.15.2
+* [FEATURE] Refactor rest_contracts/conftest.py for client-driven Pact testing (GX-2725) ([#11753](https://github.com/great-expectations/great_expectations/pull/11753))
+* [DOCS] Small wording change ([#11715](https://github.com/great-expectations/great_expectations/pull/11715))
+* [DOCS] Add documentation for ValidationDefinition.get_unexpected_rows() ([#11712](https://github.com/great-expectations/great_expectations/pull/11712))
+* [MAINTENANCE] Add generic sql test harness ([#11718](https://github.com/great-expectations/great_expectations/pull/11718))
+* [MAINTENANCE] update schema names to be unique to prevent collision between CI runs ([#11733](https://github.com/great-expectations/great_expectations/pull/11733))
+* [MAINTENANCE] Pin localstack to 4.14.0 ([#11740](https://github.com/great-expectations/great_expectations/pull/11740))
+* [MAINTENANCE] Bump flatted from 3.3.3 to 3.4.2 in /docs/docusaurus ([#11737](https://github.com/great-expectations/great_expectations/pull/11737))
+* [MAINTENANCE] CI improvements ([#11743](https://github.com/great-expectations/great_expectations/pull/11743))
+* [MAINTENANCE] [pre-commit.ci] pre-commit autoupdate ([#11582](https://github.com/great-expectations/great_expectations/pull/11582))
+* [MAINTENANCE] Bump yaml from 1.10.2 to 1.10.3 in /docs/docusaurus ([#11746](https://github.com/great-expectations/great_expectations/pull/11746))
+* [MAINTENANCE] ci health report script ([#11751](https://github.com/great-expectations/great_expectations/pull/11751))
+* [CONTRIB] add BigQuery datasource methods to sources.pyi stub file ([#11736](https://github.com/great-expectations/great_expectations/pull/11736)) (thanks @Julian901)
+
 ### 1.15.1
 * [DOCS] Expectation history ([#11704](https://github.com/great-expectations/great_expectations/pull/11704))
 * [MAINTENANCE] remove nested actions format ([#11713](https://github.com/great-expectations/great_expectations/pull/11713))
