@@ -45,7 +45,7 @@ class SuiteFactory(Factory[ExpectationSuite]):
             )
         self._store.add(key=key, value=suite)
 
-        # Re-fetch so the returned object matches what was persisted (GX-2891).
+        # Re-fetch so the returned object matches what was persisted.
         return self.get(name=suite.name)
 
     @public_api
@@ -139,5 +139,5 @@ class SuiteFactory(Factory[ExpectationSuite]):
         suite.id = existing_suite.id
         suite.save()
 
-        # Re-fetch so the returned object matches what was persisted (GX-2891).
+        # Re-fetch so the returned object matches what was persisted.
         return self.get(name=suite.name)

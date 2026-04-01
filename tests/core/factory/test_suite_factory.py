@@ -314,7 +314,7 @@ def test_suite_factory_all_with_bad_pydantic_config(
 
 
 class TestSuiteFactoryFreshness:
-    """Regression tests for GX-2891: suites returned by add/add_or_update must be fresh."""
+    """Suites returned by add/add_or_update must be fresh."""
 
     @pytest.mark.unit
     def test_add_returns_fresh_suite_in_ephemeral_context(
