@@ -27,7 +27,7 @@ To connect or reconnect a Microsoft Teams integration, you must have the followi
    - `TeamMember.Read.All`
    - `TeamsAppInstallation.ReadWriteForTeam`
    - `TeamworkTag.Read`
-- You have the [Microsoft Entra ID Tenant ID](https://learn.microsoft.com/en-us/entra/fundamentals/how-to-find-tenant) for your Microsoft Teams tenant.
+- You have the [Microsoft Entra ID tenant ID](https://learn.microsoft.com/en-us/entra/fundamentals/how-to-find-tenant) for your Microsoft Teams tenant.
 
 
 ## Connect to Microsoft Teams
@@ -36,7 +36,7 @@ To connect or reconnect a Microsoft Teams integration, you must have the followi
 2. Locate the **Microsoft Teams** integration and click **Connect**.
 3. Follow the prompts to sign in to Microsoft Teams, provide your **Tenant ID**, grant permissions, and connect.
 
-The integration will be **Pending** while the GX Cloud App is installed for your Microsoft Teams tenant. When the installation completes, the integration will be **Connected** and you can start configuring alerts for Teams.
+The integration will be **Pending** while the GX Cloud app is installed for your Microsoft Teams tenant. When the installation completes, the integration will be **Connected** and you can start configuring alerts for Teams.
 
 ## Reconnect to Microsoft Teams
 
@@ -49,7 +49,7 @@ To reconnect the integration, do the following.
 3. Click **Reconnect**.
 4. Follow the prompts to sign in to Microsoft Teams, provide your **Tenant ID**, grant permissions, and connect.
 
-The integration will be **Pending** while the GX Cloud App is installed for your Microsoft Teams tenant. When the installation completes, the integration will be **Connected** and you can start configuring alerts for Teams.
+The integration will be **Pending** while the GX Cloud app is installed for your Microsoft Teams tenant. When the installation completes, the integration will be **Connected** and you can start configuring alerts for Teams.
 
 ## Remove your Microsoft Teams integration
 
