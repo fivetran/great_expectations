@@ -45,10 +45,7 @@ class SuiteFactory(Factory[ExpectationSuite]):
             )
         self._store.add(key=key, value=suite)
 
-        # Re-fetch the suite from the store so the returned object is consistent
-        # with what was persisted. This ensures the suite passes freshness checks
-        # (e.g. when used in a ValidationDefinition), because serialization may
-        # normalize certain Python types (e.g. set -> list).
+        # Re-fetch so the returned object matches what was persisted (GX-2891).
         return self.get(name=suite.name)
 
     @public_api
@@ -142,8 +139,5 @@ class SuiteFactory(Factory[ExpectationSuite]):
         suite.id = existing_suite.id
         suite.save()
 
-        # Re-fetch the suite from the store so the returned object is consistent
-        # with what was persisted. This ensures the suite passes freshness checks
-        # (e.g. when used in a ValidationDefinition), because serialization may
-        # normalize certain Python types (e.g. set -> list).
+        # Re-fetch so the returned object matches what was persisted (GX-2891).
         return self.get(name=suite.name)

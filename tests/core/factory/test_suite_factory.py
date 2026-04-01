@@ -68,7 +68,6 @@ def test_suite_factory_add_uses_store_add():
     # Arrange
     name = "test-suite"
     store = Mock(spec=ExpectationsStore)
-    # First call (duplicate check) returns False, second call (re-fetch check) returns True
     store.has_key.side_effect = [False, True]
     key = store.get_key.return_value
     suite_dict = {"name": name, "id": "3a758816-64c8-46cb-8f7e-03c12cea1d67"}
@@ -83,7 +82,6 @@ def test_suite_factory_add_uses_store_add():
 
     # Assert
     store.add.assert_called_once_with(key=key, value=suite)
-    # Verify the suite is re-fetched from the store after add
     store.get.assert_called_once_with(key=key)
     store.deserialize_suite_dict.assert_called_once_with(suite_dict)
     assert result == store.deserialize_suite_dict.return_value
@@ -338,13 +336,11 @@ class TestSuiteFactoryFreshness:
         suite.add_expectation(expectation)
         suite = context.suites.add(suite)
 
-        # The added suite should be considered fresh
         diagnostics = suite.is_fresh()
         assert diagnostics.success, (
-            f"Suite returned by add() should be fresh, but got errors: {diagnostics.errors}"
+            f"add() suite not fresh: {diagnostics.errors}"
         )
 
-        # This should not raise ResourceFreshnessAggregateError
         validation_definition = gx.ValidationDefinition(
             name="my_validation_definition",
             data=batch_definition,
@@ -363,18 +359,16 @@ class TestSuiteFactoryFreshness:
 
         context = in_memory_runtime_context
 
-        # First add the suite
         suite = gx.ExpectationSuite(name="my_suite")
         suite.add_expectation(gxe.ExpectTableColumnsToMatchSet(column_set={"value1"}))
         suite = context.suites.add(suite)
 
-        # Now update via add_or_update with a set-type param to trigger normalization
         suite.add_expectation(gxe.ExpectTableColumnsToMatchSet(column_set={"value2", "value3"}))
         updated_suite = context.suites.add_or_update(suite)
 
         diagnostics = updated_suite.is_fresh()
         assert diagnostics.success, (
-            f"Suite returned by add_or_update() should be fresh, but got errors: {diagnostics.errors}"
+            f"add_or_update() suite not fresh: {diagnostics.errors}"
         )
 
 
