@@ -40,7 +40,7 @@ The integration will be **Pending** while the GX Cloud App is installed for your
 
 ## Reconnect to Microsoft Teams
 
-You can reconnect to authorize the connection for new teams that were added after you initially connected to Microsoft Teams, or to resolve an error. Your integration may **Error** if, for example, the user who configured it has their MS 365 account desactivated. If the integration experiences an error, notifications might not be sent to Teams channels, but alert configurations will be kept intact so that Teams notifications will resume when the integration is reconnected.
+You can reconnect to authorize the connection for new teams that were added after you initially connected to Microsoft Teams, or to resolve an error. Your integration may **Error** if, for example, the user who configured it has their MS 365 account deactivated. If the integration experiences an error, notifications might not be sent to Teams channels, but alert configurations will be kept intact so that Teams notifications will resume when the integration is reconnected.
 
 To reconnect the integration, do the following.
 
