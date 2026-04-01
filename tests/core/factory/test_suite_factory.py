@@ -337,9 +337,7 @@ class TestSuiteFactoryFreshness:
         suite = context.suites.add(suite)
 
         diagnostics = suite.is_fresh()
-        assert diagnostics.success, (
-            f"add() suite not fresh: {diagnostics.errors}"
-        )
+        assert diagnostics.success, f"add() suite not fresh: {diagnostics.errors}"
 
         validation_definition = gx.ValidationDefinition(
             name="my_validation_definition",
@@ -367,9 +365,7 @@ class TestSuiteFactoryFreshness:
         updated_suite = context.suites.add_or_update(suite)
 
         diagnostics = updated_suite.is_fresh()
-        assert diagnostics.success, (
-            f"add_or_update() suite not fresh: {diagnostics.errors}"
-        )
+        assert diagnostics.success, f"add_or_update() suite not fresh: {diagnostics.errors}"
 
 
 class TestSuiteFactoryAddOrUpdate:
