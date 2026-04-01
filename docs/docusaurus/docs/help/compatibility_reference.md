@@ -3,7 +3,7 @@ title: Compatibility reference
 hide_table_of_contents: true
 ---
 
-The following table defines integrations and tools supported by GX Cloud and GX Core.
+The following table defines integrations and tools supported by GX Cloud and GX Core. 
 
 
 | Service | GX Cloud | GX Core | Notes |
