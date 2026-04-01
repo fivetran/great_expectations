@@ -8,7 +8,7 @@ Keep yourself and your stakeholders informed about Expectation failures by confi
 
 Alerts are configured at the Data Asset level. A single Data Asset can have multiple alerts configured. An alert can be configured to notify about all Expectation failures or only failures of certain [severities](/cloud/expectations/expectations_overview.md#failure-severity).
 
-Alerts can send the notifications to the following recipients:
+Alerts can send notifications to the following recipients:
 - Email addresses
 - Microsoft Teams standard channels in public Teams, optionally @mentioning users or tags
 - Slack public channels, optionally @mentioning users or user groups
