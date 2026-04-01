@@ -12,7 +12,7 @@ When your Expectations for your data fail, you may want to respond in a variety 
 
 GX Cloud provides the following to support these kinds of responses to results.
 
-- [**Alerts**](/cloud/alerts/alert_about_failures.md): You can configure alerts to notify email addresses and Slack channels about Expectation failures as soon as they happen. The notifications provide high-level information about how many Expectations failed and include a link to detailed Validation Results.
+- [**Alerts**](/cloud/alerts/alert_about_failures.md): You can configure alerts to notify email addresses, Microsoft Teams channels, and Slack channels about Expectation failures as soon as they happen. The notifications provide high-level information about how many Expectations failed and include a link to detailed Validation Results.
 - [**Incidents**](/cloud/alerts/manage_incidents.md): You can link Expectation failures to Jira issues to triage, prioritize, assign, and track the resolution of data quality problems. Linked issues are made accessible at the Data Asset level and in Validation Results for visibility.
 - [**Actions**](/cloud/alerts/custom_actions.md): You can programmatically apply custom business logic that does anything that can be done with Python code. For example, you might trigger different webhooks depending on which Expectations fail or run follow-up ETL jobs to fill in missing values.
 
