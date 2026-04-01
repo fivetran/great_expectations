@@ -21,7 +21,7 @@ Keep the following in mind when integrating Microsoft Teams:
 ## Prerequisites
 
 To connect or reconnect a Microsoft Teams integration, you must have the following prerequisites fulfilled:
-- In MS 365, you have [Global Administrator](hhttps://learn.microsoft.com/en-us/entra/identity/role-based-access-control/permissions-reference#global-administrator) permissions or a role with permission for the `microsoft.directory/servicePrincipals/managePermissionGrantsForAll` action that can grant tenant-wide admin consent for the following delegated permissions:
+- In MS 365, you have [Global Administrator](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/permissions-reference#global-administrator) permissions or a role with permission for the `microsoft.directory/servicePrincipals/managePermissionGrantsForAll` action that can grant tenant-wide admin consent for the following delegated permissions:
    - `AppCatalog.ReadWrite.All`
    - `ChannelMember.Read.All`
    - `TeamMember.Read.All`
