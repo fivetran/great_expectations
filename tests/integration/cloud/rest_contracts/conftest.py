@@ -1,17 +1,15 @@
 from __future__ import annotations
 
-import enum
 import os
 import pathlib
 import subprocess
 import uuid
-from typing import TYPE_CHECKING, Any, Callable, Dict, Final, List, Union
+from typing import TYPE_CHECKING, Any, Dict, Final, List, Union
 
 import pact
 import pytest
-from typing_extensions import Annotated, TypeAlias
+from typing_extensions import TypeAlias
 
-from great_expectations.compatibility import pydantic
 from great_expectations.core.http import create_session
 from great_expectations.data_context import CloudDataContext
 from great_expectations.data_context.data_context.context_factory import project_manager
@@ -103,14 +101,6 @@ DATA_CONTEXT_CONFIG_RESPONSE_BODY: Final[dict] = {
         },
     },
 }
-
-
-class RequestMethods(str, enum.Enum):
-    DELETE = "DELETE"
-    GET = "GET"
-    PATCH = "PATCH"
-    POST = "POST"
-    PUT = "PUT"
 
 
 @pytest.fixture
@@ -288,116 +278,3 @@ def pact_test(request) -> pact.Pact:
     _pact.start_service()
     yield _pact
     _pact.stop_service()
-
-
-class ContractInteraction(pydantic.BaseModel):
-    """Represents a Python API (Consumer) request and expected minimal response,
-       given a state in the Cloud backend (Provider).
-
-    The given state is something you know to be true about the Cloud backend data requested.
-
-    Args:
-        method: A string (e.g. "GET" or "POST") or attribute of the RequestMethods class representing a request method.
-        request_path: A pathlib.Path to the endpoint relative to the base url.
-                        e.g.
-                            ```
-                            path = pathlib.Path(
-                                "/", "organizations", organization_id, "data-context-configuration"
-                            )
-                            ```
-        upon_receiving: A string description of the type of request being made.
-        given: A string description of the state of the Cloud backend data requested.
-        response_status: The status code associated with the response. An integer between 100 and 599.
-        response_body: A dictionary or Pact Matcher object representing the response body.
-        request_body (Optional): A dictionary or Pact Matcher object representing the request body.
-        request_headers (Optional): A dictionary representing the request headers.
-        request_parmas (Optional): A dictionary representing the request parameters.
-
-    Returns:
-        ContractInteraction
-    """  # noqa: E501 # FIXME CoP
-
-    class Config:
-        arbitrary_types_allowed = True
-
-    method: Union[RequestMethods, pydantic.StrictStr]
-    request_path: pathlib.Path
-    upon_receiving: pydantic.StrictStr
-    given: pydantic.StrictStr
-    response_status: Annotated[int, pydantic.Field(strict=True, ge=100, lt=600)]
-    response_body: PactBody
-    request_body: Union[PactBody, None] = None
-    request_headers: Union[dict, None] = None
-    request_params: Union[dict, None] = None
-
-
-@pytest.fixture
-def run_rest_api_pact_test(
-    gx_cloud_session: Session,
-    pact_test: pact.Pact,
-) -> Callable:
-    # DEPRECATED: This helper makes raw HTTP calls that bypass the Python client, so
-    # the resulting Pact contracts reflect hand-crafted requests rather than what
-    # ``great_expectations`` actually sends.  New tests should use the client-driven
-    # approach instead: construct a ``CloudDataContext`` (or use the ``pact_cloud_context``
-    # fixture) against ``PACT_MOCK_SERVICE_URL`` and exercise the GX Python API directly
-    # inside a ``with pact_test:`` block.  See ``test_data_context_configuration.py`` for
-    # a worked example and ``setup_data_context_config_interaction()`` for the shared setup
-    # helper.
-    def _run_pact_test(
-        contract_interaction: ContractInteraction,
-    ) -> None:
-        """Runs a contract test and produces a Pact contract json file in directory:
-            - tests/integration/cloud/rest_contracts/pacts
-
-        Args:
-            contract_interaction: A ContractInteraction object which represents a Python API (Consumer) request
-                                  and expected minimal response, given a state in the Cloud backend (Provider).
-
-        Returns:
-            None
-        """  # noqa: E501 # FIXME CoP
-
-        request: dict[str, str | PactBody] = {
-            "method": contract_interaction.method,
-            "path": str(contract_interaction.request_path),
-        }
-        if contract_interaction.request_body is not None:
-            request["body"] = contract_interaction.request_body
-        if contract_interaction.request_params is not None:
-            request["query"] = contract_interaction.request_params
-
-        request["headers"] = dict(gx_cloud_session.headers)
-        if contract_interaction.request_headers is not None:
-            request["headers"].update(contract_interaction.request_headers)  # type: ignore[union-attr] # FIXME CoP
-            gx_cloud_session.headers.update(contract_interaction.request_headers)
-
-        response: dict[str, int | PactBody] = {
-            "status": contract_interaction.response_status,
-        }
-        if contract_interaction.response_body is not None:
-            response["body"] = contract_interaction.response_body
-
-        (
-            pact_test.given(provider_state=contract_interaction.given)
-            .upon_receiving(scenario=contract_interaction.upon_receiving)
-            .with_request(**request)
-            .will_respond_with(**response)
-        )
-
-        request_url = f"http://{PACT_MOCK_HOST}:{PACT_MOCK_PORT}{contract_interaction.request_path}"
-
-        with pact_test:
-            # act
-            resp = gx_cloud_session.request(
-                method=contract_interaction.method,
-                url=request_url,
-                json=contract_interaction.request_body,
-                params=contract_interaction.request_params,
-            )
-
-        # assert
-        assert resp.status_code == contract_interaction.response_status
-        # TODO more unit test assertions would go here e.g. response body checks
-
-    return _run_pact_test
