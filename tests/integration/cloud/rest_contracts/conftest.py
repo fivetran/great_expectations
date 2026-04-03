@@ -14,9 +14,8 @@ from great_expectations.data_context import CloudDataContext
 from great_expectations.data_context.data_context.context_factory import project_manager
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
-
     from requests import Session
+    from typing_extensions import TypeAlias
 
 
 CONSUMER_NAME: Final[str] = "great_expectations"
