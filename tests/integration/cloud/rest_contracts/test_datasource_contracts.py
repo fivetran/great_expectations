@@ -347,20 +347,16 @@ def test_add_or_update_pandas_datasource_puts_when_exists(
 
 @pytest.mark.cloud
 def test_delete_pandas_datasource(pact_test: Pact) -> None:
-    """data_sources.delete() issues GET /datasources (list via DatasourceDict.__contains__),
-    GET /datasources?name=... (via retrieve_by_name), then DELETE /datasources/{id}.
+    """data_sources.delete() issues GET /datasources?name=... (via retrieve_by_name),
+    then DELETE /datasources/{id}.
 
-    The delete flow first accesses ``DatasourceDict.data`` (via ``__contains__``)
-    which issues ``GET /datasources`` (no query params).  Then
-    ``retrieve_by_name`` issues ``GET /datasources?name=...`` calls.  In Pact
-    v3, interactions without query parameters mean "expect no query parameters",
-    so we register separate interactions for the list and by-name requests.
+    The delete flow calls ``retrieve_by_name`` which issues
+    ``GET /datasources?name=...``, then deletes by id.
 
-    Four interactions are registered in total:
+    Three interactions are registered in total:
       1. GET /data-context-configuration   (context init)
-      2. GET /datasources                  (list -- DatasourceDict.__contains__)
-      3. GET /datasources?name=...         (by-name -- retrieve_by_name calls)
-      4. DELETE /datasources/{id}          (primary contract under test)
+      2. GET /datasources?name=...         (by-name -- retrieve_by_name calls)
+      3. DELETE /datasources/{id}          (primary contract under test)
     """
     headers = _session_headers()
 
@@ -375,20 +371,7 @@ def test_delete_pandas_datasource(pact_test: Pact) -> None:
         pact_test, access_token=PACT_DUMMY_ACCESS_TOKEN, description_suffix="delete-datasource"
     )
 
-    # 2. GET /datasources (no query -- list call from DatasourceDict.__contains__)
-    (
-        pact_test.upon_receiving("list datasources before delete existence check (client-driven)")
-        .given("the Pandas datasource exists for deletion")
-        .with_request("GET", DATASOURCES_PATH)
-        .with_headers(headers)
-        .will_respond_with(200)
-        .with_body(
-            {"data": match.each_like(existing_ds_payload, min=1)},
-            content_type="application/json",
-        )
-    )
-
-    # 3. GET /datasources?name=... (by-name -- retrieve_by_name calls)
+    # 2. GET /datasources?name=... (by-name -- retrieve_by_name calls)
     (
         pact_test.upon_receiving(
             "a request to fetch datasource by name before delete (client-driven)"
