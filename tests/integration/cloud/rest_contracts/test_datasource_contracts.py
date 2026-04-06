@@ -153,7 +153,7 @@ def test_add_pandas_datasource(pact_test: Pact) -> None:
         .given("the Pandas datasource does not exist")
         .with_request("POST", DATASOURCES_PATH)
         .with_headers(headers)
-        .with_body(PANDAS_DATASOURCE_REQUEST_BODY, content_type="application/json")
+        .with_body(PANDAS_DATASOURCE_REQUEST_BODY, content_type="application/vnd.api+json")
         .will_respond_with(200)
         .with_body(post_response_body, content_type="application/json")
     )
@@ -191,8 +191,8 @@ def test_get_pandas_datasource(pact_test: Pact) -> None:
 
     ``retrieve_by_name`` first calls ``has_key`` (one GET) then ``get``
     (a second GET).  Both GETs target the same URL with the same query
-    parameter.  Pact v2 reuses a single registered interaction for both
-    requests, so only one interaction is registered here.
+    parameter.  Pact v3 reuses a single registered interaction for both
+    identical requests, so only one interaction is registered here.
 
     Two interactions are registered in total:
       1. GET /data-context-configuration   (context init)
@@ -313,7 +313,7 @@ def test_add_or_update_pandas_datasource_puts_when_exists(
         .given("the Pandas datasource exists for update")
         .with_request("PUT", DATASOURCE_BY_ID_PATH)
         .with_headers(headers)
-        .with_body(PANDAS_DATASOURCE_UPDATE_REQUEST_BODY, content_type="application/json")
+        .with_body(PANDAS_DATASOURCE_UPDATE_REQUEST_BODY, content_type="application/vnd.api+json")
         .will_respond_with(200)
         .with_body(SINGLE_DATASOURCE_RESPONSE_BODY, content_type="application/json")
     )

@@ -120,7 +120,7 @@ def test_add_dataframe_asset(pact_test: Pact) -> None:
 
     Instead of creating a datasource (which would register two
     GET /datasources/{id}?name=... interactions — one post-POST and one
-    post-PUT — causing a Pact v2 "multiple interactions found" conflict),
+    post-PUT — causing a Pact v3 "multiple interactions found" conflict),
     we retrieve an existing datasource via ``ctx.data_sources.get()``.
     This uses ``GET /datasources?name=...`` (different path, no {id}),
     leaving only one ``GET /datasources/{id}?name=...`` interaction
@@ -183,7 +183,7 @@ def test_add_dataframe_asset(pact_test: Pact) -> None:
                     )
                 }
             ),
-            content_type="application/json",
+            content_type="application/vnd.api+json",
         )
         .will_respond_with(200)
         .with_body(
@@ -302,7 +302,7 @@ def test_add_batch_definition_whole_dataframe(pact_test: Pact) -> None:
                     )
                 }
             ),
-            content_type="application/json",
+            content_type="application/vnd.api+json",
         )
         .will_respond_with(200)
         .with_body(
