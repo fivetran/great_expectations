@@ -149,7 +149,7 @@ def test_add_dataframe_asset(pact_test: Pact) -> None:
         .given("the Pandas datasource exists for asset test")
         .with_request("GET", DATASOURCES_PATH)
         .with_headers(headers)
-        .with_query_parameters({"name": [DATASOURCE_NAME]})
+        .with_query_parameters({"name": DATASOURCE_NAME})
         .will_respond_with(200)
         .with_body(
             {"data": match.each_like(_DATASOURCE_NO_ASSETS, min=1)},
@@ -200,7 +200,7 @@ def test_add_dataframe_asset(pact_test: Pact) -> None:
         .given("the Pandas datasource now contains the DataFrameAsset")
         .with_request("GET", DATASOURCE_BY_ID_PATH)
         .with_headers(headers)
-        .with_query_parameters({"name": [DATASOURCE_NAME]})
+        .with_query_parameters({"name": DATASOURCE_NAME})
         .will_respond_with(200)
         .with_body(
             {"data": match.like(_DATASOURCE_WITH_DATAFRAME_ASSET)},
@@ -259,7 +259,7 @@ def test_add_batch_definition_whole_dataframe(pact_test: Pact) -> None:
         .given("the Pandas datasource with DataFrameAsset exists for batch def test")
         .with_request("GET", DATASOURCES_PATH)
         .with_headers(headers)
-        .with_query_parameters({"name": [DATASOURCE_NAME]})
+        .with_query_parameters({"name": DATASOURCE_NAME})
         .will_respond_with(200)
         .with_body(
             {"data": match.each_like(_DATASOURCE_WITH_DATAFRAME_ASSET, min=1)},
@@ -319,7 +319,7 @@ def test_add_batch_definition_whole_dataframe(pact_test: Pact) -> None:
         .given("datasource contains DataFrameAsset with a BatchDefinition")
         .with_request("GET", DATASOURCE_BY_ID_PATH)
         .with_headers(headers)
-        .with_query_parameters({"name": [DATASOURCE_NAME]})
+        .with_query_parameters({"name": DATASOURCE_NAME})
         .will_respond_with(200)
         .with_body(
             {"data": match.like(_DATASOURCE_WITH_ASSET_AND_BATCH_DEF)},
