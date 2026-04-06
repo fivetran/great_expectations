@@ -119,7 +119,7 @@ def test_add_expectation_suite(pact_test: Pact) -> None:
         .given("no expectation suite with this name exists")
         .with_request("GET", SUITES_PATH)
         .with_headers(headers)
-        .with_query_parameters({"name": [SUITE_NAME]})
+        .with_query_parameters({"name": SUITE_NAME})
         .will_respond_with(200)
         .with_body({"data": []}, content_type="application/json")
     )
@@ -190,7 +190,7 @@ def test_get_expectation_suite_by_name(pact_test: Pact) -> None:
         .given("an expectation suite with this name exists")
         .with_request("GET", SUITES_PATH)
         .with_headers(headers)
-        .with_query_parameters({"name": [SUITE_NAME]})
+        .with_query_parameters({"name": SUITE_NAME})
         .will_respond_with(200)
         .with_body(
             {"data": match.each_like(match.like(_SUITE_RESPONSE), min=1)},
@@ -246,7 +246,7 @@ def test_update_expectation_suite(pact_test: Pact) -> None:
         .given("an expectation suite exists for update")
         .with_request("GET", SUITES_PATH)
         .with_headers(headers)
-        .with_query_parameters({"name": [SUITE_NAME]})
+        .with_query_parameters({"name": SUITE_NAME})
         .will_respond_with(200)
         .with_body(
             {"data": match.each_like(match.like(_SUITE_WITH_EXPECTATION_RESPONSE), min=1)},
@@ -262,7 +262,7 @@ def test_update_expectation_suite(pact_test: Pact) -> None:
         .given("an expectation suite exists for update")
         .with_request("GET", SUITE_BY_ID_PATH)
         .with_headers(headers)
-        .with_query_parameters({"name": [SUITE_NAME]})
+        .with_query_parameters({"name": SUITE_NAME})
         .will_respond_with(200)
         .with_body(
             {"data": match.like(_SUITE_WITH_EXPECTATION_RESPONSE)},
@@ -397,7 +397,7 @@ def test_delete_expectation_suite(pact_test: Pact) -> None:
         .given("an expectation suite exists for deletion")
         .with_request("GET", SUITES_PATH)
         .with_headers(headers)
-        .with_query_parameters({"name": [SUITE_NAME]})
+        .with_query_parameters({"name": SUITE_NAME})
         .will_respond_with(200)
         .with_body(
             {"data": match.each_like(match.like(_SUITE_RESPONSE), min=1)},
