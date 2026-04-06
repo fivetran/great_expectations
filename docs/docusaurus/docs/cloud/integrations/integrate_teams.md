@@ -21,7 +21,7 @@ Keep the following in mind when integrating Microsoft Teams:
 ## Prerequisites
 
 To connect or reconnect a Microsoft Teams integration, you must have the following prerequisites fulfilled:
-- In MS 365, you have [Global Administrator](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/permissions-reference#global-administrator) permissions or a role with permission for the `microsoft.directory/servicePrincipals/managePermissionGrantsForAll` action that can grant tenant-wide admin consent for the following delegated permissions:
+- In Microsoft Entra ID, you have [Global Administrator](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/permissions-reference#global-administrator) permissions or a role that includes the `microsoft.directory/servicePrincipals/managePermissionGrantsForAll` permission and can grant tenant-wide admin consent for the following delegated permissions:
    - `AppCatalog.ReadWrite.All`
    - `ChannelMember.Read.All`
    - `TeamMember.Read.All`
@@ -40,7 +40,7 @@ The integration will be **Pending** while the GX Cloud app is installed for your
 
 ## Reconnect to Microsoft Teams
 
-You can reconnect to authorize the connection for new teams that were added after you initially connected to Microsoft Teams, or to resolve an error. Your integration may **Error** if, for example, the user who configured it has their MS 365 account deactivated. If the integration experiences an error, notifications might not be sent to Teams channels, but alert configurations will be kept intact so that Teams notifications will resume when the integration is reconnected.
+You can reconnect to authorize the connection for new teams that were added after you initially connected to Microsoft Teams, or to resolve an error. Your integration may **Error** if, for example, the user who configured it has their Microsoft account deactivated, or if the authorization is no longer valid because permissions changed or access was revoked. If the integration experiences an error, notifications might not be sent to Teams channels, but alert configurations will be kept intact so that Teams notifications will resume when the integration is reconnected.
 
 To reconnect the integration, do the following.
 
@@ -56,5 +56,5 @@ The integration will be **Pending** while the GX Cloud app is installed for your
 1. In GX Cloud, select the relevant **Workspace** and then click **Integrations**.
 2. Locate the **Microsoft Teams** integration and click <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/>  **Edit connection**.
 3. Click <img src="/img/trash.png" alt="trash icon" width="20" height="20"/> **Remove**.
-4. Note that removing the integration may impact existing alert configurations. If an alert’s **Recipients** include **Teams channels**, then the team, channel, and @mention configuration details will be deleted. If the alert is also configured with **Emails** or **Slack channels** as recipients, those portions of the alert’s configuration will be left as-is, and notifications will continue to be sent to those destinations. Click **Remove** to confirm you understand the impact to existing alert configurations and finalize deleting the connection.
+4. Note that removing the integration may impact existing alert configurations. If an alert’s **Recipients** include **Microsoft Teams channels**, then the team, channel, and @mention configuration details will be deleted. If the alert is also configured with **Emails** or **Slack channels** as recipients, those portions of the alert’s configuration will be left as-is, and notifications will continue to be sent to those destinations. Click **Remove** to confirm you understand the impact to existing alert configurations and finalize deleting the connection.
 
