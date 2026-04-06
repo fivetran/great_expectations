@@ -248,18 +248,19 @@ def test_add_or_update_pandas_datasource_puts_when_exists(
     """add_or_update_pandas() issues a PUT /datasources/{id} when the datasource already exists.
 
     ``add_or_update_datasource`` makes list GETs (via ``DatasourceDict.__contains__``)
-    and by-name GETs (via ``retrieve_by_name``).  In Pact v2, an interaction
-    registered WITHOUT a ``query`` field matches ANY request to that path
-    regardless of query params, so the list interaction (no query) also serves
-    the by-name requests.  After PUT, ``_persist_datasource`` re-fetches with
-    both id in the path and name as a query parameter.
+    and by-name GETs (via ``retrieve_by_name``).  In Pact v3, an interaction
+    registered WITHOUT query parameters means "expect NO query parameters",
+    so we must register separate interactions for the list call (no query)
+    and the by-name call (with ``?name=...``).  After PUT,
+    ``_persist_datasource`` re-fetches with both id in the path and name as
+    a query parameter.
 
-    Four interactions are registered in total:
+    Five interactions are registered in total:
       1. GET /data-context-configuration   (context init)
-      2. GET /datasources                  (serves list AND by-name calls --
-         Pact v2 no-query semantics)
-      3. PUT /datasources/{id}             (primary contract under test)
-      4. GET /datasources/{id}?name=...    (post-PUT refresh in _persist_datasource)
+      2. GET /datasources                  (list -- DatasourceDict.__contains__)
+      3. GET /datasources?name=...         (by-name -- retrieve_by_name)
+      4. PUT /datasources/{id}             (primary contract under test)
+      5. GET /datasources/{id}?name=...    (post-PUT refresh in _persist_datasource)
     """
     headers = _session_headers()
 
@@ -275,8 +276,7 @@ def test_add_or_update_pandas_datasource_puts_when_exists(
         pact_test, access_token=PACT_DUMMY_ACCESS_TOKEN, description_suffix="update-datasource"
     )
 
-    # 2. GET /datasources (no query -- Pact v2 matches any query, so this serves
-    #    both the list calls and the by-name retrieve_by_name calls)
+    # 2. GET /datasources (no query -- list call from DatasourceDict.__contains__)
     (
         pact_test.upon_receiving(
             "list datasources for add_or_update existence check (client-driven)"
@@ -291,7 +291,23 @@ def test_add_or_update_pandas_datasource_puts_when_exists(
         )
     )
 
-    # 3. PUT /datasources/{id} -- the primary contract under test
+    # 3. GET /datasources?name=... (by-name -- retrieve_by_name calls)
+    (
+        pact_test.upon_receiving(
+            "get datasource by name for add_or_update retrieve_by_name (client-driven)"
+        )
+        .given("the Pandas datasource exists for update")
+        .with_request("GET", DATASOURCES_PATH)
+        .with_headers(headers)
+        .with_query_parameters({"name": DATASOURCE_NAME})
+        .will_respond_with(200)
+        .with_body(
+            {"data": match.each_like(existing_ds_payload, min=1)},
+            content_type="application/json",
+        )
+    )
+
+    # 4. PUT /datasources/{id} -- the primary contract under test
     (
         pact_test.upon_receiving("a request to update a Pandas datasource via PUT (client-driven)")
         .given("the Pandas datasource exists for update")
@@ -302,7 +318,7 @@ def test_add_or_update_pandas_datasource_puts_when_exists(
         .with_body(SINGLE_DATASOURCE_RESPONSE_BODY, content_type="application/json")
     )
 
-    # 4. GET /datasources/{id}?name=... (post-PUT refresh in _persist_datasource)
+    # 5. GET /datasources/{id}?name=... (post-PUT refresh in _persist_datasource)
     (
         pact_test.upon_receiving(
             "a request to fetch the updated Pandas datasource by id (client-driven)"
@@ -331,19 +347,20 @@ def test_add_or_update_pandas_datasource_puts_when_exists(
 
 @pytest.mark.cloud
 def test_delete_pandas_datasource(pact_test: Pact) -> None:
-    """data_sources.delete() issues GET /datasources?name=... (via retrieve_by_name),
-    then DELETE /datasources/{id}.
+    """data_sources.delete() issues GET /datasources (list via DatasourceDict.__contains__),
+    GET /datasources?name=... (via retrieve_by_name), then DELETE /datasources/{id}.
 
-    The delete flow uses ``retrieve_by_name`` which issues ``GET /datasources?name=...``
-    calls.  Pact v2 reuses a single registered interaction for all matching
-    requests.  No separate list interaction is registered because Pact v2
-    treats a no-query interaction as matching ANY query, which would conflict
-    with the by-name interaction.
+    The delete flow first accesses ``DatasourceDict.data`` (via ``__contains__``)
+    which issues ``GET /datasources`` (no query params).  Then
+    ``retrieve_by_name`` issues ``GET /datasources?name=...`` calls.  In Pact
+    v3, interactions without query parameters mean "expect no query parameters",
+    so we register separate interactions for the list and by-name requests.
 
-    Three interactions are registered in total:
+    Four interactions are registered in total:
       1. GET /data-context-configuration   (context init)
-      2. GET /datasources?name=...         (serves retrieve_by_name calls)
-      3. DELETE /datasources/{id}          (primary contract under test)
+      2. GET /datasources                  (list -- DatasourceDict.__contains__)
+      3. GET /datasources?name=...         (by-name -- retrieve_by_name calls)
+      4. DELETE /datasources/{id}          (primary contract under test)
     """
     headers = _session_headers()
 
@@ -358,7 +375,22 @@ def test_delete_pandas_datasource(pact_test: Pact) -> None:
         pact_test, access_token=PACT_DUMMY_ACCESS_TOKEN, description_suffix="delete-datasource"
     )
 
-    # 2. GET /datasources?name=... (serves retrieve_by_name calls)
+    # 2. GET /datasources (no query -- list call from DatasourceDict.__contains__)
+    (
+        pact_test.upon_receiving(
+            "list datasources before delete existence check (client-driven)"
+        )
+        .given("the Pandas datasource exists for deletion")
+        .with_request("GET", DATASOURCES_PATH)
+        .with_headers(headers)
+        .will_respond_with(200)
+        .with_body(
+            {"data": match.each_like(existing_ds_payload, min=1)},
+            content_type="application/json",
+        )
+    )
+
+    # 3. GET /datasources?name=... (by-name -- retrieve_by_name calls)
     (
         pact_test.upon_receiving(
             "a request to fetch datasource by name before delete (client-driven)"
