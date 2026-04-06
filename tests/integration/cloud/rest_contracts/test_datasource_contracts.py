@@ -377,9 +377,7 @@ def test_delete_pandas_datasource(pact_test: Pact) -> None:
 
     # 2. GET /datasources (no query -- list call from DatasourceDict.__contains__)
     (
-        pact_test.upon_receiving(
-            "list datasources before delete existence check (client-driven)"
-        )
+        pact_test.upon_receiving("list datasources before delete existence check (client-driven)")
         .given("the Pandas datasource exists for deletion")
         .with_request("GET", DATASOURCES_PATH)
         .with_headers(headers)
