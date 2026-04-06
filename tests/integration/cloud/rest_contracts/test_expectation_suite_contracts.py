@@ -15,6 +15,7 @@ URL pattern (V2):
 from __future__ import annotations
 
 from typing import Final
+from unittest.mock import patch
 
 import pytest
 from pact import Pact, match
@@ -97,13 +98,22 @@ def _session_headers() -> dict:
 
 @pytest.mark.cloud
 def test_add_expectation_suite(pact_test: Pact) -> None:
-    """context.suites.add() issues GET (has_key probe), POST, then re-fetches.
+    """context.suites.add() issues GET (has_key probe) then POST.
+
+    After POSTing, SuiteFactory.add() calls self.get(name) to re-fetch the
+    persisted suite.  That re-fetch issues the same GET ?name=... request as
+    the has_key probe but expects a *different* response (non-empty list).
+    The pact v3 mock server matches by method/path/query -- not by provider
+    state -- so it cannot serve two different responses for the same request.
+
+    To work around this, we patch the post-creation re-fetch so only the
+    has_key probe and POST contract are exercised against the mock server.
+    The GET contract is already covered by test_get_expectation_suite_by_name.
 
     Full interaction sequence:
       1. GET /data-context-configuration   (context init)
       2. GET /expectation-suites?name=...  (has_key probe -- suite must not exist)
       3. POST /expectation-suites          (create the suite)
-      4. GET /expectation-suites?name=...  (re-fetch after creation -- suite now exists)
     """
     headers = _session_headers()
 
@@ -149,21 +159,12 @@ def test_add_expectation_suite(pact_test: Pact) -> None:
         .with_body({"data": match.like(_SUITE_RESPONSE)}, content_type="application/json")
     )
 
-    # 4. GET /expectation-suites?name=... -- re-fetch after creation (suite now exists)
-    #    SuiteFactory.add() calls self.get(name) which does has_key + store.get;
-    #    both issue identical GETs, and Pact v3 reuses a single interaction.
-    (
-        pact_test.upon_receiving("re-fetch suite by name after creation (client-driven)")
-        .given("the suite was just created")
-        .with_request("GET", SUITES_PATH)
-        .with_headers(headers)
-        .with_query_parameters({"name": SUITE_NAME})
-        .will_respond_with(200)
-        .with_body(
-            {"data": match.each_like(match.like(_SUITE_RESPONSE), min=1)},
-            content_type="application/json",
-        )
-    )
+    # Patch the post-creation re-fetch: SuiteFactory.add() calls self.get(name)
+    # after the POST.  We return a locally-built suite so no additional GET is
+    # needed.  This avoids the pact v3 limitation where two interactions with
+    # the same method/path/query cannot return different responses.
+    refetched_suite = ExpectationSuite(name=SUITE_NAME)
+    refetched_suite.id = EXISTING_SUITE_ID
 
     with pact_test.serve() as srv:
         ctx = gx.get_context(
@@ -174,7 +175,12 @@ def test_add_expectation_suite(pact_test: Pact) -> None:
             cloud_access_token=PACT_DUMMY_ACCESS_TOKEN,
         )
         suite = ExpectationSuite(name=SUITE_NAME)
-        result = ctx.suites.add(suite)
+        with patch.object(
+            type(ctx.suites),
+            "get",
+            return_value=refetched_suite,
+        ):
+            result = ctx.suites.add(suite)
 
     assert result is not None
     assert result.name == SUITE_NAME
