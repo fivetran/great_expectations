@@ -553,15 +553,18 @@ jobs:
 
       - name: Publish pact contracts to PactFlow
         if: env.PACT_BROKER_READ_WRITE_TOKEN != ''
+        continue-on-error: true
+        env:
+          PACT_CLI_VERSION: 2.4.7
         run: |
           PACT_DIR="tests/integration/cloud/rest_contracts/pacts"
-          if [ ! -d "${PACT_DIR}" ] || [ -z "$(ls -A ${PACT_DIR}/*.json 2>/dev/null)" ]; then
+          if [ ! -d "${PACT_DIR}" ] || ! compgen -G "${PACT_DIR}/*.json" > /dev/null; then
             echo "No pact files found in ${PACT_DIR}, skipping publish"
             exit 0
           fi
           echo "Publishing pact files from ${PACT_DIR}:"
           ls -la ${PACT_DIR}/*.json
-          curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/master/install.sh | bash
+          curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/v${PACT_CLI_VERSION}/install.sh | bash
           export PATH="${PATH}:${HOME}/pact/bin"
           pact-broker publish "${PACT_DIR}" \
             --broker-base-url=https://greatexpectations.pactflow.io \
