@@ -555,7 +555,7 @@ jobs:
         if: env.PACT_BROKER_READ_WRITE_TOKEN != ''
         continue-on-error: true
         env:
-          PACT_CLI_VERSION: 2.4.7
+          PACT_CLI_VERSION: 2.6.0
         run: |
           PACT_DIR="tests/integration/cloud/rest_contracts/pacts"
           if [ ! -d "${PACT_DIR}" ] || ! compgen -G "${PACT_DIR}/*.json" > /dev/null; then
