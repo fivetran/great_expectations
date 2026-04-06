@@ -97,12 +97,13 @@ def _session_headers() -> dict:
 
 @pytest.mark.cloud
 def test_add_expectation_suite(pact_test: Pact) -> None:
-    """context.suites.add() issues GET (has_key probe) then POST.
+    """context.suites.add() issues GET (has_key probe), POST, then re-fetches.
 
     Full interaction sequence:
       1. GET /data-context-configuration   (context init)
       2. GET /expectation-suites?name=...  (has_key probe -- suite must not exist)
       3. POST /expectation-suites          (create the suite)
+      4. GET /expectation-suites?name=...  (re-fetch after creation -- suite now exists)
     """
     headers = _session_headers()
 
@@ -146,6 +147,22 @@ def test_add_expectation_suite(pact_test: Pact) -> None:
         .with_body(request_body, content_type="application/json")
         .will_respond_with(201)
         .with_body({"data": match.like(_SUITE_RESPONSE)}, content_type="application/json")
+    )
+
+    # 4. GET /expectation-suites?name=... -- re-fetch after creation (suite now exists)
+    #    SuiteFactory.add() calls self.get(name) which does has_key + store.get;
+    #    both issue identical GETs, and Pact v3 reuses a single interaction.
+    (
+        pact_test.upon_receiving("re-fetch suite by name after creation (client-driven)")
+        .given("the suite was just created")
+        .with_request("GET", SUITES_PATH)
+        .with_headers(headers)
+        .with_query_parameters({"name": SUITE_NAME})
+        .will_respond_with(200)
+        .with_body(
+            {"data": match.each_like(match.like(_SUITE_RESPONSE), min=1)},
+            content_type="application/json",
+        )
     )
 
     with pact_test.serve() as srv:
