@@ -154,7 +154,7 @@ def test_add_expectation_suite(pact_test: Pact) -> None:
         .given("no expectation suite with this name exists")
         .with_request("POST", SUITES_PATH)
         .with_headers(headers)
-        .with_body(request_body, content_type="application/json")
+        .with_body(request_body, content_type="application/vnd.api+json")
         .will_respond_with(201)
         .with_body({"data": match.like(_SUITE_RESPONSE)}, content_type="application/json")
     )
@@ -191,7 +191,7 @@ def test_get_expectation_suite_by_name(pact_test: Pact) -> None:
     """context.suites.get(name=...) issues two identical GET?name=... requests.
 
     ``retrieve_by_name`` calls ``has_key`` (one GET) then ``get`` (a second
-    GET) with identical request parameters.  Pact v2 reuses a single registered
+    GET) with identical request parameters.  Pact v3 reuses a single registered
     interaction for both requests.
 
     Two interactions are registered in total:
@@ -241,7 +241,7 @@ def test_update_expectation_suite(pact_test: Pact) -> None:
 
     Updating a suite goes through ``add_or_update``, which first fetches the
     existing suite to resolve its id.  The two GET requests (``has_key`` probe
-    + actual fetch) are identical so Pact v2 reuses a single interaction for
+    + actual fetch) are identical so Pact v3 reuses a single interaction for
     both.  Then ``suite.save()`` triggers ``store.update()`` which calls
     ``_update`` on the cloud backend -- this performs a GET by id (to confirm
     the object exists) before issuing the PUT.
@@ -362,7 +362,7 @@ def test_update_expectation_suite(pact_test: Pact) -> None:
         .given("an expectation suite exists for update")
         .with_request("PUT", SUITE_BY_ID_PATH)
         .with_headers(headers)
-        .with_body(put_request_body, content_type="application/json")
+        .with_body(put_request_body, content_type="application/vnd.api+json")
         .will_respond_with(200)
         .with_body(
             {"data": match.like(_SUITE_WITH_EXPECTATION_RESPONSE)},
@@ -396,7 +396,7 @@ def test_delete_expectation_suite(pact_test: Pact) -> None:
 
     ``SuiteFactory.delete`` first fetches the suite to resolve its cloud id,
     then issues DELETE to the id-scoped URL.  The two GET requests are
-    identical so Pact v2 reuses a single interaction for both.
+    identical so Pact v3 reuses a single interaction for both.
 
     Full interaction sequence:
       1. GET /data-context-configuration        (context init)
