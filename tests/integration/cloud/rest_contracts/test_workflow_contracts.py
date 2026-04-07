@@ -1,38 +1,44 @@
 """Client-driven Pact contract test for a multi-step GX Cloud workflow.
 
-Exercises the full pipeline end-to-end through the Python client API:
-  1. Retrieve an existing Pandas datasource (with DataFrameAsset + BatchDefinition)
-  2. Add an ExpectationSuite
-  3. Add a ValidationDefinition (linking batch_def + suite)
-  4. Add a Checkpoint (linking validation_definitions)
+Exercises the full resource creation pipeline through the Python client API:
+  1. Add a Pandas datasource  (``ctx.data_sources.add_pandas``)
+  2. Add an ExpectationSuite  (``ctx.suites.add``)
+  3. Add a ValidationDefinition (``ctx.validation_definitions.add``)
+  4. Add a Checkpoint         (``ctx.checkpoints.add``)
 
-This test verifies that the GX Python client generates correct API requests
-for the complete resource creation workflow against the Mercury backend.
+The datasource is created via ``add_pandas`` and the mock returns a fully
+configured datasource (with DataFrameAsset + BatchDefinition) in the POST
+response.  The asset and batch definition are then available via local
+lookup.  Individual PUT contracts for datasource mutation are covered by
+``test_data_asset_batch_def_contracts.py``.
 
-Design notes (Pact v3 constraints):
-  The Pact v3 mock server matches interactions by method + path + query
-  parameters.  It cannot serve different responses for two requests that
-  share the same signature.  To avoid conflicts:
+Each Pact interaction carries a distinct provider state so the provider
+verification harness can set up the correct backend data for each step.
 
-  - The datasource (with asset + batch definition) is RETRIEVED, not
-    created, via ``ctx.data_sources.get()``.  Creating one from scratch
-    would require multiple PUT + GET cycles to the same URL with evolving
-    response bodies — a pattern Pact v3 cannot express.
+Design notes (Pact v3 mock server constraints):
+  The mock server matches requests by HTTP method + path + query + headers +
+  body.  When multiple interactions share the same HTTP signature, the mock
+  returns the *first-registered* response for every matching request and
+  marks all registered interactions as matched.
 
-  - ``SuiteFactory.get`` is patched after the suite POST to prevent a
-    conflicting re-fetch (the ``has_key`` probe and the re-fetch hit the
-    same URL but need empty vs non-empty responses).
+  This means the *pact contract file* records every interaction with its
+  correct provider state for independent provider verification, while the
+  *consumer test* receives a single consistent response per unique HTTP
+  signature.  Where the client issues the same request at different
+  lifecycle stages expecting different responses (e.g. a has_key probe
+  returning empty, then a post-creation re-fetch returning non-empty),
+  the later interactions are still recorded in the contract but the mock
+  can only serve one response.
 
-  - The checkpoint uses ``add_or_update`` (which takes the "already exists"
-    path) instead of ``add`` to avoid the same has_key / re-fetch conflict.
-
-  Request body matchers for POST/PUT are intentionally omitted here because
-  they are already validated by the individual CRUD contract tests.  This
-  workflow test focuses on the *sequence* of interactions.
+  ``SuiteFactory.get`` and ``CheckpointFactory._get`` are patched for
+  post-creation re-fetches because the has_key probe and the re-fetch share
+  an identical HTTP signature yet require opposite responses (empty vs
+  non-empty).  This is the canonical pattern used by all individual CRUD
+  contract tests in this directory.
 
   Each ``_make_*_response()`` helper returns a **fresh** dict to avoid
   pact-python v3 Rust FFI issues with shared matcher objects across
-  multiple interactions.
+  interactions.
 
 URL patterns:
   /api/v1/organizations/{org_id}/workspaces/{ws_id}/data-context-configuration
@@ -67,7 +73,6 @@ from tests.integration.cloud.rest_contracts.conftest import (
 # Shared constants
 # ---------------------------------------------------------------------------
 
-# Datasource (pre-existing with asset + batch definition)
 DATASOURCE_NAME: Final[str] = "workflow_test_datasource"
 EXISTING_DATASOURCE_ID: Final[str] = "11111111-1111-4aaa-8aaa-111111111111"
 ASSET_NAME: Final[str] = "workflow_test_asset"
@@ -75,15 +80,12 @@ EXISTING_ASSET_ID: Final[str] = "22222222-2222-4bbb-8bbb-222222222222"
 BATCH_DEF_NAME: Final[str] = "workflow_test_batch_def"
 EXISTING_BATCH_DEF_ID: Final[str] = "33333333-3333-4ccc-8ccc-333333333333"
 
-# Expectation suite (created during test)
 SUITE_NAME: Final[str] = "workflow_test_suite"
 EXISTING_SUITE_ID: Final[str] = "44444444-4444-4ddd-8ddd-444444444444"
 
-# Validation definition (created during test)
 VALDEF_NAME: Final[str] = "workflow_test_valdef"
 EXISTING_VALDEF_ID: Final[str] = "55555555-5555-4eee-8eee-555555555555"
 
-# Checkpoint (uses add_or_update path — "already exists")
 CHECKPOINT_NAME: Final[str] = "workflow_test_checkpoint"
 EXISTING_CHECKPOINT_ID: Final[str] = "66666666-6666-4fff-8fff-666666666666"
 
@@ -95,6 +97,7 @@ DATASOURCES_PATH: Final[str] = (
     f"/api/v2/organizations/{EXISTING_ORGANIZATION_ID}"
     f"/workspaces/{EXISTING_WORKSPACE_ID}/datasources"
 )
+DATASOURCE_BY_ID_PATH: Final[str] = f"{DATASOURCES_PATH}/{EXISTING_DATASOURCE_ID}"
 
 SUITES_PATH: Final[str] = (
     f"/api/v2/organizations/{EXISTING_ORGANIZATION_ID}"
@@ -106,6 +109,8 @@ VALDEF_PATH: Final[str] = (
     f"/api/v1/organizations/{EXISTING_ORGANIZATION_ID}"
     f"/workspaces/{EXISTING_WORKSPACE_ID}/validation-definitions"
 )
+VALDEF_BY_ID_PATH: Final[str] = f"{VALDEF_PATH}/{EXISTING_VALDEF_ID}"
+
 CHECKPOINTS_PATH: Final[str] = (
     f"/api/v1/organizations/{EXISTING_ORGANIZATION_ID}"
     f"/workspaces/{EXISTING_WORKSPACE_ID}/checkpoints"
@@ -120,6 +125,7 @@ CHECKPOINT_BY_ID_PATH: Final[str] = f"{CHECKPOINTS_PATH}/{EXISTING_CHECKPOINT_ID
 
 
 def _make_datasource_response() -> dict:
+    """Datasource with DataFrameAsset and BatchDefinition (final state)."""
     return {
         "id": EXISTING_DATASOURCE_ID,
         "type": "pandas",
@@ -180,7 +186,12 @@ def _make_checkpoint_response() -> dict:
     return {
         "id": EXISTING_CHECKPOINT_ID,
         "name": CHECKPOINT_NAME,
-        "validation_definitions": [],
+        "validation_definitions": [
+            {
+                "id": EXISTING_VALDEF_ID,
+                "name": match.like(VALDEF_NAME),
+            }
+        ],
         "actions": [],
         "result_format": match.like("SUMMARY"),
     }
@@ -203,39 +214,99 @@ def _session_headers() -> dict[str, str]:
 
 @pytest.mark.cloud
 def test_pandas_datasource_workflow(pact_test: Pact) -> None:
-    """Multi-step workflow: retrieve datasource, add suite, add valdef, add checkpoint.
+    """Full workflow: add datasource → add suite → add valdef → add checkpoint.
 
-    Exercises the full GX Cloud resource creation pipeline through the Python
-    client API.  All Pact interactions are registered up front, then the client
-    code runs inside a single ``pact_test.serve()`` block.
+    Exercises the complete GX Cloud resource creation pipeline through the
+    Python client API.  All Pact interactions are registered up front, then
+    the client code runs inside a single ``pact_test.serve()`` block.
 
-    Interaction sequence:
-      1.  GET /data-context-configuration            (context init)
-      2.  GET /datasources?name=...                  (retrieve existing datasource)
-      3.  GET /expectation-suites?name=...           (has_key probe — empty)
-      4.  POST /expectation-suites                   (create suite)
-      5.  GET /expectation-suites/{id}?name=...      (suite freshness check)
-      6.  GET /validation-definitions?name=...       (has_key probe — empty)
-      7.  POST /validation-definitions               (create valdef)
-      8.  GET /checkpoints?name=...                  (fetch existing for add_or_update)
-      9.  GET /checkpoints/{id}?name=...             (update existence check)
-      10. PUT /checkpoints/{id}                      (update checkpoint)
+    Each interaction carries a provider state describing the backend's data
+    at that point in the pipeline.  The pact contract file records every
+    interaction for independent provider verification.
+
+    Interaction map (grouped by unique HTTP signature):
+
+      Datasource lifecycle:
+        GET  /datasources                     (list — empty before add)
+        POST /datasources                     (create datasource)
+        GET  /datasources/{id}?name=...       (post-creation refresh)
+        GET  /datasources?name=...            (retrieve by name for freshness)
+
+      Expectation suite lifecycle:
+        GET  /expectation-suites?name=...     (has_key probe — empty)
+        POST /expectation-suites              (create suite)
+        GET  /expectation-suites?name=...     (re-fetch — non-empty) [provider state only]
+        GET  /expectation-suites/{id}?name=.. (freshness check, reused)
+
+      Validation definition lifecycle:
+        GET  /validation-definitions?name=... (has_key probe — empty)
+        POST /validation-definitions          (create valdef)
+
+      Checkpoint lifecycle:
+        GET  /checkpoints?name=...            (has_key probe — empty)
+        POST /checkpoints                     (create checkpoint)
+        GET  /checkpoints?name=...            (re-fetch — non-empty) [provider state only]
+        GET  /validation-definitions/{id}?... (valdef freshness during deserialization)
     """
     headers = _session_headers()
 
-    # -- 1. GET /data-context-configuration (context init) --
+    # ===================================================================
+    # Register interactions — ordered by first occurrence in the workflow
+    # ===================================================================
+
+    # -- Context init --
     setup_data_context_config_interaction(
         pact_test,
         access_token=PACT_DUMMY_ACCESS_TOKEN,
         description_suffix="workflow",
     )
 
-    # -- 2. GET /datasources?name=... (retrieve existing datasource) --
-    # Serves both has_key + get in retrieve_by_name, AND all subsequent
-    # freshness checks that call DatasourceDict[name].
+    # -- Datasource: add_pandas --
+    # GET /datasources (list — existence check before add)
     (
-        pact_test.upon_receiving("retrieve existing datasource for workflow test (client-driven)")
-        .given("a Pandas datasource with asset and batch definition exists")
+        pact_test.upon_receiving("list all datasources to check existence before add (workflow)")
+        .given("no datasources exist yet")
+        .with_request("GET", DATASOURCES_PATH)
+        .with_headers(headers)
+        .will_respond_with(200)
+        .with_body({"data": []}, content_type="application/json")
+    )
+
+    # POST /datasources (create)
+    # The mock returns a fully-configured datasource (with DataFrameAsset
+    # + BatchDefinition) representing the provider state after creation.
+    # The provider state handler sets up these child resources.
+    (
+        pact_test.upon_receiving("create Pandas datasource (workflow)")
+        .given("the Pandas datasource is being created with asset and batch definition")
+        .with_request("POST", DATASOURCES_PATH)
+        .with_headers(headers)
+        .will_respond_with(200)
+        .with_body(
+            {"data": match.like(_make_datasource_response())},
+            content_type="application/json",
+        )
+    )
+
+    # GET /datasources/{id}?name=... (post-creation refresh)
+    (
+        pact_test.upon_receiving("refresh datasource by id after creation (workflow)")
+        .given("the Pandas datasource exists with asset and batch definition")
+        .with_request("GET", DATASOURCE_BY_ID_PATH)
+        .with_headers(headers)
+        .with_query_parameters({"name": DATASOURCE_NAME})
+        .will_respond_with(200)
+        .with_body(
+            {"data": match.like(_make_datasource_response())},
+            content_type="application/json",
+        )
+    )
+
+    # GET /datasources?name=... (retrieve by name)
+    # Used by freshness checks during valdef/checkpoint serialization.
+    (
+        pact_test.upon_receiving("retrieve datasource by name for freshness check (workflow)")
+        .given("the Pandas datasource exists with asset and batch definition")
         .with_request("GET", DATASOURCES_PATH)
         .with_headers(headers)
         .with_query_parameters({"name": DATASOURCE_NAME})
@@ -246,10 +317,11 @@ def test_pandas_datasource_workflow(pact_test: Pact) -> None:
         )
     )
 
-    # -- 3. GET /expectation-suites?name=... (has_key probe — empty) --
+    # -- ExpectationSuite: suites.add --
+    # GET /expectation-suites?name=... (has_key probe — empty)
     (
-        pact_test.upon_receiving("has_key probe for suite before add in workflow (client-driven)")
-        .given("no expectation suite with this name exists for workflow test")
+        pact_test.upon_receiving("has_key probe for suite before creation (workflow)")
+        .given("no expectation suite with this name exists")
         .with_request("GET", SUITES_PATH)
         .with_headers(headers)
         .with_query_parameters({"name": SUITE_NAME})
@@ -257,10 +329,10 @@ def test_pandas_datasource_workflow(pact_test: Pact) -> None:
         .with_body({"data": []}, content_type="application/json")
     )
 
-    # -- 4. POST /expectation-suites (create suite) --
+    # POST /expectation-suites (create)
     (
-        pact_test.upon_receiving("create expectation suite in workflow (client-driven)")
-        .given("no expectation suite with this name exists for workflow test")
+        pact_test.upon_receiving("create expectation suite (workflow)")
+        .given("no expectation suite with this name exists")
         .with_request("POST", SUITES_PATH)
         .with_headers(headers)
         .will_respond_with(201)
@@ -270,13 +342,29 @@ def test_pandas_datasource_workflow(pact_test: Pact) -> None:
         )
     )
 
-    # -- 5. GET /expectation-suites/{id}?name=... (suite freshness check) --
-    # Reused by valdef serialization AND checkpoint serialization freshness checks.
+    # GET /expectation-suites?name=... (post-creation re-fetch — non-empty)
+    # Recorded in the pact file for provider verification.  At the mock
+    # level this shares a signature with the has_key probe above, so the
+    # mock serves the first-registered (empty) response for all matching
+    # calls.  SuiteFactory.get is patched in the test body to supply the
+    # post-creation result locally.
     (
-        pact_test.upon_receiving(
-            "fetch suite by id for freshness check in workflow (client-driven)"
+        pact_test.upon_receiving("re-fetch suite by name after creation (workflow)")
+        .given("the expectation suite was just created")
+        .with_request("GET", SUITES_PATH)
+        .with_headers(headers)
+        .with_query_parameters({"name": SUITE_NAME})
+        .will_respond_with(200)
+        .with_body(
+            {"data": match.each_like(match.like(_make_suite_response()), min=1)},
+            content_type="application/json",
         )
-        .given("the expectation suite exists for workflow freshness check")
+    )
+
+    # GET /expectation-suites/{id}?name=... (freshness check — reused)
+    (
+        pact_test.upon_receiving("fetch suite by id for freshness check (workflow)")
+        .given("the expectation suite exists for freshness check")
         .with_request("GET", SUITE_BY_ID_PATH)
         .with_headers(headers)
         .with_query_parameters({"name": SUITE_NAME})
@@ -287,10 +375,11 @@ def test_pandas_datasource_workflow(pact_test: Pact) -> None:
         )
     )
 
-    # -- 6. GET /validation-definitions?name=... (has_key probe — empty) --
+    # -- ValidationDefinition: validation_definitions.add --
+    # GET /validation-definitions?name=... (has_key probe — empty)
     (
-        pact_test.upon_receiving("has_key probe for valdef before add in workflow (client-driven)")
-        .given("no validation definition with this name exists for workflow test")
+        pact_test.upon_receiving("has_key probe for valdef before creation (workflow)")
+        .given("no validation definition with this name exists")
         .with_request("GET", VALDEF_PATH)
         .with_headers(headers)
         .with_query_parameters({"name": VALDEF_NAME})
@@ -298,10 +387,10 @@ def test_pandas_datasource_workflow(pact_test: Pact) -> None:
         .with_body({"data": []}, content_type="application/json")
     )
 
-    # -- 7. POST /validation-definitions (create valdef) --
+    # POST /validation-definitions (create)
     (
-        pact_test.upon_receiving("create validation definition in workflow (client-driven)")
-        .given("no validation definition with this name exists for workflow test")
+        pact_test.upon_receiving("create validation definition (workflow)")
+        .given("no validation definition with this name exists")
         .with_request("POST", VALDEF_PATH)
         .with_headers(headers)
         .will_respond_with(201)
@@ -311,14 +400,36 @@ def test_pandas_datasource_workflow(pact_test: Pact) -> None:
         )
     )
 
-    # -- 8. GET /checkpoints?name=... (checkpoint exists for add_or_update) --
-    # add_or_update's get() calls has_key + store.get; both identical GETs
-    # are served by this single interaction.
+    # -- Checkpoint: checkpoints.add --
+    # GET /checkpoints?name=... (has_key probe — empty)
     (
-        pact_test.upon_receiving(
-            "fetch checkpoint by name for add_or_update in workflow (client-driven)"
+        pact_test.upon_receiving("has_key probe for checkpoint before creation (workflow)")
+        .given("no checkpoint with this name exists")
+        .with_request("GET", CHECKPOINTS_PATH)
+        .with_headers(headers)
+        .with_query_parameters({"name": CHECKPOINT_NAME})
+        .will_respond_with(200)
+        .with_body({"data": []}, content_type="application/json")
+    )
+
+    # POST /checkpoints (create)
+    (
+        pact_test.upon_receiving("create checkpoint (workflow)")
+        .given("no checkpoint with this name exists")
+        .with_request("POST", CHECKPOINTS_PATH)
+        .with_headers(headers)
+        .will_respond_with(201)
+        .with_body(
+            {"data": match.like(_make_checkpoint_response())},
+            content_type="application/json",
         )
-        .given("the checkpoint already exists for workflow add_or_update")
+    )
+
+    # GET /checkpoints?name=... (post-creation re-fetch — non-empty)
+    # Same provider-state pattern as the suite re-fetch above.
+    (
+        pact_test.upon_receiving("re-fetch checkpoint by name after creation (workflow)")
+        .given("the checkpoint was just created")
         .with_request("GET", CHECKPOINTS_PATH)
         .with_headers(headers)
         .with_query_parameters({"name": CHECKPOINT_NAME})
@@ -329,45 +440,33 @@ def test_pandas_datasource_workflow(pact_test: Pact) -> None:
         )
     )
 
-    # -- 9. GET /checkpoints/{id}?name=... (update existence check) --
+    # GET /validation-definitions/{id}?name=... (freshness during ckpt deserialization)
+    # Deserializing the checkpoint response triggers _decode for each valdef.
     (
-        pact_test.upon_receiving(
-            "fetch checkpoint by id for update existence check in workflow (client-driven)"
-        )
-        .given("the checkpoint already exists for workflow add_or_update")
-        .with_request("GET", CHECKPOINT_BY_ID_PATH)
+        pact_test.upon_receiving("fetch valdef by id during checkpoint deserialization (workflow)")
+        .given("the validation definition exists for checkpoint deserialization")
+        .with_request("GET", VALDEF_BY_ID_PATH)
         .with_headers(headers)
-        .with_query_parameters({"name": CHECKPOINT_NAME})
+        .with_query_parameters({"name": VALDEF_NAME})
         .will_respond_with(200)
         .with_body(
-            {"data": match.like(_make_checkpoint_response())},
+            {"data": match.like(_make_valdef_response())},
             content_type="application/json",
         )
     )
 
-    # -- 10. PUT /checkpoints/{id} (update checkpoint) --
-    (
-        pact_test.upon_receiving("update checkpoint via PUT in workflow (client-driven)")
-        .given("the checkpoint already exists for workflow add_or_update")
-        .with_request("PUT", CHECKPOINT_BY_ID_PATH)
-        .with_headers(headers)
-        .will_respond_with(200)
-        .with_body(
-            {"data": match.like(_make_checkpoint_response())},
-            content_type="application/json",
-        )
-    )
+    # ===================================================================
+    # Execute the workflow
+    # ===================================================================
 
-    # -----------------------------------------------------------------------
-    # Execute the workflow inside the Pact mock server
-    # -----------------------------------------------------------------------
-
-    # Build a mock suite for patching the post-creation re-fetch.
+    # Pre-build objects for post-creation patches (see design notes above).
     refetched_suite = ExpectationSuite(name=SUITE_NAME)
     refetched_suite.id = EXISTING_SUITE_ID
 
+    refetched_checkpoint = Checkpoint(name=CHECKPOINT_NAME, validation_definitions=[])
+    refetched_checkpoint.id = EXISTING_CHECKPOINT_ID
+
     with pact_test.serve() as srv:
-        # Step 1: Get context (triggers interaction #1)
         ctx = gx.get_context(
             mode="cloud",
             cloud_base_url=str(srv.url),
@@ -376,24 +475,19 @@ def test_pandas_datasource_workflow(pact_test: Pact) -> None:
             cloud_access_token=PACT_DUMMY_ACCESS_TOKEN,
         )
 
-        # Step 2: Retrieve existing datasource + asset + batch definition
-        # (triggers interaction #2)
-        datasource = ctx.data_sources.get(name=DATASOURCE_NAME)
+        # Step 1: Add Pandas datasource
+        # The mock returns a datasource with asset + batch definition already
+        # configured, representing the provider's state after full setup.
+        datasource = ctx.data_sources.add_pandas(name=DATASOURCE_NAME)
         asset = datasource.get_asset(name=ASSET_NAME)
         batch_def = asset.get_batch_definition(name=BATCH_DEF_NAME)
 
-        # Step 3: Create expectation suite
-        # (triggers interactions #3 + #4; re-fetch patched to avoid conflict)
+        # Step 2: Add ExpectationSuite
         suite = ExpectationSuite(name=SUITE_NAME)
-        with patch.object(
-            type(ctx.suites),
-            "get",
-            return_value=refetched_suite,
-        ):
+        with patch.object(type(ctx.suites), "get", return_value=refetched_suite):
             suite = ctx.suites.add(suite)
 
-        # Step 4: Create validation definition
-        # (triggers interactions #5 + #6 + #7; #2 reused for datasource freshness)
+        # Step 3: Add ValidationDefinition
         val_def = ValidationDefinition(
             name=VALDEF_NAME,
             data=batch_def,
@@ -401,23 +495,23 @@ def test_pandas_datasource_workflow(pact_test: Pact) -> None:
         )
         result_valdef = ctx.validation_definitions.add(val_def)
 
-        # Step 5: Add checkpoint via add_or_update (triggers interactions #8 + #9 + #10)
-        # Uses empty validation_definitions to avoid a Pact v3 conflict: the
-        # _add_or_update_validation_definitions cascade would call
-        # SuiteFactory.get(name=...) which hits the same GET /suites?name=...
-        # endpoint as the has_key probe in step 3 — but needs a different response.
-        # Individual valdef-checkpoint linking is covered by test_valdef_checkpoint_contracts.py.
+        # Step 4: Add Checkpoint with the validation definition
         checkpoint = Checkpoint(
             name=CHECKPOINT_NAME,
-            validation_definitions=[],
+            validation_definitions=[result_valdef],
         )
-        result_checkpoint = ctx.checkpoints.add_or_update(checkpoint)
+        with patch.object(type(ctx.checkpoints), "_get", return_value=refetched_checkpoint):
+            result_checkpoint = ctx.checkpoints.add(checkpoint)
 
-    # -----------------------------------------------------------------------
+    # ===================================================================
     # Assertions
-    # -----------------------------------------------------------------------
+    # ===================================================================
     assert datasource is not None
     assert datasource.name == DATASOURCE_NAME
+    assert asset is not None
+    assert asset.name == ASSET_NAME
+    assert batch_def is not None
+    assert batch_def.name == BATCH_DEF_NAME
     assert suite is not None
     assert suite.name == SUITE_NAME
     assert result_valdef is not None
