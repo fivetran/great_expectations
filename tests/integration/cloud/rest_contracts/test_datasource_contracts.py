@@ -347,20 +347,18 @@ def test_add_or_update_pandas_datasource_puts_when_exists(
 
 @pytest.mark.cloud
 def test_delete_pandas_datasource(pact_test: Pact) -> None:
-    """data_sources.delete() issues GET /datasources (list), GET /datasources?name=...
-    (via retrieve_by_name), then DELETE /datasources/{id}.
+    """data_sources.delete() issues GET /datasources?name=... (via retrieve_by_name),
+    then DELETE /datasources/{id}.
 
-    ``_delete_fluent_datasource`` calls ``self.data_sources.all().get(name)``
-    which, on ``DatasourceDict``, triggers ``UserDict.get()`` →
-    ``__contains__`` → ``self.data`` → ``get_all()`` (bare list GET), then
-    ``__getitem__`` → ``retrieve_by_name`` (by-name GET).  After resolving the
-    datasource, it issues the DELETE by id.
+    ``_delete_fluent_datasource`` looks up the datasource via
+    ``self.data_sources.all()[name]`` (direct ``__getitem__``), which calls
+    ``retrieve_by_name`` (by-name GET).  After resolving the datasource, it
+    issues the DELETE by id.
 
-    Four interactions are registered in total:
+    Three interactions are registered in total:
       1. GET /data-context-configuration   (context init)
-      2. GET /datasources                  (list -- UserDict.get() __contains__ check)
-      3. GET /datasources?name=...         (by-name -- UserDict.get() __getitem__)
-      4. DELETE /datasources/{id}          (primary contract under test)
+      2. GET /datasources?name=...         (by-name -- DatasourceDict.__getitem__)
+      3. DELETE /datasources/{id}          (primary contract under test)
     """
     headers = _session_headers()
 
@@ -375,22 +373,7 @@ def test_delete_pandas_datasource(pact_test: Pact) -> None:
         pact_test, access_token=PACT_DUMMY_ACCESS_TOKEN, description_suffix="delete-datasource"
     )
 
-    # 2. GET /datasources (list -- UserDict.get() calls __contains__ which accesses .data)
-    (
-        pact_test.upon_receiving(
-            "a request to list datasources during delete lookup (client-driven)"
-        )
-        .given("the Pandas datasource exists for deletion")
-        .with_request("GET", DATASOURCES_PATH)
-        .with_headers(headers)
-        .will_respond_with(200)
-        .with_body(
-            {"data": match.each_like(existing_ds_payload, min=1)},
-            content_type="application/json",
-        )
-    )
-
-    # 3. GET /datasources?name=... (by-name -- UserDict.get() calls __getitem__)
+    # 2. GET /datasources?name=... (by-name -- DatasourceDict.__getitem__ -> retrieve_by_name)
     (
         pact_test.upon_receiving(
             "a request to fetch datasource by name before delete (client-driven)"
@@ -406,7 +389,7 @@ def test_delete_pandas_datasource(pact_test: Pact) -> None:
         )
     )
 
-    # 4. DELETE /datasources/{id} -- the primary contract under test
+    # 3. DELETE /datasources/{id} -- the primary contract under test
     (
         pact_test.upon_receiving("a request to delete a Pandas datasource by id (client-driven)")
         .given("the Pandas datasource exists for deletion")
