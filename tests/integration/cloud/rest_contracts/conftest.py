@@ -96,6 +96,19 @@ DATA_CONTEXT_CONFIG_RESPONSE_BODY: Final[dict] = {
                 "suppress_store_backend_id": True,
             },
         },
+        "validation_definition_store": {
+            "class_name": "ValidationDefinitionStore",
+            "store_backend": {
+                "class_name": "GXCloudStoreBackend",
+                "ge_cloud_base_url": r"${GX_CLOUD_BASE_URL}",
+                "ge_cloud_credentials": {
+                    "access_token": r"${GX_CLOUD_ACCESS_TOKEN}",
+                    "organization_id": r"${GX_CLOUD_ORGANIZATION_ID}",
+                },
+                "ge_cloud_resource_type": "validation_definition",
+                "suppress_store_backend_id": True,
+            },
+        },
     },
 }
 
