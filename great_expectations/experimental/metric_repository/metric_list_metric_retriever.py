@@ -111,21 +111,35 @@ class MetricListMetricRetriever(MetricRetriever):
         Returns:
             Sequence[Metric]: List of metrics for non-numeric columns.
         """
-        # currently only the null-count is supported. If more metrics are added, this set will need to be updated.  # noqa: E501 # FIXME CoP
-        column_metric_names = {MetricTypes.COLUMN_NON_NULL_COUNT}
+        # Int-valued metrics (e.g. non-null count) and float-valued metrics (e.g. unique proportion)
+        # are computed separately because ColumnMetric is typed per value.
         metrics: list[Metric] = []
         metrics_list_as_set = set(metrics_list)
-        metrics_to_calculate = sorted(column_metric_names.intersection(metrics_list_as_set))
+        int_column_metrics = {MetricTypes.COLUMN_NON_NULL_COUNT}
+        float_column_metrics = {MetricTypes.COLUMN_UNIQUE_PROPORTION}
 
-        if not metrics_to_calculate:
-            return metrics
-        else:
-            return self._get_column_metrics(
-                batch_request=batch_request,
-                column_list=column_list,
-                column_metric_names=list(metrics_to_calculate),
-                column_metric_type=ColumnMetric[int],
+        int_metrics_to_calculate = sorted(int_column_metrics.intersection(metrics_list_as_set))
+        float_metrics_to_calculate = sorted(float_column_metrics.intersection(metrics_list_as_set))
+
+        if int_metrics_to_calculate:
+            metrics.extend(
+                self._get_column_metrics(
+                    batch_request=batch_request,
+                    column_list=column_list,
+                    column_metric_names=list(int_metrics_to_calculate),
+                    column_metric_type=ColumnMetric[int],
+                )
             )
+        if float_metrics_to_calculate:
+            metrics.extend(
+                self._get_column_metrics(
+                    batch_request=batch_request,
+                    column_list=column_list,
+                    column_metric_names=list(float_metrics_to_calculate),
+                    column_metric_type=ColumnMetric[float],
+                )
+            )
+        return metrics
 
     def _get_numeric_column_metrics(
         self,
@@ -247,5 +261,6 @@ class MetricListMetricRetriever(MetricRetriever):
             MetricTypes.COLUMN_MEAN,
             MetricTypes.COLUMN_NULL_COUNT,
             MetricTypes.COLUMN_NON_NULL_COUNT,
+            MetricTypes.COLUMN_UNIQUE_PROPORTION,
         ]
         return any(metric in metric_list for metric in column_metrics)
