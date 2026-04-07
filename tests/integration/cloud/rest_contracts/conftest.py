@@ -213,7 +213,7 @@ def setup_data_context_config_interaction(
 @pytest.fixture
 def pact_cloud_context(
     pact_test: Pact,
-) -> CloudDataContext:
+) -> Generator[CloudDataContext, None, None]:
     """A ``CloudDataContext`` backed by the Pact mock server.
 
     Unlike ``cloud_data_context``, this fixture does **not** require real cloud
@@ -232,14 +232,12 @@ def pact_cloud_context(
     )
 
     with pact_test.serve() as srv:
-        context = CloudDataContext(
+        yield CloudDataContext(
             cloud_base_url=str(srv.url),
             cloud_organization_id=EXISTING_ORGANIZATION_ID,
             cloud_workspace_id=EXISTING_WORKSPACE_ID,
             cloud_access_token=PACT_DUMMY_ACCESS_TOKEN,
         )
-
-    return context
 
 
 def get_git_commit_hash() -> str:

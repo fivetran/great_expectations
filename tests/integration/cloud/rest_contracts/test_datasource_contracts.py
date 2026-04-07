@@ -77,7 +77,7 @@ PANDAS_DATASOURCE_REQUEST_BODY: Final[dict] = {
 PANDAS_DATASOURCE_UPDATE_REQUEST_BODY: Final[dict] = {
     "data": match.like(
         {
-            "id": match.like(EXISTING_DATASOURCE_ID),
+            "id": match.uuid(EXISTING_DATASOURCE_ID),
             "type": match.like("pandas"),
             "name": match.like(DATASOURCE_NAME),
         }
@@ -350,12 +350,14 @@ def test_delete_pandas_datasource(pact_test: Pact) -> None:
     """data_sources.delete() issues GET /datasources?name=... (via retrieve_by_name),
     then DELETE /datasources/{id}.
 
-    The delete flow calls ``retrieve_by_name`` which issues
-    ``GET /datasources?name=...``, then deletes by id.
+    ``_delete_fluent_datasource`` looks up the datasource via
+    ``self.data_sources.all()[name]`` (direct ``__getitem__``), which calls
+    ``retrieve_by_name`` (by-name GET).  After resolving the datasource, it
+    issues the DELETE by id.
 
     Three interactions are registered in total:
       1. GET /data-context-configuration   (context init)
-      2. GET /datasources?name=...         (by-name -- retrieve_by_name calls)
+      2. GET /datasources?name=...         (by-name -- DatasourceDict.__getitem__)
       3. DELETE /datasources/{id}          (primary contract under test)
     """
     headers = _session_headers()
@@ -371,7 +373,7 @@ def test_delete_pandas_datasource(pact_test: Pact) -> None:
         pact_test, access_token=PACT_DUMMY_ACCESS_TOKEN, description_suffix="delete-datasource"
     )
 
-    # 2. GET /datasources?name=... (by-name -- retrieve_by_name calls)
+    # 2. GET /datasources?name=... (by-name -- DatasourceDict.__getitem__ -> retrieve_by_name)
     (
         pact_test.upon_receiving(
             "a request to fetch datasource by name before delete (client-driven)"

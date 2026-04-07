@@ -53,8 +53,6 @@ SUITE_BY_ID_PATH: Final[str] = f"{SUITES_PATH}/{EXISTING_SUITE_ID}"
 # Minimal suite payload returned by the server (GET / POST response).
 _SUITE_RESPONSE: Final[dict] = {
     "id": EXISTING_SUITE_ID,
-    "organization_id": match.uuid(),
-    "created_by_id": match.uuid(),
     "name": SUITE_NAME,
     "expectations": [],
     "meta": {"great_expectations_version": match.like("1.0.0")},
@@ -64,8 +62,6 @@ _SUITE_RESPONSE: Final[dict] = {
 # Suite payload that includes one expectation (used to validate round-trip).
 _SUITE_WITH_EXPECTATION_RESPONSE: Final[dict] = {
     "id": EXISTING_SUITE_ID,
-    "organization_id": match.uuid(),
-    "created_by_id": match.uuid(),
     "name": SUITE_NAME,
     "expectations": [
         {
@@ -86,7 +82,7 @@ _SUITE_WITH_EXPECTATION_RESPONSE: Final[dict] = {
 # ---------------------------------------------------------------------------
 
 
-def _session_headers() -> dict:
+def _session_headers() -> dict[str, str]:
     session = create_session(access_token=PACT_DUMMY_ACCESS_TOKEN)
     return {k: str(v) for k, v in session.headers.items()}
 
