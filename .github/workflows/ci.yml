@@ -551,6 +551,27 @@ jobs:
       - name: Run the tests
         run: invoke ci-tests 'cloud' --up-services --verbose  --reports -W default::great_expectations.datasource.fluent.GxInvalidDatasourceWarning
 
+      - name: Publish pact contracts to PactFlow
+        if: env.PACT_BROKER_READ_WRITE_TOKEN != ''
+        continue-on-error: true
+        env:
+          PACT_CLI_VERSION: 2.6.0
+        run: |
+          PACT_DIR="tests/integration/cloud/rest_contracts/pacts"
+          if [ ! -d "${PACT_DIR}" ] || ! compgen -G "${PACT_DIR}/*.json" > /dev/null; then
+            echo "No pact files found in ${PACT_DIR}, skipping publish"
+            exit 0
+          fi
+          echo "Publishing pact files from ${PACT_DIR}:"
+          ls -la ${PACT_DIR}/*.json
+          curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/v${PACT_CLI_VERSION}/install.sh | bash
+          export PATH="${PATH}:${HOME}/pact/bin"
+          pact-broker publish "${PACT_DIR}" \
+            --broker-base-url=https://greatexpectations.pactflow.io \
+            --broker-token="${PACT_BROKER_READ_WRITE_TOKEN}" \
+            --consumer-app-version="${GITHUB_SHA}" \
+            --branch="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+
       - name: Show cloud logs on test failure
         if: failure()
         run: |
