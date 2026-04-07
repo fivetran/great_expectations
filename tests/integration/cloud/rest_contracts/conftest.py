@@ -96,6 +96,19 @@ DATA_CONTEXT_CONFIG_RESPONSE_BODY: Final[dict] = {
                 "suppress_store_backend_id": True,
             },
         },
+        "validation_definition_store": {
+            "class_name": "ValidationDefinitionStore",
+            "store_backend": {
+                "class_name": "GXCloudStoreBackend",
+                "ge_cloud_base_url": r"${GX_CLOUD_BASE_URL}",
+                "ge_cloud_credentials": {
+                    "access_token": r"${GX_CLOUD_ACCESS_TOKEN}",
+                    "organization_id": r"${GX_CLOUD_ORGANIZATION_ID}",
+                },
+                "ge_cloud_resource_type": "validation_definition",
+                "suppress_store_backend_id": True,
+            },
+        },
     },
 }
 
@@ -158,6 +171,7 @@ def cloud_data_context(
 def setup_data_context_config_interaction(
     pact_test: Pact,
     access_token: str,
+    description_suffix: str = "",
 ) -> None:
     """Register the GET /data-context-configuration Pact interaction.
 
@@ -174,14 +188,20 @@ def setup_data_context_config_interaction(
             ``PACT_DUMMY_ACCESS_TOKEN`` when no real credentials are needed (e.g.
             in the ``pact_cloud_context`` fixture), or a real token when testing
             against a live provider.
+        description_suffix: Optional suffix to make the ``upon_receiving``
+            description unique when multiple tests share the same ``pact_test``
+            fixture (pact v3 requires unique descriptions per interaction).
     """
     session = create_session(access_token=access_token)
     path = (
         f"/api/v1/organizations/{EXISTING_ORGANIZATION_ID}/"
         f"workspaces/{EXISTING_WORKSPACE_ID}/data-context-configuration"
     )
+    description = "a request for Data Context configuration (client-driven setup)"
+    if description_suffix:
+        description = f"{description} [{description_suffix}]"
     (
-        pact_test.upon_receiving("a request for Data Context configuration (client-driven setup)")
+        pact_test.upon_receiving(description)
         .given("the Data Context exists")
         .with_request("GET", path)
         .with_headers({k: str(v) for k, v in session.headers.items()})
@@ -207,7 +227,9 @@ def pact_cloud_context(
     Use this fixture in new client-driven contract tests instead of
     ``cloud_data_context``.
     """
-    setup_data_context_config_interaction(pact_test, access_token=PACT_DUMMY_ACCESS_TOKEN)
+    setup_data_context_config_interaction(
+        pact_test, access_token=PACT_DUMMY_ACCESS_TOKEN, description_suffix="pact-cloud-context"
+    )
 
     with pact_test.serve() as srv:
         context = CloudDataContext(
@@ -224,15 +246,18 @@ def get_git_commit_hash() -> str:
     return subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("ascii").strip()
 
 
-@pytest.fixture(scope="package")
-def pact_test(request) -> Generator[Pact, None, None]:
+@pytest.fixture
+def pact_test() -> Generator[Pact, None, None]:
     """
-    pact_test yields a Pact v3 instance. Interactions are registered on it,
-    then ``pact.serve()`` is used as a context manager in each test to start
-    the mock server.  After all tests complete, the pact file is written to
-    disk.
+    pact_test yields a fresh Pact v3 instance per test.  Each test registers
+    interactions, calls ``pact.serve()`` to start the mock server, and on
+    teardown the pact file is written (merged) to disk.
+
+    Must be function-scoped because the pact-python v3 Rust FFI permanently
+    locks the ``PactHandle`` after ``serve()`` is called, preventing any new
+    interactions from being registered on the same instance.
     """
     _pact = Pact(CONSUMER_NAME, PROVIDER_NAME)
     yield _pact
     PACT_DIR.mkdir(parents=True, exist_ok=True)
-    _pact.write_file(str(PACT_DIR), overwrite=True)
+    _pact.write_file(str(PACT_DIR), overwrite=False)
