@@ -1945,10 +1945,10 @@ def test_atomic_prescriptive_summary_expect_table_columns_to_match_set(
 
 
 @pytest.mark.unit
-def test_atomic_prescriptive_summary_expect_table_columns_to_match_set_omitted_exact_match_defaults_to_true(
+def test_atomic_prescriptive_columns_match_set_no_exact_match_uses_default(
     get_prescriptive_rendered_content,
 ):
-    """Omitted exact_match is not serialized into renderer params; template must use model default (True)."""
+    """When exact_match is omitted, renderer uses model default (True)."""
     update_dict = {
         "type": "expect_table_columns_to_match_set",
         "kwargs": {
@@ -1976,7 +1976,7 @@ def test_atomic_prescriptive_summary_expect_table_columns_to_match_set_omitted_e
 
 
 @pytest.mark.unit
-def test_legacy_prescriptive_expect_table_columns_to_match_set_omitted_exact_match_defaults_to_true():
+def test_legacy_prescriptive_columns_match_set_no_exact_match_uses_default():
     from great_expectations.expectations.core.expect_table_columns_to_match_set import (
         ExpectTableColumnsToMatchSet,
     )
