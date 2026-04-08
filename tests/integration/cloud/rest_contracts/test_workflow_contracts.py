@@ -246,7 +246,7 @@ def test_pandas_datasource_workflow(pact_test: Pact) -> None:
         GET  /checkpoints?name=...            (has_key probe — empty)
         POST /checkpoints                     (create checkpoint)
         GET  /checkpoints?name=...            (re-fetch — non-empty) [provider state only]
-        GET  /validation-definitions/{id}?... (valdef freshness during deserialization)
+        GET  /validation-definitions/{id}?... (valdef freshness during request serialization)
     """
     headers = _session_headers()
 
@@ -440,11 +440,12 @@ def test_pandas_datasource_workflow(pact_test: Pact) -> None:
         )
     )
 
-    # GET /validation-definitions/{id}?name=... (freshness during ckpt deserialization)
-    # Deserializing the checkpoint response triggers _decode for each valdef.
+    # GET /validation-definitions/{id}?name=... (freshness during ckpt request serialization)
+    # Serializing the checkpoint request calls ValidationDefinition.identifier_bundle(),
+    # which refreshes the validation definition via store.get.
     (
-        pact_test.upon_receiving("fetch valdef by id during checkpoint deserialization (workflow)")
-        .given("the validation definition exists for checkpoint deserialization")
+        pact_test.upon_receiving("fetch valdef by id during checkpoint request serialization (workflow)")
+        .given("the validation definition exists for checkpoint request serialization")
         .with_request("GET", VALDEF_BY_ID_PATH)
         .with_headers(headers)
         .with_query_parameters({"name": VALDEF_NAME})
