@@ -24,6 +24,10 @@ PROVIDER_NAME: Final[str] = "mercury"
 # Dummy token used by pact_cloud_context — the Pact mock server does not validate credentials.
 PACT_DUMMY_ACCESS_TOKEN: Final[str] = "dummy-pact-access-token"
 
+# Regex that matches any semver-like version string, including setuptools-scm dev versions
+# (e.g. "1.15.2", "1.15.2+29.gc25a0e174.dirty", "0+untagged.1.gc93ab77").
+GX_VERSION_REGEX: Final[str] = r"\d+\.\d+\.\d+.*|0\+.+"
+
 
 PACT_DIR: Final[pathlib.Path] = pathlib.Path(pathlib.Path(__file__, ".."), "pacts").resolve()
 
@@ -168,6 +172,21 @@ def cloud_data_context(
     return context
 
 
+def pact_session_headers(access_token: str = PACT_DUMMY_ACCESS_TOKEN) -> dict:
+    """Build session headers with Gx-Version as a pact matcher instead of literal value.
+
+    The ``Gx-Version`` header contains ``great_expectations.__version__`` which
+    includes the git hash via setuptools-scm and changes every commit.  Using a
+    ``match.regex()`` matcher keeps the generated pact file stable across commits.
+    """
+    session = create_session(access_token=access_token)
+    headers: dict = {k: str(v) for k, v in session.headers.items()}
+    # Replace the exact Gx-Version with a regex matcher so the pact file
+    # doesn't change every commit (setuptools-scm embeds the git hash).
+    headers["Gx-Version"] = match.regex(headers["Gx-Version"], regex=GX_VERSION_REGEX)
+    return headers
+
+
 def setup_data_context_config_interaction(
     pact_test: Pact,
     access_token: str,
@@ -192,7 +211,7 @@ def setup_data_context_config_interaction(
             description unique when multiple tests share the same ``pact_test``
             fixture (pact v3 requires unique descriptions per interaction).
     """
-    session = create_session(access_token=access_token)
+    headers = pact_session_headers(access_token=access_token)
     path = (
         f"/api/v1/organizations/{EXISTING_ORGANIZATION_ID}/"
         f"workspaces/{EXISTING_WORKSPACE_ID}/data-context-configuration"
@@ -204,7 +223,7 @@ def setup_data_context_config_interaction(
         pact_test.upon_receiving(description)
         .given("the Data Context exists")
         .with_request("GET", path)
-        .with_headers({k: str(v) for k, v in session.headers.items()})
+        .with_headers(headers)
         .will_respond_with(200)
         .with_body(DATA_CONTEXT_CONFIG_RESPONSE_BODY, content_type="application/json")
     )

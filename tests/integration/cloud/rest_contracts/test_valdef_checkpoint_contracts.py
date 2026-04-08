@@ -28,11 +28,11 @@ from pact import Pact, match
 
 import great_expectations as gx
 from great_expectations import __version__ as ge_version
-from great_expectations.core.http import create_session
 from tests.integration.cloud.rest_contracts.conftest import (
     EXISTING_ORGANIZATION_ID,
     EXISTING_WORKSPACE_ID,
     PACT_DUMMY_ACCESS_TOKEN,
+    pact_session_headers,
     setup_data_context_config_interaction,
 )
 
@@ -166,8 +166,7 @@ _CHECKPOINT_RESPONSE: Final[dict] = {
 
 def _session_headers() -> dict:
     """Return request headers matching what the Python client sends."""
-    session = create_session(access_token=PACT_DUMMY_ACCESS_TOKEN)
-    return {k: str(v) for k, v in session.headers.items()}
+    return pact_session_headers()
 
 
 def _register_datasource_get_interactions(
