@@ -280,7 +280,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
                 # because None is cast back to np.nan in numeric dtypes.
                 values = list(table_data.df.to_dict("index").values())
                 values = self._sanitize_null_values(values)
-                max_params = 250 if dialect == GXSqlDialect.DATABRICKS else None
+                max_params = 2000 if dialect == GXSqlDialect.DATABRICKS else None
                 self._safe_bulk_insert(conn, table_data.table, values, max_params)
 
             # Commit transaction (safe for databases without transaction support)
