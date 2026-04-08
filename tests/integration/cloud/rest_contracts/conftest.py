@@ -26,7 +26,7 @@ PACT_DUMMY_ACCESS_TOKEN: Final[str] = "dummy-pact-access-token"
 
 # Regex that matches any semver-like version string, including setuptools-scm dev versions
 # (e.g. "1.15.2", "1.15.2+29.gc25a0e174.dirty", "0+untagged.1.gc93ab77").
-GX_VERSION_REGEX: Final[str] = r"\d+\.\d+\.\d+.*|0\+.+"
+GX_VERSION_REGEX: Final[str] = r"^(?:\d+\.\d+\.\d+.*|0\+.+)$"
 
 
 PACT_DIR: Final[pathlib.Path] = pathlib.Path(pathlib.Path(__file__, ".."), "pacts").resolve()

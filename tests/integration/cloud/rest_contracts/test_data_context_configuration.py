@@ -9,6 +9,7 @@ import great_expectations as gx
 from tests.integration.cloud.rest_contracts.conftest import (
     EXISTING_ORGANIZATION_ID,
     EXISTING_WORKSPACE_ID,
+    GX_VERSION_REGEX,
 )
 
 if TYPE_CHECKING:
@@ -47,7 +48,16 @@ def test_data_context_configuration(
         pact_test.upon_receiving(scenario)
         .given(provider_state)
         .with_request(method, path)
-        .with_headers({k: str(v) for k, v in gx_cloud_session.headers.items()})
+        .with_headers(
+            {
+                k: (
+                    match.regex(str(v), regex=GX_VERSION_REGEX)
+                    if k == "Gx-Version"
+                    else str(v)
+                )
+                for k, v in gx_cloud_session.headers.items()
+            }
+        )
         .will_respond_with(status)
         .with_body(response_body, content_type="application/json")
     )
