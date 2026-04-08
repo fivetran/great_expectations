@@ -444,7 +444,9 @@ def test_pandas_datasource_workflow(pact_test: Pact) -> None:
     # Serializing the checkpoint request calls ValidationDefinition.identifier_bundle(),
     # which refreshes the validation definition via store.get.
     (
-        pact_test.upon_receiving("fetch valdef by id during checkpoint request serialization (workflow)")
+        pact_test.upon_receiving(
+            "fetch valdef by id during checkpoint request serialization (workflow)"
+        )
         .given("the validation definition exists for checkpoint request serialization")
         .with_request("GET", VALDEF_BY_ID_PATH)
         .with_headers(headers)
