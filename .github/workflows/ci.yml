@@ -152,13 +152,19 @@ jobs:
         run: ./scripts/check_linter_ignores.sh
 
   docs-snippets:
-    needs: [unit-tests, doc-checks, check-actor-permissions]
+    needs: [unit-tests, doc-checks, check-actor-permissions, detect-changes]
     # run on non-draft PRs with docs changes
+    # !cancelled() prevents auto-skip when unit-tests is skipped for docs-only PRs
     if: |
-      (github.event.pull_request.draft == false && github.base_ref == 'develop') ||
-      (github.event_name == 'push' && contains(github.ref, 'refs/tags/1.')) ||
-      github.event_name == 'merge_group' ||
-      github.event_name == 'workflow_dispatch'
+      !cancelled() &&
+      needs.unit-tests.result != 'failure' &&
+      needs.check-actor-permissions.result == 'success' &&
+      (
+        (github.event.pull_request.draft == false && github.base_ref == 'develop') ||
+        (github.event_name == 'push' && contains(github.ref, 'refs/tags/1.')) ||
+        github.event_name == 'merge_group' ||
+        github.event_name == 'workflow_dispatch'
+      )
     runs-on: ubuntu-latest
     strategy:
       matrix:
