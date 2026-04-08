@@ -53,7 +53,7 @@ def test_data_context_configuration(
                 k: (match.regex(str(v), regex=GX_VERSION_REGEX) if k == "Gx-Version" else str(v))
                 for k, v in gx_cloud_session.headers.items()
             }
-        )
+        )  # type: ignore[arg-type]  # pact matchers accepted at runtime
         .will_respond_with(status)
         .with_body(response_body, content_type="application/json")
     )
