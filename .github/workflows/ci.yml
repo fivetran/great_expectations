@@ -1123,6 +1123,19 @@ jobs:
             echo "::error::One or more required CI jobs failed or were cancelled"
             exit 1
           fi
+
+          # On non-docs PRs, code jobs must have succeeded (not just skipped)
+          if [[ "${{ needs.detect-changes.outputs.docs_only }}" != "true" ]]; then
+            if [[ "${{ needs.static-analysis.result }}" != "success" ]]; then
+              echo "::error::static-analysis result is '${{ needs.static-analysis.result }}' but must succeed on non-docs PRs"
+              exit 1
+            fi
+            if [[ "${{ needs.unit-tests.result }}" != "success" ]]; then
+              echo "::error::unit-tests result is '${{ needs.unit-tests.result }}' but must succeed on non-docs PRs"
+              exit 1
+            fi
+          fi
+
           echo "All required CI jobs passed or were appropriately skipped"
 
   build-n-publish:
