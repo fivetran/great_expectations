@@ -16,6 +16,12 @@ from great_expectations.experimental.metric_repository.metrics import (
 
 logger = logging.getLogger(__name__)
 
+# Non-numeric column metrics: value type → metric type
+_NON_NUMERIC_METRICS: dict[type, set[MetricTypes]] = {
+    int: {MetricTypes.COLUMN_NON_NULL_COUNT},
+    float: {MetricTypes.COLUMN_UNIQUE_PROPORTION},
+}
+
 if TYPE_CHECKING:
     from great_expectations.data_context import AbstractDataContext
     from great_expectations.datasource.fluent.batch_request import BatchRequest
@@ -111,32 +117,18 @@ class MetricListMetricRetriever(MetricRetriever):
         Returns:
             Sequence[Metric]: List of metrics for non-numeric columns.
         """
-        # Int-valued metrics (e.g. non-null count) and float-valued metrics (e.g. unique proportion)
-        # are computed separately because ColumnMetric is typed per value.
         metrics: list[Metric] = []
         metrics_list_as_set = set(metrics_list)
-        int_column_metrics = {MetricTypes.COLUMN_NON_NULL_COUNT}
-        float_column_metrics = {MetricTypes.COLUMN_UNIQUE_PROPORTION}
-
-        int_metrics_to_calculate = sorted(int_column_metrics.intersection(metrics_list_as_set))
-        float_metrics_to_calculate = sorted(float_column_metrics.intersection(metrics_list_as_set))
-
-        if int_metrics_to_calculate:
+        for value_type, metric_types in _NON_NUMERIC_METRICS.items():
+            metrics_to_calculate = sorted(metric_types.intersection(metrics_list_as_set))
+            if not metrics_to_calculate:
+                continue
             metrics.extend(
                 self._get_column_metrics(
                     batch_request=batch_request,
                     column_list=column_list,
-                    column_metric_names=list(int_metrics_to_calculate),
-                    column_metric_type=ColumnMetric[int],
-                )
-            )
-        if float_metrics_to_calculate:
-            metrics.extend(
-                self._get_column_metrics(
-                    batch_request=batch_request,
-                    column_list=column_list,
-                    column_metric_names=list(float_metrics_to_calculate),
-                    column_metric_type=ColumnMetric[float],
+                    column_metric_names=list(metrics_to_calculate),
+                    column_metric_type=ColumnMetric[value_type],  # type: ignore[valid-type]
                 )
             )
         return metrics
