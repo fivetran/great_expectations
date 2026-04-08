@@ -50,11 +50,7 @@ def test_data_context_configuration(
         .with_request(method, path)
         .with_headers(
             {
-                k: (
-                    match.regex(str(v), regex=GX_VERSION_REGEX)
-                    if k == "Gx-Version"
-                    else str(v)
-                )
+                k: (match.regex(str(v), regex=GX_VERSION_REGEX) if k == "Gx-Version" else str(v))
                 for k, v in gx_cloud_session.headers.items()
             }
         )
