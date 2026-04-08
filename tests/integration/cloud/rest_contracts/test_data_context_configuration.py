@@ -44,16 +44,16 @@ def test_data_context_configuration(
     status = 200
     response_body = GET_DATA_CONTEXT_CONFIGURATION_MIN_RESPONSE_BODY
 
+    headers: dict = {
+        k: (match.regex(str(v), regex=GX_VERSION_REGEX) if k == "Gx-Version" else str(v))
+        for k, v in gx_cloud_session.headers.items()
+    }
+
     (
         pact_test.upon_receiving(scenario)
         .given(provider_state)
         .with_request(method, path)
-        .with_headers(
-            {
-                k: (match.regex(str(v), regex=GX_VERSION_REGEX) if k == "Gx-Version" else str(v))
-                for k, v in gx_cloud_session.headers.items()
-            }
-        )  # type: ignore[arg-type]  # pact matchers accepted at runtime
+        .with_headers(headers)
         .will_respond_with(status)
         .with_body(response_body, content_type="application/json")
     )
