@@ -59,7 +59,7 @@ You can create an incident from the **Incidents** tab or the **Validations** tab
 <TabItem value="validations" label="Validations">
 1. Navigate to a failed Validation run in one of the following ways:
 
-   - From a [Slack or email notification](/cloud/alerts/alert_about_failures.md) about Expectation failures, click **View Validation Results** or **View details**.
+   - From a [Microsoft Teams, Slack, or email notification](/cloud/alerts/alert_about_failures.md) about Expectation failures, click **View Validation Results** or **View details**.
    - In GX Cloud, do the following:
    
       1. Select the relevant **Workspace** and then click **Data Assets**.

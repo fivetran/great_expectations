@@ -9,7 +9,7 @@ The following table defines integrations and tools supported by GX Cloud and GX 
 | Service | GX Cloud | GX Core | Notes |
 |---|---|---|---|
 | Data sources | AlloyDB<br/>Amazon Aurora PostgreSQL<br/>Amazon S3<br/>Azure Blob Storage<br/>BigQuery<br/>Citus<br/>Databricks SQL<br/>Google Cloud Storage<br/>Microsoft Fabric<br/>Microsoft SQL Server<br/>Neon<br/>Pandas<br/>PostgreSQL<br/>Redshift<br/>Snowflake<br/>Spark<br/>Trino | AlloyDB<br/>Amazon Aurora PostgreSQL<br/>Amazon S3<br/>Azure Blob Storage<br/>BigQuery<br/>Citus<br/>Databricks SQL<br/>Google Cloud Storage<br/>Microsoft Fabric<br/>Microsoft SQL Server<br/>Neon<br/>Pandas<br/>PostgreSQL<br/>Redshift<br/>Snowflake<br/>Spark<br/>SQLite<br/>Trino  | We've seen GX Core work with the following data sources in the past, but we don't guarantee ongoing compatibility at this time: Athena, AWS Glue, Clickhouse, Databricks (Spark), Dremio, EMR Spark, MySQL, Teradata, and Vertica. |
-| Alerts | Email<br/>Slack |   |   |
+| Alerts | Email<br/>Microsoft Teams<br/>Slack |   |   |
 | Incident management | Jira |   |   |
 | Actions| Email<br/>Microsoft Teams<br/>Slack<br/>Custom | Email<br/>Microsoft Teams<br/>Slack<br/>Custom | We support the general workflow for creating custom Actions, but cannot help troubleshoot the domain-specific logic within a custom Action. |
 | Credential stores | Environment variables | Environment variables<br/>`config_variables.yml` |  |
