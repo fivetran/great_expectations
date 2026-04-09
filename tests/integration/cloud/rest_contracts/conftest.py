@@ -8,13 +8,13 @@ from typing import TYPE_CHECKING, Any, Dict, Final, List, Union
 
 import pytest
 from pact import Pact, match
-from requests import Session
 
 from great_expectations.core.http import create_session
 from great_expectations.data_context import CloudDataContext
 from great_expectations.data_context.data_context.context_factory import project_manager
 
 if TYPE_CHECKING:
+    from requests import Session
     from typing_extensions import TypeAlias
 
 
@@ -113,7 +113,10 @@ DATA_CONTEXT_CONFIG_RESPONSE_BODY: Final[dict] = {
 
 
 def pact_headers(session: Session) -> dict[str, Any]:
-    """Session headers for ``.with_headers()``; ``Gx-Version`` is a regex so pact JSON is stable per git SHA."""
+    """Headers for ``.with_headers()``.
+
+    ``Gx-Version`` uses a regex so pact JSON is stable per git SHA.
+    """
     headers = {k: str(v) for k, v in session.headers.items()}
     headers["Gx-Version"] = match.regex("1.0.0", regex=r"^[0-9A-Za-z._+\-]+$")
     return headers
