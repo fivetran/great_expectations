@@ -57,15 +57,16 @@ import pytest
 from pact import Pact, match
 
 import great_expectations as gx
-from great_expectations import __version__ as ge_version
 from great_expectations.checkpoint.checkpoint import Checkpoint
 from great_expectations.core.expectation_suite import ExpectationSuite
+from great_expectations import __version__ as ge_version
 from great_expectations.core.http import create_session
 from great_expectations.core.validation_definition import ValidationDefinition
 from tests.integration.cloud.rest_contracts.conftest import (
     EXISTING_ORGANIZATION_ID,
     EXISTING_WORKSPACE_ID,
     PACT_DUMMY_ACCESS_TOKEN,
+    pact_headers,
     setup_data_context_config_interaction,
 )
 
@@ -204,7 +205,7 @@ def _make_checkpoint_response() -> dict:
 
 def _session_headers() -> dict[str, str]:
     session = create_session(access_token=PACT_DUMMY_ACCESS_TOKEN)
-    return {k: str(v) for k, v in session.headers.items()}
+    return pact_headers(session)
 
 
 # ---------------------------------------------------------------------------

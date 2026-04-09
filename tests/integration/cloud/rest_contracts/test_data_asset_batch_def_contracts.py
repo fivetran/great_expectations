@@ -29,6 +29,7 @@ from tests.integration.cloud.rest_contracts.conftest import (
     EXISTING_ORGANIZATION_ID,
     EXISTING_WORKSPACE_ID,
     PACT_DUMMY_ACCESS_TOKEN,
+    pact_headers,
     setup_data_context_config_interaction,
 )
 
@@ -106,7 +107,7 @@ _DATASOURCE_WITH_ASSET_AND_BATCH_DEF: Final[dict] = {
 
 def _session_headers() -> dict[str, str]:
     session = create_session(access_token=PACT_DUMMY_ACCESS_TOKEN)
-    return {k: str(v) for k, v in session.headers.items()}
+    return pact_headers(session)
 
 
 # ---------------------------------------------------------------------------
