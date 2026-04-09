@@ -1122,7 +1122,7 @@ def candidate_getter_is_on_temporary_notimplemented_list(context, getter):
     if context in ["postgresql", "mysql", "mssql"]:
         return getter in ["get_column_modes"]
     if context == "spark":
-        return getter in []
+        return False
 
 
 def candidate_test_is_on_temporary_notimplemented_list_v2_api(context, expectation_type):
@@ -1815,8 +1815,8 @@ def sort_unexpected_values(test_value_list, result_value_list):
             )
         # if python built-in class has __lt__ then sorting can always work this way
         elif type(test_value_list[0].__lt__(test_value_list[0])) is not type(NotImplemented):
-            test_value_list = sorted(test_value_list, key=lambda x: str(x))
-            result_value_list = sorted(result_value_list, key=lambda x: str(x))
+            test_value_list = sorted(test_value_list, key=str)
+            result_value_list = sorted(result_value_list, key=str)
 
     return test_value_list, result_value_list
 

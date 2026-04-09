@@ -451,7 +451,7 @@ def _convert_unexpected_indices_to_df(
 
     # 2. add count
     col_to_count: str = unexpected_index_column_names[0]
-    all_unexpected_indices["Count"] = all_unexpected_indices[col_to_count].apply(lambda x: len(x))
+    all_unexpected_indices["Count"] = all_unexpected_indices[col_to_count].apply(len)
 
     # 3. ensure index is a string
     all_unexpected_indices.index = all_unexpected_indices.index.map(str)
@@ -459,7 +459,7 @@ def _convert_unexpected_indices_to_df(
     # 4. truncate indices and replace with `...` if necessary
     for column in unexpected_index_column_names:
         all_unexpected_indices[column] = all_unexpected_indices[column].apply(
-            lambda row: truncate_list_of_indices(row)
+            truncate_list_of_indices
         )
 
     # 5. only keep the rows we are rendering

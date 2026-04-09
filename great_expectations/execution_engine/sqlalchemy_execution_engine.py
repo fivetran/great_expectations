@@ -385,7 +385,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
 
                 def _add_sqlite_functions(connection):
                     logger.info(f"Adding custom sqlite functions to connection {connection}")
-                    connection.create_function("sqrt", 1, lambda x: math.sqrt(x))
+                    connection.create_function("sqrt", 1, math.sqrt)
                     connection.create_function(
                         "md5",
                         2,
@@ -1067,6 +1067,19 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             self._engine_backup.dispose()
         else:
             self.engine.dispose()
+
+    def __del__(self) -> None:
+        """Ensure database connections are closed when this object is garbage collected.
+
+        Python 3.13 raises ResourceWarning for unclosed sqlite3.Connection objects.
+        Calling close() here disposes the underlying SQLAlchemy engine (and its
+        connection pool) before the raw DBAPI connections are collected, preventing
+        those warnings from being emitted.
+        """
+        try:
+            self.close()
+        except Exception:
+            pass
 
     def _finalize_domain_query(
         self,

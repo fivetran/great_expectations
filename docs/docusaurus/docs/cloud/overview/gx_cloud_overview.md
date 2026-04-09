@@ -78,6 +78,9 @@ There are a variety of GX Cloud features that support additional enhancements to
 
 * **Alerting.** GX Cloud provides the ability to notify individuals and third-party tools when validations fail, enabling your business to remain proactively aware of the health of your Data Assets. See [Respond to results](/cloud/alerts/alerts_lp.md) for more detail.
 
+* **Incident management.** GX Cloud enables you to open [incidents](/cloud/alerts/manage_incidents.md) by linking Expectation failures to Jira issues. Incidents help you triage, prioritize, assign, and track the resolution of data quality problems. 
+
+
 * **Monitor Data Health.** GX Cloud provides metric summaries and trends to help you understand and improve test coverage and success across your business. See [Data Health](/cloud/overview/data_health.md) for more detail.
 
 * **Integrations.** GX Cloud integrates with a variety of third-party tools to help you get the most out of your data quality efforts. For example, you can integrate GX Cloud with data catalogs to bring data quality insights into your data governance workflows. Or, you can integrate GX Cloud with orchestrators to quarantine and backfill bad records. See [Integrations](/cloud/integrations/integrations_lp.md) for more information.

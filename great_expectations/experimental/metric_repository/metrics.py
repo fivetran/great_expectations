@@ -49,6 +49,7 @@ class MetricTypes(str, enum.Enum, metaclass=MetricTypesMeta):
     COLUMN_MEAN = "column.mean"
     COLUMN_NULL_COUNT = "column_values.null.count"
     COLUMN_NON_NULL_COUNT = "column.non_null_count"
+    COLUMN_UNIQUE_PROPORTION = "column.unique_proportion"
 
 
 class MetricRepositoryBaseModel(BaseModel):

@@ -99,7 +99,8 @@ module.exports = {
       link: { type: 'doc', id: 'core/run_validations/run_validations' },
       items: [
         { type: 'doc', id: 'core/run_validations/create_a_validation_definition' },
-        { type: 'doc', id: 'core/run_validations/run_a_validation_definition' }
+        { type: 'doc', id: 'core/run_validations/run_a_validation_definition' },
+        { type: 'doc', id: 'core/run_validations/retrieve_all_unexpected_rows' }
       ]
     },
     {
@@ -220,7 +221,9 @@ module.exports = {
       label: 'Respond to results',
       link: { type: 'doc', id: 'cloud/alerts/alerts_lp' },
       items: [
+        { type: 'doc', id: 'cloud/alerts/responses_overview' },
         { type: 'doc', id: 'cloud/alerts/alert_about_failures' },
+        { type: 'doc', id: 'cloud/alerts/manage_incidents' },
         { type: 'doc', id: 'cloud/alerts/trigger_actions' },
         { type: 'doc', id: 'cloud/alerts/custom_actions' }
       ]
@@ -237,6 +240,8 @@ module.exports = {
       items: [
         'cloud/integrations/integrate_atlan',
         'cloud/integrations/integrate_airflow',
+        'cloud/integrations/integrate_jira',
+        'cloud/integrations/integrate_teams',
         'cloud/integrations/integrate_slack'
       ]
     },
