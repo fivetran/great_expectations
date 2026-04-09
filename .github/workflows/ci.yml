@@ -32,6 +32,33 @@ on:
       - "[0-9]+.[0-9]+.[0-9]+rc[0-9]+"
 
 jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      docs_only: ${{ steps.changes.outputs.docs_only }}
+    steps:
+      - name: Detect docs-only changes
+        id: changes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Only consider skipping code tests for PR events
+            if (context.eventName !== 'pull_request_target') {
+              core.setOutput('docs_only', 'false');
+              return;
+            }
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              per_page: 100,
+            });
+            const docsOnly = files.length > 0 && files.every(f => f.filename.startsWith('docs/'));
+            core.setOutput('docs_only', docsOnly ? 'true' : 'false');
+            core.info(`Changed ${files.length} files, docs_only=${docsOnly}`);
+
   check-actor-permissions:
     permissions:
       pull-requests: write
@@ -93,7 +120,8 @@ jobs:
       - run: echo "CI jobs won't run because this is a draft pull request."
 
   static-analysis:
-    needs: [check-actor-permissions]
+    needs: [check-actor-permissions, detect-changes]
+    if: needs.detect-changes.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -124,13 +152,19 @@ jobs:
         run: ./scripts/check_linter_ignores.sh
 
   docs-snippets:
-    needs: [unit-tests, doc-checks, check-actor-permissions]
+    needs: [unit-tests, doc-checks, check-actor-permissions, detect-changes]
     # run on non-draft PRs with docs changes
+    # !cancelled() prevents auto-skip when unit-tests is skipped for docs-only PRs
     if: |
-      (github.event.pull_request.draft == false && github.base_ref == 'develop') ||
-      (github.event_name == 'push' && contains(github.ref, 'refs/tags/1.')) ||
-      github.event_name == 'merge_group' ||
-      github.event_name == 'workflow_dispatch'
+      !cancelled() &&
+      needs.unit-tests.result != 'failure' &&
+      needs.check-actor-permissions.result == 'success' &&
+      (
+        (github.event.pull_request.draft == false && github.base_ref == 'develop') ||
+        (github.event_name == 'push' && contains(github.ref, 'refs/tags/1.')) ||
+        github.event_name == 'merge_group' ||
+        github.event_name == 'workflow_dispatch'
+      )
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -304,7 +338,8 @@ jobs:
           flags: ${{ matrix.doc-step }}
 
   unit-tests:
-    needs: [check-actor-permissions]
+    needs: [check-actor-permissions, detect-changes]
+    if: needs.detect-changes.outputs.docs_only != 'true'
     env:
       GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
     strategy:
@@ -355,7 +390,7 @@ jobs:
           flags: ${{ matrix.python-version }}
 
   doc-checks:
-    needs: [static-analysis, check-actor-permissions]
+    needs: [check-actor-permissions]
     if: github.event.pull_request.draft == false
     permissions:
       id-token: write
@@ -1052,6 +1087,56 @@ jobs:
 
       - name: Import Great Expectations
         run: python -c "import great_expectations as gx; print('Successfully imported GX Version:', gx.__version__)"
+
+  ci-required:
+    # Single required status check for branch protection.
+    # Passes when every upstream job either succeeded or was skipped
+    # (code jobs are skipped for docs-only PRs).
+    if: always()
+    needs:
+      - detect-changes
+      - check-actor-permissions
+      - static-analysis
+      - unit-tests
+      - doc-checks
+      - docs-build
+      - docs-tests
+      - docs-snippets
+      - cloud-tests
+      - integration-tests
+      - marker-tests
+      - redshift
+      - py310-min-versions
+      - py311-min-versions
+      - py312-min-versions
+      - py313-min-versions
+      - pydantic-v1
+      - pandas2-test
+      - airflow-min-versions
+      - import_gx
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate CI results
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" || \
+                "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "::error::One or more required CI jobs failed or were cancelled"
+            exit 1
+          fi
+
+          # On non-docs PRs, code jobs must have succeeded (not just skipped)
+          if [[ "${{ needs.detect-changes.outputs.docs_only }}" != "true" ]]; then
+            if [[ "${{ needs.static-analysis.result }}" != "success" ]]; then
+              echo "::error::static-analysis result is '${{ needs.static-analysis.result }}' but must succeed on non-docs PRs"
+              exit 1
+            fi
+            if [[ "${{ needs.unit-tests.result }}" != "success" ]]; then
+              echo "::error::unit-tests result is '${{ needs.unit-tests.result }}' but must succeed on non-docs PRs"
+              exit 1
+            fi
+          fi
+
+          echo "All required CI jobs passed or were appropriately skipped"
 
   build-n-publish:
     needs:
