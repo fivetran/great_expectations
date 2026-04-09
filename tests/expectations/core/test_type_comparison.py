@@ -139,9 +139,7 @@ class TestCompareColumnTypeByClass:
     def test_unrecognized_type(self, mocker):
         engine = _mock_engine(mocker, "sqlite")
         engine.dialect_module = sa
-        success, _observed = compare_column_type(
-            engine, sa.types.INTEGER(), "NONEXISTENT_TYPE"
-        )
+        success, _observed = compare_column_type(engine, sa.types.INTEGER(), "NONEXISTENT_TYPE")
         assert success is False
 
     def test_observed_value_is_class_name(self, mocker):
@@ -160,27 +158,21 @@ class TestCompareColumnTypeListCaseInsensitive:
     @pytest.mark.parametrize("dialect", list(CASE_INSENSITIVE_DIALECTS))
     def test_match_in_list(self, mocker, dialect):
         engine = _mock_engine(mocker, dialect)
-        success, observed = compare_column_type_list(
-            engine, "INTEGER", ["VARCHAR", "INTEGER"]
-        )
+        success, observed = compare_column_type_list(engine, "INTEGER", ["VARCHAR", "INTEGER"])
         assert success is True
         assert observed == "INTEGER"
 
     @pytest.mark.parametrize("dialect", list(CASE_INSENSITIVE_DIALECTS))
     def test_no_match_in_list(self, mocker, dialect):
         engine = _mock_engine(mocker, dialect)
-        success, observed = compare_column_type_list(
-            engine, "BOOLEAN", ["VARCHAR", "INTEGER"]
-        )
+        success, observed = compare_column_type_list(engine, "BOOLEAN", ["VARCHAR", "INTEGER"])
         assert success is False
         assert observed == "BOOLEAN"
 
     @pytest.mark.parametrize("dialect", list(CASE_INSENSITIVE_DIALECTS))
     def test_case_insensitive_list_match(self, mocker, dialect):
         engine = _mock_engine(mocker, dialect)
-        success, _observed = compare_column_type_list(
-            engine, "integer", ["VARCHAR", "INTEGER"]
-        )
+        success, _observed = compare_column_type_list(engine, "integer", ["VARCHAR", "INTEGER"])
         assert success is True
 
     @pytest.mark.parametrize("dialect", list(CASE_INSENSITIVE_DIALECTS))
@@ -188,9 +180,7 @@ class TestCompareColumnTypeListCaseInsensitive:
         engine = _mock_engine(mocker, dialect)
         mock_type = mocker.MagicMock()
         type(mock_type).__name__ = "INTEGER"
-        success, observed = compare_column_type_list(
-            engine, mock_type, ["VARCHAR", "INTEGER"]
-        )
+        success, observed = compare_column_type_list(engine, mock_type, ["VARCHAR", "INTEGER"])
         assert success is True
         assert observed == "INTEGER"
 
@@ -220,7 +210,5 @@ class TestCompareColumnTypeListByClass:
     def test_observed_value_is_class_name(self, mocker):
         engine = _mock_engine(mocker, "sqlite")
         engine.dialect_module = sa
-        _success, observed = compare_column_type_list(
-            engine, sa.types.INTEGER(), ["INTEGER"]
-        )
+        _success, observed = compare_column_type_list(engine, sa.types.INTEGER(), ["INTEGER"])
         assert observed == "INTEGER"

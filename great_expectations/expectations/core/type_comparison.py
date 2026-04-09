@@ -163,7 +163,9 @@ def _compare_type_string(actual_column_type: Any, expected_type: str) -> bool:
     return str(actual_column_type).lower() == expected_type.lower()
 
 
-def _get_potential_sqlalchemy_types(execution_engine: SqlAlchemyExecutionEngine, expected_type: str) -> list:  # noqa: E501
+def _get_potential_sqlalchemy_types(
+    execution_engine: SqlAlchemyExecutionEngine, expected_type: str
+) -> list:  # noqa: E501
     types: list = []
     type_module = _get_dialect_type_module(execution_engine=execution_engine)
     try:

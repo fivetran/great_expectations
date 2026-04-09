@@ -562,5 +562,3 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
             return self._validate_spark(
                 actual_column_type=actual_column_type, expected_type=expected_type
             )
-
-
