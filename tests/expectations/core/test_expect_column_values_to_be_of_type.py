@@ -183,9 +183,7 @@ def test_sqlalchemy_case_insensitive_path_failure(sa, dialect_name):
         new_callable=PropertyMock,
         return_value=dialect_name,
     ):
-        result = validator.expect_column_values_to_be_of_type(
-            "str_col", type_="__NO_SUCH_TYPE__"
-        )
+        result = validator.expect_column_values_to_be_of_type("str_col", type_="__NO_SUCH_TYPE__")
         assert result.success is False
 
 
