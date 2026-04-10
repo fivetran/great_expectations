@@ -258,7 +258,9 @@ class TestPostgreSQLTypes:
 
     def test_type_list_match(self):
         success, observed = compare_column_type_list(
-            self.engine, _ci("TIMESTAMP WITHOUT TIME ZONE"), ["TIMESTAMP", "TIMESTAMP WITHOUT TIME ZONE"]  # noqa: E501
+            self.engine,
+            _ci("TIMESTAMP WITHOUT TIME ZONE"),
+            ["TIMESTAMP", "TIMESTAMP WITHOUT TIME ZONE"],  # noqa: E501
         )
         assert success is True
         assert observed == "TIMESTAMP WITHOUT TIME ZONE"
@@ -463,9 +465,7 @@ class TestSQLiteTypes:
         assert observed == type(actual_type).__name__
 
     def test_type_mismatch(self):
-        success, _observed = compare_column_type(
-            self.engine, sa.types.INTEGER(), "VARCHAR"
-        )
+        success, _observed = compare_column_type(self.engine, sa.types.INTEGER(), "VARCHAR")
         assert success is False
 
     def test_type_list_match(self):
@@ -537,17 +537,13 @@ class TestCaseInsensitiveStringQuotedBehavior:
 
     def test_quoted_in_type_list(self):
         quoted = CaseInsensitiveString('"MyType"')
-        success, _observed = compare_column_type_list(
-            self.engine, quoted, ['"mytype"', '"MyType"']
-        )
+        success, _observed = compare_column_type_list(self.engine, quoted, ['"mytype"', '"MyType"'])
         assert success is True
 
     def test_quoted_list_uses_lower_not_eq(self):
         """The type-list path uses .lower() comparison, so quoted semantics
         are not preserved — unlike the scalar path which uses __eq__."""
         quoted = CaseInsensitiveString('"MyType"')
-        success, _observed = compare_column_type_list(
-            self.engine, quoted, ['"mytype"', '"OTHER"']
-        )
+        success, _observed = compare_column_type_list(self.engine, quoted, ['"mytype"', '"OTHER"'])
         # .lower() matches even though CaseInsensitiveString.__eq__ would not
         assert success is True
