@@ -7,23 +7,28 @@ them.  The GX Python client interacts with this endpoint via
 
 URL pattern (V1 endpoint):
     /api/v1/organizations/{org_id}/workspaces/{workspace_id}/data-context-variables
+
+These tests exercise ``@public_api`` decorated entry points:
+  - ``DataContextVariables`` (the class is ``@public_api``) accessed via
+    ``ctx.variables``
+  - ``DataContextVariables.save()`` which is ``@public_api``
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final
+from typing import Final
 
 import pytest
 from pact import Pact, match
 
+import great_expectations as gx
 from tests.integration.cloud.rest_contracts.conftest import (
     EXISTING_ORGANIZATION_ID,
     EXISTING_WORKSPACE_ID,
-    GX_VERSION_REGEX,
+    PACT_DUMMY_ACCESS_TOKEN,
+    pact_session_headers,
+    setup_data_context_config_interaction,
 )
-
-if TYPE_CHECKING:
-    import requests
 
 # ---------------------------------------------------------------------------
 # Shared constants
@@ -35,86 +40,69 @@ DATA_CONTEXT_VARIABLES_PATH: Final[str] = (
 )
 
 # ---------------------------------------------------------------------------
-# Response body matchers
-# ---------------------------------------------------------------------------
-
-# The GET and PUT responses share the same schema:
-# {
-#   "data": {
-#     "id": <uuid|null>,
-#     "type": "data_context_variables",
-#     "attributes": {
-#       "organization_id": <uuid>,
-#       "created_by_id": <uuid|null>,
-#       "data_context_variables": { ... config fields ... }
-#     }
-#   }
-# }
-DATA_CONTEXT_VARIABLES_RESPONSE_BODY: Final[dict] = {
-    "data": match.like(
-        {
-            "id": match.uuid(),
-            "type": "data_context_variables",
-            "attributes": match.like(
-                {
-                    "organization_id": match.uuid(),
-                    "created_by_id": match.uuid(),
-                    "data_context_variables": match.like(
-                        {
-                            "config_version": match.like(4.0),
-                            "stores": match.like(
-                                {
-                                    "validation_definition_store": match.like({}),
-                                }
-                            ),
-                            "data_context_id": match.uuid(),
-                            "analytics_enabled": match.like(True),
-                        }
-                    ),
-                }
-            ),
-        }
-    )
-}
-
-# ---------------------------------------------------------------------------
 # PUT request body matchers
 # ---------------------------------------------------------------------------
 
-# The PUT request body wraps the data-context-variables config under {"data": ...}.
-# The GX client builds this via _construct_json_payload_v1 which produces
-# {"data": {<serialized DataContextConfig fields>}}.
+# The PUT request body wraps the serialized DataContextConfig under {"data": ...}.
+# ``CloudDataContextVariables.save()`` calls ``store.set(key, config)`` which
+# serializes the config via ``DataContextConfigSchema.dump()`` and then wraps it
+# with ``_construct_json_payload_v1`` -> ``{"data": {<serialized config>}}``.
+#
+# The serialized config includes fields from DataContextConfigSchema.  The exact
+# set depends on which fields are non-None after the post_dump hook strips None
+# values.  The fields that are always present in a cloud context are:
+# config_version, stores, analytics_enabled, data_context_id, plus nullable
+# fields like plugins_directory, data_docs_sites, config_variables_file_path.
+_STORE_BACKEND_EXAMPLE: Final[dict] = {
+    "class_name": match.like("GXCloudStoreBackend"),
+    "ge_cloud_base_url": match.like("${GX_CLOUD_BASE_URL}"),
+    "ge_cloud_credentials": match.like(
+        {
+            "access_token": match.like("${GX_CLOUD_ACCESS_TOKEN}"),
+            "organization_id": match.like("${GX_CLOUD_ORGANIZATION_ID}"),
+        }
+    ),
+    "ge_cloud_resource_type": match.like("expectation_suite"),
+    "suppress_store_backend_id": match.like(True),
+}
+
 PUT_DATA_CONTEXT_VARIABLES_REQUEST_BODY: Final[dict] = {
     "data": match.like(
         {
             "config_version": match.like(4.0),
             "stores": match.like(
                 {
+                    "default_expectations_store": match.like(
+                        {
+                            "class_name": match.like("ExpectationsStore"),
+                            "store_backend": match.like(_STORE_BACKEND_EXAMPLE),
+                        }
+                    ),
+                    "default_checkpoint_store": match.like(
+                        {
+                            "class_name": match.like("CheckpointStore"),
+                            "store_backend": match.like(_STORE_BACKEND_EXAMPLE),
+                        }
+                    ),
+                    "default_validations_store": match.like(
+                        {
+                            "class_name": match.like("ValidationResultsStore"),
+                            "store_backend": match.like(_STORE_BACKEND_EXAMPLE),
+                        }
+                    ),
                     "validation_definition_store": match.like(
                         {
                             "class_name": match.like("ValidationDefinitionStore"),
-                            "store_backend": match.like(
-                                {
-                                    "class_name": match.like("GXCloudStoreBackend"),
-                                    "ge_cloud_base_url": match.like("${GX_CLOUD_BASE_URL}"),
-                                    "ge_cloud_credentials": match.like(
-                                        {
-                                            "access_token": match.like("${GX_CLOUD_ACCESS_TOKEN}"),
-                                            "organization_id": match.like(
-                                                "${GX_CLOUD_ORGANIZATION_ID}"
-                                            ),
-                                        }
-                                    ),
-                                    "ge_cloud_resource_type": match.like("validation_definition"),
-                                    "suppress_store_backend_id": match.like(True),
-                                }
-                            ),
+                            "store_backend": match.like(_STORE_BACKEND_EXAMPLE),
                         }
                     ),
                 }
             ),
-            "data_context_id": match.uuid(EXISTING_ORGANIZATION_ID),
             "analytics_enabled": match.like(True),
+            "data_context_id": match.uuid(EXISTING_ORGANIZATION_ID),
+            "config_variables_file_path": match.like(None),
+            "data_docs_sites": match.like(None),
+            "plugins_directory": match.like(None),
         }
     )
 }
@@ -126,97 +114,97 @@ PUT_DATA_CONTEXT_VARIABLES_REQUEST_BODY: Final[dict] = {
 
 
 @pytest.mark.cloud
-def test_get_data_context_variables(
-    gx_cloud_session: requests.Session,
-    cloud_access_token: str,
-    pact_test: Pact,
-) -> None:
-    """GET /data-context-variables returns the current configuration variables.
+def test_get_data_context_variables(pact_test: Pact) -> None:
+    """Accessing ctx.variables on a CloudDataContext returns configuration variables.
 
-    The GX client fetches these via GXCloudStoreBackend._get_all() when
-    CloudDataContext needs the data context variables.
+    The CloudDataContext constructor fetches the data-context-configuration
+    endpoint which provides the project config.  Accessing ``ctx.variables``
+    returns a ``DataContextVariables`` instance (``@public_api``) populated
+    from this config.
+
+    Full interaction sequence:
+      1. GET /data-context-configuration  (context init)
     """
-    headers: dict = {
-        k: (match.regex(str(v), regex=GX_VERSION_REGEX) if k == "Gx-Version" else str(v))
-        for k, v in gx_cloud_session.headers.items()
-    }
-
-    (
-        pact_test.upon_receiving("a request to get data context variables")
-        .given("data context variables exist")
-        .with_request("GET", DATA_CONTEXT_VARIABLES_PATH)
-        .with_headers(headers)
-        .will_respond_with(200)
-        .with_body(DATA_CONTEXT_VARIABLES_RESPONSE_BODY, content_type="application/json")
+    # 1. GET /data-context-configuration
+    setup_data_context_config_interaction(
+        pact_test,
+        access_token=PACT_DUMMY_ACCESS_TOKEN,
+        description_suffix="get-data-context-variables",
     )
 
     with pact_test.serve() as srv:
-        response = gx_cloud_session.get(f"{srv.url}{DATA_CONTEXT_VARIABLES_PATH}")
+        ctx = gx.get_context(
+            mode="cloud",
+            cloud_base_url=str(srv.url),
+            cloud_organization_id=EXISTING_ORGANIZATION_ID,
+            cloud_workspace_id=EXISTING_WORKSPACE_ID,
+            cloud_access_token=PACT_DUMMY_ACCESS_TOKEN,
+        )
 
-    assert response.status_code == 200
-    data = response.json()["data"]
-    assert data["type"] == "data_context_variables"
-    assert "attributes" in data
+        # Access the @public_api DataContextVariables
+        variables = ctx.variables
+
+    assert variables is not None
+    assert variables.config_version is not None
+    assert variables.stores is not None
 
 
 @pytest.mark.cloud
-def test_put_data_context_variables(
-    gx_cloud_session: requests.Session,
-    cloud_access_token: str,
-    pact_test: Pact,
-) -> None:
-    """PUT /data-context-variables upserts the configuration variables.
+def test_put_data_context_variables(pact_test: Pact) -> None:
+    """ctx.variables.save() issues PUT to the data-context-variables endpoint.
 
-    The GX client always uses PUT for data-context-variables (never POST),
-    even when no existing row exists.  This is a special case handled in
-    GXCloudStoreBackend._set().
+    ``DataContextVariables.save()`` is ``@public_api`` and persists the
+    current config via the configured store.  For a CloudDataContext this
+    results in a PUT request to the data-context-variables endpoint.
+
+    Full interaction sequence:
+      1. GET /data-context-configuration       (context init)
+      2. PUT /data-context-variables           (save)
     """
-    headers: dict = {
-        k: (match.regex(str(v), regex=GX_VERSION_REGEX) if k == "Gx-Version" else str(v))
-        for k, v in gx_cloud_session.headers.items()
-    }
+    headers = pact_session_headers()
 
+    # 1. GET /data-context-configuration
+    setup_data_context_config_interaction(
+        pact_test,
+        access_token=PACT_DUMMY_ACCESS_TOKEN,
+        description_suffix="put-data-context-variables",
+    )
+
+    # 2. PUT /data-context-variables
     (
-        pact_test.upon_receiving("a request to update data context variables")
+        pact_test.upon_receiving("a request to update data context variables (client-driven)")
         .given("data context variables are being updated")
         .with_request("PUT", DATA_CONTEXT_VARIABLES_PATH)
         .with_headers(headers)
-        .with_body(PUT_DATA_CONTEXT_VARIABLES_REQUEST_BODY, content_type="application/json")
+        .with_body(PUT_DATA_CONTEXT_VARIABLES_REQUEST_BODY, content_type="application/vnd.api+json")
         .will_respond_with(200)
-        .with_body(DATA_CONTEXT_VARIABLES_RESPONSE_BODY, content_type="application/json")
+        .with_body(
+            {
+                "data": match.like(
+                    {
+                        "id": match.uuid(),
+                        "type": "data_context_variables",
+                        "attributes": match.like(
+                            {
+                                "organization_id": match.uuid(),
+                                "data_context_variables": match.like({}),
+                            }
+                        ),
+                    }
+                )
+            },
+            content_type="application/json",
+        )
     )
 
-    # Build a request body matching what the GX client sends
-    put_body = {
-        "data": {
-            "config_version": 4.0,
-            "stores": {
-                "validation_definition_store": {
-                    "class_name": "ValidationDefinitionStore",
-                    "store_backend": {
-                        "class_name": "GXCloudStoreBackend",
-                        "ge_cloud_base_url": "${GX_CLOUD_BASE_URL}",
-                        "ge_cloud_credentials": {
-                            "access_token": "${GX_CLOUD_ACCESS_TOKEN}",
-                            "organization_id": "${GX_CLOUD_ORGANIZATION_ID}",
-                        },
-                        "ge_cloud_resource_type": "validation_definition",
-                        "suppress_store_backend_id": True,
-                    },
-                },
-            },
-            "data_context_id": EXISTING_ORGANIZATION_ID,
-            "analytics_enabled": True,
-        }
-    }
-
     with pact_test.serve() as srv:
-        response = gx_cloud_session.put(
-            f"{srv.url}{DATA_CONTEXT_VARIABLES_PATH}",
-            json=put_body,
+        ctx = gx.get_context(
+            mode="cloud",
+            cloud_base_url=str(srv.url),
+            cloud_organization_id=EXISTING_ORGANIZATION_ID,
+            cloud_workspace_id=EXISTING_WORKSPACE_ID,
+            cloud_access_token=PACT_DUMMY_ACCESS_TOKEN,
         )
 
-    assert response.status_code == 200
-    data = response.json()["data"]
-    assert data["type"] == "data_context_variables"
-    assert "attributes" in data
+        # Call the @public_api save() method to trigger the PUT
+        ctx.variables.save()
