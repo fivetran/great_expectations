@@ -209,9 +209,7 @@ def _get_potential_sqlalchemy_types(
     return types
 
 
-def _get_redshift_sqlalchemy_types(
-    type_module: ModuleType, expected_type: Any
-) -> list:
+def _get_redshift_sqlalchemy_types(type_module: ModuleType, expected_type: Any) -> list:
     types: list = []
     potential_type = getattr(type_module, expected_type)
     types.append(potential_type)
