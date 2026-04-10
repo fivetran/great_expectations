@@ -107,49 +107,47 @@ def test_expect_column_values_to_be_of_type_string_dialect_sqlite(sa):
 
 
 @pytest.mark.sqlite
-def test_delegates_to_compare_column_type(sa, monkeypatch):
+def test_delegates_to_compare_column_type_success(sa, mocker):
     """Verify the expectation calls compare_column_type and uses its return value."""
     df = pd.DataFrame({"str_col": ["a", "b", "c"]})
     validator = build_sa_validator_with_data(
-        df=df, sa_engine_name="sqlite", table_name="of_type_wiring_test"
+        df=df, sa_engine_name="sqlite", table_name="of_type_wiring_success"
     )
 
-    sentinel_observed = "SENTINEL_TYPE"
-    calls = []
-
-    def fake_compare(execution_engine, actual_column_type, expected_type):
-        calls.append((execution_engine, actual_column_type, expected_type))
-        return (True, sentinel_observed)
-
-    monkeypatch.setattr(
+    mock_compare = mocker.patch(
         "great_expectations.expectations.core.expect_column_values_to_be_of_type.compare_column_type",
-        fake_compare,
+        return_value=(True, "SENTINEL_TYPE"),
     )
 
     result = validator.expect_column_values_to_be_of_type("str_col", type_="TEXT")
 
-    assert len(calls) == 1, "compare_column_type should be called exactly once"
-    engine_arg, _actual_type_arg, expected_type_arg = calls[0]
-    assert engine_arg is validator.execution_engine
-    assert expected_type_arg == "TEXT"
+    mock_compare.assert_called_once()
+    call_kwargs = mock_compare.call_args
+    assert call_kwargs.args[0] is validator.execution_engine  # execution_engine
+    assert call_kwargs.args[2] == "TEXT"  # expected_type
     assert result.success is True
-    assert result.result["observed_value"] == sentinel_observed
+    assert result.result["observed_value"] == "SENTINEL_TYPE"
 
 
 @pytest.mark.sqlite
-def test_delegates_to_compare_column_type_failure(sa, monkeypatch):
+def test_delegates_to_compare_column_type_failure(sa, mocker):
     """Verify a False return from compare_column_type propagates as expectation failure."""
     df = pd.DataFrame({"str_col": ["a", "b", "c"]})
     validator = build_sa_validator_with_data(
         df=df, sa_engine_name="sqlite", table_name="of_type_wiring_failure"
     )
 
-    monkeypatch.setattr(
+    mock_compare = mocker.patch(
         "great_expectations.expectations.core.expect_column_values_to_be_of_type.compare_column_type",
-        lambda engine, actual, expected: (False, "WHATEVER"),
+        return_value=(False, "WHATEVER"),
     )
 
     result = validator.expect_column_values_to_be_of_type("str_col", type_="INTEGER")
+
+    mock_compare.assert_called_once()
+    call_kwargs = mock_compare.call_args
+    assert call_kwargs.args[0] is validator.execution_engine
+    assert call_kwargs.args[2] == "INTEGER"
     assert result.success is False
     assert result.result["observed_value"] == "WHATEVER"
 

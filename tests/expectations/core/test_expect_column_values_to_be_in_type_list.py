@@ -168,52 +168,50 @@ def test_expect_column_values_to_be_in_type_list_nullable_int():
 
 
 @pytest.mark.sqlite
-def test_delegates_to_compare_column_type_list(sa, monkeypatch):
+def test_delegates_to_compare_column_type_list_success(sa, mocker):
     """Verify the expectation calls compare_column_type_list and uses its return value."""
     df = pd.DataFrame({"str_col": ["a", "b", "c"]})
     validator = build_sa_validator_with_data(
-        df=df, sa_engine_name="sqlite", table_name="in_type_list_wiring_test"
+        df=df, sa_engine_name="sqlite", table_name="in_type_list_wiring_success"
     )
 
-    sentinel_observed = "SENTINEL_TYPE"
-    calls = []
-
-    def fake_compare(execution_engine, actual_column_type, expected_types_list):
-        calls.append((execution_engine, actual_column_type, expected_types_list))
-        return (True, sentinel_observed)
-
-    monkeypatch.setattr(
+    mock_compare = mocker.patch(
         "great_expectations.expectations.core.expect_column_values_to_be_in_type_list.compare_column_type_list",
-        fake_compare,
+        return_value=(True, "SENTINEL_TYPE"),
     )
 
     result = validator.expect_column_values_to_be_in_type_list(
         "str_col", type_list=["INTEGER", "TEXT"]
     )
 
-    assert len(calls) == 1, "compare_column_type_list should be called exactly once"
-    engine_arg, _actual_type_arg, expected_list_arg = calls[0]
-    assert engine_arg is validator.execution_engine
-    assert expected_list_arg == ["INTEGER", "TEXT"]
+    mock_compare.assert_called_once()
+    call_kwargs = mock_compare.call_args
+    assert call_kwargs.args[0] is validator.execution_engine  # execution_engine
+    assert call_kwargs.args[2] == ["INTEGER", "TEXT"]  # expected_types_list
     assert result.success is True
-    assert result.result["observed_value"] == sentinel_observed
+    assert result.result["observed_value"] == "SENTINEL_TYPE"
 
 
 @pytest.mark.sqlite
-def test_delegates_to_compare_column_type_list_failure(sa, monkeypatch):
+def test_delegates_to_compare_column_type_list_failure(sa, mocker):
     """Verify a False return from compare_column_type_list propagates as expectation failure."""
     df = pd.DataFrame({"str_col": ["a", "b", "c"]})
     validator = build_sa_validator_with_data(
         df=df, sa_engine_name="sqlite", table_name="in_type_list_wiring_failure"
     )
 
-    monkeypatch.setattr(
+    mock_compare = mocker.patch(
         "great_expectations.expectations.core.expect_column_values_to_be_in_type_list.compare_column_type_list",
-        lambda engine, actual, expected_list: (False, "WHATEVER"),
+        return_value=(False, "WHATEVER"),
     )
 
     result = validator.expect_column_values_to_be_in_type_list(
         "str_col", type_list=["INTEGER", "FLOAT"]
     )
+
+    mock_compare.assert_called_once()
+    call_kwargs = mock_compare.call_args
+    assert call_kwargs.args[0] is validator.execution_engine
+    assert call_kwargs.args[2] == ["INTEGER", "FLOAT"]
     assert result.success is False
     assert result.result["observed_value"] == "WHATEVER"
