@@ -102,8 +102,9 @@ def compare_column_type(
     - For all others: resolves expected_type to a SQLAlchemy type class and uses isinstance().
 
     Returns:
-        (success, observed_value) where observed_value is the raw type string
-        for case-insensitive dialects or type(actual_column_type).__name__ otherwise.
+        (success, observed_value) where observed_value is actual_column_type as-is
+        for case-insensitive dialects (typically a CaseInsensitiveString) or
+        type(actual_column_type).__name__ for the isinstance path.
     """
     if execution_engine.dialect_name in CASE_INSENSITIVE_DIALECTS:
         success = _compare_type_string(actual_column_type, expected_type)
