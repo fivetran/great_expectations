@@ -280,7 +280,20 @@ def test_pandas_datasource_workflow(pact_test: Pact) -> None:
         .given("the Pandas datasource is being created with asset and batch definition")
         .with_request("POST", DATASOURCES_PATH)
         .with_headers(headers)
-        .will_respond_with(200)
+        .with_body(
+            match.like(
+                {
+                    "data": match.like(
+                        {
+                            "type": match.like("pandas"),
+                            "name": match.like(DATASOURCE_NAME),
+                        }
+                    )
+                }
+            ),
+            content_type="application/vnd.api+json",
+        )
+        .will_respond_with(201)
         .with_body(
             {"data": match.like(_make_datasource_response())},
             content_type="application/json",
@@ -334,6 +347,22 @@ def test_pandas_datasource_workflow(pact_test: Pact) -> None:
         .given("no expectation suite with this name exists")
         .with_request("POST", SUITES_PATH)
         .with_headers(headers)
+        .with_body(
+            match.like(
+                {
+                    "data": match.like(
+                        {
+                            "name": match.like(SUITE_NAME),
+                            "id": None,
+                            "expectations": match.like([]),
+                            "meta": match.like({"great_expectations_version": match.like("1.0.0")}),
+                            "notes": None,
+                        }
+                    )
+                }
+            ),
+            content_type="application/vnd.api+json",
+        )
         .will_respond_with(201)
         .with_body(
             {"data": match.like(_make_suite_response())},
@@ -392,6 +421,46 @@ def test_pandas_datasource_workflow(pact_test: Pact) -> None:
         .given("no validation definition with this name exists")
         .with_request("POST", VALDEF_PATH)
         .with_headers(headers)
+        .with_body(
+            match.like(
+                {
+                    "data": match.like(
+                        {
+                            "name": match.like(VALDEF_NAME),
+                            "data": match.like(
+                                {
+                                    "datasource": match.like(
+                                        {
+                                            "name": match.like(DATASOURCE_NAME),
+                                            "id": match.uuid(EXISTING_DATASOURCE_ID),
+                                        }
+                                    ),
+                                    "asset": match.like(
+                                        {
+                                            "name": match.like(ASSET_NAME),
+                                            "id": match.uuid(EXISTING_ASSET_ID),
+                                        }
+                                    ),
+                                    "batch_definition": match.like(
+                                        {
+                                            "name": match.like(BATCH_DEF_NAME),
+                                            "id": match.uuid(EXISTING_BATCH_DEF_ID),
+                                        }
+                                    ),
+                                }
+                            ),
+                            "suite": match.like(
+                                {
+                                    "name": match.like(SUITE_NAME),
+                                    "id": match.uuid(EXISTING_SUITE_ID),
+                                }
+                            ),
+                        }
+                    )
+                }
+            ),
+            content_type="application/vnd.api+json",
+        )
         .will_respond_with(201)
         .with_body(
             {"data": match.like(_make_valdef_response())},
@@ -417,6 +486,28 @@ def test_pandas_datasource_workflow(pact_test: Pact) -> None:
         .given("no checkpoint with this name exists")
         .with_request("POST", CHECKPOINTS_PATH)
         .with_headers(headers)
+        .with_body(
+            match.like(
+                {
+                    "data": match.like(
+                        {
+                            "name": match.like(CHECKPOINT_NAME),
+                            "validation_definitions": match.like(
+                                [
+                                    {
+                                        "id": match.uuid(EXISTING_VALDEF_ID),
+                                        "name": match.like(VALDEF_NAME),
+                                    }
+                                ]
+                            ),
+                            "actions": match.like([]),
+                            "result_format": match.like("SUMMARY"),
+                        }
+                    )
+                }
+            ),
+            content_type="application/vnd.api+json",
+        )
         .will_respond_with(201)
         .with_body(
             {"data": match.like(_make_checkpoint_response())},

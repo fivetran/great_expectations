@@ -153,7 +153,7 @@ def test_add_pandas_datasource(pact_test: Pact) -> None:
         .with_request("POST", DATASOURCES_PATH)
         .with_headers(headers)
         .with_body(PANDAS_DATASOURCE_REQUEST_BODY, content_type="application/vnd.api+json")
-        .will_respond_with(200)
+        .will_respond_with(201)
         .with_body(post_response_body, content_type="application/json")
     )
 
