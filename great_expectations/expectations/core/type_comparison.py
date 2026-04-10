@@ -168,7 +168,7 @@ def _compare_type_string(actual_column_type: Any, expected_type: str) -> bool:
 
 def _get_potential_sqlalchemy_types(
     execution_engine: SqlAlchemyExecutionEngine, expected_type: str
-) -> list:  # noqa: E501
+) -> list:
     types: list = []
     type_module = _get_dialect_type_module(execution_engine=execution_engine)
     try:
