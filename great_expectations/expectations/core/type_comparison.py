@@ -158,9 +158,12 @@ def compare_column_type_list(
 def _compare_type_string(actual_column_type: Any, expected_type: str) -> bool:
     """Case-insensitive single-type comparison for CASE_INSENSITIVE_DIALECTS."""
     if isinstance(actual_column_type, str):
-        # CaseInsensitiveString objects will automatically do case-insensitive comparison
+        # Preserve custom __eq__ behavior for str subclasses such as
+        # CaseInsensitiveString, but normalize plain str values explicitly.
+        if type(actual_column_type) is str:
+            return actual_column_type.casefold() == expected_type.casefold()
         return actual_column_type == expected_type
-    return str(actual_column_type).lower() == expected_type.lower()
+    return str(actual_column_type).casefold() == expected_type.casefold()
 
 
 def _get_potential_sqlalchemy_types(
@@ -225,7 +228,7 @@ def _get_dialect_type_module(  # noqa: C901, PLR0911
     execution_engine: SqlAlchemyExecutionEngine,
 ) -> ModuleType:
     if execution_engine.dialect_module is None:
-        logger.warning("No sqlalchemy dialect found; relying in top-level sqlalchemy types.")
+        logger.warning("No sqlalchemy dialect found; relying on top-level sqlalchemy types.")
         return sa
 
     # Redshift does not (yet) export types to top level; only recognize base SA types

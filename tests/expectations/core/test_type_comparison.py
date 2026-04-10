@@ -70,15 +70,28 @@ class TestNativeTypeTypeMap:
 
 
 # ---------------------------------------------------------------------------
-# Helpers for mocking execution engines
+# Helpers
 # ---------------------------------------------------------------------------
 
 
-def _mock_engine(mocker, dialect_name):
-    """Create a mock SqlAlchemyExecutionEngine with the given dialect_name."""
-    engine = mocker.MagicMock()
-    type(engine).dialect_name = mocker.PropertyMock(return_value=dialect_name)
-    return engine
+class _StubEngine:
+    """Lightweight stub to avoid mutating shared MagicMock class metadata."""
+
+    def __init__(self, dialect_name, dialect_module=None):
+        self.dialect_name = dialect_name
+        self.dialect_module = dialect_module
+
+
+class _NonStringType:
+    """Stub for a non-string column type with controllable __str__ and __name__."""
+
+    def __str__(self):
+        return "INTEGER"
+
+
+# Ensure type(instance).__name__ returns "INTEGER" — this is a per-class
+# attribute, not per-instance, so we need a dedicated class.
+_NonStringType.__name__ = "INTEGER"
 
 
 # ---------------------------------------------------------------------------
@@ -88,31 +101,29 @@ def _mock_engine(mocker, dialect_name):
 
 class TestCompareColumnTypeCaseInsensitive:
     @pytest.mark.parametrize("dialect", list(CASE_INSENSITIVE_DIALECTS))
-    def test_string_match(self, mocker, dialect):
-        engine = _mock_engine(mocker, dialect)
+    def test_string_match(self, dialect):
+        engine = _StubEngine(dialect)
         success, observed = compare_column_type(engine, "INTEGER", "INTEGER")
         assert success is True
         assert observed == "INTEGER"
 
     @pytest.mark.parametrize("dialect", list(CASE_INSENSITIVE_DIALECTS))
-    def test_case_insensitive_match(self, mocker, dialect):
-        engine = _mock_engine(mocker, dialect)
-        success, _observed = compare_column_type(engine, "integer", "integer")
+    def test_case_insensitive_match(self, dialect):
+        engine = _StubEngine(dialect)
+        success, _observed = compare_column_type(engine, "INTEGER", "integer")
         assert success is True
 
     @pytest.mark.parametrize("dialect", list(CASE_INSENSITIVE_DIALECTS))
-    def test_mismatch(self, mocker, dialect):
-        engine = _mock_engine(mocker, dialect)
+    def test_mismatch(self, dialect):
+        engine = _StubEngine(dialect)
         success, observed = compare_column_type(engine, "INTEGER", "VARCHAR")
         assert success is False
         assert observed == "INTEGER"
 
     @pytest.mark.parametrize("dialect", list(CASE_INSENSITIVE_DIALECTS))
-    def test_non_string_fallback(self, mocker, dialect):
-        engine = _mock_engine(mocker, dialect)
-        mock_type = mocker.MagicMock()
-        mock_type.__str__ = lambda self: "INTEGER"
-        type(mock_type).__name__ = "INTEGER"
+    def test_non_string_fallback(self, dialect):
+        engine = _StubEngine(dialect)
+        mock_type = _NonStringType()
         success, _observed = compare_column_type(engine, mock_type, "integer")
         assert success is True
 
@@ -123,28 +134,26 @@ class TestCompareColumnTypeCaseInsensitive:
 
 
 class TestCompareColumnTypeByClass:
-    def test_match(self, mocker):
-        engine = _mock_engine(mocker, "sqlite")
-        engine.dialect_module = sa
+    def test_match(self):
+        engine = _StubEngine("sqlite", dialect_module=sa)
         success, observed = compare_column_type(engine, sa.types.INTEGER(), "INTEGER")
         assert success is True
         assert observed == "INTEGER"
 
-    def test_mismatch(self, mocker):
-        engine = _mock_engine(mocker, "sqlite")
-        engine.dialect_module = sa
+    def test_mismatch(self):
+        engine = _StubEngine("sqlite", dialect_module=sa)
         success, _observed = compare_column_type(engine, sa.types.INTEGER(), "VARCHAR")
         assert success is False
 
-    def test_unrecognized_type(self, mocker):
-        engine = _mock_engine(mocker, "sqlite")
-        engine.dialect_module = sa
-        success, _observed = compare_column_type(engine, sa.types.INTEGER(), "NONEXISTENT_TYPE")
+    def test_unrecognized_type(self):
+        engine = _StubEngine("sqlite", dialect_module=sa)
+        success, _observed = compare_column_type(
+            engine, sa.types.INTEGER(), "NONEXISTENT_TYPE"
+        )
         assert success is False
 
-    def test_observed_value_is_class_name(self, mocker):
-        engine = _mock_engine(mocker, "sqlite")
-        engine.dialect_module = sa
+    def test_observed_value_is_class_name(self):
+        engine = _StubEngine("sqlite", dialect_module=sa)
         _success, observed = compare_column_type(engine, sa.types.INTEGER(), "INTEGER")
         assert observed == "INTEGER"
 
@@ -156,31 +165,38 @@ class TestCompareColumnTypeByClass:
 
 class TestCompareColumnTypeListCaseInsensitive:
     @pytest.mark.parametrize("dialect", list(CASE_INSENSITIVE_DIALECTS))
-    def test_match_in_list(self, mocker, dialect):
-        engine = _mock_engine(mocker, dialect)
-        success, observed = compare_column_type_list(engine, "INTEGER", ["VARCHAR", "INTEGER"])
+    def test_match_in_list(self, dialect):
+        engine = _StubEngine(dialect)
+        success, observed = compare_column_type_list(
+            engine, "INTEGER", ["VARCHAR", "INTEGER"]
+        )
         assert success is True
         assert observed == "INTEGER"
 
     @pytest.mark.parametrize("dialect", list(CASE_INSENSITIVE_DIALECTS))
-    def test_no_match_in_list(self, mocker, dialect):
-        engine = _mock_engine(mocker, dialect)
-        success, observed = compare_column_type_list(engine, "BOOLEAN", ["VARCHAR", "INTEGER"])
+    def test_no_match_in_list(self, dialect):
+        engine = _StubEngine(dialect)
+        success, observed = compare_column_type_list(
+            engine, "BOOLEAN", ["VARCHAR", "INTEGER"]
+        )
         assert success is False
         assert observed == "BOOLEAN"
 
     @pytest.mark.parametrize("dialect", list(CASE_INSENSITIVE_DIALECTS))
-    def test_case_insensitive_list_match(self, mocker, dialect):
-        engine = _mock_engine(mocker, dialect)
-        success, _observed = compare_column_type_list(engine, "integer", ["VARCHAR", "INTEGER"])
+    def test_case_insensitive_list_match(self, dialect):
+        engine = _StubEngine(dialect)
+        success, _observed = compare_column_type_list(
+            engine, "integer", ["VARCHAR", "INTEGER"]
+        )
         assert success is True
 
     @pytest.mark.parametrize("dialect", list(CASE_INSENSITIVE_DIALECTS))
-    def test_non_string_type(self, mocker, dialect):
-        engine = _mock_engine(mocker, dialect)
-        mock_type = mocker.MagicMock()
-        type(mock_type).__name__ = "INTEGER"
-        success, observed = compare_column_type_list(engine, mock_type, ["VARCHAR", "INTEGER"])
+    def test_non_string_type(self, dialect):
+        engine = _StubEngine(dialect)
+        mock_type = _NonStringType()
+        success, observed = compare_column_type_list(
+            engine, mock_type, ["VARCHAR", "INTEGER"]
+        )
         assert success is True
         assert observed == "INTEGER"
 
@@ -191,24 +207,23 @@ class TestCompareColumnTypeListCaseInsensitive:
 
 
 class TestCompareColumnTypeListByClass:
-    def test_match_in_list(self, mocker):
-        engine = _mock_engine(mocker, "sqlite")
-        engine.dialect_module = sa
+    def test_match_in_list(self):
+        engine = _StubEngine("sqlite", dialect_module=sa)
         success, _observed = compare_column_type_list(
             engine, sa.types.INTEGER(), ["VARCHAR", "INTEGER"]
         )
         assert success is True
 
-    def test_no_match_in_list(self, mocker):
-        engine = _mock_engine(mocker, "sqlite")
-        engine.dialect_module = sa
+    def test_no_match_in_list(self):
+        engine = _StubEngine("sqlite", dialect_module=sa)
         success, _observed = compare_column_type_list(
             engine, sa.types.INTEGER(), ["VARCHAR", "TEXT"]
         )
         assert success is False
 
-    def test_observed_value_is_class_name(self, mocker):
-        engine = _mock_engine(mocker, "sqlite")
-        engine.dialect_module = sa
-        _success, observed = compare_column_type_list(engine, sa.types.INTEGER(), ["INTEGER"])
+    def test_observed_value_is_class_name(self):
+        engine = _StubEngine("sqlite", dialect_module=sa)
+        _success, observed = compare_column_type_list(
+            engine, sa.types.INTEGER(), ["INTEGER"]
+        )
         assert observed == "INTEGER"
