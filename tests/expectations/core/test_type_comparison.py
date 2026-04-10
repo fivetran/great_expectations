@@ -108,10 +108,25 @@ def _ci(s: str) -> CaseInsensitiveString:
 # ===========================================================================
 
 _PG_TYPES = [
-    "CHAR", "TEXT", "VARCHAR", "INTEGER", "SMALLINT", "BIGINT",
-    "TIMESTAMP WITHOUT TIME ZONE", "DATE", "TIME", "DOUBLE PRECISION",
-    "BOOLEAN", "NUMERIC", "DECIMAL", "REAL", "BYTEA", "JSON", "JSONB",
-    "UUID", "INTERVAL",
+    "CHAR",
+    "TEXT",
+    "VARCHAR",
+    "INTEGER",
+    "SMALLINT",
+    "BIGINT",
+    "TIMESTAMP WITHOUT TIME ZONE",
+    "DATE",
+    "TIME",
+    "DOUBLE PRECISION",
+    "BOOLEAN",
+    "NUMERIC",
+    "DECIMAL",
+    "REAL",
+    "BYTEA",
+    "JSON",
+    "JSONB",
+    "UUID",
+    "INTERVAL",
 ]
 
 
@@ -141,7 +156,9 @@ class TestPostgreSQLList:
     @pytest.mark.parametrize("type_name", _PG_TYPES)
     def test_match_in_list(self, type_name):
         success, observed = compare_column_type_list(
-            self.engine, _ci(type_name), ["__WRONG__", type_name],
+            self.engine,
+            _ci(type_name),
+            ["__WRONG__", type_name],
         )
         assert success is True
         assert str(observed) == type_name
@@ -149,14 +166,18 @@ class TestPostgreSQLList:
     @pytest.mark.parametrize("type_name", _PG_TYPES)
     def test_case_insensitive_match_in_list(self, type_name):
         success, _obs = compare_column_type_list(
-            self.engine, _ci(type_name), [type_name.lower()],
+            self.engine,
+            _ci(type_name),
+            [type_name.lower()],
         )
         assert success is True
 
     @pytest.mark.parametrize("type_name", _PG_TYPES)
     def test_no_match_in_list(self, type_name):
         success, _obs = compare_column_type_list(
-            self.engine, _ci(type_name), ["__WRONG__", "__ALSO_WRONG__"],
+            self.engine,
+            _ci(type_name),
+            ["__WRONG__", "__ALSO_WRONG__"],
         )
         assert success is False
 
@@ -174,12 +195,35 @@ class TestPostgreSQLList:
 # ===========================================================================
 
 _SNOWFLAKE_TYPES = [
-    "STRING", "TEXT", "CHARACTER", "VARCHAR", "VARCHAR(16777216)",
-    "BYTEINT", "TINYINT", "INTEGER", "BIGINT",
-    "FLOAT", "DOUBLE", "DECIMAL(38, 0)", "DECIMAL(38,0)", "FIXED", "DEC", "NUMBER",
-    "DATE", "TIMESTAMP_NTZ", "TIMESTAMP_LTZ", "TIMESTAMP_TZ", "TIME",
-    "VARIANT", "VARBINARY", "BINARY", "GEOGRAPHY", "GEOMETRY",
-    "ARRAY", "OBJECT", "BOOLEAN",
+    "STRING",
+    "TEXT",
+    "CHARACTER",
+    "VARCHAR",
+    "VARCHAR(16777216)",
+    "BYTEINT",
+    "TINYINT",
+    "INTEGER",
+    "BIGINT",
+    "FLOAT",
+    "DOUBLE",
+    "DECIMAL(38, 0)",
+    "DECIMAL(38,0)",
+    "FIXED",
+    "DEC",
+    "NUMBER",
+    "DATE",
+    "TIMESTAMP_NTZ",
+    "TIMESTAMP_LTZ",
+    "TIMESTAMP_TZ",
+    "TIME",
+    "VARIANT",
+    "VARBINARY",
+    "BINARY",
+    "GEOGRAPHY",
+    "GEOMETRY",
+    "ARRAY",
+    "OBJECT",
+    "BOOLEAN",
 ]
 
 
@@ -209,7 +253,9 @@ class TestSnowflakeList:
     @pytest.mark.parametrize("type_name", _SNOWFLAKE_TYPES)
     def test_match_in_list(self, type_name):
         success, observed = compare_column_type_list(
-            self.engine, _ci(type_name), ["__WRONG__", type_name],
+            self.engine,
+            _ci(type_name),
+            ["__WRONG__", type_name],
         )
         assert success is True
         assert str(observed) == type_name
@@ -217,33 +263,43 @@ class TestSnowflakeList:
     @pytest.mark.parametrize("type_name", _SNOWFLAKE_TYPES)
     def test_case_insensitive_match_in_list(self, type_name):
         success, _obs = compare_column_type_list(
-            self.engine, _ci(type_name), [type_name.lower()],
+            self.engine,
+            _ci(type_name),
+            [type_name.lower()],
         )
         assert success is True
 
     @pytest.mark.parametrize("type_name", _SNOWFLAKE_TYPES)
     def test_no_match_in_list(self, type_name):
         success, _obs = compare_column_type_list(
-            self.engine, _ci(type_name), ["__WRONG__", "__ALSO_WRONG__"],
+            self.engine,
+            _ci(type_name),
+            ["__WRONG__", "__ALSO_WRONG__"],
         )
         assert success is False
 
     def test_integer_synonyms(self):
         for int_type in ("BYTEINT", "TINYINT", "INTEGER", "BIGINT"):
             success, _obs = compare_column_type_list(
-                self.engine, _ci("DECIMAL(38, 0)"), [int_type, "DECIMAL(38, 0)"],
+                self.engine,
+                _ci("DECIMAL(38, 0)"),
+                [int_type, "DECIMAL(38, 0)"],
             )
             assert success is True
 
     def test_string_variants(self):
         success, _obs = compare_column_type_list(
-            self.engine, _ci("VARCHAR(16777216)"), ["STRING", "VARCHAR", "VARCHAR(16777216)"],
+            self.engine,
+            _ci("VARCHAR(16777216)"),
+            ["STRING", "VARCHAR", "VARCHAR(16777216)"],
         )
         assert success is True
 
     def test_number_variants(self):
         success, _obs = compare_column_type_list(
-            self.engine, _ci("DECIMAL(38, 0)"), ["NUMBER", "DECIMAL", "NUMERIC", "DECIMAL(38, 0)"],
+            self.engine,
+            _ci("DECIMAL(38, 0)"),
+            ["NUMBER", "DECIMAL", "NUMERIC", "DECIMAL(38, 0)"],
         )
         assert success is True
 
@@ -253,9 +309,23 @@ class TestSnowflakeList:
 # ===========================================================================
 
 _DATABRICKS_TYPES = [
-    "STRING", "INT", "BIGINT", "SMALLINT", "TINYINT",
-    "BOOLEAN", "FLOAT", "DOUBLE", "DECIMAL", "DECIMAL(10, 0)",
-    "DATE", "TIMESTAMP", "TIMESTAMP_NTZ", "BINARY", "ARRAY", "MAP", "STRUCT",
+    "STRING",
+    "INT",
+    "BIGINT",
+    "SMALLINT",
+    "TINYINT",
+    "BOOLEAN",
+    "FLOAT",
+    "DOUBLE",
+    "DECIMAL",
+    "DECIMAL(10, 0)",
+    "DATE",
+    "TIMESTAMP",
+    "TIMESTAMP_NTZ",
+    "BINARY",
+    "ARRAY",
+    "MAP",
+    "STRUCT",
 ]
 
 
@@ -285,7 +355,9 @@ class TestDatabricksList:
     @pytest.mark.parametrize("type_name", _DATABRICKS_TYPES)
     def test_match_in_list(self, type_name):
         success, observed = compare_column_type_list(
-            self.engine, _ci(type_name), ["__WRONG__", type_name],
+            self.engine,
+            _ci(type_name),
+            ["__WRONG__", type_name],
         )
         assert success is True
         assert str(observed) == type_name
@@ -293,20 +365,26 @@ class TestDatabricksList:
     @pytest.mark.parametrize("type_name", _DATABRICKS_TYPES)
     def test_case_insensitive_match_in_list(self, type_name):
         success, _obs = compare_column_type_list(
-            self.engine, _ci(type_name), [type_name.lower()],
+            self.engine,
+            _ci(type_name),
+            [type_name.lower()],
         )
         assert success is True
 
     @pytest.mark.parametrize("type_name", _DATABRICKS_TYPES)
     def test_no_match_in_list(self, type_name):
         success, _obs = compare_column_type_list(
-            self.engine, _ci(type_name), ["__WRONG__", "__ALSO_WRONG__"],
+            self.engine,
+            _ci(type_name),
+            ["__WRONG__", "__ALSO_WRONG__"],
         )
         assert success is False
 
     def test_decimal_variants(self):
         success, _obs = compare_column_type_list(
-            self.engine, _ci("DECIMAL(10, 0)"), ["DECIMAL", "DECIMAL(10, 0)"],
+            self.engine,
+            _ci("DECIMAL(10, 0)"),
+            ["DECIMAL", "DECIMAL(10, 0)"],
         )
         assert success is True
 
@@ -316,11 +394,33 @@ class TestDatabricksList:
 # ===========================================================================
 
 _SQL_SERVER_TYPES = [
-    "INTEGER", "BIGINT", "SMALLINT", "TINYINT",
-    "FLOAT", "REAL", "NUMERIC", "DECIMAL", "MONEY", "SMALLMONEY",
-    "VARCHAR", "NVARCHAR", "CHAR", "NCHAR", "TEXT", "NTEXT",
-    "BIT", "DATE", "DATETIME", "DATETIME2", "DATETIMEOFFSET", "SMALLDATETIME",
-    "TIME", "UNIQUEIDENTIFIER", "VARBINARY", "IMAGE", "XML",
+    "INTEGER",
+    "BIGINT",
+    "SMALLINT",
+    "TINYINT",
+    "FLOAT",
+    "REAL",
+    "NUMERIC",
+    "DECIMAL",
+    "MONEY",
+    "SMALLMONEY",
+    "VARCHAR",
+    "NVARCHAR",
+    "CHAR",
+    "NCHAR",
+    "TEXT",
+    "NTEXT",
+    "BIT",
+    "DATE",
+    "DATETIME",
+    "DATETIME2",
+    "DATETIMEOFFSET",
+    "SMALLDATETIME",
+    "TIME",
+    "UNIQUEIDENTIFIER",
+    "VARBINARY",
+    "IMAGE",
+    "XML",
 ]
 
 
@@ -350,7 +450,9 @@ class TestSQLServerList:
     @pytest.mark.parametrize("type_name", _SQL_SERVER_TYPES)
     def test_match_in_list(self, type_name):
         success, observed = compare_column_type_list(
-            self.engine, _ci(type_name), ["__WRONG__", type_name],
+            self.engine,
+            _ci(type_name),
+            ["__WRONG__", type_name],
         )
         assert success is True
         assert str(observed) == type_name
@@ -358,14 +460,18 @@ class TestSQLServerList:
     @pytest.mark.parametrize("type_name", _SQL_SERVER_TYPES)
     def test_case_insensitive_match_in_list(self, type_name):
         success, _obs = compare_column_type_list(
-            self.engine, _ci(type_name), [type_name.lower()],
+            self.engine,
+            _ci(type_name),
+            [type_name.lower()],
         )
         assert success is True
 
     @pytest.mark.parametrize("type_name", _SQL_SERVER_TYPES)
     def test_no_match_in_list(self, type_name):
         success, _obs = compare_column_type_list(
-            self.engine, _ci(type_name), ["__WRONG__", "__ALSO_WRONG__"],
+            self.engine,
+            _ci(type_name),
+            ["__WRONG__", "__ALSO_WRONG__"],
         )
         assert success is False
 
@@ -375,11 +481,26 @@ class TestSQLServerList:
 # ===========================================================================
 
 _TRINO_TYPES = [
-    "INTEGER", "BIGINT", "SMALLINT", "TINYINT",
-    "DOUBLE", "REAL", "DECIMAL",
-    "VARCHAR", "CHAR", "VARBINARY",
-    "BOOLEAN", "DATE", "TIME", "TIMESTAMP", "TIMESTAMP WITH TIME ZONE",
-    "JSON", "UUID", "ARRAY", "MAP", "ROW",
+    "INTEGER",
+    "BIGINT",
+    "SMALLINT",
+    "TINYINT",
+    "DOUBLE",
+    "REAL",
+    "DECIMAL",
+    "VARCHAR",
+    "CHAR",
+    "VARBINARY",
+    "BOOLEAN",
+    "DATE",
+    "TIME",
+    "TIMESTAMP",
+    "TIMESTAMP WITH TIME ZONE",
+    "JSON",
+    "UUID",
+    "ARRAY",
+    "MAP",
+    "ROW",
 ]
 
 
@@ -409,7 +530,9 @@ class TestTrinoList:
     @pytest.mark.parametrize("type_name", _TRINO_TYPES)
     def test_match_in_list(self, type_name):
         success, observed = compare_column_type_list(
-            self.engine, _ci(type_name), ["__WRONG__", type_name],
+            self.engine,
+            _ci(type_name),
+            ["__WRONG__", type_name],
         )
         assert success is True
         assert str(observed) == type_name
@@ -417,14 +540,18 @@ class TestTrinoList:
     @pytest.mark.parametrize("type_name", _TRINO_TYPES)
     def test_case_insensitive_match_in_list(self, type_name):
         success, _obs = compare_column_type_list(
-            self.engine, _ci(type_name), [type_name.lower()],
+            self.engine,
+            _ci(type_name),
+            [type_name.lower()],
         )
         assert success is True
 
     @pytest.mark.parametrize("type_name", _TRINO_TYPES)
     def test_no_match_in_list(self, type_name):
         success, _obs = compare_column_type_list(
-            self.engine, _ci(type_name), ["__WRONG__", "__ALSO_WRONG__"],
+            self.engine,
+            _ci(type_name),
+            ["__WRONG__", "__ALSO_WRONG__"],
         )
         assert success is False
 
@@ -472,7 +599,9 @@ class TestSQLiteList:
     @pytest.mark.parametrize("actual_type, expected_name", _SQLITE_TYPE_PAIRS)
     def test_match_in_list(self, actual_type, expected_name):
         success, observed = compare_column_type_list(
-            self.engine, actual_type, ["__WRONG__", expected_name],
+            self.engine,
+            actual_type,
+            ["__WRONG__", expected_name],
         )
         assert success is True
         assert observed == type(actual_type).__name__
@@ -480,7 +609,9 @@ class TestSQLiteList:
     @pytest.mark.parametrize("actual_type, expected_name", _SQLITE_TYPE_PAIRS)
     def test_no_match_in_list(self, actual_type, expected_name):
         success, _obs = compare_column_type_list(
-            self.engine, actual_type, ["__WRONG__", "__ALSO_WRONG__"],
+            self.engine,
+            actual_type,
+            ["__WRONG__", "__ALSO_WRONG__"],
         )
         assert success is False
 
@@ -528,7 +659,9 @@ class TestMySQLList:
     @pytest.mark.parametrize("actual_type, expected_name", _MYSQL_TYPE_PAIRS)
     def test_match_in_list(self, actual_type, expected_name):
         success, observed = compare_column_type_list(
-            self.engine, actual_type, ["__WRONG__", expected_name],
+            self.engine,
+            actual_type,
+            ["__WRONG__", expected_name],
         )
         assert success is True
         assert observed == type(actual_type).__name__
@@ -536,7 +669,9 @@ class TestMySQLList:
     @pytest.mark.parametrize("actual_type, expected_name", _MYSQL_TYPE_PAIRS)
     def test_no_match_in_list(self, actual_type, expected_name):
         success, _obs = compare_column_type_list(
-            self.engine, actual_type, ["__WRONG__", "__ALSO_WRONG__"],
+            self.engine,
+            actual_type,
+            ["__WRONG__", "__ALSO_WRONG__"],
         )
         assert success is False
 
@@ -567,7 +702,9 @@ class TestCaseInsensitiveStringQuotedList:
 
     def test_quoted_in_type_list(self):
         success, _obs = compare_column_type_list(
-            self.engine, _ci('"MyType"'), ['"mytype"', '"MyType"'],
+            self.engine,
+            _ci('"MyType"'),
+            ['"mytype"', '"MyType"'],
         )
         assert success is True
 
@@ -575,13 +712,17 @@ class TestCaseInsensitiveStringQuotedList:
         """The type-list path uses .lower() comparison, so quoted semantics
         are not preserved — unlike the scalar path which uses __eq__."""
         success, _obs = compare_column_type_list(
-            self.engine, _ci('"MyType"'), ['"mytype"'],
+            self.engine,
+            _ci('"MyType"'),
+            ['"mytype"'],
         )
         assert success is True
 
     def test_unquoted_case_insensitive(self):
         success, _obs = compare_column_type_list(
-            self.engine, _ci("MyType"), ["mytype"],
+            self.engine,
+            _ci("MyType"),
+            ["mytype"],
         )
         assert success is True
 
@@ -608,7 +749,9 @@ class TestNonStringTypeFallback:
     def test_list_match(self, dialect):
         engine = _StubEngine(dialect)
         success, observed = compare_column_type_list(
-            engine, _NonStringType(), ["VARCHAR", "INTEGER"],
+            engine,
+            _NonStringType(),
+            ["VARCHAR", "INTEGER"],
         )
         assert success is True
         assert observed == "INTEGER"
@@ -617,6 +760,8 @@ class TestNonStringTypeFallback:
     def test_list_mismatch(self, dialect):
         engine = _StubEngine(dialect)
         success, _obs = compare_column_type_list(
-            engine, _NonStringType(), ["VARCHAR", "TEXT"],
+            engine,
+            _NonStringType(),
+            ["VARCHAR", "TEXT"],
         )
         assert success is False
