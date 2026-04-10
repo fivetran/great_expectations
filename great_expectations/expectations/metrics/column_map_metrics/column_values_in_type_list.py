@@ -4,12 +4,12 @@ import numpy as np
 import pandas as pd
 
 from great_expectations.execution_engine import PandasExecutionEngine
-from great_expectations.expectations.core.type_comparison import (
-    native_type_type_map,
-)
 from great_expectations.expectations.metrics.map_metric_provider import (
     ColumnMapMetricProvider,
     column_condition_partial,
+)
+from great_expectations.expectations.type_comparison import (
+    native_type_type_map,
 )
 
 

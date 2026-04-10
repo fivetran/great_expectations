@@ -11,10 +11,6 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )
-from great_expectations.expectations.core.type_comparison import (
-    compare_column_type,
-    native_type_type_map,
-)
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     _style_row_condition,
@@ -26,6 +22,10 @@ from great_expectations.expectations.model_field_descriptions import (
     FAILURE_SEVERITY_DESCRIPTION,
 )
 from great_expectations.expectations.registry import get_metric_kwargs
+from great_expectations.expectations.type_comparison import (
+    compare_column_type,
+    native_type_type_map,
+)
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (

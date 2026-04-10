@@ -1,4 +1,4 @@
-"""Unit tests for great_expectations.expectations.core.type_comparison.
+"""Unit tests for great_expectations.expectations.type_comparison.
 
 Every dialect tests BOTH compare_column_type (scalar) and
 compare_column_type_list (list) independently — no assumption is made
@@ -11,13 +11,13 @@ import pytest
 
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
-from great_expectations.expectations.core.type_comparison import (
+from great_expectations.expectations.metrics.util import CaseInsensitiveString
+from great_expectations.expectations.type_comparison import (
     CASE_INSENSITIVE_DIALECTS,
     compare_column_type,
     compare_column_type_list,
     native_type_type_map,
 )
-from great_expectations.expectations.metrics.util import CaseInsensitiveString
 
 pytestmark = pytest.mark.unit
 

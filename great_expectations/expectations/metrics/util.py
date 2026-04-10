@@ -484,7 +484,7 @@ def _build_column_metadata_result(
     ]
 
     # Apply case-insensitive formatting for specific dialects
-    from great_expectations.expectations.core.type_comparison import CASE_INSENSITIVE_DIALECTS
+    from great_expectations.expectations.type_comparison import CASE_INSENSITIVE_DIALECTS
 
     dialect_name = execution_engine.dialect.name
     if dialect_name in CASE_INSENSITIVE_DIALECTS:
