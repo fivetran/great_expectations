@@ -717,8 +717,8 @@ class TestCaseInsensitiveStringQuotedList:
         )
         assert success is True
 
-    def test_list_uses_lower_not_eq(self):
-        """The type-list path uses .lower() comparison, so quoted semantics
+    def test_list_uses_casefold_not_eq(self):
+        """The type-list path uses .casefold() comparison, so quoted semantics
         are not preserved — unlike the scalar path which uses __eq__."""
         success, _obs = compare_column_type_list(
             self.engine,

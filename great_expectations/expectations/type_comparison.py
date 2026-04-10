@@ -37,6 +37,7 @@ try:
     import teradatasqlalchemy.types as teradatatypes
 except ImportError:
     teradatasqlalchemy = None
+    teradatatypes = None
 
 try:
     import clickhouse_sqlalchemy
