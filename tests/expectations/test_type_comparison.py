@@ -806,7 +806,9 @@ class TestStringDialectName:
     def test_list(self, dialect_str, type_name):
         engine = _StubEngine(dialect_str)
         success, observed = compare_column_type_list(
-            engine, _ci(type_name), ["__WRONG__", type_name],
+            engine,
+            _ci(type_name),
+            ["__WRONG__", type_name],
         )
         assert success is True
         assert str(observed) == type_name
