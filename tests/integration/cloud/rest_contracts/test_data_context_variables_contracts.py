@@ -99,17 +99,13 @@ PUT_DATA_CONTEXT_VARIABLES_REQUEST_BODY: Final[dict] = {
                                     "ge_cloud_base_url": match.like("${GX_CLOUD_BASE_URL}"),
                                     "ge_cloud_credentials": match.like(
                                         {
-                                            "access_token": match.like(
-                                                "${GX_CLOUD_ACCESS_TOKEN}"
-                                            ),
+                                            "access_token": match.like("${GX_CLOUD_ACCESS_TOKEN}"),
                                             "organization_id": match.like(
                                                 "${GX_CLOUD_ORGANIZATION_ID}"
                                             ),
                                         }
                                     ),
-                                    "ge_cloud_resource_type": match.like(
-                                        "validation_definition"
-                                    ),
+                                    "ge_cloud_resource_type": match.like("validation_definition"),
                                     "suppress_store_backend_id": match.like(True),
                                 }
                             ),
