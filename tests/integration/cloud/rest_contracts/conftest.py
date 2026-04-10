@@ -40,26 +40,20 @@ PactBody: TypeAlias = Union[
 
 
 EXISTING_ORGANIZATION_ID: Final[str] = (
-    os.environ.get("GX_CLOUD_ORGANIZATION_ID", "") or "0ccac18e-7631-4bdd-8a42-3c35cce574c6"
+    os.environ.get("GX_CLOUD_ORGANIZATION_ID", "") or "d2179c7d-685d-49ec-b1e2-85e54308e8b6"
 )
 EXISTING_WORKSPACE_ID: Final[str] = (
-    os.environ.get("GX_CLOUD_WORKSPACE_ID", "") or "44444444-4444-4bdd-8a42-3c35cce574c6"
+    os.environ.get("GX_CLOUD_WORKSPACE_ID", "") or "003e13da-9d39-47b3-8b9b-b290280ccc37"
 )
 
 # Full data-context-configuration response body used as the Pact mock response when
 # constructing a CloudDataContext in tests.  Store backend URLs use the environment-variable
 # placeholder so they resolve correctly at runtime regardless of mock host/port.
 DATA_CONTEXT_CONFIG_RESPONSE_BODY: Final[dict] = {
-    "anonymous_usage_statistics": match.like(
-        {
-            "data_context_id": match.uuid(),
-            "enabled": False,
-        }
-    ),
-    "datasources": match.like({}),
+    "analytics_enabled": match.like(True),
     "checkpoint_store_name": "default_checkpoint_store",
     "expectations_store_name": "default_expectations_store",
-    "validation_results_store_name": "default_validation_results_store",
+    "validation_results_store_name": "default_validations_store",
     "stores": {
         "default_expectations_store": {
             "class_name": "ExpectationsStore",
@@ -87,7 +81,7 @@ DATA_CONTEXT_CONFIG_RESPONSE_BODY: Final[dict] = {
                 "suppress_store_backend_id": True,
             },
         },
-        "default_validation_results_store": {
+        "default_validations_store": {
             "class_name": "ValidationResultsStore",
             "store_backend": {
                 "class_name": "GXCloudStoreBackend",

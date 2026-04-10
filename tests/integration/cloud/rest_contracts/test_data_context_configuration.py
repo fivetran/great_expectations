@@ -17,13 +17,7 @@ if TYPE_CHECKING:
 
 
 GET_DATA_CONTEXT_CONFIGURATION_MIN_RESPONSE_BODY: Final[dict] = {
-    "anonymous_usage_statistics": match.like(
-        {
-            "data_context_id": match.uuid(),
-            "enabled": False,
-        }
-    ),
-    "datasources": match.like({}),
+    "analytics_enabled": match.like(True),
 }
 
 
