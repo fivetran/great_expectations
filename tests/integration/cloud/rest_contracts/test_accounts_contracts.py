@@ -4,7 +4,7 @@ Each test:
 1. Registers the GET /data-context-configuration interaction via
    ``setup_data_context_config_interaction()``.
 2. Registers the accounts/me interaction.
-3. Constructs a ``CloudDataContext`` and exercises ``_get_cloud_user_info()``
+3. Constructs a ``CloudDataContext`` and exercises ``cloud_user_info()``
    inside the ``with pact_test.serve() as srv:`` block.
 4. Asserts the client correctly parses the response.
 
@@ -62,7 +62,7 @@ ACCOUNTS_ME_RESPONSE_BODY: Final[dict] = {
 def test_get_accounts_me(pact_test: Pact) -> None:
     """GET /organizations/{org_id}/accounts/me returns the current user's info.
 
-    ``CloudDataContext._get_cloud_user_info()`` issues a GET to the V0
+    ``CloudDataContext.cloud_user_info()`` issues a GET to the V0
     accounts/me endpoint (no /api/v1 prefix, no workspace segment) and
     parses ``id`` and ``workspaces`` from the response.
 
@@ -95,7 +95,9 @@ def test_get_accounts_me(pact_test: Pact) -> None:
             cloud_workspace_id=EXISTING_WORKSPACE_ID,
             cloud_access_token=PACT_DUMMY_ACCESS_TOKEN,
         )
-        user_info = ctx._get_cloud_user_info()
+        # cloud_user_info() is a public method on CloudDataContext; it delegates
+        # to _get_cloud_user_info() internally.
+        user_info = ctx.cloud_user_info()
 
     assert user_info is not None
     assert user_info.user_id is not None

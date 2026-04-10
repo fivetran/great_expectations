@@ -129,6 +129,9 @@ def test_create_metric_run(pact_test: Pact) -> None:
     with pact_test.serve() as srv:
         # Build a minimal CloudDataStore that points at the Pact mock server.
         # We mock the context to avoid needing a full CloudDataContext.
+        # NOTE: CloudDataStore.add() has no @public_api decorator (the entire
+        # experimental/metric_repository module lacks one), so this is the
+        # best available entry point for exercising the metric-runs contract.
         mock_context = MagicMock()
         mock_context.ge_cloud_config.access_token = PACT_DUMMY_ACCESS_TOKEN
         mock_context.ge_cloud_config.base_url = str(srv.url) + "/"
