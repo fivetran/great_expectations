@@ -184,10 +184,9 @@ def test_delegates_to_compare_column_type_list_success(sa, mocker):
         "str_col", type_list=["INTEGER", "TEXT"]
     )
 
-    mock_compare.assert_called_once()
-    call_kwargs = mock_compare.call_args
-    assert call_kwargs.args[0] is validator.execution_engine  # execution_engine
-    assert call_kwargs.args[2] == ["INTEGER", "TEXT"]  # expected_types_list
+    mock_compare.assert_called_once_with(
+        validator.execution_engine, mocker.ANY, ["INTEGER", "TEXT"]
+    )
     assert result.success is True
     assert result.result["observed_value"] == "SENTINEL_TYPE"
 
@@ -209,9 +208,8 @@ def test_delegates_to_compare_column_type_list_failure(sa, mocker):
         "str_col", type_list=["INTEGER", "FLOAT"]
     )
 
-    mock_compare.assert_called_once()
-    call_kwargs = mock_compare.call_args
-    assert call_kwargs.args[0] is validator.execution_engine
-    assert call_kwargs.args[2] == ["INTEGER", "FLOAT"]
+    mock_compare.assert_called_once_with(
+        validator.execution_engine, mocker.ANY, ["INTEGER", "FLOAT"]
+    )
     assert result.success is False
     assert result.result["observed_value"] == "WHATEVER"
