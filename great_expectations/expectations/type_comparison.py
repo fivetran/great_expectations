@@ -46,6 +46,9 @@ except (ImportError, KeyError):
     ch_types = None
 
 
+# Uses GXSqlDialect enum members (not raw strings) to match the rest of the
+# codebase.  GXSqlDialect.__eq__ handles cross-type comparison with str values
+# returned by SqlAlchemyExecutionEngine.dialect_name.
 CASE_INSENSITIVE_DIALECTS: frozenset[GXSqlDialect] = frozenset(
     {
         GXSqlDialect.DATABRICKS,

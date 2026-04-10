@@ -41,6 +41,15 @@ class TestCaseInsensitiveDialects:
     def test_is_frozenset(self):
         assert isinstance(CASE_INSENSITIVE_DIALECTS, frozenset)
 
+    @pytest.mark.parametrize(
+        "dialect_string",
+        ["databricks", "postgresql", "snowflake", "mssql", "trino"],
+    )
+    def test_string_membership_via_gxsqldialect_eq(self, dialect_string):
+        """SqlAlchemyExecutionEngine.dialect_name returns lowercase strings.
+        GXSqlDialect.__eq__ handles cross-type comparison, so 'in' checks work."""
+        assert dialect_string in CASE_INSENSITIVE_DIALECTS
+
 
 # ---------------------------------------------------------------------------
 # native_type_type_map
@@ -765,3 +774,39 @@ class TestNonStringTypeFallback:
             ["VARCHAR", "TEXT"],
         )
         assert success is False
+
+
+# ===========================================================================
+# String dialect_name (as returned by SqlAlchemyExecutionEngine in production)
+# ===========================================================================
+
+# Maps dialect string values to representative type names
+_STRING_DIALECT_CASES = [
+    ("databricks", "STRING"),
+    ("postgresql", "INTEGER"),
+    ("snowflake", "DECIMAL(38, 0)"),
+    ("mssql", "NVARCHAR"),
+    ("trino", "VARCHAR"),
+]
+
+
+class TestStringDialectName:
+    """Verify that compare functions work when dialect_name is a plain string
+    (the form returned by SqlAlchemyExecutionEngine.dialect_name in production),
+    not a GXSqlDialect enum member."""
+
+    @pytest.mark.parametrize("dialect_str, type_name", _STRING_DIALECT_CASES)
+    def test_scalar(self, dialect_str, type_name):
+        engine = _StubEngine(dialect_str)
+        success, observed = compare_column_type(engine, _ci(type_name), type_name)
+        assert success is True
+        assert str(observed) == type_name
+
+    @pytest.mark.parametrize("dialect_str, type_name", _STRING_DIALECT_CASES)
+    def test_list(self, dialect_str, type_name):
+        engine = _StubEngine(dialect_str)
+        success, observed = compare_column_type_list(
+            engine, _ci(type_name), ["__WRONG__", type_name],
+        )
+        assert success is True
+        assert str(observed) == type_name
