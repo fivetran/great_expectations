@@ -1,6 +1,3 @@
-import unittest
-from unittest.mock import PropertyMock
-
 import pandas as pd
 import pytest
 
@@ -9,7 +6,6 @@ from great_expectations.compatibility import aws
 from great_expectations.core.expectation_validation_result import (
     ExpectationValidationResult,
 )
-from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from great_expectations.self_check.util import (
     build_sa_validator_with_data,
     get_test_validator_with_data,
@@ -172,88 +168,52 @@ def test_expect_column_values_to_be_in_type_list_nullable_int():
 
 
 @pytest.mark.sqlite
-def test_sqlalchemy_isinstance_path_success(sa):
-    """Verify the expectation delegates to compare_column_type_list for isinstance path."""
+def test_delegates_to_compare_column_type_list(sa, monkeypatch):
+    """Verify the expectation calls compare_column_type_list and uses its return value."""
     df = pd.DataFrame({"str_col": ["a", "b", "c"]})
     validator = build_sa_validator_with_data(
-        df=df, sa_engine_name="sqlite", table_name="in_type_list_isinstance_success"
+        df=df, sa_engine_name="sqlite", table_name="in_type_list_wiring_test"
     )
+
+    sentinel_observed = "SENTINEL_TYPE"
+    calls = []
+
+    def fake_compare(execution_engine, actual_column_type, expected_types_list):
+        calls.append((execution_engine, actual_column_type, expected_types_list))
+        return (True, sentinel_observed)
+
+    monkeypatch.setattr(
+        "great_expectations.expectations.core.expect_column_values_to_be_in_type_list.compare_column_type_list",
+        fake_compare,
+    )
+
     result = validator.expect_column_values_to_be_in_type_list(
         "str_col", type_list=["INTEGER", "TEXT"]
     )
+
+    assert len(calls) == 1, "compare_column_type_list should be called exactly once"
+    engine_arg, _actual_type_arg, expected_list_arg = calls[0]
+    assert engine_arg is validator.execution_engine
+    assert expected_list_arg == ["INTEGER", "TEXT"]
     assert result.success is True
+    assert result.result["observed_value"] == sentinel_observed
 
 
 @pytest.mark.sqlite
-def test_sqlalchemy_isinstance_path_failure(sa):
-    """Verify the expectation correctly reports failure via compare_column_type_list."""
+def test_delegates_to_compare_column_type_list_failure(sa, monkeypatch):
+    """Verify a False return from compare_column_type_list propagates as expectation failure."""
     df = pd.DataFrame({"str_col": ["a", "b", "c"]})
     validator = build_sa_validator_with_data(
-        df=df, sa_engine_name="sqlite", table_name="in_type_list_isinstance_failure"
+        df=df, sa_engine_name="sqlite", table_name="in_type_list_wiring_failure"
     )
+
+    monkeypatch.setattr(
+        "great_expectations.expectations.core.expect_column_values_to_be_in_type_list.compare_column_type_list",
+        lambda engine, actual, expected_list: (False, "WHATEVER"),
+    )
+
     result = validator.expect_column_values_to_be_in_type_list(
         "str_col", type_list=["INTEGER", "FLOAT"]
     )
     assert result.success is False
-
-
-@pytest.mark.unit
-@pytest.mark.parametrize(
-    "dialect_name",
-    [
-        GXSqlDialect.DATABRICKS,
-        GXSqlDialect.POSTGRESQL,
-        GXSqlDialect.SNOWFLAKE,
-        GXSqlDialect.SQL_SERVER,
-        GXSqlDialect.TRINO,
-    ],
-)
-def test_sqlalchemy_case_insensitive_path_success(sa, dialect_name):
-    """Verify the expectation delegates to compare_column_type_list for case-insensitive dialects.
-
-    SQLite backing store reflects str columns as TEXT. Patching dialect_name
-    routes through the case-insensitive string comparison in compare_column_type_list.
-    """
-    df = pd.DataFrame({"str_col": ["a", "b", "c"]})
-    validator = build_sa_validator_with_data(
-        df=df, sa_engine_name="sqlite", table_name="in_type_list_ci_success"
-    )
-    with unittest.mock.patch.object(
-        type(validator.execution_engine),
-        "dialect_name",
-        new_callable=PropertyMock,
-        return_value=dialect_name,
-    ):
-        result = validator.expect_column_values_to_be_in_type_list(
-            "str_col", type_list=["integer", "text"]
-        )
-        assert result.success is True
-
-
-@pytest.mark.unit
-@pytest.mark.parametrize(
-    "dialect_name",
-    [
-        GXSqlDialect.DATABRICKS,
-        GXSqlDialect.POSTGRESQL,
-        GXSqlDialect.SNOWFLAKE,
-        GXSqlDialect.SQL_SERVER,
-        GXSqlDialect.TRINO,
-    ],
-)
-def test_sqlalchemy_case_insensitive_path_failure(sa, dialect_name):
-    """Verify the expectation correctly reports failure via compare_column_type_list."""
-    df = pd.DataFrame({"str_col": ["a", "b", "c"]})
-    validator = build_sa_validator_with_data(
-        df=df, sa_engine_name="sqlite", table_name="in_type_list_ci_failure"
-    )
-    with unittest.mock.patch.object(
-        type(validator.execution_engine),
-        "dialect_name",
-        new_callable=PropertyMock,
-        return_value=dialect_name,
-    ):
-        result = validator.expect_column_values_to_be_in_type_list(
-            "str_col", type_list=["__NO_SUCH_TYPE__", "__ALSO_WRONG__"]
-        )
-        assert result.success is False
+    assert result.result["observed_value"] == "WHATEVER"

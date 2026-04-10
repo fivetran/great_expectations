@@ -107,84 +107,51 @@ def test_expect_column_values_to_be_of_type_string_dialect_sqlite(sa):
 
 
 @pytest.mark.sqlite
-def test_sqlalchemy_isinstance_path_success(sa):
-    """Verify the expectation delegates to compare_column_type for the isinstance path."""
+def test_delegates_to_compare_column_type(sa, monkeypatch):
+    """Verify the expectation calls compare_column_type and uses its return value."""
     df = pd.DataFrame({"str_col": ["a", "b", "c"]})
     validator = build_sa_validator_with_data(
-        df=df, sa_engine_name="sqlite", table_name="of_type_isinstance_success"
+        df=df, sa_engine_name="sqlite", table_name="of_type_wiring_test"
     )
+
+    sentinel_observed = "SENTINEL_TYPE"
+    calls = []
+
+    def fake_compare(execution_engine, actual_column_type, expected_type):
+        calls.append((execution_engine, actual_column_type, expected_type))
+        return (True, sentinel_observed)
+
+    monkeypatch.setattr(
+        "great_expectations.expectations.core.expect_column_values_to_be_of_type.compare_column_type",
+        fake_compare,
+    )
+
     result = validator.expect_column_values_to_be_of_type("str_col", type_="TEXT")
+
+    assert len(calls) == 1, "compare_column_type should be called exactly once"
+    engine_arg, _actual_type_arg, expected_type_arg = calls[0]
+    assert engine_arg is validator.execution_engine
+    assert expected_type_arg == "TEXT"
     assert result.success is True
-    assert result.result["observed_value"] == "TEXT"
+    assert result.result["observed_value"] == sentinel_observed
 
 
 @pytest.mark.sqlite
-def test_sqlalchemy_isinstance_path_failure(sa):
-    """Verify the expectation correctly reports failure via compare_column_type."""
+def test_delegates_to_compare_column_type_failure(sa, monkeypatch):
+    """Verify a False return from compare_column_type propagates as expectation failure."""
     df = pd.DataFrame({"str_col": ["a", "b", "c"]})
     validator = build_sa_validator_with_data(
-        df=df, sa_engine_name="sqlite", table_name="of_type_isinstance_failure"
+        df=df, sa_engine_name="sqlite", table_name="of_type_wiring_failure"
     )
+
+    monkeypatch.setattr(
+        "great_expectations.expectations.core.expect_column_values_to_be_of_type.compare_column_type",
+        lambda engine, actual, expected: (False, "WHATEVER"),
+    )
+
     result = validator.expect_column_values_to_be_of_type("str_col", type_="INTEGER")
     assert result.success is False
-
-
-@pytest.mark.unit
-@pytest.mark.parametrize(
-    "dialect_name",
-    [
-        GXSqlDialect.DATABRICKS,
-        GXSqlDialect.POSTGRESQL,
-        GXSqlDialect.SNOWFLAKE,
-        GXSqlDialect.SQL_SERVER,
-        GXSqlDialect.TRINO,
-    ],
-)
-def test_sqlalchemy_case_insensitive_path_success(sa, dialect_name):
-    """Verify the expectation delegates to compare_column_type for case-insensitive dialects.
-
-    SQLite backing store reflects str columns as TEXT. Patching dialect_name
-    routes through the case-insensitive string comparison in compare_column_type.
-    """
-    df = pd.DataFrame({"str_col": ["a", "b", "c"]})
-    validator = build_sa_validator_with_data(
-        df=df, sa_engine_name="sqlite", table_name="of_type_ci_success"
-    )
-    with unittest.mock.patch.object(
-        type(validator.execution_engine),
-        "dialect_name",
-        new_callable=PropertyMock,
-        return_value=dialect_name,
-    ):
-        result = validator.expect_column_values_to_be_of_type("str_col", type_="text")
-        assert result.success is True
-
-
-@pytest.mark.unit
-@pytest.mark.parametrize(
-    "dialect_name",
-    [
-        GXSqlDialect.DATABRICKS,
-        GXSqlDialect.POSTGRESQL,
-        GXSqlDialect.SNOWFLAKE,
-        GXSqlDialect.SQL_SERVER,
-        GXSqlDialect.TRINO,
-    ],
-)
-def test_sqlalchemy_case_insensitive_path_failure(sa, dialect_name):
-    """Verify the expectation correctly reports failure via compare_column_type."""
-    df = pd.DataFrame({"str_col": ["a", "b", "c"]})
-    validator = build_sa_validator_with_data(
-        df=df, sa_engine_name="sqlite", table_name="of_type_ci_failure"
-    )
-    with unittest.mock.patch.object(
-        type(validator.execution_engine),
-        "dialect_name",
-        new_callable=PropertyMock,
-        return_value=dialect_name,
-    ):
-        result = validator.expect_column_values_to_be_of_type("str_col", type_="__NO_SUCH_TYPE__")
-        assert result.success is False
+    assert result.result["observed_value"] == "WHATEVER"
 
 
 @pytest.mark.unit
