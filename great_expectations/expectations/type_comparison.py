@@ -262,7 +262,7 @@ def _get_dialect_type_module(  # noqa: C901, PLR0911
         if (
             teradatasqlalchemy is not None
             and issubclass(
-                execution_engine.dialect_module,
+                execution_engine.dialect_module,  # type: ignore[arg-type] # dialect_module can be a class
                 teradatasqlalchemy.dialect.TeradataDialect,
             )
             and teradatatypes is not None
@@ -275,7 +275,7 @@ def _get_dialect_type_module(  # noqa: C901, PLR0911
         if (
             clickhouse_sqlalchemy is not None
             and issubclass(
-                execution_engine.dialect_module,
+                execution_engine.dialect_module,  # type: ignore[arg-type] # dialect_module can be a class
                 clickhouse_sqlalchemy.drivers.base.ClickHouseDialect,
             )
             and ch_types is not None
