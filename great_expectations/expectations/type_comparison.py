@@ -83,6 +83,7 @@ def native_type_type_map(type_: str) -> tuple | None:  # noqa: C901, PLR0911
         return (dict,)
     elif type_.lower() == "unicode":
         return None
+    return None
 
 
 def compare_column_type(
@@ -210,8 +211,8 @@ def _get_potential_sqlalchemy_types(
 
 def _get_redshift_sqlalchemy_types(
     type_module: ModuleType, expected_type: Any
-) -> list[sa.sql.type_api.TypeEngine]:
-    types: list[sa.sql.type_api.TypeEngine] = []
+) -> list:
+    types: list = []
     potential_type = getattr(type_module, expected_type)
     types.append(potential_type)
     if expected_type.lower() == "decimal":

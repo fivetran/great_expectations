@@ -733,19 +733,19 @@ class TestCaseInsensitiveStringQuotedList:
 
 
 class TestNonStringTypeFallback:
-    @pytest.mark.parametrize("dialect", list(CASE_INSENSITIVE_DIALECTS))
+    @pytest.mark.parametrize("dialect", sorted(CASE_INSENSITIVE_DIALECTS, key=str))
     def test_scalar_match(self, dialect):
         engine = _StubEngine(dialect)
         success, _obs = compare_column_type(engine, _NonStringType(), "integer")
         assert success is True
 
-    @pytest.mark.parametrize("dialect", list(CASE_INSENSITIVE_DIALECTS))
+    @pytest.mark.parametrize("dialect", sorted(CASE_INSENSITIVE_DIALECTS, key=str))
     def test_scalar_mismatch(self, dialect):
         engine = _StubEngine(dialect)
         success, _obs = compare_column_type(engine, _NonStringType(), "varchar")
         assert success is False
 
-    @pytest.mark.parametrize("dialect", list(CASE_INSENSITIVE_DIALECTS))
+    @pytest.mark.parametrize("dialect", sorted(CASE_INSENSITIVE_DIALECTS, key=str))
     def test_list_match(self, dialect):
         engine = _StubEngine(dialect)
         success, observed = compare_column_type_list(
@@ -756,7 +756,7 @@ class TestNonStringTypeFallback:
         assert success is True
         assert observed == "INTEGER"
 
-    @pytest.mark.parametrize("dialect", list(CASE_INSENSITIVE_DIALECTS))
+    @pytest.mark.parametrize("dialect", sorted(CASE_INSENSITIVE_DIALECTS, key=str))
     def test_list_mismatch(self, dialect):
         engine = _StubEngine(dialect)
         success, _obs = compare_column_type_list(
