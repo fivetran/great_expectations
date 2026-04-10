@@ -57,7 +57,7 @@ CASE_INSENSITIVE_DIALECTS: frozenset[GXSqlDialect] = frozenset(
 )
 
 
-def native_type_type_map(type_: str) -> tuple | None:  # noqa: C901, PLR0911
+def native_type_type_map(type_: str) -> tuple[type, ...] | None:  # noqa: C901, PLR0911
     """Map a string type name to a tuple of native Python types.
 
     Used by pandas validation paths to resolve type names like "int", "str", etc.
@@ -129,14 +129,15 @@ def compare_column_type_list(
     if execution_engine.dialect_name in CASE_INSENSITIVE_DIALECTS:
         if isinstance(actual_column_type, str):
             success = any(
-                actual_column_type.lower() == expected_type.lower()
+                actual_column_type.casefold() == expected_type.casefold()
                 for expected_type in expected_types_list
             )
             return success, actual_column_type
         else:
             ret_type = type(actual_column_type).__name__
             success = any(
-                ret_type.lower() == expected_type.lower() for expected_type in expected_types_list
+                ret_type.casefold() == expected_type.casefold()
+                for expected_type in expected_types_list
             )
             return success, ret_type
     else:
