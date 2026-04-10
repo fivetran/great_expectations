@@ -241,6 +241,7 @@ module.exports = {
         'cloud/integrations/integrate_atlan',
         'cloud/integrations/integrate_airflow',
         'cloud/integrations/integrate_jira',
+        'cloud/integrations/integrate_teams',
         'cloud/integrations/integrate_slack'
       ]
     },

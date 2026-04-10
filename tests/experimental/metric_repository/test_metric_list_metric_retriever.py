@@ -145,6 +145,8 @@ def test_get_metrics_full_list(
         ("column.median", "column=col2", ()): 2.7,
         ("column.non_null_count", "column=col1", ()): 0,
         ("column.non_null_count", "column=col2", ()): 0,
+        ("column.unique_proportion", "column=col1", ()): 0.5,
+        ("column.unique_proportion", "column=col2", ()): 0.75,
     }
     metrics_list = [
         MetricTypes.TABLE_ROW_COUNT,
@@ -155,6 +157,7 @@ def test_get_metrics_full_list(
         MetricTypes.COLUMN_MEAN,
         MetricTypes.COLUMN_MEDIAN,
         MetricTypes.COLUMN_NON_NULL_COUNT,
+        MetricTypes.COLUMN_UNIQUE_PROPORTION,
     ]
     aborted_metrics: Dict[str, str] = {}
     mock_validator.compute_metrics.return_value = (
@@ -255,6 +258,20 @@ def test_get_metrics_full_list(
             batch_id="batch_id",
             metric_name="column.non_null_count",
             value=0,
+            exception=None,
+            column="col2",
+        ),
+        ColumnMetric[float](
+            batch_id="batch_id",
+            metric_name="column.unique_proportion",
+            value=0.5,
+            exception=None,
+            column="col1",
+        ),
+        ColumnMetric[float](
+            batch_id="batch_id",
+            metric_name="column.unique_proportion",
+            value=0.75,
             exception=None,
             column="col2",
         ),
@@ -725,6 +742,7 @@ def test_valid_metric_types_true(mock_context, metric_retriever):
         MetricTypes.COLUMN_MEAN,
         MetricTypes.COLUMN_MEDIAN,
         MetricTypes.COLUMN_NON_NULL_COUNT,
+        MetricTypes.COLUMN_UNIQUE_PROPORTION,
     ]
     assert metric_retriever._check_valid_metric_types(valid_metric_types) is True
 

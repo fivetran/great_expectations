@@ -15,6 +15,33 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.16.0
+* [MINORBUMP] Deprecate DBFS datasources (GX-2543) ([#11759](https://github.com/great-expectations/great_expectations/pull/11759))
+* [FEATURE] Remove deprecated legacy Pact contract tests (GX-3023) ([#11768](https://github.com/great-expectations/great_expectations/pull/11768))
+* [FEATURE] Migrate pact-python v2 → v3 (GX-3024) ([#11769](https://github.com/great-expectations/great_expectations/pull/11769))
+* [FEATURE] Add client-driven Pact contracts for validation definition and checkpoint CRUD (GX-2730) ([#11757](https://github.com/great-expectations/great_expectations/pull/11757))
+* [FEATURE] Add client-driven Pact contracts for expectation suite CRUD (GX-2729) ([#11756](https://github.com/great-expectations/great_expectations/pull/11756))
+* [FEATURE] Add client-driven Pact contracts for datasource CRUD (GX-2727) ([#11754](https://github.com/great-expectations/great_expectations/pull/11754))
+* [FEATURE] Add multi-step workflow contract test (GX-2731) ([#11783](https://github.com/great-expectations/great_expectations/pull/11783))
+* [FEATURE] Support `column.unique_proportion` in metric list runs ([#11786](https://github.com/great-expectations/great_expectations/pull/11786))
+* [BUGFIX] Fix suite freshness check after add in ephemeral context (GX-2891) ([#11758](https://github.com/great-expectations/great_expectations/pull/11758))
+* [BUGFIX] Fix unclosed SQLite connections causing ResourceWarning on Python 3.13 ([#11766](https://github.com/great-expectations/great_expectations/pull/11766))
+* [BUGFIX] Pin invoke==3.0.0 to avoid breaking change in 3.0.2 ([#11781](https://github.com/great-expectations/great_expectations/pull/11781))
+* [BUGFIX] Fix default exact_match value in ExpectTableColumnsToMatchSet renderers ([#11785](https://github.com/great-expectations/great_expectations/pull/11785))
+* [DOCS] Jira integration ([#11741](https://github.com/great-expectations/great_expectations/pull/11741))
+* [DOCS] teams integration ([#11761](https://github.com/great-expectations/great_expectations/pull/11761))
+* [DOCS] Hide magic-comment lines when line numbers are enabled ([#11731](https://github.com/great-expectations/great_expectations/pull/11731))
+* [MAINTENANCE] Remove dead code: profile module ([#11763](https://github.com/great-expectations/great_expectations/pull/11763))
+* [MAINTENANCE] Bump lodash from 4.17.23 to 4.18.1 in /docs/docusaurus ([#11776](https://github.com/great-expectations/great_expectations/pull/11776))
+* [MAINTENANCE] Add pact-broker publish step to CI (GX-3025) ([#11775](https://github.com/great-expectations/great_expectations/pull/11775))
+* [MAINTENANCE] Fix pact-broker publish step in CI ([#11787](https://github.com/great-expectations/great_expectations/pull/11787))
+* [MAINTENANCE] Fix pact publish to use PR head SHA ([#11790](https://github.com/great-expectations/great_expectations/pull/11790))
+* [MAINTENANCE] Bump brace-expansion from 1.1.12 to 1.1.13 in /docs/docusaurus ([#11777](https://github.com/great-expectations/great_expectations/pull/11777))
+* [MAINTENANCE] Skip code CI jobs for docs-only PRs ([#11792](https://github.com/great-expectations/great_expectations/pull/11792))
+* [MAINTENANCE] Increase SQL test connection pool size ([#11793](https://github.com/great-expectations/great_expectations/pull/11793))
+* [MAINTENANCE] Use pact regex matcher for Gx-Version header in contract tests ([#11791](https://github.com/great-expectations/great_expectations/pull/11791))
+* [MAINTENANCE] Skip pact publish on release tag CI runs ([#11796](https://github.com/great-expectations/great_expectations/pull/11796))
+
 ### 1.15.2
 * [FEATURE] Refactor rest_contracts/conftest.py for client-driven Pact testing (GX-2725) ([#11753](https://github.com/great-expectations/great_expectations/pull/11753))
 * [DOCS] Small wording change ([#11715](https://github.com/great-expectations/great_expectations/pull/11715))

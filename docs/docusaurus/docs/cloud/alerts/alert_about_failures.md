@@ -8,13 +8,18 @@ Keep yourself and your stakeholders informed about Expectation failures by confi
 
 Alerts are configured at the Data Asset level. A single Data Asset can have multiple alerts configured. An alert can be configured to notify about all Expectation failures or only failures of certain [severities](/cloud/expectations/expectations_overview.md#failure-severity).
 
-Alerts can send notifications to email addresses or notifications with @mentions to public Slack channels. Note that to enable @mentions for Slack, your GX Cloud workspace must be [integrated with Slack](/cloud/integrations/integrate_slack.md).
+Alerts can send notifications to the following recipients:
+- Email addresses.
+- Microsoft Teams standard channels in public teams, optionally @mentioning users or custom tags.
+- Slack public channels, optionally @mentioning users or user groups.
+
+Note that to enable @mentions for Microsoft Teams or Slack, your GX Cloud workspace must be [integrated with Microsoft Teams](/cloud/integrations/integrate_teams.md) or [integrated with Slack](/cloud/integrations/integrate_slack.md).
 
 :::note More integrations are coming soon
-Integrations for Microsoft Teams, PagerDuty, and ServiceNow are coming soon. In the meantime, you can use email alerts as described below. [Contact us](mailto:sales@greatexpectations.io) to learn more or to request a different integration.
+Integrations for PagerDuty and ServiceNow are coming soon. In the meantime, you can use email alerts as described below. [Contact us](mailto:sales@greatexpectations.io) to learn more or to request a different integration.
 :::
 
-To keep your email alerts secure, your GX Cloud organization has an allowlist of email domains that all alert recipient email addresses must belong to. By default, this includes the email domain of the Organization Owner who created the organization and domains for sending email notifications to the following third-party services: [Microsoft Teams](https://support.microsoft.com/en-us/office/send-an-email-to-a-channel-in-microsoft-teams-d91db004-d9d7-4a47-82e6-fb1b16dfd51e), [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide), and [ServiceNow](https://www.servicenow.com/docs/r/washingtondc/build-workflows/create-inbound-email-flow.html).
+To keep your email alerts secure, your GX Cloud organization has an allowlist of email domains that all alert recipient email addresses must belong to. By default, this includes the email domain of the Organization Owner who created the organization and domains for sending email notifications to the following third-party services: [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide) and [ServiceNow](https://www.servicenow.com/docs/r/washingtondc/build-workflows/create-inbound-email-flow.html).
 
 Here is an example of how a team might configure alerts on their Data Assets to make sure the right people get the right information at the right time.
 
@@ -31,12 +36,12 @@ Note that you must have [Workspace Editor permissions](/cloud/access/manage_acce
 5. In the **Alert name** field, enter a name for the alert that will help you quickly identify it later.
 6. Under **Severity**, select one or more failure severities for the alert to notify about. 
 7. To alert an email address, do the following. Under **Recipients**, next to **Emails**, click **+** and enter an email address for the alert to send notifications to. Note that the domain of the email address must belong to your organization’s [email domain allowlist](#update-your-organizations-email-domain-allowlist). By default, the following third-party domains are allowed for email notifications to third-party services.
-      - [Microsoft Teams](https://support.microsoft.com/en-us/office/send-an-email-to-a-channel-in-microsoft-teams-d91db004-d9d7-4a47-82e6-fb1b16dfd51e) - `*.teams.ms`
       - [PagerDuty](https://support.pagerduty.com/main/docs/email-integration-guide) - `*.pagerduty.com`
       - [ServiceNow](https://www.servicenow.com/docs/r/washingtondc/build-workflows/create-inbound-email-flow.html) - `*.service-now.com`
 8. To alert a Slack channel, do the following. First, make sure your GX Cloud workspace is [integrated with Slack](/cloud/integrations/integrate_slack.md). Then, under **Recipients**, next to **Slack channels**, click **+** and select a channel for the alert to send notifications to. After selecting the channel, you will have the option to specify @mentions to include in the notification message. You can mention any user or user group in your Slack workspace.
-9. Optional. To send the same notification to another recipient, click **+** and enter another email address or Slack channel. Repeat as needed.
-10. Click **Save**.
+9. To alert a Microsoft Teams channel, do the following. First, make sure your GX Cloud workspace is [integrated with Microsoft Teams](/cloud/integrations/integrate_teams.md). Then, under **Recipients**, next to **Microsoft Teams channels**, click **+** and select a team and channel for the alert to send notifications to. After selecting a channel, you will have the option to specify @mentions to include in the notification message. You can mention any user in the channel or any custom tag configured for the team.
+10. Optional. To send the same notification to another recipient, click **+** and enter another email address, Slack channel, or Teams channel. Repeat as needed.
+11. Click **Save**.
 
 ## Edit an alert
 
@@ -72,7 +77,6 @@ If you want to temporarily stop an alert from sending notifications, you can dis
 By default, your organization’s email domain allowlist includes the following:
 
 - The email domain of the Organization Owner who created the organization
-- `*.teams.ms`
 - `*.pagerduty.com`
 - `*.service-now.com`
 
