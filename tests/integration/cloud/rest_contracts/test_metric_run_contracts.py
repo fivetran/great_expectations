@@ -20,7 +20,6 @@ from pact import Pact, match
 from great_expectations.core.http import create_session
 from great_expectations.experimental.metric_repository.cloud_data_store import (
     CloudDataStore,
-    Payload,
 )
 from great_expectations.experimental.metric_repository.metrics import (
     MetricRun,
