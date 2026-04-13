@@ -575,13 +575,7 @@ jobs:
 
       - name: Start services
         run: |
-          docker compose --progress quiet -f assets/docker/mercury/docker-compose.yml up -d --wait --wait-timeout 300 && \
           docker compose --progress quiet -f assets/docker/spark/docker-compose.yml up -d --wait --wait-timeout 300
-
-      - name: Show logs for debugging
-        if: failure()
-        run: |
-          docker compose -f assets/docker/mercury/docker-compose.yml logs
 
       - name: Run the tests
         run: invoke ci-tests 'cloud' --up-services --verbose  --reports -W default::great_expectations.datasource.fluent.GxInvalidDatasourceWarning
@@ -620,12 +614,7 @@ jobs:
             --consumer-app-version="${CONSUMER_VERSION}" \
             --branch="${PACT_BRANCH}"
 
-      - name: Show cloud logs on test failure
-        if: failure()
-        run: |
-          docker compose -f assets/docker/mercury/docker-compose.yml logs
-
-          # upload coverage report to codecov
+      # upload coverage report to codecov
       - name: Upload coverage reports to Codecov
         continue-on-error: true
         uses: codecov/codecov-action@v4.1.0
