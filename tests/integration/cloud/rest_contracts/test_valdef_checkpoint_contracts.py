@@ -1036,7 +1036,7 @@ def test_get_checkpoint_expectation_parameters(pact_test: Pact) -> None:
     )
 
     # 2. GET /checkpoints/{id}/expectation-parameters
-    expectation_params_response = {
+    expectation_params_response: dict = {
         "data": match.like(
             {
                 "expectation_parameters": match.like({}),
