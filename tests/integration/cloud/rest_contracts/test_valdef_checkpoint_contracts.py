@@ -946,19 +946,19 @@ def test_update_validation_definition(pact_test: Pact) -> None:
                             "datasource": match.like(
                                 {
                                     "name": match.like(DATASOURCE_NAME),
-                                    "id": match.uuid(),
+                                    "id": match.uuid(EXISTING_DATASOURCE_ID),
                                 }
                             ),
                             "asset": match.like(
                                 {
                                     "name": match.like(ASSET_NAME),
-                                    "id": match.uuid(),
+                                    "id": match.uuid(EXISTING_ASSET_ID),
                                 }
                             ),
                             "batch_definition": match.like(
                                 {
                                     "name": match.like(BATCH_DEF_NAME),
-                                    "id": match.uuid(),
+                                    "id": match.uuid(EXISTING_BATCH_DEF_ID),
                                 }
                             ),
                         }
@@ -966,7 +966,7 @@ def test_update_validation_definition(pact_test: Pact) -> None:
                     "suite": match.like(
                         {
                             "name": match.like(SUITE_NAME),
-                            "id": match.uuid(),
+                            "id": match.uuid(EXISTING_SUITE_ID),
                         }
                     ),
                 }
