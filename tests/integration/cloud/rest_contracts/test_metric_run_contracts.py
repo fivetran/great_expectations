@@ -11,11 +11,14 @@ URL pattern:
 
 from __future__ import annotations
 
-from typing import Final
-from unittest.mock import MagicMock
+import uuid
+from typing import TYPE_CHECKING, Final
 
 import pytest
 from pact import Pact, match
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 from great_expectations.core.http import create_session
 from great_expectations.experimental.metric_repository.cloud_data_store import (
@@ -104,7 +107,7 @@ METRIC_RUN_RESPONSE_BODY: Final[dict] = {
 
 
 @pytest.mark.cloud
-def test_create_metric_run(pact_test: Pact) -> None:
+def test_create_metric_run(pact_test: Pact, mocker: MockerFixture) -> None:
     """POST /metric-runs creates a metric run for a given data asset.
 
     The ``CloudDataStore.add()`` method serializes a ``MetricRun`` into
@@ -132,7 +135,7 @@ def test_create_metric_run(pact_test: Pact) -> None:
         # NOTE: CloudDataStore.add() has no @public_api decorator (the entire
         # experimental/metric_repository module lacks one), so this is the
         # best available entry point for exercising the metric-runs contract.
-        mock_context = MagicMock()
+        mock_context = mocker.MagicMock()
         mock_context.ge_cloud_config.access_token = PACT_DUMMY_ACCESS_TOKEN
         mock_context.ge_cloud_config.base_url = str(srv.url) + "/"
         mock_context.ge_cloud_config.organization_id = EXISTING_ORGANIZATION_ID
@@ -143,7 +146,7 @@ def test_create_metric_run(pact_test: Pact) -> None:
         store._session = create_session(access_token=PACT_DUMMY_ACCESS_TOKEN)
 
         metric_run = MetricRun(
-            data_asset_id=METRIC_RUN_DATA_ASSET_ID,
+            data_asset_id=uuid.UUID(METRIC_RUN_DATA_ASSET_ID),
             metrics=[
                 TableMetric[int](
                     batch_id="batch-1",
