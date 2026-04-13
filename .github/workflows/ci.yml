@@ -600,11 +600,25 @@ jobs:
           ls -la ${PACT_DIR}/*.json
           curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/${PACT_CLI_VERSION}/install.sh | bash
           export PATH="${PATH}:$(pwd)/pact/bin"
+
+          CONSUMER_VERSION="${{ github.event.pull_request.head.sha || github.sha }}"
+
+          # For merge_group events, resolve the target branch (e.g. "develop") from
+          # the base_ref instead of using the throwaway queue ref name
+          # (gh-readonly-queue/develop/pr-NNN-SHA).
+          if [[ "${{ github.event_name }}" == "merge_group" ]]; then
+            PACT_BRANCH="${{ github.event.merge_group.base_ref }}"
+            PACT_BRANCH="${PACT_BRANCH#refs/heads/}"
+          else
+            PACT_BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          fi
+
+          echo "Publishing with version=${CONSUMER_VERSION} branch=${PACT_BRANCH}"
           pact-broker publish "${PACT_DIR}" \
             --broker-base-url=https://greatexpectations.pactflow.io \
             --broker-token="${PACT_BROKER_READ_WRITE_TOKEN}" \
-            --consumer-app-version="${{ github.event.pull_request.head.sha || github.sha }}" \
-            --branch="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+            --consumer-app-version="${CONSUMER_VERSION}" \
+            --branch="${PACT_BRANCH}"
 
       - name: Show cloud logs on test failure
         if: failure()
