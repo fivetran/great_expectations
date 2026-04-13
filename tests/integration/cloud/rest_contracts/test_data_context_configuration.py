@@ -13,7 +13,6 @@ from tests.integration.cloud.rest_contracts.conftest import (
     pact_session_headers,
 )
 
-
 GET_DATA_CONTEXT_CONFIGURATION_MIN_RESPONSE_BODY: Final[dict] = {
     "analytics_enabled": match.like(True),
 }
