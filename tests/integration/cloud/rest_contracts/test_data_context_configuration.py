@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final
+from typing import Final
 
 import pytest
 from pact import Pact, match
@@ -9,12 +9,9 @@ import great_expectations as gx
 from tests.integration.cloud.rest_contracts.conftest import (
     EXISTING_ORGANIZATION_ID,
     EXISTING_WORKSPACE_ID,
-    GX_VERSION_REGEX,
+    PACT_DUMMY_ACCESS_TOKEN,
+    pact_session_headers,
 )
-
-if TYPE_CHECKING:
-    import requests
-
 
 GET_DATA_CONTEXT_CONFIGURATION_MIN_RESPONSE_BODY: Final[dict] = {
     "analytics_enabled": match.like(True),
@@ -23,8 +20,6 @@ GET_DATA_CONTEXT_CONFIGURATION_MIN_RESPONSE_BODY: Final[dict] = {
 
 @pytest.mark.cloud
 def test_data_context_configuration(
-    gx_cloud_session: requests.Session,
-    cloud_access_token: str,
     pact_test: Pact,
 ) -> None:
     # Arrange: set up the data context configuration endpoint interaction
@@ -37,11 +32,7 @@ def test_data_context_configuration(
     )
     status = 200
     response_body = GET_DATA_CONTEXT_CONFIGURATION_MIN_RESPONSE_BODY
-
-    headers: dict = {
-        k: (match.regex(str(v), regex=GX_VERSION_REGEX) if k == "Gx-Version" else str(v))
-        for k, v in gx_cloud_session.headers.items()
-    }
+    headers = pact_session_headers()
 
     (
         pact_test.upon_receiving(scenario)
@@ -59,7 +50,7 @@ def test_data_context_configuration(
             cloud_base_url=str(srv.url),
             cloud_organization_id=EXISTING_ORGANIZATION_ID,
             cloud_workspace_id=EXISTING_WORKSPACE_ID,
-            cloud_access_token=cloud_access_token,
+            cloud_access_token=PACT_DUMMY_ACCESS_TOKEN,
         )
 
     # Assert
