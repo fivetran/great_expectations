@@ -80,7 +80,7 @@ class ExpectColumnValuesToMatchStrftimeFormat(ColumnMapExpectation):
         if isinstance(strftime_format, str):
             try:
                 datetime.strptime(  # noqa: DTZ007 # FIXME CoP
-                    datetime.strftime(datetime.now(tz=timezone.utc), strftime_format),  # noqa: DTZ005 # FIXME CoP
+                    datetime.strftime(datetime.now(tz=timezone.utc), strftime_format),  # FIXME CoP
                     strftime_format,
                 )
             except ValueError as e:
