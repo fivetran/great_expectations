@@ -43,5 +43,3 @@ def test_cloud_context_add_datasource_with_fds(
     _ = context.add_datasource(datasource=fds)
 
     assert cloud_api_fake.assert_call_count(url=post_url, count=2)
-
-
