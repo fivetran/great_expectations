@@ -24,6 +24,10 @@ PROVIDER_NAME: Final[str] = "mercury"
 # Dummy token used by pact_cloud_context — the Pact mock server does not validate credentials.
 PACT_DUMMY_ACCESS_TOKEN: Final[str] = "dummy-pact-access-token"
 
+# Regex that matches any semver-like version string, including setuptools-scm dev versions
+# (e.g. "1.15.2", "1.15.2+29.gc25a0e174.dirty", "0+untagged.1.gc93ab77").
+GX_VERSION_REGEX: Final[str] = r"^(?:\d+\.\d+\.\d+.*|0\+.+)$"
+
 
 PACT_DIR: Final[pathlib.Path] = pathlib.Path(pathlib.Path(__file__, ".."), "pacts").resolve()
 
@@ -35,27 +39,17 @@ PactBody: TypeAlias = Union[
 ]
 
 
-EXISTING_ORGANIZATION_ID: Final[str] = (
-    os.environ.get("GX_CLOUD_ORGANIZATION_ID", "") or "0ccac18e-7631-4bdd-8a42-3c35cce574c6"
-)
-EXISTING_WORKSPACE_ID: Final[str] = (
-    os.environ.get("GX_CLOUD_WORKSPACE_ID", "") or "44444444-4444-4bdd-8a42-3c35cce574c6"
-)
+EXISTING_ORGANIZATION_ID: Final[str] = "d2179c7d-685d-49ec-b1e2-85e54308e8b6"
+EXISTING_WORKSPACE_ID: Final[str] = "003e13da-9d39-47b3-8b9b-b290280ccc37"
 
 # Full data-context-configuration response body used as the Pact mock response when
 # constructing a CloudDataContext in tests.  Store backend URLs use the environment-variable
 # placeholder so they resolve correctly at runtime regardless of mock host/port.
 DATA_CONTEXT_CONFIG_RESPONSE_BODY: Final[dict] = {
-    "anonymous_usage_statistics": match.like(
-        {
-            "data_context_id": match.uuid(),
-            "enabled": False,
-        }
-    ),
-    "datasources": match.like({}),
+    "analytics_enabled": match.like(True),
     "checkpoint_store_name": "default_checkpoint_store",
     "expectations_store_name": "default_expectations_store",
-    "validation_results_store_name": "default_validation_results_store",
+    "validation_results_store_name": "default_validations_store",
     "stores": {
         "default_expectations_store": {
             "class_name": "ExpectationsStore",
@@ -83,7 +77,7 @@ DATA_CONTEXT_CONFIG_RESPONSE_BODY: Final[dict] = {
                 "suppress_store_backend_id": True,
             },
         },
-        "default_validation_results_store": {
+        "default_validations_store": {
             "class_name": "ValidationResultsStore",
             "store_backend": {
                 "class_name": "GXCloudStoreBackend",
@@ -93,6 +87,19 @@ DATA_CONTEXT_CONFIG_RESPONSE_BODY: Final[dict] = {
                     "organization_id": r"${GX_CLOUD_ORGANIZATION_ID}",
                 },
                 "ge_cloud_resource_type": "validation_result",
+                "suppress_store_backend_id": True,
+            },
+        },
+        "validation_definition_store": {
+            "class_name": "ValidationDefinitionStore",
+            "store_backend": {
+                "class_name": "GXCloudStoreBackend",
+                "ge_cloud_base_url": r"${GX_CLOUD_BASE_URL}",
+                "ge_cloud_credentials": {
+                    "access_token": r"${GX_CLOUD_ACCESS_TOKEN}",
+                    "organization_id": r"${GX_CLOUD_ORGANIZATION_ID}",
+                },
+                "ge_cloud_resource_type": "validation_definition",
                 "suppress_store_backend_id": True,
             },
         },
@@ -155,9 +162,25 @@ def cloud_data_context(
     return context
 
 
+def pact_session_headers(access_token: str = PACT_DUMMY_ACCESS_TOKEN) -> dict:
+    """Build session headers with Gx-Version as a pact matcher instead of literal value.
+
+    The ``Gx-Version`` header contains ``great_expectations.__version__`` which
+    includes the git hash via setuptools-scm and changes every commit.  Using a
+    ``match.regex()`` matcher keeps the generated pact file stable across commits.
+    """
+    session = create_session(access_token=access_token)
+    headers: dict = {k: str(v) for k, v in session.headers.items()}
+    # Replace the exact Gx-Version with a regex matcher so the pact file
+    # doesn't change every commit (setuptools-scm embeds the git hash).
+    headers["Gx-Version"] = match.regex(headers["Gx-Version"], regex=GX_VERSION_REGEX)
+    return headers
+
+
 def setup_data_context_config_interaction(
     pact_test: Pact,
     access_token: str,
+    description_suffix: str = "",
 ) -> None:
     """Register the GET /data-context-configuration Pact interaction.
 
@@ -174,17 +197,23 @@ def setup_data_context_config_interaction(
             ``PACT_DUMMY_ACCESS_TOKEN`` when no real credentials are needed (e.g.
             in the ``pact_cloud_context`` fixture), or a real token when testing
             against a live provider.
+        description_suffix: Optional suffix to make the ``upon_receiving``
+            description unique when multiple tests share the same ``pact_test``
+            fixture (pact v3 requires unique descriptions per interaction).
     """
-    session = create_session(access_token=access_token)
+    headers = pact_session_headers(access_token=access_token)
     path = (
         f"/api/v1/organizations/{EXISTING_ORGANIZATION_ID}/"
         f"workspaces/{EXISTING_WORKSPACE_ID}/data-context-configuration"
     )
+    description = "a request for Data Context configuration (client-driven setup)"
+    if description_suffix:
+        description = f"{description} [{description_suffix}]"
     (
-        pact_test.upon_receiving("a request for Data Context configuration (client-driven setup)")
+        pact_test.upon_receiving(description)
         .given("the Data Context exists")
         .with_request("GET", path)
-        .with_headers({k: str(v) for k, v in session.headers.items()})
+        .with_headers(headers)
         .will_respond_with(200)
         .with_body(DATA_CONTEXT_CONFIG_RESPONSE_BODY, content_type="application/json")
     )
@@ -193,7 +222,7 @@ def setup_data_context_config_interaction(
 @pytest.fixture
 def pact_cloud_context(
     pact_test: Pact,
-) -> CloudDataContext:
+) -> Generator[CloudDataContext, None, None]:
     """A ``CloudDataContext`` backed by the Pact mock server.
 
     Unlike ``cloud_data_context``, this fixture does **not** require real cloud
@@ -207,32 +236,35 @@ def pact_cloud_context(
     Use this fixture in new client-driven contract tests instead of
     ``cloud_data_context``.
     """
-    setup_data_context_config_interaction(pact_test, access_token=PACT_DUMMY_ACCESS_TOKEN)
+    setup_data_context_config_interaction(
+        pact_test, access_token=PACT_DUMMY_ACCESS_TOKEN, description_suffix="pact-cloud-context"
+    )
 
     with pact_test.serve() as srv:
-        context = CloudDataContext(
+        yield CloudDataContext(
             cloud_base_url=str(srv.url),
             cloud_organization_id=EXISTING_ORGANIZATION_ID,
             cloud_workspace_id=EXISTING_WORKSPACE_ID,
             cloud_access_token=PACT_DUMMY_ACCESS_TOKEN,
         )
 
-    return context
-
 
 def get_git_commit_hash() -> str:
     return subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("ascii").strip()
 
 
-@pytest.fixture(scope="package")
-def pact_test(request) -> Generator[Pact, None, None]:
+@pytest.fixture
+def pact_test() -> Generator[Pact, None, None]:
     """
-    pact_test yields a Pact v3 instance. Interactions are registered on it,
-    then ``pact.serve()`` is used as a context manager in each test to start
-    the mock server.  After all tests complete, the pact file is written to
-    disk.
+    pact_test yields a fresh Pact v3 instance per test.  Each test registers
+    interactions, calls ``pact.serve()`` to start the mock server, and on
+    teardown the pact file is written (merged) to disk.
+
+    Must be function-scoped because the pact-python v3 Rust FFI permanently
+    locks the ``PactHandle`` after ``serve()`` is called, preventing any new
+    interactions from being registered on the same instance.
     """
     _pact = Pact(CONSUMER_NAME, PROVIDER_NAME)
     yield _pact
     PACT_DIR.mkdir(parents=True, exist_ok=True)
-    _pact.write_file(str(PACT_DIR), overwrite=True)
+    _pact.write_file(str(PACT_DIR), overwrite=False)
