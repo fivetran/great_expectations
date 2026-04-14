@@ -199,7 +199,6 @@ class StatisticsDataAssistant(DataAssistant):
 
         # Step-3: Declare "ParameterBuilder" configurations for all additional statistics needed.
 
-        suite_parameter_builder_configs: Optional[List[ParameterBuilderConfig]]
 
         if total_count_metric_multi_batch_parameter_builder_for_evaluations is None:
             total_count_metric_multi_batch_parameter_builder_for_evaluations = DataAssistant.commonly_used_parameter_builders.get_table_row_count_metric_multi_batch_parameter_builder()
@@ -309,7 +308,6 @@ class StatisticsDataAssistant(DataAssistant):
 
         # Step-3: Declare "ParameterBuilder" configurations for all additional statistics needed.
 
-        suite_parameter_builder_configs: Optional[List[ParameterBuilderConfig]]
 
         suite_parameter_builder_configs = [
             ParameterBuilderConfig(
@@ -461,7 +459,6 @@ class StatisticsDataAssistant(DataAssistant):
 
         # Step-3: Declare "ParameterBuilder" configurations for all additional statistics needed.
 
-        suite_parameter_builder_configs: Optional[List[ParameterBuilderConfig]]
 
         suite_parameter_builder_configs = [
             ParameterBuilderConfig(
@@ -549,7 +546,6 @@ class StatisticsDataAssistant(DataAssistant):
 
         # Step-3: Declare "ParameterBuilder" configurations for all additional statistics needed.
 
-        suite_parameter_builder_configs: Optional[List[ParameterBuilderConfig]]
 
         suite_parameter_builder_configs = [
             ParameterBuilderConfig(
