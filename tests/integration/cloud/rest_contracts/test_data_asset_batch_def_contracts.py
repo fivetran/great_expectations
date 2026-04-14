@@ -451,9 +451,7 @@ def test_delete_dataframe_asset(pact_test: Pact) -> None:
 
     # 3. DELETE /data-assets/{asset_id}
     (
-        pact_test.upon_receiving(
-            "DELETE a DataFrameAsset by id (client-driven)"
-        )
+        pact_test.upon_receiving("DELETE a DataFrameAsset by id (client-driven)")
         .given("the DataFrameAsset exists for deletion")
         .with_request("DELETE", ASSET_BY_ID_PATH)
         .with_headers(headers)
@@ -501,9 +499,7 @@ def test_delete_batch_definition(pact_test: Pact) -> None:
         pact_test.upon_receiving(
             "fetch datasource by name before deleting batch definition (client-driven)"
         )
-        .given(
-            "the Pandas datasource with asset and batch def exists for batch def deletion"
-        )
+        .given("the Pandas datasource with asset and batch def exists for batch def deletion")
         .with_request("GET", DATASOURCES_PATH)
         .with_headers(headers)
         .with_query_parameters({"name": DATASOURCE_NAME})
@@ -516,9 +512,7 @@ def test_delete_batch_definition(pact_test: Pact) -> None:
 
     # 3. PUT /datasources/{id} — datasource with empty batch_definitions
     (
-        pact_test.upon_receiving(
-            "PUT datasource to remove a BatchDefinition (client-driven)"
-        )
+        pact_test.upon_receiving("PUT datasource to remove a BatchDefinition (client-driven)")
         .given("datasource exists and a BatchDefinition is being removed")
         .with_request("PUT", DATASOURCE_BY_ID_PATH)
         .with_headers(headers)

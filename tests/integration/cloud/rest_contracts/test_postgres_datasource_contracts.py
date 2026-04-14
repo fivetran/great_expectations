@@ -241,9 +241,7 @@ def test_create_postgres_datasource(pact_test: Pact) -> None:
         )
     }
     (
-        pact_test.upon_receiving(
-            "a request to add a Postgres datasource (client-driven)"
-        )
+        pact_test.upon_receiving("a request to add a Postgres datasource (client-driven)")
         .given("the Postgres datasource does not exist")
         .with_request("POST", DATASOURCES_PATH)
         .with_headers(headers)
@@ -326,9 +324,7 @@ def test_get_postgres_datasource(pact_test: Pact) -> None:
         )
     }
     (
-        pact_test.upon_receiving(
-            "a request to get the Postgres datasource by name (client-driven)"
-        )
+        pact_test.upon_receiving("a request to get the Postgres datasource by name (client-driven)")
         .given("the Postgres datasource exists")
         .with_request("GET", DATASOURCES_PATH)
         .with_headers(headers)
@@ -390,9 +386,7 @@ def test_add_table_asset_to_postgres(pact_test: Pact) -> None:
 
     # 3. PUT /datasources/{id} -- datasource now includes the TableAsset
     (
-        pact_test.upon_receiving(
-            "PUT Postgres datasource to add a TableAsset (client-driven)"
-        )
+        pact_test.upon_receiving("PUT Postgres datasource to add a TableAsset (client-driven)")
         .given("the Postgres datasource exists and a TableAsset is being added")
         .with_request("PUT", DATASOURCE_BY_ID_PATH)
         .with_headers(headers)
@@ -498,9 +492,7 @@ def test_add_query_asset_to_postgres(pact_test: Pact) -> None:
 
     # 3. PUT /datasources/{id} -- datasource now includes the QueryAsset
     (
-        pact_test.upon_receiving(
-            "PUT Postgres datasource to add a QueryAsset (client-driven)"
-        )
+        pact_test.upon_receiving("PUT Postgres datasource to add a QueryAsset (client-driven)")
         .given("the Postgres datasource exists and a QueryAsset is being added")
         .with_request("PUT", DATASOURCE_BY_ID_PATH)
         .with_headers(headers)
@@ -635,9 +627,7 @@ def test_add_batch_definition_yearly(pact_test: Pact) -> None:
                                             "partitioner": match.like(
                                                 {
                                                     "method_name": "partition_on_year",
-                                                    "column_name": match.like(
-                                                        PARTITION_COLUMN
-                                                    ),
+                                                    "column_name": match.like(PARTITION_COLUMN),
                                                     "sort_ascending": match.like(True),
                                                 }
                                             ),
@@ -762,9 +752,7 @@ def test_add_batch_definition_daily(pact_test: Pact) -> None:
                                             "partitioner": match.like(
                                                 {
                                                     "method_name": "partition_on_year_and_month_and_day",
-                                                    "column_name": match.like(
-                                                        PARTITION_COLUMN
-                                                    ),
+                                                    "column_name": match.like(PARTITION_COLUMN),
                                                     "sort_ascending": match.like(True),
                                                 }
                                             ),

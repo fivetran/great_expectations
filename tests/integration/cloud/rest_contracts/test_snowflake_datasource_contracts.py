@@ -185,9 +185,7 @@ def test_create_snowflake_datasource_with_dsn(pact_test: Pact) -> None:
         )
     }
     (
-        pact_test.upon_receiving(
-            "a request to add a Snowflake datasource with DSN (client-driven)"
-        )
+        pact_test.upon_receiving("a request to add a Snowflake datasource with DSN (client-driven)")
         .given("the Snowflake datasource does not exist (DSN)")
         .with_request("POST", DATASOURCES_PATH)
         .with_headers(headers)
@@ -221,9 +219,11 @@ def test_create_snowflake_datasource_with_dsn(pact_test: Pact) -> None:
         .with_body(get_response_body, content_type="application/json")
     )
 
-    with patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()), \
-         patch.object(SnowflakeDatasource, "test_connection"), \
-         pact_test.serve() as srv:
+    with (
+        patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()),
+        patch.object(SnowflakeDatasource, "test_connection"),
+        pact_test.serve() as srv,
+    ):
         ctx = gx.get_context(
             mode="cloud",
             cloud_base_url=str(srv.url),
@@ -328,9 +328,11 @@ def test_create_snowflake_datasource_with_connection_details(pact_test: Pact) ->
         .with_body(get_response_body, content_type="application/json")
     )
 
-    with patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()), \
-         patch.object(SnowflakeDatasource, "test_connection"), \
-         pact_test.serve() as srv:
+    with (
+        patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()),
+        patch.object(SnowflakeDatasource, "test_connection"),
+        pact_test.serve() as srv,
+    ):
         ctx = gx.get_context(
             mode="cloud",
             cloud_base_url=str(srv.url),
@@ -436,9 +438,11 @@ def test_create_snowflake_datasource_with_key_pair(pact_test: Pact) -> None:
         .with_body(get_response_body, content_type="application/json")
     )
 
-    with patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()), \
-         patch.object(SnowflakeDatasource, "test_connection"), \
-         pact_test.serve() as srv:
+    with (
+        patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()),
+        patch.object(SnowflakeDatasource, "test_connection"),
+        pact_test.serve() as srv,
+    ):
         ctx = gx.get_context(
             mode="cloud",
             cloud_base_url=str(srv.url),
@@ -501,9 +505,11 @@ def test_get_snowflake_datasource(pact_test: Pact) -> None:
         .with_body(get_response_body, content_type="application/json")
     )
 
-    with patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()), \
-         patch.object(SnowflakeDatasource, "test_connection"), \
-         pact_test.serve() as srv:
+    with (
+        patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()),
+        patch.object(SnowflakeDatasource, "test_connection"),
+        pact_test.serve() as srv,
+    ):
         ctx = gx.get_context(
             mode="cloud",
             cloud_base_url=str(srv.url),
