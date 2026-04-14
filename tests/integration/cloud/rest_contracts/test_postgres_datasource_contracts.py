@@ -19,11 +19,14 @@ URL pattern for datasources (V2 endpoint):
 
 from __future__ import annotations
 
-from typing import Final
-from unittest.mock import MagicMock, patch
+from typing import TYPE_CHECKING, Final
+from unittest.mock import patch
 
 import pytest
 from pact import Pact, match
+
+if TYPE_CHECKING:
+    import pytest_mock
 
 import great_expectations as gx
 from great_expectations.datasource.fluent import PostgresDatasource
@@ -188,7 +191,7 @@ def _session_headers() -> dict:
 
 
 @pytest.mark.cloud
-def test_create_postgres_datasource(pact_test: Pact) -> None:
+def test_create_postgres_datasource(pact_test: Pact, mocker: pytest_mock.MockerFixture) -> None:
     """add_postgres() issues GET /datasources (list), POST /datasources, then GET /datasources/{id}.
 
     Four interactions are registered in total:
@@ -209,7 +212,8 @@ def test_create_postgres_datasource(pact_test: Pact) -> None:
     # 2. GET /datasources (list -- _add_fluent_datasource __contains__ check)
     (
         pact_test.upon_receiving(
-            "a request to list datasources to check existence before adding Postgres (client-driven)"
+            "a request to list datasources to check existence"
+            " before adding Postgres (client-driven)"
         )
         .given("the Postgres datasource does not exist")
         .with_request("GET", DATASOURCES_PATH)
@@ -275,7 +279,7 @@ def test_create_postgres_datasource(pact_test: Pact) -> None:
         .with_body(single_ds_response, content_type="application/json")
     )
 
-    with patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()):
+    with patch.object(SQLDatasource, "_create_engine", return_value=mocker.MagicMock()):
         with pact_test.serve() as srv:
             ctx = gx.get_context(
                 mode="cloud",
@@ -293,7 +297,7 @@ def test_create_postgres_datasource(pact_test: Pact) -> None:
 
 
 @pytest.mark.cloud
-def test_get_postgres_datasource(pact_test: Pact) -> None:
+def test_get_postgres_datasource(pact_test: Pact, mocker: pytest_mock.MockerFixture) -> None:
     """data_sources.get() issues GET /datasources?name=... via retrieve_by_name.
 
     Two interactions are registered in total:
@@ -333,7 +337,7 @@ def test_get_postgres_datasource(pact_test: Pact) -> None:
         .with_body(get_response_body, content_type="application/json")
     )
 
-    with patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()):
+    with patch.object(SQLDatasource, "_create_engine", return_value=mocker.MagicMock()):
         with pact_test.serve() as srv:
             ctx = gx.get_context(
                 mode="cloud",
@@ -350,7 +354,7 @@ def test_get_postgres_datasource(pact_test: Pact) -> None:
 
 
 @pytest.mark.cloud
-def test_add_table_asset_to_postgres(pact_test: Pact) -> None:
+def test_add_table_asset_to_postgres(pact_test: Pact, mocker: pytest_mock.MockerFixture) -> None:
     """add_table_asset() issues PUT /datasources/{id} then GET /datasources/{id}?name=...
 
     Full interaction sequence:
@@ -438,7 +442,7 @@ def test_add_table_asset_to_postgres(pact_test: Pact) -> None:
         )
     )
 
-    with patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()):
+    with patch.object(SQLDatasource, "_create_engine", return_value=mocker.MagicMock()):
         with pact_test.serve() as srv:
             ctx = gx.get_context(
                 mode="cloud",
@@ -456,7 +460,7 @@ def test_add_table_asset_to_postgres(pact_test: Pact) -> None:
 
 
 @pytest.mark.cloud
-def test_add_query_asset_to_postgres(pact_test: Pact) -> None:
+def test_add_query_asset_to_postgres(pact_test: Pact, mocker: pytest_mock.MockerFixture) -> None:
     """add_query_asset() issues PUT /datasources/{id} then GET /datasources/{id}?name=...
 
     Full interaction sequence:
@@ -544,7 +548,7 @@ def test_add_query_asset_to_postgres(pact_test: Pact) -> None:
         )
     )
 
-    with patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()):
+    with patch.object(SQLDatasource, "_create_engine", return_value=mocker.MagicMock()):
         with pact_test.serve() as srv:
             ctx = gx.get_context(
                 mode="cloud",
@@ -562,8 +566,9 @@ def test_add_query_asset_to_postgres(pact_test: Pact) -> None:
 
 
 @pytest.mark.cloud
-def test_add_batch_definition_yearly(pact_test: Pact) -> None:
-    """add_batch_definition_yearly() issues PUT /datasources/{id} then GET /datasources/{id}?name=...
+def test_add_batch_definition_yearly(pact_test: Pact, mocker: pytest_mock.MockerFixture) -> None:
+    """add_batch_definition_yearly() issues PUT /datasources/{id}
+    then GET /datasources/{id}?name=...
 
     Full interaction sequence:
       1. GET /data-context-configuration       (context init)
@@ -666,7 +671,7 @@ def test_add_batch_definition_yearly(pact_test: Pact) -> None:
         )
     )
 
-    with patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()):
+    with patch.object(SQLDatasource, "_create_engine", return_value=mocker.MagicMock()):
         with pact_test.serve() as srv:
             ctx = gx.get_context(
                 mode="cloud",
@@ -687,7 +692,7 @@ def test_add_batch_definition_yearly(pact_test: Pact) -> None:
 
 
 @pytest.mark.cloud
-def test_add_batch_definition_daily(pact_test: Pact) -> None:
+def test_add_batch_definition_daily(pact_test: Pact, mocker: pytest_mock.MockerFixture) -> None:
     """add_batch_definition_daily() issues PUT /datasources/{id} then GET /datasources/{id}?name=...
 
     Full interaction sequence:
@@ -751,7 +756,9 @@ def test_add_batch_definition_daily(pact_test: Pact) -> None:
                                             "name": match.like(PG_DAILY_BD_NAME),
                                             "partitioner": match.like(
                                                 {
-                                                    "method_name": "partition_on_year_and_month_and_day",
+                                                    "method_name": (
+                                                        "partition_on_year_and_month_and_day"
+                                                    ),
                                                     "column_name": match.like(PARTITION_COLUMN),
                                                     "sort_ascending": match.like(True),
                                                 }
@@ -791,7 +798,7 @@ def test_add_batch_definition_daily(pact_test: Pact) -> None:
         )
     )
 
-    with patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()):
+    with patch.object(SQLDatasource, "_create_engine", return_value=mocker.MagicMock()):
         with pact_test.serve() as srv:
             ctx = gx.get_context(
                 mode="cloud",

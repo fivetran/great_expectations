@@ -20,11 +20,14 @@ URL pattern for datasources (V2 endpoint):
 
 from __future__ import annotations
 
-from typing import Final
-from unittest.mock import MagicMock, patch
+from typing import TYPE_CHECKING, Final
+from unittest.mock import patch
 
 import pytest
 from pact import Pact, match
+
+if TYPE_CHECKING:
+    import pytest_mock
 
 import great_expectations as gx
 from great_expectations.datasource.fluent.snowflake_datasource import (
@@ -133,7 +136,9 @@ def _session_headers() -> dict:
 
 
 @pytest.mark.cloud
-def test_create_snowflake_datasource_with_dsn(pact_test: Pact) -> None:
+def test_create_snowflake_datasource_with_dsn(
+    pact_test: Pact, mocker: pytest_mock.MockerFixture
+) -> None:
     """add_snowflake() with a DSN string issues GET /datasources (list),
     POST /datasources, then GET /datasources/{id}.
 
@@ -220,7 +225,7 @@ def test_create_snowflake_datasource_with_dsn(pact_test: Pact) -> None:
     )
 
     with (
-        patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()),
+        patch.object(SQLDatasource, "_create_engine", return_value=mocker.MagicMock()),
         patch.object(SnowflakeDatasource, "test_connection"),
         pact_test.serve() as srv,
     ):
@@ -240,7 +245,9 @@ def test_create_snowflake_datasource_with_dsn(pact_test: Pact) -> None:
 
 
 @pytest.mark.cloud
-def test_create_snowflake_datasource_with_connection_details(pact_test: Pact) -> None:
+def test_create_snowflake_datasource_with_connection_details(
+    pact_test: Pact, mocker: pytest_mock.MockerFixture
+) -> None:
     """add_snowflake() with a ConnectionDetails object issues GET /datasources (list),
     POST /datasources, then GET /datasources/{id}.
 
@@ -260,7 +267,8 @@ def test_create_snowflake_datasource_with_connection_details(pact_test: Pact) ->
     # 2. GET /datasources (list -- _add_fluent_datasource __contains__ check)
     (
         pact_test.upon_receiving(
-            "a request to list datasources to check existence before add (snowflake connection details)"
+            "a request to list datasources to check existence"
+            " before add (snowflake connection details)"
         )
         .given("the Snowflake datasource does not exist (connection details)")
         .with_request("GET", DATASOURCES_PATH)
@@ -329,7 +337,7 @@ def test_create_snowflake_datasource_with_connection_details(pact_test: Pact) ->
     )
 
     with (
-        patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()),
+        patch.object(SQLDatasource, "_create_engine", return_value=mocker.MagicMock()),
         patch.object(SnowflakeDatasource, "test_connection"),
         pact_test.serve() as srv,
     ):
@@ -350,7 +358,9 @@ def test_create_snowflake_datasource_with_connection_details(pact_test: Pact) ->
 
 
 @pytest.mark.cloud
-def test_create_snowflake_datasource_with_key_pair(pact_test: Pact) -> None:
+def test_create_snowflake_datasource_with_key_pair(
+    pact_test: Pact, mocker: pytest_mock.MockerFixture
+) -> None:
     """add_snowflake() with a KeyPairConnectionDetails object issues GET /datasources (list),
     POST /datasources, then GET /datasources/{id}.
 
@@ -439,7 +449,7 @@ def test_create_snowflake_datasource_with_key_pair(pact_test: Pact) -> None:
     )
 
     with (
-        patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()),
+        patch.object(SQLDatasource, "_create_engine", return_value=mocker.MagicMock()),
         patch.object(SnowflakeDatasource, "test_connection"),
         pact_test.serve() as srv,
     ):
@@ -460,7 +470,7 @@ def test_create_snowflake_datasource_with_key_pair(pact_test: Pact) -> None:
 
 
 @pytest.mark.cloud
-def test_get_snowflake_datasource(pact_test: Pact) -> None:
+def test_get_snowflake_datasource(pact_test: Pact, mocker: pytest_mock.MockerFixture) -> None:
     """data_sources.get() issues two GET /datasources?name=... requests via retrieve_by_name.
 
     ``retrieve_by_name`` first calls ``has_key`` (one GET) then ``get``
@@ -506,7 +516,7 @@ def test_get_snowflake_datasource(pact_test: Pact) -> None:
     )
 
     with (
-        patch.object(SQLDatasource, "_create_engine", return_value=MagicMock()),
+        patch.object(SQLDatasource, "_create_engine", return_value=mocker.MagicMock()),
         patch.object(SnowflakeDatasource, "test_connection"),
         pact_test.serve() as srv,
     ):
