@@ -915,7 +915,7 @@ def test_get_domain_records_with_unmeetable_row_condition_alt(spark_session):
         )
 
 
-# Testing to ensure that great expectation parser also works in terms of defining a compute domain  # noqa: E501 # FIXME CoP
+# Test that the great expectation parser also works for defining a compute domain  # FIXME CoP
 def test_get_compute_domain_with_gx_condition_parser(spark_session):
     engine: SparkDFExecutionEngine = build_spark_engine(
         spark=spark_session,
