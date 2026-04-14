@@ -307,7 +307,7 @@ class StatisticsDataAssistant(DataAssistant):
 
         # Step-3: Declare "ParameterBuilder" configurations for all additional statistics needed.
 
-        suite_parameter_builder_configs = [
+        suite_parameter_builder_configs: Optional[List[ParameterBuilderConfig]] = [
             ParameterBuilderConfig(
                 **column_min_metric_multi_batch_parameter_builder_for_metrics.to_json_dict()
             ),
