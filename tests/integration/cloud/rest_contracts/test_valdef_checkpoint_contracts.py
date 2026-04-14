@@ -836,3 +836,249 @@ def test_delete_checkpoint(pact_test: Pact) -> None:
             cloud_access_token=PACT_DUMMY_ACCESS_TOKEN,
         )
         ctx.checkpoints.delete(name=CHECKPOINT_NAME)
+
+
+# ---------------------------------------------------------------------------
+# Validation definition update test
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.cloud
+def test_update_validation_definition(pact_test: Pact) -> None:
+    """validation_definition.save() issues a GET existence check then PUT.
+
+    ``ValidationDefinition.save()`` calls ``store.update(key, self)`` which:
+    1. GETs the validation definition by id+name to verify it exists (``_update``).
+    2. Serializes the validation definition (triggering suite freshness check).
+    3. PUTs the serialized payload to ``/validation-definitions/{id}``.
+
+    To obtain a fully populated ``ValidationDefinition`` object with an id,
+    we first retrieve it via ``ctx.validation_definitions.get(name=...)``.
+    The get step triggers datasource and suite deserialization interactions.
+    The suite freshness check during serialization (step 2) reuses the same
+    ``GET /expectation-suites/{id}`` interaction registered for deserialization.
+
+    Full interaction sequence:
+      1.  GET /data-context-configuration           (context init)
+      2.  GET /validation-definitions?name=...      (factory has_key + store.get)
+      3.  GET /datasources?name=...                 (datasource deserialization)
+      4.  GET /expectation-suites/{id}?name=...     (suite deserialization + freshness check)
+      5.  GET /validation-definitions/{id}?name=... (existence check from _update)
+      6.  PUT /validation-definitions/{id}          (update)
+    """
+    headers = _session_headers()
+    suite_by_id_path = f"{SUITES_PATH}/{EXISTING_SUITE_ID}"
+
+    datasource_by_name_response = {
+        "data": match.each_like(_DATASOURCE_WITH_ASSET_AND_BATCH_DEF, min=1)
+    }
+
+    # 1. GET /data-context-configuration
+    setup_data_context_config_interaction(
+        pact_test,
+        access_token=PACT_DUMMY_ACCESS_TOKEN,
+        description_suffix="update-validation-definition",
+    )
+
+    # 2. GET /validation-definitions?name=... -- serves factory has_key + store.get
+    (
+        pact_test.upon_receiving("fetch validation definition by name for update (client-driven)")
+        .given("a validation definition exists for update")
+        .with_request("GET", VALDEF_PATH)
+        .with_headers(headers)
+        .with_query_parameters({"name": VALDEF_NAME})
+        .will_respond_with(200)
+        .with_body(
+            {"data": match.each_like(match.like(_VALDEF_RESPONSE), min=1)},
+            content_type="application/json",
+        )
+    )
+
+    # 3. GET /datasources?name=... -- datasource deserialization (cached afterward)
+    (
+        pact_test.upon_receiving(
+            "fetch datasource during validation definition update deserialization (client-driven)"
+        )
+        .given("the datasource exists for validation definition update")
+        .with_request("GET", DATASOURCES_PATH)
+        .with_headers(headers)
+        .with_query_parameters({"name": DATASOURCE_NAME})
+        .will_respond_with(200)
+        .with_body(datasource_by_name_response, content_type="application/json")
+    )
+
+    # 4. GET /expectation-suites/{id}?name=... -- suite deserialization AND freshness check
+    #    One interaction serves both: the initial deserialization fetch and the
+    #    is_fresh() call during serialization for the PUT.
+    (
+        pact_test.upon_receiving(
+            "fetch suite by id during validation definition update (client-driven)"
+        )
+        .given("the expectation suite exists for validation definition update")
+        .with_request("GET", suite_by_id_path)
+        .with_headers(headers)
+        .with_query_parameters({"name": SUITE_NAME})
+        .will_respond_with(200)
+        .with_body({"data": match.like(_SUITE_RESPONSE)}, content_type="application/json")
+    )
+
+    # 5. GET /validation-definitions/{id}?name=... -- existence check from store._update
+    (
+        pact_test.upon_receiving(
+            "fetch validation definition by id for update existence check (client-driven)"
+        )
+        .given("a validation definition exists for update")
+        .with_request("GET", VALDEF_BY_ID_PATH)
+        .with_headers(headers)
+        .with_query_parameters({"name": VALDEF_NAME})
+        .will_respond_with(200)
+        .with_body({"data": match.like(_VALDEF_RESPONSE)}, content_type="application/json")
+    )
+
+    # 6. PUT /validation-definitions/{id} -- the actual update
+    put_valdef_request_body: match.AbstractMatcher = match.like(
+        {
+            "data": match.like(
+                {
+                    "name": match.like(VALDEF_NAME),
+                    "data": match.like(
+                        {
+                            "datasource": match.like(
+                                {
+                                    "name": match.like(DATASOURCE_NAME),
+                                    "id": match.uuid(EXISTING_DATASOURCE_ID),
+                                }
+                            ),
+                            "asset": match.like(
+                                {
+                                    "name": match.like(ASSET_NAME),
+                                    "id": match.uuid(EXISTING_ASSET_ID),
+                                }
+                            ),
+                            "batch_definition": match.like(
+                                {
+                                    "name": match.like(BATCH_DEF_NAME),
+                                    "id": match.uuid(EXISTING_BATCH_DEF_ID),
+                                }
+                            ),
+                        }
+                    ),
+                    "suite": match.like(
+                        {
+                            "name": match.like(SUITE_NAME),
+                            "id": match.uuid(EXISTING_SUITE_ID),
+                        }
+                    ),
+                }
+            )
+        }
+    )
+    put_valdef_response_body = {"data": match.like(_VALDEF_RESPONSE)}
+    (
+        pact_test.upon_receiving(
+            "a request to update a validation definition via PUT (client-driven)"
+        )
+        .given("a validation definition exists for update")
+        .with_request("PUT", VALDEF_BY_ID_PATH)
+        .with_headers(headers)
+        .with_body(put_valdef_request_body, content_type="application/vnd.api+json")
+        .will_respond_with(200)
+        .with_body(put_valdef_response_body, content_type="application/json")
+    )
+
+    with pact_test.serve() as srv:
+        ctx = gx.get_context(
+            mode="cloud",
+            cloud_base_url=str(srv.url),
+            cloud_organization_id=EXISTING_ORGANIZATION_ID,
+            cloud_workspace_id=EXISTING_WORKSPACE_ID,
+            cloud_access_token=PACT_DUMMY_ACCESS_TOKEN,
+        )
+
+        # Retrieve the existing validation definition (populates id + dependencies)
+        val_def = ctx.validation_definitions.get(name=VALDEF_NAME)
+
+        # Update (save) the validation definition
+        val_def.save()
+
+
+# ---------------------------------------------------------------------------
+# Checkpoint expectation parameters test
+# ---------------------------------------------------------------------------
+
+
+CHECKPOINT_EXPECTATION_PARAMS_PATH: Final[str] = f"{CHECKPOINT_BY_ID_PATH}/expectation-parameters"
+
+
+@pytest.mark.cloud
+def test_get_checkpoint_expectation_parameters(pact_test: Pact) -> None:
+    """context.prepare_checkpoint_run() fetches expectation parameters.
+
+    When a checkpoint has windowed expectations, ``CloudDataContext
+    .prepare_checkpoint_run()`` issues a GET to
+    ``/checkpoints/{id}/expectation-parameters`` to retrieve computed parameter
+    values.  The response contains a ``data.expectation_parameters`` dict.
+
+    This test patches ``_checkpoint_has_windowed_expectations`` to return True
+    so the HTTP call is made without needing actual windowed expectations.
+
+    Full interaction sequence:
+      1.  GET /data-context-configuration                       (context init)
+      2.  GET /checkpoints/{id}/expectation-parameters          (parameter fetch)
+    """
+    headers = _session_headers()
+
+    # 1. GET /data-context-configuration
+    setup_data_context_config_interaction(
+        pact_test,
+        access_token=PACT_DUMMY_ACCESS_TOKEN,
+        description_suffix="get-checkpoint-expectation-parameters",
+    )
+
+    # 2. GET /checkpoints/{id}/expectation-parameters
+    expectation_params_response: dict = {
+        "data": match.like(
+            {
+                "expectation_parameters": match.like({}),
+            }
+        ),
+    }
+    (
+        pact_test.upon_receiving(
+            "a request to get checkpoint expectation parameters (client-driven)"
+        )
+        .given("a checkpoint with expectation parameters exists")
+        .with_request("GET", CHECKPOINT_EXPECTATION_PARAMS_PATH)
+        .with_headers(headers)
+        .will_respond_with(200)
+        .with_body(expectation_params_response, content_type="application/json")
+    )
+
+    with pact_test.serve() as srv:
+        ctx = gx.get_context(
+            mode="cloud",
+            cloud_base_url=str(srv.url),
+            cloud_organization_id=EXISTING_ORGANIZATION_ID,
+            cloud_workspace_id=EXISTING_WORKSPACE_ID,
+            cloud_access_token=PACT_DUMMY_ACCESS_TOKEN,
+        )
+
+        # Build a minimal checkpoint stand-in with the known ID
+        from great_expectations.checkpoint.checkpoint import Checkpoint
+
+        checkpoint = Checkpoint(name=CHECKPOINT_NAME, validation_definitions=[])
+        checkpoint.id = EXISTING_CHECKPOINT_ID
+
+        # Patch so the method proceeds to the HTTP call without needing
+        # actual windowed expectations on the checkpoint.
+        expectation_parameters: dict = {}
+        with patch.object(
+            type(ctx),
+            "_checkpoint_has_windowed_expectations",
+            return_value=True,
+        ):
+            ctx.prepare_checkpoint_run(
+                checkpoint=checkpoint,
+                batch_parameters={},
+                expectation_parameters=expectation_parameters,
+            )
