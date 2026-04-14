@@ -417,7 +417,7 @@ def test_add_table_asset_to_postgres(pact_test: Pact, mocker: pytest_mock.Mocker
                     )
                 }
             ),
-            content_type="application/json",
+            content_type="application/vnd.api+json",
         )
         .will_respond_with(200)
         .with_body(
@@ -523,7 +523,7 @@ def test_add_query_asset_to_postgres(pact_test: Pact, mocker: pytest_mock.Mocker
                     )
                 }
             ),
-            content_type="application/json",
+            content_type="application/vnd.api+json",
         )
         .will_respond_with(200)
         .with_body(
@@ -646,7 +646,7 @@ def test_add_batch_definition_yearly(pact_test: Pact, mocker: pytest_mock.Mocker
                     )
                 }
             ),
-            content_type="application/json",
+            content_type="application/vnd.api+json",
         )
         .will_respond_with(200)
         .with_body(
@@ -773,7 +773,7 @@ def test_add_batch_definition_daily(pact_test: Pact, mocker: pytest_mock.MockerF
                     )
                 }
             ),
-            content_type="application/json",
+            content_type="application/vnd.api+json",
         )
         .will_respond_with(200)
         .with_body(
