@@ -17,6 +17,7 @@ URL patterns:
 
 from __future__ import annotations
 
+import re
 from typing import Final
 
 import pytest
@@ -695,7 +696,7 @@ def test_add_csv_batch_definition_daily(pact_test: Pact) -> None:
         batch_def = csv_asset.add_batch_definition(
             name=FILE_BD_DAILY_NAME,
             partitioner=FileNamePartitionerDaily(
-                regex=FILE_REGEX,
+                regex=re.compile(FILE_REGEX),
                 param_names=("year", "month", "day"),
             ),
         )

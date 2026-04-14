@@ -462,7 +462,7 @@ def test_create_snowflake_datasource_with_key_pair(
         )
         datasource = ctx.data_sources.add_snowflake(
             name=SF_DATASOURCE_NAME,
-            connection_string=KeyPairConnectionDetails(**SF_KEY_PAIR_DETAILS),
+            connection_string=KeyPairConnectionDetails(**SF_KEY_PAIR_DETAILS),  # type: ignore[call-overload] # KeyPairConnectionDetails works at runtime
         )
 
     assert datasource is not None
