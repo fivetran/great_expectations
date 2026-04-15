@@ -75,7 +75,7 @@ data_source = context.data_sources.get(data_source_name)
 # Add a Query Data Asset
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - define query asset">
 data_asset_name = "my_query_asset"
-query = "SELECT * from my_table WHERE column = 'value'"
+query = "SELECT * FROM my_table WHERE column = 'value'"
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_bigquery.py - add query asset">
