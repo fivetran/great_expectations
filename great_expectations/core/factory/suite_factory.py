@@ -45,10 +45,8 @@ class SuiteFactory(Factory[ExpectationSuite]):
             )
         self._store.add(key=key, value=suite)
 
-        if suite._include_rendered_content:
-            suite.render()
-
-        return suite
+        # Re-fetch so the returned object matches what was persisted.
+        return self.get(name=suite.name)
 
     @public_api
     @override
@@ -140,4 +138,6 @@ class SuiteFactory(Factory[ExpectationSuite]):
 
         suite.id = existing_suite.id
         suite.save()
-        return suite
+
+        # Re-fetch so the returned object matches what was persisted.
+        return self.get(name=suite.name)

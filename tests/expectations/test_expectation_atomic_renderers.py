@@ -1945,6 +1945,55 @@ def test_atomic_prescriptive_summary_expect_table_columns_to_match_set(
 
 
 @pytest.mark.unit
+def test_atomic_prescriptive_columns_match_set_no_exact_match_uses_default(
+    get_prescriptive_rendered_content,
+):
+    """When exact_match is omitted, renderer uses model default (True)."""
+    update_dict = {
+        "type": "expect_table_columns_to_match_set",
+        "kwargs": {
+            "column_set": ["a", "b", "c"],
+        },
+    }
+    rendered_content = get_prescriptive_rendered_content(update_dict)
+
+    res = rendered_content.to_json_dict()
+    pprint(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column_set": {"schema": {"type": "array"}, "value": ["a", "b", "c"]},
+                "column_set_0": {"schema": {"type": "string"}, "value": "a"},
+                "column_set_1": {"schema": {"type": "string"}, "value": "b"},
+                "column_set_2": {"schema": {"type": "string"}, "value": "c"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "Must have exactly these columns (in any order): $column_set_0 $column_set_1 $column_set_2",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
+
+
+@pytest.mark.unit
+def test_legacy_prescriptive_columns_match_set_no_exact_match_uses_default():
+    from great_expectations.expectations.core.expect_table_columns_to_match_set import (
+        ExpectTableColumnsToMatchSet,
+    )
+
+    config = ExpectationConfiguration(
+        type="expect_table_columns_to_match_set",
+        kwargs={"column_set": ["x", "y"]},
+    )
+    rendered = ExpectTableColumnsToMatchSet._prescriptive_renderer(configuration=config)
+    assert len(rendered) == 1
+    template = rendered[0].string_template["template"]
+    assert template == (
+        "Must have exactly these columns (in any order): $column_list_0, $column_list_1"
+    )
+
+
+@pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_table_row_count_to_be_between(
     get_prescriptive_rendered_content,
 ):

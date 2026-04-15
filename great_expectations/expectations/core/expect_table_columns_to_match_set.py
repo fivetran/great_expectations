@@ -51,6 +51,7 @@ EXACT_MATCH_DESCRIPTION = (
     "If True, the list of columns must exactly match the observed columns. "
     "If False, observed columns must include column_set but additional columns will pass."
 )
+EXACT_MATCH_DEFAULT = True
 DATA_QUALITY_ISSUES = [DataQualityIssues.SCHEMA.value]
 SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.PANDAS.value,
@@ -199,7 +200,7 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
         description=COLUMN_SET_DESCRIPTION
     )
     exact_match: Union[bool, SuiteParameterDict, None] = pydantic.Field(
-        default=True, description=EXACT_MATCH_DESCRIPTION
+        default=EXACT_MATCH_DEFAULT, description=EXACT_MATCH_DESCRIPTION
     )
 
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {
@@ -285,9 +286,10 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
                 renderer_configuration=renderer_configuration,
             )
 
-            exact_match_str = (
-                "exactly" if params.exact_match and params.exact_match.value is True else "at least"
+            exact_match = (
+                params.exact_match.value if params.exact_match is not None else EXACT_MATCH_DEFAULT
             )
+            exact_match_str = "at least" if not exact_match else "exactly"
 
             template_str = (
                 f"Must have {exact_match_str} these columns (in any order): {column_set_str}"
@@ -323,7 +325,10 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
                 [f"$column_list_{idx}" for idx in range(len(params["column_list"]))]
             )
 
-            exact_match_str = "exactly" if params["exact_match"] is True else "at least"
+            exact_match = (
+                params["exact_match"] if params["exact_match"] is not None else EXACT_MATCH_DEFAULT
+            )
+            exact_match_str = "at least" if not exact_match else "exactly"
 
             template_str = f"Must have {exact_match_str} these columns (in any order): {column_list_template_str}"  # noqa: E501 # FIXME CoP
 

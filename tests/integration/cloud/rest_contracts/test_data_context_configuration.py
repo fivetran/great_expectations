@@ -1,37 +1,26 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final
+from typing import Final
 
-import pact
 import pytest
+from pact import Pact, match
 
 import great_expectations as gx
 from tests.integration.cloud.rest_contracts.conftest import (
     EXISTING_ORGANIZATION_ID,
     EXISTING_WORKSPACE_ID,
-    PACT_MOCK_SERVICE_URL,
+    PACT_DUMMY_ACCESS_TOKEN,
+    pact_session_headers,
 )
 
-if TYPE_CHECKING:
-    import requests
-
-
 GET_DATA_CONTEXT_CONFIGURATION_MIN_RESPONSE_BODY: Final[dict] = {
-    "anonymous_usage_statistics": pact.Like(
-        {
-            "data_context_id": pact.Format().uuid,
-            "enabled": False,
-        }
-    ),
-    "datasources": pact.Like({}),
+    "analytics_enabled": match.like(True),
 }
 
 
 @pytest.mark.cloud
 def test_data_context_configuration(
-    gx_cloud_session: requests.Session,
-    cloud_access_token: str,
-    pact_test: pact.Pact,
+    pact_test: Pact,
 ) -> None:
     # Arrange: set up the data context configuration endpoint interaction
     provider_state = "the Data Context exists"
@@ -43,29 +32,25 @@ def test_data_context_configuration(
     )
     status = 200
     response_body = GET_DATA_CONTEXT_CONFIGURATION_MIN_RESPONSE_BODY
+    headers = pact_session_headers()
 
     (
-        pact_test.given(provider_state=provider_state)
-        .upon_receiving(scenario=scenario)
-        .with_request(
-            headers=dict(gx_cloud_session.headers),
-            method=method,
-            path=path,
-        )
-        .will_respond_with(
-            status=status,
-            body=response_body,
-        )
+        pact_test.upon_receiving(scenario)
+        .given(provider_state)
+        .with_request(method, path)
+        .with_headers(headers)
+        .will_respond_with(status)
+        .with_body(response_body, content_type="application/json")
     )
 
     # Act
-    with pact_test:
+    with pact_test.serve() as srv:
         ctx = gx.get_context(
             mode="cloud",
-            cloud_base_url=PACT_MOCK_SERVICE_URL,
+            cloud_base_url=str(srv.url),
             cloud_organization_id=EXISTING_ORGANIZATION_ID,
             cloud_workspace_id=EXISTING_WORKSPACE_ID,
-            cloud_access_token=cloud_access_token,
+            cloud_access_token=PACT_DUMMY_ACCESS_TOKEN,
         )
 
     # Assert
