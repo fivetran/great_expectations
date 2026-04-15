@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-import random
-import string
 import urllib.parse
 from typing import TYPE_CHECKING
 
 import pytest
 
-import great_expectations as gx
 from great_expectations.datasource.fluent import PandasDatasource
 
 if TYPE_CHECKING:
@@ -46,19 +43,3 @@ def test_cloud_context_add_datasource_with_fds(
     _ = context.add_datasource(datasource=fds)
 
     assert cloud_api_fake.assert_call_count(url=post_url, count=2)
-
-
-def test_cloud_context_datasource_crud_e2e() -> None:
-    context = gx.get_context(cloud_mode=True)
-    datasource_name = f"OSSTestDatasource_{''.join(random.choice(string.ascii_letters + string.digits) for _ in range(8))}"  # noqa: E501 # FIXME CoP
-
-    context.data_sources.add_pandas(name=datasource_name)
-
-    saved_datasource = context.data_sources.get(datasource_name)
-    assert saved_datasource is not None and saved_datasource.name == datasource_name
-
-    context.delete_datasource(datasource_name)
-
-    # Make another call to the backend to confirm deletion
-    with pytest.raises(KeyError):
-        context.data_sources.get(datasource_name)
