@@ -39,7 +39,7 @@ class ColumnValuesMatchStrftimeFormat(ColumnMapMetricProvider):
         # %D is an example of a format that can format but not parse, e.g.
         try:
             datetime.strptime(  # noqa: DTZ007 # FIXME CoP
-                datetime.strftime(datetime.now(tz=timezone.utc), strftime_format),  # FIXME CoP
+                datetime.strftime(datetime.now(tz=timezone.utc), strftime_format),
                 strftime_format,
             )
         except ValueError as e:

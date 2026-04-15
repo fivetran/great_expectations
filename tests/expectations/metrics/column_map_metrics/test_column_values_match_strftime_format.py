@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import pytest
 
 
+@pytest.mark.unit
 class TestSparkStrftimeFormatValidation:
     """Tests for the strftime round-trip validation used by the Spark metric.
 
