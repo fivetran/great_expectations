@@ -1192,6 +1192,19 @@ jobs:
         with:
           skip-existing: true # prevent against pushing duplicate versions
 
+      - uses: pact-foundation/pact-cli@v0.9.5
+
+      - name: Record Pact release to production
+        env:
+          PACT_BROKER_READ_WRITE_TOKEN: ${{ secrets.PACT_BROKER_READ_WRITE_TOKEN }}
+        run: |
+          pact-broker record-release \
+            --pacticipant great_expectations \
+            --version "${{ github.sha }}" \
+            --environment production \
+            --broker-base-url https://greatexpectations.pactflow.io \
+            --broker-token "${PACT_BROKER_READ_WRITE_TOKEN}"
+
   notify_on_failure:
     needs:
       [
