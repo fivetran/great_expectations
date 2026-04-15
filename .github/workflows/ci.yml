@@ -1192,12 +1192,13 @@ jobs:
         with:
           skip-existing: true # prevent against pushing duplicate versions
 
-      - uses: pact-foundation/pact-cli@v0.9.5
-
       - name: Record Pact release to production
         env:
           PACT_BROKER_READ_WRITE_TOKEN: ${{ secrets.PACT_BROKER_READ_WRITE_TOKEN }}
+          PACT_CLI_VERSION: v2.6.0
         run: |
+          curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/${PACT_CLI_VERSION}/install.sh | bash
+          export PATH="${PATH}:$(pwd)/pact/bin"
           pact-broker record-release \
             --pacticipant great_expectations \
             --version "${{ github.sha }}" \
