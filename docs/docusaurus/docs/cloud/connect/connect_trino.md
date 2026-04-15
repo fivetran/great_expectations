@@ -44,7 +44,7 @@ You'll need your user access token, organization ID, and workspace ID to set you
 
 7. Copy the value in the **Organization ID** field into the temporary file with your user access token. 
 
-8. In the **Workspace ID** pane, find the relevant **Workspace name**, then copy the associated **ID** into the temporary file with your other credentials and save the file. 
+8. In the **Workspace ID** pane, find the relevant **Workspace name**, then copy the associated **ID** into the temporary file with your other credentials and save the file.
 
 GX recommends deleting the temporary file after you set the environment variables.
 

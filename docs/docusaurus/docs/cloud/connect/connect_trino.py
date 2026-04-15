@@ -11,7 +11,10 @@ import sqlalchemy as sa
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_trino.py - full code example">
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_trino.py - get cloud context">
 import great_expectations as gx
+
+# Hide start
 from tests.test_utils import get_default_trino_url
+# Hide end
 
 context = gx.get_context(mode="cloud")
 # </snippet>
