@@ -582,8 +582,6 @@ jobs:
 
       - name: Publish pact contracts to PactFlow
         if: env.PACT_BROKER_READ_WRITE_TOKEN != '' && !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
-        env:
-          PACT_CLI_VERSION: v2.6.0
         run: |
           PACT_DIR="tests/integration/cloud/rest_contracts/pacts"
           if [ ! -d "${PACT_DIR}" ] || ! compgen -G "${PACT_DIR}/*.json" > /dev/null; then
@@ -592,8 +590,6 @@ jobs:
           fi
           echo "Publishing pact files from ${PACT_DIR}:"
           ls -la ${PACT_DIR}/*.json
-          curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/${PACT_CLI_VERSION}/install.sh | bash
-          export PATH="${PATH}:$(pwd)/pact/bin"
 
           CONSUMER_VERSION="${{ github.event.pull_request.head.sha || github.sha }}"
 
@@ -608,7 +604,10 @@ jobs:
           fi
 
           echo "Publishing with version=${CONSUMER_VERSION} branch=${PACT_BRANCH}"
-          pact-broker publish "${PACT_DIR}" \
+          docker run --rm \
+            -v "$(pwd)/${PACT_DIR}:/pacts" \
+            pactfoundation/pact-cli:1.5.0.4 \
+            broker publish /pacts \
             --broker-base-url=https://greatexpectations.pactflow.io \
             --broker-token="${PACT_BROKER_READ_WRITE_TOKEN}" \
             --consumer-app-version="${CONSUMER_VERSION}" \
@@ -1192,13 +1191,13 @@ jobs:
         with:
           skip-existing: true # prevent against pushing duplicate versions
 
-      - uses: pact-foundation/pact-cli@v0.9.5
-
       - name: Record Pact release to production
         env:
           PACT_BROKER_READ_WRITE_TOKEN: ${{ secrets.PACT_BROKER_READ_WRITE_TOKEN }}
         run: |
-          pact-broker record-release \
+          docker run --rm \
+            pactfoundation/pact-cli:1.5.0.4 \
+            broker record-release \
             --pacticipant great_expectations \
             --version "${{ github.sha }}" \
             --environment production \

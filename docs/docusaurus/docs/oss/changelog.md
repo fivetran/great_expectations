@@ -15,6 +15,21 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.16.1
+* [FEATURE] Add Pact contract tests for datasource API coverage gaps ([#11813](https://github.com/great-expectations/great_expectations/pull/11813))
+* [BUGFIX] Fix ExpectColumnValuesToMatchStrftimeFormat failing with timezone-aware formats ([#11812](https://github.com/great-expectations/great_expectations/pull/11812)) (thanks @choinhet)
+* [DOCS] Clarify Python version support in compatibility reference ([#11784](https://github.com/great-expectations/great_expectations/pull/11784)) (thanks @Adeyinka1)
+* [MAINTENANCE] Update Pact contract tests to align with Mercury API and use isolated org/workspace ([#11797](https://github.com/great-expectations/great_expectations/pull/11797))
+* [MAINTENANCE] Hardcode pact org/workspace IDs for contract test isolation ([#11808](https://github.com/great-expectations/great_expectations/pull/11808))
+* [MAINTENANCE] Fix pact branch resolution for merge_group CI events ([#11810](https://github.com/great-expectations/great_expectations/pull/11810))
+* [MAINTENANCE] Add Pact contract tests for data-context-variables GET and PUT ([#11803](https://github.com/great-expectations/great_expectations/pull/11803))
+* [MAINTENANCE] Add Pact contract tests for validation-definition update and checkpoint expectation-parameters ([#11802](https://github.com/great-expectations/great_expectations/pull/11802))
+* [MAINTENANCE] Add Pact contract tests for metric-runs POST and accounts/me GET ([#11804](https://github.com/great-expectations/great_expectations/pull/11804))
+* [MAINTENANCE] [pre-commit.ci] pre-commit autoupdate ([#11779](https://github.com/great-expectations/great_expectations/pull/11779))
+* [MAINTENANCE] Remove E2E docker-compose tests replaced by Pact contracts ([#11811](https://github.com/great-expectations/great_expectations/pull/11811))
+* [MAINTENANCE] Add Pact record-release to PyPI publish workflow ([#11816](https://github.com/great-expectations/great_expectations/pull/11816))
+* [MAINTENANCE] Bump follow-redirects from 1.15.11 to 1.16.0 in /docs/docusaurus ([#11815](https://github.com/great-expectations/great_expectations/pull/11815))
+
 ### 1.16.0
 * [MINORBUMP] Deprecate DBFS datasources (GX-2543) ([#11759](https://github.com/great-expectations/great_expectations/pull/11759))
 * [FEATURE] Remove deprecated legacy Pact contract tests (GX-3023) ([#11768](https://github.com/great-expectations/great_expectations/pull/11768))
