@@ -596,9 +596,12 @@ jobs:
           # For merge_group events, resolve the target branch (e.g. "develop") from
           # the base_ref instead of using the throwaway queue ref name
           # (gh-readonly-queue/develop/pr-NNN-SHA).
+          # Also resolve the consumer version to the PR tip (second parent of the
+          # merge queue commit) so it matches the version Mercury already verified.
           if [[ "${{ github.event_name }}" == "merge_group" ]]; then
             PACT_BRANCH="${{ github.event.merge_group.base_ref }}"
             PACT_BRANCH="${PACT_BRANCH#refs/heads/}"
+            CONSUMER_VERSION="$(git rev-parse HEAD^2)"
           else
             PACT_BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
           fi
@@ -616,11 +619,18 @@ jobs:
       - name: Can I deploy?
         if: env.PACT_BROKER_READ_WRITE_TOKEN != '' && !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
         run: |
+          # For merge_group events, use the PR tip (second parent) instead of
+          # the throwaway merge queue SHA that Mercury hasn't verified.
+          if [[ "${{ github.event_name }}" == "merge_group" ]]; then
+            CONSUMER_VERSION="$(git rev-parse HEAD^2)"
+          else
+            CONSUMER_VERSION="${{ github.event.pull_request.head.sha || github.sha }}"
+          fi
           docker run --rm \
             pactfoundation/pact-cli:1.5.0.4 \
             broker can-i-deploy \
             --pacticipant great_expectations \
-            --version "${{ github.event.pull_request.head.sha || github.sha }}" \
+            --version "${CONSUMER_VERSION}" \
             --to-environment production \
             --broker-base-url https://greatexpectations.pactflow.io \
             --broker-token "${PACT_BROKER_READ_WRITE_TOKEN}"
