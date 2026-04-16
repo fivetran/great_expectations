@@ -601,6 +601,7 @@ jobs:
           if [[ "${{ github.event_name }}" == "merge_group" ]]; then
             PACT_BRANCH="${{ github.event.merge_group.base_ref }}"
             PACT_BRANCH="${PACT_BRANCH#refs/heads/}"
+            git fetch --deepen=1 --quiet
             CONSUMER_VERSION="$(git rev-parse HEAD^2)"
           else
             PACT_BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
@@ -622,6 +623,7 @@ jobs:
           # For merge_group events, use the PR tip (second parent) instead of
           # the throwaway merge queue SHA that Mercury hasn't verified.
           if [[ "${{ github.event_name }}" == "merge_group" ]]; then
+            git fetch --deepen=1 --quiet
             CONSUMER_VERSION="$(git rev-parse HEAD^2)"
           else
             CONSUMER_VERSION="${{ github.event.pull_request.head.sha || github.sha }}"
