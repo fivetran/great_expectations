@@ -1208,13 +1208,13 @@ jobs:
         with:
           skip-existing: true # prevent against pushing duplicate versions
 
-      - uses: pact-foundation/pact-cli@v0.9.5
-
       - name: Record Pact release to production
         env:
           PACT_BROKER_READ_WRITE_TOKEN: ${{ secrets.PACT_BROKER_READ_WRITE_TOKEN }}
         run: |
-          pact-broker record-release \
+          docker run --rm \
+            pactfoundation/pact-cli:1.5.0.4 \
+            broker record-release \
             --pacticipant great_expectations \
             --version "${{ github.sha }}" \
             --environment production \
