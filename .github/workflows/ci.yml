@@ -579,15 +579,6 @@ jobs:
       - name: Run the tests
         run: invoke ci-tests 'cloud' --up-services --verbose  --reports -W default::great_expectations.datasource.fluent.GxInvalidDatasourceWarning
 
-      - name: Upload pact contracts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pact-contracts
-          path: tests/integration/cloud/rest_contracts/pacts/
-          if-no-files-found: ignore
-          retention-days: 1
-
       # upload coverage report to codecov
       - name: Upload coverage reports to Codecov
         continue-on-error: true
@@ -608,29 +599,52 @@ jobs:
           flags: cloud
 
   pact-contract-check:
-    needs: [cloud-tests]
-    # Skip for merge_group (pacts are already verified on develop) and tag pushes.
-    # Naturally skipped when cloud-tests is skipped (draft PRs).
+    needs: [unit-tests, static-analysis, check-actor-permissions]
     if: >-
-      github.event_name != 'merge_group'
+      github.event.pull_request.draft == false
+      && github.event_name != 'merge_group'
       && !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
     runs-on: ubuntu-latest
     env:
       PACT_BROKER_READ_WRITE_TOKEN: ${{secrets.PACT_BROKER_READ_WRITE_TOKEN}}
       PACT_DO_NOT_TRACK: true
+      # Pact consumer tests use a mock server; these env vars are required by
+      # CloudDataContext but point at the mock, not a real Mercury instance.
+      GX_CLOUD_BASE_URL: "http://localhost:9292"
+      GX_CLOUD_ACCESS_TOKEN: "dummy-pact-access-token"
+      GX_CLOUD_ORGANIZATION_ID: "d2179c7d-685d-49ec-b1e2-85e54308e8b6"
 
     steps:
-      - name: Download pact contracts
-        uses: actions/download-artifact@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          name: pact-contracts
-          path: pacts/
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache-dependency-path: |
+            reqs/requirements-dev-test.txt
+            setup.py
+
+      - name: Install dependencies
+        run: |
+          pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
+          invoke deps --gx-install -m 'cloud' -r test
+
+      - name: Run pact contract tests
+        run: |
+          pytest tests/integration/cloud/rest_contracts/ \
+            --verbose \
+            -W default::great_expectations.datasource.fluent.GxInvalidDatasourceWarning
 
       - name: Publish pact contracts to PactFlow
         if: env.PACT_BROKER_READ_WRITE_TOKEN != ''
         run: |
-          if ! compgen -G "pacts/*.json" > /dev/null; then
-            echo "No pact files found, skipping publish"
+          PACT_DIR="tests/integration/cloud/rest_contracts/pacts"
+          if [ ! -d "${PACT_DIR}" ] || ! compgen -G "${PACT_DIR}/*.json" > /dev/null; then
+            echo "No pact files found in ${PACT_DIR}, skipping publish"
             exit 0
           fi
 
@@ -639,7 +653,7 @@ jobs:
 
           echo "Publishing with version=${CONSUMER_VERSION} branch=${PACT_BRANCH}"
           docker run --rm \
-            -v "$(pwd)/pacts:/pacts" \
+            -v "$(pwd)/${PACT_DIR}:/pacts" \
             pactfoundation/pact-cli:1.5.0.4 \
             broker publish /pacts \
             --broker-base-url=https://greatexpectations.pactflow.io \
