@@ -57,7 +57,7 @@
     "babel-jest": "^29.7.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^29.7.0",
-    "jest-environment-jsdom": "^30.0.5"
+    "jest-environment-jsdom": "^30.3.0"
   },
   "resolutions": {
     "webpack-dev-server": "^5.2.1",
