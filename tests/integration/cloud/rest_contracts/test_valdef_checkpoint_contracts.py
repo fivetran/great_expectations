@@ -1011,16 +1011,14 @@ CHECKPOINT_EXPECTATION_PARAMS_PATH: Final[str] = f"{CHECKPOINT_BY_ID_PATH}/expec
 
 
 @pytest.mark.cloud
-def test_get_checkpoint_expectation_parameters(pact_test: Pact, mocker) -> None:
+def test_get_checkpoint_expectation_parameters(pact_test: Pact) -> None:
     """context.prepare_checkpoint_run() fetches expectation parameters.
 
     When a checkpoint has windowed expectations, ``CloudDataContext
     .prepare_checkpoint_run()`` issues a GET to
-    ``/checkpoints/{id}/expectation-parameters`` to retrieve computed parameter
-    values.  The response contains a ``data.expectation_parameters`` dict.
-
-    This test patches ``_checkpoint_has_windowed_expectations`` to return True
-    so the HTTP call is made without needing actual windowed expectations.
+    ``/checkpoints/{id}/expectation-parameters?batch_definition_id=X`` to
+    retrieve computed parameter values. The response contains a
+    ``data.expectation_parameters`` dict.
 
     Full interaction sequence:
       1.  GET /data-context-configuration                       (context init)
@@ -1035,7 +1033,7 @@ def test_get_checkpoint_expectation_parameters(pact_test: Pact, mocker) -> None:
         description_suffix="get-checkpoint-expectation-parameters",
     )
 
-    # 2. GET /checkpoints/{id}/expectation-parameters
+    # 2. GET /checkpoints/{id}/expectation-parameters?batch_definition_id=X
     expectation_params_response: dict = {
         "data": match.like(
             {
@@ -1048,7 +1046,11 @@ def test_get_checkpoint_expectation_parameters(pact_test: Pact, mocker) -> None:
             "a request to get checkpoint expectation parameters (client-driven)"
         )
         .given("a checkpoint with expectation parameters exists")
-        .with_request("GET", CHECKPOINT_EXPECTATION_PARAMS_PATH)
+        .with_request(
+            "GET",
+            CHECKPOINT_EXPECTATION_PARAMS_PATH,
+            query={"batch_definition_id": [match.like(EXISTING_BATCH_DEF_ID)]},
+        )
         .with_headers(headers)
         .will_respond_with(200)
         .with_body(expectation_params_response, content_type="application/json")
@@ -1063,35 +1065,40 @@ def test_get_checkpoint_expectation_parameters(pact_test: Pact, mocker) -> None:
             cloud_access_token=PACT_DUMMY_ACCESS_TOKEN,
         )
 
-        # Build a minimal checkpoint stand-in with the known ID. The
-        # validation definition carries EXISTING_BATCH_DEF_ID so
-        # _distinct_batch_definition_ids returns a non-empty set and the
-        # client issues the GET /expectation-parameters call.
+        # Build a real minimal checkpoint with a windowed expectation so the
+        # full code path is exercised without patching implementation internals.
         from great_expectations.checkpoint.checkpoint import Checkpoint
         from great_expectations.core.batch_definition import BatchDefinition
+        from great_expectations.core.expectation_suite import ExpectationSuite
+        from great_expectations.core.validation_definition import ValidationDefinition
+        from great_expectations.expectations.core import ExpectTableRowCountToBeBetween
+        from great_expectations.expectations.window import Window
 
-        batch_def_mock = mocker.Mock(spec=BatchDefinition)
-        batch_def_mock.id = EXISTING_BATCH_DEF_ID
-        val_def_mock = mocker.Mock()
-        val_def_mock.data = batch_def_mock
-
+        window = Window(
+            constraint_fn="mean",
+            parameter_name="expect_table_row_count_to_be_between_min",
+            range=5,
+            offset={"positive": 0.1, "negative": 0.1},
+        )
+        exp = ExpectTableRowCountToBeBetween(windows=[window])
+        suite = ExpectationSuite(name="test_suite", expectations=[exp])
+        bd = BatchDefinition.construct(name="bd", id=EXISTING_BATCH_DEF_ID)
+        vd = ValidationDefinition.construct(
+            name="vd",
+            data=bd,
+            suite=suite,
+            id="vvvv0001-0001-0001-0001-000000000001",
+        )
         checkpoint = Checkpoint.construct(
             name=CHECKPOINT_NAME,
-            validation_definitions=[val_def_mock],
+            validation_definitions=[vd],
             actions=[],
             id=EXISTING_CHECKPOINT_ID,
         )
 
-        # Patch so the method proceeds to the HTTP call without needing
-        # actual windowed expectations on the checkpoint.
         expectation_parameters: dict = {}
-        with patch.object(
-            type(ctx),
-            "_checkpoint_has_windowed_expectations",
-            return_value=True,
-        ):
-            ctx.prepare_checkpoint_run(
-                checkpoint=checkpoint,
-                batch_parameters={},
-                expectation_parameters=expectation_parameters,
-            )
+        ctx.prepare_checkpoint_run(
+            checkpoint=checkpoint,
+            batch_parameters={},
+            expectation_parameters=expectation_parameters,
+        )
