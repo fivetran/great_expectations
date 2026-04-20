@@ -851,6 +851,8 @@ class CloudDataContext(SerializableDataContext):
         """
         ids: Set[str] = set()
         for validation_def in checkpoint.validation_definitions:
+            if not any(exp.windows for exp in validation_def.suite.expectations):
+                continue
             batch_definition = validation_def.data
             if isinstance(batch_definition, BatchDefinition) and batch_definition.id:
                 ids.add(batch_definition.id)
