@@ -1,5 +1,6 @@
+import json
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -209,113 +210,234 @@ EXPECTATION_PARAMETERS_URL = (
 )
 
 
-def _build_cloud_context() -> CloudDataContext:
-    """Construct a CloudDataContext whose /data-context-configuration call is mocked."""
-    responses.add(
-        responses.GET,
-        CONTEXT_CONFIGURATION_URL,
-        json=V1_CONFIG,
-        status=200,
-    )
-    return CloudDataContext(
-        cloud_base_url=CLOUD_BASE_URL,
-        cloud_access_token=ACCESS_TOKEN,
-        cloud_organization_id=ORG_ID,
-        cloud_workspace_id=WORKSPACE_ID,
-    )
+class TestPrepareCheckpointRun:
+    """Tests for ``CloudDataContext.prepare_checkpoint_run`` grouped-call
+    behavior against ``GET /expectation-parameters`` (GX-3229).
 
-
-def _build_checkpoint(mocker: MockerFixture, batch_definition_id: Optional[str]):
-    """Build a minimal Checkpoint with a single ValidationDefinition whose
-    BatchDefinition has the given id.
+    Mercury's forecast store is keyed by ``(expectation_id, batch_definition_id)``,
+    so an expectation's dynamic parameters are only correct when the server
+    resolves them using that expectation's own ``batch_definition_id``. When
+    a checkpoint spans multiple batch definitions, the client issues one call
+    per distinct id and merges responses by ``parameter_name``, keeping each
+    parameter only from the call whose ``batch_definition_id`` matches the
+    expectation that owns it.
     """
-    from great_expectations.checkpoint.checkpoint import Checkpoint
 
-    batch_definition = mocker.Mock(spec=BatchDefinition)
-    batch_definition.id = batch_definition_id
+    @pytest.fixture
+    def cloud_context(self) -> CloudDataContext:
+        """CloudDataContext whose /data-context-configuration call is mocked."""
+        responses.add(
+            responses.GET,
+            CONTEXT_CONFIGURATION_URL,
+            json=V1_CONFIG,
+            status=200,
+        )
+        return CloudDataContext(
+            cloud_base_url=CLOUD_BASE_URL,
+            cloud_access_token=ACCESS_TOKEN,
+            cloud_organization_id=ORG_ID,
+            cloud_workspace_id=WORKSPACE_ID,
+        )
 
-    validation_definition = ValidationDefinition.construct(
-        name="my_validation_definition",
-        data=batch_definition,
-        suite=mocker.Mock(spec=ExpectationSuite),
-        id=str(uuid.uuid4()),
-    )
+    @pytest.fixture
+    def make_checkpoint(self, mocker: MockerFixture):
+        """Factory fixture: build a Checkpoint from a list of tuples of the form
+        ``(batch_definition_id, [parameter_names])`` — one tuple per
+        ValidationDefinition. Each parameter_name becomes a single windowed
+        expectation under that validation definition's suite.
+        """
+        from great_expectations.checkpoint.checkpoint import Checkpoint
 
-    return Checkpoint.construct(
-        name="my_checkpoint",
-        validation_definitions=[validation_definition],
-        actions=[],
-        id=CHECKPOINT_ID,
-    )
+        def _build(
+            validation_defs: List[Tuple[Optional[str], List[str]]],
+        ) -> Checkpoint:
+            vds = []
+            for batch_definition_id, parameter_names in validation_defs:
+                batch_definition = mocker.Mock(spec=BatchDefinition)
+                batch_definition.id = batch_definition_id
 
+                expectations = []
+                for parameter_name in parameter_names:
+                    window = mocker.Mock()
+                    window.parameter_name = parameter_name
+                    expectation = mocker.Mock()
+                    expectation.windows = [window]
+                    expectations.append(expectation)
 
-@responses.activate
-@pytest.mark.unit
-def test_prepare_checkpoint_run_passes_batch_definition_id_when_available(
-    mocker: MockerFixture,
-) -> None:
-    """SDK passes batch_definition_id as a query parameter when the checkpoint's
-    validation definition has a batch_definition with an id.
-    """
-    responses.add(
-        responses.GET,
-        EXPECTATION_PARAMETERS_URL,
-        json={"data": {"expectation_parameters": {}}},
-        status=200,
-    )
+                suite = mocker.Mock(spec=ExpectationSuite)
+                suite.expectations = expectations
 
-    ctx = _build_cloud_context()
-    checkpoint = _build_checkpoint(mocker, batch_definition_id=BATCH_DEFINITION_ID)
+                vd = ValidationDefinition.construct(
+                    name=f"vd_{batch_definition_id}",
+                    data=batch_definition,
+                    suite=suite,
+                    id=str(uuid.uuid4()),
+                )
+                vds.append(vd)
 
-    mocker.patch.object(
-        type(ctx),
-        "_checkpoint_has_windowed_expectations",
-        return_value=True,
-    )
-    ctx.prepare_checkpoint_run(
-        checkpoint=checkpoint,
-        batch_parameters={},
-        expectation_parameters={},
-    )
+            return Checkpoint.construct(
+                name="my_checkpoint",
+                validation_definitions=vds,
+                actions=[],
+                id=CHECKPOINT_ID,
+            )
 
-    # The last call should be the expectation-parameters GET.
-    expectation_params_call = responses.calls[-1]
-    parsed = urlparse(expectation_params_call.request.url)
-    query = parse_qs(parsed.query)
-    assert query.get("batch_definition_id") == [BATCH_DEFINITION_ID]
+        return _build
 
+    @staticmethod
+    def _expectation_parameter_calls() -> List[responses.Call]:
+        return [call for call in responses.calls if "expectation-parameters" in call.request.url]
 
-@responses.activate
-@pytest.mark.unit
-def test_prepare_checkpoint_run_omits_batch_definition_id_when_unavailable(
-    mocker: MockerFixture,
-) -> None:
-    """SDK does not pass batch_definition_id when it is not available. This
-    preserves backward compatibility with older mercury versions that do not
-    understand the query parameter.
-    """
-    responses.add(
-        responses.GET,
-        EXPECTATION_PARAMETERS_URL,
-        json={"data": {"expectation_parameters": {}}},
-        status=200,
-    )
+    @staticmethod
+    def _batch_definition_id_on_call(call: responses.Call) -> Optional[str]:
+        return parse_qs(urlparse(call.request.url).query).get("batch_definition_id", [None])[0]
 
-    ctx = _build_cloud_context()
-    checkpoint = _build_checkpoint(mocker, batch_definition_id=None)
+    @responses.activate
+    @pytest.mark.unit
+    def test_passes_batch_definition_id_when_available(
+        self, cloud_context, make_checkpoint
+    ) -> None:
+        responses.add(
+            responses.GET,
+            EXPECTATION_PARAMETERS_URL,
+            json={"data": {"expectation_parameters": {"p_max": 42}}},
+            status=200,
+        )
+        checkpoint = make_checkpoint([(BATCH_DEFINITION_ID, ["p_max"])])
 
-    mocker.patch.object(
-        type(ctx),
-        "_checkpoint_has_windowed_expectations",
-        return_value=True,
-    )
-    ctx.prepare_checkpoint_run(
-        checkpoint=checkpoint,
-        batch_parameters={},
-        expectation_parameters={},
-    )
+        cloud_context.prepare_checkpoint_run(
+            checkpoint=checkpoint,
+            batch_parameters={},
+            expectation_parameters={},
+        )
 
-    expectation_params_call = responses.calls[-1]
-    parsed = urlparse(expectation_params_call.request.url)
-    query = parse_qs(parsed.query)
-    assert "batch_definition_id" not in query
+        ep_calls = self._expectation_parameter_calls()
+        assert len(ep_calls) == 1
+        assert self._batch_definition_id_on_call(ep_calls[0]) == BATCH_DEFINITION_ID
+
+    @responses.activate
+    @pytest.mark.unit
+    def test_omits_batch_definition_id_when_unavailable(
+        self, cloud_context, make_checkpoint
+    ) -> None:
+        """Preserves backward compatibility with older mercury versions that do
+        not understand the query parameter.
+        """
+        responses.add(
+            responses.GET,
+            EXPECTATION_PARAMETERS_URL,
+            json={"data": {"expectation_parameters": {"p_max": 42}}},
+            status=200,
+        )
+        checkpoint = make_checkpoint([(None, ["p_max"])])
+
+        cloud_context.prepare_checkpoint_run(
+            checkpoint=checkpoint,
+            batch_parameters={},
+            expectation_parameters={},
+        )
+
+        ep_calls = self._expectation_parameter_calls()
+        assert len(ep_calls) == 1
+        assert self._batch_definition_id_on_call(ep_calls[0]) is None
+
+    @responses.activate
+    @pytest.mark.unit
+    def test_groups_calls_by_distinct_batch_definition_id(
+        self, cloud_context, make_checkpoint
+    ) -> None:
+        """Checkpoint spans two batch definitions → two grouped calls, merge
+        keeps each parameter only from the matching call.
+        """
+        batch_definition_id_a = str(uuid.uuid4())
+        batch_definition_id_b = str(uuid.uuid4())
+
+        # Mercury always returns parameters for every expectation in the
+        # checkpoint, but values for expectations whose actual
+        # batch_definition_id doesn't match the query param are "wrong"
+        # (empty bounds or baseline). The SDK must discard those entries.
+        def callback(request):
+            bd_id = parse_qs(urlparse(request.url).query).get("batch_definition_id", [None])[0]
+            if bd_id == batch_definition_id_a:
+                body = {"data": {"expectation_parameters": {"p_a_max": 111, "p_b_max": 999}}}
+            elif bd_id == batch_definition_id_b:
+                body = {"data": {"expectation_parameters": {"p_a_max": 999, "p_b_max": 222}}}
+            else:
+                body = {"data": {"expectation_parameters": {}}}
+            return (200, {}, json.dumps(body))
+
+        responses.add_callback(
+            responses.GET,
+            EXPECTATION_PARAMETERS_URL,
+            callback=callback,
+            content_type="application/json",
+        )
+
+        checkpoint = make_checkpoint(
+            [
+                (batch_definition_id_a, ["p_a_max"]),
+                (batch_definition_id_b, ["p_b_max"]),
+            ]
+        )
+        expectation_parameters: dict = {}
+
+        cloud_context.prepare_checkpoint_run(
+            checkpoint=checkpoint,
+            batch_parameters={},
+            expectation_parameters=expectation_parameters,
+        )
+
+        ep_calls = self._expectation_parameter_calls()
+        assert len(ep_calls) == 2
+        bd_ids_used = sorted(self._batch_definition_id_on_call(c) for c in ep_calls)
+        assert bd_ids_used == sorted([batch_definition_id_a, batch_definition_id_b])
+
+        # Merge is correct: each parameter keeps the value from the matched
+        # call; the 999s from the mismatched calls must NOT win.
+        assert expectation_parameters == {"p_a_max": 111, "p_b_max": 222}
+
+    @responses.activate
+    @pytest.mark.unit
+    def test_mixes_batch_definition_ids_and_none(self, cloud_context, make_checkpoint) -> None:
+        """Some validation definitions have a batch_definition_id, others don't
+        → one call with the id, one without (inline fallback); merge keeps each
+        parameter from the matching call.
+        """
+        batch_definition_id_a = str(uuid.uuid4())
+
+        def callback(request):
+            bd_id = parse_qs(urlparse(request.url).query).get("batch_definition_id", [None])[0]
+            if bd_id == batch_definition_id_a:
+                body = {"data": {"expectation_parameters": {"p_a_max": 111, "p_none_max": 999}}}
+            else:
+                body = {"data": {"expectation_parameters": {"p_a_max": 999, "p_none_max": 222}}}
+            return (200, {}, json.dumps(body))
+
+        responses.add_callback(
+            responses.GET,
+            EXPECTATION_PARAMETERS_URL,
+            callback=callback,
+            content_type="application/json",
+        )
+
+        checkpoint = make_checkpoint(
+            [
+                (batch_definition_id_a, ["p_a_max"]),
+                (None, ["p_none_max"]),
+            ]
+        )
+        expectation_parameters: dict = {}
+
+        cloud_context.prepare_checkpoint_run(
+            checkpoint=checkpoint,
+            batch_parameters={},
+            expectation_parameters=expectation_parameters,
+        )
+
+        ep_calls = self._expectation_parameter_calls()
+        assert len(ep_calls) == 2
+        calls_with_param = [c for c in ep_calls if self._batch_definition_id_on_call(c) is not None]
+        assert len(calls_with_param) == 1
+
+        # Merge picks the matched values, discards the mismatched 999s.
+        assert expectation_parameters == {"p_a_max": 111, "p_none_max": 222}

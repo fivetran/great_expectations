@@ -16,12 +16,13 @@ from typing import (
 )
 from urllib.parse import urljoin
 
-from requests import HTTPError, Response
+from requests import HTTPError, Response, Session
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations import __version__
 from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.config_provider import (
     _CloudConfigurationProvider,
     _ConfigurationProvider,
@@ -772,46 +773,91 @@ class CloudDataContext(SerializableDataContext):
                 url=f"/api/v1/organizations/{org_id}/checkpoints/{checkpoint.id}/expectation-parameters",
             )
 
-        # When the checkpoint has a single, unambiguous batch_definition_id, thread
-        # it through as a query parameter so mercury can look up forecasted bounds
-        # from the async forecast store instead of falling back to inline training.
-        # Omitting the param preserves backward compatibility with older mercury
-        # versions that do not understand it.
-        params: Dict[str, str] = {}
-        batch_definition_id = self._get_single_batch_definition_id(checkpoint)
-        if batch_definition_id is not None:
-            params["batch_definition_id"] = batch_definition_id
+        # Mercury's forecast store is keyed by (expectation_id, batch_definition_id).
+        # An expectation's dynamic parameters are only correct when the server
+        # looks them up with that expectation's own batch_definition_id — if the
+        # checkpoint spans multiple batch definitions, a single shared call would
+        # return wrong values (or empty bounds) for the expectations that don't
+        # match. Group expectations by their batch_definition_id and make one
+        # call per distinct id, then merge server responses, keeping each
+        # parameter_name only from the call whose batch_definition_id matches
+        # the expectation that owns that parameter.
+        parameter_name_to_batch_definition_id = self._build_parameter_name_to_batch_definition_id(
+            checkpoint
+        )
+        distinct_batch_definition_ids = set(parameter_name_to_batch_definition_id.values())
 
         # temporarily extend expectation parameter timeout to 10 minutes
         # while a more robust solution is implemented
         EXPECTATION_PARAMS_TIMEOUT = 600
+
+        merged_parameters: Dict[str, Any] = {}
         with create_session(
             access_token=self.ge_cloud_config.access_token, timeout=EXPECTATION_PARAMS_TIMEOUT
         ) as session:
-            response = session.get(url=expectation_parameters_url, params=params)
+            for batch_definition_id in distinct_batch_definition_ids:
+                merged_parameters.update(
+                    self._fetch_expectation_parameters_for_batch_definition_id(
+                        session=session,
+                        url=expectation_parameters_url,
+                        batch_definition_id=batch_definition_id,
+                        parameter_name_to_batch_definition_id=(
+                            parameter_name_to_batch_definition_id
+                        ),
+                        checkpoint_id=checkpoint.id,
+                    )
+                )
 
+        overlapping_keys = set(expectation_parameters.keys()) & set(merged_parameters.keys())
+        if overlapping_keys:
+            logger.warning(
+                "Passed in expectation_parameters also found in GX Cloud. Overwriting "
+                f"passed in values with GX Cloud values for keys: {overlapping_keys}"
+            )
+        expectation_parameters.update(merged_parameters)
+
+    @staticmethod
+    def _fetch_expectation_parameters_for_batch_definition_id(
+        session: Session,
+        url: str,
+        batch_definition_id: Optional[str],
+        parameter_name_to_batch_definition_id: Dict[str, Optional[str]],
+        checkpoint_id: Optional[str],
+    ) -> Dict[str, Any]:
+        """Issue a single GET /expectation-parameters call for the given
+        ``batch_definition_id`` and return only the subset of response entries
+        whose ``parameter_name`` belongs to an expectation with that same id.
+
+        When ``batch_definition_id`` is ``None`` the query parameter is omitted
+        so mercury falls back to inline computation for those expectations
+        (also preserves backward compatibility with older mercury versions).
+        """
+        params: Dict[str, str] = {}
+        if batch_definition_id is not None:
+            params["batch_definition_id"] = batch_definition_id
+
+        response = session.get(url=url, params=params)
         if not response.ok:
             raise gx_exceptions.GXCloudError(
                 message="Unable to retrieve expectation_parameters for Checkpoint with "
-                f"ID={checkpoint.id}.",
+                f"ID={checkpoint_id}.",
                 response=response,
             )
-        data = response.json()
         try:
-            overlapping_keys = set(expectation_parameters.keys()) & set(
-                data["data"]["expectation_parameters"].keys()
-            )
-            if overlapping_keys:
-                logger.warning(
-                    "Passed in expectation_parameters also found in GX Cloud. Overwriting "
-                    f"passed in values with GX Cloud values for keys: {overlapping_keys}"
-                )
-            expectation_parameters.update(data["data"]["expectation_parameters"])
+            server_parameters = response.json()["data"]["expectation_parameters"]
         except KeyError as e:
             raise gx_exceptions.GXCloudError(
                 message="Malformed expectation_parameters response received from GX Cloud",
                 response=response,
             ) from e
+
+        # Values for expectations whose actual batch_definition_id doesn't
+        # match this call's query param are incorrect — discard them.
+        return {
+            parameter_name: value
+            for parameter_name, value in server_parameters.items()
+            if parameter_name_to_batch_definition_id.get(parameter_name) == batch_definition_id
+        }
 
     def _checkpoint_has_windowed_expectations(self, checkpoint: Checkpoint) -> bool:
         # Check if we have a windowed parameter
@@ -822,23 +868,30 @@ class CloudDataContext(SerializableDataContext):
         return False
 
     @staticmethod
-    def _get_single_batch_definition_id(checkpoint: Checkpoint) -> Optional[str]:
-        """Return the batch_definition_id shared by all validation definitions,
-        or ``None`` if it cannot be unambiguously determined.
+    def _build_parameter_name_to_batch_definition_id(
+        checkpoint: Checkpoint,
+    ) -> Dict[str, Optional[str]]:
+        """Map each windowed expectation parameter_name to the batch_definition_id
+        of the validation definition that owns it.
 
-        The forecast store is keyed by ``(expectation_id, batch_definition_id)``.
-        When a checkpoint's validation definitions all reference the same batch
-        definition we can supply it to ``GET /expectation-parameters``; if they
-        reference different batch definitions (or any id is missing) we omit the
-        parameter and let mercury fall back to inline computation.
+        The returned dict is the source of truth for the grouped-call merge in
+        ``prepare_checkpoint_run``. A parameter whose owning validation
+        definition has no batch_definition (or the id is missing) is mapped to
+        ``None``, which signals that mercury should fall back to inline
+        computation for that parameter.
         """
-        ids = set()
+        parameter_name_to_batch_definition_id: Dict[str, Optional[str]] = {}
         for validation_def in checkpoint.validation_definitions:
-            batch_definition = getattr(validation_def, "data", None)
-            batch_definition_id = getattr(batch_definition, "id", None)
-            if not batch_definition_id:
-                return None
-            ids.add(batch_definition_id)
-        if len(ids) != 1:
-            return None
-        return next(iter(ids))
+            batch_definition = validation_def.data
+            if isinstance(batch_definition, BatchDefinition):
+                batch_definition_id: Optional[str] = batch_definition.id
+            else:
+                batch_definition_id = None
+            for expectation in validation_def.suite.expectations:
+                if expectation.windows is None:
+                    continue
+                for window in expectation.windows:
+                    parameter_name_to_batch_definition_id[window.parameter_name] = (
+                        batch_definition_id
+                    )
+        return parameter_name_to_batch_definition_id
