@@ -66,7 +66,8 @@
     "parse-md/js-yaml": "3.14.2",
     "@jest/transform/js-yaml": "3.14.2",
     "minimatch": "^3.1.4",
-    "lodash-es": "^4.18.0"
+    "lodash-es": "^4.18.0",
+    "express/path-to-regexp": "0.1.13"
   },
   "browserslist": {
     "production": [
