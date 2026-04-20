@@ -791,7 +791,7 @@ class CloudDataContext(SerializableDataContext):
         with create_session(
             access_token=self.ge_cloud_config.access_token, timeout=EXPECTATION_PARAMS_TIMEOUT
         ) as session:
-            for batch_definition_id in distinct_batch_definition_ids:
+            for batch_definition_id in sorted(distinct_batch_definition_ids):
                 merged_parameters.update(
                     self._fetch_expectation_parameters(
                         session=session,

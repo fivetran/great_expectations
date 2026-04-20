@@ -397,27 +397,17 @@ class TestPrepareCheckpointRun:
 
     @responses.activate
     @pytest.mark.unit
-    def test_mixes_batch_definition_ids_and_none(self, make_checkpoint) -> None:
-        """Some validation definitions have a batch_definition_id, others don't
-        → one call with the id (mercury returns only the scoped entries), one
-        without (mercury returns entries for expectations without a batch
-        definition via its inline path). Merge is a clean union.
+    def test_skips_expectations_without_batch_definition_id(self, make_checkpoint) -> None:
+        """Validation definitions without a batch_definition_id are not in the
+        forecast store path and are skipped; only the scoped call is made.
         """
         batch_definition_id_a = str(uuid.uuid4())
 
-        def callback(request):
-            bd_id = parse_qs(urlparse(request.url).query).get("batch_definition_id", [None])[0]
-            if bd_id == batch_definition_id_a:
-                body = {"data": {"expectation_parameters": {"p_a_max": 111}}}
-            else:
-                body = {"data": {"expectation_parameters": {"p_none_max": 222}}}
-            return (200, {}, json.dumps(body))
-
-        responses.add_callback(
+        responses.add(
             responses.GET,
             EXPECTATION_PARAMETERS_URL,
-            callback=callback,
-            content_type="application/json",
+            json={"data": {"expectation_parameters": {"p_a_max": 111}}},
+            status=200,
         )
 
         checkpoint = make_checkpoint(
@@ -435,9 +425,6 @@ class TestPrepareCheckpointRun:
         )
 
         ep_calls = self._expectation_parameter_calls()
-        assert len(ep_calls) == 2
-        calls_with_param = [c for c in ep_calls if self._batch_definition_id_on_call(c) is not None]
-        assert len(calls_with_param) == 1
-
-        # Disjoint keys from the two calls; merge is a clean union.
-        assert expectation_parameters == {"p_a_max": 111, "p_none_max": 222}
+        assert len(ep_calls) == 1
+        assert self._batch_definition_id_on_call(ep_calls[0]) == batch_definition_id_a
+        assert expectation_parameters == {"p_a_max": 111}

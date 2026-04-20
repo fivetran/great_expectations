@@ -1046,11 +1046,8 @@ def test_get_checkpoint_expectation_parameters(pact_test: Pact) -> None:
             "a request to get checkpoint expectation parameters (client-driven)"
         )
         .given("a checkpoint with expectation parameters exists")
-        .with_request(
-            "GET",
-            CHECKPOINT_EXPECTATION_PARAMS_PATH,
-            query={"batch_definition_id": [match.like(EXISTING_BATCH_DEF_ID)]},
-        )
+        .with_request("GET", CHECKPOINT_EXPECTATION_PARAMS_PATH)
+        .with_query_parameters({"batch_definition_id": match.like(EXISTING_BATCH_DEF_ID)})
         .with_headers(headers)
         .will_respond_with(200)
         .with_body(expectation_params_response, content_type="application/json")
@@ -1072,13 +1069,13 @@ def test_get_checkpoint_expectation_parameters(pact_test: Pact) -> None:
         from great_expectations.core.expectation_suite import ExpectationSuite
         from great_expectations.core.validation_definition import ValidationDefinition
         from great_expectations.expectations.core import ExpectTableRowCountToBeBetween
-        from great_expectations.expectations.window import Window
+        from great_expectations.expectations.window import Offset, Window
 
         window = Window(
             constraint_fn="mean",
             parameter_name="expect_table_row_count_to_be_between_min",
             range=5,
-            offset={"positive": 0.1, "negative": 0.1},
+            offset=Offset(positive=0.1, negative=0.1),
         )
         exp = ExpectTableRowCountToBeBetween(windows=[window])
         suite = ExpectationSuite(name="test_suite", expectations=[exp])
