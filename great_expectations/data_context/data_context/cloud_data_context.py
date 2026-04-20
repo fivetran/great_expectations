@@ -12,11 +12,12 @@ from typing import (
     Literal,
     Mapping,
     Optional,
+    Set,
     Union,
 )
 from urllib.parse import urljoin
 
-from requests import HTTPError, Response, Session
+from requests import HTTPError, Response
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations import __version__
@@ -773,27 +774,15 @@ class CloudDataContext(SerializableDataContext):
                 url=f"/api/v1/organizations/{org_id}/checkpoints/{checkpoint.id}/expectation-parameters",
             )
 
-        # Mercury's forecast store is keyed by (expectation_id, batch_definition_id).
-        # An expectation's dynamic parameters are only correct when the server
-        # looks them up with that expectation's own batch_definition_id — if the
-        # checkpoint spans multiple batch definitions, a single shared call would
-        # return wrong values (or empty bounds) for the expectations that don't
-        # match. Group expectations by their batch_definition_id and make one
-        # call per distinct id, then merge server responses, keeping each
-        # parameter_name only from the call whose batch_definition_id matches
-        # the expectation that owns that parameter.
-        parameter_name_to_batch_definition_id = self._build_parameter_name_to_batch_definition_id(
-            checkpoint
-        )
-        distinct_batch_definition_ids: set[Optional[str]] = set(
-            parameter_name_to_batch_definition_id.values()
-        )
-        # If the checkpoint reports windowed expectations but we could not walk
-        # any validation_definitions → expectations → windows to discover
-        # parameter names, fall back to a single call without the query
-        # parameter so mercury applies its inline-computation path. Without
-        # this, the loop below would be a no-op and the caller would see no
-        # ``expectation_parameters`` update.
+        # Mercury's ``GET /expectation-parameters?batch_definition_id=X`` returns
+        # entries only for expectations whose owning validation definition uses
+        # ``X``. When a checkpoint spans multiple batch definitions we make one
+        # call per distinct id and merge the responses; a checkpoint usually has
+        # a single batch definition, so this is typically one call.
+        distinct_batch_definition_ids = self._distinct_batch_definition_ids(checkpoint)
+        # If no validation definition carries a batch_definition_id, fall back
+        # to a single call without the query param so mercury applies its
+        # inline-computation path.
         if not distinct_batch_definition_ids:
             distinct_batch_definition_ids = {None}
 
@@ -807,13 +796,10 @@ class CloudDataContext(SerializableDataContext):
         ) as session:
             for batch_definition_id in distinct_batch_definition_ids:
                 merged_parameters.update(
-                    self._fetch_expectation_parameters_for_batch_definition_id(
+                    self._fetch_expectation_parameters(
                         session=session,
                         url=expectation_parameters_url,
                         batch_definition_id=batch_definition_id,
-                        parameter_name_to_batch_definition_id=(
-                            parameter_name_to_batch_definition_id
-                        ),
                         checkpoint_id=checkpoint.id,
                     )
                 )
@@ -826,54 +812,6 @@ class CloudDataContext(SerializableDataContext):
             )
         expectation_parameters.update(merged_parameters)
 
-    @staticmethod
-    def _fetch_expectation_parameters_for_batch_definition_id(
-        session: Session,
-        url: str,
-        batch_definition_id: Optional[str],
-        parameter_name_to_batch_definition_id: Dict[str, Optional[str]],
-        checkpoint_id: Optional[str],
-    ) -> Dict[str, Any]:
-        """Issue a single GET /expectation-parameters call for the given
-        ``batch_definition_id`` and return only the subset of response entries
-        whose ``parameter_name`` belongs to an expectation with that same id.
-
-        When ``batch_definition_id`` is ``None`` the query parameter is omitted
-        so mercury falls back to inline computation for those expectations.
-        """
-        params: Dict[str, str] = {}
-        if batch_definition_id is not None:
-            params["batch_definition_id"] = batch_definition_id
-
-        response = session.get(url=url, params=params)
-        if not response.ok:
-            raise gx_exceptions.GXCloudError(
-                message="Unable to retrieve expectation_parameters for Checkpoint with "
-                f"ID={checkpoint_id}.",
-                response=response,
-            )
-        try:
-            server_parameters = response.json()["data"]["expectation_parameters"]
-        except KeyError as e:
-            raise gx_exceptions.GXCloudError(
-                message="Malformed expectation_parameters response received from GX Cloud",
-                response=response,
-            ) from e
-
-        # Mercury returns an entry for every expectation in the checkpoint on
-        # every call. For expectations whose real batch_definition_id differs
-        # from this call's query param, mercury's forecast-store lookup misses
-        # and the entry holds an empty/baseline fallback. Those fallbacks
-        # aren't wrong per se, but if we merged them in they'd clobber the
-        # real values returned by the call keyed on the matching id. Keep
-        # only the entries whose owning batch_definition_id matches this
-        # call so the merge across calls composes cleanly.
-        return {
-            parameter_name: value
-            for parameter_name, value in server_parameters.items()
-            if parameter_name_to_batch_definition_id.get(parameter_name) == batch_definition_id
-        }
-
     def _checkpoint_has_windowed_expectations(self, checkpoint: Checkpoint) -> bool:
         # Check if we have a windowed parameter
         for validation_def in checkpoint.validation_definitions:
@@ -883,30 +821,51 @@ class CloudDataContext(SerializableDataContext):
         return False
 
     @staticmethod
-    def _build_parameter_name_to_batch_definition_id(
-        checkpoint: Checkpoint,
-    ) -> Dict[str, Optional[str]]:
-        """Map each windowed expectation parameter_name to the batch_definition_id
-        of the validation definition that owns it.
-
-        The returned dict is the source of truth for the grouped-call merge in
-        ``prepare_checkpoint_run``. A parameter whose owning validation
-        definition has no batch_definition (or the id is missing) is mapped to
-        ``None``, which signals that mercury should fall back to inline
-        computation for that parameter.
+    def _fetch_expectation_parameters(
+        session: Any,
+        url: str,
+        batch_definition_id: Optional[str],
+        checkpoint_id: Optional[str],
+    ) -> Dict[str, Any]:
+        """Issue one ``GET /expectation-parameters`` call for the given
+        ``batch_definition_id`` and return the ``expectation_parameters`` dict
+        from the response body. When ``batch_definition_id`` is ``None`` the
+        query parameter is omitted so mercury applies its inline-computation
+        path.
         """
-        parameter_name_to_batch_definition_id: Dict[str, Optional[str]] = {}
+        params: Dict[str, str] = {}
+        if batch_definition_id is not None:
+            params["batch_definition_id"] = batch_definition_id
+        response = session.get(url=url, params=params)
+        if not response.ok:
+            raise gx_exceptions.GXCloudError(
+                message="Unable to retrieve expectation_parameters for Checkpoint with "
+                f"ID={checkpoint_id}.",
+                response=response,
+            )
+        try:
+            return response.json()["data"]["expectation_parameters"]
+        except KeyError as e:
+            raise gx_exceptions.GXCloudError(
+                message="Malformed expectation_parameters response received from GX Cloud",
+                response=response,
+            ) from e
+
+    @staticmethod
+    def _distinct_batch_definition_ids(checkpoint: Checkpoint) -> Set[Optional[str]]:
+        """Return the set of distinct ``batch_definition_id`` values across the
+        checkpoint's validation definitions.
+
+        Used to decide how many grouped ``GET /expectation-parameters`` calls to
+        make. ``None`` is a valid element — it signals that one of the validation
+        definitions has no batch definition id and mercury should apply its
+        inline-computation path for that subset.
+        """
+        ids: Set[Optional[str]] = set()
         for validation_def in checkpoint.validation_definitions:
             batch_definition = validation_def.data
             if isinstance(batch_definition, BatchDefinition):
-                batch_definition_id: Optional[str] = batch_definition.id
+                ids.add(batch_definition.id)
             else:
-                batch_definition_id = None
-            for expectation in validation_def.suite.expectations:
-                if expectation.windows is None:
-                    continue
-                for window in expectation.windows:
-                    parameter_name_to_batch_definition_id[window.parameter_name] = (
-                        batch_definition_id
-                    )
-        return parameter_name_to_batch_definition_id
+                ids.add(None)
+        return ids

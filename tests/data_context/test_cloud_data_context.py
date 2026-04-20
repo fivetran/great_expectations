@@ -195,7 +195,7 @@ def test_warns_when_workspace_id_env_var_unset(unset_gx_env_variables: None):
 
 
 # ---------------------------------------------------------------------------
-# prepare_checkpoint_run: batch_definition_id query param (GX-3229)
+# prepare_checkpoint_run: batch_definition_id query param
 # ---------------------------------------------------------------------------
 
 
@@ -212,7 +212,7 @@ EXPECTATION_PARAMETERS_URL = (
 
 class TestPrepareCheckpointRun:
     """Tests for ``CloudDataContext.prepare_checkpoint_run`` grouped-call
-    behavior against ``GET /expectation-parameters`` (GX-3229).
+    behavior against ``GET /expectation-parameters``.
 
     Mercury's forecast store is keyed by ``(expectation_id, batch_definition_id)``,
     so an expectation's dynamic parameters are only correct when the server
@@ -354,22 +354,20 @@ class TestPrepareCheckpointRun:
     @responses.activate
     @pytest.mark.unit
     def test_groups_calls_by_distinct_batch_definition_id(self, make_checkpoint) -> None:
-        """Checkpoint spans two batch definitions → two grouped calls, merge
-        keeps each parameter only from the matching call.
+        """Checkpoint spans two batch definitions → two grouped calls, one per
+        distinct id. Mercury returns entries only for expectations whose owning
+        validation definition uses the passed batch_definition_id, so the
+        responses carry disjoint keys and merge cleanly.
         """
         batch_definition_id_a = str(uuid.uuid4())
         batch_definition_id_b = str(uuid.uuid4())
 
-        # Mercury always returns parameters for every expectation in the
-        # checkpoint, but values for expectations whose actual
-        # batch_definition_id doesn't match the query param are "wrong"
-        # (empty bounds or baseline). The SDK must discard those entries.
         def callback(request):
             bd_id = parse_qs(urlparse(request.url).query).get("batch_definition_id", [None])[0]
             if bd_id == batch_definition_id_a:
-                body = {"data": {"expectation_parameters": {"p_a_max": 111, "p_b_max": 999}}}
+                body = {"data": {"expectation_parameters": {"p_a_max": 111}}}
             elif bd_id == batch_definition_id_b:
-                body = {"data": {"expectation_parameters": {"p_a_max": 999, "p_b_max": 222}}}
+                body = {"data": {"expectation_parameters": {"p_b_max": 222}}}
             else:
                 body = {"data": {"expectation_parameters": {}}}
             return (200, {}, json.dumps(body))
@@ -404,25 +402,25 @@ class TestPrepareCheckpointRun:
         )
         assert bd_ids_used == sorted([batch_definition_id_a, batch_definition_id_b])
 
-        # Merge is correct: each parameter keeps the value from the matched
-        # call; the 999s from the mismatched calls must NOT win.
+        # Responses from each call carry disjoint keys; the merge is a union.
         assert expectation_parameters == {"p_a_max": 111, "p_b_max": 222}
 
     @responses.activate
     @pytest.mark.unit
     def test_mixes_batch_definition_ids_and_none(self, make_checkpoint) -> None:
         """Some validation definitions have a batch_definition_id, others don't
-        → one call with the id, one without (inline fallback); merge keeps each
-        parameter from the matching call.
+        → one call with the id (mercury returns only the scoped entries), one
+        without (mercury returns entries for expectations without a batch
+        definition via its inline path). Merge is a clean union.
         """
         batch_definition_id_a = str(uuid.uuid4())
 
         def callback(request):
             bd_id = parse_qs(urlparse(request.url).query).get("batch_definition_id", [None])[0]
             if bd_id == batch_definition_id_a:
-                body = {"data": {"expectation_parameters": {"p_a_max": 111, "p_none_max": 999}}}
+                body = {"data": {"expectation_parameters": {"p_a_max": 111}}}
             else:
-                body = {"data": {"expectation_parameters": {"p_a_max": 999, "p_none_max": 222}}}
+                body = {"data": {"expectation_parameters": {"p_none_max": 222}}}
             return (200, {}, json.dumps(body))
 
         responses.add_callback(
@@ -451,5 +449,5 @@ class TestPrepareCheckpointRun:
         calls_with_param = [c for c in ep_calls if self._batch_definition_id_on_call(c) is not None]
         assert len(calls_with_param) == 1
 
-        # Merge picks the matched values, discards the mismatched 999s.
+        # Disjoint keys from the two calls; merge is a clean union.
         assert expectation_parameters == {"p_a_max": 111, "p_none_max": 222}
