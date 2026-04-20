@@ -639,6 +639,7 @@ jobs:
       - name: Run pact contract tests
         run: |
           pytest tests/integration/cloud/rest_contracts/ \
+            --cloud \
             --verbose \
             -W default::great_expectations.datasource.fluent.GxInvalidDatasourceWarning
 
