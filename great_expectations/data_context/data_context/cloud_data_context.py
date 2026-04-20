@@ -839,8 +839,7 @@ class CloudDataContext(SerializableDataContext):
         whose ``parameter_name`` belongs to an expectation with that same id.
 
         When ``batch_definition_id`` is ``None`` the query parameter is omitted
-        so mercury falls back to inline computation for those expectations
-        (also preserves backward compatibility with older mercury versions).
+        so mercury falls back to inline computation for those expectations.
         """
         params: Dict[str, str] = {}
         if batch_definition_id is not None:
@@ -861,8 +860,14 @@ class CloudDataContext(SerializableDataContext):
                 response=response,
             ) from e
 
-        # Values for expectations whose actual batch_definition_id doesn't
-        # match this call's query param are incorrect — discard them.
+        # Mercury returns an entry for every expectation in the checkpoint on
+        # every call. For expectations whose real batch_definition_id differs
+        # from this call's query param, mercury's forecast-store lookup misses
+        # and the entry holds an empty/baseline fallback. Those fallbacks
+        # aren't wrong per se, but if we merged them in they'd clobber the
+        # real values returned by the call keyed on the matching id. Keep
+        # only the entries whose owning batch_definition_id matches this
+        # call so the merge across calls composes cleanly.
         return {
             parameter_name: value
             for parameter_name, value in server_parameters.items()
