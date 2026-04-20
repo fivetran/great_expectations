@@ -785,7 +785,17 @@ class CloudDataContext(SerializableDataContext):
         parameter_name_to_batch_definition_id = self._build_parameter_name_to_batch_definition_id(
             checkpoint
         )
-        distinct_batch_definition_ids = set(parameter_name_to_batch_definition_id.values())
+        distinct_batch_definition_ids: set[Optional[str]] = set(
+            parameter_name_to_batch_definition_id.values()
+        )
+        # If the checkpoint reports windowed expectations but we could not walk
+        # any validation_definitions → expectations → windows to discover
+        # parameter names, fall back to a single call without the query
+        # parameter so mercury applies its inline-computation path. Without
+        # this, the loop below would be a no-op and the caller would see no
+        # ``expectation_parameters`` update.
+        if not distinct_batch_definition_ids:
+            distinct_batch_definition_ids = {None}
 
         # temporarily extend expectation parameter timeout to 10 minutes
         # while a more robust solution is implemented
