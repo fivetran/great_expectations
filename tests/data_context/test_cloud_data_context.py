@@ -223,9 +223,15 @@ class TestPrepareCheckpointRun:
     expectation that owns it.
     """
 
-    @pytest.fixture
-    def cloud_context(self) -> CloudDataContext:
-        """CloudDataContext whose /data-context-configuration call is mocked."""
+    @staticmethod
+    def _build_cloud_context() -> CloudDataContext:
+        """CloudDataContext whose /data-context-configuration call is mocked.
+
+        This is a static helper (not a ``@pytest.fixture``) because
+        ``responses.add`` has to execute inside the test's ``@responses.activate``
+        wrapper — fixtures resolve before the wrapper takes effect, so mocks
+        registered in a fixture don't intercept the ``__init__`` HTTP call.
+        """
         responses.add(
             responses.GET,
             CONTEXT_CONFIGURATION_URL,
@@ -286,17 +292,23 @@ class TestPrepareCheckpointRun:
 
     @staticmethod
     def _expectation_parameter_calls() -> List[responses.Call]:
-        return [call for call in responses.calls if "expectation-parameters" in call.request.url]
+        return [
+            call
+            for call in responses.calls
+            if call.request.url and "expectation-parameters" in call.request.url
+        ]
 
     @staticmethod
     def _batch_definition_id_on_call(call: responses.Call) -> Optional[str]:
-        return parse_qs(urlparse(call.request.url).query).get("batch_definition_id", [None])[0]
+        url = call.request.url
+        if url is None:
+            return None
+        values = parse_qs(urlparse(url).query).get("batch_definition_id")
+        return values[0] if values else None
 
     @responses.activate
     @pytest.mark.unit
-    def test_passes_batch_definition_id_when_available(
-        self, cloud_context, make_checkpoint
-    ) -> None:
+    def test_passes_batch_definition_id_when_available(self, make_checkpoint) -> None:
         responses.add(
             responses.GET,
             EXPECTATION_PARAMETERS_URL,
@@ -305,7 +317,7 @@ class TestPrepareCheckpointRun:
         )
         checkpoint = make_checkpoint([(BATCH_DEFINITION_ID, ["p_max"])])
 
-        cloud_context.prepare_checkpoint_run(
+        self._build_cloud_context().prepare_checkpoint_run(
             checkpoint=checkpoint,
             batch_parameters={},
             expectation_parameters={},
@@ -317,9 +329,7 @@ class TestPrepareCheckpointRun:
 
     @responses.activate
     @pytest.mark.unit
-    def test_omits_batch_definition_id_when_unavailable(
-        self, cloud_context, make_checkpoint
-    ) -> None:
+    def test_omits_batch_definition_id_when_unavailable(self, make_checkpoint) -> None:
         """Preserves backward compatibility with older mercury versions that do
         not understand the query parameter.
         """
@@ -331,7 +341,7 @@ class TestPrepareCheckpointRun:
         )
         checkpoint = make_checkpoint([(None, ["p_max"])])
 
-        cloud_context.prepare_checkpoint_run(
+        self._build_cloud_context().prepare_checkpoint_run(
             checkpoint=checkpoint,
             batch_parameters={},
             expectation_parameters={},
@@ -343,9 +353,7 @@ class TestPrepareCheckpointRun:
 
     @responses.activate
     @pytest.mark.unit
-    def test_groups_calls_by_distinct_batch_definition_id(
-        self, cloud_context, make_checkpoint
-    ) -> None:
+    def test_groups_calls_by_distinct_batch_definition_id(self, make_checkpoint) -> None:
         """Checkpoint spans two batch definitions → two grouped calls, merge
         keeps each parameter only from the matching call.
         """
@@ -381,7 +389,7 @@ class TestPrepareCheckpointRun:
         )
         expectation_parameters: dict = {}
 
-        cloud_context.prepare_checkpoint_run(
+        self._build_cloud_context().prepare_checkpoint_run(
             checkpoint=checkpoint,
             batch_parameters={},
             expectation_parameters=expectation_parameters,
@@ -389,7 +397,11 @@ class TestPrepareCheckpointRun:
 
         ep_calls = self._expectation_parameter_calls()
         assert len(ep_calls) == 2
-        bd_ids_used = sorted(self._batch_definition_id_on_call(c) for c in ep_calls)
+        bd_ids_used = sorted(
+            bd_id
+            for bd_id in (self._batch_definition_id_on_call(c) for c in ep_calls)
+            if bd_id is not None
+        )
         assert bd_ids_used == sorted([batch_definition_id_a, batch_definition_id_b])
 
         # Merge is correct: each parameter keeps the value from the matched
@@ -398,7 +410,7 @@ class TestPrepareCheckpointRun:
 
     @responses.activate
     @pytest.mark.unit
-    def test_mixes_batch_definition_ids_and_none(self, cloud_context, make_checkpoint) -> None:
+    def test_mixes_batch_definition_ids_and_none(self, make_checkpoint) -> None:
         """Some validation definitions have a batch_definition_id, others don't
         → one call with the id, one without (inline fallback); merge keeps each
         parameter from the matching call.
@@ -428,7 +440,7 @@ class TestPrepareCheckpointRun:
         )
         expectation_parameters: dict = {}
 
-        cloud_context.prepare_checkpoint_run(
+        self._build_cloud_context().prepare_checkpoint_run(
             checkpoint=checkpoint,
             batch_parameters={},
             expectation_parameters=expectation_parameters,
