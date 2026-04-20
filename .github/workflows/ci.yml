@@ -601,12 +601,9 @@ jobs:
   pact-contract-check:
     needs: [unit-tests, static-analysis, check-actor-permissions]
     if: >-
-      github.event_name == 'workflow_dispatch'
-      || (
-        github.event.pull_request.draft == false
-        && github.event_name != 'merge_group'
-        && !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
-      )
+      github.event.pull_request.draft == false
+      && github.event_name != 'merge_group'
+      && !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
     runs-on: ubuntu-latest
     env:
       PACT_BROKER_READ_WRITE_TOKEN: ${{secrets.PACT_BROKER_READ_WRITE_TOKEN}}
