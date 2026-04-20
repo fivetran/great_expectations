@@ -797,7 +797,6 @@ class CloudDataContext(SerializableDataContext):
                         session=session,
                         url=expectation_parameters_url,
                         batch_definition_id=batch_definition_id,
-                        checkpoint_id=checkpoint.id,
                     )
                 )
 
@@ -821,19 +820,16 @@ class CloudDataContext(SerializableDataContext):
     def _fetch_expectation_parameters(
         session: Any,
         url: str,
-        batch_definition_id: Optional[str],
-        checkpoint_id: Optional[str],
+        batch_definition_id: str,
     ) -> Dict[str, Any]:
         """Issue one ``GET /expectation-parameters?batch_definition_id=X`` call
         and return the ``expectation_parameters`` dict from the response body.
         """
-        params: Dict[str, str] = {}
-        params["batch_definition_id"] = batch_definition_id
-        response = session.get(url=url, params=params)
+        response = session.get(url=url, params={"batch_definition_id": batch_definition_id})
         if not response.ok:
             raise gx_exceptions.GXCloudError(
-                message="Unable to retrieve expectation_parameters for Checkpoint with "
-                f"ID={checkpoint_id}.",
+                message="Unable to retrieve expectation_parameters for "
+                f"batch_definition_id={batch_definition_id}.",
                 response=response,
             )
         try:
