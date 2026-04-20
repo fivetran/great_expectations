@@ -772,13 +772,23 @@ class CloudDataContext(SerializableDataContext):
                 url=f"/api/v1/organizations/{org_id}/checkpoints/{checkpoint.id}/expectation-parameters",
             )
 
+        # When the checkpoint has a single, unambiguous batch_definition_id, thread
+        # it through as a query parameter so mercury can look up forecasted bounds
+        # from the async forecast store instead of falling back to inline training.
+        # Omitting the param preserves backward compatibility with older mercury
+        # versions that do not understand it.
+        params: Dict[str, str] = {}
+        batch_definition_id = self._get_single_batch_definition_id(checkpoint)
+        if batch_definition_id is not None:
+            params["batch_definition_id"] = batch_definition_id
+
         # temporarily extend expectation parameter timeout to 10 minutes
         # while a more robust solution is implemented
         EXPECTATION_PARAMS_TIMEOUT = 600
         with create_session(
             access_token=self.ge_cloud_config.access_token, timeout=EXPECTATION_PARAMS_TIMEOUT
         ) as session:
-            response = session.get(url=expectation_parameters_url)
+            response = session.get(url=expectation_parameters_url, params=params)
 
         if not response.ok:
             raise gx_exceptions.GXCloudError(
@@ -810,3 +820,25 @@ class CloudDataContext(SerializableDataContext):
                 if expectation.windows is not None:
                     return True
         return False
+
+    @staticmethod
+    def _get_single_batch_definition_id(checkpoint: Checkpoint) -> Optional[str]:
+        """Return the batch_definition_id shared by all validation definitions,
+        or ``None`` if it cannot be unambiguously determined.
+
+        The forecast store is keyed by ``(expectation_id, batch_definition_id)``.
+        When a checkpoint's validation definitions all reference the same batch
+        definition we can supply it to ``GET /expectation-parameters``; if they
+        reference different batch definitions (or any id is missing) we omit the
+        parameter and let mercury fall back to inline computation.
+        """
+        ids = set()
+        for validation_def in checkpoint.validation_definitions:
+            batch_definition = getattr(validation_def, "data", None)
+            batch_definition_id = getattr(batch_definition, "id", None)
+            if not batch_definition_id:
+                return None
+            ids.add(batch_definition_id)
+        if len(ids) != 1:
+            return None
+        return next(iter(ids))

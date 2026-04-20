@@ -1,9 +1,14 @@
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, Optional
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 import responses
+from pytest_mock import MockerFixture
 
+from great_expectations.core.batch_definition import BatchDefinition
+from great_expectations.core.expectation_suite import ExpectationSuite
+from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context.data_context.cloud_data_context import CloudDataContext
 
 CLOUD_BASE_URL = "https://api.greatexpectations.io/fake"
@@ -186,3 +191,131 @@ def test_warns_when_workspace_id_env_var_unset(unset_gx_env_variables: None):
         "Workspace id is not set when instantiating a CloudDataContext."
     )
     assert "GX_CLOUD_WORKSPACE_ID" in warning_message
+
+
+# ---------------------------------------------------------------------------
+# prepare_checkpoint_run: batch_definition_id query param (GX-3229)
+# ---------------------------------------------------------------------------
+
+
+CHECKPOINT_ID = str(uuid.uuid4())
+BATCH_DEFINITION_ID = str(uuid.uuid4())
+# urljoin() with an absolute URL path replaces the base URL's path, so the
+# resulting request goes to the host root, not to ``{CLOUD_BASE_URL}``.
+EXPECTATION_PARAMETERS_URL = (
+    "https://api.greatexpectations.io"
+    f"/api/v1/organizations/{ORG_ID}"
+    f"/workspaces/{WORKSPACE_ID}/checkpoints/{CHECKPOINT_ID}/expectation-parameters"
+)
+
+
+def _build_cloud_context() -> CloudDataContext:
+    """Construct a CloudDataContext whose /data-context-configuration call is mocked."""
+    responses.add(
+        responses.GET,
+        CONTEXT_CONFIGURATION_URL,
+        json=V1_CONFIG,
+        status=200,
+    )
+    return CloudDataContext(
+        cloud_base_url=CLOUD_BASE_URL,
+        cloud_access_token=ACCESS_TOKEN,
+        cloud_organization_id=ORG_ID,
+        cloud_workspace_id=WORKSPACE_ID,
+    )
+
+
+def _build_checkpoint(mocker: MockerFixture, batch_definition_id: Optional[str]):
+    """Build a minimal Checkpoint with a single ValidationDefinition whose
+    BatchDefinition has the given id.
+    """
+    from great_expectations.checkpoint.checkpoint import Checkpoint
+
+    batch_definition = mocker.Mock(spec=BatchDefinition)
+    batch_definition.id = batch_definition_id
+
+    validation_definition = ValidationDefinition.construct(
+        name="my_validation_definition",
+        data=batch_definition,
+        suite=mocker.Mock(spec=ExpectationSuite),
+        id=str(uuid.uuid4()),
+    )
+
+    return Checkpoint.construct(
+        name="my_checkpoint",
+        validation_definitions=[validation_definition],
+        actions=[],
+        id=CHECKPOINT_ID,
+    )
+
+
+@responses.activate
+@pytest.mark.unit
+def test_prepare_checkpoint_run_passes_batch_definition_id_when_available(
+    mocker: MockerFixture,
+) -> None:
+    """SDK passes batch_definition_id as a query parameter when the checkpoint's
+    validation definition has a batch_definition with an id.
+    """
+    responses.add(
+        responses.GET,
+        EXPECTATION_PARAMETERS_URL,
+        json={"data": {"expectation_parameters": {}}},
+        status=200,
+    )
+
+    ctx = _build_cloud_context()
+    checkpoint = _build_checkpoint(mocker, batch_definition_id=BATCH_DEFINITION_ID)
+
+    mocker.patch.object(
+        type(ctx),
+        "_checkpoint_has_windowed_expectations",
+        return_value=True,
+    )
+    ctx.prepare_checkpoint_run(
+        checkpoint=checkpoint,
+        batch_parameters={},
+        expectation_parameters={},
+    )
+
+    # The last call should be the expectation-parameters GET.
+    expectation_params_call = responses.calls[-1]
+    parsed = urlparse(expectation_params_call.request.url)
+    query = parse_qs(parsed.query)
+    assert query.get("batch_definition_id") == [BATCH_DEFINITION_ID]
+
+
+@responses.activate
+@pytest.mark.unit
+def test_prepare_checkpoint_run_omits_batch_definition_id_when_unavailable(
+    mocker: MockerFixture,
+) -> None:
+    """SDK does not pass batch_definition_id when it is not available. This
+    preserves backward compatibility with older mercury versions that do not
+    understand the query parameter.
+    """
+    responses.add(
+        responses.GET,
+        EXPECTATION_PARAMETERS_URL,
+        json={"data": {"expectation_parameters": {}}},
+        status=200,
+    )
+
+    ctx = _build_cloud_context()
+    checkpoint = _build_checkpoint(mocker, batch_definition_id=None)
+
+    mocker.patch.object(
+        type(ctx),
+        "_checkpoint_has_windowed_expectations",
+        return_value=True,
+    )
+    ctx.prepare_checkpoint_run(
+        checkpoint=checkpoint,
+        batch_parameters={},
+        expectation_parameters={},
+    )
+
+    expectation_params_call = responses.calls[-1]
+    parsed = urlparse(expectation_params_call.request.url)
+    query = parse_qs(parsed.query)
+    assert "batch_definition_id" not in query
