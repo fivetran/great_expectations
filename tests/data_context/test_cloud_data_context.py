@@ -329,27 +329,22 @@ class TestPrepareCheckpointRun:
 
     @responses.activate
     @pytest.mark.unit
-    def test_omits_batch_definition_id_when_unavailable(self, make_checkpoint) -> None:
-        """Preserves backward compatibility with older mercury versions that do
-        not understand the query parameter.
+    def test_skips_call_when_no_batch_definition_id_available(self, make_checkpoint) -> None:
+        """When no validation definition carries a batch_definition_id the
+        method returns early without calling mercury — those expectations are
+        not in the forecast store path.
         """
-        responses.add(
-            responses.GET,
-            EXPECTATION_PARAMETERS_URL,
-            json={"data": {"expectation_parameters": {"p_max": 42}}},
-            status=200,
-        )
         checkpoint = make_checkpoint([(None, ["p_max"])])
+        expectation_parameters: dict = {}
 
         self._build_cloud_context().prepare_checkpoint_run(
             checkpoint=checkpoint,
             batch_parameters={},
-            expectation_parameters={},
+            expectation_parameters=expectation_parameters,
         )
 
-        ep_calls = self._expectation_parameter_calls()
-        assert len(ep_calls) == 1
-        assert self._batch_definition_id_on_call(ep_calls[0]) is None
+        assert self._expectation_parameter_calls() == []
+        assert expectation_parameters == {}
 
     @responses.activate
     @pytest.mark.unit

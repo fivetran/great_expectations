@@ -780,11 +780,8 @@ class CloudDataContext(SerializableDataContext):
         # call per distinct id and merge the responses; a checkpoint usually has
         # a single batch definition, so this is typically one call.
         distinct_batch_definition_ids = self._distinct_batch_definition_ids(checkpoint)
-        # If no validation definition carries a batch_definition_id, fall back
-        # to a single call without the query param so mercury applies its
-        # inline-computation path.
         if not distinct_batch_definition_ids:
-            distinct_batch_definition_ids = {None}
+            return
 
         # temporarily extend expectation parameter timeout to 10 minutes
         # while a more robust solution is implemented
@@ -827,15 +824,11 @@ class CloudDataContext(SerializableDataContext):
         batch_definition_id: Optional[str],
         checkpoint_id: Optional[str],
     ) -> Dict[str, Any]:
-        """Issue one ``GET /expectation-parameters`` call for the given
-        ``batch_definition_id`` and return the ``expectation_parameters`` dict
-        from the response body. When ``batch_definition_id`` is ``None`` the
-        query parameter is omitted so mercury applies its inline-computation
-        path.
+        """Issue one ``GET /expectation-parameters?batch_definition_id=X`` call
+        and return the ``expectation_parameters`` dict from the response body.
         """
         params: Dict[str, str] = {}
-        if batch_definition_id is not None:
-            params["batch_definition_id"] = batch_definition_id
+        params["batch_definition_id"] = batch_definition_id
         response = session.get(url=url, params=params)
         if not response.ok:
             raise gx_exceptions.GXCloudError(
@@ -852,20 +845,17 @@ class CloudDataContext(SerializableDataContext):
             ) from e
 
     @staticmethod
-    def _distinct_batch_definition_ids(checkpoint: Checkpoint) -> Set[Optional[str]]:
+    def _distinct_batch_definition_ids(checkpoint: Checkpoint) -> Set[str]:
         """Return the set of distinct ``batch_definition_id`` values across the
         checkpoint's validation definitions.
 
         Used to decide how many grouped ``GET /expectation-parameters`` calls to
-        make. ``None`` is a valid element — it signals that one of the validation
-        definitions has no batch definition id and mercury should apply its
-        inline-computation path for that subset.
+        make — one call per distinct id. Validation definitions without a
+        ``BatchDefinition`` are skipped; they are not in the forecast store path.
         """
-        ids: Set[Optional[str]] = set()
+        ids: Set[str] = set()
         for validation_def in checkpoint.validation_definitions:
             batch_definition = validation_def.data
-            if isinstance(batch_definition, BatchDefinition):
+            if isinstance(batch_definition, BatchDefinition) and batch_definition.id:
                 ids.add(batch_definition.id)
-            else:
-                ids.add(None)
         return ids

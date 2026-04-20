@@ -1011,7 +1011,7 @@ CHECKPOINT_EXPECTATION_PARAMS_PATH: Final[str] = f"{CHECKPOINT_BY_ID_PATH}/expec
 
 
 @pytest.mark.cloud
-def test_get_checkpoint_expectation_parameters(pact_test: Pact) -> None:
+def test_get_checkpoint_expectation_parameters(pact_test: Pact, mocker) -> None:
     """context.prepare_checkpoint_run() fetches expectation parameters.
 
     When a checkpoint has windowed expectations, ``CloudDataContext
@@ -1063,11 +1063,24 @@ def test_get_checkpoint_expectation_parameters(pact_test: Pact) -> None:
             cloud_access_token=PACT_DUMMY_ACCESS_TOKEN,
         )
 
-        # Build a minimal checkpoint stand-in with the known ID
+        # Build a minimal checkpoint stand-in with the known ID. The
+        # validation definition carries EXISTING_BATCH_DEF_ID so
+        # _distinct_batch_definition_ids returns a non-empty set and the
+        # client issues the GET /expectation-parameters call.
         from great_expectations.checkpoint.checkpoint import Checkpoint
+        from great_expectations.core.batch_definition import BatchDefinition
 
-        checkpoint = Checkpoint(name=CHECKPOINT_NAME, validation_definitions=[])
-        checkpoint.id = EXISTING_CHECKPOINT_ID
+        batch_def_mock = mocker.Mock(spec=BatchDefinition)
+        batch_def_mock.id = EXISTING_BATCH_DEF_ID
+        val_def_mock = mocker.Mock()
+        val_def_mock.data = batch_def_mock
+
+        checkpoint = Checkpoint.construct(
+            name=CHECKPOINT_NAME,
+            validation_definitions=[val_def_mock],
+            actions=[],
+            id=EXISTING_CHECKPOINT_ID,
+        )
 
         # Patch so the method proceeds to the HTTP call without needing
         # actual windowed expectations on the checkpoint.
