@@ -792,13 +792,18 @@ class CloudDataContext(SerializableDataContext):
             access_token=self.ge_cloud_config.access_token, timeout=EXPECTATION_PARAMS_TIMEOUT
         ) as session:
             for batch_definition_id in sorted(distinct_batch_definition_ids):
-                merged_parameters.update(
-                    self._fetch_expectation_parameters(
-                        session=session,
-                        url=expectation_parameters_url,
-                        batch_definition_id=batch_definition_id,
-                    )
+                new_parameters = self._fetch_expectation_parameters(
+                    session=session,
+                    url=expectation_parameters_url,
+                    batch_definition_id=batch_definition_id,
                 )
+                overlap = set(merged_parameters.keys()) & set(new_parameters.keys())
+                if overlap:
+                    logger.warning(
+                        "prepare_checkpoint_run.overlapping_parameters",
+                        extra={"overlapping_keys": sorted(overlap)},
+                    )
+                merged_parameters.update(new_parameters)
 
         overlapping_keys = set(expectation_parameters.keys()) & set(merged_parameters.keys())
         if overlapping_keys:
@@ -828,8 +833,8 @@ class CloudDataContext(SerializableDataContext):
         response = session.get(url=url, params={"batch_definition_id": batch_definition_id})
         if not response.ok:
             raise gx_exceptions.GXCloudError(
-                message="Unable to retrieve expectation_parameters for "
-                f"batch_definition_id={batch_definition_id}.",
+                message=f"Unable to retrieve expectation_parameters from {url} "
+                f"(batch_definition_id={batch_definition_id}).",
                 response=response,
             )
         try:
@@ -851,7 +856,7 @@ class CloudDataContext(SerializableDataContext):
         """
         ids: Set[str] = set()
         for validation_def in checkpoint.validation_definitions:
-            if not any(exp.windows for exp in validation_def.suite.expectations):
+            if not any(exp.windows is not None for exp in validation_def.suite.expectations):
                 continue
             batch_definition = validation_def.data
             if isinstance(batch_definition, BatchDefinition) and batch_definition.id:
