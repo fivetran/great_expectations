@@ -194,11 +194,6 @@ def test_warns_when_workspace_id_env_var_unset(unset_gx_env_variables: None):
     assert "GX_CLOUD_WORKSPACE_ID" in warning_message
 
 
-# ---------------------------------------------------------------------------
-# prepare_checkpoint_run: batch_definition_id query param
-# ---------------------------------------------------------------------------
-
-
 CHECKPOINT_ID = str(uuid.uuid4())
 BATCH_DEFINITION_ID = str(uuid.uuid4())
 # urljoin() with an absolute URL path replaces the base URL's path, so the
