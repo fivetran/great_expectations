@@ -4,8 +4,7 @@ services:
     environment:
       ROOT_PASSWORD: ${SINGLESTORE_ROOT_PASSWORD:-test_superuser}
     volumes:
-      - ./init.sh:/init.sh
-    command: /init.sh
+      - ./init.sql:/init.sql
     ports:
       - "3306:3306"
       - "8080:8080"
