@@ -799,6 +799,12 @@ class CloudDataContext(SerializableDataContext):
                 )
                 merged_parameters.update(new_parameters)
 
+        overlapping_keys = set(expectation_parameters.keys()) & set(merged_parameters.keys())
+        if overlapping_keys:
+            logger.warning(
+                "Passed in expectation_parameters also found in GX Cloud. Overwriting "
+                f"passed in values with GX Cloud values for keys: {overlapping_keys}"
+            )
         expectation_parameters.update(merged_parameters)
 
     def _checkpoint_has_windowed_expectations(self, checkpoint: Checkpoint) -> bool:
