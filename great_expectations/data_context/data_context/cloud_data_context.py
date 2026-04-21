@@ -787,20 +787,16 @@ class CloudDataContext(SerializableDataContext):
         # while a more robust solution is implemented
         EXPECTATION_PARAMS_TIMEOUT = 600
 
-        merged_parameters: Dict[str, Any] = {}
         with create_session(
             access_token=self.ge_cloud_config.access_token, timeout=EXPECTATION_PARAMS_TIMEOUT
         ) as session:
             for batch_definition_id in sorted(distinct_batch_definition_ids):
-                new_parameters = self._fetch_expectation_parameters(
+                self._fetch_expectation_parameters(
                     session=session,
                     url=expectation_parameters_url,
                     batch_definition_id=batch_definition_id,
                     expectation_parameters=expectation_parameters,
                 )
-                merged_parameters.update(new_parameters)
-
-        expectation_parameters.update(merged_parameters)
 
     def _checkpoint_has_windowed_expectations(self, checkpoint: Checkpoint) -> bool:
         # Check if we have a windowed parameter
@@ -816,9 +812,9 @@ class CloudDataContext(SerializableDataContext):
         url: str,
         batch_definition_id: str,
         expectation_parameters: Dict[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> None:
         """Issue one ``GET /expectation-parameters?batch_definition_id=X`` call
-        and return the ``expectation_parameters`` dict from the response body.
+        and update ``expectation_parameters`` in place with the response.
         """
         response = session.get(url=url, params={"batch_definition_id": batch_definition_id})
         if not response.ok:
@@ -837,7 +833,7 @@ class CloudDataContext(SerializableDataContext):
                     "Passed in expectation_parameters also found in GX Cloud. Overwriting "
                     f"passed in values with GX Cloud values for keys: {overlapping_keys}"
                 )
-            return data["data"]["expectation_parameters"]
+            expectation_parameters.update(data["data"]["expectation_parameters"])
         except KeyError as e:
             raise gx_exceptions.GXCloudError(
                 message="Malformed expectation_parameters response received from GX Cloud",
