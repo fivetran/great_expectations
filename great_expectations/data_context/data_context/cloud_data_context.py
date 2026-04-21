@@ -848,6 +848,6 @@ class CloudDataContext(SerializableDataContext):
             if not any(exp.windows is not None for exp in validation_def.suite.expectations):
                 continue
             batch_definition = validation_def.data
-            if isinstance(batch_definition, BatchDefinition):
-                ids.add(str(batch_definition.id))
+            if isinstance(batch_definition, BatchDefinition) and batch_definition.id is not None:
+                ids.add(batch_definition.id)
         return ids
