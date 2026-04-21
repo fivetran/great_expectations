@@ -185,3 +185,50 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     unexpected_rows_str = str(unexpected_rows_data)
     assert "AA" in unexpected_rows_str
     assert "AAA" in unexpected_rows_str
+
+
+# ---------------------------------------------------------------------------
+# Community issue #11393: SQLAlchemy engine ignores strict_min / strict_max
+# https://github.com/great-expectations/great_expectations/issues/11393
+# ---------------------------------------------------------------------------
+
+STRICT_BOUNDS_DATA = pd.DataFrame({COL_NAME: ["aa", "bbb", "cccc"]}, dtype="object")
+
+
+@pytest.mark.parametrize(
+    "expectation",
+    [
+        pytest.param(
+            gxe.ExpectColumnValueLengthsToBeBetween(
+                column=COL_NAME,
+                min_value=2,
+                max_value=4,
+                strict_min=True,
+                strict_max=True,
+            ),
+            id="both_strict",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValueLengthsToBeBetween(column=COL_NAME, min_value=2, strict_min=True),
+            id="strict_min_only",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValueLengthsToBeBetween(column=COL_NAME, max_value=4, strict_max=True),
+            id="strict_max_only",
+        ),
+    ],
+)
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()],
+    data=STRICT_BOUNDS_DATA,
+)
+def test_sql_strict_bounds_respected_issue_11393(
+    batch_for_datasource: Batch,
+    expectation: gxe.ExpectColumnValueLengthsToBeBetween,
+) -> None:
+    """Regression test for issue #11393: SQLAlchemy engine must honor strict_min/strict_max
+    for value lengths. Data lengths are [2, 3, 4]; each parametrized case uses a
+    strict bound that excludes a boundary value, so validation must fail.
+    """
+    result = batch_for_datasource.validate(expectation)
+    assert not result.success

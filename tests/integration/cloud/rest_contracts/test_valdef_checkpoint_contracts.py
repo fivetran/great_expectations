@@ -1049,6 +1049,7 @@ def test_get_checkpoint_expectation_parameters(pact_test: Pact) -> None:
         )
         .given("a checkpoint with expectation parameters exists")
         .with_request("GET", CHECKPOINT_EXPECTATION_PARAMS_PATH)
+        .with_query_parameters({"batch_definition_id": match.like(EXISTING_BATCH_DEF_ID)})
         .with_headers(headers)
         .will_respond_with(200)
         .with_body(expectation_params_response, content_type="application/json")
@@ -1072,10 +1073,17 @@ def test_get_checkpoint_expectation_parameters(pact_test: Pact) -> None:
         # Patch so the method proceeds to the HTTP call without needing
         # actual windowed expectations on the checkpoint.
         expectation_parameters: dict = {}
-        with patch.object(
-            type(ctx),
-            "_checkpoint_has_windowed_expectations",
-            return_value=True,
+        with (
+            patch.object(
+                type(ctx),
+                "_checkpoint_has_windowed_expectations",
+                return_value=True,
+            ),
+            patch.object(
+                type(ctx),
+                "_distinct_batch_definition_ids",
+                return_value={EXISTING_BATCH_DEF_ID},
+            ),
         ):
             ctx.prepare_checkpoint_run(
                 checkpoint=checkpoint,

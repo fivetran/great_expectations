@@ -12,6 +12,7 @@ from typing import (
     Literal,
     Mapping,
     Optional,
+    Set,
     Union,
 )
 from urllib.parse import urljoin
@@ -22,6 +23,7 @@ import great_expectations.exceptions as gx_exceptions
 from great_expectations import __version__
 from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.config_provider import (
     _CloudConfigurationProvider,
     _ConfigurationProvider,
@@ -772,18 +774,45 @@ class CloudDataContext(SerializableDataContext):
                 url=f"/api/v1/organizations/{org_id}/checkpoints/{checkpoint.id}/expectation-parameters",
             )
 
+        # Mercury's ``GET /expectation-parameters?batch_definition_id=X`` returns
+        # entries only for expectations whose owning validation definition uses
+        # ``X``. When a checkpoint spans multiple batch definitions we make one
+        # call per distinct id and merge the responses; a checkpoint usually has
+        # a single batch definition, so this is typically one call.
+        distinct_batch_definition_ids = self._distinct_batch_definition_ids(checkpoint)
+        if not distinct_batch_definition_ids:
+            return
+
         # temporarily extend expectation parameter timeout to 10 minutes
         # while a more robust solution is implemented
         EXPECTATION_PARAMS_TIMEOUT = 600
+
         with create_session(
             access_token=self.ge_cloud_config.access_token, timeout=EXPECTATION_PARAMS_TIMEOUT
         ) as session:
-            response = session.get(url=expectation_parameters_url)
+            for batch_definition_id in sorted(distinct_batch_definition_ids):
+                self._fetch_expectation_parameters(
+                    session=session,
+                    url=expectation_parameters_url,
+                    batch_definition_id=batch_definition_id,
+                    expectation_parameters=expectation_parameters,
+                )
 
+    @staticmethod
+    def _fetch_expectation_parameters(
+        session: Any,
+        url: str,
+        batch_definition_id: str,
+        expectation_parameters: Dict[str, Any],
+    ) -> None:
+        """Issue one ``GET /expectation-parameters?batch_definition_id=X`` call
+        and update ``expectation_parameters`` in place with the response.
+        """
+        response = session.get(url=url, params={"batch_definition_id": batch_definition_id})
         if not response.ok:
             raise gx_exceptions.GXCloudError(
-                message="Unable to retrieve expectation_parameters for Checkpoint with "
-                f"ID={checkpoint.id}.",
+                message=f"Unable to retrieve expectation_parameters from {url} "
+                f"(batch_definition_id={batch_definition_id}).",
                 response=response,
             )
         data = response.json()
@@ -810,3 +839,22 @@ class CloudDataContext(SerializableDataContext):
                 if expectation.windows is not None:
                     return True
         return False
+
+    @staticmethod
+    def _distinct_batch_definition_ids(checkpoint: Checkpoint) -> Set[str]:
+        """Return the set of distinct ``batch_definition_id`` values across the
+        checkpoint's validation definitions.
+
+        Used to decide how many grouped ``GET /expectation-parameters`` calls to
+        make — one call per distinct id. Validation definitions whose data source
+        is not a ``BatchDefinition`` are skipped; they are not in the forecast
+        store path.
+        """
+        ids: Set[str] = set()
+        for validation_def in checkpoint.validation_definitions:
+            if not any(exp.windows is not None for exp in validation_def.suite.expectations):
+                continue
+            batch_definition = validation_def.data
+            if isinstance(batch_definition, BatchDefinition) and batch_definition.id is not None:
+                ids.add(batch_definition.id)
+        return ids
