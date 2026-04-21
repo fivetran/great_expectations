@@ -9,7 +9,10 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     ALL_DATA_SOURCES,
     JUST_PANDAS_DATA_SOURCES,
 )
-from tests.integration.test_utils.data_source_config import PostgreSQLDatasourceTestConfig
+from tests.integration.test_utils.data_source_config import (
+    PostgreSQLDatasourceTestConfig,
+    SparkFilesystemCsvDatasourceTestConfig,
+)
 
 COL_NAME = "my_strings"
 
@@ -185,3 +188,37 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     unexpected_rows_str = str(unexpected_rows_data)
     assert "AA" in unexpected_rows_str
     assert "AAA" in unexpected_rows_str
+
+
+# ---------------------------------------------------------------------------
+# Community issue #11393: Spark engine ignores strict_min / strict_max
+# https://github.com/great-expectations/great_expectations/issues/11393
+# ---------------------------------------------------------------------------
+
+STRICT_BOUNDS_DATA = pd.DataFrame({COL_NAME: ["aa", "bbb", "cccc"]}, dtype="object")
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[SparkFilesystemCsvDatasourceTestConfig()],
+    data=STRICT_BOUNDS_DATA,
+)
+def test_spark_strict_bounds_respected_issue_11393(batch_for_datasource: Batch) -> None:
+    """Spark engine must honor strict_min/strict_max for value lengths.
+
+    With min_value=2, max_value=4, strict_min=True, strict_max=True, only length 3
+    ("bbb") should be considered valid; "aa" (len 2) and "cccc" (len 4) should be
+    flagged as unexpected. The Spark implementation ignores the strict flags and
+    treats both bounds as inclusive, so the expectation incorrectly succeeds.
+    """
+    expectation = gxe.ExpectColumnValueLengthsToBeBetween(
+        column=COL_NAME,
+        min_value=2,
+        max_value=4,
+        strict_min=True,
+        strict_max=True,
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert not result.success, (
+        "expected validation to fail because 'aa' (len 2) and 'cccc' (len 4) "
+        "violate strict bounds, but Spark engine ignores strict_min/strict_max"
+    )
