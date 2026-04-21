@@ -124,3 +124,14 @@ class TestSingleStore:
                 )
             )
         assert result.success
+
+    def test_unexpected_rows_expectation(self) -> None:
+        batch_setup = self._make_setup()
+
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(
+                gxe.UnexpectedRowsExpectation(
+                    unexpected_rows_query="SELECT * FROM {batch} WHERE age < 0",
+                )
+            )
+        assert result.success
