@@ -198,27 +198,40 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
 STRICT_BOUNDS_DATA = pd.DataFrame({COL_NAME: ["aa", "bbb", "cccc"]}, dtype="object")
 
 
+@pytest.mark.parametrize(
+    "expectation",
+    [
+        pytest.param(
+            gxe.ExpectColumnValueLengthsToBeBetween(
+                column=COL_NAME,
+                min_value=2,
+                max_value=4,
+                strict_min=True,
+                strict_max=True,
+            ),
+            id="both_strict",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValueLengthsToBeBetween(column=COL_NAME, min_value=2, strict_min=True),
+            id="strict_min_only",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValueLengthsToBeBetween(column=COL_NAME, max_value=4, strict_max=True),
+            id="strict_max_only",
+        ),
+    ],
+)
 @parameterize_batch_for_data_sources(
     data_source_configs=[SparkFilesystemCsvDatasourceTestConfig()],
     data=STRICT_BOUNDS_DATA,
 )
-def test_spark_strict_bounds_respected_issue_11393(batch_for_datasource: Batch) -> None:
-    """Spark engine must honor strict_min/strict_max for value lengths.
-
-    With min_value=2, max_value=4, strict_min=True, strict_max=True, only length 3
-    ("bbb") should be considered valid; "aa" (len 2) and "cccc" (len 4) should be
-    flagged as unexpected. The Spark implementation ignores the strict flags and
-    treats both bounds as inclusive, so the expectation incorrectly succeeds.
+def test_spark_strict_bounds_respected_issue_11393(
+    batch_for_datasource: Batch,
+    expectation: gxe.ExpectColumnValueLengthsToBeBetween,
+) -> None:
+    """Regression test for issue #11393: Spark engine must honor strict_min/strict_max
+    for value lengths. Data lengths are [2, 3, 4]; each parametrized case uses a
+    strict bound that excludes a boundary value, so validation must fail.
     """
-    expectation = gxe.ExpectColumnValueLengthsToBeBetween(
-        column=COL_NAME,
-        min_value=2,
-        max_value=4,
-        strict_min=True,
-        strict_max=True,
-    )
     result = batch_for_datasource.validate(expectation)
-    assert not result.success, (
-        "expected validation to fail because 'aa' (len 2) and 'cccc' (len 4) "
-        "violate strict bounds, but Spark engine ignores strict_min/strict_max"
-    )
+    assert not result.success
