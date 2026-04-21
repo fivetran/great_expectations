@@ -799,12 +799,6 @@ class CloudDataContext(SerializableDataContext):
                 )
                 merged_parameters.update(new_parameters)
 
-        overlapping_keys = set(expectation_parameters.keys()) & set(merged_parameters.keys())
-        if overlapping_keys:
-            logger.warning(
-                "Passed in expectation_parameters also found in GX Cloud. Overwriting "
-                f"passed in values with GX Cloud values for keys: {overlapping_keys}"
-            )
         expectation_parameters.update(merged_parameters)
 
     def _checkpoint_has_windowed_expectations(self, checkpoint: Checkpoint) -> bool:
@@ -845,14 +839,15 @@ class CloudDataContext(SerializableDataContext):
         checkpoint's validation definitions.
 
         Used to decide how many grouped ``GET /expectation-parameters`` calls to
-        make — one call per distinct id. Validation definitions without a
-        ``BatchDefinition`` are skipped; they are not in the forecast store path.
+        make — one call per distinct id. Validation definitions whose data source
+        is not a ``BatchDefinition`` are skipped; they are not in the forecast
+        store path.
         """
         ids: Set[str] = set()
         for validation_def in checkpoint.validation_definitions:
             if not any(exp.windows is not None for exp in validation_def.suite.expectations):
                 continue
             batch_definition = validation_def.data
-            if isinstance(batch_definition, BatchDefinition) and batch_definition.id:
-                ids.add(batch_definition.id)
+            if isinstance(batch_definition, BatchDefinition):
+                ids.add(str(batch_definition.id))
         return ids

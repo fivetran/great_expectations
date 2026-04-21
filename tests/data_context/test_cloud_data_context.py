@@ -1,12 +1,13 @@
 import json
 import uuid
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 from urllib.parse import parse_qs, urlparse
 
 import pytest
 import responses
 from pytest_mock import MockerFixture
 
+from great_expectations.checkpoint.checkpoint import Checkpoint
 from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.validation_definition import ValidationDefinition
@@ -247,10 +248,9 @@ class TestPrepareCheckpointRun:
         ValidationDefinition. Each parameter_name becomes a single windowed
         expectation under that validation definition's suite.
         """
-        from great_expectations.checkpoint.checkpoint import Checkpoint
 
         def _build(
-            validation_defs: List[Tuple[Optional[str], List[str]]],
+            validation_defs: List[Tuple[str, List[str]]],
         ) -> Checkpoint:
             vds = []
             for batch_definition_id, parameter_names in validation_defs:
@@ -294,7 +294,7 @@ class TestPrepareCheckpointRun:
         ]
 
     @staticmethod
-    def _batch_definition_id_on_call(call: responses.Call) -> Optional[str]:
+    def _batch_definition_id_on_call(call: responses.Call) -> str | None:
         url = call.request.url
         if url is None:
             return None
@@ -321,25 +321,6 @@ class TestPrepareCheckpointRun:
         ep_calls = self._expectation_parameter_calls()
         assert len(ep_calls) == 1
         assert self._batch_definition_id_on_call(ep_calls[0]) == BATCH_DEFINITION_ID
-
-    @responses.activate
-    @pytest.mark.unit
-    def test_skips_call_when_no_batch_definition_id_available(self, make_checkpoint) -> None:
-        """When no validation definition carries a batch_definition_id the
-        method returns early without calling mercury — those expectations are
-        not in the forecast store path.
-        """
-        checkpoint = make_checkpoint([(None, ["p_max"])])
-        expectation_parameters: dict = {}
-
-        self._build_cloud_context().prepare_checkpoint_run(
-            checkpoint=checkpoint,
-            batch_parameters={},
-            expectation_parameters=expectation_parameters,
-        )
-
-        assert self._expectation_parameter_calls() == []
-        assert expectation_parameters == {}
 
     @responses.activate
     @pytest.mark.unit
@@ -394,37 +375,3 @@ class TestPrepareCheckpointRun:
 
         # Responses from each call carry disjoint keys; the merge is a union.
         assert expectation_parameters == {"p_a_max": 111, "p_b_max": 222}
-
-    @responses.activate
-    @pytest.mark.unit
-    def test_skips_expectations_without_batch_definition_id(self, make_checkpoint) -> None:
-        """Validation definitions without a batch_definition_id are not in the
-        forecast store path and are skipped; only the scoped call is made.
-        """
-        batch_definition_id_a = str(uuid.uuid4())
-
-        responses.add(
-            responses.GET,
-            EXPECTATION_PARAMETERS_URL,
-            json={"data": {"expectation_parameters": {"p_a_max": 111}}},
-            status=200,
-        )
-
-        checkpoint = make_checkpoint(
-            [
-                (batch_definition_id_a, ["p_a_max"]),
-                (None, ["p_none_max"]),
-            ]
-        )
-        expectation_parameters: dict = {}
-
-        self._build_cloud_context().prepare_checkpoint_run(
-            checkpoint=checkpoint,
-            batch_parameters={},
-            expectation_parameters=expectation_parameters,
-        )
-
-        ep_calls = self._expectation_parameter_calls()
-        assert len(ep_calls) == 1
-        assert self._batch_definition_id_on_call(ep_calls[0]) == batch_definition_id_a
-        assert expectation_parameters == {"p_a_max": 111}
