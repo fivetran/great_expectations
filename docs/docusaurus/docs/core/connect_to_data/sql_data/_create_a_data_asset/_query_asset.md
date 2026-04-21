@@ -1,4 +1,6 @@
-A Query Data Asset consists of the records returned by a SQL query.  It takes two required parameters:
+A Query Data Asset consists of the records returned by a SQL query. Note that Trino Data Sources do not support Query Data Assets.
+
+Creating a Query Data Asset takes two required parameters:
 - **query:** The SQL query that the Data Asset will retrieve records from.
 - **name:** The name used to reference the Query Data Asset within GX.  You may assign this arbitrarily, but all Data Assets within the same Data Source must have unique names.
 

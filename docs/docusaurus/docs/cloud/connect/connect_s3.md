@@ -86,12 +86,7 @@ Environment variables securely store your GX Cloud and AWS credentials.
    
    The Data Context will detect the previously set environment variables and connect to your GX Cloud account.
 
-2. Verify that you have a GX Cloud Data Context:
-
-   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_s3.py - verify context type" 
-   ```
-
-3. Define the Data Source's parameters.
+2. Define the Data Source's parameters.
    
    The following information is required when you create an Amazon S3 Data Source:
 
@@ -105,14 +100,14 @@ Environment variables securely store your GX Cloud and AWS credentials.
    ```
 
 
-4. Add an S3 Data Source to your Data Context by executing the following code:
+3. Add an S3 Data Source to your Data Context by executing the following code:
    
    ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_s3.py - add source" 
    ```
    
    GX Cloud uses pandas as the backend for your S3 Data Source.  
 
-5. Define your Data Asset's parameters.
+4. Define your Data Asset's parameters.
    
    The following information is required when you create an Amazon S3 Data Asset:
 
@@ -128,7 +123,7 @@ Environment variables securely store your GX Cloud and AWS credentials.
    ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_s3.py - define asset" 
    ```
 
-6. Add the Data Asset to your Data Source.
+5. Add the Data Asset to your Data Source.
 
    A new Data Asset is created and added to a Data Source simultaneously. The file format that the Data Asset can read is determined by the method used when the Data Asset is added to the Data Source. To see the file formats supported by an S3 Data Source, refer to the `.add_*_asset(...)` methods in the [PandasFilesystemDatasource reference page](/reference/api/datasource/fluent/PandasFilesystemDatasource_class.mdx).
 
@@ -150,7 +145,7 @@ Environment variables securely store your GX Cloud and AWS credentials.
 
 ## Next steps
 
-- [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation)
+- [Add an Expectation](/cloud/expectations/manage_expectations.md#create-an-expectation)
 - [Run a Validation](/cloud/validations/run_validations.md)
 - [Configure an alert](/cloud/alerts/alert_about_failures.md)
 
