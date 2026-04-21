@@ -5,7 +5,6 @@ Validates GX functionality against a live SingleStore instance.
 
 import pandas as pd
 import pytest
-import sqlalchemy as sa
 
 import great_expectations.expectations as gxe
 from great_expectations import get_context
@@ -17,17 +16,7 @@ from tests.integration.test_utils.data_source_config.generic_sql import (
 
 pytestmark = pytest.mark.singlestore
 
-_BASE_CONNECTION_STRING = "singlestoredb://root:test_superuser@127.0.0.1:3306"
-CONNECTION_STRING = f"{_BASE_CONNECTION_STRING}/test_ci"
-
-
-@pytest.fixture(scope="module", autouse=True)
-def _ensure_test_database() -> None:
-    """Create the test_ci database if it doesn't exist."""
-    engine = sa.create_engine(_BASE_CONNECTION_STRING)
-    with engine.connect() as conn:
-        conn.execute(sa.text("CREATE DATABASE IF NOT EXISTS test_ci"))
-    engine.dispose()
+CONNECTION_STRING = "singlestoredb://root:test_superuser@127.0.0.1:3306/test_ci"
 
 
 class TestSingleStore:

@@ -13,7 +13,7 @@ services:
           "singlestore",
           "-p${SINGLESTORE_ROOT_PASSWORD:-test_superuser}",
           "-e",
-          "SELECT 1",
+          "SELECT 1; CREATE DATABASE IF NOT EXISTS test_ci;",
         ]
       interval: 5s
       timeout: 5s
