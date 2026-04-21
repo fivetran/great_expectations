@@ -9,7 +9,10 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     ALL_DATA_SOURCES,
     JUST_PANDAS_DATA_SOURCES,
 )
-from tests.integration.test_utils.data_source_config import PostgreSQLDatasourceTestConfig
+from tests.integration.test_utils.data_source_config import (
+    PostgreSQLDatasourceTestConfig,
+    SparkFilesystemCsvDatasourceTestConfig,
+)
 
 COL_NAME = "my_strings"
 
@@ -188,36 +191,52 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Community issue #11393: SQLAlchemy engine ignores strict_min / strict_max
+# Community issue #11393: Spark and SQLAlchemy engines ignore strict_min / strict_max
 # https://github.com/great-expectations/great_expectations/issues/11393
 # ---------------------------------------------------------------------------
 
 STRICT_BOUNDS_DATA = pd.DataFrame({COL_NAME: ["aa", "bbb", "cccc"]}, dtype="object")
 
+STRICT_BOUNDS_PARAMS = [
+    pytest.param(
+        gxe.ExpectColumnValueLengthsToBeBetween(
+            column=COL_NAME,
+            min_value=2,
+            max_value=4,
+            strict_min=True,
+            strict_max=True,
+        ),
+        id="both_strict",
+    ),
+    pytest.param(
+        gxe.ExpectColumnValueLengthsToBeBetween(column=COL_NAME, min_value=2, strict_min=True),
+        id="strict_min_only",
+    ),
+    pytest.param(
+        gxe.ExpectColumnValueLengthsToBeBetween(column=COL_NAME, max_value=4, strict_max=True),
+        id="strict_max_only",
+    ),
+]
 
-@pytest.mark.parametrize(
-    "expectation",
-    [
-        pytest.param(
-            gxe.ExpectColumnValueLengthsToBeBetween(
-                column=COL_NAME,
-                min_value=2,
-                max_value=4,
-                strict_min=True,
-                strict_max=True,
-            ),
-            id="both_strict",
-        ),
-        pytest.param(
-            gxe.ExpectColumnValueLengthsToBeBetween(column=COL_NAME, min_value=2, strict_min=True),
-            id="strict_min_only",
-        ),
-        pytest.param(
-            gxe.ExpectColumnValueLengthsToBeBetween(column=COL_NAME, max_value=4, strict_max=True),
-            id="strict_max_only",
-        ),
-    ],
+
+@pytest.mark.parametrize("expectation", STRICT_BOUNDS_PARAMS)
+@parameterize_batch_for_data_sources(
+    data_source_configs=[SparkFilesystemCsvDatasourceTestConfig()],
+    data=STRICT_BOUNDS_DATA,
 )
+def test_spark_strict_bounds_respected_issue_11393(
+    batch_for_datasource: Batch,
+    expectation: gxe.ExpectColumnValueLengthsToBeBetween,
+) -> None:
+    """Regression test for issue #11393: Spark engine must honor strict_min/strict_max
+    for value lengths. Data lengths are [2, 3, 4]; each parametrized case uses a
+    strict bound that excludes a boundary value, so validation must fail.
+    """
+    result = batch_for_datasource.validate(expectation)
+    assert not result.success
+
+
+@pytest.mark.parametrize("expectation", STRICT_BOUNDS_PARAMS)
 @parameterize_batch_for_data_sources(
     data_source_configs=[PostgreSQLDatasourceTestConfig()],
     data=STRICT_BOUNDS_DATA,
