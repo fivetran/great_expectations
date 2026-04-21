@@ -72,6 +72,7 @@ DIALECT_IDENTIFIER_QUOTE_STRINGS: Final[Mapping[GXSqlDialect, tuple[str, str]]] 
     GXSqlDialect.SNOWFLAKE: ('"', '"'),
     GXSqlDialect.SQLITE: ('"', '"'),
     GXSqlDialect.TRINO: ("`", "`"),
+    GXSqlDialect.SINGLESTOREDB: ("`", "`"),
 }
 
 

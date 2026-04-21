@@ -31,10 +31,7 @@ def _ensure_test_database() -> None:
 
 
 class TestSingleStore:
-    """Smoke tests for SingleStore compatibility.
-
-    Ticket: GX-3211 — SingleStore dialect compatibility issue reported by Windward.
-    """
+    """Smoke tests for SingleStore compatibility."""
 
     DATA = pd.DataFrame(
         {
@@ -132,6 +129,78 @@ class TestSingleStore:
             result = batch.validate(
                 gxe.UnexpectedRowsExpectation(
                     unexpected_rows_query="SELECT * FROM {batch} WHERE age < 0",
+                )
+            )
+        assert result.success
+
+
+class TestSingleStoreQuotedIdentifiers:
+    """Tests for columns whose names require quoting (spaces, reserved words)."""
+
+    DATA = pd.DataFrame(
+        {
+            "user name": ["Alice", "Bob", "Charlie"],
+            "select": [10, 20, 30],
+            "UserName": ["alice", "bob", "charlie"],
+        }
+    )
+
+    def _make_setup(self) -> GenericSQLBatchTestSetup:
+        return GenericSQLBatchTestSetup(
+            config=GenericSQLDatasourceTestConfig(
+                connection_string=CONNECTION_STRING,
+            ),
+            data=self.DATA,
+            extra_data={},
+            context=get_context(mode="ephemeral"),
+        )
+
+    def test_column_with_space(self) -> None:
+        batch_setup = self._make_setup()
+
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(
+                gxe.ExpectColumnValuesToBeInSet(
+                    column="user name",
+                    value_set=["Alice", "Bob", "Charlie"],
+                )
+            )
+        assert result.success
+
+    def test_column_with_reserved_word(self) -> None:
+        batch_setup = self._make_setup()
+
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(
+                gxe.ExpectColumnSumToBeBetween(
+                    column="select",
+                    min_value=59,
+                    max_value=61,
+                )
+            )
+        assert result.success
+
+    def test_unique_values_quoted_column(self) -> None:
+        """Exercises the quoted-identifier path in ColumnValuesUnique temp table logic."""
+        batch_setup = self._make_setup()
+
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(
+                gxe.ExpectColumnValuesToBeUnique(
+                    column="user name",
+                )
+            )
+        assert result.success
+
+    def test_mixed_case_column(self) -> None:
+        """Verifies that a mixed-case column name round-trips correctly through quoting."""
+        batch_setup = self._make_setup()
+
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(
+                gxe.ExpectColumnValuesToBeInSet(
+                    column="UserName",
+                    value_set=["alice", "bob", "charlie"],
                 )
             )
         assert result.success
