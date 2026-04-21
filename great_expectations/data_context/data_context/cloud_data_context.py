@@ -798,14 +798,6 @@ class CloudDataContext(SerializableDataContext):
                     expectation_parameters=expectation_parameters,
                 )
 
-    def _checkpoint_has_windowed_expectations(self, checkpoint: Checkpoint) -> bool:
-        # Check if we have a windowed parameter
-        for validation_def in checkpoint.validation_definitions:
-            for expectation in validation_def.suite.expectations:
-                if expectation.windows is not None:
-                    return True
-        return False
-
     @staticmethod
     def _fetch_expectation_parameters(
         session: Any,
@@ -839,6 +831,14 @@ class CloudDataContext(SerializableDataContext):
                 message="Malformed expectation_parameters response received from GX Cloud",
                 response=response,
             ) from e
+
+    def _checkpoint_has_windowed_expectations(self, checkpoint: Checkpoint) -> bool:
+        # Check if we have a windowed parameter
+        for validation_def in checkpoint.validation_definitions:
+            for expectation in validation_def.suite.expectations:
+                if expectation.windows is not None:
+                    return True
+        return False
 
     @staticmethod
     def _distinct_batch_definition_ids(checkpoint: Checkpoint) -> Set[str]:
