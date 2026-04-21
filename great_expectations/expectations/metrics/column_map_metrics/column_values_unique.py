@@ -44,10 +44,9 @@ class ColumnValuesUnique(ColumnMapMetricProvider):
         partial_fn_type=MetricPartialFunctionTypes.WINDOW_CONDITION_FN,
     )
     def _sqlalchemy_window(cls, column, _table, **kwargs):
-        # Will - 20210126
-        # This is a special case that needs to be handled for mysql, where you cannot refer to a temp_table  # noqa: E501 # FIXME CoP
-        # more than once in the same query. So instead of passing dup_query as-is, a second temp_table is created with  # noqa: E501 # FIXME CoP
-        # the column we will be performing the expectation on, and the query is performed against it.  # noqa: E501 # FIXME CoP
+        # MySQL and SingleStore cannot reference a temp table more than once in the
+        # same query, and SingleStore disallows correlated subselects with GROUP BY.
+        # Create a temp table copy of the column to avoid both issues.
         dialect = kwargs.get("_dialect")
         sql_engine = kwargs.get("_sqlalchemy_engine")
         execution_engine = kwargs.get("_execution_engine")
@@ -58,20 +57,33 @@ class ColumnValuesUnique(ColumnMapMetricProvider):
                 dialect_name = dialect.name
             except AttributeError:
                 dialect_name = ""
-        if sql_engine and dialect and dialect_name == "mysql":
+        if sql_engine and dialect and dialect_name in ("mysql", "singlestoredb"):
             temp_table_name = generate_temporary_table_name()
-            temp_table_stmt = f"CREATE TEMPORARY TABLE {temp_table_name} AS SELECT tmp.{column.name} FROM {_table} tmp"  # noqa: E501 # FIXME CoP
-            execution_engine.execute_query_in_transaction(sa.text(temp_table_stmt))
-            dup_query = (
-                sa.select(column)
-                .select_from(sa.text(temp_table_name))
-                .group_by(column)
-                .having(sa.func.count(column) > 1)
+            if isinstance(_table, sa.Select):
+                from_clause = _table.subquery().alias("tmp")
+            else:
+                from_clause = _table
+            source_query = sa.select(sa.column(column.name)).select_from(from_clause)
+            compiled = source_query.compile(
+                dialect=sql_engine.dialect, compile_kwargs={"literal_binds": True}
             )
+            temp_table_stmt = f"CREATE TEMPORARY TABLE {temp_table_name} AS {compiled}"
+            execution_engine.execute_query_in_transaction(sa.text(temp_table_stmt))
+            # SingleStore cannot handle subselects with GROUP BY/HAVING inside
+            # expressions, so materialize duplicate values into a second temp table.
+            dup_table_name = generate_temporary_table_name()
+            dup_stmt = (
+                f"CREATE TEMPORARY TABLE {dup_table_name} AS "
+                f"SELECT {column.name} FROM {temp_table_name} "
+                f"GROUP BY {column.name} HAVING count({column.name}) > 1"
+            )
+            execution_engine.execute_query_in_transaction(sa.text(dup_stmt))
+            dup_query = sa.select(column).select_from(sa.text(dup_table_name))
         else:
+            from_clause = _table.subquery() if isinstance(_table, sa.Select) else _table
             dup_query = (
                 sa.select(column)
-                .select_from(_table)
+                .select_from(from_clause)
                 .group_by(column)
                 .having(sa.func.count(column) > 1)
             )

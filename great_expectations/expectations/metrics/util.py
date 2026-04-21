@@ -159,8 +159,11 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
         pass
 
     try:
-        # MySQL
-        if issubclass(dialect.dialect, sa.dialects.mysql.dialect):  # type: ignore[union-attr] # FIXME CoP
+        # MySQL and MySQL-compatible dialects (e.g. SingleStore).
+        # Use MySQLDialect base class instead of sa.dialects.mysql.dialect because the latter
+        # resolves to MySQLDialect_mysqldb, which is a sibling—not a parent—of third-party
+        # dialects that subclass MySQLDialect directly.
+        if issubclass(dialect.dialect, sa.dialects.mysql.base.MySQLDialect):  # type: ignore[union-attr] # FIXME CoP
             if positive:
                 return sqlalchemy.BinaryExpression(
                     column, sqlalchemy.literal(regex), sqlalchemy.custom_op("REGEXP")

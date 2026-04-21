@@ -174,12 +174,14 @@ module.exports = {
       link: { type: 'doc', id: 'cloud/connect/connect_lp' },
       items: [
         'cloud/connect/connect_s3',
+        'cloud/connect/connect_bigquery',
         'cloud/connect/connect_databrickssql',
         'cloud/connect/connect_fabric',
         'cloud/connect/connect_sqlserver',
         'cloud/connect/connect_postgresql',
         'cloud/connect/connect_redshift',
         'cloud/connect/connect_snowflake',
+        'cloud/connect/connect_trino',
         'cloud/connect/connect_python'
       ]
     },

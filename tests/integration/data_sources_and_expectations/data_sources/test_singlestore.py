@@ -1,0 +1,126 @@
+"""Integration tests for SingleStore (formerly MemSQL).
+
+Validates GX functionality against a live SingleStore instance.
+"""
+
+import pandas as pd
+import pytest
+import sqlalchemy as sa
+
+import great_expectations.expectations as gxe
+from great_expectations import get_context
+from great_expectations.expectations.row_conditions import Column
+from tests.integration.test_utils.data_source_config.generic_sql import (
+    GenericSQLBatchTestSetup,
+    GenericSQLDatasourceTestConfig,
+)
+
+pytestmark = pytest.mark.singlestore
+
+_BASE_CONNECTION_STRING = "singlestoredb://root:test_superuser@127.0.0.1:3306"
+CONNECTION_STRING = f"{_BASE_CONNECTION_STRING}/test_ci"
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _ensure_test_database() -> None:
+    """Create the test_ci database if it doesn't exist."""
+    engine = sa.create_engine(_BASE_CONNECTION_STRING)
+    with engine.connect() as conn:
+        conn.execute(sa.text("CREATE DATABASE IF NOT EXISTS test_ci"))
+    engine.dispose()
+
+
+class TestSingleStore:
+    """Smoke tests for SingleStore compatibility.
+
+    Ticket: GX-3211 — SingleStore dialect compatibility issue reported by Windward.
+    """
+
+    DATA = pd.DataFrame(
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [30, 25, 35],
+        }
+    )
+
+    def _make_setup(self) -> GenericSQLBatchTestSetup:
+        return GenericSQLBatchTestSetup(
+            config=GenericSQLDatasourceTestConfig(
+                connection_string=CONNECTION_STRING,
+            ),
+            data=self.DATA,
+            extra_data={},
+            context=get_context(mode="ephemeral"),
+        )
+
+    def test_can_connect_and_validate(self) -> None:
+        batch_setup = self._make_setup()
+
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(
+                gxe.ExpectColumnValuesToBeInSet(
+                    column="name",
+                    value_set=["Alice", "Bob", "Charlie"],
+                )
+            )
+        assert result.success
+
+    def test_numeric_expectation(self) -> None:
+        batch_setup = self._make_setup()
+
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(
+                gxe.ExpectColumnSumToBeBetween(
+                    column="age",
+                    min_value=89,
+                    max_value=91,
+                )
+            )
+        assert result.success
+
+    def test_row_count(self) -> None:
+        batch_setup = self._make_setup()
+
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(
+                gxe.ExpectTableRowCountToBeBetween(
+                    min_value=3,
+                    max_value=3,
+                )
+            )
+        assert result.success
+
+    def test_regex_expectation(self) -> None:
+        batch_setup = self._make_setup()
+
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(
+                gxe.ExpectColumnValuesToMatchRegex(
+                    column="name",
+                    regex="^[A-Z].*",
+                )
+            )
+        assert result.success
+
+    def test_unique_values(self) -> None:
+        batch_setup = self._make_setup()
+
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(
+                gxe.ExpectColumnValuesToBeUnique(
+                    column="name",
+                )
+            )
+        assert result.success
+
+    def test_row_condition(self) -> None:
+        batch_setup = self._make_setup()
+
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(
+                gxe.ExpectColumnValuesToBeUnique(
+                    column="name",
+                    row_condition=Column("name").is_not_in(["Alice"]),
+                )
+            )
+        assert result.success

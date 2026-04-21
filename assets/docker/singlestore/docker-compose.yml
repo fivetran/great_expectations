@@ -1,0 +1,26 @@
+services:
+  singlestore_db:
+    image: ghcr.io/singlestore-labs/singlestoredb-dev:latest
+    environment:
+      ROOT_PASSWORD: ${SINGLESTORE_ROOT_PASSWORD:-test_superuser}
+    ports:
+      - "3306:3306"
+      - "8080:8080"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "singlestore",
+          "-p${SINGLESTORE_ROOT_PASSWORD:-test_superuser}",
+          "-e",
+          "SELECT 1",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks:
+      - dbnet
+
+networks:
+  dbnet:
+    driver: bridge

@@ -48,7 +48,8 @@ table_data_asset = data_source.add_table_asset(
 # </snippet>
 # highlight-end
 
-# Example of creating a Query Asset
+# Example of creating a Query Data Asset
+# Note that Trino Data Sources do not support Query Data Assets
 # highlight-start
 # <snippet name="docs/docusaurus/docs/core/connect_to_data/sql_data/_create_a_data_asset/create_a_data_asset.py query asset">
 asset_name = "MY_QUERY_ASSET"

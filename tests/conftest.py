@@ -135,6 +135,7 @@ REQUIRED_MARKERS: Final[set[str]] = {
     "project",
     "pyarrow",
     "redshift",
+    "singlestore",
     "snowflake",
     "spark",
     "spark_connect",

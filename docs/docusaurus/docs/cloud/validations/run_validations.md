@@ -33,7 +33,7 @@ To help you find the right workflow for your particular combination of Expectati
   <tr>
     <td rowspan="5">GX-managed</td>
     <td rowspan="2">Entire&nbsp;Data&nbsp;Asset</td>
-    <td>AlloyDB<br />Amazon S3<br />Aurora<br />Citus<br />Databricks SQL<br />Microsoft Fabric<br />Microsoft SQL Server<br />Neon<br />PostgreSQL<br />Redshift<br />Snowflake</td>
+    <td>AlloyDB<br />Amazon S3<br />Aurora<br />Citus<br />Databricks SQL<br />Microsoft Fabric<br />Microsoft SQL Server<br />Neon<br />PostgreSQL<br />Redshift<br />Snowflake<br />Trino</td>
     <td>Use the UI:<ul><li>Click the **Validate** button.</li></ul><a href="/docs/cloud/validations/run_validations/?validation-interface=ui#gx-managed-expectations-entire-asset">Jump to full instructions</a></td>
   </tr>
   <tr>
@@ -42,7 +42,7 @@ To help you find the right workflow for your particular combination of Expectati
   </tr>
   <tr>
     <td rowspan="3">Time interval</td>
-    <td>AlloyDB<br />Aurora<br />Citus<br />Databricks SQL<br />Microsoft Fabric<br />Microsoft SQL Server<br />Neon<br />PostgreSQL<br />Redshift<br />Snowflake</td>
+    <td>AlloyDB<br />Aurora<br />Citus<br />Databricks SQL<br />Microsoft Fabric<br />Microsoft SQL Server<br />Neon<br />PostgreSQL<br />Redshift<br />Snowflake<br />Trino</td>
     <td>For Table Data Assets, use the UI:<ul><li>Choose a **Batch interval**.</li><li>Click the **Validate** button and select a Batch to validate.</li></ul><a href="/docs/cloud/validations/run_validations/?validation-interface=ui#gx-managed-expectations-time-interval">Jump to full instructions</a><br /><br /><br />For Query Data Assets, use the API:<ul><li>Update your Data Asset’s GX-managed Batch Definition to partition your data based on values in a DATE or DATETIME column.</li><li>Retrieve your Data Asset's GX-managed Checkpoint.</li><li>Run the Checkpoint with Batch Parameters passed as integers.</li></ul><a href="/docs/cloud/validations/run_validations/?validation-interface=api&source-type=sql#gx-managed-expectations-time-interval">Jump to full instructions</a></td>
   </tr>
   <tr>
@@ -61,7 +61,7 @@ To help you find the right workflow for your particular combination of Expectati
   </tr>
   <tr>
     <td rowspan="2">Time interval</td>
-    <td>AlloyDB<br />Aurora<br />BigQuery<br />Citus<br />Databricks SQL<br />Microsoft Fabric<br />Microsoft SQL Server<br />Neon<br />PostgreSQL<br />Redshift<br />Snowflake</td>
+    <td>AlloyDB<br />Aurora<br />BigQuery<br />Citus<br />Databricks SQL<br />Microsoft Fabric<br />Microsoft SQL Server<br />Neon<br />PostgreSQL<br />Redshift<br />Snowflake<br />Trino</td>
     <td>Use the API:<ul><li>Create a Batch Definition to partition your data based on values in a DATE or DATETIME column.</li><li>Create a Validation Definition to associate your API-managed Expectations with your Data Asset via your Batch Definition.</li><li>Run the Validation Definition  with Batch Parameters passed as integers.</li></ul><a href="/docs/cloud/validations/run_validations/?source-type=sql#api-managed-expectations-time-interval">Jump to full instructions</a></td>
   </tr>
   <tr>
@@ -87,6 +87,7 @@ If your Data Source is one of the following, you can use the GX Cloud UI to vali
 - PostgreSQL
 - Redshift
 - Snowflake
+- Trino
 
 For all Data Sources, you can use the GX Cloud API to validate GX-managed Expectations for your entire Data Asset.
 
@@ -104,7 +105,7 @@ For all Data Sources, you can use the GX Cloud API to validate GX-managed Expect
 #### Prerequisites
 
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
-- A [Data Asset](/docs/cloud/data_assets/manage_data_assets.md) from AlloyDB, Amazon S3, Aurora, Citus, Databricks SQL, Microsoft Fabric, Microsoft SQL Server, Neon, PostgreSQL, Redshift, or Snowflake with at least one [GX-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
+- A [Data Asset](/docs/cloud/data_assets/manage_data_assets.md) from AlloyDB, Amazon S3, Aurora, Citus, Databricks SQL, Microsoft Fabric, Microsoft SQL Server, Neon, PostgreSQL, Redshift, Snowflake, or Trino with at least one [GX-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
 
 #### Procedure
 
@@ -163,6 +164,7 @@ If your Data Source is one of the following, you can use the GX Cloud UI to vali
 - PostgreSQL
 - Redshift
 - Snowflake
+- Trino
 
 For all Data Sources, you can use the GX Cloud API to validate GX-managed Expectations for a time-based subset of your Data Asset. Note that the code is different for SQL Data Sources vs. filesystem Data Sources.
 
@@ -180,7 +182,7 @@ For all Data Sources, you can use the GX Cloud API to validate GX-managed Expect
 #### Prerequisites
 
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
-- A [Data Asset](/docs/cloud/data_assets/manage_data_assets.md) from AlloyDB, Aurora, Citus, Databricks SQL, Microsoft Fabric, Microsoft SQL Server, Neon, PostgreSQL, Redshift, or Snowflake with at least one [GX-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations) and at least one DATE or DATETIME column.
+- A [Data Asset](/docs/cloud/data_assets/manage_data_assets.md) from AlloyDB, Aurora, Citus, Databricks SQL, Microsoft Fabric, Microsoft SQL Server, Neon, PostgreSQL, Redshift, Snowflake, or Trino with at least one [GX-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations) and at least one DATE or DATETIME column.
 
 #### Procedure
 

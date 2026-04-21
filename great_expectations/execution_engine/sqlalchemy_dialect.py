@@ -28,6 +28,7 @@ class GXSqlDialect(Enum):
     TRINO = "trino"
     VERTICA = "vertica"
     CLICKHOUSE = "clickhouse"
+    SINGLESTOREDB = "singlestoredb"
     OTHER = "other"
 
     @override
