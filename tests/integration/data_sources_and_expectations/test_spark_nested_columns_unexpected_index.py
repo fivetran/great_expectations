@@ -15,7 +15,6 @@ import pytest
 
 import great_expectations as gx
 import great_expectations.expectations as gxe
-from great_expectations.compatibility import pyspark
 
 pytestmark = pytest.mark.spark
 
@@ -81,8 +80,7 @@ def test_spark_unexpected_index_column_names_with_nested_columns(spark_session) 
     # Bug: on Spark, this key is missing / the call errors out.
     result_dict = result["result"]
     assert "unexpected_index_list" in result_dict, (
-        "Spark nested column path was not honored: "
-        f"result={result_dict}"
+        f"Spark nested column path was not honored: result={result_dict}"
     )
     unexpected_index_list = result_dict["unexpected_index_list"]
     assert unexpected_index_list, "expected at least one unexpected index row"

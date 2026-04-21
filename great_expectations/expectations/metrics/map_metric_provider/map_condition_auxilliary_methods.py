@@ -664,6 +664,31 @@ def _spark_map_condition_rows(
     return [row.asDict() for row in rows]
 
 
+def _collect_spark_nested_column_paths(schema: Any) -> set:
+    """Return all reachable dotted column paths for a Spark schema.
+
+    Traverses ``StructType`` fields recursively so that nested struct columns
+    like ``Data.evt.id`` can be validated and addressed by their full path.
+    """
+    paths: set = set()
+
+    def _walk(field: Any, prefix: str) -> None:
+        path = f"{prefix}.{field.name}" if prefix else field.name
+        paths.add(path)
+        # StructType instances expose their child ``StructField`` objects via
+        # the ``fields`` attribute. We check duck-typed to avoid importing a
+        # specific pyspark type at module import time.
+        inner_fields = getattr(getattr(field, "dataType", None), "fields", None)
+        if inner_fields:
+            for sub_field in inner_fields:
+                _walk(sub_field, path)
+
+    for top_field in getattr(schema, "fields", []) or []:
+        _walk(top_field, "")
+
+    return paths
+
+
 def _spark_map_condition_index(  # noqa: C901 #  too complex
     cls,
     execution_engine: SparkDFExecutionEngine,
@@ -732,9 +757,11 @@ def _spark_map_condition_index(  # noqa: C901 #  too complex
     columns_to_keep: List[str] = [column for column in unexpected_index_column_names]
     columns_to_keep += domain_column_name_list
 
-    # check that column name is in row
+    # check that column name is in row (supporting dotted paths into
+    # Spark struct columns, e.g. "Data.evt.id")
+    valid_column_paths = set(filtered.columns) | _collect_spark_nested_column_paths(filtered.schema)
     for col_name in columns_to_keep:
-        if col_name not in filtered.columns:
+        if col_name not in valid_column_paths:
             raise gx_exceptions.InvalidMetricAccessorDomainKwargsKeyError(  # noqa: TRY003 # FIXME CoP
                 f"Error: The unexpected_index_column '{col_name}' does not exist in Spark DataFrame. Please check your configuration and try again."  # noqa: E501 # FIXME CoP
             )
@@ -742,8 +769,10 @@ def _spark_map_condition_index(  # noqa: C901 #  too complex
     if result_format["result_format"] != "COMPLETE":
         filtered = filtered.limit(result_format["partial_unexpected_count"])
 
-    # Prune the dataframe down only the columns we care about
-    filtered = filtered.select(columns_to_keep)
+    # Prune the dataframe down only the columns we care about. Alias each
+    # selection to its (possibly dotted) source path so that nested struct
+    # columns remain addressable by that path on the resulting Row.
+    filtered = filtered.select(*[F.col(col_name).alias(col_name) for col_name in columns_to_keep])
 
     return _get_spark_customized_unexpected_index_list(
         exclude_unexpected_values=exclude_unexpected_values,
