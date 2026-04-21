@@ -3,6 +3,9 @@ services:
     image: ghcr.io/singlestore-labs/singlestoredb-dev:latest
     environment:
       ROOT_PASSWORD: ${SINGLESTORE_ROOT_PASSWORD:-test_superuser}
+    volumes:
+      - ./init.sh:/init.sh
+    command: /init.sh
     ports:
       - "3306:3306"
       - "8080:8080"
@@ -18,22 +21,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 30
-    networks:
-      - dbnet
-
-  singlestore_init:
-    image: ghcr.io/singlestore-labs/singlestoredb-dev:latest
-    depends_on:
-      singlestore_db:
-        condition: service_healthy
-    entrypoint:
-      [
-        "singlestore",
-        "-hsinglestore_db",
-        "-ptest_superuser",
-        "-e",
-        "CREATE DATABASE IF NOT EXISTS test_ci;",
-      ]
     networks:
       - dbnet
 
