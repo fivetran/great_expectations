@@ -13,11 +13,27 @@ services:
           "singlestore",
           "-p${SINGLESTORE_ROOT_PASSWORD:-test_superuser}",
           "-e",
-          "SELECT 1; CREATE DATABASE IF NOT EXISTS test_ci;",
+          "SELECT 1;",
         ]
       interval: 5s
       timeout: 5s
       retries: 30
+    networks:
+      - dbnet
+
+  singlestore_init:
+    image: ghcr.io/singlestore-labs/singlestoredb-dev:latest
+    depends_on:
+      singlestore_db:
+        condition: service_healthy
+    entrypoint:
+      [
+        "singlestore",
+        "-hsinglestore_db",
+        "-ptest_superuser",
+        "-e",
+        "CREATE DATABASE IF NOT EXISTS test_ci;",
+      ]
     networks:
       - dbnet
 
