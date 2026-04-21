@@ -669,6 +669,11 @@ def _collect_spark_nested_column_paths(schema: Any) -> set:
 
     Traverses ``StructType`` fields recursively so that nested struct columns
     like ``Data.evt.id`` can be validated and addressed by their full path.
+
+    Note: Only descends into ``StructType`` (duck-typed via a ``fields``
+    attribute). ``ArrayType`` elements — including arrays of structs — are
+    not expanded, because Spark does not support dot-path navigation through
+    array elements without an explicit ``explode``.
     """
     paths: set = set()
 
@@ -769,10 +774,18 @@ def _spark_map_condition_index(  # noqa: C901 #  too complex
     if result_format["result_format"] != "COMPLETE":
         filtered = filtered.limit(result_format["partial_unexpected_count"])
 
-    # Prune the dataframe down only the columns we care about. Alias each
-    # selection to its (possibly dotted) source path so that nested struct
-    # columns remain addressable by that path on the resulting Row.
-    filtered = filtered.select(*[F.col(col_name).alias(col_name) for col_name in columns_to_keep])
+    # Prune the dataframe down only the columns we care about. If a name
+    # exists as a literal top-level column (e.g. a flat column whose name
+    # happens to contain a dot), select it directly to avoid Spark's
+    # dot-as-struct-accessor semantics. Otherwise, resolve it as a struct
+    # path via ``F.col`` and alias back to the full dotted path so that
+    # nested columns remain addressable by that path on the resulting Row.
+    top_level_columns = set(filtered.columns)
+    select_exprs = [
+        F.col(col_name).alias(col_name) if col_name not in top_level_columns else col_name
+        for col_name in columns_to_keep
+    ]
+    filtered = filtered.select(*select_exprs)
 
     return _get_spark_customized_unexpected_index_list(
         exclude_unexpected_values=exclude_unexpected_values,
