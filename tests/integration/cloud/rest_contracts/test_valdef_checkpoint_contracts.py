@@ -1049,6 +1049,7 @@ def test_get_checkpoint_expectation_parameters(pact_test: Pact) -> None:
         )
         .given("a checkpoint with expectation parameters exists")
         .with_request("GET", CHECKPOINT_EXPECTATION_PARAMS_PATH)
+        .with_query_parameters({"batch_definition_id": match.like(EXISTING_BATCH_DEF_ID)})
         .with_headers(headers)
         .will_respond_with(200)
         .with_body(expectation_params_response, content_type="application/json")
