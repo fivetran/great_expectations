@@ -796,7 +796,7 @@ class CloudDataContext(SerializableDataContext):
                     session=session,
                     url=expectation_parameters_url,
                     batch_definition_id=batch_definition_id,
-                    existing_parameters=expectation_parameters,
+                    expectation_parameters=expectation_parameters,
                 )
                 merged_parameters.update(new_parameters)
 
@@ -815,7 +815,7 @@ class CloudDataContext(SerializableDataContext):
         session: Any,
         url: str,
         batch_definition_id: str,
-        existing_parameters: Dict[str, Any],
+        expectation_parameters: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Issue one ``GET /expectation-parameters?batch_definition_id=X`` call
         and return the ``expectation_parameters`` dict from the response body.
@@ -827,15 +827,17 @@ class CloudDataContext(SerializableDataContext):
                 f"(batch_definition_id={batch_definition_id}).",
                 response=response,
             )
+        data = response.json()
         try:
-            new_parameters = response.json()["data"]["expectation_parameters"]
-            overlapping_keys = set(existing_parameters.keys()) & set(new_parameters.keys())
+            overlapping_keys = set(expectation_parameters.keys()) & set(
+                data["data"]["expectation_parameters"].keys()
+            )
             if overlapping_keys:
                 logger.warning(
                     "Passed in expectation_parameters also found in GX Cloud. Overwriting "
                     f"passed in values with GX Cloud values for keys: {overlapping_keys}"
                 )
-            return new_parameters
+            return data["data"]["expectation_parameters"]
         except KeyError as e:
             raise gx_exceptions.GXCloudError(
                 message="Malformed expectation_parameters response received from GX Cloud",
