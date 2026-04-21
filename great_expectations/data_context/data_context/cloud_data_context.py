@@ -797,12 +797,6 @@ class CloudDataContext(SerializableDataContext):
                     url=expectation_parameters_url,
                     batch_definition_id=batch_definition_id,
                 )
-                overlap = set(merged_parameters.keys()) & set(new_parameters.keys())
-                if overlap:
-                    logger.warning(
-                        "prepare_checkpoint_run.overlapping_parameters",
-                        extra={"overlapping_keys": sorted(overlap)},
-                    )
                 merged_parameters.update(new_parameters)
 
         overlapping_keys = set(expectation_parameters.keys()) & set(merged_parameters.keys())
