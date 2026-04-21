@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from great_expectations.compatibility import pyspark
 from great_expectations.compatibility.pyspark import functions as F
@@ -39,7 +39,7 @@ class ColumnValuesMatchStrftimeFormat(ColumnMapMetricProvider):
         # %D is an example of a format that can format but not parse, e.g.
         try:
             datetime.strptime(  # noqa: DTZ007 # FIXME CoP
-                datetime.strftime(datetime.now(), strftime_format),  # noqa: DTZ005 # FIXME CoP
+                datetime.strftime(datetime.now(tz=timezone.utc), strftime_format),
                 strftime_format,
             )
         except ValueError as e:
