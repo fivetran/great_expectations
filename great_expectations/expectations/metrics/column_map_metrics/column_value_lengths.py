@@ -198,16 +198,19 @@ class ColumnValuesValueLength(ColumnMapMetricProvider):
             raise ValueError("min_value and max_value must be integers")  # noqa: TRY003 # FIXME CoP
 
         if min_value is not None and max_value is not None:
-            return sa.and_(
-                column_lengths >= min_value,
-                column_lengths <= max_value,
+            min_condition = (
+                column_lengths > min_value if strict_min else column_lengths >= min_value
             )
+            max_condition = (
+                column_lengths < max_value if strict_max else column_lengths <= max_value
+            )
+            return sa.and_(min_condition, max_condition)
 
         elif min_value is None and max_value is not None:
-            return column_lengths <= max_value
+            return column_lengths < max_value if strict_max else column_lengths <= max_value
 
         elif min_value is not None and max_value is None:
-            return column_lengths >= min_value
+            return column_lengths > min_value if strict_min else column_lengths >= min_value
 
     @column_condition_partial(engine=SparkDFExecutionEngine)
     def _spark(
