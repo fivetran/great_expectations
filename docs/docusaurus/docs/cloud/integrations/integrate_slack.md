@@ -20,6 +20,8 @@ Keep the following in mind when integrating Slack:
 2. Locate the **Slack** integration and click **Connect**.
 3. Follow the prompts to sign in to Slack and **Allow** the connection.
 
+Now you can [create an alert](/cloud/alerts/alert_about_failures.md#create-an-alert) that notifies Slack channels about Expectation failures. 
+
 ## Reconnect to Slack
 
 Your Slack integration may **Error** if, for example, the GX Cloud Slack app is removed or its bot token is revoked. If this happens, notifications will not be sent to Slack channels, but your existing alert configurations will be kept intact so that Slack notifications will resume when the integration is reconnected. To reconnect the integration, do the following:
