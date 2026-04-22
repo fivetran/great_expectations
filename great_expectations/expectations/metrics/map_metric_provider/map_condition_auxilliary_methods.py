@@ -776,15 +776,20 @@ def _spark_map_condition_index(  # noqa: C901 #  too complex
 
     # Prune the dataframe down only the columns we care about. If a name
     # exists as a literal top-level column (e.g. a flat column whose name
-    # happens to contain a dot), select it directly to avoid Spark's
-    # dot-as-struct-accessor semantics. Otherwise, resolve it as a struct
-    # path via ``F.col`` and alias back to the full dotted path so that
-    # nested columns remain addressable by that path on the resulting Row.
+    # happens to contain a dot), reference it with backticks to suppress
+    # Spark's dot-as-struct-accessor parsing. Otherwise, resolve the name
+    # as a struct path via ``F.col`` and alias back to the full dotted path
+    # so that nested columns remain addressable by that path on the row.
     top_level_columns = set(filtered.columns)
-    select_exprs = [
-        F.col(col_name).alias(col_name) if col_name not in top_level_columns else col_name
-        for col_name in columns_to_keep
-    ]
+    select_exprs = []
+    for col_name in columns_to_keep:
+        if col_name in top_level_columns:
+            # Backtick-quote the literal name; double any embedded backticks
+            # per Spark SQL identifier-quoting rules.
+            quoted = "`" + col_name.replace("`", "``") + "`"
+            select_exprs.append(F.col(quoted).alias(col_name))
+        else:
+            select_exprs.append(F.col(col_name).alias(col_name))
     filtered = filtered.select(*select_exprs)
 
     return _get_spark_customized_unexpected_index_list(

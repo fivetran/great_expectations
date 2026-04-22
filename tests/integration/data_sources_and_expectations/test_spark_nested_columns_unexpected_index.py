@@ -119,6 +119,8 @@ def test_spark_unexpected_index_column_names_missing_nested_path_errors(
                 "result_format": "COMPLETE",
                 "unexpected_index_column_names": ["Data.evt.nonexistent"],
                 "partial_unexpected_count": 0,
+                "include_unexpected_rows": True,
+                "return_unexpected_index_query": True,
             },
         )
     # The underlying cause should be InvalidMetricAccessorDomainKwargsKeyError,
@@ -163,6 +165,8 @@ def test_spark_unexpected_index_column_names_with_literal_dotted_column(
             "result_format": "COMPLETE",
             "unexpected_index_column_names": ["id.with.dots"],
             "partial_unexpected_count": 0,
+            "include_unexpected_rows": True,
+            "return_unexpected_index_query": True,
         },
     )
 
