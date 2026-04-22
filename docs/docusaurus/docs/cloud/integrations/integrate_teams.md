@@ -36,7 +36,7 @@ To connect or reconnect a Microsoft Teams integration, you must have the followi
 2. Locate the **Microsoft Teams** integration and click **Connect**.
 3. Follow the prompts to sign in to Microsoft Teams, provide your **Tenant ID**, grant permissions, and connect.
 
-The integration will be **Pending** while the GX Cloud app is installed for your Microsoft Teams tenant. When the installation completes, the integration will be **Connected** and you can start configuring alerts for Teams.
+The integration will be **Pending** while the GX Cloud app is installed for your Microsoft Teams tenant. When the installation completes, the integration will be **Connected** and you can start [configuring alerts](/docs/cloud/alerts/alert_about_failures.md#create-an-alert) for Teams.
 
 ## Reconnect to Microsoft Teams
 

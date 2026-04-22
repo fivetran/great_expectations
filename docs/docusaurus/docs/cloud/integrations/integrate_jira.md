@@ -55,6 +55,8 @@ Follow the steps below to add credentials for the Atlassian service account:
 3. Click **Connect**.
 4. Click **Finish**.
 
+Now you can link Expectation failures and Jira work items to [manage incidents](/docs/cloud/alerts/manage_incidents.md#create-an-incident). 
+
 ## Reconnect to Jira
 
 Your Jira integration may **Error** if, for example, the user who created the authorizing Atlassian service account leaves your Atlassian organization. If this happens, you won’t be able to link issues, but your existing issue links will be kept intact. To reconnect the integration, do the following:
