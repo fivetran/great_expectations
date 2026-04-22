@@ -128,9 +128,7 @@ def test_spark_unexpected_index_column_names_missing_nested_path_errors(
     # an ExceptionInfo dict with ``raised_exception`` / ``exception_message``.
     exception_info = result.exception_info or {}
     assert exception_info, f"expected exception_info to be populated, got {exception_info!r}"
-    messages = [
-        str(info.get("exception_message", "")) for info in exception_info.values()
-    ]
+    messages = [str(info.get("exception_message", "")) for info in exception_info.values()]
     assert any("Data.evt.nonexistent" in msg for msg in messages), (
         f"expected the bogus column name in an exception message, got: {messages!r}"
     )
