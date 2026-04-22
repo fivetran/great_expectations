@@ -1092,6 +1092,8 @@ def docs_snippet_tests(
     help={
         "pty": _PTY_HELP_DESC,
         "reports": "Generate coverage & result reports to be uploaded to codecov",
+        "splits": "Total number of pytest-split shards. Must be paired with --group.",
+        "group": "1-based pytest-split shard index to run. Must satisfy 1 <= group <= splits.",
         "W": "Warnings control",
     },
     iterable=["service_names", "up_services", "verbose"],
@@ -1130,7 +1132,13 @@ def ci_tests(  # noqa: C901 - too complex (9)
     if xdist:
         pytest_options.append("-n 4")
 
-    if splits and group:
+    if splits or group:
+        if not (splits and group):
+            raise invoke.Exit("--splits and --group must be set together.")  # noqa: TRY003
+        if splits <= 0:
+            raise invoke.Exit("--splits must be > 0.")  # noqa: TRY003
+        if not 1 <= group <= splits:
+            raise invoke.Exit("--group must be in [1, --splits].")  # noqa: TRY003
         pytest_options.extend([f"--splits={splits}", f"--group={group}"])
 
     if timeout != 0:
