@@ -1106,6 +1106,8 @@ def ci_tests(  # noqa: C901 - too complex (9)
     slowest: int = 5,
     timeout: float = 0.0,  # 0 indicates no timeout
     xdist: bool = False,
+    splits: int = 0,
+    group: int = 0,
     W: str | None = None,
     pty: bool = True,
 ):
@@ -1127,6 +1129,9 @@ def ci_tests(  # noqa: C901 - too complex (9)
 
     if xdist:
         pytest_options.append("-n 4")
+
+    if splits and group:
+        pytest_options.extend([f"--splits={splits}", f"--group={group}"])
 
     if timeout != 0:
         pytest_options.append(f"--timeout={timeout}")
