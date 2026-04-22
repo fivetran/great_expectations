@@ -3,6 +3,8 @@ services:
     image: ghcr.io/singlestore-labs/singlestoredb-dev:latest
     environment:
       ROOT_PASSWORD: ${SINGLESTORE_ROOT_PASSWORD:-test_superuser}
+    volumes:
+      - ./init.sql:/init.sql
     ports:
       - "3306:3306"
       - "8080:8080"
@@ -13,7 +15,7 @@ services:
           "singlestore",
           "-p${SINGLESTORE_ROOT_PASSWORD:-test_superuser}",
           "-e",
-          "SELECT 1",
+          "SELECT 1;",
         ]
       interval: 5s
       timeout: 5s

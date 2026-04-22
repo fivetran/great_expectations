@@ -11,6 +11,10 @@ from great_expectations.execution_engine import (
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
+from great_expectations.execution_engine.sqlalchemy_dialect import (
+    GXSqlDialect,
+    quote_str,
+)
 from great_expectations.expectations.metrics.map_metric_provider import (
     ColumnMapMetricProvider,
     column_condition_partial,
@@ -58,6 +62,8 @@ class ColumnValuesUnique(ColumnMapMetricProvider):
             except AttributeError:
                 dialect_name = ""
         if sql_engine and dialect and dialect_name in ("mysql", "singlestoredb"):
+            gx_dialect = GXSqlDialect(dialect_name)
+            quoted_col = quote_str(column.name, gx_dialect)
             temp_table_name = generate_temporary_table_name()
             if isinstance(_table, sa.Select):
                 from_clause = _table.subquery().alias("tmp")
@@ -74,8 +80,8 @@ class ColumnValuesUnique(ColumnMapMetricProvider):
             dup_table_name = generate_temporary_table_name()
             dup_stmt = (
                 f"CREATE TEMPORARY TABLE {dup_table_name} AS "
-                f"SELECT {column.name} FROM {temp_table_name} "
-                f"GROUP BY {column.name} HAVING count({column.name}) > 1"
+                f"SELECT {quoted_col} FROM {temp_table_name} "
+                f"GROUP BY {quoted_col} HAVING count({quoted_col}) > 1"
             )
             execution_engine.execute_query_in_transaction(sa.text(dup_stmt))
             dup_query = sa.select(column).select_from(sa.text(dup_table_name))
