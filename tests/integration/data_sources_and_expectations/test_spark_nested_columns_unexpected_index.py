@@ -14,7 +14,6 @@ from __future__ import annotations
 import pytest
 
 import great_expectations as gx
-import great_expectations.exceptions as gx_exceptions
 import great_expectations.expectations as gxe
 
 pytestmark = pytest.mark.spark
@@ -94,10 +93,12 @@ def test_spark_unexpected_index_column_names_missing_nested_path_errors(
     spark_session,
 ) -> None:
     """A dotted path that is neither a top-level column nor a reachable
-    struct path should still raise ``InvalidMetricAccessorDomainKwargsKeyError``.
+    struct path should surface an ``InvalidMetricAccessorDomainKwargsKeyError``.
 
     Guards the existence-check widening in ``_spark_map_condition_index``
-    against accidentally accepting any dotted string.
+    against accidentally accepting any dotted string. ``batch.validate``
+    catches metric-resolution errors and reports them on the result's
+    ``exception_info`` rather than raising, so we inspect that.
     """
     context = gx.get_context(mode="ephemeral")
     spark_df = _make_nested_spark_df(spark_session)
@@ -112,20 +113,27 @@ def test_spark_unexpected_index_column_names_missing_nested_path_errors(
         value_set=["0", "1"],
     )
 
-    with pytest.raises(gx_exceptions.MetricResolutionError) as exc_info:
-        batch.validate(
-            expectation,
-            result_format={
-                "result_format": "COMPLETE",
-                "unexpected_index_column_names": ["Data.evt.nonexistent"],
-                "partial_unexpected_count": 0,
-                "include_unexpected_rows": True,
-                "return_unexpected_index_query": True,
-            },
-        )
-    # The underlying cause should be InvalidMetricAccessorDomainKwargsKeyError,
-    # surfaced via MetricResolutionError during batch.validate.
-    assert "Data.evt.nonexistent" in str(exc_info.value)
+    result = batch.validate(
+        expectation,
+        result_format={
+            "result_format": "COMPLETE",
+            "unexpected_index_column_names": ["Data.evt.nonexistent"],
+            "partial_unexpected_count": 0,
+            "include_unexpected_rows": True,
+            "return_unexpected_index_query": True,
+        },
+    )
+
+    # ``exception_info`` is a dict keyed by failed metric id, each value being
+    # an ExceptionInfo dict with ``raised_exception`` / ``exception_message``.
+    exception_info = result.exception_info or {}
+    assert exception_info, f"expected exception_info to be populated, got {exception_info!r}"
+    messages = [
+        str(info.get("exception_message", "")) for info in exception_info.values()
+    ]
+    assert any("Data.evt.nonexistent" in msg for msg in messages), (
+        f"expected the bogus column name in an exception message, got: {messages!r}"
+    )
 
 
 def test_spark_unexpected_index_column_names_with_literal_dotted_column(
