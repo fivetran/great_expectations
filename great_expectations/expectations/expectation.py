@@ -127,7 +127,6 @@ if TYPE_CHECKING:
     from great_expectations.execution_engine import (
         ExecutionEngine,
     )
-    from great_expectations.render.renderer_configuration import MetaNotes
     from great_expectations.validator.validator import ValidationDependencies, Validator
 
 logger = logging.getLogger(__name__)
@@ -689,39 +688,6 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
 
         renderer_configuration.template_str = template_str
         return renderer_configuration
-
-    @classmethod
-    def _atomic_prescriptive_template(
-        cls,
-        configuration: Optional[ExpectationConfiguration] = None,
-        result: Optional[ExpectationValidationResult] = None,
-        runtime_configuration: Optional[dict] = None,
-    ) -> Tuple[Optional[str], dict, MetaNotes, Optional[dict]]:
-        """
-        Template function that contains the logic that is shared by AtomicPrescriptiveRendererType.SUMMARY and
-        LegacyRendererType.PRESCRIPTIVE.
-        """  # noqa: E501 # FIXME CoP
-        # deprecated-v0.15.43
-        warnings.warn(
-            "The method _atomic_prescriptive_template is deprecated as of v0.15.43 and will be removed in v0.18. "  # noqa: E501 # FIXME CoP
-            "Please refer to Expectation method _prescriptive_template for the latest renderer template pattern.",  # noqa: E501 # FIXME CoP
-            DeprecationWarning,
-        )
-        renderer_configuration: RendererConfiguration = RendererConfiguration(
-            configuration=configuration,
-            result=result,
-            runtime_configuration=runtime_configuration,
-        )
-        renderer_configuration = cls._prescriptive_template(
-            renderer_configuration=renderer_configuration,
-        )
-        styling = runtime_configuration.get("styling", {}) if runtime_configuration else {}
-        return (
-            renderer_configuration.template_str,
-            renderer_configuration.params.dict(),
-            renderer_configuration.meta_notes,
-            styling,
-        )
 
     @classmethod
     @renderer(renderer_type=AtomicPrescriptiveRendererType.SUMMARY)
@@ -3175,32 +3141,6 @@ def _mostly_success(
         rows_considered_cnt_as_float - unexpected_cnt_as_float
     ) / rows_considered_cnt_as_float
     return success_ratio >= mostly
-
-
-def add_values_with_json_schema_from_list_in_params(
-    params: dict,
-    params_with_json_schema: dict,
-    param_key_with_list: str,
-    list_values_type: str = "string",
-) -> dict:
-    """
-    Utility function used in _atomic_prescriptive_template() to take list values from a given params dict key,
-    convert each value to a dict with JSON schema type info, then add it to params_with_json_schema (dict).
-    """  # noqa: E501 # FIXME CoP
-    # deprecated-v0.15.43
-    warnings.warn(
-        "The method add_values_with_json_schema_from_list_in_params is deprecated as of v0.15.43 and will be removed in "  # noqa: E501 # FIXME CoP
-        "v0.18. Please refer to Expectation method _prescriptive_template for the latest renderer template pattern.",  # noqa: E501 # FIXME CoP
-        DeprecationWarning,
-    )
-    target_list = params.get(param_key_with_list)
-    if target_list is not None and len(target_list) > 0:
-        for i, v in enumerate(target_list):
-            params_with_json_schema[f"v__{i!s}"] = {
-                "schema": {"type": list_values_type},
-                "value": v,
-            }
-    return params_with_json_schema
 
 
 def parse_value_to_observed_type(observed_value: Any, value: Any) -> Any:
