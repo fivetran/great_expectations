@@ -21,9 +21,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pandas as pd
-from pydantic import v1 as pydantic_v1
 
 import great_expectations.expectations as gxe
+from great_expectations.compatibility import pydantic
 from great_expectations.core.suite_parameters import SuiteParameterDict  # noqa: TC001
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
@@ -37,13 +37,13 @@ if TYPE_CHECKING:
 class ExpectColumnValuesToStartWith(gxe.ExpectColumnValuesToMatchRegex):
     """Pre-fill a regex expectation with a caret, exposing it via an aliased field."""
 
-    regex: str | SuiteParameterDict = pydantic_v1.Field(
+    regex: str | SuiteParameterDict = pydantic.Field(
         default="(?s).*",
         alias="startswith",
         description="Expect rows in a given column to start with some particular value.",
     )
 
-    @pydantic_v1.validator("regex", pre=True)
+    @pydantic.validator("regex", pre=True)
     def validate_regex(cls, v: str) -> str:
         return (
             "^"
@@ -75,3 +75,6 @@ def test_subclass_with_aliased_field_can_be_validated(batch_for_datasource: Batc
     expectation = ExpectColumnValuesToStartWith(column="col2", startswith="a")
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+    # The bug surfaced as a captured ValidationError during round-trip; assert
+    # validation actually ran end-to-end rather than swallowing an exception.
+    assert not result.exception_info["raised_exception"]
