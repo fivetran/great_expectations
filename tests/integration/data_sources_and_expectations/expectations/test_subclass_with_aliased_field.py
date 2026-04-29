@@ -33,19 +33,18 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
 class ExpectColumnValuesToStartWith(gxe.ExpectColumnValuesToMatchRegex):
     """Pre-fill a regex expectation with a caret, exposing it via an aliased field."""
 
-    regex: "str | SuiteParameterDict" = pydantic_v1.Field(
+    regex: str | SuiteParameterDict = pydantic_v1.Field(
         default="(?s).*",
         alias="startswith",
         description="Expect rows in a given column to start with some particular value.",
     )
 
     @pydantic_v1.validator("regex", pre=True)
-    def validate_regex(cls, v: str) -> str:  # noqa: N805
+    def validate_regex(cls, v: str) -> str:
         return (
             "^"
             + "".join(
-                char if char not in set(r"[@_!#$%^&*()<>?/\|}{~:]") else "\\" + char
-                for char in v
+                char if char not in set(r"[@_!#$%^&*()<>?/\|}{~:]") else "\\" + char for char in v
             )
             + ".*"
         )
