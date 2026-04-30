@@ -1108,8 +1108,13 @@ def ci_tests(  # noqa: C901 - too complex (9)
     slowest: int = 5,
     timeout: float = 0.0,  # 0 indicates no timeout
     xdist: bool = False,
-    splits: int | None = None,
-    group: int | None = None,
+    # `invoke` infers each task arg's type from its default; using `int = 0`
+    # (rather than `int | None = None`) keeps the CLI converter as `int`. The
+    # value `0` is treated as the "unset" sentinel — explicit `--splits=0` /
+    # `--group=0` are caught by the `> 0` and `1 <= group <= splits` validators
+    # below, so users get a clear error rather than silently running unsharded.
+    splits: int = 0,
+    group: int = 0,
     W: str | None = None,
     pty: bool = True,
 ):
@@ -1137,8 +1142,8 @@ def ci_tests(  # noqa: C901 - too complex (9)
         # across workers.
         pytest_options.extend(["-n 4", "--dist", "loadfile"])
 
-    if splits is not None or group is not None:
-        if splits is None or group is None:
+    if splits or group:
+        if not (splits and group):
             raise invoke.Exit("--splits and --group must be set together.")  # noqa: TRY003
         if splits <= 0:
             raise invoke.Exit("--splits must be > 0.")  # noqa: TRY003
