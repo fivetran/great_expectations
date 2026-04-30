@@ -389,6 +389,12 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         arbitrary_types_allowed = True
         smart_union = True
         extra = pydantic.Extra.forbid
+        # Allow subclasses that override fields with a pydantic ``Field(alias=...)``
+        # to be instantiated using either the alias or the underlying field name.
+        # Without this, a roundtrip through ``ExpectationConfiguration.to_domain_obj``
+        # (which passes kwargs by field name) raises ``extra fields not permitted``
+        # for any aliased field. See community issue #10455.
+        allow_population_by_field_name = True
         json_encoders = {RenderedAtomicContent: lambda data: data.to_json_dict()}
 
         @staticmethod
