@@ -499,23 +499,21 @@ def _check_for_skipped_tests(  # noqa: C901, PLR0912 # FIXME CoP
     integration_test_fixture,
 ) -> None:
     """Enable scripts to be skipped based on pytest invocation flags."""
-    TESTS_TO_SKIP_FOR_SQLA_2_0_AND_PANDAS_2_2 = [
+    # Pandas 2.2 dropped support for SQLAlchemy < 2 in to_sql/read_sql_table; this list
+    # captures the tests that rely on those code paths and therefore can't run under that
+    # combination. See https://github.com/great-expectations/great_expectations/pull/11417.
+    TESTS_TO_SKIP_UNDER_SQLA_LT_2_AND_PANDAS_GTE_2_2 = [
         "expect_column_max_to_be_between_custom",
-        "partition_data_on_whole_table_snowflake",
-        "partition_data_on_whole_table_redshift",
-        "partition_data_on_datetime_redshift",
-        "partition_data_on_datetime_snowflake",
-        "deployment_patterns_redshift",
     ]
-    IS_RUNNING_SQLA_2_0_AND_PANDAS_2_2 = (
+    IS_RUNNING_SQLA_LT_2_AND_PANDAS_GTE_2_2 = (
         sqlalchemy.__version__ < "2.0" and pandas.__version__ >= "2.2"
     )
     if (
-        IS_RUNNING_SQLA_2_0_AND_PANDAS_2_2
-        and integration_test_fixture.name in TESTS_TO_SKIP_FOR_SQLA_2_0_AND_PANDAS_2_2
+        IS_RUNNING_SQLA_LT_2_AND_PANDAS_GTE_2_2
+        and integration_test_fixture.name in TESTS_TO_SKIP_UNDER_SQLA_LT_2_AND_PANDAS_GTE_2_2
     ):
         pytest.skip(
-            "This test requires sqlalchemy version 2.0 or higher and pandas version 2.2 or higher"
+            "This test requires sqlalchemy version 2.0 or higher when running pandas >= 2.2"
         )
     dependencies = integration_test_fixture.backend_dependencies
     if not dependencies:

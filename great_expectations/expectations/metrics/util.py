@@ -893,6 +893,21 @@ def _verify_column_names_exist_and_get_normalized_typed_column_names_map(  # noq
             ) or (column_name == str(typed_column_name_cursor)):
                 return column_name, typed_column_name_cursor
 
+            # Spark wraps dotted column names in backticks in the "table.column_types"
+            # metric output (see `_get_spark_column_metadata`) so that Spark SQL does
+            # not interpret the dot as nested-field access. Match the user's unwrapped
+            # name against the backticked typed name and return the backticked form,
+            # so downstream consumers (e.g. `F.col(...)`) receive a properly-escaped
+            # identifier.  See community issue #11199.
+            if (
+                isinstance(typed_column_name_cursor, str)
+                and typed_column_name_cursor.startswith("`")
+                and typed_column_name_cursor.endswith("`")
+                and len(typed_column_name_cursor) >= 2  # noqa: PLR2004
+                and column_name.casefold() == typed_column_name_cursor[1:-1].casefold()
+            ):
+                return column_name, typed_column_name_cursor
+
             # use explicit identifier if passed in by user
             if isinstance(typed_column_name_cursor, str) and (
                 (column_name.casefold().strip('"') == typed_column_name_cursor.casefold())
