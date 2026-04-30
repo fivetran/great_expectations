@@ -1108,8 +1108,8 @@ def ci_tests(  # noqa: C901 - too complex (9)
     slowest: int = 5,
     timeout: float = 0.0,  # 0 indicates no timeout
     xdist: bool = False,
-    splits: int = 0,
-    group: int = 0,
+    splits: int | None = None,
+    group: int | None = None,
     W: str | None = None,
     pty: bool = True,
 ):
@@ -1137,13 +1137,15 @@ def ci_tests(  # noqa: C901 - too complex (9)
         # across workers.
         pytest_options.extend(["-n 4", "--dist", "loadfile"])
 
-    if splits or group:
-        if not (splits and group):
+    if splits is not None or group is not None:
+        if splits is None or group is None:
             raise invoke.Exit("--splits and --group must be set together.")  # noqa: TRY003
         if splits <= 0:
             raise invoke.Exit("--splits must be > 0.")  # noqa: TRY003
         if not 1 <= group <= splits:
-            raise invoke.Exit("--group must be in [1, --splits].")  # noqa: TRY003
+            raise invoke.Exit(  # noqa: TRY003
+                f"--group must be between 1 and {splits} (inclusive)."
+            )
         pytest_options.extend([f"--splits={splits}", f"--group={group}"])
 
     if timeout != 0:
