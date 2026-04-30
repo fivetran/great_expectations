@@ -6682,8 +6682,7 @@ def test_map_select_column_values_unique_within_record_spark(  # noqa: PLR0915 #
     unexpected_values = []
     for unexpected_value_dict in metrics[unexpected_values_metric.id]:
         updated_unexpected_value_dict = {
-            key: "NULL" if np.isnan(value) else value
-            for key, value in unexpected_value_dict.items()
+            key: "NULL" if value is None else value for key, value in unexpected_value_dict.items()
         }
         unexpected_values.append(updated_unexpected_value_dict)
 

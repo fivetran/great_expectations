@@ -247,12 +247,15 @@ def test_invalid_config(column_list: list[str]) -> None:
         gxe.ExpectCompoundColumnsToBeUnique(column_list=column_list)
 
 
+# Naive datetimes are intentional: Spark's CSV roundtrip and timestamp parsing
+# behave deterministically when input/output stay tz-naive, avoiding session/local
+# timezone interactions that would otherwise make the comparison flaky.
 DATA_WITH_TIMESTAMP_DUPLICATES = pd.DataFrame(
     {
         EVENT_TS: [
-            datetime(2024, 1, 1),
-            datetime(2024, 1, 1),
-            datetime(2024, 1, 2),
+            datetime(2024, 1, 1),  # noqa: DTZ001
+            datetime(2024, 1, 1),  # noqa: DTZ001
+            datetime(2024, 1, 2),  # noqa: DTZ001
         ],
         CATEGORY: ["A", "A", "B"],
     }
@@ -280,7 +283,7 @@ def test_partial_unexpected_list_spark_with_timestamp_columns(batch_for_datasour
 
     rows = result.result["partial_unexpected_list"]
     assert len(rows) == 2
-    expected_ts = datetime(2024, 1, 1)
+    expected_ts = datetime(2024, 1, 1)  # noqa: DTZ001
     for row in rows:
         # pd.Timestamp and datetime.datetime compare equal for the same moment, so this
         # assertion is independent of which Python type the metric returns.
