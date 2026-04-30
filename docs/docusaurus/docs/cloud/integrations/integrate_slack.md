@@ -20,6 +20,8 @@ Keep the following in mind when integrating Slack:
 2. Locate the **Slack** integration and click **Connect**.
 3. Follow the prompts to sign in to Slack and **Allow** the connection.
 
+Now you can [create an alert](/cloud/alerts/alert_about_failures.md#create-an-alert) that notifies Slack channels about Expectation failures. 
+
 ## Reconnect to Slack
 
 Your Slack integration may **Error** if, for example, the GX Cloud Slack app is removed or its bot token is revoked. If this happens, notifications will not be sent to Slack channels, but your existing alert configurations will be kept intact so that Slack notifications will resume when the integration is reconnected. To reconnect the integration, do the following:
@@ -34,5 +36,5 @@ Your Slack integration may **Error** if, for example, the GX Cloud Slack app is 
 1. In GX Cloud, select the relevant **Workspace** and then click **Integrations**.
 2. Locate the **Slack** integration and click  <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/> **Edit connection**.
 3. Click <img src="/img/trash.png" alt="trash icon" width="20" height="20"/> **Remove**.
-4. Note that removing the integration may impact existing alert configurations. If an alert’s **Recipients** include **Slack channels**, the channel and @mention configuration details will be deleted. If the alert is also configured with **Emails** as recipients, that portion of the alert’s configuration will be left as-is, and notifications will continue to be sent to those email addresses. Click **Remove** to confirm you understand the impact to existing alert configurations and finalize deleting the connection.
+4. Note that removing the integration may impact existing alert configurations. If an alert’s **Recipients** include **Slack channels**, the channel and @mention configuration details will be deleted. If the alert is also configured with **Emails** or **Microsoft Teams channels** as recipients, those portions of the alert’s configuration will be left as-is, and notifications will continue to be sent to those destinations. Click **Remove** to confirm you understand the impact to existing alert configurations and finalize deleting the connection.
 

@@ -16,7 +16,6 @@ from great_expectations.execution_engine.sparkdf_execution_engine import (
 from great_expectations.execution_engine.sqlalchemy_execution_engine import (
     SqlAlchemyExecutionEngine,
 )
-from great_expectations.expectations.metrics import DeprecatedMetaMetricProvider
 from great_expectations.expectations.metrics.metric_provider import (
     metric_partial,
     metric_value,
@@ -315,7 +314,3 @@ class ColumnAggregateMetricProvider(TableMetricProvider):
             metric_value_kwargs=None,
         )
         return dependencies
-
-
-class ColumnMetricProvider(ColumnAggregateMetricProvider, metaclass=DeprecatedMetaMetricProvider):
-    _DeprecatedMetaMetricProvider__alias = ColumnAggregateMetricProvider

@@ -159,8 +159,11 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
         pass
 
     try:
-        # MySQL
-        if issubclass(dialect.dialect, sa.dialects.mysql.dialect):  # type: ignore[union-attr] # FIXME CoP
+        # MySQL and MySQL-compatible dialects (e.g. SingleStore).
+        # Use MySQLDialect base class instead of sa.dialects.mysql.dialect because the latter
+        # resolves to MySQLDialect_mysqldb, which is a sibling—not a parent—of third-party
+        # dialects that subclass MySQLDialect directly.
+        if issubclass(dialect.dialect, sa.dialects.mysql.base.MySQLDialect):  # type: ignore[union-attr] # FIXME CoP
             if positive:
                 return sqlalchemy.BinaryExpression(
                     column, sqlalchemy.literal(regex), sqlalchemy.custom_op("REGEXP")
@@ -888,6 +891,21 @@ def _verify_column_names_exist_and_get_normalized_typed_column_names_map(  # noq
                 (type(typed_column_name_cursor) == str)  # noqa: E721 # FIXME CoP
                 and (column_name.casefold() == typed_column_name_cursor.casefold())
             ) or (column_name == str(typed_column_name_cursor)):
+                return column_name, typed_column_name_cursor
+
+            # Spark wraps dotted column names in backticks in the "table.column_types"
+            # metric output (see `_get_spark_column_metadata`) so that Spark SQL does
+            # not interpret the dot as nested-field access. Match the user's unwrapped
+            # name against the backticked typed name and return the backticked form,
+            # so downstream consumers (e.g. `F.col(...)`) receive a properly-escaped
+            # identifier.  See community issue #11199.
+            if (
+                isinstance(typed_column_name_cursor, str)
+                and typed_column_name_cursor.startswith("`")
+                and typed_column_name_cursor.endswith("`")
+                and len(typed_column_name_cursor) >= 2  # noqa: PLR2004
+                and column_name.casefold() == typed_column_name_cursor[1:-1].casefold()
+            ):
                 return column_name, typed_column_name_cursor
 
             # use explicit identifier if passed in by user

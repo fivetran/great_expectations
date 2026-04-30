@@ -14,10 +14,6 @@ import great_expectations as gx
 context = gx.get_context(mode="cloud")
 # </snippet>
 
-# Verify that you have a GX Cloud Data Context.
-# <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - verify context type">
-print(type(context).__name__)
-# </snippet>
 # Hide this
 data_source_name = "S3 Data Source"
 # Hide this

@@ -44,8 +44,8 @@ class PoolConfig:
 class SessionSQLEngineManager:
     POOL_CONFIG = PoolConfig(
         poolclass=QueuePool,
-        pool_size=2,
-        max_overflow=3,
+        pool_size=5,
+        max_overflow=5,
         pool_recycle=5400,  # 1.5 hours
         pool_timeout=30,  # 30 seconds
         pool_pre_ping=True,

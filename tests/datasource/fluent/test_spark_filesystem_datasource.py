@@ -1016,7 +1016,7 @@ def test_get_batch_does_not_modify_input_batch_request(
     request = batch_def.build_batch_request({"year": "2018"})
     request_before_call = copy.deepcopy(request)
     _ = asset.get_batch(request)
-    # We assert the request before the call to get_batch is equal to the request after the  # noqa: E501 # FIXME CoP
+    # We assert the request before the call to get_batch is equal to the request after  # FIXME CoP
     # call. This test exists because this call was modifying the request.
     assert request == request_before_call
 

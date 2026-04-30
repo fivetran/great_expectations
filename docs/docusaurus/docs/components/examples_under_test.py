@@ -354,6 +354,22 @@ connect_to_cloud = [
         user_flow_script="docs/docusaurus/docs/cloud/connect/connect_sqlserver.py",
         backend_dependencies=[BackendDependencies.CLOUD],
     ),
+    # BigQuery
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests --cloud --bigquery -k "cloud_docs_connect_bigquery" tests/integration/test_script_runner.py
+        name="cloud_docs_connect_bigquery",
+        user_flow_script="docs/docusaurus/docs/cloud/connect/connect_bigquery.py",
+        backend_dependencies=[BackendDependencies.CLOUD, BackendDependencies.BIGQUERY],
+    ),
+    # Trino
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests --cloud --trino -k "cloud_docs_connect_trino" tests/integration/test_script_runner.py
+        name="cloud_docs_connect_trino",
+        user_flow_script="docs/docusaurus/docs/cloud/connect/connect_trino.py",
+        backend_dependencies=[BackendDependencies.CLOUD, BackendDependencies.TRINO],
+    ),
 ]
 
 docs_example_scripts_run_validations = [
