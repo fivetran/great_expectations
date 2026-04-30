@@ -22,6 +22,10 @@ on:
     - cron: "0 */3 * * *"
   workflow_dispatch: # allows manual triggering with branch picker
   push:
+    # TEMPORARY: run develop's CI on this branch so workflow changes in PR #11850
+    # are actually exercised. Reverted by #11850 itself once merged.
+    branches:
+      - maint/shard-marker-tests
     # Semantic versioning syntax defined by PyPI: https://pythonpackaging.info/07-Package-Release.html#Versioning-your-code
     tags:
       # Stable release syntax
