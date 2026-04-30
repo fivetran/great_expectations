@@ -23,6 +23,7 @@ from great_expectations.render.renderer import ValidationResultsPageRenderer
 from great_expectations.render.view import DefaultJinjaPageView
 
 
+@pytest.mark.integration
 @pytest.mark.filterwarnings(
     "ignore:Cannot get %*::great_expectations.render.renderer.profiling_results_overview_section_renderer"  # noqa: E501
 )
