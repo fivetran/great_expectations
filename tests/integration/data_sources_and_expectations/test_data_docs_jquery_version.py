@@ -1,8 +1,8 @@
 """
-Reproduces community issue #11852: Data Docs render with vulnerable jQuery 3.4.1.
+Regression test for community issue #11852: Data Docs rendered with vulnerable jQuery 3.4.1.
 
 The Data Docs page template at
-``great_expectations/render/view/templates/js_script_imports.j2`` references
+``great_expectations/render/view/templates/js_script_imports.j2`` previously referenced
 ``https://code.jquery.com/jquery-3.4.1.min.js``. jQuery 3.4.1 is affected by
 CVE-2020-11022 and CVE-2020-11023 (both 6.1 Medium), which are patched in
 jQuery 3.5.0+.
@@ -24,9 +24,6 @@ from great_expectations.render.view import DefaultJinjaPageView
 
 
 @pytest.mark.integration
-@pytest.mark.filterwarnings(
-    "ignore:Cannot get %*::great_expectations.render.renderer.profiling_results_overview_section_renderer"  # noqa: E501
-)
 def test_data_docs_does_not_reference_vulnerable_jquery_3_4_1() -> None:
     """Data Docs HTML must not pull jQuery 3.4.1 (CVE-2020-11022/11023)."""
     validation_result = ExpectationSuiteValidationResult(
