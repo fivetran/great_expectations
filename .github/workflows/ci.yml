@@ -22,10 +22,6 @@ on:
     - cron: "0 */3 * * *"
   workflow_dispatch: # allows manual triggering with branch picker
   push:
-    # TEMPORARY: run develop's CI on this branch so workflow changes in PR #11850
-    # are actually exercised. Reverted by #11850 itself once merged.
-    branches:
-      - maint/shard-marker-tests
     # Semantic versioning syntax defined by PyPI: https://pythonpackaging.info/07-Package-Release.html#Versioning-your-code
     tags:
       # Stable release syntax
@@ -740,10 +736,7 @@ jobs:
 
   marker-tests:
     needs: [unit-tests, static-analysis, check-actor-permissions]
-    # TEMPORARY: also run on push events from this branch so the sharded
-    # workflow can be exercised via #11858's push trigger. Reverted before
-    # this PR merges.
-    if: github.event.pull_request.draft == false || github.event_name == 'push'
+    if: github.event.pull_request.draft == false
     env:
       GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
       # google
@@ -871,10 +864,7 @@ jobs:
 
   marker-tests-snowflake:
     needs: [unit-tests, static-analysis, check-actor-permissions]
-    # TEMPORARY: also run on push events from this branch so the sharded
-    # workflow can be exercised via #11858's push trigger. Reverted before
-    # this PR merges.
-    if: github.event.pull_request.draft == false || github.event_name == 'push'
+    if: github.event.pull_request.draft == false
     env:
       GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
       # snowflake
