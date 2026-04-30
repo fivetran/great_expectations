@@ -77,17 +77,9 @@ class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
     def __eq__(self, value: object) -> bool:
         if not isinstance(value, DataSourceTestConfig):
             return False
-        # Don't use super().__eq__ here: object.__eq__ returns NotImplemented
-        # for non-identity instances, and bool(NotImplemented) is truthy, so it
-        # silently makes this comparison always pass. Compare each field
-        # explicitly instead.
         return all(
             [
-                self.name == value.name,
-                self.table_name == value.table_name,
-                self.schema_name == value.schema_name,
-                self.column_types == value.column_types,
-                self.extra_column_types == value.extra_column_types,
+                super().__eq__(value),
                 self.label == value.label,
                 self.pytest_mark == value.pytest_mark,
             ]
@@ -103,8 +95,6 @@ class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
             (
                 self.__class__.name,
                 self.test_id,
-                self.table_name,
-                self.schema_name,
                 hashable_col_types,
                 hashable_extra_col_types,
             )
