@@ -740,7 +740,10 @@ jobs:
 
   marker-tests:
     needs: [unit-tests, static-analysis, check-actor-permissions]
-    if: github.event.pull_request.draft == false
+    # TEMPORARY: also run on push events from this branch so the sharded
+    # workflow can be exercised via #11858's push trigger. Reverted before
+    # this PR merges.
+    if: github.event.pull_request.draft == false || github.event_name == 'push'
     env:
       GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
       # google
@@ -880,7 +883,10 @@ jobs:
 
   marker-tests-snowflake:
     needs: [unit-tests, static-analysis, check-actor-permissions]
-    if: github.event.pull_request.draft == false
+    # TEMPORARY: also run on push events from this branch so the sharded
+    # workflow can be exercised via #11858's push trigger. Reverted before
+    # this PR merges.
+    if: github.event.pull_request.draft == false || github.event_name == 'push'
     env:
       GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
       # snowflake
