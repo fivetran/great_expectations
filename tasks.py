@@ -1130,7 +1130,12 @@ def ci_tests(  # noqa: C901 - too complex (9)
     pytest_options = [f"--durations={slowest}", "-rEf"]
 
     if xdist:
-        pytest_options.append("-n 4")
+        # `--dist loadfile` keeps every test from the same module on a single
+        # worker. Required because some integration test fixtures (notably the
+        # session-cached BatchTestSetup keyed by TestConfig) depend on test
+        # ordering within a module and break when xdist redistributes them
+        # across workers.
+        pytest_options.extend(["-n 4", "--dist", "loadfile"])
 
     if splits or group:
         if not (splits and group):
