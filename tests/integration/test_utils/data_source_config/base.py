@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import random
-import string
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -154,7 +152,10 @@ class BatchTestSetup(ABC, Generic[_ConfigT, _AssetT]):
 
     @staticmethod
     def _random_resource_name() -> str:
-        return "".join(random.choices(string.ascii_lowercase, k=10))
+        # Use uuid4 rather than the global `random` module: tests/conftest.py and
+        # tests/execution_engine/conftest.py reseed `random` with a fixed seed,
+        # which makes "random" names deterministic and prone to in-session collisions.
+        return uuid4().hex[:10]
 
     @cached_property
     def id(self) -> UUID:
