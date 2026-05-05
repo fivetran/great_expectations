@@ -20,7 +20,7 @@ Before we completely remove the functionality in a new major release, there will
 * [BUGFIX] Spark column names with dots not recognized in BatchData (GX-3274) ([#11851](https://github.com/great-expectations/great_expectations/pull/11851))
 * [BUGFIX] Fix docs-snippets CI broken by sqlalchemy-redshift 1.0.0 ([#11857](https://github.com/great-expectations/great_expectations/pull/11857))
 * [BUGFIX] Pydantic Field alias not respected during expectation validation ([#11854](https://github.com/great-expectations/great_expectations/pull/11854))
-* [BUGFIX] Avoid .toPandas() in Spark multicolumn unexpected values (#11633) ([#11861](https://github.com/great-expectations/great_expectations/pull/11861))
+* [BUGFIX] Avoid .toPandas() in Spark multicolumn unexpected values (#11633) ([#11861](https://github.com/great-expectations/great_expectations/pull/11861)) (thanks @smcl)
 * [BUGFIX] Use uuid4 for test datasource names to avoid global-RNG collisions ([#11862](https://github.com/great-expectations/great_expectations/pull/11862))
 * [BUGFIX] Data Docs uses vulnerable jQuery 3.4.1 ([#11856](https://github.com/great-expectations/great_expectations/pull/11856))
 * [DOCS] Backfill 1.17.0 changelog entry ([#11865](https://github.com/great-expectations/great_expectations/pull/11865))
