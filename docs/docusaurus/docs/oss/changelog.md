@@ -15,6 +15,20 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.17.1
+* [BUGFIX] Spark nested columns break unexpected_index_column_names (GX-3253) ([#11835](https://github.com/great-expectations/great_expectations/pull/11835))
+* [BUGFIX] Spark column names with dots not recognized in BatchData (GX-3274) ([#11851](https://github.com/great-expectations/great_expectations/pull/11851))
+* [BUGFIX] Fix docs-snippets CI broken by sqlalchemy-redshift 1.0.0 ([#11857](https://github.com/great-expectations/great_expectations/pull/11857))
+* [BUGFIX] Pydantic Field alias not respected during expectation validation ([#11854](https://github.com/great-expectations/great_expectations/pull/11854))
+* [BUGFIX] Avoid .toPandas() in Spark multicolumn unexpected values (#11633) ([#11861](https://github.com/great-expectations/great_expectations/pull/11861))
+* [BUGFIX] Use uuid4 for test datasource names to avoid global-RNG collisions ([#11862](https://github.com/great-expectations/great_expectations/pull/11862))
+* [BUGFIX] Data Docs uses vulnerable jQuery 3.4.1 ([#11856](https://github.com/great-expectations/great_expectations/pull/11856))
+* [DOCS] Backfill 1.17.0 changelog entry ([#11865](https://github.com/great-expectations/great_expectations/pull/11865))
+* [MAINTENANCE] Remove deprecated _atomic_prescriptive_template (v0.15.43) ([#11847](https://github.com/great-expectations/great_expectations/pull/11847))
+* [MAINTENANCE] Temporarily run CI on maint/shard-marker-tests branch pushes ([#11858](https://github.com/great-expectations/great_expectations/pull/11858))
+* [MAINTENANCE] Shard snowflake marker-tests + xdist for bigquery/databricks ([#11850](https://github.com/great-expectations/great_expectations/pull/11850))
+* [MAINTENANCE] Bump postcss from 8.5.6 to 8.5.12 in /docs/docusaurus ([#11859](https://github.com/great-expectations/great_expectations/pull/11859))
+
 ### 1.17.0
 * [FEATURE] Pass batch_definition_id to GET /expectation-parameters ([#11831](https://github.com/great-expectations/great_expectations/pull/11831))
 * [BUGFIX] Fix pact-broker command not found in record-release CI step ([#11819](https://github.com/great-expectations/great_expectations/pull/11819))
