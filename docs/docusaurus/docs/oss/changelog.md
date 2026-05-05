@@ -15,6 +15,32 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.17.0
+* [FEATURE] Pass batch_definition_id to GET /expectation-parameters ([#11831](https://github.com/great-expectations/great_expectations/pull/11831))
+* [BUGFIX] Fix pact-broker command not found in record-release CI step ([#11819](https://github.com/great-expectations/great_expectations/pull/11819))
+* [BUGFIX] Fix SingleStoreDB expectations ([#11828](https://github.com/great-expectations/great_expectations/pull/11828))
+* [BUGFIX] Fix Spark metric strftime validation failing with timezone-aware formats ([#11817](https://github.com/great-expectations/great_expectations/pull/11817))
+* [BUGFIX] SQLAlchemy ignores strict_min/strict_max in column value lengths (GX-3252) ([#11836](https://github.com/great-expectations/great_expectations/pull/11836))
+* [BUGFIX] Spark ignores strict_min/strict_max in column value lengths (GX-3252) ([#11834](https://github.com/great-expectations/great_expectations/pull/11834))
+* [DOCS] expect column proportion of non-null values to be between supports forecasted range ([#11821](https://github.com/great-expectations/great_expectations/pull/11821))
+* [DOCS] trino and bigquery ([#11747](https://github.com/great-expectations/great_expectations/pull/11747))
+* [MAINTENANCE] Bump dompurify from 3.3.2 to 3.4.0 in /docs/docusaurus ([#11820](https://github.com/great-expectations/great_expectations/pull/11820))
+* [MAINTENANCE] Add can-i-deploy check to cloud-tests CI ([#11801](https://github.com/great-expectations/great_expectations/pull/11801))
+* [MAINTENANCE] bump jest-environment-jsdom 30.2.0 → 30.3.0 (CVE-2026-33671) ([#11823](https://github.com/great-expectations/great_expectations/pull/11823))
+* [MAINTENANCE] fix minimatch 3.1.2→3.1.5 and lodash-es 4.17.x→4.18.1 in docs ([#11827](https://github.com/great-expectations/great_expectations/pull/11827))
+* [MAINTENANCE] fix path-to-regexp 0.1.12→0.1.13 and picomatch 2.3.1→2.3.2 in docs (CVE-2026-4867, CVE-2026-33671) ([#11824](https://github.com/great-expectations/great_expectations/pull/11824))
+* [MAINTENANCE] allow Can I deploy? step to continue on failure ([#11829](https://github.com/great-expectations/great_expectations/pull/11829))
+* [MAINTENANCE] Move pact contract check into dedicated parallel job ([#11822](https://github.com/great-expectations/great_expectations/pull/11822))
+* [MAINTENANCE] Remove deprecated str support for Validator.validate run_id ([#11826](https://github.com/great-expectations/great_expectations/pull/11826))
+* [MAINTENANCE] Silence mypy assignment error after pyarrow 24.0.0 ([#11838](https://github.com/great-expectations/great_expectations/pull/11838))
+* [MAINTENANCE] Remove DeprecatedMetaMetricProvider and ColumnMetricProvider ([#11832](https://github.com/great-expectations/great_expectations/pull/11832))
+* [MAINTENANCE] Add singlestore documentation ([#11837](https://github.com/great-expectations/great_expectations/pull/11837))
+* [MAINTENANCE] Backfill test on custom sql expectations ([#11844](https://github.com/great-expectations/great_expectations/pull/11844))
+* [MAINTENANCE] Remove deprecated Batch args (data_context, datasource_name, batch_parameters, batch_kwargs) ([#11843](https://github.com/great-expectations/great_expectations/pull/11843))
+* [MAINTENANCE] SingleStore quoted identifier support ([#11839](https://github.com/great-expectations/great_expectations/pull/11839))
+* [MAINTENANCE] Init singlestore db when container is created ([#11842](https://github.com/great-expectations/great_expectations/pull/11842))
+* [MAINTENANCE] Extend pact can-i-deploy retry window to 20 minutes ([#11846](https://github.com/great-expectations/great_expectations/pull/11846))
+
 ### 1.16.1
 * [FEATURE] Add Pact contract tests for datasource API coverage gaps ([#11813](https://github.com/great-expectations/great_expectations/pull/11813))
 * [BUGFIX] Fix ExpectColumnValuesToMatchStrftimeFormat failing with timezone-aware formats ([#11812](https://github.com/great-expectations/great_expectations/pull/11812)) (thanks @choinhet)
