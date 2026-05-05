@@ -258,6 +258,7 @@ class TestDynamicPandasAssets:
             {"sep": "|", "decimal": ","},
             {"usecols": [0, 1, 2], "names": ["foo", "bar"]},
             {"dtype": {"col_1": "Int64"}},
+            {"index_col": False},  # regression: bool must not be coerced to str
         ],
     )
     def test_data_asset_reader_options_passthrough(
