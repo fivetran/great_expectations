@@ -1092,6 +1092,8 @@ def docs_snippet_tests(
     help={
         "pty": _PTY_HELP_DESC,
         "reports": "Generate coverage & result reports to be uploaded to codecov",
+        "splits": "Total number of pytest-split shards. Must be paired with --group.",
+        "group": "1-based pytest-split shard index to run. Must satisfy 1 <= group <= splits.",
         "W": "Warnings control",
     },
     iterable=["service_names", "up_services", "verbose"],
@@ -1106,6 +1108,13 @@ def ci_tests(  # noqa: C901 - too complex (9)
     slowest: int = 5,
     timeout: float = 0.0,  # 0 indicates no timeout
     xdist: bool = False,
+    # `invoke` infers each task arg's type from its default; using `int = 0`
+    # (rather than `int | None = None`) keeps the CLI converter as `int`. The
+    # value `0` is treated as the "unset" sentinel — explicit `--splits=0` /
+    # `--group=0` are caught by the `> 0` and `1 <= group <= splits` validators
+    # below, so users get a clear error rather than silently running unsharded.
+    splits: int = 0,
+    group: int = 0,
     W: str | None = None,
     pty: bool = True,
 ):
@@ -1126,7 +1135,23 @@ def ci_tests(  # noqa: C901 - too complex (9)
     pytest_options = [f"--durations={slowest}", "-rEf"]
 
     if xdist:
-        pytest_options.append("-n 4")
+        # `--dist loadfile` keeps every test from the same module on a single
+        # worker. Required because some integration test fixtures (notably the
+        # session-cached BatchTestSetup keyed by TestConfig) depend on test
+        # ordering within a module and break when xdist redistributes them
+        # across workers.
+        pytest_options.extend(["-n 4", "--dist", "loadfile"])
+
+    if splits or group:
+        if not (splits and group):
+            raise invoke.Exit("--splits and --group must be set together.")  # noqa: TRY003
+        if splits <= 0:
+            raise invoke.Exit("--splits must be > 0.")  # noqa: TRY003
+        if not 1 <= group <= splits:
+            raise invoke.Exit(  # noqa: TRY003
+                f"--group must be between 1 and {splits} (inclusive)."
+            )
+        pytest_options.extend([f"--splits={splits}", f"--group={group}"])
 
     if timeout != 0:
         pytest_options.append(f"--timeout={timeout}")

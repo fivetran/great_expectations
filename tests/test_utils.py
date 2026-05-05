@@ -377,6 +377,35 @@ def get_snowflake_private_key() -> Optional[str]:
     return os.environ.get("SNOWFLAKE_PRIVATE_KEY")
 
 
+def _engine_kwargs_for(connection_string: str) -> dict:
+    """Per-dialect extras to forward to ``sa.create_engine`` based on the URL.
+
+    Currently only Snowflake needs special handling (key-pair auth via connect_args).
+    """
+    if connection_string.startswith("snowflake://"):
+        return get_snowflake_connection_kwargs()
+    return {}
+
+
+def get_snowflake_connection_kwargs() -> dict:
+    """Extra kwargs for ``sa.create_engine`` (or any equivalent) when connecting to Snowflake.
+
+    When ``SNOWFLAKE_PRIVATE_KEY`` is set, the returned dict carries the private key in
+    ``connect_args`` so the Snowflake connector can authenticate via key-pair auth — the
+    URL produced by :func:`get_snowflake_connection_url` omits the password in that case,
+    so the private key has to be supplied separately. Otherwise an empty dict is returned.
+
+    Intended usage::
+
+        kwargs = get_snowflake_connection_kwargs()
+        engine = sa.create_engine(connection_string, **kwargs)
+    """
+    sf_private_key = os.environ.get("SNOWFLAKE_PRIVATE_KEY")
+    if sf_private_key:
+        return {"connect_args": {"private_key": sf_private_key}}
+    return {}
+
+
 def get_redshift_connection_url() -> str:
     """Get Amazon Redshift connection url from environment variables.
 
@@ -540,7 +569,7 @@ def load_data_into_test_database(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     )
     connection = None
     if sa:
-        engine = sa.create_engine(connection_string)
+        engine = sa.create_engine(connection_string, **_engine_kwargs_for(connection_string))
     else:
         logger.debug(
             "Attempting to load data in to tests SqlAlchemy database, but unable to load SqlAlchemy context; "  # noqa: E501 # FIXME CoP
@@ -698,7 +727,7 @@ def clean_up_tables_with_prefix(connection_string: str, table_prefix: str) -> Li
         List of deleted tables.
     """
     execution_engine: SqlAlchemyExecutionEngine = SqlAlchemyExecutionEngine(
-        connection_string=connection_string
+        connection_string=connection_string, **_engine_kwargs_for(connection_string)
     )
     introspection_output = introspect_db(execution_engine=execution_engine)
 
@@ -991,6 +1020,22 @@ def add_datasource(
 
     dialect: str = db_config["dialect"]
     if dialect == "snowflake":
+        # When SNOWFLAKE_PRIVATE_KEY is set, the connection string emitted by
+        # get_snowflake_connection_url() omits the password, so the connection_string
+        # overload of add_snowflake() can't authenticate on its own. Switch to the
+        # explicit-fields overload so the private key is wired into connect_args.
+        sf_private_key = os.environ.get("SNOWFLAKE_PRIVATE_KEY")
+        if sf_private_key:
+            return context.data_sources.add_snowflake(
+                name=name,
+                account=os.environ["SNOWFLAKE_ACCOUNT"],
+                user=os.environ["SNOWFLAKE_USER"],
+                private_key=sf_private_key,
+                database=os.environ["SNOWFLAKE_DATABASE"],
+                schema=os.environ["SNOWFLAKE_SCHEMA"],
+                warehouse=os.environ["SNOWFLAKE_WAREHOUSE"],
+                role=os.environ.get("SNOWFLAKE_ROLE") or "PUBLIC",
+            )
         return context.data_sources.add_snowflake(name=name, connection_string=connection_string)
     elif dialect == "postgres":
         return context.data_sources.add_postgres(name=name, connection_string=connection_string)
