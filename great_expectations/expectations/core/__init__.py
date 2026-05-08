@@ -58,6 +58,9 @@ from .expect_column_values_to_be_json_parseable import (
 from .expect_column_values_to_be_null import ExpectColumnValuesToBeNull
 from .expect_column_values_to_be_of_type import ExpectColumnValuesToBeOfType
 from .expect_column_values_to_be_unique import ExpectColumnValuesToBeUnique
+from .expect_column_values_to_be_valid_chinese_id_card import (
+    ExpectColumnValuesToBeValidChineseIdCard,
+)
 from .expect_column_values_to_match_json_schema import (
     ExpectColumnValuesToMatchJsonSchema,
 )

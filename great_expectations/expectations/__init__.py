@@ -32,6 +32,7 @@ from .core import (
     ExpectColumnValuesToBeNull,
     ExpectColumnValuesToBeOfType,
     ExpectColumnValuesToBeUnique,
+    ExpectColumnValuesToBeValidChineseIdCard,
     ExpectColumnValuesToMatchJsonSchema,
     ExpectColumnValuesToMatchLikePattern,
     ExpectColumnValuesToMatchLikePatternList,
@@ -59,3 +60,5 @@ from .core import (
     ExpectTableRowCountToEqualOtherTable,
     UnexpectedRowsExpectation,
 )
+
+
