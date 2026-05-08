@@ -4,12 +4,7 @@ from great_expectations.render.util import num_to_str, substitute_none_for_missi
 
 
 class ExpectColumnValuesToBeValidChineseIdCard(ColumnMapExpectation):
-    """
-    验证列中的值为有效的中国居民身份证号
-    - 支持15位（旧版）和18位（新版）身份证
-    - 18位身份证会自动验证校验位
-    - 简单验证出生日期格式
-    """
+    """验证中国身份证号(15位/18位)"""
 
     examples = [
         {
@@ -37,7 +32,6 @@ class ExpectColumnValuesToBeValidChineseIdCard(ColumnMapExpectation):
     map_metric = "column_values.valid_chinese_id_card"
     success_keys = ("mostly",)
 
-    @classmethod
     def _prescriptive_renderer(
         cls,
         configuration=None,
@@ -52,8 +46,10 @@ class ExpectColumnValuesToBeValidChineseIdCard(ColumnMapExpectation):
         )
 
         if params["mostly"] is not None and params["mostly"] < 1.0:
-            params["mostly_pct"] = num_to_str(params["mostly"] * 100, precision=4, no_scientific=True)
-            template_str = "值必须为有效的中国身份证号，至少 $mostly_pct % 的时间满足。"
+            params["mostly_pct"] = num_to_str(
+                params["mostly"] * 100, precision=4, no_scientific=True
+            )
+            template_str = "值必须为有效的中国身份证号,至少 $mostly_pct % 的时间满足。"
         else:
             template_str = "值必须为有效的中国身份证号。"
 
