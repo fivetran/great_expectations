@@ -4,7 +4,7 @@ from great_expectations.expectations.expectation import ColumnMapExpectation
 
 
 class ExpectColumnValuesToBeValidChineseIdCard(ColumnMapExpectation):
-    """验证中国身份证号（15位/18位）"""
+    """验证中国身份证号(15位/18位)"""
 
     map_metric = "column_values.valid_chinese_id_card"
     success_keys = ("mostly",)
