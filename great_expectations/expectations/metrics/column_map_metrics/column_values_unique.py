@@ -51,9 +51,11 @@ def _named_source_subquery(selectable, table_columns: List[str]):
     collection is populated and can be used to unambiguously reference
     source-side columns inside a join with the dup-keys subquery.
     """
-    base = selectable if isinstance(selectable, sa.Select) else sa.select(
-        *[sa.column(c) for c in table_columns]
-    ).select_from(selectable)
+    base = (
+        selectable
+        if isinstance(selectable, sa.Select)
+        else sa.select(*[sa.column(c) for c in table_columns]).select_from(selectable)
+    )
     return base.subquery("column_values_unique_source")
 
 
