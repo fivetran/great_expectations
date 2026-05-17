@@ -57,10 +57,10 @@ class TestNumericExpectationAgainstStrDataMisconfiguration:
     def test_pandas(self, batch_for_datasource) -> None:
         result = batch_for_datasource.validate(self._EXPECTATION)
         assert not result.success
-        exception_str = str(result.exception_info)
+        exception_msg = result.exception_info.get("exception_message", "")
         assert (
-            "could not convert string to float" in exception_str  # pandas <3.0
-            or "Cannot perform reduction 'std' with string dtype" in exception_str  # pandas 3.x
+            "could not convert string to float" in exception_msg  # pandas <3.0
+            or "Cannot perform reduction 'std' with string dtype" in exception_msg  # pandas 3.x
         )
 
     @parameterize_batch_for_data_sources(
@@ -106,7 +106,7 @@ class TestNumericExpectationAgainstStrDataMisconfiguration:
     def _assert_misconfiguration(self, batch_for_datasource: Batch, exception_message: str) -> None:
         result = batch_for_datasource.validate(self._EXPECTATION)
         assert not result.success
-        assert exception_message in str(result.exception_info)
+        assert exception_message in result.exception_info.get("exception_message", "")
 
 
 class TestNonExistentColumnMisconfiguration:
@@ -136,7 +136,7 @@ class TestNonExistentColumnMisconfiguration:
     def _assert_misconfiguration(self, batch_for_datasource: Batch, exception_message: str) -> None:
         result = batch_for_datasource.validate(self._EXPECTATION)
         assert not result.success
-        assert exception_message in str(result.exception_info)
+        assert exception_message in result.exception_info.get("exception_message", "")
 
 
 @parameterize_batch_for_data_sources(
@@ -152,7 +152,7 @@ def test_datetime_expectation_against_numeric_data_misconfiguration(batch_for_da
     )
     result = batch_for_datasource.validate(expectation)
     assert not result.success
-    assert "into datetime representation" in str(result.exception_info)
+    assert "into datetime representation" in result.exception_info.get("exception_message", "")
 
 
 @parameterize_batch_for_data_sources(
@@ -163,4 +163,4 @@ def test_column_min_max_mismatch_misconfiguration(batch_for_datasource) -> None:
     expectation = gxe.ExpectColumnValuesToBeBetween(column="a", min_value=2, max_value=1)
     result = batch_for_datasource.validate(expectation)
     assert not result.success
-    assert "min_value cannot be greater than max_value" in str(result.exception_info)
+    assert "min_value cannot be greater than max_value" in result.exception_info.get("exception_message", "")
