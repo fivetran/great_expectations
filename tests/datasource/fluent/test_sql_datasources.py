@@ -473,5 +473,80 @@ class TestTableAsset:
             assert serialized["table_name"] == serialized_name
 
 
+@pytest.mark.unit
+class TestTableAssetTestConnection:
+    """Tests for TableAsset.test_connection schema-listing behaviour (issue #10499)."""
+
+    def _make_table_asset(self, schema_name: str) -> TableAsset:
+        """Return a TableAsset with a fixed datasource whose schema_ matches schema_name."""
+        ds = SQLDatasource(
+            name="my_datasource",
+            connection_string="sqlite:///",
+        )
+        asset = ds.add_table_asset(name="my_asset", table_name="my_table")
+        # Override schema_name directly on the asset so _effective_schema_name returns it.
+        object.__setattr__(asset, "schema_name", schema_name)
+        return asset
+
+    def test_schema_absent_from_get_schema_names_does_not_raise(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """When inspector.get_schema_names() omits the schema (e.g. because the
+        connected SQL Server user lacks VIEW DEFINITION on that schema), test_connection
+        should NOT raise.  It should log a warning and let the table-level query decide
+        whether the asset is reachable (issue #10499)."""
+        asset = self._make_table_asset("my_schema")
+
+        mock_engine = mock.MagicMock()
+        mock_inspector = mock.MagicMock()
+        # get_schema_names() returns only system schemas — omits "my_schema".
+        mock_inspector.get_schema_names.return_value = ["dbo", "guest", "information_schema"]
+        mock_conn = mock.MagicMock()
+        mock_engine.connect.return_value.__enter__ = mock.MagicMock(return_value=mock_conn)
+        mock_engine.connect.return_value.__exit__ = mock.MagicMock(return_value=False)
+
+        with (
+            mock.patch(
+                "great_expectations.datasource.fluent.sql_datasource.TableAsset.datasource",
+                new_callable=mock.PropertyMock,
+                return_value=mock.MagicMock(get_engine=mock.MagicMock(return_value=mock_engine)),
+            ),
+            mock.patch("great_expectations.datasource.fluent.sql_datasource.sa.inspect", return_value=mock_inspector),
+        ):
+            # Should not raise even though "my_schema" is not in schema_names.
+            asset.test_connection()
+
+    def test_schema_absent_and_table_inaccessible_raises(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """When the schema is absent from get_schema_names() AND the table query also
+        fails, test_connection must still surface a TestConnectionError so the caller
+        knows the asset is not reachable."""
+        from great_expectations.datasource.fluent.interfaces import TestConnectionError
+
+        asset = self._make_table_asset("nonexistent_schema")
+
+        mock_engine = mock.MagicMock()
+        mock_inspector = mock.MagicMock()
+        mock_inspector.get_schema_names.return_value = ["dbo"]
+        mock_conn = mock.MagicMock()
+        mock_conn.execute.side_effect = Exception("schema or table not found")
+        mock_engine.connect.return_value.__enter__ = mock.MagicMock(return_value=mock_conn)
+        mock_engine.connect.return_value.__exit__ = mock.MagicMock(return_value=False)
+
+        with (
+            mock.patch(
+                "great_expectations.datasource.fluent.sql_datasource.TableAsset.datasource",
+                new_callable=mock.PropertyMock,
+                return_value=mock.MagicMock(get_engine=mock.MagicMock(return_value=mock_engine)),
+            ),
+            mock.patch("great_expectations.datasource.fluent.sql_datasource.sa.inspect", return_value=mock_inspector),
+        ):
+            with pytest.raises(TestConnectionError):
+                asset.test_connection()
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-vv"])

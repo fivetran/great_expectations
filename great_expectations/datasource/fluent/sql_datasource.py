@@ -1171,9 +1171,17 @@ class TableAsset(_SQLAsset):
 
         effective_schema = self._effective_schema_name
         if effective_schema and effective_schema not in schema_names:
-            raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
-                f'Attempt to connect to table: "{self.qualified_name}" failed because the schema '
-                f'"{effective_schema}" does not exist.'
+            # Some backends (e.g. SQL Server / MSSQL) only list schemas the connected
+            # user has VIEW DEFINITION on via get_schema_names().  A user with only
+            # SELECT permission on a table can still access the schema, so a missing
+            # entry here does not reliably indicate the schema is absent.  Log a warning
+            # and fall through to the table-level access check, which will surface a
+            # clear error if the schema or table genuinely does not exist (issue #10499).
+            LOGGER.warning(
+                f'Schema "{effective_schema}" was not found in the list returned by '
+                "inspector.get_schema_names(). This can occur when the connected user "
+                "lacks VIEW DEFINITION permission on the schema (e.g. SQL Server). "
+                "Proceeding to validate table accessibility directly."
             )
 
         try:
