@@ -56,6 +56,8 @@ diagnose and repair the underlying issue.  Detailed information follows:
         runtime_configuration = {
             "styling": cls._get_element_styling(),
             "include_column_name": kwargs.pop("include_column_name", None),
+            "locale": kwargs.pop("locale", None),
+            "translations": kwargs.pop("translations", None),
         }
 
         # The specific way we render the render_object is contingent on the type of the object
@@ -207,6 +209,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
                 content_block,
                 has_failed_evr=has_failed_evr,
                 render_object=render_object,
+                runtime_configuration=runtime_configuration,
             )
 
             return content_block
@@ -379,7 +382,13 @@ diagnose and repair the underlying issue.  Detailed information follows:
             )
 
     @classmethod
-    def _process_content_block(cls, content_block, has_failed_evr, render_object=None) -> None:
+    def _process_content_block(
+        cls,
+        content_block,
+        has_failed_evr,
+        render_object=None,
+        runtime_configuration=None,
+    ) -> None:
         header = cls._get_header()
         if header != "":
             content_block.header = header

@@ -5,6 +5,7 @@ import pytest
 from great_expectations.core.expectation_validation_result import (
     ExpectationValidationResult,
 )
+from great_expectations.expectations.core.expect_column_to_exist import ExpectColumnToExist
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
@@ -131,6 +132,62 @@ def evr_id_pk_basic_pandas() -> ExpectationValidationResult:
             "unexpected_percent_total": 50.0,
         },
     )
+
+
+@pytest.mark.unit
+def test_validation_results_table_headers_can_be_localized():
+    evr = ExpectationValidationResult(
+        success=True,
+        expectation_config=ExpectationConfiguration(
+            type="expect_column_to_exist",
+            kwargs={"column": "animals"},
+        ),
+        exception_info={
+            "exception_message": None,
+            "exception_traceback": None,
+            "raised_exception": False,
+        },
+        result={},
+    )
+
+    rendered = ValidationResultsTableContentBlockRenderer.render(
+        [evr],
+        locale="nl-NL",
+        translations={
+            "nl": {
+                "renderer.validation_results_table.status": "Status NL",
+                "renderer.validation_results_table.expectation": "Verwachting",
+                "renderer.validation_results_table.observed_value": "Waargenomen waarde",
+            }
+        },
+    )
+
+    assert rendered.header_row == ["Status NL", "Verwachting", "Waargenomen waarde"]
+
+
+@pytest.mark.unit
+def test_legacy_prescriptive_renderer_uses_localized_templates():
+    expectation_configuration = ExpectationConfiguration(
+        type="expect_column_to_exist",
+        kwargs={"column": "animals", "column_index": 1},
+    )
+
+    rendered = ExpectColumnToExist._prescriptive_renderer(
+        configuration=expectation_configuration,
+        runtime_configuration={
+            "locale": "nl-NL",
+            "translations": {
+                "nl": {
+                    "renderer.expect_column_to_exist.indexed_field": (
+                        "moet op positie $column_index staan."
+                    ),
+                    "renderer.common.column_prefix": "kolom $column: {template}",
+                }
+            },
+        },
+    )
+
+    assert rendered[0].string_template["template"] == "kolom $column: moet op positie $column_index staan."
 
 
 def test_ValidationResultsTableContentBlockRenderer_generate_expectation_row_with_errored_expectation(  # noqa: E501 # FIXME CoP

@@ -105,6 +105,7 @@ from great_expectations.render import (
     renderedAtomicValueSchema,
 )
 from great_expectations.render.exceptions import RendererConfigurationError
+from great_expectations.render.i18n import translate
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
     RendererConfiguration,
@@ -156,8 +157,16 @@ def render_suite_parameter_string(render_func: Callable[P, T]) -> Callable[P, T]
     def inner_func(*args: P.args, **kwargs: P.kwargs) -> T:  # noqa: C901 #  too complex
         rendered_string_template = render_func(*args, **kwargs)
         current_expectation_params: list = []
-        app_template_str = "\n - $eval_param = $eval_param_value (at time of validation)."
         configuration: dict | None = kwargs.get("configuration")  # type: ignore[assignment] # could be object?
+        runtime_configuration: Optional[dict] = kwargs.get("runtime_configuration")  # type: ignore[assignment] # could be object?
+        app_template_str = translate(
+            "renderer.expectation.suite_parameter",
+            "\n - $eval_param = $eval_param_value (at time of validation).",
+            locale=runtime_configuration.get("locale") if runtime_configuration else None,
+            translations=runtime_configuration.get("translations")
+            if runtime_configuration
+            else None,
+        )
         if configuration:
             kwargs_dict: dict = configuration.get("kwargs", {})
             for value in kwargs_dict.values():
@@ -177,7 +186,6 @@ def render_suite_parameter_string(render_func: Callable[P, T]) -> Callable[P, T]
         if current_expectation_params and is_list_of_rendered_string_template_content(
             rendered_string_template
         ):
-            runtime_configuration: Optional[dict] = kwargs.get("runtime_configuration")  # type: ignore[assignment] # could be object?
             if runtime_configuration:
                 eval_params = runtime_configuration.get("suite_parameters", {})
                 styling = runtime_configuration.get("styling")
@@ -593,15 +601,58 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
                 continue
             register_renderer(object_name=expectation_type, parent_class=cls, renderer_fn=attr_obj)
 
-    def render(self) -> None:
+    def render(self, runtime_configuration: Optional[dict] = None) -> None:
         """
         Renders content using the atomic prescriptive renderer for each expectation configuration associated with
            this ExpectationSuite to ExpectationConfiguration.rendered_content.
         """  # noqa: E501 # FIXME CoP
         from great_expectations.render.renderer.inline_renderer import InlineRenderer
 
-        inline_renderer = InlineRenderer(render_object=self.configuration)
+        inline_renderer = InlineRenderer(
+            render_object=self.configuration,
+            runtime_configuration=runtime_configuration,
+        )
         self.rendered_content = inline_renderer.get_rendered_content()
+
+    @classmethod
+    def _get_localized_renderer_template(
+        cls,
+        *,
+        key: str,
+        default_template: str,
+        renderer_configuration: Optional[RendererConfiguration] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> str:
+        if renderer_configuration is not None:
+            locale = renderer_configuration.locale
+            translations = renderer_configuration.translations
+        else:
+            runtime_configuration = runtime_configuration or {}
+            locale = runtime_configuration.get("locale")
+            translations = runtime_configuration.get("translations")
+
+        return translate(
+            key,
+            default_template,
+            locale=locale,
+            translations=translations,
+        )
+
+    @classmethod
+    def _prefix_column_template(
+        cls,
+        template: str,
+        *,
+        renderer_configuration: Optional[RendererConfiguration] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> str:
+        column_prefix_template = cls._get_localized_renderer_template(
+            key="renderer.common.column_prefix",
+            default_template="$column {template}",
+            renderer_configuration=renderer_configuration,
+            runtime_configuration=runtime_configuration,
+        )
+        return column_prefix_template.format(template=template)
 
     @abstractmethod
     def _validate(
@@ -629,7 +680,11 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
             runtime_configuration=runtime_configuration,
         )
 
-        template_str = "Rendering failed for Expectation: "
+        template_str = cls._get_localized_renderer_template(
+            key="renderer.expectation.render_failed",
+            default_template="Rendering failed for Expectation: ",
+            renderer_configuration=renderer_configuration,
+        )
 
         if renderer_configuration.expectation_type and renderer_configuration.kwargs:
             template_str += "$expectation_type(**$kwargs)."
@@ -1178,7 +1233,11 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
             runtime_configuration=runtime_configuration,
         )
 
-        template_str = "Rendering failed for Expectation: "
+        template_str = cls._get_localized_renderer_template(
+            key="renderer.expectation.render_failed",
+            default_template="Rendering failed for Expectation: ",
+            renderer_configuration=renderer_configuration,
+        )
 
         if renderer_configuration.expectation_type and renderer_configuration.kwargs:
             template_str += "$expectation_type(**$kwargs)."

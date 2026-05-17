@@ -115,6 +115,64 @@ class SetBasedColumnMapExpectation(ColumnMapExpectation, ABC):
         - https://docs.greatexpectations.io/docs/guides/expectations/creating_custom_expectations/how_to_create_custom_set_based_column_map_expectations
     """  # noqa: E501 # FIXME CoP
 
+    @classmethod
+    def _get_prescriptive_template_str(
+        cls,
+        *,
+        has_set: bool,
+        has_semantic_name: bool,
+        include_column_name: bool,
+        has_mostly: bool,
+        renderer_configuration: Optional[RendererConfiguration] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> str:
+        if not has_set:
+            template_str = cls._get_localized_renderer_template(
+                key="renderer.set_based_column_map.no_set",
+                default_template="values must match a set but none was specified.",
+                renderer_configuration=renderer_configuration,
+                runtime_configuration=runtime_configuration,
+            )
+        else:
+            if has_semantic_name:
+                template_str = cls._get_localized_renderer_template(
+                    key="renderer.set_based_column_map.semantic_set",
+                    default_template="values must match the set $set_semantic_name: $set_",
+                    renderer_configuration=renderer_configuration,
+                    runtime_configuration=runtime_configuration,
+                )
+            else:
+                template_str = cls._get_localized_renderer_template(
+                    key="renderer.set_based_column_map.generic_set",
+                    default_template="values must match this set: $set_",
+                    renderer_configuration=renderer_configuration,
+                    runtime_configuration=runtime_configuration,
+                )
+
+            if has_mostly:
+                template_str += cls._get_localized_renderer_template(
+                    key="renderer.set_based_column_map.mostly_suffix",
+                    default_template=", at least $mostly_pct % of the time.",
+                    renderer_configuration=renderer_configuration,
+                    runtime_configuration=runtime_configuration,
+                )
+            else:
+                template_str += cls._get_localized_renderer_template(
+                    key="renderer.common.period",
+                    default_template=".",
+                    renderer_configuration=renderer_configuration,
+                    runtime_configuration=runtime_configuration,
+                )
+
+        if include_column_name:
+            template_str = cls._prefix_column_template(
+                template_str,
+                renderer_configuration=renderer_configuration,
+                runtime_configuration=runtime_configuration,
+            )
+
+        return template_str
+
     @staticmethod
     def register_metric(
         set_camel_name: str,
@@ -237,24 +295,19 @@ class SetBasedColumnMapExpectation(ColumnMapExpectation, ABC):
 
         params = renderer_configuration.params
 
-        if not params.set_:
-            template_str = "values must match a set but none was specified."
-        else:
-            if params.set_semantic_name:
-                template_str = "values must match the set $set_semantic_name: $set_"
-            else:
-                template_str = "values must match this set: $set_"
+        has_mostly = bool(params.mostly and params.mostly.value < 1.0)
+        if has_mostly:
+            renderer_configuration = cls._add_mostly_pct_param(
+                renderer_configuration=renderer_configuration
+            )
 
-            if params.mostly and params.mostly.value < 1.0:
-                renderer_configuration = cls._add_mostly_pct_param(
-                    renderer_configuration=renderer_configuration
-                )
-                template_str += ", at least $mostly_pct % of the time."
-            else:
-                template_str += "."
-
-        if renderer_configuration.include_column_name:
-            template_str = "$column " + template_str
+        template_str = cls._get_prescriptive_template_str(
+            has_set=bool(params.set_),
+            has_semantic_name=bool(params.set_semantic_name),
+            include_column_name=renderer_configuration.include_column_name,
+            has_mostly=has_mostly,
+            renderer_configuration=renderer_configuration,
+        )
 
         renderer_configuration.template_str = template_str
 
@@ -285,21 +338,17 @@ class SetBasedColumnMapExpectation(ColumnMapExpectation, ABC):
             ],
         )
 
-        if not params.get("set_"):
-            template_str = "values must match a set but none was specified."
-        else:
-            if params.get("set_semantic_name"):
-                template_str = "values must match the set $set_semantic_name: $set_"
-            else:
-                template_str = "values must match this set: $set_"
-            if params["mostly"] is not None:
-                params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-                template_str += ", at least $mostly_pct % of the time."
-            else:
-                template_str += "."
+        has_mostly = params["mostly"] is not None
+        if has_mostly:
+            params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
 
-        if include_column_name:
-            template_str = "$column " + template_str
+        template_str = cls._get_prescriptive_template_str(
+            has_set=bool(params.get("set_")),
+            has_semantic_name=bool(params.get("set_semantic_name")),
+            include_column_name=include_column_name,
+            has_mostly=has_mostly,
+            runtime_configuration=runtime_configuration,
+        )
 
         if params["row_condition"] is not None:
             conditional_template_str = parse_row_condition_string(params["row_condition"])

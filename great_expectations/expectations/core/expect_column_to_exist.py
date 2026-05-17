@@ -222,20 +222,28 @@ class ExpectColumnToExist(BatchExpectation):
         params = renderer_configuration.params
 
         if not params.column_index:
-            if renderer_configuration.include_column_name:
-                template_str = "$column is a required field."
-            else:
-                template_str = "is a required field."
+            template_str = cls._get_localized_renderer_template(
+                key="renderer.expect_column_to_exist.required_field",
+                default_template="is a required field.",
+                renderer_configuration=renderer_configuration,
+            )
         else:
             renderer_configuration.add_param(
                 name="column_indexth",
                 param_type=RendererValueType.STRING,
                 value=ordinal(params.column_index.value),
             )
-            if renderer_configuration.include_column_name:
-                template_str = "$column must be the $column_indexth field."
-            else:
-                template_str = "must be the $column_indexth field."
+            template_str = cls._get_localized_renderer_template(
+                key="renderer.expect_column_to_exist.indexed_field",
+                default_template="must be the $column_indexth field.",
+                renderer_configuration=renderer_configuration,
+            )
+
+        if renderer_configuration.include_column_name:
+            template_str = cls._prefix_column_template(
+                template_str,
+                renderer_configuration=renderer_configuration,
+            )
 
         renderer_configuration.template_str = template_str
 
@@ -261,16 +269,24 @@ class ExpectColumnToExist(BatchExpectation):
         )
 
         if params["column_index"] is None:
-            if include_column_name:
-                template_str = "$column is a required field."
-            else:
-                template_str = "is a required field."
+            template_str = cls._get_localized_renderer_template(
+                key="renderer.expect_column_to_exist.required_field",
+                default_template="is a required field.",
+                runtime_configuration=runtime_configuration,
+            )
         else:
             params["column_indexth"] = ordinal(params["column_index"])
-            if include_column_name:
-                template_str = "$column must be the $column_indexth field."
-            else:
-                template_str = "must be the $column_indexth field."
+            template_str = cls._get_localized_renderer_template(
+                key="renderer.expect_column_to_exist.indexed_field",
+                default_template="must be the $column_indexth field.",
+                runtime_configuration=runtime_configuration,
+            )
+
+        if include_column_name:
+            template_str = cls._prefix_column_template(
+                template_str,
+                runtime_configuration=runtime_configuration,
+            )
 
         return [
             RenderedStringTemplateContent(

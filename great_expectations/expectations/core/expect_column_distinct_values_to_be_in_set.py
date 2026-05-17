@@ -226,6 +226,40 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
     }
     _library_metadata = library_metadata
 
+    @classmethod
+    def _get_prescriptive_template_str(
+        cls,
+        *,
+        include_column_name: bool,
+        has_value_set: bool,
+        value_set_placeholder: str,
+        renderer_configuration: Optional[RendererConfiguration] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> str:
+        if not has_value_set:
+            template_str = cls._get_localized_renderer_template(
+                key="renderer.expect_column_distinct_values_to_be_in_set.no_value_set",
+                default_template="distinct values must belong to a set, but that set is not specified.",
+                renderer_configuration=renderer_configuration,
+                runtime_configuration=runtime_configuration,
+            )
+        else:
+            template_str = cls._get_localized_renderer_template(
+                key="renderer.expect_column_distinct_values_to_be_in_set.value_set",
+                default_template=f"distinct values must belong to this set: {value_set_placeholder}.",
+                renderer_configuration=renderer_configuration,
+                runtime_configuration=runtime_configuration,
+            )
+
+        if include_column_name:
+            template_str = cls._prefix_column_template(
+                template_str,
+                renderer_configuration=renderer_configuration,
+                runtime_configuration=runtime_configuration,
+            )
+
+        return template_str
+
     # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
     metric_dependencies = (
         "column.distinct_values.not_in_set.count",
@@ -292,12 +326,12 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         params = renderer_configuration.params
 
         if not params.value_set or len(params.value_set.value) == 0:
-            if renderer_configuration.include_column_name:
-                template_str = "$column distinct values must belong to this set: [ ]"
-            else:
-                template_str = (
-                    "distinct values must belong to a set, but that set is not specified."
-                )
+            template_str = cls._get_prescriptive_template_str(
+                include_column_name=renderer_configuration.include_column_name,
+                has_value_set=False,
+                value_set_placeholder="[ ]",
+                renderer_configuration=renderer_configuration,
+            )
         else:
             array_param_name = "value_set"
             param_prefix = "v__"
@@ -312,10 +346,12 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
                 renderer_configuration=renderer_configuration,
             )
 
-            if renderer_configuration.include_column_name:
-                template_str = f"$column distinct values must belong to this set: {value_set_str}."
-            else:
-                template_str = f"distinct values must belong to this set: {value_set_str}."
+            template_str = cls._get_prescriptive_template_str(
+                include_column_name=renderer_configuration.include_column_name,
+                has_value_set=True,
+                value_set_placeholder=value_set_str,
+                renderer_configuration=renderer_configuration,
+            )
 
         renderer_configuration.template_str = template_str
 
@@ -341,22 +377,23 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         )
 
         if params["value_set"] is None or len(params["value_set"]) == 0:
-            if renderer_configuration.include_column_name:
-                template_str = "$column distinct values must belong to this set: [ ]"
-            else:
-                template_str = (
-                    "distinct values must belong to a set, but that set is not specified."
-                )
-
+            template_str = cls._get_prescriptive_template_str(
+                include_column_name=renderer_configuration.include_column_name,
+                has_value_set=False,
+                value_set_placeholder="[ ]",
+                runtime_configuration=runtime_configuration,
+            )
         else:
             for i, v in enumerate(params["value_set"]):
                 params[f"v__{i!s}"] = v
             values_string = " ".join([f"$v__{i!s}" for i, v in enumerate(params["value_set"])])
 
-            if renderer_configuration.include_column_name:
-                template_str = f"$column distinct values must belong to this set: {values_string}."
-            else:
-                template_str = f"distinct values must belong to this set: {values_string}."
+            template_str = cls._get_prescriptive_template_str(
+                include_column_name=renderer_configuration.include_column_name,
+                has_value_set=True,
+                value_set_placeholder=values_string,
+                runtime_configuration=runtime_configuration,
+            )
 
         styling = runtime_configuration.get("styling", {}) if runtime_configuration else {}
 

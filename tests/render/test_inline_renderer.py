@@ -46,6 +46,35 @@ def test_inline_renderer_instantiation_error_message(
     )
 
 
+@pytest.mark.unit
+def test_inline_renderer_passes_runtime_localization_to_atomic_renderers():
+    expectation_configuration = ExpectationConfiguration(
+        type="expect_column_distinct_values_to_be_in_set",
+        kwargs={"column": "event_type", "value_set": [19, 22, 73]},
+    )
+
+    rendered_content = InlineRenderer(
+        render_object=expectation_configuration,
+        runtime_configuration={
+            "locale": "nl-NL",
+            "translations": {
+                "nl": {
+                    "renderer.expect_column_distinct_values_to_be_in_set.value_set": (
+                        "onderscheidende waarden moeten in deze set zitten: $v__0 $v__1 $v__2."
+                    )
+                }
+            },
+        },
+    ).get_rendered_content()
+
+    summary_content = rendered_content[0].to_json_dict()
+    assert summary_content["name"] == AtomicPrescriptiveRendererType.SUMMARY
+    assert (
+        summary_content["value"]["template"]
+        == "$column onderscheidende waarden moeten in deze set zitten: $v__0 $v__1 $v__2."
+    )
+
+
 @pytest.mark.parametrize(
     "expectation_configuration,fake_result,expected_serialized_expectation_validation_result_rendered_atomic_content",
     [

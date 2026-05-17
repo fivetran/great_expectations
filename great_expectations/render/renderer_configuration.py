@@ -246,6 +246,8 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
     configuration: Optional[ExpectationConfiguration] = Field(None, allow_mutation=False)
     result: Optional[ExpectationValidationResult] = Field(None, allow_mutation=False)
     runtime_configuration: Optional[dict] = Field({}, allow_mutation=False)
+    locale: str = Field("en", allow_mutation=False)
+    translations: Dict[str, Dict[str, str]] = Field(default_factory=dict, allow_mutation=False)
     expectation_type: str = Field("", allow_mutation=False)
     kwargs: dict = Field({}, allow_mutation=False)
     meta_notes: MetaNotes = Field(
@@ -412,6 +414,13 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
             values["include_column_name"] = (
                 values["runtime_configuration"].get("include_column_name") is not False
             )
+        return values
+
+    @root_validator()
+    def _validate_for_localization(cls, values: dict) -> dict:
+        runtime_configuration = values.get("runtime_configuration") or {}
+        values["locale"] = runtime_configuration.get("locale") or "en"
+        values["translations"] = runtime_configuration.get("translations") or {}
         return values
 
     @staticmethod

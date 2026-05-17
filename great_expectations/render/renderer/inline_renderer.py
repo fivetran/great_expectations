@@ -34,17 +34,20 @@ logger = logging.getLogger(__name__)
 class InlineRendererConfig(TypedDict):
     class_name: str
     render_object: Union[ExpectationConfiguration, ExpectationValidationResult]
+    runtime_configuration: dict
 
 
 class InlineRenderer(Renderer):
     def __init__(
         self,
         render_object: Union[ExpectationConfiguration, ExpectationValidationResult],
+        runtime_configuration: Optional[dict] = None,
     ) -> None:
         super().__init__()
 
         if isinstance(render_object, (ExpectationConfiguration, ExpectationValidationResult)):
             self._render_object = render_object
+            self._runtime_configuration = runtime_configuration or {}
         else:
             raise InlineRendererError(  # noqa: TRY003 # FIXME CoP
                 f"InlineRenderer can only be used with an ExpectationConfiguration or ExpectationValidationResult, but {type(render_object)} was used."  # noqa: E501 # FIXME CoP
@@ -127,6 +130,7 @@ class InlineRenderer(Renderer):
                 render_object=render_object,
                 renderer_name=renderer_name,
                 expectation_type=expectation_type,
+                runtime_configuration=self._runtime_configuration,
             )
             if isinstance(renderer_rendered_content, list):
                 rendered_content.extend(renderer_rendered_content)
@@ -140,6 +144,7 @@ class InlineRenderer(Renderer):
         render_object: ExpectationConfiguration | ExpectationValidationResult,
         renderer_name: str | AtomicDiagnosticRendererType | AtomicPrescriptiveRendererType,
         expectation_type: str,
+        runtime_configuration: Optional[dict] = None,
     ) -> RenderedAtomicContent | list[RenderedAtomicContent]:
         renderer_impl: Optional[RendererImpl]
         try:
@@ -150,6 +155,7 @@ class InlineRenderer(Renderer):
                 renderer_rendered_content = InlineRenderer._get_rendered_content_from_renderer_impl(
                     renderer_impl=renderer_impl,
                     render_object=render_object,
+                    runtime_configuration=runtime_configuration,
                 )
             else:
                 raise InlineRendererError(  # noqa: TRY003, TRY301 # FIXME CoP
@@ -185,6 +191,7 @@ class InlineRenderer(Renderer):
                 renderer_rendered_content = InlineRenderer._get_rendered_content_from_renderer_impl(
                     renderer_impl=renderer_impl,
                     render_object=render_object,
+                    runtime_configuration=runtime_configuration,
                 )
                 if isinstance(renderer_rendered_content, list):
                     for failure_rendered_content in renderer_rendered_content:
@@ -202,14 +209,21 @@ class InlineRenderer(Renderer):
     def _get_rendered_content_from_renderer_impl(
         renderer_impl: RendererImpl,
         render_object: ExpectationConfiguration | ExpectationValidationResult,
+        runtime_configuration: Optional[dict] = None,
     ) -> RenderedAtomicContent | list[RenderedAtomicContent]:
         renderer_fn: Callable[
             ..., RenderedAtomicContent | list[RenderedAtomicContent] | RenderedContent
         ] = renderer_impl.renderer
         if isinstance(render_object, ExpectationConfiguration):
-            renderer_rendered_content = renderer_fn(configuration=render_object)
+            renderer_rendered_content = renderer_fn(
+                configuration=render_object,
+                runtime_configuration=runtime_configuration,
+            )
         else:
-            renderer_rendered_content = renderer_fn(result=render_object)
+            renderer_rendered_content = renderer_fn(
+                result=render_object,
+                runtime_configuration=runtime_configuration,
+            )
 
         assert isinstance(renderer_rendered_content, (RenderedAtomicContent, list))
         return renderer_rendered_content

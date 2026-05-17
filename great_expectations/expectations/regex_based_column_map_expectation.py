@@ -124,6 +124,55 @@ class RegexBasedColumnMapExpectation(ColumnMapExpectation, ABC):
         map_metric (str): The name of an ephemeral metric, as returned by `register_metric(...)`.
     """  # noqa: E501 # FIXME CoP
 
+    @classmethod
+    def _get_prescriptive_template_str(
+        cls,
+        *,
+        has_regex: bool,
+        include_column_name: bool,
+        has_mostly: bool,
+        renderer_configuration: Optional[RendererConfiguration] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> str:
+        if not has_regex:
+            template_str = cls._get_localized_renderer_template(
+                key="renderer.regex_based_column_map.no_regex",
+                default_template="values must match a regular expression but none was specified.",
+                renderer_configuration=renderer_configuration,
+                runtime_configuration=runtime_configuration,
+            )
+        else:
+            template_str = cls._get_localized_renderer_template(
+                key="renderer.regex_based_column_map.regex",
+                default_template="values must match this regular expression: $regex",
+                renderer_configuration=renderer_configuration,
+                runtime_configuration=runtime_configuration,
+            )
+
+            if has_mostly:
+                template_str += cls._get_localized_renderer_template(
+                    key="renderer.regex_based_column_map.mostly_suffix",
+                    default_template=", at least $mostly_pct % of the time.",
+                    renderer_configuration=renderer_configuration,
+                    runtime_configuration=runtime_configuration,
+                )
+            else:
+                template_str += cls._get_localized_renderer_template(
+                    key="renderer.common.period",
+                    default_template=".",
+                    renderer_configuration=renderer_configuration,
+                    runtime_configuration=runtime_configuration,
+                )
+
+        if include_column_name:
+            template_str = cls._prefix_column_template(
+                template_str,
+                renderer_configuration=renderer_configuration,
+                runtime_configuration=runtime_configuration,
+            )
+
+        return template_str
+
     @staticmethod
     def register_metric(
         regex_camel_name: str,
@@ -244,21 +293,18 @@ class RegexBasedColumnMapExpectation(ColumnMapExpectation, ABC):
 
         params = renderer_configuration.params
 
-        if not params.regex:
-            template_str = "values must match a regular expression but none was specified."
-        else:
-            template_str = "values must match this regular expression: $regex"
+        has_mostly = bool(params.mostly and params.mostly.value < 1.0)
+        if has_mostly:
+            renderer_configuration = cls._add_mostly_pct_param(
+                renderer_configuration=renderer_configuration
+            )
 
-            if params.mostly and params.mostly.value < 1.0:
-                renderer_configuration = cls._add_mostly_pct_param(
-                    renderer_configuration=renderer_configuration
-                )
-                template_str += ", at least $mostly_pct % of the time."
-            else:
-                template_str += "."
-
-        if renderer_configuration.include_column_name:
-            template_str = "$column " + template_str
+        template_str = cls._get_prescriptive_template_str(
+            has_regex=bool(params.regex),
+            include_column_name=renderer_configuration.include_column_name,
+            has_mostly=has_mostly,
+            renderer_configuration=renderer_configuration,
+        )
 
         renderer_configuration.template_str = template_str
 
@@ -284,19 +330,16 @@ class RegexBasedColumnMapExpectation(ColumnMapExpectation, ABC):
             ["column", "regex", "mostly", "row_condition", "condition_parser"],
         )
 
-        if not params.get("regex"):
-            template_str = "values must match a regular expression but none was specified."
-        else:
-            template_str = "values must match this regular expression: $regex"
-            if params["mostly"] is not None:
-                params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
-                template_str += ", at least $mostly_pct % of the time."
-            else:
-                template_str += "."
+        has_mostly = params["mostly"] is not None
+        if has_mostly:
+            params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
 
-        if include_column_name:
-            template_str = "$column " + template_str
+        template_str = cls._get_prescriptive_template_str(
+            has_regex=bool(params.get("regex")),
+            include_column_name=include_column_name,
+            has_mostly=has_mostly,
+            runtime_configuration=runtime_configuration,
+        )
 
         if params["row_condition"] is not None:
             conditional_template_str = parse_row_condition_string(params["row_condition"])

@@ -85,19 +85,22 @@ def test_successful_renderer_configuration_instantiation(
     assert renderer_configuration.kwargs == kwargs
     assert renderer_configuration.include_column_name is include_column_name
 
-    expectation_validation_result = (
-        mock_expectation_validation_result_from_expectation_configuration(
-            expectation_configuration=expectation_configuration,
-            fake_result=fake_result,
-        )
+
+@pytest.mark.unit
+def test_renderer_configuration_localization_settings():
+    expectation_configuration = ExpectationConfiguration(
+        type="expect_table_row_count_to_equal",
+        kwargs={"value": 3},
     )
+    translations = {"nl": {"renderer.common.period": "."}}
+
     renderer_configuration = RendererConfiguration(
-        result=expectation_validation_result,
-        runtime_configuration=runtime_configuration,
+        configuration=expectation_configuration,
+        runtime_configuration={"locale": "nl-NL", "translations": translations},
     )
-    assert renderer_configuration.expectation_type == expectation_type
-    assert renderer_configuration.kwargs == kwargs
-    assert renderer_configuration.include_column_name is include_column_name
+
+    assert renderer_configuration.locale == "nl-NL"
+    assert renderer_configuration.translations == translations
 
 
 @pytest.mark.unit

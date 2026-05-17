@@ -12,6 +12,7 @@ from great_expectations.render import (
     LegacyDiagnosticRendererType,
     RenderedTableContent,
 )
+from great_expectations.render.i18n import translate
 from great_expectations.render.renderer.content_block.expectation_string import (
     ExpectationStringRenderer,
 )
@@ -57,10 +58,41 @@ class ValidationResultsTableContentBlockRenderer(ExpectationStringRenderer):
 
     @classmethod
     @override
-    def _process_content_block(cls, content_block, has_failed_evr, render_object=None) -> None:
-        super()._process_content_block(content_block, has_failed_evr)
-        content_block.header_row = ["Status", "Expectation", "Observed Value"]
-        content_block.header_row_options = {"Status": {"sortable": True}}
+    def _process_content_block(
+        cls,
+        content_block,
+        has_failed_evr,
+        render_object=None,
+        runtime_configuration=None,
+    ) -> None:
+        super()._process_content_block(
+            content_block,
+            has_failed_evr,
+            render_object=render_object,
+            runtime_configuration=runtime_configuration,
+        )
+        runtime_configuration = runtime_configuration or {}
+        content_block.header_row = [
+            translate(
+                "renderer.validation_results_table.status",
+                "Status",
+                locale=runtime_configuration.get("locale"),
+                translations=runtime_configuration.get("translations"),
+            ),
+            translate(
+                "renderer.validation_results_table.expectation",
+                "Expectation",
+                locale=runtime_configuration.get("locale"),
+                translations=runtime_configuration.get("translations"),
+            ),
+            translate(
+                "renderer.validation_results_table.observed_value",
+                "Observed Value",
+                locale=runtime_configuration.get("locale"),
+                translations=runtime_configuration.get("translations"),
+            ),
+        ]
+        content_block.header_row_options = {content_block.header_row[0]: {"sortable": True}}
 
         # Add custom meta_properties_to_render header
         if render_object is not None:
