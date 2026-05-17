@@ -221,7 +221,7 @@ def test_expect_column_values_to_be_of_type_result_contains_observed_value_for_p
     engine = PandasExecutionEngine()
 
     # Simulate what build_pandas_engine_with_data would do.
-    from great_expectations.core.batch import BatchDefinition, BatchMarkers
+    from great_expectations.core.batch import BatchDefinition
     from great_expectations.core.id_dict import BatchSpec
 
     batch_spec = BatchSpec(path="test")
