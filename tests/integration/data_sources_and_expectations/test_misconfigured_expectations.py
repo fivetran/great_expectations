@@ -163,4 +163,6 @@ def test_column_min_max_mismatch_misconfiguration(batch_for_datasource) -> None:
     expectation = gxe.ExpectColumnValuesToBeBetween(column="a", min_value=2, max_value=1)
     result = batch_for_datasource.validate(expectation)
     assert not result.success
-    assert "min_value cannot be greater than max_value" in result.exception_info.get("exception_message", "")
+    assert "min_value cannot be greater than max_value" in result.exception_info.get(
+        "exception_message", ""
+    )
