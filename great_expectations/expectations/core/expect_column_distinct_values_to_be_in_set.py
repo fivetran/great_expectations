@@ -239,14 +239,18 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         if not has_value_set:
             template_str = cls._get_localized_renderer_template(
                 key="renderer.expect_column_distinct_values_to_be_in_set.no_value_set",
-                default_template="distinct values must belong to a set, but that set is not specified.",
+                default_template=(
+                    "distinct values must belong to a set, but that set is not specified."
+                ),
                 renderer_configuration=renderer_configuration,
                 runtime_configuration=runtime_configuration,
             )
         else:
             template_str = cls._get_localized_renderer_template(
                 key="renderer.expect_column_distinct_values_to_be_in_set.value_set",
-                default_template=f"distinct values must belong to this set: {value_set_placeholder}.",
+                default_template=(
+                    f"distinct values must belong to this set: {value_set_placeholder}."
+                ),
                 renderer_configuration=renderer_configuration,
                 runtime_configuration=runtime_configuration,
             )

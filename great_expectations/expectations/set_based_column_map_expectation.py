@@ -116,7 +116,7 @@ class SetBasedColumnMapExpectation(ColumnMapExpectation, ABC):
     """  # noqa: E501 # FIXME CoP
 
     @classmethod
-    def _get_prescriptive_template_str(
+    def _get_prescriptive_template_str(  # noqa: PLR0913
         cls,
         *,
         has_set: bool,

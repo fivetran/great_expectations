@@ -187,7 +187,10 @@ def test_legacy_prescriptive_renderer_uses_localized_templates():
         },
     )
 
-    assert rendered[0].string_template["template"] == "kolom $column: moet op positie $column_index staan."
+    assert (
+        rendered[0].string_template["template"]
+        == "kolom $column: moet op positie $column_index staan."
+    )
 
 
 def test_ValidationResultsTableContentBlockRenderer_generate_expectation_row_with_errored_expectation(  # noqa: E501 # FIXME CoP
