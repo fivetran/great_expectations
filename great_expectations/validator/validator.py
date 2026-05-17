@@ -787,9 +787,13 @@ class Validator:
             # Report all MetricResolutionError occurrences impacting expectation and append it to rejected list.  # noqa: E501 # FIXME CoP
             if len(metric_exception_info) > 0:
                 configuration = expectation_validation_graph.configuration
+                # Extract the first ExceptionInfo so that exception_info has the expected flat
+                # structure {raised_exception, exception_traceback, exception_message} rather
+                # than being wrapped under the stringified metric ID key (issue #10849).
+                first_exception_info: ExceptionInfo = next(iter(metric_exception_info.values()))
                 result = ExpectationValidationResult(
                     success=False,
-                    exception_info=metric_exception_info,
+                    exception_info=first_exception_info,
                     expectation_config=configuration,
                 )
                 evrs.append(result)
