@@ -113,6 +113,7 @@ class UnexpectedRowsExpectation(BatchExpectation):
     metric_dependencies: ClassVar[Tuple[str, ...]] = (
         "unexpected_rows_query.table",
         "unexpected_rows_query.row_count",
+        "table.row_count",
     )
     success_keys: ClassVar[Tuple[str, ...]] = ("unexpected_rows_query",)
     domain_keys: ClassVar[Tuple[str, ...]] = (
@@ -281,6 +282,7 @@ class UnexpectedRowsExpectation(BatchExpectation):
 
         metric_value = metrics["unexpected_rows_query.table"]
         unexpected_row_count = metrics["unexpected_rows_query.row_count"]
+        element_count = metrics["table.row_count"]
         success = unexpected_row_count == 0
 
         if result_format == ResultFormat.BOOLEAN_ONLY:
@@ -290,6 +292,7 @@ class UnexpectedRowsExpectation(BatchExpectation):
                 "success": success,
                 "result": {
                     "observed_value": unexpected_row_count,
+                    "element_count": element_count,
                     "details": {"unexpected_rows": metric_value},
                 },
             }
@@ -299,5 +302,6 @@ class UnexpectedRowsExpectation(BatchExpectation):
                 "success": success,
                 "result": {
                     "observed_value": unexpected_row_count,
+                    "element_count": element_count,
                 },
             }

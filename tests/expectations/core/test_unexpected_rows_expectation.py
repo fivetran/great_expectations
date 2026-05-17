@@ -104,6 +104,7 @@ def test_unexpected_rows_expectation_validate(
 
     res = result.result
     assert res["observed_value"] == expected_observed_value
+    assert res["element_count"] == 100000
 
     unexpected_count_rows_returned = len(res["details"]["unexpected_rows"])
     assert unexpected_count_rows_returned == expected_count_unexpected_rows_returned
@@ -140,10 +141,12 @@ def test_result_format_controls_details_visibility(
         assert "details" in result.result
         assert "unexpected_rows" in result.result["details"]
         assert "observed_value" in result.result
+        assert result.result["element_count"] == 100000
     else:
         # BASIC and SUMMARY should not have details
         assert "details" not in result.result
         assert "observed_value" in result.result
+        assert result.result["element_count"] == 100000
 
 
 @pytest.mark.unit
