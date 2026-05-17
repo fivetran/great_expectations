@@ -512,7 +512,10 @@ class TestTableAssetTestConnection:
                 new_callable=mock.PropertyMock,
                 return_value=mock.MagicMock(get_engine=mock.MagicMock(return_value=mock_engine)),
             ),
-            mock.patch("great_expectations.datasource.fluent.sql_datasource.sa.inspect", return_value=mock_inspector),
+            mock.patch(
+                "great_expectations.datasource.fluent.sql_datasource.sa.inspect",
+                return_value=mock_inspector,
+            ),
         ):
             # Should not raise even though "my_schema" is not in schema_names.
             asset.test_connection()
@@ -542,7 +545,10 @@ class TestTableAssetTestConnection:
                 new_callable=mock.PropertyMock,
                 return_value=mock.MagicMock(get_engine=mock.MagicMock(return_value=mock_engine)),
             ),
-            mock.patch("great_expectations.datasource.fluent.sql_datasource.sa.inspect", return_value=mock_inspector),
+            mock.patch(
+                "great_expectations.datasource.fluent.sql_datasource.sa.inspect",
+                return_value=mock_inspector,
+            ),
         ):
             with pytest.raises(TestConnectionError):
                 asset.test_connection()
