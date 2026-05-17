@@ -179,12 +179,46 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
             1 	"abcde" 2
             2 	"1b3d5" 3
 
+    Result Format:
+        The shape of ``result`` depends on the backend and the column dtype:
+
+        **SQL, Spark, and Pandas (non-object dtype)** — the expectation validates the
+        column's *schema-level* data type rather than individual row values, so the
+        result contains only ``observed_value`` (the actual column type string):
+
+        .. code-block:: json
+
+            {{
+              "result": {{
+                "observed_value": "int64"
+              }}
+            }}
+
+        **Pandas with object dtype** (row-level check) — when the column dtype is
+        ``object`` and ``type_`` is not ``"object"``/``"O"``, each row's Python type is
+        inspected individually and the full Column Map result format is returned:
+
+        .. code-block:: json
+
+            {{
+              "result": {{
+                "element_count": 3,
+                "unexpected_count": 0,
+                "unexpected_percent": 0.0,
+                "partial_unexpected_list": [],
+                "missing_count": 0,
+                "missing_percent": 0.0,
+                "unexpected_percent_total": 0.0,
+                "unexpected_percent_nonmissing": 0.0
+              }}
+            }}
+
     Code Examples:
-        Passing Case:
+        Passing Case (SQL / Spark — observed_value result):
             Input:
                 ExpectColumnValuesToBeOfType(
                     column="test2",
-                    type_="NUMBER"
+                    type_="INTEGER"
             )
 
             Output:
@@ -195,20 +229,13 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
                     "exception_message": null
                   }},
                   "result": {{
-                    "element_count": 3,
-                    "unexpected_count": 0,
-                    "unexpected_percent": 0.0,
-                    "partial_unexpected_list": [],
-                    "missing_count": 0,
-                    "missing_percent": 0.0,
-                    "unexpected_percent_total": 0.0,
-                    "unexpected_percent_nonmissing": 0.0
+                    "observed_value": "INTEGER"
                   }},
                   "meta": {{}},
                   "success": true
                 }}
 
-        Failing Case:
+        Failing Case (SQL / Spark — observed_value result):
             Input:
                 ExpectColumnValuesToBeOfType(
                     column="test",
@@ -223,18 +250,7 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
                     "exception_message": null
                   }},
                   "result": {{
-                    "element_count": 3,
-                    "unexpected_count": 3,
-                    "unexpected_percent": 100.0,
-                    "partial_unexpected_list": [
-                        "12345",
-                        "abcde",
-                        "1b3d5"
-                    ],
-                    "missing_count": 0,
-                    "missing_percent": 0.0,
-                    "unexpected_percent_total": 100.0,
-                    "unexpected_percent_nonmissing": 100.0
+                    "observed_value": "VARCHAR"
                   }},
                   "meta": {{}},
                   "success": false

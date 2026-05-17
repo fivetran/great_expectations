@@ -193,3 +193,61 @@ def test_expect_column_values_to_be_of_type_case_insensitivity(sa, dialect_name)
                 f"but got success={result.success}. "
                 f"Observed value: {result.result.get('observed_value')}"
             )
+
+
+@pytest.mark.unit
+def test_expect_column_values_to_be_of_type_result_contains_observed_value_for_pandas():
+    """For Pandas with a non-object dtype column, _validate_pandas performs a schema-level
+    type check and must return a result dict with 'observed_value', NOT the full Column Map
+    format (element_count / unexpected_count / etc.).  Regression test for issue #11076."""
+    import pandas as pd
+
+    from great_expectations.core.expectation_validation_result import (
+        ExpectationValidationResult,
+    )
+    from great_expectations.execution_engine import PandasExecutionEngine
+    from great_expectations.validator.validator import Validator
+
+    df = pd.DataFrame({"amount": pd.array([1, 2, 3], dtype="int64")})
+
+    context = None
+    try:
+        from great_expectations.data_context import get_context
+
+        context = get_context(mode="ephemeral")
+    except Exception:
+        pass
+
+    engine = PandasExecutionEngine()
+
+    # Simulate what build_pandas_engine_with_data would do.
+    from great_expectations.core.batch import BatchDefinition, BatchMarkers
+    from great_expectations.core.id_dict import BatchSpec
+
+    batch_spec = BatchSpec(path="test")
+    batch_definition = BatchDefinition(
+        datasource_name="test",
+        data_connector_name="test",
+        data_asset_name="test",
+        batch_identifiers={},
+    )
+    import pandas as pd
+
+    engine.load_batch_data(
+        batch_id="test_batch",
+        batch_data=pd.DataFrame({"amount": pd.array([1, 2, 3], dtype="int64")}),
+    )
+
+    validator = Validator(execution_engine=engine)
+    result: ExpectationValidationResult = validator.expect_column_values_to_be_of_type(
+        "amount", type_="int64"
+    )
+
+    # The result must contain 'observed_value', not 'element_count' / 'unexpected_count'.
+    assert "observed_value" in result.result, (
+        f"Expected 'observed_value' key in result, got: {result.result}"
+    )
+    assert "element_count" not in result.result, (
+        "'element_count' should not appear in aggregate-mode result (issue #11076)"
+    )
+    assert result.success is True
