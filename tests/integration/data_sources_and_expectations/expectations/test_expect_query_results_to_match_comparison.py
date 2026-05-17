@@ -465,7 +465,7 @@ def test_expect_query_results_to_match_comparison_error(multi_source_batch: Mult
         )
     )
     assert not result.success
-    assert list(result.exception_info.values())[0]["raised_exception"]
+    assert result.exception_info.get("raised_exception")
 
 
 DATA_WITH_MANY_COLUMNS = pd.DataFrame({ch: [1, 2, 3] for ch in "abcdefgh"})
