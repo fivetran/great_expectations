@@ -4,8 +4,6 @@
 
 * [Auto-Update](autoupdate.yml)
   - Responsible for keeping PR's up-to-date with `develop` (only works if "auto-merge" is turned on)
-* [CodeSee Architecture Diagrams](codesee-arch-diagram.yml)
-  - Generates a visualization of proposed changes to the codebase through the use of https://www.codesee.io/
 * [DataSource Cleanup](data_source_cleanup.yml)
   - Responsible for cleaning up stray schemas left behind from tests
 * [StaleBot](stale.yml)
