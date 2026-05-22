@@ -6,6 +6,9 @@ import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility import pyspark, sqlalchemy
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import (
+    Select,
+)
+from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
 from great_expectations.compatibility.typing_extensions import override
@@ -53,7 +56,7 @@ def _named_source_subquery(selectable, table_columns: List[str]):
     """
     base = (
         selectable
-        if isinstance(selectable, sa.Select)
+        if isinstance(selectable, Select)
         else sa.select(*[sa.column(c) for c in table_columns]).select_from(selectable)
     )
     return base.subquery("column_values_unique_source")
@@ -232,7 +235,7 @@ class ColumnValuesUnique(ColumnMapMetricProvider):
         # columns. Paths that need additional source columns ("unexpected_rows",
         # "unexpected_index_list") are overridden in _register_metric_functions
         # to join back to source.
-        from_clause = _table.subquery() if isinstance(_table, sa.Select) else _table
+        from_clause = _table.subquery() if isinstance(_table, Select) else _table
         return (
             sa.select(
                 sa.column(column.name),
