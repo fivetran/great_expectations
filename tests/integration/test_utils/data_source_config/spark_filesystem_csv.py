@@ -19,7 +19,6 @@ from tests.integration.test_utils.data_source_config.base import (
 
 if TYPE_CHECKING:
     from great_expectations.compatibility import pyspark
-    from great_expectations.compatibility.pyspark import types as pyspark_types
 
 
 @dataclass(frozen=True)
