@@ -180,11 +180,6 @@ jobs:
           - doc-step: docs-spark
             start_services: 0
     env:
-      # gx cloud
-      GX_CLOUD_BASE_URL: ${{vars.MERCURY_BASE_URL}}
-      GX_CLOUD_ORGANIZATION_ID: ${{secrets.MERCURY_ORGANIZATION_ID}}
-      GX_CLOUD_WORKSPACE_ID: ${{secrets.MERCURY_WORKSPACE_ID}}
-      GX_CLOUD_ACCESS_TOKEN: ${{secrets.MERCURY_ACCESS_TOKEN}}
       # google
       GE_TEST_GCP_CREDENTIALS: ${{secrets.GE_TEST_GCP_CREDENTIALS}}
       GE_TEST_GCP_PROJECT: ${{secrets.GE_TEST_GCP_PROJECT}}
@@ -219,8 +214,6 @@ jobs:
       # cloud-specific
       AUTH0_DOMAIN: ${{secrets.AUTH0_DOMAIN}}
       AUTH0_API_AUDIENCE: ${{secrets.AUTH0_API_AUDIENCE}}
-      AUTH0_MERCURY_API_CLIENT_ID: ${{secrets.AUTH0_MERCURY_API_CLIENT_ID}}
-      AUTH0_MERCURY_API_CLIENT_SECRET: ${{secrets.AUTH0_MERCURY_API_CLIENT_SECRET}}
       LD_SDK_KEY: default
       GX_LD_BASE_URI: "http://localhost:8765"
       GX_LD_EVENTS_URI: "http://localhost:8765"
@@ -235,7 +228,6 @@ jobs:
       LOCALSTACK_AWS_ACCESS_KEY_ID: ${{secrets.LOCALSTACK_AWS_ACCESS_KEY_ID}}
       SNOWFLAKE_CI_ACCOUNT: ${{secrets.SNOWFLAKE_CI_ACCOUNT}}
       SNOWFLAKE_CI_USER_PASSWORD: ${{secrets.SNOWFLAKE_CI_USER_PASSWORD}}
-      CLOUD_AMQP_CONNECTION_STRING: ${{secrets.CLOUD_AMQP_CONNECTION_STRING}}
       LOGGING_LEVEL: DEBUG
       ENVIRONMENT: local
     permissions:
@@ -312,7 +304,6 @@ jobs:
       - name: Start services
         if: ${{ matrix.start_services }}
         run: |
-          docker compose --progress quiet -f assets/docker/mercury/docker-compose.yml up -d --wait --wait-timeout 300 && \
           docker compose --progress quiet -f assets/docker/spark/docker-compose.yml up -d --wait --wait-timeout 300
 
       - name: Run the tests
@@ -502,101 +493,6 @@ jobs:
           NODE_OPTIONS: --max_old_space_size=4096
           POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
         run: cd docs/docusaurus && yarn install && yarn test
-
-  cloud-tests:
-    needs: [unit-tests, static-analysis, check-actor-permissions]
-    if: github.event.pull_request.draft == false
-    permissions:
-      id-token: write
-      contents: read
-    runs-on: ubuntu-latest
-    env:
-      GX_CLOUD_BASE_URL: ${{vars.MERCURY_BASE_URL}}
-      AUTH0_DOMAIN: ${{secrets.AUTH0_DOMAIN}}
-      AUTH0_API_AUDIENCE: ${{secrets.AUTH0_API_AUDIENCE}}
-      AUTH0_MERCURY_API_CLIENT_ID: ${{secrets.AUTH0_MERCURY_API_CLIENT_ID}}
-      AUTH0_MERCURY_API_CLIENT_SECRET: ${{secrets.AUTH0_MERCURY_API_CLIENT_SECRET}}
-      GX_CLOUD_ORGANIZATION_ID: ${{secrets.MERCURY_ORGANIZATION_ID}}
-      GX_CLOUD_WORKSPACE_ID: ${{secrets.MERCURY_WORKSPACE_ID}}
-      GX_CLOUD_ACCESS_TOKEN: ${{secrets.MERCURY_ACCESS_TOKEN}}
-      LD_SDK_KEY: default
-      GX_LD_BASE_URI: "http://localhost:8765"
-      GX_LD_EVENTS_URI: "http://localhost:8765"
-      GX_LD_STREAM_URI: "http://localhost:8765"
-      LAUNCH_DARKLY_DEV_SERVER_ACCESS_TOKEN: ${{ secrets.LAUNCH_DARKLY_DEV_SERVER_ACCESS_TOKEN }}
-      GX_SCHEDULER_LAMBDA_ARN: ${{secrets.GX_SCHEDULER_LAMBDA_ARN}}
-      GX_SCHEDULER_EXECUTION_ROLE_ARN: ${{secrets.GX_SCHEDULER_EXECUTION_ROLE_ARN}}
-      GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN: ${{secrets.GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN}}
-      GX_SCHEDULER_EVENTBRIDGE_REGION: ${{secrets.GX_SCHEDULER_EVENTBRIDGE_REGION}}
-      LOCALSTACK_AWS_ENDPOINT_URL: ${{secrets.LOCALSTACK_AWS_ENDPOINT_URL}}
-      LOCALSTACK_AWS_SECRET_ACCESS_KEY: ${{secrets.LOCALSTACK_AWS_SECRET_ACCESS_KEY}}
-      LOCALSTACK_AWS_ACCESS_KEY_ID: ${{secrets.LOCALSTACK_AWS_ACCESS_KEY_ID}}
-      PACT_DO_NOT_TRACK: true
-      SNOWFLAKE_CI_ACCOUNT: ${{secrets.SNOWFLAKE_CI_ACCOUNT}}
-      SNOWFLAKE_CI_USER_PASSWORD: ${{secrets.SNOWFLAKE_CI_USER_PASSWORD}}
-      CLOUD_AMQP_CONNECTION_STRING: ${{secrets.CLOUD_AMQP_CONNECTION_STRING}}
-      LOGGING_LEVEL: DEBUG
-      ENVIRONMENT: local
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Upgrade Docker Compose
-        uses: docker/setup-compose-action@v1
-        with:
-          version: latest
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-          cache-dependency-path: |
-            reqs/requirements-dev-test.txt
-            setup.py
-
-      - name: Install dependencies
-        run: |
-          pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
-          invoke deps --gx-install -m 'cloud' -r test
-
-      - name: Configure ECR AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: us-east-1
-          role-to-assume: arn:aws:iam::258143015559:role/github-amazonec2containerregistryreadonly
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Start services
-        run: |
-          docker compose --progress quiet -f assets/docker/spark/docker-compose.yml up -d --wait --wait-timeout 300
-
-      - name: Run the tests
-        run: invoke ci-tests 'cloud' --up-services --verbose  --reports -W default::great_expectations.datasource.fluent.GxInvalidDatasourceWarning
-
-      # upload coverage report to codecov
-      - name: Upload coverage reports to Codecov
-        continue-on-error: true
-        uses: codecov/codecov-action@v4.1.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: great-expectations/great_expectations
-          flags: cloud
-          fail_ci_if_error: false
-
-      # upload test results to codecov
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: cloud
 
   integration-tests:
     needs: [unit-tests, static-analysis, check-actor-permissions]
@@ -1163,7 +1059,6 @@ jobs:
       - docs-build
       - docs-tests
       - docs-snippets
-      - cloud-tests
       - integration-tests
       - marker-tests
       - marker-tests-snowflake
@@ -1208,7 +1103,6 @@ jobs:
         static-analysis,
         docs-snippets,
         unit-tests,
-        cloud-tests,
         integration-tests,
         marker-tests,
         marker-tests-snowflake,
@@ -1260,7 +1154,6 @@ jobs:
         static-analysis,
         docs-snippets,
         unit-tests,
-        cloud-tests,
         integration-tests,
         marker-tests,
         marker-tests-snowflake,

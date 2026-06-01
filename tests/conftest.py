@@ -1805,30 +1805,6 @@ checkpoint_store_name: default_checkpoint_store
     return DataContextConfig(**data_context_config_dict)
 
 
-@pytest.fixture
-def ge_cloud_config_e2e() -> GXCloudConfig:
-    """
-    Uses live credentials stored in the Great Expectations Cloud backend.
-    """
-    env_vars = os.environ
-
-    base_url = env_vars.get(
-        GXCloudEnvironmentVariable.BASE_URL,
-    )
-    organization_id = env_vars.get(
-        GXCloudEnvironmentVariable.ORGANIZATION_ID,
-    )
-    access_token = env_vars.get(
-        GXCloudEnvironmentVariable.ACCESS_TOKEN,
-    )
-    cloud_config = GXCloudConfig(
-        base_url=base_url,  # type: ignore[arg-type] # FIXME CoP
-        organization_id=organization_id,
-        access_token=access_token,
-    )
-    return cloud_config
-
-
 # GX Cloud has been shut down, so cloud contexts can no longer be constructed. The fixtures that
 # previously built a live CloudDataContext (directly or via get_context cloud mode) and the
 # fake-cloud-API plumbing they relied on have been removed. The placeholder credential value
