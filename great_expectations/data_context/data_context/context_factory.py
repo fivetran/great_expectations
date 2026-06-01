@@ -570,18 +570,7 @@ def get_context(  # noqa: PLR0913 # FIXME CoP
     - project_config: Used to configure the Data Context.
     - runtime_environment: Optionally override specific configuration values.
 
-    **CloudDataContext:** A Data Context whose configuration comes from Great Expectations Cloud. The default if you have a cloud configuration set up. Pass `cloud_mode=False` if you have a cloud configuration set up and you do not wish to create a CloudDataContext.
-
-    Cloud configuration can be set up by passing `cloud_*` parameters to `gx.get_context()`, configuring cloud environment variables, or in a great_expectations.conf file.
-
-    Relevant parameters
-
-    - cloud_base_url: Override env var or great_expectations.conf file.
-    - cloud_access_token: Override env var or great_expectations.conf file.
-    - cloud_organization_id: Override env var or great_expectations.conf file.
-    - cloud_mode: Set to True or False to explicitly enable/disable cloud mode.
-    - project_config: Optionally override the cloud configuration.
-    - runtime_environment: Optionally override specific configuration values.
+    **CloudDataContext (shut down):** GX Cloud has been shut down. Requesting a cloud-backed context no longer returns a `CloudDataContext` -- it raises a `GreatExpectationsError` immediately. A request resolves to the (removed) cloud branch when `mode="cloud"` or `cloud_mode=True` is passed, when a complete set of `cloud_*` parameters is supplied, or when `GX_CLOUD_*` environment variables / a great_expectations.conf file provide a complete cloud configuration. The `CloudDataContext` class and the `cloud_*` parameters remain importable for source compatibility through the v1 line and are removed in great_expectations 2.0.
 
     Args:
         project_config: In-memory configuration for Data Context.
@@ -593,11 +582,16 @@ def get_context(  # noqa: PLR0913 # FIXME CoP
         cloud_base_url: url for GX Cloud endpoint.
         cloud_access_token: access_token for GX Cloud account.
         cloud_organization_id: org_id for GX Cloud account.
-        cloud_mode: whether to run GX in Cloud mode (default is None).
-            If None, cloud mode is assumed if cloud credentials are set up. Set to False to override.
+        cloud_mode: whether GX resolves to the (shut-down) Cloud branch when ``mode``
+            is not specified (default None). If None, the cloud branch is resolved when
+            a complete cloud configuration is discoverable; set to False to opt out of
+            that auto-detection. GX Cloud is shut down, so a cloud-resolving call raises
+            rather than building a context.
         user_agent_str: Optional string, should be of format <PRODUCT> / <VERSION> <COMMENT>
-        mode: which mode to use. One of: ephemeral, file, cloud.
-            Note: if mode is specified, cloud_mode is ignored.
+        mode: which mode to use. One of: ephemeral, file, cloud. ``mode="cloud"`` always
+            resolves to the (shut-down) cloud branch and raises, regardless of
+            ``cloud_mode``; ``mode="ephemeral"`` and ``mode="file"`` always build that
+            context type, even when ``GX_CLOUD_*`` configuration is present.
 
     Returns:
         A Data Context. Either a FileDataContext or an EphemeralDataContext
@@ -618,14 +612,24 @@ def get_context(  # noqa: PLR0913 # FIXME CoP
         CloudDataContext,
     )
 
-    if cloud_mode is not False and (
-        mode == "cloud"
-        or cloud_mode is True
-        or CloudDataContext.is_cloud_config_available(
-            cloud_base_url=cloud_base_url,
-            cloud_access_token=cloud_access_token,
-            cloud_organization_id=cloud_organization_id,
-            cloud_workspace_id=cloud_workspace_id,
+    # Raise exactly for the calls that previously resolved to the GX Cloud branch
+    # (i.e. would have constructed a CloudDataContext or raised
+    # GXCloudConfigurationError). An explicit mode="cloud" always resolves to cloud
+    # regardless of cloud_mode; an explicit mode="file"/"ephemeral" never resolves to
+    # cloud even when GX_CLOUD_* configuration is present; and when mode is inferred
+    # the factory resolves to cloud only if cloud_mode is not False and either
+    # cloud_mode is True or a complete cloud configuration is discoverable.
+    if mode == "cloud" or (
+        mode is None
+        and cloud_mode is not False
+        and (
+            cloud_mode is True
+            or CloudDataContext.is_cloud_config_available(
+                cloud_base_url=cloud_base_url,
+                cloud_access_token=cloud_access_token,
+                cloud_organization_id=cloud_organization_id,
+                cloud_workspace_id=cloud_workspace_id,
+            )
         )
     ):
         raise gx_exceptions.GreatExpectationsError(SHUTDOWN_MESSAGE)

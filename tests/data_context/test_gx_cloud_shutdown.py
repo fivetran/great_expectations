@@ -204,3 +204,49 @@ def test_get_context_cloud_branch_emits_no_warning(unset_cloud_env_vars):
             gx.get_context(mode="cloud")
     assert [str(w.message) for w in recorded] == []
     assert not any(issubclass(w.category, DeprecationWarning) for w in recorded)
+
+
+# ---------------------------------------------------------------------------
+# mode / cloud_mode precedence and cloud-env interaction (Req 2.1, 2.3, 2.5)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_get_context_mode_cloud_raises_even_with_cloud_mode_false(unset_cloud_env_vars):
+    """mode="cloud" always resolves to the cloud branch (cloud_mode is ignored when an
+    explicit mode is given), so it raises the shutdown error from the get_context()
+    frame even when cloud_mode=False -- the error is not deferred to deeper construction.
+    """
+    with pytest.raises(GreatExpectationsError, match=SHUTDOWN_MESSAGE) as exc_info:
+        gx.get_context(mode="cloud", cloud_mode=False)
+    assert str(exc_info.value) == SHUTDOWN_MESSAGE
+    _assert_raising_frame_is_construction_site(exc_info)
+
+
+@pytest.mark.filesystem
+def test_get_context_file_mode_does_not_raise_with_cloud_env(
+    tmp_path: pathlib.Path, set_cloud_env_vars
+):
+    """An explicit mode="file" builds a FileDataContext and does not raise, even when a
+    complete GX_CLOUD_* configuration is present -- explicit non-cloud modes never
+    resolve to the cloud branch."""
+    with working_directory(tmp_path):
+        context = gx.get_context(mode="file")
+    assert isinstance(context, FileDataContext)
+
+
+@pytest.mark.unit
+def test_get_context_ephemeral_mode_does_not_raise_with_cloud_env(set_cloud_env_vars):
+    """An explicit mode="ephemeral" builds an EphemeralDataContext and does not raise,
+    even when a complete GX_CLOUD_* configuration is present."""
+    context = gx.get_context(mode="ephemeral")
+    assert isinstance(context, EphemeralDataContext)
+
+
+@pytest.mark.unit
+def test_get_context_cloud_mode_false_opts_out_of_cloud_env(set_cloud_env_vars):
+    """With cloud_mode=False and no explicit mode, cloud auto-detection is suppressed:
+    get_context() does not raise and resolves to a non-cloud context even when a
+    complete GX_CLOUD_* configuration is present."""
+    context = gx.get_context(cloud_mode=False)
+    assert isinstance(context, EphemeralDataContext)
