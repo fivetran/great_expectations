@@ -600,13 +600,36 @@ def get_context(  # noqa: PLR0913 # FIXME CoP
             Note: if mode is specified, cloud_mode is ignored.
 
     Returns:
-        A Data Context. Either a FileDataContext, EphemeralDataContext, or
-        CloudDataContext depending on environment and/or
-        parameters.
+        A Data Context. Either a FileDataContext or an EphemeralDataContext
+        depending on environment and/or parameters.
+
+        Note: GX Cloud has been shut down. Requesting a cloud-backed context
+        (``mode="cloud"``, ``cloud_mode=True``, a complete set of ``cloud_*``
+        parameters, or ``GX_CLOUD_*`` configuration) no longer returns a
+        CloudDataContext; it raises immediately. The cloud branch is removed in
+        great_expectations 2.0.
 
     Raises:
-        GXCloudConfigurationError: Cloud mode enabled, but missing configuration.
+        GreatExpectationsError: A cloud-backed context was requested. GX Cloud is
+            shut down, so this raises instead of building a context.
     """  # noqa: E501 # FIXME CoP
+    from great_expectations.data_context.data_context.cloud_data_context import (
+        SHUTDOWN_MESSAGE,
+        CloudDataContext,
+    )
+
+    if cloud_mode is not False and (
+        mode == "cloud"
+        or cloud_mode is True
+        or CloudDataContext.is_cloud_config_available(
+            cloud_base_url=cloud_base_url,
+            cloud_access_token=cloud_access_token,
+            cloud_organization_id=cloud_organization_id,
+            cloud_workspace_id=cloud_workspace_id,
+        )
+    ):
+        raise gx_exceptions.GreatExpectationsError(SHUTDOWN_MESSAGE)
+
     return project_manager.get_project(
         project_config=project_config,
         context_root_dir=context_root_dir,
