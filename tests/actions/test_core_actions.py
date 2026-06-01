@@ -447,7 +447,8 @@ class TestMicrosoftTeamsNotificationAction:
         mock_send_notification.assert_called_once_with(url=MS_TEAMS_WEBHOOK_VALUE, json=mock.ANY)
 
     @pytest.mark.skip(
-        reason="gx->fivetran CI transition: Microsoft Teams webhook decommissioned; live endpoint returns 403 Forbidden.",
+        reason="gx->fivetran CI transition: Microsoft Teams webhook decommissioned; "
+        "live endpoint returns 403 Forbidden.",
     )
     @pytest.mark.integration
     @pytest.mark.parametrize(
@@ -491,7 +492,8 @@ class TestMicrosoftTeamsNotificationAction:
             assert result == {"microsoft_teams_notification_result": None}
 
     @pytest.mark.skip(
-        reason="gx->fivetran CI transition: Microsoft Teams webhook decommissioned; live endpoint returns 403 Forbidden.",
+        reason="gx->fivetran CI transition: Microsoft Teams webhook decommissioned; "
+        "live endpoint returns 403 Forbidden.",
     )
     @pytest.mark.integration
     @pytest.mark.parametrize(
