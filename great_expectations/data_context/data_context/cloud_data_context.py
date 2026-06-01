@@ -134,7 +134,7 @@ class CloudDataContext(SerializableDataContext):
     so constructing a ``CloudDataContext`` now raises immediately instead of attempting
     to connect. This class is kept importable for source compatibility and will be
     removed in great_expectations 2.0.
-    """  # noqa: E501 # FIXME CoP
+    """  # FIXME CoP
 
     def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
