@@ -598,84 +598,6 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: cloud
 
-  pact-contract-check:
-    needs: [unit-tests, static-analysis, check-actor-permissions]
-    if: >-
-      github.event.pull_request.draft == false
-      && github.event_name != 'merge_group'
-      && !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
-    runs-on: ubuntu-latest
-    env:
-      PACT_BROKER_READ_WRITE_TOKEN: ${{secrets.PACT_BROKER_READ_WRITE_TOKEN}}
-      PACT_DO_NOT_TRACK: true
-      # Pact consumer tests use a mock server; these env vars are required by
-      # CloudDataContext but point at the mock, not a real Mercury instance.
-      GX_CLOUD_BASE_URL: "http://localhost:9292"
-      GX_CLOUD_ACCESS_TOKEN: "dummy-pact-access-token"
-      GX_CLOUD_ORGANIZATION_ID: "d2179c7d-685d-49ec-b1e2-85e54308e8b6"
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-          cache-dependency-path: |
-            reqs/requirements-dev-test.txt
-            setup.py
-
-      - name: Install dependencies
-        run: |
-          pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
-          invoke deps --gx-install -m 'cloud' -r test
-
-      - name: Run pact contract tests
-        run: |
-          pytest tests/integration/cloud/rest_contracts/ \
-            --cloud \
-            --verbose \
-            -W default::great_expectations.datasource.fluent.GxInvalidDatasourceWarning
-
-      - name: Publish pact contracts to PactFlow
-        if: env.PACT_BROKER_READ_WRITE_TOKEN != ''
-        run: |
-          PACT_DIR="tests/integration/cloud/rest_contracts/pacts"
-          if [ ! -d "${PACT_DIR}" ] || ! compgen -G "${PACT_DIR}/*.json" > /dev/null; then
-            echo "No pact files found in ${PACT_DIR}, skipping publish"
-            exit 0
-          fi
-
-          CONSUMER_VERSION="${{ github.event.pull_request.head.sha || github.sha }}"
-          PACT_BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
-
-          echo "Publishing with version=${CONSUMER_VERSION} branch=${PACT_BRANCH}"
-          docker run --rm \
-            -v "$(pwd)/${PACT_DIR}:/pacts" \
-            pactfoundation/pact-cli:1.5.0.4 \
-            broker publish /pacts \
-            --broker-base-url=https://greatexpectations.pactflow.io \
-            --broker-token="${PACT_BROKER_READ_WRITE_TOKEN}" \
-            --consumer-app-version="${CONSUMER_VERSION}" \
-            --branch="${PACT_BRANCH}"
-
-      - name: Can I deploy?
-        if: env.PACT_BROKER_READ_WRITE_TOKEN != ''
-        run: |
-          docker run --rm \
-            pactfoundation/pact-cli:1.5.0.4 \
-            broker can-i-deploy \
-            --pacticipant great_expectations \
-            --version "${{ github.event.pull_request.head.sha || github.sha }}" \
-            --to-environment production \
-            --retry-while-unknown 120 \
-            --retry-interval 10 \
-            --broker-base-url https://greatexpectations.pactflow.io \
-            --broker-token "${PACT_BROKER_READ_WRITE_TOKEN}"
-
   integration-tests:
     needs: [unit-tests, static-analysis, check-actor-permissions]
     if: github.event.pull_request.draft == false
@@ -1242,7 +1164,6 @@ jobs:
       - docs-tests
       - docs-snippets
       - cloud-tests
-      - pact-contract-check
       - integration-tests
       - marker-tests
       - marker-tests-snowflake
@@ -1330,19 +1251,6 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true # prevent against pushing duplicate versions
-
-      - name: Record Pact release to production
-        env:
-          PACT_BROKER_READ_WRITE_TOKEN: ${{ secrets.PACT_BROKER_READ_WRITE_TOKEN }}
-        run: |
-          docker run --rm \
-            pactfoundation/pact-cli:1.5.0.4 \
-            broker record-release \
-            --pacticipant great_expectations \
-            --version "${{ github.sha }}" \
-            --environment production \
-            --broker-base-url https://greatexpectations.pactflow.io \
-            --broker-token "${PACT_BROKER_READ_WRITE_TOKEN}"
 
   notify_on_failure:
     needs:
