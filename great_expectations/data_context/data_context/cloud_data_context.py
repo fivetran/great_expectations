@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 import uuid
 from dataclasses import dataclass
 from typing import (
@@ -32,8 +31,6 @@ if TYPE_CHECKING:
         DataContextConfig,
         GXCloudConfig,
     )
-
-logger = logging.getLogger(__name__)
 
 SHUTDOWN_MESSAGE: str = (
     "GX Cloud has been shut down, so this no longer functions and "
