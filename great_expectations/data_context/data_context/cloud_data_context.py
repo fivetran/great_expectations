@@ -75,6 +75,11 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+SHUTDOWN_MESSAGE: str = (
+    "GX Cloud has been shut down, so this no longer functions and "
+    "will be removed in great_expectations 2.0."
+)
+
 
 class NoUserIdError(Exception):
     def __init__(self):
@@ -123,7 +128,13 @@ class CloudUserInfo:
 
 @public_api
 class CloudDataContext(SerializableDataContext):
-    """Subclass of AbstractDataContext that contains functionality necessary to work in a GX Cloud-backed environment."""  # noqa: E501 # FIXME CoP
+    """Subclass of AbstractDataContext for working in a GX Cloud-backed environment.
+
+    GX Cloud has been shut down. The backend this class relied on no longer exists,
+    so constructing a ``CloudDataContext`` now raises immediately instead of attempting
+    to connect. This class is kept importable for source compatibility and will be
+    removed in great_expectations 2.0.
+    """  # noqa: E501 # FIXME CoP
 
     def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
@@ -146,6 +157,7 @@ class CloudDataContext(SerializableDataContext):
                 config_variables.yml and the environment
             cloud_config (GXCloudConfig): GXCloudConfig corresponding to current CloudDataContext
         """  # noqa: E501 # FIXME CoP
+        raise gx_exceptions.GreatExpectationsError(SHUTDOWN_MESSAGE)
         self._check_if_latest_version()
         self._cloud_user_info: CloudUserInfo | None = None
 
