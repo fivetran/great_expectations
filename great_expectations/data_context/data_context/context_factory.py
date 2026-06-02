@@ -570,7 +570,7 @@ def get_context(  # noqa: PLR0913 # FIXME CoP
     - project_config: Used to configure the Data Context.
     - runtime_environment: Optionally override specific configuration values.
 
-    **CloudDataContext (shut down):** GX Cloud has been shut down. Requesting a cloud-backed context no longer returns a `CloudDataContext` -- it raises a `GreatExpectationsError` immediately. A request resolves to the (removed) cloud branch when `mode="cloud"` or `cloud_mode=True` is passed, when a complete set of `cloud_*` parameters is supplied, or when `GX_CLOUD_*` environment variables / a great_expectations.conf file provide a complete cloud configuration. The `CloudDataContext` class and the `cloud_*` parameters remain importable for source compatibility through the v1 line and are removed in great_expectations 2.0.
+    **CloudDataContext (shut down):** GX Cloud has been shut down. Requesting a cloud-backed context no longer returns a `CloudDataContext` -- it raises a `GreatExpectationsError` immediately. A request resolves to the (removed) cloud branch when `mode="cloud"` or `cloud_mode=True` is passed, when a complete set of ``cloud_*`` parameters is supplied, or when ``GX_CLOUD_*`` environment variables / a great_expectations.conf file provide a complete cloud configuration. The `CloudDataContext` class and the ``cloud_*`` parameters remain importable for source compatibility through the v1 line and are removed in great_expectations 2.0.
 
     Args:
         project_config: In-memory configuration for Data Context.
