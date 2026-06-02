@@ -446,6 +446,25 @@ def pytest_collection_modifyitems(config, items):
                 marker = pytest.mark.skip(reason=category.reason)
                 item.add_marker(marker)
 
+    # --- BEGIN temporary backend skip shim ---
+    # The CI infrastructure for these external warehouse backends is in transition,
+    # and their tests can no longer connect and fail unrelated to any code
+    # change. Unconditionally skip every test carrying one of these markers,
+    # regardless of the corresponding --<backend> flag, until the backends are
+    # either restored. Delete this block to restore them.
+    skipped_backend_marks = {
+        "redshift",
+    }  # "snowflake", "bigquery", "databricks", "athena"
+    for item in items:
+        present = skipped_backend_marks.intersection(item.keywords)
+        if present:
+            marker = pytest.mark.skip(
+                reason="gx->fivetran CI transition: "
+                f"{', '.join(sorted(present))} backend infrastructure unavailable.",
+            )
+            item.add_marker(marker)
+    # --- END temporary backend skip shim ---
+
 
 @pytest.fixture(scope="session", autouse=True)
 def preload_latest_gx_cache():
