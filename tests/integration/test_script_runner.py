@@ -518,6 +518,18 @@ def _check_for_skipped_tests(  # noqa: C901, PLR0912 # FIXME CoP
     dependencies = integration_test_fixture.backend_dependencies
     if not dependencies:
         return
+    # TEMPORARY: Tests backed by cloud object stores (S3, GCS, Azure Blob) are
+    # unconditionally skipped during the CI transition. Remove this block to re-enable.
+    elif any(
+        dependency
+        in (
+            BackendDependencies.AWS,
+            BackendDependencies.GCS,
+            BackendDependencies.AZURE,
+        )
+        for dependency in dependencies
+    ):
+        pytest.skip("CI TRANSITION")
     elif BackendDependencies.POSTGRESQL in dependencies and (
         not pytest_args.postgresql or pytest_args.no_sqlalchemy
     ):
