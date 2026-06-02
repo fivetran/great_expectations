@@ -15,6 +15,15 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.18.0
+* [MINORBUMP] GX Cloud shutdown: raise on CloudDataContext construction and remove cloud test suites ([#11894](https://github.com/great-expectations/great_expectations/pull/11894))
+* [MAINTENANCE] Remove dead CodeSee architecture diagram workflow ([#11886](https://github.com/great-expectations/great_expectations/pull/11886))
+* [MAINTENANCE] Accept Snowflake parameterized BINARY observed type in type-list expectation test ([#11892](https://github.com/great-expectations/great_expectations/pull/11892))
+* [MAINTENANCE] Skip Microsoft Teams webhook integration tests during CI transition ([#11893](https://github.com/great-expectations/great_expectations/pull/11893))
+* [MAINTENANCE] Pull CI Docker images directly from Docker Hub ([#11898](https://github.com/great-expectations/great_expectations/pull/11898))
+* [MAINTENANCE] Skip external warehouse backend tests during CI transition ([#11896](https://github.com/great-expectations/great_expectations/pull/11896))
+* [MAINTENANCE] Temporarily skip cloud object-store docs tests during CI transition ([#11897](https://github.com/great-expectations/great_expectations/pull/11897))
+
 ### 1.17.2
 * [BUGFIX] Preserve boolean values passed to add_csv_asset (fixes #11206) ([#11867](https://github.com/great-expectations/great_expectations/pull/11867)) (thanks @EshwarCVS)
 * [BUGFIX] Restore SQLAlchemy 1.4 compatibility in column_values_unique (fixes #11875) ([#11876](https://github.com/great-expectations/great_expectations/pull/11876)) (thanks @ranophoenix)
