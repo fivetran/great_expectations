@@ -447,11 +447,11 @@ def pytest_collection_modifyitems(config, items):
                 item.add_marker(marker)
 
     # --- BEGIN temporary backend skip shim ---
-    # The CI infrastructure for these external warehouse backends is being torn
-    # down, so their tests can no longer connect and fail unrelated to any code
+    # The CI infrastructure for these external warehouse backends is in transition,
+    # and their tests can no longer connect and fail unrelated to any code
     # change. Unconditionally skip every test carrying one of these markers,
     # regardless of the corresponding --<backend> flag, until the backends are
-    # either restored or removed. Delete this block to restore them.
+    # either restored. Delete this block to restore them.
     skipped_backend_marks = {"snowflake", "bigquery", "redshift", "databricks", "athena"}
     for item in items:
         present = skipped_backend_marks.intersection(item.keywords)
