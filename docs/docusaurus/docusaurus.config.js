@@ -54,29 +54,6 @@ module.exports = {
   ],
 
   themeConfig: {
-    announcementBar: {
-      id: 'cta_bar',
-      content:
-          '<a style="font-weight:600" href="https://hubs.li/Q02nK_ZH0">Get started with GX Cloud by joining our bi-weekly hands on workshop.</a>',
-      backgroundColor: '#141432',
-      textColor: '#fff',
-      isCloseable: false
-    },
-    gxCard: {
-      title: 'What is GX Cloud?',
-      description:
-        'GX Cloud is a fully-managed SaaS solution that simplifies deployment, scaling, and collaboration—so you can focus on data validation.',
-      buttons: {
-        primary: {
-          label: 'Request a demo',
-          href: 'https://greatexpectations.io/demo'
-        },
-        secondary: {
-          label: 'Why GX Cloud?',
-          href: 'https://greatexpectations.io/why-gx-cloud'
-        }
-      }
-    },
     docs: {
       sidebar: {
         autoCollapseCategories: true
@@ -166,13 +143,6 @@ module.exports = {
           className: 'non-versioned-section'
         },
         {
-          label: 'GX Cloud',
-          to: 'docs/cloud/overview/gx_cloud_overview',
-          position: 'right',
-          className: 'non-versioned-section',
-          activeBaseRegex: '/cloud/'
-        },
-        {
           type: 'doc',
           label: 'GX Core',
           docId: 'core/introduction/introduction',
@@ -214,20 +184,9 @@ module.exports = {
             {
               label: 'Community',
               to: 'https://greatexpectations.io/community'
-            },
-            {
-              label: 'Request a demo',
-              to: 'https://greatexpectations.io/demo-gx-cloud'
             }
           ],
           position: 'right'
-        },
-        {
-          to: 'https://greatexpectations.io/cloud',
-          label: 'Try GX Cloud',
-          position: 'left',
-          className: 'header-cloud-link',
-          'aria-label': 'Early cloud access'
         }
       ]
     },
@@ -244,10 +203,6 @@ module.exports = {
         {
           title: 'Product',
           items: [
-            {
-              label: 'GX Cloud',
-              to: 'https://greatexpectations.io/gx-cloud'
-            },
             {
               label: 'GX Core',
               to: 'https://greatexpectations.io/gx-oss'
