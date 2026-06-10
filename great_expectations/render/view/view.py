@@ -62,6 +62,12 @@ class DefaultJinjaView:
 
     _template: ClassVar[str]
 
+    # Param names whose values are trusted renderer-generated HTML (e.g. the success/
+    # failure status icon ``<i class=...>``) rather than user-supplied content. These are
+    # emitted as raw HTML and must not be HTML-escaped, or the markup would render as
+    # literal text in Data Docs.
+    _TRUSTED_HTML_PARAMS: ClassVar[frozenset[str]] = frozenset({"html_success_icon"})
+
     def __init__(self, custom_styles_directory=None, custom_views_directory=None) -> None:
         self.custom_styles_directory = custom_styles_directory
         self.custom_views_directory = custom_views_directory
@@ -377,8 +383,11 @@ class DefaultJinjaView:
             # HTML-escape param values before any substitution so user-supplied
             # content (e.g. a regex containing angle brackets) is rendered literally
             # rather than interpreted as markup by the browser. Styling spans added
-            # below wrap the already-escaped content and remain raw HTML.
+            # below wrap the already-escaped content and remain raw HTML. Trusted
+            # renderer-generated params (e.g. the status icon) are left raw.
             for parameter in params:
+                if parameter in self._TRUSTED_HTML_PARAMS:
+                    continue
                 params[parameter] = self._escape_template_param_value(params[parameter])
 
             # Apply default styling
@@ -429,8 +438,13 @@ class DefaultJinjaView:
 
         # HTML-escape param values so user-supplied content (e.g. a regex containing
         # angle brackets) is rendered literally rather than interpreted as markup.
+        # Trusted renderer-generated params (e.g. the status icon) are left raw.
         escaped_params = {
-            parameter: self._escape_template_param_value(value)
+            parameter: (
+                value
+                if parameter in self._TRUSTED_HTML_PARAMS
+                else self._escape_template_param_value(value)
+            )
             for parameter, value in template.get("params", {}).items()
         }
         return pTemplate(
