@@ -3,9 +3,6 @@ sidebar_label: 'Uniqueness'
 title: 'Validate data uniqueness with GX'
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 Data uniqueness is a fundamental aspect of data quality that ensures distinct values are present only once where expected in a dataset. Uniqueness constraints are often applied to columns that serve as primary keys, composite keys, or other unique identifiers. Validating uniqueness is critical for maintaining data integrity, preventing duplication, and enabling accurate analysis.
 
 Failing to validate uniqueness can lead to various data quality problems:
@@ -19,7 +16,7 @@ Great Expectations (GX) provides a collection of Expectations to validate data u
 
 ## Prerequisite knowledge
 
-This article assumes basic familiarity with GX components and workflows. If you're new to GX, start with the [GX Cloud](/cloud/overview/gx_cloud_overview.md) and [GX Core](/core/introduction/introduction.mdx) overviews to familiarize yourself with key concepts and setup procedures.
+This article assumes basic familiarity with GX components and workflows. If you're new to GX, start with the [GX Core](/core/introduction/introduction.mdx) overview to familiarize yourself with key concepts and setup procedures.
 
 ## Data preview
 
@@ -44,7 +41,7 @@ Uniqueness is particularly crucial for fields like `customer_id`, `email_address
 
 ## Key uniqueness Expectations
 
-Duplicate data can manifest as duplicate rows within a dataset, or as duplicate values within a single row. GX provides Expectations, available in both GX Cloud and GX Core, that validate for uniqueness across rows and within rows.
+Duplicate data can manifest as duplicate rows within a dataset, or as duplicate values within a single row. GX Core provides Expectations that validate for uniqueness across rows and within rows.
 
 ### Expect column values to be unique
 
@@ -120,49 +117,8 @@ This Expectation validates that, for each row, the values across a specified set
 
 For instance, in customer datasets, a `customer_id` can be created for all customer records, but duplicate customers (real world individuals represented by multiple rows of data) can still enter the dataset for a variety of reasons: inconsistent contact information provided by the customer themselves, errors in data entry, or bad data migrations.
 
-**Goal**: Using uniqueness Expectations in GX Cloud or GX Core, identify potential duplicate entities in the sample customer dataset.
+**Goal**: Using uniqueness Expectations in GX Core, identify potential duplicate entities in the sample customer dataset.
 
-<Tabs
-   defaultValue="gx_cloud"
-   values={[
-      {value: 'gx_cloud', label: 'GX Cloud'},
-      {value: 'gx_core', label: 'GX Core'}
-   ]}
->
-
-<TabItem value="gx_cloud" label="GX Cloud">
-Use the GX Cloud UI to walk through the following steps:
-
-1. Create a Postgres Data Asset for the `uniqueness_customers` table using the following connection string:
-  ```python title="Connection string"
-  postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality?options=-csearch_path%3Dpublic
-  ```
-
-2. Add an Expectation to validate the uniqueness of the `customer_id` column, which serves as a primary key for the dataset.
-   * Expectation: Expect column values to be unique
-   * Column: `customer_id`
-
-3. Add two Expectations that validate the uniqueness of composite keys that should represent a single real-world entity (the customer).
-
-   * Expect that individual customers have a unique government id, relative to their country.
-      * Expectation: Expect compound columns to be unique
-      * Column List: `country_code`, `government_id`
-      * Ignore Row If: Any value is missing
-
-   * Expect that individual customers have unique last name and phone number.
-      * Expectation: Expect compound columns to be unique
-      * Column List: `last_name`, `phone_number`
-      * Ignore Row If: Any value is missing
-
-4. Validate the `uniqueness_customers` Data Asset with the newly created Expectations.
-
-5. Review the Validation Results. Under **Batches & run history**, select the individual Validation run (not **All Runs**) to view the sample unexpected values that were identified for failing Expectations.
-
-**Result**:
-Based on the sample unexpected values shown for each failing Expectation, you can see that two potential groups of duplicate customer records are identified.
-</TabItem>
-
-<TabItem value="gx_core" label="GX Core">
 Run the following GX Core workflow:
 
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_workflow.py full workflow"
@@ -179,10 +135,6 @@ Expectation: expect_compound_columns_to_be_unique, Potential duplicates found:
 
 Parsing the Validation Result object for failing Expectations enables you to access a sample of the unexpected values that caused the validation to fail. These values can be used to identify duplicate rows, based on the definition of uniqueness for an individual customer.
 
-</TabItem>
-
-</Tabs>
-
 * `country_code`: `US`, `government_id` : `123-45-6789`
 
    This result suggests that `customer_id` `1` and `5` represent the same customer, John Doe, identified by duplicate rows containing his unique US government id.
@@ -192,7 +144,7 @@ Parsing the Validation Result object for failing Expectations enables you to acc
    This result suggests that `customer_id` `8` and `10` represent the same customer, Elizabeth (Liz) Brown, identified by duplicate rows containing her last name and phone number.
 
 
-**GX solution**: GX Cloud and GX Core both enable validating data uniqueness in flexible ways: within single columns or across compound columns, across records in a dataset or fields within a record. The Validation Results returned by GX can be used to identify duplicate data in addition to monitoring uniqueness.
+**GX solution**: GX Core enables validating data uniqueness in flexible ways: within single columns or across compound columns, across records in a dataset or fields within a record. The Validation Results returned by GX can be used to identify duplicate data in addition to monitoring uniqueness.
 
 ## Scenarios
 
