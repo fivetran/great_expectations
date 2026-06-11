@@ -15,6 +15,13 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.18.1
+* [BUGFIX] Regex angle brackets not HTML-escaped in Data Docs ([#11909](https://github.com/great-expectations/great_expectations/pull/11909))
+* [DOCS] Sync docs version label to released 1.18.0 ([#11900](https://github.com/great-expectations/great_expectations/pull/11900))
+* [DOCS] Remove gx cloud docs site ([#11906](https://github.com/great-expectations/great_expectations/pull/11906))
+* [MAINTENANCE] Temporarily skip bigquery tests ([#11908](https://github.com/great-expectations/great_expectations/pull/11908))
+* [MAINTENANCE] Temporarily skip snowflake integration tests ([#11911](https://github.com/great-expectations/great_expectations/pull/11911))
+
 ### 1.18.0
 * [MINORBUMP] GX Cloud shutdown: raise on CloudDataContext construction and remove cloud test suites ([#11894](https://github.com/great-expectations/great_expectations/pull/11894))
 * [MAINTENANCE] Remove dead CodeSee architecture diagram workflow ([#11886](https://github.com/great-expectations/great_expectations/pull/11886))
