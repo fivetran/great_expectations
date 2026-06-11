@@ -62,11 +62,17 @@ class DefaultJinjaView:
 
     _template: ClassVar[str]
 
-    # Param names whose values are trusted renderer-generated HTML (e.g. the success/
-    # failure status icon ``<i class=...>``) rather than user-supplied content. These are
-    # emitted as raw HTML and must not be HTML-escaped, or the markup would render as
-    # literal text in Data Docs.
-    _TRUSTED_HTML_PARAMS: ClassVar[frozenset[str]] = frozenset({"html_success_icon"})
+    # Param names whose values are trusted renderer-generated HTML rather than
+    # user-supplied content. These are emitted as raw HTML and must not be HTML-escaped,
+    # or the markup would render as literal text in Data Docs:
+    #   - ``html_success_icon``: the success/failure status icon ``<i class=...>``.
+    #   - ``formatted_json``: a ``<pre>...</pre>`` block wrapping a JSON schema. The
+    #     wrapper is renderer-generated; the schema content inside it is escaped at its
+    #     source (see ExpectColumnValuesToMatchJSONSchema), so leaving the param raw here
+    #     keeps the <pre> formatting without re-exposing the schema content unescaped.
+    _TRUSTED_HTML_PARAMS: ClassVar[frozenset[str]] = frozenset(
+        {"html_success_icon", "formatted_json"}
+    )
 
     def __init__(self, custom_styles_directory=None, custom_views_directory=None) -> None:
         self.custom_styles_directory = custom_styles_directory

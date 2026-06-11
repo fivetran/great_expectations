@@ -13,6 +13,12 @@ The repro renders a minimal validation result through the same page renderer and
 Jinja view used by Data Docs, then asserts the regex's HTML-significant
 characters (``<``, ``>``, ``&``) are escaped in the rendered output, while
 trusted renderer-generated markup (the status icon) is still emitted raw.
+
+The same class of bug reaches a second parameter: ``ExpectColumnValuesToMatchJSONSchema``
+builds a ``formatted_json`` param whose value is ``<pre>{json.dumps(schema)}</pre>`` —
+renderer-generated markup wrapping user-supplied schema content. Both properties must
+hold there too: the ``<pre>`` wrapper must reach the browser as raw HTML (so the schema
+renders as a formatted code block) while the schema content is HTML-escaped.
 """
 
 from __future__ import annotations
@@ -34,18 +40,22 @@ from great_expectations.render.view.view import DefaultJinjaView
 # (?<!\s) contains a literal "<", plus a literal ">" and "&".
 REGEX_WITH_HTML_CHARS = r"^(?<!\s)a>b&c([A-Za-z0-9()_\- \/*]+)$"
 
+# JSON Schema whose ``pattern`` carries every HTML-significant character: the negative
+# lookbehind (?<!\s) contains a literal "<", plus a literal ">" and "&". The renderer
+# wraps the dumped schema in a <pre>...</pre> block.
+JSON_SCHEMA_WITH_HTML_CHARS = {"type": "string", "pattern": r"(?<!\s)a>b&c"}
 
-def _validation_result_with_regex(regex: str) -> ExpectationSuiteValidationResult:
+
+def _validation_result_with_expectation(
+    expectation_type: str, **kwargs: object
+) -> ExpectationSuiteValidationResult:
     return ExpectationSuiteValidationResult(
         results=[
             ExpectationValidationResult(
                 success=True,
                 expectation_config=ExpectationConfiguration(
-                    type="expect_column_values_to_match_regex",
-                    kwargs={
-                        "column": "my_col",
-                        "regex": regex,
-                    },
+                    type=expectation_type,
+                    kwargs={"column": "my_col", **kwargs},
                 ),
                 result={},
             ),
@@ -66,6 +76,10 @@ def _validation_result_with_regex(regex: str) -> ExpectationSuiteValidationResul
             },
         },
     )
+
+
+def _validation_result_with_regex(regex: str) -> ExpectationSuiteValidationResult:
+    return _validation_result_with_expectation("expect_column_values_to_match_regex", regex=regex)
 
 
 @pytest.mark.integration
@@ -125,3 +139,47 @@ def test_render_string_template_escapes_user_params_but_not_trusted_icon() -> No
     assert "a&lt;b&gt;c&amp;d" in rendered, "User param must be HTML-escaped."
     assert "a<b>c&d" not in rendered, "Raw user param must not reach the browser."
     assert icon in rendered, "Trusted icon markup must be emitted raw."
+
+
+@pytest.mark.integration
+def test_data_docs_renders_json_schema_pre_block_but_escapes_its_content() -> None:
+    """JSON-schema ``<pre>`` wrapper must render as raw HTML while its content is escaped.
+
+    ``ExpectColumnValuesToMatchJSONSchema`` builds a ``formatted_json`` param whose value
+    is ``<pre>{json.dumps(schema)}</pre>``. Escaping the whole value turns the ``<pre>``
+    wrapper into literal ``&lt;pre&gt;`` text (the schema no longer renders as a code
+    block); leaving it fully raw re-introduces the issue #11907 bug for schema content
+    containing ``<`` / ``>`` / ``&``. The wrapper must reach the browser raw while the
+    schema content is escaped at its source.
+    """
+    document = ValidationResultsPageRenderer().render(
+        _validation_result_with_expectation(
+            "expect_column_values_to_match_json_schema",
+            json_schema=JSON_SCHEMA_WITH_HTML_CHARS,
+        )
+    )
+    html = DefaultJinjaPageView().render(document)
+
+    # The <pre> wrapper is trusted renderer-generated markup: it must render as real
+    # HTML, not be escaped into literal "&lt;pre&gt;" text.
+    assert "<pre>" in html, (
+        "Expected the JSON-schema '<pre>' wrapper to be emitted as raw HTML so the "
+        "schema renders as a formatted code block in Data Docs."
+    )
+    assert "&lt;pre&gt;" not in html, (
+        "The JSON-schema '<pre>' wrapper was HTML-escaped into literal text; trusted "
+        "renderer-generated markup must not be escaped."
+    )
+
+    # The schema *content* is user-supplied: its HTML-significant characters must be
+    # escaped, exactly as for the regex case (issue #11907). The negative lookbehind's
+    # "<" must not reach the browser raw.
+    assert "(?<!" not in html, (
+        "Data Docs HTML contains an unescaped '<' from the JSON-schema pattern's "
+        "negative lookbehind; schema content must be HTML-escaped."
+    )
+    assert "(?&lt;!" in html, "Expected the JSON-schema pattern's '<' to be escaped as '&lt;'."
+    assert "a>b&c" not in html, "Schema content '>' and '&' should be HTML-escaped."
+    assert "a&gt;b&amp;c" in html, (
+        "Expected the schema pattern's '>' and '&' to be escaped as '&gt;' and '&amp;'."
+    )
