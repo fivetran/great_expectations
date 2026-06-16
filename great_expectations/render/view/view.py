@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import html
 import json
 import re
 from collections import OrderedDict
@@ -60,6 +61,18 @@ class DefaultJinjaView:
     """
 
     _template: ClassVar[str]
+
+    # Param names whose values are trusted renderer-generated HTML rather than
+    # user-supplied content. These are emitted as raw HTML and must not be HTML-escaped,
+    # or the markup would render as literal text in Data Docs:
+    #   - ``html_success_icon``: the success/failure status icon ``<i class=...>``.
+    #   - ``formatted_json``: a ``<pre>...</pre>`` block wrapping a JSON schema. The
+    #     wrapper is renderer-generated; the schema content inside it is escaped at its
+    #     source (see ExpectColumnValuesToMatchJSONSchema), so leaving the param raw here
+    #     keeps the <pre> formatting without re-exposing the schema content unescaped.
+    _TRUSTED_HTML_PARAMS: ClassVar[frozenset[str]] = frozenset(
+        {"html_success_icon", "formatted_json"}
+    )
 
     def __init__(self, custom_styles_directory=None, custom_views_directory=None) -> None:
         self.custom_styles_directory = custom_styles_directory
@@ -309,6 +322,21 @@ class DefaultJinjaView:
         except OSError:
             return markdown
 
+    @staticmethod
+    def _escape_template_param_value(value: Any) -> Any:
+        """HTML-escape a string param value before it is substituted into a template.
+
+        Param values can carry user-supplied content (e.g. a regex containing the
+        negative lookbehind ``(?<!\\s)``). Without escaping, characters such as ``<``,
+        ``>`` and ``&`` reach the browser raw and are interpreted as markup (``<!`` even
+        starts an HTML comment), truncating or hiding the content in Data Docs. The
+        surrounding markup added by ``render_string_template`` (styling spans, the base
+        template) is intentionally left raw. Non-string values are returned unchanged.
+        """
+        if isinstance(value, str):
+            return html.escape(value, quote=False)
+        return value
+
     def render_string_template(self, template):  # noqa: C901, PLR0912 # FIXME CoP
         # NOTE: Using this line for debugging. This should probably be logged...?
         # print(template)
@@ -358,6 +386,16 @@ class DefaultJinjaView:
         if "styling" in template:
             params = template.get("params", {})
 
+            # HTML-escape param values before any substitution so user-supplied
+            # content (e.g. a regex containing angle brackets) is rendered literally
+            # rather than interpreted as markup by the browser. Styling spans added
+            # below wrap the already-escaped content and remain raw HTML. Trusted
+            # renderer-generated params (e.g. the status icon) are left raw.
+            for parameter in params:
+                if parameter in self._TRUSTED_HTML_PARAMS:
+                    continue
+                params[parameter] = self._escape_template_param_value(params[parameter])
+
             # Apply default styling
             if "default" in template["styling"]:
                 default_parameter_styling = template["styling"]["default"]
@@ -404,6 +442,17 @@ class DefaultJinjaView:
             ).safe_substitute(params)
             return string
 
+        # HTML-escape param values so user-supplied content (e.g. a regex containing
+        # angle brackets) is rendered literally rather than interpreted as markup.
+        # Trusted renderer-generated params (e.g. the status icon) are left raw.
+        escaped_params = {
+            parameter: (
+                value
+                if parameter in self._TRUSTED_HTML_PARAMS
+                else self._escape_template_param_value(value)
+            )
+            for parameter, value in template.get("params", {}).items()
+        }
         return pTemplate(
             pTemplate(base_template_string).safe_substitute(
                 {
@@ -411,7 +460,7 @@ class DefaultJinjaView:
                     "styling": self.render_styling(template.get("styling", {})),
                 }
             )
-        ).safe_substitute(template.get("params", {}))
+        ).safe_substitute(escaped_params)
 
     def _validate_document(self, document) -> None:
         raise NotImplementedError

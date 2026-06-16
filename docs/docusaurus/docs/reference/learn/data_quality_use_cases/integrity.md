@@ -2,8 +2,6 @@
 sidebar_label: 'Integrity'
 title: 'Validate data integrity with GX'
 ---
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
 
 Data integrity focuses on the relationships and dependencies between data elements. Is a fundamental aspect of ensuring data quality and trustworthiness. In today's complex data landscape, information is spread across multiple systems, tables, and platforms and maintaining proper relationships between data elements is critical. Failing to validate and preserve these relationships can lead to incorrect analyses, faulty business decisions, and compliance issues.
 
@@ -22,7 +20,7 @@ This article demonstrates how to use GX to define and enforce data integrity rul
 
 ## Prerequisite knowledge
 
-This article assumes basic familiarity with GX components and workflows. If you're new to GX, start with the [GX Cloud](/cloud/overview/gx_cloud_overview.md) and [GX Core](/core/introduction/introduction.mdx) overviews to familiarize yourself with key concepts and setup procedures.
+This article assumes basic familiarity with GX components and workflows. If you're new to GX, start with the [GX Core](/core/introduction/introduction.mdx) overview to familiarize yourself with key concepts and setup procedures.
 
 ## Data preview
 
@@ -66,8 +64,8 @@ Validating the integrity of this financial data involves checking the consistenc
 To validate data relationships across multiple tables, you have three options:
 
 1. Create a database view that joins the tables you want to validate, and then use built-in Expectations to validate columns within the view.
-2. Create a [custom SQL Expectation](/cloud/expectations/expectations_overview.md#custom-sql-expectations) to validate relationships directly using a SQL query that references multiple tables from a single Data Source.
-3. Use a [Multi-source Expectation](/cloud/expectations/expectations_overview.md#multi-source-expectations) to execute one SQL query for each of two Data Sources and compare their results for equality.
+2. Create a [custom SQL Expectation](/core/customize_expectations/use_sql_to_define_a_custom_expectation.md) to validate relationships directly using a SQL query that references multiple tables from a single Data Source.
+3. Use a [Multi-source Expectation](/core/customize_expectations/define_a_multi_source_expectation.md) to execute one SQL query for each of two Data Sources and compare their results for equality.
 
 This section covers the first option and presents built-in Expectations that can be applied to single tables, or SQL views that query multiple tables. The second option is explored in the [Example: Validate cross-table data integrity](#validate-cross-table-data-integrity) section that showcases how to create and use custom SQL Expectations for validating relationships across separate tables in a single Data Source.
 
@@ -120,49 +118,12 @@ Verifies that values in one column are consistently greater than related values 
 
 **Context**: Definitions of data quality are highly related to the real-world use of the related data, and data quality often needs to be defined using custom business rules and logic. This example showcases the application of a built-in Expectation to validate data integrity, and then the use of a custom SQL Expectation to refine the integrity check to incorporate business logic.
 
-**Goal**: Use GX Cloud or GX Core to implement an integrity check using a built-in Expectation. Then, use a custom SQL Expectation to enforce additional additional business logic that defines integrity in more detail.
+**Goal**: Use GX Core to implement an integrity check using a built-in Expectation. Then, use a custom SQL Expectation to enforce additional additional business logic that defines integrity in more detail.
 
 :::tip[Custom SQL Expectations]
 Custom SQL Expectations fail when the provided SQL query returns one or more rows. Construct your queries to select unexpected rows based on the `where` clause.
 :::
 
-<Tabs
-   defaultValue="gx_cloud"
-   values={[
-      {value: 'gx_cloud', label: 'GX Cloud'},
-      {value: 'gx_core', label: 'GX Core'}
-   ]}
->
-
-<TabItem value="gx_cloud" label="GX Cloud">
-
-Use the GX Cloud UI to implement the following steps:
-
-1. Using the following connection string to create a Postgres Data Source, create a Data Asset for the `integrity_transfer_transaction` table:
-   ```python title="Connection string"
-   postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality?options=-csearch_path%3Dpublic
-   ```
-
-2. Add an **Expect column pair values A to be greater than B** Expectation that expects that the time that the transaction was received (`received_ts`) is after the time that the transaction was sent (`sent_ts`).
-   * Column A: `received_ts`
-   * Column B: `sent_ts`
-
-3. Validate the  `integrity_transfers` Data Asset with the Expectation and inspect the result. The Expectation passes, all transfers are received after they are sent.
-
-4. Using the query below, create a custom SQL Expectation to further refine the business logic that defines this integrity check. The business logic constraint dictates that all transactions should be sent and received within 45 seconds.
-   ```sql title="SQL query"
-   select *
-   from {batch}
-   where extract(epoch from (age(received_ts, sent_ts))) > 45
-   ```
-
-5. Validate the `integrity_transfers` Data Asset once again, now with two Expectations.
-
-6. Review the Validation Results. The increased specificity of the custom SQL Expectation enables you to see that one of the transfer transaction records has failed to meet the business logic-informed definition of integrity.
-
-</TabItem>
-
-<TabItem value="gx_core" label="GX Core">
 Run the following GX Core workflow.
 
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_workflow.py business logic workflow"
@@ -172,62 +133,26 @@ Run the following GX Core workflow.
   * `validation_result_built_in_expectation["success"]` is `True`. All transfer transactions were received after they were sent, and the Expectation passes.
   * `validation_result_custom_sql_expectation["success"]` is `False`, as one of the transactions took longer than 45 seconds to send. The increased specificity of the custom SQL Expectation enables you to see that one of the transfer transaction records has failed to meet the business logic-informed definition of integrity.
 
-</TabItem>
-</Tabs>
-
-
-**GX solution**: Both GX Cloud and GX Core offer a combination of built-in Expectations and custom SQL validation, providing the flexibility to handle common and bespoke data quality requirements.
+**GX solution**: GX Core offers a combination of built-in Expectations and custom SQL validation, providing the flexibility to handle common and bespoke data quality requirements.
 
 
 ### Validate cross-table data integrity
 
 **Context**: Validating the relationships and dependencies between data elements that reside in different tables is common use case across a variety of industries. This example uses the sample financial data in the `transfers`, `transfer_balance`, and `transfer_transaction` tables to demonstrate how to validate the integrity of transfer amounts, adjustments, and balances across tables.
 
-**Goal**: Use GX Cloud or GX Core and implement a custom SQL Expectation to validate data integrity across tables within a single Data Source. Validate that the `transfers` table `amount` matches the corresponding `total_amount` in the `transfer_balance` table.
+**Goal**: Use GX Core and implement a custom SQL Expectation to validate data integrity across tables within a single Data Source. Validate that the `transfers` table `amount` matches the corresponding `total_amount` in the `transfer_balance` table.
 
-<Tabs
-   defaultValue="gx_cloud"
-   values={[
-      {value: 'gx_cloud', label: 'GX Cloud'},
-      {value: 'gx_core', label: 'GX Core'}
-   ]}
->
-
-<TabItem value="gx_cloud" label="GX Cloud">
-
-Use the GX Cloud UI to implement the following steps:
-
-1. Using the following connection string to create a Postgres Data Source, create Data Assets for the `integrity_transfers` and `integrity_transfer_balance` tables:
-   ```python title="Connection string"
-   postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality?options=-csearch_path%3Dpublic
-   ```
-
-2. Add a custom SQL Expectation on the `integrity_transfers` Data Asset to validate that the `amount` column in `integrity_transfers` matches the `total_amount` column in the `integrity_transfer_balance` table. The `join` in the SQL query enables GX Cloud to validate integrity for for data that spans multiple tables.
-   ```sql title="SQL query"
-   select *
-   from {batch} t
-   join integrity_transfer_balance b using (transfer_balance_id)
-   where t.amount <> b.total_amount
-   ```
-
-3. Validate the `integrity_transfers` table and review the successful the Validation Results.
-</TabItem>
-
-<TabItem value="gx_core" label="GX Core">
 Run the following GX Core workflow.
 
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_workflow.py cross-table workflow"
 ```
 
 **Result**: `validation_result["success"]` is `True` and the cross-table integrity validation passes.
-</TabItem>
-</Tabs>
 
-
-**GX solution**: Both GX Cloud and GX Core can be used to implement comprehensive integrity checks that span multiple tables within a single Data Source and validate complex business rules.
+**GX solution**: GX Core can be used to implement comprehensive integrity checks that span multiple tables within a single Data Source and validate complex business rules.
 
 :::tip Need to compare different Data Sources?
-You can use [Multi-source Expectations](/cloud/expectations/expectations_overview.md#multi-source-expectations) to validate integrity across two different Data Sources.
+You can use [Multi-source Expectations](/core/customize_expectations/define_a_multi_source_expectation.md) to validate integrity across two different Data Sources.
 :::
 
 ## Scenarios

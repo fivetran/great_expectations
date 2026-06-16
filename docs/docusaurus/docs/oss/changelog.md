@@ -15,6 +15,30 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.18.1
+* [BUGFIX] Regex angle brackets not HTML-escaped in Data Docs ([#11909](https://github.com/great-expectations/great_expectations/pull/11909))
+* [DOCS] Sync docs version label to released 1.18.0 ([#11900](https://github.com/great-expectations/great_expectations/pull/11900))
+* [DOCS] Remove gx cloud docs site ([#11906](https://github.com/great-expectations/great_expectations/pull/11906))
+* [MAINTENANCE] Temporarily skip bigquery tests ([#11908](https://github.com/great-expectations/great_expectations/pull/11908))
+* [MAINTENANCE] Temporarily skip snowflake integration tests ([#11911](https://github.com/great-expectations/great_expectations/pull/11911))
+
+### 1.18.0
+* [MINORBUMP] GX Cloud shutdown: raise on CloudDataContext construction and remove cloud test suites ([#11894](https://github.com/great-expectations/great_expectations/pull/11894))
+* [MAINTENANCE] Remove dead CodeSee architecture diagram workflow ([#11886](https://github.com/great-expectations/great_expectations/pull/11886))
+* [MAINTENANCE] Accept Snowflake parameterized BINARY observed type in type-list expectation test ([#11892](https://github.com/great-expectations/great_expectations/pull/11892))
+* [MAINTENANCE] Skip Microsoft Teams webhook integration tests during CI transition ([#11893](https://github.com/great-expectations/great_expectations/pull/11893))
+* [MAINTENANCE] Pull CI Docker images directly from Docker Hub ([#11898](https://github.com/great-expectations/great_expectations/pull/11898))
+* [MAINTENANCE] Skip external warehouse backend tests during CI transition ([#11896](https://github.com/great-expectations/great_expectations/pull/11896))
+* [MAINTENANCE] Temporarily skip cloud object-store docs tests during CI transition ([#11897](https://github.com/great-expectations/great_expectations/pull/11897))
+
+### 1.17.2
+* [BUGFIX] Preserve boolean values passed to add_csv_asset (fixes #11206) ([#11867](https://github.com/great-expectations/great_expectations/pull/11867)) (thanks @EshwarCVS)
+* [BUGFIX] Restore SQLAlchemy 1.4 compatibility in column_values_unique (fixes #11875) ([#11876](https://github.com/great-expectations/great_expectations/pull/11876)) (thanks @ranophoenix)
+* [MAINTENANCE] [pre-commit.ci] pre-commit autoupdate ([#11864](https://github.com/great-expectations/great_expectations/pull/11864))
+* [MAINTENANCE] Bump fast-uri from 3.1.0 to 3.1.2 in /docs/docusaurus ([#11872](https://github.com/great-expectations/great_expectations/pull/11872))
+* [MAINTENANCE] Bump @babel/plugin-transform-modules-systemjs from 7.28.5 to 7.29.4 in /docs/docusaurus ([#11873](https://github.com/great-expectations/great_expectations/pull/11873))
+* [MAINTENANCE] Bump mermaid from 11.12.2 to 11.15.0 in /docs/docusaurus ([#11874](https://github.com/great-expectations/great_expectations/pull/11874))
+
 ### 1.17.1
 * [BUGFIX] Spark nested columns break unexpected_index_column_names (GX-3253) ([#11835](https://github.com/great-expectations/great_expectations/pull/11835))
 * [BUGFIX] Spark column names with dots not recognized in BatchData (GX-3274) ([#11851](https://github.com/great-expectations/great_expectations/pull/11851))

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import json
 from typing import TYPE_CHECKING, Optional, Union
 
@@ -119,7 +120,16 @@ class ExpectColumnValuesToMatchJsonSchema(ColumnMapExpectation):
         if not params.json_schema:
             template_str = "values must match a JSON Schema but none was specified."
         else:
-            formatted_json = f"<pre>{json.dumps(params.json_schema.value, indent=4)}</pre>"
+            # The schema content is user-supplied and may contain HTML-significant
+            # characters (e.g. a "pattern" with a "<"); escape it so the browser renders
+            # it literally. The surrounding <pre> markup is renderer-generated and stays
+            # raw (the param name is registered as trusted in DefaultJinjaView so it is
+            # not escaped again at render time).
+            formatted_json = (
+                "<pre>"
+                f"{html.escape(json.dumps(params.json_schema.value, indent=4), quote=False)}"
+                "</pre>"
+            )
             renderer_configuration.add_param(
                 name="formatted_json",
                 param_type=RendererValueType.STRING,
@@ -162,8 +172,12 @@ class ExpectColumnValuesToMatchJsonSchema(ColumnMapExpectation):
         if not params.get("json_schema"):
             template_str = "values must match a JSON Schema but none was specified."
         else:
+            # See _prescriptive_template: escape the user-supplied schema content while
+            # leaving the renderer-generated <pre> wrapper raw.
             params["formatted_json"] = (
-                f"<pre>{json.dumps(params.get('json_schema'), indent=4)}</pre>"
+                "<pre>"
+                f"{html.escape(json.dumps(params.get('json_schema'), indent=4), quote=False)}"
+                "</pre>"
             )
             if params["mostly"] is not None:
                 if isinstance(params["mostly"], (int, float)) and params["mostly"] < 1.0:

@@ -6,11 +6,9 @@ import pytest
 
 import great_expectations.expectations as gxe
 from great_expectations.core.expectation_suite import ExpectationSuite
-from great_expectations.data_context.data_context.cloud_data_context import CloudDataContext
 from great_expectations.data_context.store import ExpectationsStore
 from great_expectations.data_context.types.resource_identifiers import (
     ExpectationSuiteIdentifier,
-    GXCloudIdentifier,
 )
 from great_expectations.util import gen_directory_tree_str
 
@@ -225,22 +223,6 @@ def test_get_key_in_non_cloud_mode(empty_data_context):
     assert key.name == name
 
 
-@pytest.mark.unit
-def test_get_key_in_cloud_mode(empty_data_context_in_cloud_mode):
-    cloud_data_context = empty_data_context_in_cloud_mode
-    name = "test-name"
-    suite = ExpectationSuite(name=name)
-    key = cloud_data_context.expectations_store.get_key(name=suite.name, id=suite.id)
-    assert isinstance(key, GXCloudIdentifier)
-    assert key.resource_name == name
-
-
-@pytest.mark.cloud
-def test_add_expectation_success_cloud_backend(empty_cloud_data_context):
-    context = empty_cloud_data_context
-    _test_add_expectation_success(context)
-
-
 @pytest.mark.filesystem
 def test_add_expectation_success_filesystem_backend(empty_data_context):
     context = empty_data_context
@@ -273,12 +255,6 @@ def _test_add_expectation_success(context):
 @pytest.mark.filesystem
 def test_add_expectation_disregards_provided_id_filesystem_backend(empty_data_context):
     context = empty_data_context
-    _test_add_expectation_disregards_provided_id(context)
-
-
-@pytest.mark.cloud
-def test_add_expectation_disregards_provided_id_cloud_backend(empty_cloud_data_context):
-    context = empty_cloud_data_context
     _test_add_expectation_disregards_provided_id(context)
 
 
@@ -318,12 +294,6 @@ def test_add_adds_ids_to_suite_and_expectations(empty_data_context):
     suite = context.suites.add(suite)
 
     assert all(obj.id is not None for obj in (expectation_a, expectation_b, suite))
-
-
-@pytest.mark.cloud
-def test_update_expectation_success_cloud_backend(empty_cloud_data_context):
-    context = empty_cloud_data_context
-    _test_update_expectation_success(context)
 
 
 @pytest.mark.filesystem
@@ -366,15 +336,6 @@ def test_update_expectation_raises_error_for_missing_expectation_filesystem(
     _test_update_expectation_raises_error_for_missing_expectation(context)
 
 
-@pytest.mark.cloud
-def test_update_expectation_raises_error_for_missing_expectation_cloud(
-    empty_cloud_data_context,
-):
-    # Arrange
-    context = empty_cloud_data_context
-    _test_update_expectation_raises_error_for_missing_expectation(context)
-
-
 def _test_update_expectation_raises_error_for_missing_expectation(context):
     store = context.expectations_store
     suite_name = "test-suite"
@@ -394,13 +355,6 @@ def _test_update_expectation_raises_error_for_missing_expectation(context):
     updated_suite_dict = store.get(key=store.get_key(name=suite.name, id=suite.id))
     updated_suite = ExpectationSuite(**updated_suite_dict)
     assert suite == updated_suite
-
-
-@pytest.mark.cloud
-def test_delete_expectation_success_cloud_backend(empty_cloud_data_context):
-    # Arrange
-    context = empty_cloud_data_context
-    _test_delete_expectation_success(context)
 
 
 @pytest.mark.filesystem
@@ -437,14 +391,6 @@ def test_delete_expectation_raises_error_for_missing_expectation_filesystem(
     _test_delete_expectation_raises_error_for_missing_expectation(context)
 
 
-@pytest.mark.cloud
-def test_delete_expectation_raises_error_for_missing_expectation_cloud(
-    empty_cloud_data_context,
-):
-    context = empty_cloud_data_context
-    _test_delete_expectation_raises_error_for_missing_expectation(context)
-
-
 def _test_delete_expectation_raises_error_for_missing_expectation(context):
     # Arrange
     store = context.expectations_store
@@ -469,31 +415,5 @@ def _test_delete_expectation_raises_error_for_missing_expectation(context):
     # Assert
     updated_suite_dict = store.get(key=store.get_key(name=suite.name, id=suite.id))
     updated_suite = ExpectationSuite(**updated_suite_dict)
-    if isinstance(context, CloudDataContext):
-        updated_suite.render()
     assert suite == updated_suite
     assert len(updated_suite.expectations) == 1
-
-
-@pytest.mark.cloud
-def test_update_cloud_suite(empty_cloud_data_context):
-    # Arrange
-    context = empty_cloud_data_context
-    store = context.expectations_store
-    existing_expectation = gxe.ExpectColumnValuesToBeInSet(
-        column="a",
-        value_set=[1, 2, 3],
-        result_format="BASIC",
-    )
-    suite_name = "test-suite"
-    updated_suite_name = "test-suite-22"
-    suite = ExpectationSuite(suite_name, expectations=[existing_expectation.configuration])
-    context.suites.add(suite)
-
-    # act
-    suite.name = updated_suite_name
-    store.update(key=store.get_key(name=suite_name, id=suite.id), value=suite)
-
-    # assert
-    updated_suite_dict = store.get(key=store.get_key(name=updated_suite_name, id=suite.id))
-    assert updated_suite_dict["name"] == updated_suite_name

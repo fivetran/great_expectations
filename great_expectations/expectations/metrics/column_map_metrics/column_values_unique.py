@@ -3,6 +3,9 @@ from __future__ import annotations
 from great_expectations.compatibility import pyspark
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import (
+    Select,
+)
+from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
 from great_expectations.core.metric_function_types import MetricPartialFunctionTypes
@@ -65,7 +68,7 @@ class ColumnValuesUnique(ColumnMapMetricProvider):
             gx_dialect = GXSqlDialect(dialect_name)
             quoted_col = quote_str(column.name, gx_dialect)
             temp_table_name = generate_temporary_table_name()
-            if isinstance(_table, sa.Select):
+            if isinstance(_table, Select):
                 from_clause = _table.subquery().alias("tmp")
             else:
                 from_clause = _table
@@ -86,7 +89,7 @@ class ColumnValuesUnique(ColumnMapMetricProvider):
             execution_engine.execute_query_in_transaction(sa.text(dup_stmt))
             dup_query = sa.select(column).select_from(sa.text(dup_table_name))
         else:
-            from_clause = _table.subquery() if isinstance(_table, sa.Select) else _table
+            from_clause = _table.subquery() if isinstance(_table, Select) else _table
             dup_query = (
                 sa.select(column)
                 .select_from(from_clause)

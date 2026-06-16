@@ -2,8 +2,6 @@
 sidebar_label: 'Distribution'
 title: 'Validate data distribution with GX'
 ---
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
 
 Data distribution analysis is a critical aspect of data quality management, focusing on understanding the spread, shape, and characteristics of data within a dataset. Data distribution is a pivotal indicator of the quality and reliability of your datasets. Key considerations include:
 
@@ -16,7 +14,7 @@ By leveraging Great Expectations (GX) to analyze and validate data distributions
 
 ## Prerequisite knowledge
 
-This article assumes basic familiarity with GX components and workflows. If you're new to GX, start with the [GX Cloud](https://docs.greatexpectations.io/docs/cloud/overview/gx_cloud_overview) and [GX Core](https://docs.greatexpectations.io/docs/core/introduction) overviews to familiarize yourself with key concepts and setup procedures.
+This article assumes basic familiarity with GX components and workflows. If you're new to GX, start with the [GX Core](https://docs.greatexpectations.io/docs/core/introduction) overview to familiarize yourself with key concepts and setup procedures.
 
 ## Data preview
 
@@ -34,12 +32,7 @@ In this dataset, `purchase_amount` represents the amount spent by customers in v
 
 ## Key distribution Expectations
 
-GX Cloud and GX Core both offer a collection of Expectations used to validate data distribution.
-
-:::note[Distribution Expectation availability]
-`ExpectColumnKLDivergenceToBeLessThan` and `ExpectColumnQuantileValuesToBeBetween` can be added to a GX Cloud deployment, but currently must be added using the GX Cloud API instead of the GX Cloud UI.
-:::
-
+GX Core offers a collection of Expectations used to validate data distribution.
 
 ### Expect column KL divergence to be less than
 
@@ -113,50 +106,8 @@ Use `ExpectColumnMinToBeBetween` and `ExpectColumnMaxToBeBetween` to define a ra
 
 ## Example: Validate distribution of a column
 
-**Goal**: Using a collection of distribution Expectations and either GX Cloud or GX Core, validate the distribution of the `purchase_amount` column.
+**Goal**: Using a collection of distribution Expectations and GX Core, validate the distribution of the `purchase_amount` column.
 
-<Tabs
-   defaultValue="gx_cloud"
-   values={[
-      {value: 'gx_cloud', label: 'GX Cloud'},
-      {value: 'gx_core', label: 'GX Core'}
-   ]}
->
-
-<TabItem value="gx_cloud" label="GX Cloud">
-
-Use the GX Cloud UI to walk through the following steps.
-
-1. Create a Postgres Data Asset for the `distribution_purchases` table, using the connection string:
-   ```python title="Connection string"
-   postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality?options=-csearch_path%3Dpublic
-   ```
-
-2. Add an **Expect column mean to be between** Expectation to the freshly created Data Asset.
-    * Column: `purchase_amount`
-    * Min Value: 1250
-    * Max Value: 1500
-
-3. Add an **Expect column median to be between** Expectation.
-    * Column: `purchase_amount`
-    * Min Value: 1000
-    * Max Value: 1250
-
-4. Add an **Expect column value z-scores to be less than** Expectation.
-    * Column: `purchase_amount`
-    * Threshold: 2
-    * Mostly: 90%
-
-6. Click the **Validate** button to validate the purchase data with the distribution Expectations.
-7. Review Validation Results.
-
-**Result**: All Expectations pass.
-
-![Validation Results provide Expectation details, observed values, and validation history.](./distribution_resources/distribution_example_validation_results.png)
-
-</TabItem>
-
-<TabItem value="gx_core" label="GX Core">
 Run the following GX Core workflow.
 
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/distribution_resources/distribution_workflow.py full workflow"
@@ -171,10 +122,7 @@ expect_column_mean_to_be_between: True
 expect_column_median_to_be_between: True
 ```
 
-</TabItem>
-</Tabs>
-
-**GX solution**: GX provides Expectations in both GX Cloud or GX Core that enable validation of a variety of distribution aspects, including shape, center, and spread.
+**GX solution**: GX Core provides Expectations that enable validation of a variety of distribution aspects, including shape, center, and spread.
 
 ## Scenarios
 
