@@ -6,6 +6,9 @@ import pytest
 import great_expectations.expectations as gxe
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.self_check.util import build_spark_engine
+from great_expectations.validator.metric_configuration import MetricConfiguration
+from tests.expectations.test_util import get_table_columns_metric
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
     ALL_DATA_SOURCES,
@@ -156,3 +159,37 @@ def test_datetime64_ns_with_pd_timestamp_value_set(batch_for_datasource: Batch) 
     expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=value_set)
     result = batch_for_datasource.validate(expectation)
     assert result.success
+
+
+@pytest.mark.spark
+def test_spark_connect_compatible(spark_session, monkeypatch) -> None:
+    """Reproduces issue #11919: .rdd is not supported in Spark Connect (Databricks).
+
+    ExpectColumnDistinctValuesToEqualSet calls column.distinct_values.missing_from_column
+    which internally used .rdd.flatMap(lambda x: x), an API unavailable in Spark Connect.
+    This test patches .rdd to simulate Spark Connect and verifies the metric resolves
+    without accessing .rdd.
+    """
+    pd_df = pd.DataFrame({"colors": ["red", "green", "blue"]})
+    engine = build_spark_engine(spark=spark_session, df=pd_df, batch_id="id")
+    table_columns_metric, resolved = get_table_columns_metric(execution_engine=engine)
+
+    probe_df = spark_session.createDataFrame(pd_df)
+    spark_df_class = type(probe_df)
+
+    def _rdd_not_supported(self):
+        raise AttributeError(
+            "[JVM_ATTRIBUTE_NOT_SUPPORTED] Attribute `rdd` is not supported in Spark Connect"
+        )
+
+    monkeypatch.setattr(spark_df_class, "rdd", property(_rdd_not_supported))
+
+    missing_metric = MetricConfiguration(
+        metric_name="column.distinct_values.missing_from_column",
+        metric_domain_kwargs={"column": "colors"},
+        metric_value_kwargs={"value_set": ["red", "green", "blue", "yellow"]},
+    )
+    missing_metric.metric_dependencies = {"table.columns": table_columns_metric}
+
+    results = engine.resolve_metrics(metrics_to_resolve=(missing_metric,), metrics=resolved)
+    assert results[missing_metric.id] == ["yellow"]
