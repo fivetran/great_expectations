@@ -257,9 +257,6 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
         # Get distinct values with limit
         results = [
             row[0]
-            for row in filtered_df.select(F.col(column_name))
-            .distinct()
-            .limit(limit)
-            .collect()
+            for row in filtered_df.select(F.col(column_name)).distinct().limit(limit).collect()
         ]
         return results
