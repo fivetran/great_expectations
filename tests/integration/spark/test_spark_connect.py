@@ -120,7 +120,9 @@ def test_distinct_values_expectations_spark_connect(
 
     context = ephemeral_context_with_defaults
     bd = (
-        context.data_sources.add_spark(name=f"spark-connect-ds-{expectation.__name__}-{expected_success}")
+        context.data_sources.add_spark(
+            name=f"spark-connect-ds-{expectation.__name__}-{expected_success}"
+        )
         .add_dataframe_asset(name="asset")
         .add_batch_definition_whole_dataframe(name="bd")
     )
