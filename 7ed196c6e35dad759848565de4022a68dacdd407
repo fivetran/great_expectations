@@ -1,0 +1,23 @@
+tests/integration/spark/test_spark_connect.py
+  73190cd89bf38bde 12-13,73-143
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.1",
+  "base_commit_sha": "7ed196c6e35dad759848565de4022a68dacdd407",
+  "prompts": {
+    "73190cd89bf38bde": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ee75d412-bcb1-42e6-b779-3d7f8654bdd4",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "unknown",
+      "messages": [],
+      "total_additions": 73,
+      "total_deletions": 77,
+      "accepted_lines": 73,
+      "overriden_lines": 0
+    }
+  }
+}
