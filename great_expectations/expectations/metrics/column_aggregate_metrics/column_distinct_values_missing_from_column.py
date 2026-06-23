@@ -217,13 +217,13 @@ class ColumnDistinctValuesMissingFromColumn(ColumnAggregateMetricProvider):
         column_name: str = accessor_domain_kwargs["column"]
 
         # Get distinct values in the column
-        column_values = (
-            df.select(F.col(column_name))
+        column_values = [
+            row[0]
+            for row in df.select(F.col(column_name))
             .where(F.col(column_name).isNotNull())
             .distinct()
-            .rdd.flatMap(lambda x: x)
             .collect()
-        )
+        ]
         column_values_set = set(column_values)
 
         # Find missing values

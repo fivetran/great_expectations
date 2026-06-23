@@ -191,13 +191,13 @@ class ColumnDistinctValues(ColumnAggregateMetricProvider):
             accessor_domain_kwargs,
         ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
         column_name: str = accessor_domain_kwargs["column"]
-        distinct_values: List[pyspark.Row] = (
-            df.select(F.col(column_name))
+        distinct_values = [
+            row[0]
+            for row in df.select(F.col(column_name))
             .distinct()
             .where(F.col(column_name).isNotNull())
-            .rdd.flatMap(lambda x: x)
             .collect()
-        )
+        ]
         return set(distinct_values)
 
 

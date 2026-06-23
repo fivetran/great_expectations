@@ -6,9 +6,6 @@ import pytest
 import great_expectations.expectations as gxe
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
-from great_expectations.self_check.util import build_spark_engine
-from great_expectations.validator.metric_configuration import MetricConfiguration
-from tests.expectations.test_util import get_table_columns_metric
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
     ALL_DATA_SOURCES,
@@ -161,35 +158,74 @@ def test_datetime64_ns_with_pd_timestamp_value_set(batch_for_datasource: Batch) 
     assert result.success
 
 
-@pytest.mark.spark
-def test_spark_connect_compatible(spark_session, monkeypatch) -> None:
+@pytest.mark.unit
+def test_spark_connect_compatible() -> None:
     """Reproduces issue #11919: .rdd is not supported in Spark Connect (Databricks).
 
     ExpectColumnDistinctValuesToEqualSet calls column.distinct_values.missing_from_column
     which internally used .rdd.flatMap(lambda x: x), an API unavailable in Spark Connect.
-    This test patches .rdd to simulate Spark Connect and verifies the metric resolves
-    without accessing .rdd.
+    This test uses a mock DataFrame that raises on .rdd access to simulate Spark Connect,
+    confirming the fix works without accessing .rdd.
+
+    Note: uses a mock DataFrame instead of @parameterize_batch_for_data_sources because
+    the bug is specific to Spark Connect (not classic local Spark), and setting up a real
+    Spark Connect session locally is not practical. F is also patched so the test does not
+    require an active SparkContext.
     """
-    pd_df = pd.DataFrame({"colors": ["red", "green", "blue"]})
-    engine = build_spark_engine(spark=spark_session, df=pd_df, batch_id="id")
-    table_columns_metric, resolved = get_table_columns_metric(execution_engine=engine)
+    from unittest.mock import MagicMock, patch
 
-    probe_df = spark_session.createDataFrame(pd_df)
-    spark_df_class = type(probe_df)
+    from great_expectations.expectations.metrics.column_aggregate_metrics.column_distinct_values_missing_from_column import (
+        ColumnDistinctValuesMissingFromColumn,
+    )
 
-    def _rdd_not_supported(self):
-        raise AttributeError(
-            "[JVM_ATTRIBUTE_NOT_SUPPORTED] Attribute `rdd` is not supported in Spark Connect"
+    class _Row:
+        def __init__(self, value):
+            self._value = value
+
+        def __getitem__(self, i):
+            return self._value
+
+    class _SparkConnectLikeDF:
+        """Minimal DataFrame mock simulating Spark Connect: .rdd raises, .collect() works."""
+
+        def __init__(self, rows):
+            self._rows = rows
+
+        def select(self, *args):
+            return self
+
+        def where(self, *args):
+            return self
+
+        def distinct(self):
+            return self
+
+        @property
+        def rdd(self):
+            raise AttributeError(
+                "[JVM_ATTRIBUTE_NOT_SUPPORTED] Attribute `rdd` is not supported in Spark Connect"
+            )
+
+        def collect(self):
+            return self._rows
+
+    mock_df = _SparkConnectLikeDF([_Row("red"), _Row("green"), _Row("blue")])
+    mock_engine = MagicMock()
+    mock_engine.get_compute_domain.return_value = (mock_df, {}, {"column": "colors"})
+
+    _METRIC_MOD = "great_expectations.expectations.metrics.column_aggregate_metrics.column_distinct_values_missing_from_column"
+
+    # Patch F so F.col() works without an active SparkContext
+    with patch(f"{_METRIC_MOD}.F") as mock_F:
+        mock_F.col.return_value = MagicMock()
+
+        # Before fix: AttributeError raised when .rdd is accessed inside _spark
+        # After fix: .collect() is used instead; returns ["yellow"] as the missing value
+        result = ColumnDistinctValuesMissingFromColumn._spark(
+            ColumnDistinctValuesMissingFromColumn,
+            execution_engine=mock_engine,
+            metric_domain_kwargs={"column": "colors"},
+            metric_value_kwargs={"value_set": ["red", "green", "blue", "yellow"]},
         )
 
-    monkeypatch.setattr(spark_df_class, "rdd", property(_rdd_not_supported))
-
-    missing_metric = MetricConfiguration(
-        metric_name="column.distinct_values.missing_from_column",
-        metric_domain_kwargs={"column": "colors"},
-        metric_value_kwargs={"value_set": ["red", "green", "blue", "yellow"]},
-    )
-    missing_metric.metric_dependencies = {"table.columns": table_columns_metric}
-
-    results = engine.resolve_metrics(metrics_to_resolve=(missing_metric,), metrics=resolved)
-    assert results[missing_metric.id] == ["yellow"]
+    assert result == ["yellow"]
