@@ -11,6 +11,12 @@ import PrereqGxInstallation from '../../_core_components/prerequisites/_gx_insta
 
 ## Create an Ephemeral Data Context
 
+An Ephemeral Data Context keeps its configuration in memory and writes nothing to a persistent store, so it is a good fit whenever you don't need to keep your GX configuration between runs. Common use cases include:
+
+- Experimenting with GX or exploring data without creating a `gx/` project directory.
+- Running validations in CI, where the environment is recreated on each run and no project directory is committed to your repository.
+- Working in disposable or read-only compute&mdash;such as ephemeral containers or hosted notebooks&mdash;where there is no persistent filesystem to write to.
+
 <Tabs 
    queryString="procedure"
    defaultValue="instructions"
