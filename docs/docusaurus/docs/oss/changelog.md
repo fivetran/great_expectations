@@ -17,7 +17,7 @@ Before we completely remove the functionality in a new major release, there will
 
 ### 1.18.2
 * [BUGFIX] Fix .rdd usage in Spark distinct-values metrics for Spark Connect compatibility ([#11922](https://github.com/fivetran/great_expectations/pull/11922))
-* [DOCS] Fix typos in the Run a Validation Definition guide ([#11920](https://github.com/fivetran/great_expectations/pull/11920)) (thanks @zozo123, Claude Opus 4.8 (1M context))
+* [DOCS] Fix typos in the Run a Validation Definition guide ([#11920](https://github.com/fivetran/great_expectations/pull/11920)) (thanks @zozo123)
 * [MAINTENANCE] Fix pytest parametrize non-Collection iterable deprecation breaking scheduled CI ([#11921](https://github.com/fivetran/great_expectations/pull/11921))
 * [MAINTENANCE] Fix BigQuery Python 3.13 collection error from NumPy 'generic' unit DeprecationWarning ([#11924](https://github.com/fivetran/great_expectations/pull/11924))
 * [MAINTENANCE] Bump http-proxy-middleware from 2.0.9 to 2.0.10 in /docs/docusaurus ([#11927](https://github.com/fivetran/great_expectations/pull/11927))
