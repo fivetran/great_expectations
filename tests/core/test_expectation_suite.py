@@ -536,16 +536,6 @@ class TestCRUDMethods:
         context = empty_data_context
         self._test_update_suite_adds_ids(context, expectation)
 
-    @pytest.mark.cloud
-    def test_cloud_context_update_suite_adds_ids(
-        self,
-        unset_gx_env_variables: None,
-        empty_cloud_context_fluent,
-        expectation,
-    ):
-        context = empty_cloud_context_fluent
-        self._test_update_suite_adds_ids(context, expectation)
-
     def _test_update_suite_adds_ids(self, context, expectation):
         suite_name = "test-suite"
         suite = ExpectationSuite(suite_name)
@@ -580,16 +570,6 @@ class TestCRUDMethods:
         ):
             suite.add_expectation(expectation)
 
-    @pytest.mark.cloud
-    def test_cloud_expectation_can_be_saved_after_added(
-        self,
-        unset_gx_env_variables: None,
-        empty_cloud_context_fluent,
-        expectation,
-    ):
-        context = empty_cloud_context_fluent
-        self._test_expectation_can_be_saved_after_added(context, expectation)
-
     @pytest.mark.filesystem
     def test_filesystem_expectation_can_be_saved_after_added(self, empty_data_context, expectation):
         context = empty_data_context
@@ -608,16 +588,6 @@ class TestCRUDMethods:
         suite = context.suites.get(suite_name)
         assert len(suite.expectations) == 1
         assert suite.expectations[0].column == updated_column_name
-
-    @pytest.mark.cloud
-    def test_cloud_expectation_can_be_saved_after_update(
-        self,
-        unset_gx_env_variables: None,
-        empty_cloud_context_fluent,
-        expectation,
-    ):
-        context = empty_cloud_context_fluent
-        self._test_expectation_can_be_saved_after_update(context, expectation)
 
     @pytest.mark.filesystem
     def test_filesystem_expectation_can_be_saved_after_update(
@@ -677,63 +647,8 @@ class TestCRUDMethods:
         assert updated_suite.expectations[0].column == "c"
         assert updated_suite.expectations[1].column == "b"
 
-    @pytest.mark.cloud
-    def test_expectation_save_callback_can_come_from_any_copy_of_a_suite(
-        self,
-        unset_gx_env_variables: None,
-        empty_cloud_context_fluent,
-    ):
-        """Equivalent calls to ExpectationSuite._save_expectation from different copies of a
-        single ExpectationSuite must produce equivalent side effects.
-
-        In some cases, the ExpectationsStore replaces Expectations from a given suite with Expectations
-        from another copy of the same suite, in order to keep the ExpectationSuite in memory up to date
-        with the remote ExpectationSuite. ExpectationSuite._save_expectation (and the corresponding logic
-        the suite uses within the ExpectationsStore) must work equivalently regardless of which Suite instance
-        it belongs to.
-        """  # noqa: E501 # FIXME CoP
-        # Arrange
-        context = empty_cloud_context_fluent
-        suite_name = "test-suite"
-        suite_a = ExpectationSuite(name=suite_name)
-        column_name = "a"
-        updated_column_name = "foo"
-        expectations = [
-            gxe.ExpectColumnValuesToBeInSet(
-                column=column_name,
-                value_set=[1, 2, 3],
-            ),
-            gxe.ExpectColumnValuesToBeInSet(
-                column="b",
-                value_set=[4, 5, 6],
-            ),
-        ]
-        for expectation in expectations:
-            suite_a.add_expectation(expectation)
-
-        context.suites.add(suite_a)
-
-        suite_b = context.suites.get(name=suite_name)
-
-        # Act
-        suite_a.expectations = suite_b.expectations
-        expectation = suite_a.expectations[0]
-        # the following assert is the method equivalent of `is`
-        assert expectation._save_callback == suite_b._save_expectation
-        assert expectation.column == column_name
-        expectation.column = updated_column_name
-        expectation.save()
-
-        # Assert
-        fetched_suite = context.suites.get(name=suite_name)
-        assert (
-            suite_a.expectations[0].column
-            == fetched_suite.expectations[0].column
-            == updated_column_name
-        )
-
     @pytest.mark.unit
-    def test_expectation_suite_name_can_be_updated(self, empty_cloud_context_fluent):
+    def test_expectation_suite_name_can_be_updated(self):
         """Expect that ExpectationSuite.name can be updated directly"""
         suite = ExpectationSuite(name=self.expectation_suite_name)
         new_name = "updated name"
@@ -1245,78 +1160,6 @@ def test_is_fresh_is_added(
     assert all(
         isinstance(err, gx_exceptions.ExpectationSuiteNotAddedError) for err in diagnostics.errors
     )
-
-
-@pytest.mark.cloud
-def test_save_on_suite_updates_rendered_content(
-    unset_gx_env_variables: None,
-    empty_cloud_context_fluent,
-):
-    context = empty_cloud_context_fluent
-
-    expectation_1 = gxe.ExpectColumnDistinctValuesToBeInSet(column="a", value_set=[1, 2, 3])
-    expectation_2 = gxe.ExpectColumnValuesToBeBetween(column="a", min_value=1, max_value=5)
-    suite = context.suites.add(
-        suite=ExpectationSuite(
-            name="my_suite",
-            expectations=[
-                expectation_1,
-                expectation_2,
-            ],
-        )
-    )
-
-    old_expectation_1_rendered_content = suite.expectations[0].rendered_content
-    old_expectation_2_rendered_content = suite.expectations[1].rendered_content
-
-    suite.expectations[0].value_set = [1, 2, 3, 4, 5]
-    suite.expectations[1].min_value = 2
-
-    suite.save()
-
-    new_expectation_1_rendered_content = suite.expectations[0].rendered_content
-    new_expectation_2_rendered_content = suite.expectations[1].rendered_content
-
-    assert new_expectation_1_rendered_content != old_expectation_1_rendered_content
-    assert new_expectation_1_rendered_content[0].value["params"]["value_set"]["value"] == [
-        1,
-        2,
-        3,
-        4,
-        5,
-    ]
-    assert new_expectation_2_rendered_content != old_expectation_2_rendered_content
-    assert new_expectation_2_rendered_content[0].value["params"]["min_value"]["value"] == 2
-
-
-@pytest.mark.cloud
-def test_save_on_individual_expectation_updates_rendered_content(
-    unset_gx_env_variables: None,
-    empty_cloud_context_fluent,
-):
-    context = empty_cloud_context_fluent
-
-    suite = context.suites.add(
-        suite=ExpectationSuite(
-            name="my_suite",
-            expectations=[gxe.ExpectColumnDistinctValuesToBeInSet(column="a", value_set=[1, 2, 3])],
-        )
-    )
-
-    old_expectation_rendered_content = suite.expectations[0].rendered_content
-    suite.expectations[0].value_set = [1, 2, 3, 4, 5]
-
-    suite.expectations[0].save()
-    new_expectation_rendered_content = suite.expectations[0].rendered_content
-
-    assert new_expectation_rendered_content != old_expectation_rendered_content
-    assert new_expectation_rendered_content[0].value["params"]["value_set"]["value"] == [
-        1,
-        2,
-        3,
-        4,
-        5,
-    ]
 
 
 @pytest.mark.unit

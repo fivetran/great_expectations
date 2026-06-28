@@ -17,7 +17,6 @@ if TYPE_CHECKING:
     from great_expectations.data_context.data_context.ephemeral_data_context import (
         EphemeralDataContext,
     )
-    from tests.datasource.fluent._fake_cloud_api import CloudDetails
 
 
 @pytest.fixture
@@ -38,15 +37,15 @@ def file_backed_store(tmp_path):
 
 
 @pytest.fixture
-def cloud_backed_store(cloud_details: CloudDetails):
+def cloud_backed_store():
     return ValidationDefinitionStore(
         store_name="cloud_backed_validation_definition_store",
         store_backend={
             "class_name": "GXCloudStoreBackend",
             "ge_cloud_resource_type": GXCloudRESTResource.VALIDATION_DEFINITION,
             "ge_cloud_credentials": {
-                "access_token": cloud_details.access_token,
-                "organization_id": cloud_details.org_id,
+                "access_token": "i_am_a_token",
+                "organization_id": "12345678-1234-5678-1234-567812345678",
             },
         },
     )

@@ -14,7 +14,7 @@ from great_expectations import get_context
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.partitioners import ColumnPartitionerMonthly
 from great_expectations.core.yaml_handler import YAMLHandler
-from great_expectations.data_context import CloudDataContext, FileDataContext
+from great_expectations.data_context import FileDataContext
 from great_expectations.datasource.fluent import SqliteDatasource
 from great_expectations.datasource.fluent.interfaces import Datasource
 
@@ -146,7 +146,7 @@ def test_file_context_add_and_save_fluent_datasource(
 # Test markers come from empty_contexts fixture
 def test_context_add_and_save_fluent_datasource(
     unset_gx_env_variables: None,
-    empty_contexts: CloudDataContext | FileDataContext,
+    empty_contexts: FileDataContext,
     sqlite_database_path: pathlib.Path,
 ):
     context = empty_contexts
@@ -163,7 +163,7 @@ def test_context_add_and_save_fluent_datasource(
 # Test markers come from empty_contexts fixture
 def test_context_add_or_update_datasource(
     unset_gx_env_variables: None,
-    empty_contexts: CloudDataContext | FileDataContext,
+    empty_contexts: FileDataContext,
     sqlite_database_path: pathlib.Path,
 ):
     context = empty_contexts
@@ -228,7 +228,7 @@ def test_ctx_delete_removes_datasource_from_yaml(
 # Test markers come from empty_contexts fixture
 def test_quickstart_workflow(
     unset_gx_env_variables: None,
-    empty_contexts: CloudDataContext | FileDataContext,
+    empty_contexts: FileDataContext,
     csv_path: pathlib.Path,
     mocker: MockerFixture,
 ):
@@ -237,7 +237,7 @@ def test_quickstart_workflow(
 
     Tests the Quickstart workflow noted in our docs: https://docs.greatexpectations.io/docs/tutorials/quickstart/
 
-    In particular, this test covers the file-backend and cloud-backed usecases with this script.
+    In particular, this test covers the file-backend usecase with this script.
     The ephemeral usecase is covered in: tests/integration/docusaurus/tutorials/quickstart/quickstart.py
     """  # noqa: E501 # FIXME CoP
     # Slight deviation from the Quickstart here:
@@ -246,8 +246,6 @@ def test_quickstart_workflow(
     #
     # These changes should be functionally equivalent to the real workflow but be better for testing
     context = empty_contexts
-    if isinstance(context, CloudDataContext):
-        pytest.xfail("Checkpoint run fails in some cases on GE Cloud")
 
     filepath = csv_path / "yellow_tripdata_sample_2019-01.csv"
     assert filepath.exists()

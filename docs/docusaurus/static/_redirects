@@ -18,8 +18,8 @@
 /en/latest/contributing/testing.html https://docs.greatexpectations.io/docs/0.18/oss/contributing/contributing/
 /en/latest/contributing/* https://docs.greatexpectations.io/docs/core/introduction/community_resources/#contribute-code-or-documentation
 /en/latest/community.html https://docs.greatexpectations.io/docs/core/introduction/community_resources/
-/en/latest/guides.html https://docs.greatexpectations.io/docs/cloud/overview/gx_cloud_overview
-/en/latest/guides/workflows_patterns.html https://docs.greatexpectations.io/docs/cloud/deploy/deployment_patterns
+/en/latest/guides.html https://docs.greatexpectations.io/docs/core/introduction/
+/en/latest/guides/workflows_patterns.html https://docs.greatexpectations.io/docs/core/introduction/
 /en/latest/guides/how_to_guides.html https://docs.greatexpectations.io/docs/core/introduction/
 /en/latest/guides/how_to_guides/configuring_data_docs/* https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_data_docs/
 /en/latest/guides/how_to_guides/creating_and_editing_expectations.html https://docs.greatexpectations.io/docs/core/define_expectations/
@@ -39,7 +39,7 @@
 /en/latest/guides/tutorials/getting_started_v3_api/* https://docs.greatexpectations.io/docs/core/introduction/
 /en/latest/guides/tutorials/quick_start.html https://docs.greatexpectations.io/docs/core/introduction/
 /en/latest/guides/tutorials/how_to_create_expectations.html https://docs.greatexpectations.io/docs/core/define_expectations/create_an_expectation/
-/en/latest/guides/workflows_patterns/* https://docs.greatexpectations.io/docs/cloud/deploy/deployment_patterns
+/en/latest/guides/workflows_patterns/* https://docs.greatexpectations.io/docs/core/introduction/
 /en/latest/changelog.html https://docs.greatexpectations.io/docs/core/changelog/
 /docs/changelog/ https://docs.greatexpectations.io/docs/core/changelog
 /en/latest/releasing.html https://docs.greatexpectations.io/docs/core/changelog/
@@ -249,7 +249,6 @@ docs/guides/expectations/contributing/how_to_contribute_a_custom_expectation_to_
 
 ## Redirects for content reorg
 
-/docs/cloud/deploy_gx_agent /docs/cloud/deploy/deploy_gx_agent
 /docs/guides/setup/installation/local /docs/guides/setup/installation/install_gx
 /docs/guides/setup/installation/hosted_environment /docs/guides/setup/installation/install_gx
 /docs/guides/setup/optional_dependencies/cloud/how_to_set_up_gx_to_work_with_data_on_aws_s3 /docs/core/set_up_a_gx_environment/install_additional_dependencies
@@ -340,12 +339,6 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 
 # GX Cloud redirects
 
-/docs/cloud/quickstarts/quickstart_lp /docs/cloud/connect/connect_lp
-/docs/cloud/quickstarts/snowflake_quickstart /docs/cloud/try_gx_cloud
-/docs/cloud/quickstarts/airflow_quickstart /docs/cloud/integrations/integrate_airflow
-/docs/cloud/quickstarts/python_quickstart /docs/cloud/connect/connect_python
-/docs/cloud/set_up_gx_cloud#* /docs/cloud/try_gx_cloud#:splat
-/docs/cloud/try_gx_cloud /docs/cloud/deploy_gx_agent
 /versioned_docs/version-0.18/cloud/try_gx_cloud /versioned_docs/version-0.18/cloud/tdeploy_gx_agent
 
 #redirects for gallery links pointing to .18 content
@@ -411,7 +404,6 @@ https://docs.greatexpectations.io/docs/reference/api/profile/user_configurable_p
 /docs/reference/learn/conceptual_guides/* /docs/0.18/reference/learn/conceptual_guides/:splat
 /docs/reference/api/* /docs/0.18/reference/api/:splat
 
-/docs/cloud/expectation_suites/manage_expectation_suites /docs/cloud/expectations/manage_expectations
 
 ## Redirects for old versioned docs
 
@@ -459,16 +451,7 @@ http://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 
 ## Redirect for mistargeted incoming link
 
-/docs/cloud/integrations/atlan /docs/cloud/integrations/integrate_atlan 
-
 ## Redirects for renamed docs
 
 /docs/resources/get_support /docs/help/get_support
 /docs/application_integration_support /docs/help/compatibility_reference
-/docs/cloud/overview/automating_rules /docs/cloud/overview/accelerating_test_coverage
-/docs/cloud/overview/coverage_health /docs/cloud/overview/data_health
-/docs/cloud/alerts/manage_alerts /docs/cloud/alerts/alert_about_failures
-/docs/cloud/alerts/manage_email_alerts /docs/cloud/alerts/alert_about_failures
-/docs/cloud/users/manage_users /docs/cloud/access/manage_access
-/docs/cloud/validations/manage_validations /docs/cloud/validations/run_validations
-/docs/cloud/connect/connect_airflow /docs/cloud/integrations/integrate_airflow

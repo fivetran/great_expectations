@@ -11,7 +11,7 @@ In this guide, you will learn how to leverage GX to effectively handle missing d
 
 ## Prerequisite knowledge
 
-This article assumes basic familiarity with GX components and workflows. If you're new to GX, start with the [GX Overview](https://docs.greatexpectations.io/docs/cloud/overview/gx_cloud_overview/) to familiarize yourself with key concepts and setup procedures.
+This article assumes basic familiarity with GX components and workflows. If you're new to GX, start with the [GX Core overview](/core/introduction/gx_overview.md) to familiarize yourself with key concepts and setup procedures.
 
 ## Data preview
 
@@ -26,7 +26,7 @@ In this dataset, you'll notice missing data in the `type` and `transfer_date` co
 
 ## Key missingness Expectations
 
-GX provides missingness-focused Expectations to manage missing data in your datasets. These Expectations can be created using GX Cloud or GX Core. 
+GX provides missingness-focused Expectations to manage missing data in your datasets. These Expectations can be created using GX Core.
 
 ### Expect Column Proportion Of Non-null Values To Be Between
 
@@ -38,14 +38,6 @@ This Expectation validates that the proportion of non-null values in a column is
 ```
 
 <small>View `ExpectColumnProportionOfNonNullValuesToBeBetween` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_proportion_of_non_null_values_to_be_between).</small>
-
-<br/>
-<br/>
-
-:::tip Automate this rule with GX Cloud
-When you use the GX Cloud UI to [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add an Expectation](/cloud/expectations/manage_expectations.md#create-an-expectation), you can enable Anomaly Detection on each column to test that column completeness doesn't change drastically between Validation runs. Note that these conveniences have some [Data Source limitations](/docs/cloud/data_sources/manage_data_sources/#workflow-and-feature-support). 
-:::
-
 
 ### Expect Column Values To Not Be Null
 
@@ -79,9 +71,7 @@ Ensures that values within a column are `NULL`.
 
 ## Examples and scenarios
 
-The examples given in this section provide insight into how and when to apply missingness Expectations to identify different varieties of missing data. The focus of this guidance is on the specifics of the Expectations, rather than the overall workflow, which can be implemented using either GX Cloud or GX Core.
-
-[GX Cloud](/cloud/overview/gx_cloud_overview.md) provides a visual interface and scaling conveniences to create and run workflows for managing missing data. The GX Cloud workflow to handle data missingness is: create a Data Asset with automatically generated Anomaly Detection Expectations, run a Validation, and review Validation Results.
+The examples given in this section provide insight into how and when to apply missingness Expectations to identify different varieties of missing data. The focus of this guidance is on the specifics of the Expectations, rather than the overall workflow.
 
 [GX Core](/core/introduction/gx_overview.md) can be used to programmatically implement custom workflows for handling missing data.
 

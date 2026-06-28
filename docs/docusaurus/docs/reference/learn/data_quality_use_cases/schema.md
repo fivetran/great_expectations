@@ -3,9 +3,6 @@ sidebar_label: 'Schema'
 title: 'Validate data schema with GX'
 ---
 
-import TabItem from '@theme/TabItem';
-import Tabs from '@theme/Tabs';
-
 Data schema refers to the structural blueprint of a dataset, encompassing elements such as column
 names, data types, and the overall organization of information. When working with data, ensuring
 that it adheres to its predefined schema is a critical aspect of data quality management. This
@@ -37,7 +34,7 @@ You can [access this dataset](https://raw.githubusercontent.com/great-expectatio
 
 ## Key schema Expectations
 
-GX offers a collection of Expectations for schema validation, all of which can be added directly in GX Cloud or GX Core. 
+GX offers a collection of Expectations for schema validation, all of which can be added directly in GX Core.
 
 The schema Expectations provide basic practical solutions for common validation scenarios and can also be used to satisfy more nuanced validation needs.
 
@@ -138,10 +135,6 @@ flexibility where column presence is more critical than their sequence.
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/schema_resources/schema_expectations.py ExpectTableColumnsToMatchSet"
 ```
 
-:::tip Automate this rule with GX Cloud
-When you use the GX Cloud UI to [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add an Expectation](/cloud/expectations/manage_expectations.md#create-an-expectation), you can enable Anomaly Detection to test that columns don't diverge from the initial set over time. Note that these conveniences have some [Data Source limitations](/docs/cloud/data_sources/manage_data_sources/#workflow-and-feature-support).
-:::
-
 <small>View `ExpectTableColumnsToMatchSet` in the [Expectation
 Gallery](https://greatexpectations.io/expectations/expect_table_columns_to_match_set).</small>
 
@@ -172,8 +165,6 @@ Gallery](https://greatexpectations.io/expectations/expect_table_column_count_to_
 
 
 ## Examples
-
-**GX Cloud** provides a visual interface to create and run schema validation workflows. The GX Cloud workflow for validating data schemas is to create Data Assets with automatically generated Anomaly Detection Expectations, manually define additional Expectations, run Validations, and review Validation Results.
 
 **GX Core** can be used to programmatically implement custom validation workflows. The examples provided in this section feature use cases that leverage GX Core to achieve schema validation.
 

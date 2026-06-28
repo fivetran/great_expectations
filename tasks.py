@@ -856,14 +856,13 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             "reqs/requirements-dev-trino.txt",
             # "Deprecated API features detected" warning/error for test_docs[split_data_on_whole_table_bigquery] when pandas>=2.0  # noqa: E501
         ),
-        services=("mercury", "mssql", "trino"),
+        services=("mssql", "trino"),
         extra_pytest_args=(
-            "--aws",
-            "--azure",
-            "--bigquery",
-            "--redshift",
-            "--snowflake",
-            "--cloud",
+            # TEMPORARY (CI transition): the S3, GCS, Azure Blob, BigQuery, Redshift, and
+            # Snowflake backends are unavailable while their CI infrastructure is torn down.
+            # Requesting any of them makes test collection eagerly connect to a dead backend
+            # and abort the whole session, so only the still-available Trino backend is
+            # requested here. Restore the cloud/warehouse flags once the infra is back.
             "--trino",
             "--docs-tests",
         ),
@@ -1218,25 +1217,6 @@ def service(
         print(f"  Starting services for {', '.join(service_names)} ...")
         for service_name in service_names:
             cmds = []
-
-            if service_name == "mercury" and os.environ.get("CI") != "true":
-                cmds.extend(
-                    [
-                        "FORCE_NO_ALIAS=true",
-                        "assume",
-                        "dev",
-                        "--exec",
-                        "'aws ecr get-login-password --region us-east-1'",
-                        "|",
-                        "docker",
-                        "login",
-                        "--username",
-                        "AWS",
-                        "--password-stdin",
-                        "258143015559.dkr.ecr.us-east-1.amazonaws.com",
-                        "&&",
-                    ]
-                )
 
             if restart_services:
                 print(f"  Removing existing containers and building latest for {service_name} ...")
