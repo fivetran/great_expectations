@@ -101,6 +101,11 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
 
         Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.
 
+    Notes:
+        The observed_value field is always None. To inspect violations, use missing_count and \
+    partial_missing_list (values in value_set not present among the column's distinct values, \
+    capped at 20).
+
     See Also:
         [ExpectColumnDistinctValuesToBeInSet](https://greatexpectations.io/expectations/expect_column_distinct_values_to_be_in_set)
         [ExpectColumnDistinctValuesToEqualSet](https://greatexpectations.io/expectations/expect_column_distinct_values_to_equal_set)
@@ -145,27 +150,9 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
                     "exception_message": null
                 }},
                 "result": {{
-                    "observed_value": [
-                    1,
-                    2,
-                    4
-                    ],
-                    "details": {{
-                    "value_counts": [
-                        {{
-                        "value": 1,
-                        "count": 1
-                        }},
-                        {{
-                        "value": 2,
-                        "count": 1
-                        }},
-                        {{
-                        "value": 4,
-                        "count": 1
-                        }}
-                    ]
-                    }}
+                    "observed_value": null,
+                    "missing_count": 0,
+                    "partial_missing_list": []
                 }},
                 "meta": {{}},
                 "success": true
@@ -186,17 +173,13 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
                     "exception_message": null
                 }},
                 "result": {{
-                    "observed_value": [
-                    1
-                    ],
-                    "details": {{
-                    "value_counts": [
-                        {{
-                        "value": 1,
-                        "count": 3
-                        }}
+                    "observed_value": null,
+                    "missing_count": 3,
+                    "partial_missing_list": [
+                    2,
+                    3,
+                    4
                     ]
-                    }}
                 }},
                 "meta": {{}},
                 "success": false
