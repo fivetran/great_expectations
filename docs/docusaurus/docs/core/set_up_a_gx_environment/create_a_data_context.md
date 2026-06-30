@@ -19,7 +19,10 @@ The following are the available Data Context types:
 
 - **File Data Context:** A persistent Data Context that stores metadata and configuration information as YAML files within a file system. File Data Contexts allow you to re-use previously configured Expectation Suites, Data Sources, and Checkpoints.
 
-- **Ephemeral Data Context:** A temporary Data Context that stores metadata and configuration information in memory. This Data Context will not persist beyond the current Python session. Ephemeral Data Contexts are a good fit when you don’t need GX configuration to persist between runs—for example, when exploring data without saving results, running validations in CI where the environment is recreated on each run, or working in disposable or read-only compute (such as ephemeral containers or hosted notebooks) where there is no persistent filesystem.
+- **Ephemeral Data Context:** A temporary Data Context that stores metadata and configuration in memory and does not persist beyond the current Python session. Ephemeral Data Contexts are a good fit when you don't need your GX configuration to persist between runs, such as:
+  - Exploring data without saving results
+  - Running validations in CI where the environment is recreated each run
+  - Working in read-only or disposable compute (such as containers or hosted notebooks) with no persistent file system
 
 <Tabs queryString="context_type" groupId="context_type" defaultValue='quick' values={[{label: 'Quick Start', value:'quick'}, {label: 'File', value:'file'}, {label: 'Ephemeral', value:'ephemeral'}]}>
 
