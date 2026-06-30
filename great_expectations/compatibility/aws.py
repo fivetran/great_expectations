@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from importlib import metadata
+from typing import Any, Dict
+
 from great_expectations.compatibility.not_imported import NotImported
 
 BOTO_NOT_IMPORTED = NotImported(
@@ -31,6 +34,40 @@ try:
     from botocore import exceptions
 except ImportError:
     exceptions = BOTO_NOT_IMPORTED
+
+
+def _get_distribution_version() -> str:
+    try:
+        return metadata.version("great_expectations")
+    except metadata.PackageNotFoundError:
+        return "dev"
+
+
+def get_s3_boto3_options(boto3_options: Dict[str, Any]) -> Dict[str, Any]:
+    """Return boto3 client options with a ``great-expectations`` agent suffix.
+
+    Works with Amazon S3 and any S3-compatible object store (for example
+    Backblaze B2, Cloudflare R2, or MinIO). A caller-supplied ``config`` and
+    ``endpoint_url`` are preserved; the suffix is appended to an existing agent
+    string rather than replacing it.
+    """
+    suffix = f"great-expectations/{_get_distribution_version()}"
+    options = dict(boto3_options)
+
+    if not Config:
+        return options
+
+    config = options.get("config")
+    existing = getattr(config, "user_agent_extra", None) if config else None
+    user_agent_extra = f"{existing} {suffix}" if existing else suffix
+
+    if config:
+        options["config"] = config.merge(Config(user_agent_extra=user_agent_extra))
+    else:
+        options["config"] = Config(user_agent_extra=user_agent_extra)
+
+    return options
+
 
 try:
     import sqlalchemy_redshift
