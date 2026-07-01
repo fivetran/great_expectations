@@ -8,10 +8,10 @@ For everything related to setting up your local development environment — inst
 configuring test backends, running the test suite, linting, and IDE setup — see
 [DEVELOPMENT.md](./DEVELOPMENT.md). Complete that setup before starting the steps below.
 
-To discuss a code change before you implement it, join the
-[GX Slack community](https://greatexpectations.io/slack) and post in the
-[#contributing channel](https://greatexpectationstalk.slack.com/archives/CV828B2UX). To request a
-documentation-only change, or a change that doesn't require local testing, see the
+Discuss a code change before you implement it on GitHub — ideally as a comment on the applicable issue if
+one exists, or by starting a new thread in
+[GitHub Discussions](https://github.com/great-expectations/great_expectations/discussions) if it doesn't.
+To request a documentation-only change, or a change that doesn't require local testing, see the
 [README](https://github.com/great-expectations/great_expectations/tree/develop/docs) in the `docs`
 directory instead of following this guide.
 
@@ -21,8 +21,9 @@ directory instead of following this guide.
    `community-supported` label on the
    [GX Issues board](https://github.com/orgs/great-expectations/projects/2/views/1?pane=info).
 
-2. Claim the issue by commenting on it or assigning it to yourself, so other contributors know it's in
-   progress.
+2. Claim the issue by commenting on it to let other contributors know you're working on it. Try to open a
+   pull request within about a week of claiming it — a stale claim (no PR after that) may be treated as
+   reclaimable so someone else can pick up the issue.
 
 3. If no existing issue covers your change, open a new issue first and add a comment introducing yourself
    and describing what you plan to do. For a significant feature, open the issue before writing code so the
@@ -55,27 +56,29 @@ directory instead of following this guide.
    - `[BUGFIX]` for PRs that address minor bugs without changing behavior.
    - `[FEATURE]` for significant PRs that add a new feature likely to require being added to the feature
      maturity matrix.
+   - `[DOCS]` for PRs that only change documentation.
    - `[MAINTENANCE]` for PRs that focus on updating repository settings or related changes.
-   - `[CONTRIB]` for the contribution of supporting work into the `contrib/` directory.
-   - `[HACKATHON]` for submissions to an active Great Expectations Hackathon.
+   - `[CONTRIB]` for pull requests from community contributors.
+   - `[MINORBUMP]` for PRs that bump a dependency's minor or patch version.
+   - `[RELEASE]` for PRs that prepare or publish a new Great Expectations release.
 
 4. In the PR description, include a description of any prior discussion or coordination on the feature —
    for example, "Closes #123", a link to a relevant [Discourse](https://discourse.greatexpectations.io/)
-   thread or Slack conversation, a note about a team meeting, or a note that no discussion is relevant
-   because the change is small.
+   thread or Slack conversation, or a note that no discussion is relevant because the change is small.
 
 5. If this is your first Great Expectations contribution, you'll be prompted to complete the Contributor
    License Agreement (CLA). See [Issue labels and CLA](#issue-labels-and-cla) below for what the CLA requires
    and how to complete it, then add `@cla-bot check` as a comment on the PR once you have.
 
-6. Wait for the Continuous Integration (CI) checks to complete, and correct any syntax or formatting issues
-   they surface.
+6. Continuous Integration (CI) doesn't start automatically on your PR — a maintainer needs to review and
+   trigger the run first. This usually happens within the next business day, though that isn't guaranteed.
+   Once CI runs, wait for the checks to complete and correct any syntax or formatting issues they surface.
 
 ## 4. What happens during review
 
-A Great Expectations team member reviews your PR, requests changes if needed, and approves and merges it
-once it's ready. Depending on your GitHub notification settings, you'll be notified when there are comments
-on your PR or when it's successfully merged.
+A maintainer reviews your PR, requests changes if needed, and approves and merges it once it's ready.
+Depending on your GitHub notification settings, you'll be notified when there are comments on your PR or
+when it's successfully merged.
 
 ## Issue labels and CLA
 
