@@ -18,7 +18,7 @@ directory instead of following this guide.
 ## 1. Propose a change or claim an issue
 
 1. If you want to fix a bug or make a small, well-scoped change, look for an existing issue with a
-   `community-supported` label on the
+   `help wanted` label on the
    [GX Issues board](https://github.com/orgs/great-expectations/projects/2/views/1?pane=info).
 
 2. Claim the issue by commenting on it to let other contributors know you're working on it. Try to open a
@@ -51,16 +51,7 @@ directory instead of following this guide.
    [Creating a pull request from a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork).
 
 3. Add a meaningful title and description. Provide a detailed explanation of what you changed and why. To
-   help identify the type of change, prefix the PR title with one of the following:
-
-   - `[BUGFIX]` for PRs that address minor bugs without changing behavior.
-   - `[FEATURE]` for significant PRs that add a new feature likely to require being added to the feature
-     maturity matrix.
-   - `[DOCS]` for PRs that only change documentation.
-   - `[MAINTENANCE]` for PRs that focus on updating repository settings or related changes.
-   - `[CONTRIB]` for pull requests from community contributors.
-   - `[MINORBUMP]` for PRs that bump a dependency's minor or patch version.
-   - `[RELEASE]` for PRs that prepare or publish a new Great Expectations release.
+   help identify the change, prefix the PR title with `[CONTRIB]`.
 
 4. In the PR description, include a description of any prior discussion or coordination on the feature —
    for example, "Closes #123", a link to a relevant [Discourse](https://discourse.greatexpectations.io/)
@@ -95,21 +86,9 @@ Additionally, Great Expectations adds the following labels to indicate issue sta
 
 - `help wanted`: identifies useful issues that require help from community contributors to accelerate
   development
-- `enhacement` and `expectation-request`: identify new Great Expectations features that require additional
-  investigation and discussion
 - `good first issue`: identifies issues that provide an introduction to the Great Expectations contribution
   process
 
-We also have labels to indicate the level of support you can expect for each issue. They are as follows:
-
-- `community-supported`: related to a part of the code-base that is not tested and actively maintained with
-  new GX Core or GX Cloud releases; however, we actively welcome ongoing maintenance from the community
-- `not-supported`: an issue that we at GX will not be maintaining, and we will not support PRs or
-  contributions from the community on the topic
-
-Issues without either a `community-supported` or `not-supported` label can be assumed to be
-**GX-supported**, which means they are related to a part of the code-base that is tested and actively
-maintained with new GX Core or GX Cloud releases.
 
 ### Contributor license agreement (CLA)
 
