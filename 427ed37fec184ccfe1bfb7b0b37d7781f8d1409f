@@ -1,0 +1,23 @@
+CONTRIBUTING.md
+  fef59bcb19c71220 73,87,89-90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.1",
+  "base_commit_sha": "427ed37fec184ccfe1bfb7b0b37d7781f8d1409f",
+  "prompts": {
+    "fef59bcb19c71220": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a83fb023-4871-4f51-8470-22224aee8638",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 6,
+      "total_deletions": 33,
+      "accepted_lines": 4,
+      "overriden_lines": 0
+    }
+  }
+}
