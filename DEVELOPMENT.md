@@ -466,3 +466,108 @@ Test the performance of code changes to determine they perform as expected. BigQ
     $ tests/performance/run_benchmark_multiple_times.sh minimal_multithreading
     ```
      The name for the tests should include the first argument provided to the script. In the previous example, this was `tests/performance/results/minimal_multithreading_*.json`.
+
+## Code linting
+
+Before submitting a pull request, make sure that your code passes the lint check. Run:
+
+```sh
+black .
+ruff . --fix
+```
+
+## Locally deploying docs
+
+You can find more information on developing Great Expectations docs in [/docs/docusaurus/README.md](/docs/docusaurus/README.md). To get a version of the docs deployed locally, run:
+
+```sh
+invoke docs
+```
+
+The website should then be available at:
+
+```sh
+open http://localhost:3000/docs
+```
+
+## Verifying doc links
+
+Great Expectations previously documented a `docs/checks/docs_link_checker.py` script for verifying links in the
+docs. That script no longer exists in the repository, and no equivalent check is currently wired into CI as a
+command contributors can run locally — a broken-link-checking step exists in `.github/workflows/ci.yml` but is
+disabled (commented out). Until a working replacement is in place, there is no supported local command for
+verifying doc links; this section will be updated once one exists.
+
+## Generating the glossary
+
+Generates a glossary page in the docs:
+
+```sh
+python3 ./build_glossary_page.py
+```
+
+Run this command from the `scripts` directory.
+
+## IDE setup
+
+The following tips are useful for contributors setting up an IDE for Great Expectations development.
+
+### VS Code
+
+Create a `.vscode` directory and add the following files to it:
+
+_.vscode/extension.json_
+```json
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=827846 to learn about workspace recommendations.
+	// Extension identifier format: ${publisher}.${name}. Example: vscode.csharp
+	// List of extensions which should be recommended for users of this workspace.
+	"recommendations": [
+		"stateful.runme"
+	],
+	// List of extensions recommended by VS Code that should not be recommended for users of this workspace.
+	"unwantedRecommendations": []
+}
+```
+
+_.vscode/launch.json_
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "GX Docusarus Docs",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "invoke docs"
+        },
+        {
+            "name": "GX Start MySQL Container",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "docker-compose up -d",
+            "cwd": "${workspaceFolder}/assets/docker/mysql"
+        },
+        {
+            "name": "GX Start PostgreSQL Container",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "docker-compose up -d",
+            "cwd": "${workspaceFolder}/assets/docker/postgresql"
+        }
+    ]
+}
+```
+
+_.vscode/settings.json_
+```json
+{
+    "workbench.editorAssociations": {
+        "DEVELOPMENT.md": "runme"
+    }
+}
+```
+
+### PyCharm
+
+tbd.
