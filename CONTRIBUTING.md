@@ -54,16 +54,7 @@ directory instead of following this guide.
    [Creating a pull request from a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork).
 
 3. Add a meaningful title and description. Provide a detailed explanation of what you changed and why. To
-   help identify the type of change, prefix the PR title with one of the following:
-
-   - `[BUGFIX]` for PRs that address minor bugs without changing behavior.
-   - `[FEATURE]` for significant PRs that add a new feature likely to require being added to the feature
-     maturity matrix.
-   - `[DOCS]` for PRs that only change documentation.
-   - `[MAINTENANCE]` for PRs that focus on updating repository settings or related changes.
-   - `[CONTRIB]` for pull requests from community contributors.
-   - `[MINORBUMP]` for PRs that bump a dependency's minor or patch version.
-   - `[RELEASE]` for PRs that prepare or publish a new Great Expectations release.
+   help identify the change, prefix the PR title with `[CONTRIB]`.
 
 4. In the PR description, include a description of any prior discussion or coordination on the feature —
    for example, "Closes #123", a link to a relevant [Discourse](https://discourse.greatexpectations.io/)
