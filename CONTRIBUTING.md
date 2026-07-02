@@ -70,8 +70,9 @@ directory instead of following this guide.
    thread or Slack conversation, or a note that no discussion is relevant because the change is small.
 
 5. If this is your first Great Expectations contribution, you'll be prompted to complete the Contributor
-   License Agreement (CLA). See [Issue labels and CLA](#issue-labels-and-cla) below for what the CLA requires
-   and how to complete it, then add `@cla-bot check` as a comment on the PR once you have.
+   License Agreement (CLA). See [Contributor License Agreement (CLA)](#contributor-license-agreement-cla)
+   below for what the CLA requires and how to complete it, then add `@cla-bot check` as a comment on the PR
+   once you have.
 
 6. Continuous Integration (CI) doesn't start automatically on your PR — a maintainer needs to review and
    trigger the run first. This usually happens within the next business day, though that isn't guaranteed.
@@ -83,38 +84,10 @@ A maintainer reviews your PR, requests changes if needed, and approves and merge
 Depending on your GitHub notification settings, you'll be notified when there are comments on your PR or
 when it's successfully merged.
 
-## Issue labels and CLA
+## Contributor License Agreement (CLA)
 
-> This section is expected to move to its own dedicated document(s) as GX's contribution governance
-> materials expand. Until then, it lives here in full so nothing is lost in the meantime.
-
-### Issue labels
-
-Great Expectations uses a `stalebot` to automatically tag issues without activity as `stale`, and closes
-them when a response is not received within a week. To prevent `stalebot` from closing an issue, you can add
-the `stalebot-exempt` label.
-
-Additionally, Great Expectations adds the following labels to indicate issue status:
-
-- `help wanted`: identifies useful issues that require help from community contributors to accelerate
-  development
-- `enhacement` and `expectation-request`: identify new Great Expectations features that require additional
-  investigation and discussion
-- `good first issue`: identifies issues that provide an introduction to the Great Expectations contribution
-  process
-
-We also have labels to indicate the level of support you can expect for each issue. They are as follows:
-
-- `community-supported`: related to a part of the code-base that is not tested and actively maintained with
-  new GX Core or GX Cloud releases; however, we actively welcome ongoing maintenance from the community
-- `not-supported`: an issue that we at GX will not be maintaining, and we will not support PRs or
-  contributions from the community on the topic
-
-Issues without either a `community-supported` or `not-supported` label can be assumed to be
-**GX-supported**, which means they are related to a part of the code-base that is tested and actively
-maintained with new GX Core or GX Cloud releases.
-
-### Contributor license agreement (CLA)
+> This section is expected to move to its own dedicated document as GX's contribution governance materials
+> expand. Until then, it lives here in full so nothing is lost in the meantime.
 
 *When you contribute code, you affirm that the contribution is your original work and that you license the
 work to the project under the project's open source license. Whether or not you state this explicitly, by
