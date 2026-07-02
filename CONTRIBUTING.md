@@ -17,13 +17,15 @@ directory instead of following this guide.
 
 ## 1. Propose a change or claim an issue
 
-1. If you want to fix a bug or make a small, well-scoped change, look for an existing issue with a
-   `community-supported` label on the
-   [GX Issues board](https://github.com/orgs/great-expectations/projects/2/views/1?pane=info).
+1. If you want to fix a bug or make a small, well-scoped change, look for an existing issue on the
+   [GX Issues board](https://github.com/orgs/great-expectations/projects/2/views/1?pane=info). Issues
+   labeled `help wanted` or `good first issue` are good entry points if you're not sure where to start —
+   check an issue's labels and existing comments to see whether it's still open for someone to pick up.
 
-2. Claim the issue by commenting on it to let other contributors know you're working on it. Try to open a
-   pull request within about a week of claiming it — a stale claim (no PR after that) may be treated as
-   reclaimable so someone else can pick up the issue.
+2. Before you start work, comment on the issue to let maintainers and other contributors know you're
+   picking it up. If someone else has already commented that they're working on it, look for a different
+   issue instead of duplicating effort. If you're unsure whether an issue is still available, ask in the
+   comment thread rather than assuming.
 
 3. If no existing issue covers your change, open a new issue first and add a comment introducing yourself
    and describing what you plan to do. For a significant feature, open the issue before writing code so the
@@ -35,8 +37,9 @@ directory instead of following this guide.
 
 ## 2. Set up your environment and make your change
 
-1. Follow [DEVELOPMENT.md](./DEVELOPMENT.md) to fork and clone the repository, set up your development
-   environment, and configure any backends your change needs.
+1. Follow DEVELOPMENT.md's "Fork and clone the repository" and "Set up your development environment"
+   sections to get a working checkout, then its "Configure backends for testing" section if your change
+   needs a specific backend (for example, PostgreSQL, MySQL, or Spark).
 
 2. Make your change on a branch in your fork.
 
