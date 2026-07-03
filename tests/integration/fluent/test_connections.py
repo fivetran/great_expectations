@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 import pytest
 import sqlalchemy as sa
-from pytest import param
 from sqlalchemy.sql import text
 
 from great_expectations.datasource.fluent import (
@@ -20,34 +19,36 @@ if TYPE_CHECKING:
     from great_expectations.data_context import AbstractDataContext as DataContext
 
 
+def _ci_snowflake_datasource(context: DataContext, name: str, role: str) -> SnowflakeDatasource:
+    return context.data_sources.add_snowflake(
+        name,
+        account=os.environ["SNOWFLAKE_CI_ACCOUNT"],
+        user=os.environ["SNOWFLAKE_CI_USER"],
+        private_key=os.environ["SNOWFLAKE_CI_PRIVATE_KEY"],
+        database=os.environ["SNOWFLAKE_CI_DATABASE"],
+        schema=os.environ["SNOWFLAKE_CI_SCHEMA"],
+        warehouse=os.environ["SNOWFLAKE_CI_WAREHOUSE"],
+        role=role,
+    )
+
+
 @pytest.mark.snowflake
 class TestSnowflake:
     @pytest.mark.xfail(
         raises=AssertionError,
     )  # inspector.get_table_names() fails with this role
-    @pytest.mark.parametrize(
-        "connection_string",
-        [
-            param(
-                "snowflake://${SNOWFLAKE_CI_USER}:${SNOWFLAKE_CI_USER_PASSWORD}@${SNOWFLAKE_CI_ACCOUNT}/${SNOWFLAKE_CI_DATABASE}/${SNOWFLAKE_CI_SCHEMA}?warehouse=${SNOWFLAKE_CI_WAREHOUSE}&role=${SNOWFLAKE_CI_ROLE_NO_SELECT}",
-                id="role wo select",
-            ),
-        ],
-    )
-    def test_un_queryable_asset_should_raise_error(
-        self, context: DataContext, connection_string: str
-    ):
+    def test_un_queryable_asset_should_raise_error(self, context: DataContext):
         """
         If we try to add an asset that is not queryable with the current datasource
         connection details, then we should expect a TestConnectionError.
         https://docs.snowflake.com/en/developer-guide/python-connector/sqlalchemy#connection-parameters
         """
-        snowflake_ds: SnowflakeDatasource = context.data_sources.add_snowflake(
-            "my_ds", connection_string=connection_string
+        snowflake_ds = _ci_snowflake_datasource(
+            context, "my_ds", role=os.environ["SNOWFLAKE_CI_ROLE_NO_SELECT"]
         )
 
-        inspector: Inspector = sa.inspection.inspect(snowflake_ds.get_engine())
         ci_schema = os.environ["SNOWFLAKE_CI_SCHEMA"]
+        inspector: Inspector = sa.inspection.inspect(snowflake_ds.get_engine())
         inspector_tables: list[str] = list(inspector.get_table_names(schema=ci_schema))
         print(f"tables: {len(inspector_tables)}\n{inspector_tables}")
         random.shuffle(inspector_tables)
@@ -74,20 +75,9 @@ class TestSnowflake:
             print(f"\n  Uh oh, asset should not have been created...\n{asset!r}")
         print(f"\n  TestConnectionError was raised as expected.\n{exc_info.exconly()}")
 
-    @pytest.mark.parametrize(
-        "connection_string",
-        [
-            param(
-                "snowflake://${SNOWFLAKE_CI_USER}:${SNOWFLAKE_CI_USER_PASSWORD}@${SNOWFLAKE_CI_ACCOUNT}/${SNOWFLAKE_CI_DATABASE}/${SNOWFLAKE_CI_SCHEMA}?warehouse=${SNOWFLAKE_CI_WAREHOUSE}&role=${SNOWFLAKE_CI_ROLE}&database=${SNOWFLAKE_CI_DATABASE}&schema=${SNOWFLAKE_CI_SCHEMA}",
-                id="full connection string",
-            ),
-        ],
-    )
-    def test_queryable_asset_should_pass_test_connection(
-        self, context: DataContext, connection_string: str
-    ):
-        snowflake_ds: SnowflakeDatasource = context.data_sources.add_snowflake(
-            "my_ds", connection_string=connection_string
+    def test_queryable_asset_should_pass_test_connection(self, context: DataContext):
+        snowflake_ds = _ci_snowflake_datasource(
+            context, "my_ds", role=os.environ["SNOWFLAKE_CI_ROLE"]
         )
 
         inspector: Inspector = sa.inspection.inspect(snowflake_ds.get_engine())
