@@ -28,7 +28,7 @@ class TestSnowflake:
         "connection_string",
         [
             param(
-                "snowflake://ci:${SNOWFLAKE_CI_USER_PASSWORD}@oca29081.us-east-1/ci/public?warehouse=ci&role=ci_no_select",
+                "snowflake://ci:${SNOWFLAKE_CI_USER_PASSWORD}@${SNOWFLAKE_CI_ACCOUNT}/ci/public?warehouse=ci&role=ci_no_select",
                 id="role wo select",
             ),
         ],
@@ -76,7 +76,7 @@ class TestSnowflake:
         "connection_string",
         [
             param(
-                "snowflake://ci:${SNOWFLAKE_CI_USER_PASSWORD}@oca29081.us-east-1/ci/public?warehouse=ci&role=ci&database=ci&schema=public",
+                "snowflake://ci:${SNOWFLAKE_CI_USER_PASSWORD}@${SNOWFLAKE_CI_ACCOUNT}/ci/public?warehouse=ci&role=ci&database=ci&schema=public",
                 id="full connection string",
             ),
         ],
