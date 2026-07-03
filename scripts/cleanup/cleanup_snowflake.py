@@ -16,12 +16,17 @@ class SnowflakeConnectionConfig(BaseSettings):
 
     SNOWFLAKE_CI_USER_PASSWORD: str
     SNOWFLAKE_CI_ACCOUNT: str
+    SNOWFLAKE_CI_USER: str
+    SNOWFLAKE_CI_DATABASE: str
+    SNOWFLAKE_CI_WAREHOUSE: str
+    SNOWFLAKE_CI_ROLE: str
 
     @property
     def connection_string(self) -> str:
         return (
-            f"snowflake://ci:{self.SNOWFLAKE_CI_USER_PASSWORD}@{self.SNOWFLAKE_CI_ACCOUNT}/ci?"
-            f"warehouse=ci&role=ci"
+            f"snowflake://{self.SNOWFLAKE_CI_USER}:{self.SNOWFLAKE_CI_USER_PASSWORD}"
+            f"@{self.SNOWFLAKE_CI_ACCOUNT}/{self.SNOWFLAKE_CI_DATABASE}?"
+            f"warehouse={self.SNOWFLAKE_CI_WAREHOUSE}&role={self.SNOWFLAKE_CI_ROLE}"
         )
 
 

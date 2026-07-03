@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import random
 from typing import TYPE_CHECKING
 
@@ -28,7 +29,7 @@ class TestSnowflake:
         "connection_string",
         [
             param(
-                "snowflake://ci:${SNOWFLAKE_CI_USER_PASSWORD}@${SNOWFLAKE_CI_ACCOUNT}/ci/public?warehouse=ci&role=ci_no_select",
+                "snowflake://${SNOWFLAKE_CI_USER}:${SNOWFLAKE_CI_USER_PASSWORD}@${SNOWFLAKE_CI_ACCOUNT}/${SNOWFLAKE_CI_DATABASE}/${SNOWFLAKE_CI_SCHEMA}?warehouse=${SNOWFLAKE_CI_WAREHOUSE}&role=${SNOWFLAKE_CI_ROLE_NO_SELECT}",
                 id="role wo select",
             ),
         ],
@@ -46,7 +47,7 @@ class TestSnowflake:
         )
 
         inspector: Inspector = sa.inspection.inspect(snowflake_ds.get_engine())
-        inspector_tables: list[str] = list(inspector.get_table_names(schema="public"))
+        inspector_tables: list[str] = list(inspector.get_table_names(schema=os.environ["SNOWFLAKE_CI_SCHEMA"]))
         print(f"tables: {len(inspector_tables)}\n{inspector_tables}")
         random.shuffle(inspector_tables)
 
@@ -76,7 +77,7 @@ class TestSnowflake:
         "connection_string",
         [
             param(
-                "snowflake://ci:${SNOWFLAKE_CI_USER_PASSWORD}@${SNOWFLAKE_CI_ACCOUNT}/ci/public?warehouse=ci&role=ci&database=ci&schema=public",
+                "snowflake://${SNOWFLAKE_CI_USER}:${SNOWFLAKE_CI_USER_PASSWORD}@${SNOWFLAKE_CI_ACCOUNT}/${SNOWFLAKE_CI_DATABASE}/${SNOWFLAKE_CI_SCHEMA}?warehouse=${SNOWFLAKE_CI_WAREHOUSE}&role=${SNOWFLAKE_CI_ROLE}&database=${SNOWFLAKE_CI_DATABASE}&schema=${SNOWFLAKE_CI_SCHEMA}",
                 id="full connection string",
             ),
         ],
