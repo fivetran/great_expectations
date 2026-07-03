@@ -157,6 +157,31 @@ def test_convert_unexpected_indices_to_df():
     assert res.iloc[2].tolist() == ["5", "five", 1]
 
 
+def test_convert_unexpected_indices_to_df_no_domain_column():
+    # Regression test: when every key in each `unexpected_index_list` entry is
+    # itself one of `unexpected_index_column_names` (i.e. no separate domain/value
+    # column is present), there is nothing to group by. This previously raised
+    # `ValueError: No group keys passed!` from `.groupby([])`. See GH#11933.
+    unexpected_index_list = [{"pk_1": 3}, {"pk_1": 4}, {"pk_1": 5}]
+    unexpected_index_column_names = ["pk_1"]
+
+    partial_unexpected_counts = [
+        {"count": 1, "value": None},
+        {"count": 1, "value": None},
+        {"count": 1, "value": None},
+    ]
+
+    res = _convert_unexpected_indices_to_df(
+        unexpected_index_list=unexpected_index_list,
+        unexpected_index_column_names=unexpected_index_column_names,
+        partial_unexpected_counts=partial_unexpected_counts,
+    )
+    assert list(res) == ["pk_1", "Count"]
+    assert res.iloc[0].tolist() == ["3", 1]
+    assert res.iloc[1].tolist() == ["4", 1]
+    assert res.iloc[2].tolist() == ["5", 1]
+
+
 def test_convert_unexpected_indices_to_df_multiple():
     result = [
         {"animals": "giraffe", "pk_1": 3},

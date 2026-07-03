@@ -445,9 +445,17 @@ def _convert_unexpected_indices_to_df(
     def _agg_func(y: pd.Series[T]) -> list[T]:  # type: ignore[type-var]  # not yet supported by pandas-stubs
         return list(y)
 
-    all_unexpected_indices: pd.DataFrame = unexpected_index_df.groupby(domain_column_name_list).agg(
-        _agg_func
-    )
+    all_unexpected_indices: pd.DataFrame
+    if domain_column_name_list:
+        all_unexpected_indices = unexpected_index_df.groupby(domain_column_name_list).agg(_agg_func)
+    else:
+        # No domain column is present to group by (every key in each
+        # `unexpected_index_list` entry is itself one of
+        # `unexpected_index_column_names`), so there is nothing to aggregate across
+        # rows -- `.groupby([])` raises `ValueError: No group keys passed!` here.
+        # Each row already stands on its own; wrap its values in a single-item list
+        # to match the shape `.groupby().agg(_agg_func)` would otherwise produce.
+        all_unexpected_indices = unexpected_index_df.map(lambda x: [x])
 
     # 2. add count
     col_to_count: str = unexpected_index_column_names[0]
