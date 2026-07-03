@@ -47,7 +47,8 @@ class TestSnowflake:
         )
 
         inspector: Inspector = sa.inspection.inspect(snowflake_ds.get_engine())
-        inspector_tables: list[str] = list(inspector.get_table_names(schema=os.environ["SNOWFLAKE_CI_SCHEMA"]))
+        ci_schema = os.environ["SNOWFLAKE_CI_SCHEMA"]
+        inspector_tables: list[str] = list(inspector.get_table_names(schema=ci_schema))
         print(f"tables: {len(inspector_tables)}\n{inspector_tables}")
         random.shuffle(inspector_tables)
 
