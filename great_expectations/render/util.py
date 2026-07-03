@@ -130,7 +130,7 @@ def substitute_none_for_missing(
 
     Args:
         kwargs: A dictionary of keyword arguments.
-        kwargs_list: A list or sequence of strings representing all possible keyword parameters to a function.
+        kwarg_list: A list or sequence of strings representing all possible keyword parameters to a function.
 
     Returns:
         A copy of the original `kwargs` with missing keys from `kwarg_list` defaulted to `None`.

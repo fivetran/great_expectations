@@ -211,7 +211,7 @@ class MetricListMetricRetriever(MetricRetriever):
         """Calculate table metrics, which include row_count, column names and types.
 
         Args:
-            metrics_list (List[MetricTypes]): list of metrics sent from Agent.
+            metric_list (List[MetricTypes]): list of metrics sent from Agent.
             batch_request (BatchRequest): for current batch.
 
         Returns:

@@ -38,7 +38,7 @@ class BatchInspector:
         Args:
             data_asset_id (uuid.UUID): current data asset id.
             batch_request (BatchRequest): BatchRequest for current batch.
-            metrics_list (Optional[List[MetricTypes]]): List of metrics to compute.
+            metric_list (Optional[List[MetricTypes]]): List of metrics to compute.
         Returns:
             MetricRun: _description_
         """
