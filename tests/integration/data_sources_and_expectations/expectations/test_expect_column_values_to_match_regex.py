@@ -13,6 +13,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
 )
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
+    GenericSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     RedshiftDatasourceTestConfig,
@@ -26,6 +27,7 @@ SUPPORTED_SQL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
+    GenericSQLDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
 ]
 SUPPORTED_NON_SQL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [

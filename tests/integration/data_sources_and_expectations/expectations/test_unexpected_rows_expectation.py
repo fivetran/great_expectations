@@ -6,7 +6,10 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.constants import MAX_RESULT_RECORDS
+from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.result_format import ResultFormat
+from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
@@ -625,3 +628,44 @@ def test_sql_server_order_by_without_top_works_transparently_failure(
     result = batch_for_datasource.validate(expectation)
     assert result.success is False
     assert result.exception_info.get("raised_exception") is False
+
+
+GET_UNEXPECTED_ROWS_DATA = pd.DataFrame(
+    {"id": list(range(300)), "value": [i % 2 for i in range(300)]}
+)
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()],
+    data=GET_UNEXPECTED_ROWS_DATA,
+)
+def test_get_unexpected_rows_returns_all_rows(
+    asset_for_datasource,
+    _batch_setup_for_datasource,
+) -> None:
+    """get_unexpected_rows() returns >200 rows, bypassing MAX_RESULT_RECORDS."""
+    context = _batch_setup_for_datasource.context
+    batch_definition = asset_for_datasource.add_batch_definition_whole_table(
+        name="get_unexpected_rows_bd"
+    )
+    suite = context.suites.add(ExpectationSuite(name="get_unexpected_rows_suite"))
+    expectation = gxe.UnexpectedRowsExpectation(
+        unexpected_rows_query="SELECT * FROM {batch} WHERE id > 0"
+    )
+    suite.add_expectation(expectation)
+
+    vd = context.validation_definitions.add(
+        ValidationDefinition(
+            name="get_unexpected_rows_vd",
+            data=batch_definition,
+            suite=suite,
+        )
+    )
+
+    result = vd.run()
+    assert not result.success
+
+    evr = result.results[0]
+    rows = vd.get_unexpected_rows(evr.expectation)
+    assert len(rows) == 299
+    assert len(rows) > MAX_RESULT_RECORDS

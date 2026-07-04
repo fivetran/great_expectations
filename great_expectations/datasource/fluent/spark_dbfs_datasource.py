@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, ClassVar, Literal, Type
 
-from great_expectations._docs_decorators import public_api
+from great_expectations._docs_decorators import deprecated_method_or_class, public_api
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.util import DBFSPath
 from great_expectations.datasource.fluent import SparkFilesystemDatasource
@@ -20,6 +20,11 @@ logger = logging.getLogger(__name__)
 
 
 @public_api
+@deprecated_method_or_class(
+    version="1.16.0",
+    message="DBFS is deprecated by Databricks. Use Unity Catalog volumes, external locations, "
+    "or workspace files with SparkFilesystemDatasource instead.",
+)
 class SparkDBFSDatasource(SparkFilesystemDatasource):
     """Spark based Datasource for DataBricks File System (DBFS) based data assets."""
 

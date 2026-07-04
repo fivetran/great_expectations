@@ -24,6 +24,7 @@ from great_expectations.data_context import (
 )
 from great_expectations.datasource.datasource_dict import DatasourceDict
 from great_expectations.datasource.fluent import (
+    BigQueryDatasource,
     DatabricksSQLDatasource,
     FabricPowerBIDatasource,
     PandasAzureBlobStorageDatasource,
@@ -301,6 +302,37 @@ class DataSourceManager:
         create_temp_table: bool = True,
     ) -> SQLDatasource: ...
     def delete_sql(
+        self,
+        name: str,
+    ) -> None: ...
+    def add_bigquery(
+        self,
+        name_or_datasource: Optional[Union[str, Datasource]] = None,
+        name: Optional[str] = None,
+        datasource: Optional[Datasource] = None,
+        *,
+        connection_string: Union[ConfigStr, str] = ...,
+        create_temp_table: bool = False,
+    ) -> BigQueryDatasource: ...
+    def update_bigquery(
+        self,
+        name_or_datasource: Optional[Union[str, Datasource]] = None,
+        name: Optional[str] = None,
+        datasource: Optional[Datasource] = None,
+        *,
+        connection_string: Union[ConfigStr, str] = ...,
+        create_temp_table: bool = False,
+    ) -> BigQueryDatasource: ...
+    def add_or_update_bigquery(
+        self,
+        name_or_datasource: Optional[Union[str, Datasource]] = None,
+        name: Optional[str] = None,
+        datasource: Optional[Datasource] = None,
+        *,
+        connection_string: Union[ConfigStr, str] = ...,
+        create_temp_table: bool = False,
+    ) -> BigQueryDatasource: ...
+    def delete_bigquery(
         self,
         name: str,
     ) -> None: ...
@@ -843,6 +875,7 @@ class DataSourceManager:
         schema: str = ...,
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        trust_server_certificate: bool = ...,
         authentication: Literal["SQL Server"] = ...,
         username: str = ...,
         password: Union[ConfigStr, str] = ...,
@@ -858,6 +891,7 @@ class DataSourceManager:
         schema: str = ...,
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        trust_server_certificate: bool = ...,
         authentication: Literal["Entra ID Service Principal"] = ...,
         tenant_id: str = ...,
         client_id: str = ...,
@@ -881,6 +915,7 @@ class DataSourceManager:
         schema: str = ...,
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        trust_server_certificate: bool = ...,
         authentication: Literal["SQL Server"] = ...,
         username: str = ...,
         password: Union[ConfigStr, str] = ...,
@@ -896,6 +931,7 @@ class DataSourceManager:
         schema: str = ...,
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        trust_server_certificate: bool = ...,
         authentication: Literal["Entra ID Service Principal"] = ...,
         tenant_id: str = ...,
         client_id: str = ...,
@@ -919,6 +955,7 @@ class DataSourceManager:
         schema: str = ...,
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        trust_server_certificate: bool = ...,
         authentication: Literal["SQL Server"] = ...,
         username: str = ...,
         password: Union[ConfigStr, str] = ...,
@@ -934,6 +971,7 @@ class DataSourceManager:
         schema: str = ...,
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        trust_server_certificate: bool = ...,
         authentication: Literal["Entra ID Service Principal"] = ...,
         tenant_id: str = ...,
         client_id: str = ...,
@@ -961,6 +999,7 @@ class DataSourceManager:
         schema: str = ...,
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        trust_server_certificate: bool = ...,
         tenant_id: str = ...,
         client_id: str = ...,
         client_secret: Union[ConfigStr, str] = ...,
@@ -983,6 +1022,7 @@ class DataSourceManager:
         schema: str = ...,
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        trust_server_certificate: bool = ...,
         tenant_id: str = ...,
         client_id: str = ...,
         client_secret: Union[ConfigStr, str] = ...,
@@ -1005,6 +1045,7 @@ class DataSourceManager:
         schema: str = ...,
         driver: str = ...,
         encrypt: Literal["Mandatory", "Optional", "Strict"] = ...,
+        trust_server_certificate: bool = ...,
         tenant_id: str = ...,
         client_id: str = ...,
         client_secret: Union[ConfigStr, str] = ...,

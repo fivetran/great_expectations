@@ -13,13 +13,12 @@ from typing import (
     Final,
     Iterable,
     Literal,
-    Optional,
     Type,
     Union,
 )
 from urllib.parse import quote
 
-from great_expectations._docs_decorators import deprecated_method_or_class, public_api
+from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pydantic import AnyUrl, errors
 from great_expectations.compatibility.snowflake import (
@@ -43,7 +42,6 @@ from great_expectations.datasource.fluent.sql_datasource import (
     FluentBaseModel,
     SQLAlchemyCreateEngineError,
     SQLDatasource,
-    TableAsset,
     TestConnectionError,
     to_lower_if_not_quoted,
 )
@@ -51,9 +49,6 @@ from great_expectations.datasource.fluent.sql_datasource import (
 if TYPE_CHECKING:
     from great_expectations.compatibility import sqlalchemy
     from great_expectations.compatibility.pydantic.networks import Parts
-    from great_expectations.datasource.fluent.interfaces import (
-        BatchMetadata,
-    )
     from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 
 LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
@@ -62,8 +57,6 @@ REQUIRED_QUERY_PARAMS: Final[Iterable[str]] = {  # errors will be thrown if any 
     "warehouse",
     "role",
 }
-
-MISSING: Final = object()  # sentinel value to indicate missing values
 
 
 @functools.lru_cache(maxsize=4)
@@ -464,6 +457,7 @@ class SnowflakeDatasource(SQLDatasource):
         return None
 
     @property
+    @override
     def schema_(self) -> str | None:
         """
         Convenience property to get the `schema` regardless of the connection string format.
@@ -569,56 +563,6 @@ class SnowflakeDatasource(SQLDatasource):
                     ),
                 ) from e
             raise
-
-    @deprecated_method_or_class(
-        version="1.0.0a4",
-        message="`schema_name` is deprecated. The schema now comes from the datasource.",
-    )
-    @public_api
-    @override
-    def add_table_asset(
-        self,
-        name: str,
-        table_name: str = "",
-        schema_name: Optional[str] = MISSING,  # type: ignore[assignment] # sentinel value
-        batch_metadata: Optional[BatchMetadata] = None,
-    ) -> TableAsset:
-        """Adds a table asset to this datasource.
-
-        Args:
-            name: The name of this table asset.
-            table_name: The table where the data resides.
-            schema_name: The schema that holds the table. Will use the datasource schema if not
-                provided.
-            batch_metadata: BatchMetadata we want to associate with this DataAsset and all batches
-                derived from it.
-
-        Returns:
-            The table asset that is added to the datasource.
-            The type of this object will match the necessary type for this datasource.
-        """
-        if schema_name is MISSING:
-            # using MISSING to indicate that the user did not provide a value
-            schema_name = self.schema_
-        else:
-            # deprecated-v0.18.16
-            warnings.warn(
-                "The `schema_name argument` is deprecated and will be removed in a future release."
-                " The schema now comes from the datasource.",
-                category=DeprecationWarning,
-            )
-            if schema_name != self.schema_:
-                warnings.warn(
-                    f"schema_name {schema_name} does not match datasource schema {self.schema_}",
-                    category=GxDatasourceWarning,
-                )
-
-        return super().add_table_asset(
-            name=name,
-            table_name=table_name,
-            schema_name=schema_name,
-            batch_metadata=batch_metadata,
-        )
 
     @pydantic.root_validator(pre=True)
     def _convert_root_connection_detail_fields(cls, values: dict) -> dict:

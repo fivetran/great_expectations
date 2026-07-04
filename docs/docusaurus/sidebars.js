@@ -99,7 +99,8 @@ module.exports = {
       link: { type: 'doc', id: 'core/run_validations/run_validations' },
       items: [
         { type: 'doc', id: 'core/run_validations/create_a_validation_definition' },
-        { type: 'doc', id: 'core/run_validations/run_a_validation_definition' }
+        { type: 'doc', id: 'core/run_validations/run_a_validation_definition' },
+        { type: 'doc', id: 'core/run_validations/retrieve_all_unexpected_rows' }
       ]
     },
     {
@@ -145,103 +146,6 @@ module.exports = {
       type: 'doc',
       id: 'core/introduction/community_resources',
       label: 'Community resources'
-    }
-  ],
-  gx_cloud: [
-    {
-      type: 'category',
-      label: 'Introduction',
-      link: { type: 'doc', id: 'cloud/gx_cloud_lp' },
-      items: [
-        'cloud/overview/gx_cloud_overview',
-        'cloud/overview/accelerating_test_coverage',
-        'cloud/overview/data_health'
-      ]
-    },
-    {
-      type: 'category',
-      label: 'Deploy GX Cloud',
-      link: { type: 'doc', id: 'cloud/deploy/deploy_lp' },
-      items: [
-        'cloud/deploy/deployment_patterns',
-        'cloud/deploy/deploy_gx_agent'
-      ]
-    },
-    {
-      type: 'category',
-      label: 'Connect GX Cloud',
-      link: { type: 'doc', id: 'cloud/connect/connect_lp' },
-      items: [
-        'cloud/connect/connect_s3',
-        'cloud/connect/connect_databrickssql',
-        'cloud/connect/connect_postgresql',
-        'cloud/connect/connect_redshift',
-        'cloud/connect/connect_snowflake',
-        'cloud/connect/connect_python'
-      ]
-    },
-    {
-      type: 'doc',
-      label: 'Manage Data Sources',
-      id: 'cloud/data_sources/manage_data_sources'
-    },
-    {
-      type: 'doc',
-      label: 'Manage Data Assets',
-      id: 'cloud/data_assets/manage_data_assets'
-    },
-    {
-      type: 'category',
-      label: 'Expectations',
-      link: { type: 'doc', id: 'cloud/expectations/expectations_lp' },
-      items: [
-        'cloud/expectations/expectations_overview',
-        'cloud/expectations/manage_expectations'
-      ]
-    },
-    {
-      type: 'category',
-      label: 'Validations',
-      link: { type: 'doc', id: 'cloud/validations/validations_lp' },
-      items: [
-        'cloud/validations/run_validations',
-        'cloud/validations/format_results'
-      ]
-    },
-    {
-      type: 'doc',
-      label: 'Manage schedules',
-      id: 'cloud/schedules/manage_schedules'
-    },
-    {
-      type: 'category',
-      label: 'Respond to results',
-      link: { type: 'doc', id: 'cloud/alerts/alerts_lp' },
-      items: [
-        { type: 'doc', id: 'cloud/alerts/manage_email_alerts' },
-        { type: 'doc', id: 'cloud/alerts/trigger_actions' },
-        { type: 'doc', id: 'cloud/alerts/custom_actions' }
-      ]
-    },
-    {
-      type: 'doc',
-      label: 'Manage access',
-      id: 'cloud/access/manage_access'
-    },
-    {
-      type: 'category',
-      label: 'Integrations',
-      link: { type: 'doc', id: 'cloud/integrations/integrations_lp' },
-      items: [
-        'cloud/integrations/integrate_atlan',
-        'cloud/integrations/integrate_airflow'
-      ]
-    },
-    {
-      type: 'link',
-      label: 'Request a demo for GX Cloud',
-      href: 'https://www.greatexpectations.io/demo',
-      className: 'request-demo-sidebar'
     }
   ],
   gx_apis: [

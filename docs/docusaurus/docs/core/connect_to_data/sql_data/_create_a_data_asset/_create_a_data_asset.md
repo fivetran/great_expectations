@@ -7,7 +7,7 @@ import Tabs from '@theme/Tabs';
 import TableAsset from './_table_asset.md';
 import QueryAsset from './_query_asset.md';
 
-Data Assets are collections of records within a Data Source.  With SQL Data Sources, a Data Asset can consist of the records from a specific table or the records from a specified query.
+Data Assets are collections of records within a Data Source.  With most SQL Data Sources, a Data Asset can consist of the records from a specific table or the records from a specified query. Note that Trino Data Sources support Table Data Assets only.
 
 ### Prerequisites {#prerequisites-data-asset}
 - <PreReqDataContext/>.  The variable `context` is used for your Data Context in the following example code.

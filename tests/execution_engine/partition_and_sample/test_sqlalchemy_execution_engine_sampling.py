@@ -302,8 +302,6 @@ def test_sample_using_random(sqlite_view_engine, test_df):
     batch_spec: SqlAlchemyDatasourceBatchSpec
     batch_data: SqlAlchemyBatchData
     num_rows: int
-    rows_0: List[tuple]
-    rows_1: List[tuple]
 
     # First, make sure that degenerative case never passes.
 

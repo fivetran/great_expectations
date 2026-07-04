@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pandas as pd
 import pytest
 
@@ -26,7 +28,15 @@ DATA_FRAME = pd.DataFrame(
     }
 )
 
-TEST_SCHEMAS = ["regular_ol_lowercase", "FANCY_UPPER_CASE", None]
+_SUFFIX = uuid4().hex[:8]
+# Use stable parametrize IDs so xdist workers (each in their own process with
+# their own _SUFFIX) collect identical test node IDs. The actual schema values
+# can still differ per worker — only the IDs need to match.
+TEST_SCHEMAS = [
+    pytest.param(f"regular_ol_lowercase_{_SUFFIX}", id="regular_ol_lowercase"),
+    pytest.param(f"FANCY_UPPER_CASE_{_SUFFIX}", id="FANCY_UPPER_CASE"),
+    pytest.param(None, id="None"),
+]
 
 
 class TestSchemaSupport:

@@ -1,18 +1,13 @@
 import pathlib
 import shutil
-import uuid
 from typing import Any
 from unittest import mock
 
 import pytest
 
 import great_expectations as gx
-from great_expectations.data_context import CloudDataContext, EphemeralDataContext
+from great_expectations.data_context import EphemeralDataContext
 from great_expectations.data_context.cloud_constants import GXCloudEnvironmentVariable
-from great_expectations.data_context.data_context.cloud_data_context import (
-    CloudUserInfo,
-    Workspace,
-)
 from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
 )
@@ -22,7 +17,6 @@ from great_expectations.data_context.types.base import (
 )
 from great_expectations.exceptions.exceptions import (
     GitIgnoreScaffoldingError,
-    GXCloudConfigurationError,
 )
 from tests.test_utils import working_directory
 
@@ -134,109 +128,38 @@ def test_base_context_invalid_root_dir(clear_env_vars, tmp_path):
     )
 
 
-@pytest.mark.parametrize("ge_cloud_mode", [True, None])
-@pytest.mark.cloud
-def test_cloud_context_env(set_up_cloud_envs, empty_ge_cloud_data_context_config, ge_cloud_mode):
-    with mock.patch.object(
-        CloudDataContext,
-        "retrieve_data_context_config_from_cloud",
-        return_value=empty_ge_cloud_data_context_config,
-    ):
-        assert isinstance(
-            gx.get_context(cloud_mode=ge_cloud_mode),
-            CloudDataContext,
-        )
+_CLOUD_SHUTDOWN_MESSAGE = (
+    "GX Cloud has been shut down, so this no longer functions "
+    "and will be removed in great_expectations 2.0."
+)
 
 
+@pytest.mark.parametrize("cloud_mode", [True, None])
 @pytest.mark.cloud
-def test_cloud_missing_env_throws_exception(clear_env_vars, empty_ge_cloud_data_context_config):
-    with pytest.raises(GXCloudConfigurationError):
-        gx.get_context(cloud_mode=True)
+def test_get_context_with_cloud_env_raises_shutdown_error(set_up_cloud_envs, cloud_mode):
+    """GX Cloud is shut down: resolving a cloud context from GX_CLOUD_* env raises."""
+    with pytest.raises(gx.exceptions.GreatExpectationsError, match=_CLOUD_SHUTDOWN_MESSAGE):
+        gx.get_context(cloud_mode=cloud_mode)
 
 
 @pytest.mark.parametrize("params", [GX_CLOUD_PARAMS_REQUIRED, GX_CLOUD_PARAMS_ALL])
 @pytest.mark.cloud
-@pytest.mark.filterwarnings("ignore:Workspace id is not set when instantiating a CloudDataContext")
-def test_cloud_context_params(
+def test_get_context_with_cloud_params_raises_shutdown_error(
     unset_gx_env_variables: None,
-    monkeypatch: pytest.MonkeyPatch,
-    empty_ge_cloud_data_context_config: DataContextConfig,
     # params is annotated with Any since mypy will fail with str values when checking
     # gx.get_context(**params) because there are no str only value variants.
     params: dict[str, Any],
 ):
-    with (
-        mock.patch.object(
-            CloudDataContext,
-            "retrieve_data_context_config_from_cloud",
-            return_value=empty_ge_cloud_data_context_config,
-        ),
-        mock.patch.object(
-            CloudDataContext,
-            "cloud_user_info",
-            return_value=CloudUserInfo(
-                user_id=uuid.UUID("12345678-1234-1234-1234-123456789012"),
-                workspaces=[Workspace(id="fffff6781234567812345678123fffff", role="editor")],
-            ),
-        ),
-    ):
-        assert isinstance(
-            gx.get_context(**params),
-            CloudDataContext,
-        )
+    """GX Cloud is shut down: a complete set of cloud_* kwargs raises."""
+    with pytest.raises(gx.exceptions.GreatExpectationsError, match=_CLOUD_SHUTDOWN_MESSAGE):
+        gx.get_context(**params)
 
 
 @pytest.mark.cloud
-@pytest.mark.filterwarnings("ignore:Workspace id is not set when instantiating a CloudDataContext")
-def test_cloud_context_with_in_memory_config_overrides(
-    unset_gx_env_variables: None,
-    monkeypatch: pytest.MonkeyPatch,
-    empty_ge_cloud_data_context_config: DataContextConfig,
-):
-    with (
-        mock.patch.object(
-            CloudDataContext,
-            "retrieve_data_context_config_from_cloud",
-            return_value=empty_ge_cloud_data_context_config,
-        ),
-        mock.patch.object(
-            CloudDataContext,
-            "cloud_user_info",
-            return_value=CloudUserInfo(
-                user_id=uuid.UUID("12345678-1234-1234-1234-123456789012"),
-                workspaces=[Workspace(id="fffff6781234567812345678123fffff", role="editor")],
-            ),
-        ),
-    ):
-        context = gx.get_context(
-            cloud_base_url="localhost:7000",
-            cloud_organization_id="bd20fead-2c31-4392-bcd1-f1e87ad5a79c",
-            cloud_access_token="i_am_a_token",
-        )
-        assert isinstance(context, CloudDataContext)
-        assert context.expectations_store_name == "default_expectations_store"
-
-        config: DataContextConfig = DataContextConfig(
-            config_version=3.0,
-            plugins_directory=None,
-            expectations_store_name="new_expectations_store",
-            checkpoint_store_name="new_checkpoint_store",
-            stores={
-                "new_expectations_store": {"class_name": "ExpectationsStore"},
-                "new_checkpoint_store": {"class_name": "CheckpointStore"},
-                "new_validation_result_store": {"class_name": "ValidationResultsStore"},
-            },
-            validation_results_store_name="new_validation_result_store",
-            data_docs_sites={},
-        )
-        context = gx.get_context(
-            project_config=config,
-            cloud_base_url="localhost:7000",
-            cloud_organization_id="bd20fead-2c31-4392-bcd1-f1e87ad5a79c",
-            cloud_access_token="i_am_a_token",
-        )
-        assert isinstance(context, CloudDataContext)
-        assert context.expectations_store_name == "new_expectations_store"
+def test_get_context_with_mode_equals_cloud_raises_shutdown_error(set_up_cloud_envs):
+    """GX Cloud is shut down: requesting mode="cloud" raises before any context is built."""
+    with pytest.raises(gx.exceptions.GreatExpectationsError, match=_CLOUD_SHUTDOWN_MESSAGE):
+        gx.get_context(mode="cloud")
 
 
 @pytest.mark.unit
@@ -261,21 +184,6 @@ def test_get_context_with_mode_equals_file_returns_file_data_context(
     with working_directory(tmp_path):
         context = gx.get_context(mode="file")
     assert isinstance(context, FileDataContext)
-
-
-@pytest.mark.cloud
-def test_get_context_with_mode_equals_cloud_returns_cloud_data_context(
-    empty_ge_cloud_data_context_config: DataContextConfig, set_up_cloud_envs
-):
-    with mock.patch.object(
-        CloudDataContext,
-        "retrieve_data_context_config_from_cloud",
-        return_value=empty_ge_cloud_data_context_config,
-    ) as mock_retrieve_config:
-        context = gx.get_context(mode="cloud")
-
-    mock_retrieve_config.assert_called_once()
-    assert isinstance(context, CloudDataContext)
 
 
 @pytest.mark.filesystem

@@ -96,7 +96,7 @@ class SuiteParameterParser:
         "tan": math.tan,
         "exp": math.exp,
         "abs": abs,
-        "trunc": lambda a: int(a),
+        "trunc": int,
         "round": round,
         "sgn": lambda a: -1 if a < -_epsilon else 1 if a > _epsilon else 0,
         "now": datetime.datetime.now,

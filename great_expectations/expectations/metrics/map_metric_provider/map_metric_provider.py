@@ -599,7 +599,7 @@ class MapMetricProvider(MetricProvider):
         # MapMetric uses "condition" metric to build "unexpected_count.aggregate_fn" and other listed metrics as well.  # noqa: E501 # FIXME CoP
         unexpected_condition_dependent_metric_name_suffixes: list[str] = list(
             filter(
-                lambda element: metric_name.endswith(element),
+                metric_name.endswith,
                 [
                     f".{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}.{MetricPartialFunctionTypes.AGGREGATE_FN.metric_suffix}",
                     f".{SummarizationMetricNameSuffixes.UNEXPECTED_VALUE_COUNTS.value}",

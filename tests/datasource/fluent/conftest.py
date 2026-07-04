@@ -3,7 +3,6 @@ from __future__ import annotations
 import functools
 import logging
 import pathlib
-import urllib.parse
 import warnings
 from contextlib import contextmanager
 from pprint import pformat as pf
@@ -54,22 +53,13 @@ from great_expectations.execution_engine import (
     ExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
-from tests.datasource.fluent._fake_cloud_api import (
-    _CLOUD_API_FAKE_DB,
-    FAKE_ORG_ID,
-    GX_CLOUD_MOCK_BASE_URL,
-    FakeDBTypedDict,
-    create_fake_db_seed_data,
-)
 from tests.sqlalchemy_test_doubles import Dialect, MockSaEngine
 
 if TYPE_CHECKING:
-    import responses
     from botocore.client import BaseClient as BotoBaseClient
     from pytest import FixtureRequest
     from pytest_mock import MockerFixture, MockType
 
-    from great_expectations.data_context import CloudDataContext
     from great_expectations.data_context.data_context.abstract_data_context import (
         AbstractDataContext,
     )
@@ -199,13 +189,6 @@ def seed_ds_env_vars(
 
 
 @pytest.fixture
-def cloud_api_fake_db(cloud_api_fake) -> FakeDBTypedDict:
-    from tests.datasource.fluent._fake_cloud_api import _CLOUD_API_FAKE_DB
-
-    return _CLOUD_API_FAKE_DB
-
-
-@pytest.fixture
 def file_dc_config_dir_init(tmp_path: pathlib.Path) -> pathlib.Path:
     """
     Initialize an regular/old-style FileDataContext project config directory.
@@ -229,16 +212,15 @@ def empty_file_context(file_dc_config_dir_init) -> FileDataContext:
 
 @pytest.fixture(
     params=[
-        pytest.param("empty_cloud_context_fluent", marks=pytest.mark.cloud),
         pytest.param("empty_file_context", marks=pytest.mark.filesystem),
     ],
-    ids=["cloud", "file"],
+    ids=["file"],
 )
 def empty_contexts(
     request: FixtureRequest,
     cloud_storage_get_client_doubles,
-) -> FileDataContext | CloudDataContext:
-    context_fixture: FileDataContext | CloudDataContext = request.getfixturevalue(request.param)
+) -> FileDataContext:
+    context_fixture: FileDataContext = request.getfixturevalue(request.param)
     return context_fixture
 
 
@@ -387,50 +369,16 @@ def seeded_file_context(
     return context
 
 
-@pytest.fixture
-def seed_cloud(
-    filter_data_connector_build_warning,
-    cloud_api_fake: responses.RequestsMock,
-    fluent_only_config: GxConfig,
-):
-    """
-    In order to load the seeded cloud config, this fixture must be called before any
-    `get_context()` calls.
-    """
-    org_url_base = urllib.parse.urljoin(GX_CLOUD_MOCK_BASE_URL, f"organizations/{FAKE_ORG_ID}")
-
-    fake_db_data = create_fake_db_seed_data(fds_config=fluent_only_config)
-    _CLOUD_API_FAKE_DB.update(fake_db_data)
-
-    seeded_datasources = _CLOUD_API_FAKE_DB["data-context-configuration"]["datasources"]
-    CNF_TEST_LOGGER.info(f"Seeded Datasources ->\n{pf(seeded_datasources, depth=2)}")
-    assert seeded_datasources
-
-    yield cloud_api_fake
-
-    assert len(cloud_api_fake.calls) >= 1, f"{org_url_base} was never called"
-
-
-@pytest.fixture
-def seeded_cloud_context(
-    seed_cloud,  # NOTE: this fixture must be called before the CloudDataContext is created
-    empty_cloud_context_fluent,
-):
-    empty_cloud_context_fluent._init_datasources()
-    return empty_cloud_context_fluent
-
-
 @pytest.fixture(
     params=[
         pytest.param("seeded_file_context", marks=[pytest.mark.filesystem]),
-        pytest.param("seeded_cloud_context", marks=[pytest.mark.cloud]),
     ]
 )
 def seeded_contexts(
     request: FixtureRequest,
 ):
-    """Parametrized fixture for seeded File and Cloud DataContexts."""
-    context_fixture: FileDataContext | CloudDataContext = request.getfixturevalue(request.param)
+    """Parametrized fixture for seeded File DataContexts."""
+    context_fixture: FileDataContext = request.getfixturevalue(request.param)
     return context_fixture
 
 

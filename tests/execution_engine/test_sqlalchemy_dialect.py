@@ -49,6 +49,7 @@ def test_get_all_dialects_no_other_dialects():
         (GXSqlDialect.SNOWFLAKE, '"col"'),
         (GXSqlDialect.SQLITE, '"col"'),
         (GXSqlDialect.TRINO, "`col`"),
+        (GXSqlDialect.SINGLESTOREDB, "`col`"),
     ],
 )
 def test_quote_str(dialect, expected):
@@ -66,6 +67,7 @@ def test_quote_str(dialect, expected):
         (GXSqlDialect.SNOWFLAKE, '"col"'),
         (GXSqlDialect.SQLITE, '"col"'),
         (GXSqlDialect.TRINO, "`col`"),
+        (GXSqlDialect.SINGLESTOREDB, "`col`"),
     ],
 )
 def test_quote_str_already_quoted_raises(dialect, quoted_input):
@@ -85,6 +87,7 @@ def test_quote_str_already_quoted_raises(dialect, quoted_input):
         (GXSqlDialect.SNOWFLAKE, '"col"'),
         (GXSqlDialect.SQLITE, '"col"'),
         (GXSqlDialect.TRINO, "`col`"),
+        (GXSqlDialect.SINGLESTOREDB, "`col`"),
     ],
 )
 def test_strip_quotes(dialect, quoted_input):
@@ -102,6 +105,7 @@ def test_strip_quotes(dialect, quoted_input):
         GXSqlDialect.SNOWFLAKE,
         GXSqlDialect.SQLITE,
         GXSqlDialect.TRINO,
+        GXSqlDialect.SINGLESTOREDB,
     ],
 )
 def test_strip_quotes_unquoted_noop(dialect):
@@ -120,6 +124,7 @@ def test_strip_quotes_unquoted_noop(dialect):
         (GXSqlDialect.SNOWFLAKE, '"col"'),
         (GXSqlDialect.SQLITE, '"col"'),
         (GXSqlDialect.TRINO, "`col`"),
+        (GXSqlDialect.SINGLESTOREDB, "`col`"),
     ],
 )
 def test_wrap_identifier_strips_quotes(dialect, quoted_input):

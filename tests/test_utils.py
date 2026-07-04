@@ -4,7 +4,7 @@ import uuid
 import warnings
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple, Union, cast
+from typing import Dict, List, Literal, Optional, Tuple, Union, cast
 
 import pandas as pd
 from sqlalchemy.exc import ProgrammingError
@@ -377,6 +377,35 @@ def get_snowflake_private_key() -> Optional[str]:
     return os.environ.get("SNOWFLAKE_PRIVATE_KEY")
 
 
+def _engine_kwargs_for(connection_string: str) -> dict:
+    """Per-dialect extras to forward to ``sa.create_engine`` based on the URL.
+
+    Currently only Snowflake needs special handling (key-pair auth via connect_args).
+    """
+    if connection_string.startswith("snowflake://"):
+        return get_snowflake_connection_kwargs()
+    return {}
+
+
+def get_snowflake_connection_kwargs() -> dict:
+    """Extra kwargs for ``sa.create_engine`` (or any equivalent) when connecting to Snowflake.
+
+    When ``SNOWFLAKE_PRIVATE_KEY`` is set, the returned dict carries the private key in
+    ``connect_args`` so the Snowflake connector can authenticate via key-pair auth — the
+    URL produced by :func:`get_snowflake_connection_url` omits the password in that case,
+    so the private key has to be supplied separately. Otherwise an empty dict is returned.
+
+    Intended usage::
+
+        kwargs = get_snowflake_connection_kwargs()
+        engine = sa.create_engine(connection_string, **kwargs)
+    """
+    sf_private_key = os.environ.get("SNOWFLAKE_PRIVATE_KEY")
+    if sf_private_key:
+        return {"connect_args": {"private_key": sf_private_key}}
+    return {}
+
+
 def get_redshift_connection_url() -> str:
     """Get Amazon Redshift connection url from environment variables.
 
@@ -540,7 +569,7 @@ def load_data_into_test_database(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     )
     connection = None
     if sa:
-        engine = sa.create_engine(connection_string)
+        engine = sa.create_engine(connection_string, **_engine_kwargs_for(connection_string))
     else:
         logger.debug(
             "Attempting to load data in to tests SqlAlchemy database, but unable to load SqlAlchemy context; "  # noqa: E501 # FIXME CoP
@@ -551,7 +580,7 @@ def load_data_into_test_database(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     if engine.dialect.name.lower().startswith("mysql"):
         # Don't attempt to DROP TABLE IF EXISTS on a table that doesn't exist in mysql because it will error  # noqa: E501 # FIXME CoP
         inspector = inspect(engine)
-        db_name = connection_string.split("/")[-1]
+        db_name = connection_string.rsplit("/", maxsplit=1)[-1]
         table_names = [name for name in inspector.get_table_names(schema=db_name)]
         drop_existing_table = table_name in table_names
 
@@ -698,7 +727,7 @@ def clean_up_tables_with_prefix(connection_string: str, table_prefix: str) -> Li
         List of deleted tables.
     """
     execution_engine: SqlAlchemyExecutionEngine = SqlAlchemyExecutionEngine(
-        connection_string=connection_string
+        connection_string=connection_string, **_engine_kwargs_for(connection_string)
     )
     introspection_output = introspect_db(execution_engine=execution_engine)
 
@@ -904,14 +933,25 @@ def get_default_trino_url() -> str:
     return "trino://test@localhost:8088/memory/schema"
 
 
+SQL_SERVER_HOST = "127.0.0.1"
+SQL_SERVER_PORT = 1433
+SQL_SERVER_DATABASE = "test_ci"
+SQL_SERVER_SCHEMA = "dbo"
+SQL_SERVER_USERNAME = "sa"
+SQL_SERVER_PASSWORD = "ReallyStrongPwd1234%^&*"
+SQL_SERVER_DRIVER = "ODBC Driver 18 for SQL Server"
+SQL_SERVER_ENCRYPT: Literal["Mandatory", "Optional", "Strict"] = "Optional"
+
+
 def get_default_sql_server_url() -> str:
     """Get connection string to SQL Server container
     Returns:
         String of default connection to Docker container
     """
     return (
-        "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@127.0.0.1:1433/test_ci"
-        "?driver=ODBC Driver 18 for SQL Server&charset=utf8"
+        f"mssql+pyodbc://{SQL_SERVER_USERNAME}:{SQL_SERVER_PASSWORD}"
+        f"@{SQL_SERVER_HOST}:{SQL_SERVER_PORT}/{SQL_SERVER_DATABASE}"
+        f"?driver={SQL_SERVER_DRIVER}&charset=utf8"
         "&autocommit=true&TrustServerCertificate=yes"
     )
 
@@ -980,6 +1020,22 @@ def add_datasource(
 
     dialect: str = db_config["dialect"]
     if dialect == "snowflake":
+        # When SNOWFLAKE_PRIVATE_KEY is set, the connection string emitted by
+        # get_snowflake_connection_url() omits the password, so the connection_string
+        # overload of add_snowflake() can't authenticate on its own. Switch to the
+        # explicit-fields overload so the private key is wired into connect_args.
+        sf_private_key = os.environ.get("SNOWFLAKE_PRIVATE_KEY")
+        if sf_private_key:
+            return context.data_sources.add_snowflake(
+                name=name,
+                account=os.environ["SNOWFLAKE_ACCOUNT"],
+                user=os.environ["SNOWFLAKE_USER"],
+                private_key=sf_private_key,
+                database=os.environ["SNOWFLAKE_DATABASE"],
+                schema=os.environ["SNOWFLAKE_SCHEMA"],
+                warehouse=os.environ["SNOWFLAKE_WAREHOUSE"],
+                role=os.environ.get("SNOWFLAKE_ROLE") or "PUBLIC",
+            )
         return context.data_sources.add_snowflake(name=name, connection_string=connection_string)
     elif dialect == "postgres":
         return context.data_sources.add_postgres(name=name, connection_string=connection_string)

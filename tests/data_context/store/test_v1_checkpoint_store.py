@@ -22,8 +22,6 @@ from great_expectations.exceptions import StoreBackendError
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
-    from tests.datasource.fluent._fake_cloud_api import CloudDetails
-
 
 @pytest.fixture
 def ephemeral_store():
@@ -43,15 +41,15 @@ def file_backed_store(tmp_path):
 
 
 @pytest.fixture
-def cloud_backed_store(cloud_details: CloudDetails):
+def cloud_backed_store():
     return CheckpointStore(
         store_name="cloud_backed_checkpoint_store",
         store_backend={
             "class_name": "GXCloudStoreBackend",
             "ge_cloud_resource_type": GXCloudRESTResource.CHECKPOINT,
             "ge_cloud_credentials": {
-                "access_token": cloud_details.access_token,
-                "organization_id": cloud_details.org_id,
+                "access_token": "i_am_a_token",
+                "organization_id": "12345678-1234-5678-1234-567812345678",
             },
         },
     )
@@ -68,6 +66,7 @@ def mock_checkpoint_json() -> dict:
         "actions": [
             {
                 "name": "my_slack_action",
+                "type": "slack",
                 "slack_webhook": "https://hooks.slack.com/services/ABC123/DEF456/XYZ789",
                 "notify_on": "all",
                 "notify_with": ["my_data_docs_site"],
@@ -176,6 +175,7 @@ def test_add_cloud(cloud_backed_store: CheckpointStore, checkpoint: Checkpoint):
                 "actions": [
                     {
                         "name": "my_slack_action",
+                        "type": "slack",
                         "notify_on": "all",
                         "notify_with": ["my_data_docs_site"],
                         "renderer": {"class_name": "SlackRenderer"},

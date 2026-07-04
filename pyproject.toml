@@ -128,7 +128,6 @@ exclude = [
     'tests/core/test_yaml_handler\.py',
     'tests/data_context/abstract_data_context/test_abstract_data_context_datasource_crud\.py',
     'tests/data_context/abstract_data_context/test_data_docs_config_crud\.py',
-    'tests/data_context/cloud_data_context/test_include_rendered_content\.py',
     'tests/data_context/fixtures/plugins/extended_checkpoint\.py',
     'tests/data_context/migrator',
     'tests/data_context/store/test_configuration_store\.py',
@@ -502,6 +501,11 @@ filterwarnings = [
     # --------------------------------------- Great Expectations Deprecation Warnings ----------------------------------
     "once:The condition_parser parameter is deprecated:DeprecationWarning",
     "once:Passing a string to the row_condition parameter is deprecated:DeprecationWarning",
+    # Existing cloud configs store "schema_name": null. During deserialization, Pydantic passes
+    # None to the validator which triggers the deprecation warning. The TableAsset.dict() override
+    # strips schema_name from new serializations, so these will clean up over time.
+    'once:The `schema_name` argument is deprecated:DeprecationWarning',
+    'once:`schema_name` is deprecated:DeprecationWarning',
 
     # --------------------------------------- TEMPORARY IGNORES --------------------------------------------------------
     # The warnings in this section should be addressed (fixed or ignored) but are ignored here temporarily to help allow
@@ -649,6 +653,11 @@ filterwarnings = [
     # Example Actual Warning:
     # FutureWarning: You are using a Python version (3.10.19) which Google will stop supporting in new releases of google.* once it reaches its end of life (2026-10-04). Please upgrade to the latest Python version, or at least Python 3.11, to continue receiving updates past that date.
     "ignore: You are using a Python version \\(3\\.10.*\\) which Google will stop supporting in new releases of google:FutureWarning",
+    # db_dtypes (google-cloud-bigquery dependency) calls numpy.datetime64("NaT") at class-definition
+    # time; NumPy 2.x emits a DeprecationWarning about the 'generic' unit in Python 3.13+ environments.
+    # This crashes pytest collection (exit 4) before test-skip shims can fire.
+    # Remove when db_dtypes is updated to pass an explicit unit (e.g. numpy.datetime64("NaT", "ns")).
+    "ignore:The 'generic' unit for NumPy:DeprecationWarning",
     # sqlalchemy
     # Example Actual Warning:
     # sqlalchemy.exc.RemovedIn20Warning: Deprecated API features detected! These feature(s) are not compatible with SQLAlchemy 2.0. To prevent incompatible upgrades prior to updating applications, ensure requirements files are pinned to "sqlalchemy<2.0". Set environment variable SQLALCHEMY_WARN_20=1 to show all deprecation warnings.  Set environment variable SQLALCHEMY_SILENCE_UBER_WARNING=1 to silence this message. (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
@@ -689,6 +698,8 @@ markers = [
     "project: mark a test that verifies properties of the gx project",
     "pyarrow: mark a test as PyArrow-dependent.",
     "redshift: mark a test as redshift-dependent.",
+    "singlestore: mark a test as SingleStore-dependent.",
+    "generic_sql: mark a test as generic SQL database-dependent.",
     "snowflake: mark a test as snowflake-dependent.",
     "sqlalchemy_version_compatibility: mark test as required for sqlalchemy version compatibility.",
     "sqlite: mark test requiring sqlite",

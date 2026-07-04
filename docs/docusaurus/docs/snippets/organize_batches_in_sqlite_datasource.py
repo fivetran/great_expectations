@@ -27,7 +27,7 @@ my_datasource = context.data_sources.add_sqlite(
 )
 
 my_datasource.add_table_asset(
-    name="my_table_asset", table_name="yellow_tripdata_sample_2020", schema_name=None
+    name="my_table_asset", table_name="yellow_tripdata_sample_2020"
 )
 
 # Python

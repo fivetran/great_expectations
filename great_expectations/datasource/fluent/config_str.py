@@ -77,7 +77,9 @@ class ConfigStr(SecretStr):
         raise ValueError(
             cls.__name__
             + " - contains no config template strings in the format"
-            + r" '${MY_CONFIG_VAR}' or '$MY_CONFIG_VAR'"
+            + r" '${MY_CONFIG_VAR}'."
+            + " If your value contains a literal '$', it must be escaped as '\\$'."
+            + " See https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_credentials"
         )
 
     @classmethod

@@ -17,7 +17,6 @@ from typing import (
 
 import pandas as pd
 
-from great_expectations._docs_decorators import deprecated_argument
 from great_expectations.compatibility import pyspark
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.id_dict import BatchKwargs, BatchSpec, IDDict, IDDictID
@@ -715,10 +714,6 @@ class BatchData:
 #  However, right now, the Batch from the legacy design is imported into execution engines of the new design.  # noqa: E501 # FIXME CoP
 #  As a result, we have multiple, inconsistent versions of BatchMarkers, extending legacy/new classes.</Alex>  # noqa: E501 # FIXME CoP
 # TODO: <Alex>See also "great_expectations/datasource/types/batch_spec.py".</Alex>
-@deprecated_argument(argument_name="data_context", version="0.14.0")
-@deprecated_argument(argument_name="datasource_name", version="0.14.0")
-@deprecated_argument(argument_name="batch_parameters", version="0.14.0")
-@deprecated_argument(argument_name="batch_kwargs", version="0.14.0")
 class Batch(SerializableDictDot):
     """A Batch is a selection of records from a Data Asset.
 
@@ -737,27 +732,18 @@ class Batch(SerializableDictDot):
         batch_spec: Complete BatchSpec that describes the data.
         batch_markers: Additional metadata that may be useful to understand
             batch.
-        data_context: DataContext connected to the
-        datasource_name: name of datasource used to obtain the batch
-        batch_parameters: keyword arguments describing the batch data
-        batch_kwargs: keyword arguments used to request a batch from a Datasource
 
     Returns:
         Batch instance created.
     """
 
-    def __init__(  # noqa: PLR0913 # FIXME CoP
+    def __init__(
         self,
         data: BatchDataType | None = None,
         batch_request: BatchRequestBase | dict | None = None,
         batch_definition: LegacyBatchDefinition | None = None,
         batch_spec: BatchSpec | None = None,
         batch_markers: BatchMarkers | None = None,
-        # The remaining parameters are for backward compatibility.
-        data_context=None,
-        datasource_name=None,
-        batch_parameters=None,
-        batch_kwargs=None,
     ) -> None:
         self._data = data
         if batch_request is None:
@@ -785,12 +771,6 @@ class Batch(SerializableDictDot):
             )
 
         self._batch_markers = batch_markers
-
-        # The remaining parameters are for backward compatibility.
-        self._data_context = data_context
-        self._datasource_name = datasource_name
-        self._batch_parameters = batch_parameters
-        self._batch_kwargs = batch_kwargs or BatchKwargs()
 
     @property
     def data(self) -> BatchDataType | None:
@@ -825,23 +805,6 @@ class Batch(SerializableDictDot):
     @property
     def batch_markers(self):
         return self._batch_markers
-
-    # The remaining properties are for backward compatibility.
-    @property
-    def data_context(self):
-        return self._data_context
-
-    @property
-    def datasource_name(self):
-        return self._datasource_name
-
-    @property
-    def batch_parameters(self):
-        return self._batch_parameters
-
-    @property
-    def batch_kwargs(self):
-        return self._batch_kwargs
 
     @override
     def to_dict(self) -> dict:

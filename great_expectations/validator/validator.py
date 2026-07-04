@@ -27,7 +27,6 @@ import pandas as pd
 from marshmallow import ValidationError
 
 from great_expectations import __version__ as ge_version
-from great_expectations._docs_decorators import deprecated_argument
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.expectation_suite import (
     ExpectationSuite,
@@ -1083,15 +1082,10 @@ class Validator:
         else:
             raise ValueError("Unable to save config: filepath or data_context must be available.")  # noqa: TRY003 # FIXME CoP
 
-    @deprecated_argument(
-        argument_name="run_id",
-        message="Only the str version of this argument is deprecated. run_id should be a RunIdentifier or dict. Support will be removed in 0.16.0.",  # noqa: E501 # FIXME CoP
-        version="0.13.0",
-    )
     def validate(  # noqa: C901, PLR0912, PLR0913 # FIXME CoP
         self,
         expectation_suite: str | ExpectationSuite | None = None,
-        run_id: str | RunIdentifier | Dict[str, str] | None = None,
+        run_id: RunIdentifier | Dict[str, str] | None = None,
         data_context: Optional[Any] = None,  # Cannot type DataContext due to circular import
         suite_parameters: Optional[dict] = None,
         catch_exceptions: bool = True,
