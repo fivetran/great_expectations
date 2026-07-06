@@ -26,7 +26,7 @@ To contribute to GX documentation or code, see one of the following resources:
 
 - To request a documentation change, or a change that doesn't require local testing, see the [README](https://github.com/great-expectations/great_expectations/tree/develop/docs) in the `docs` repository.
 
-- To submit a code change to GX for consideration, see [CONTRIBUTING_CODE](https://github.com/great-expectations/great_expectations/blob/develop/CONTRIBUTING_CODE.md) in the `great_expectations` repository.
+- To submit a code change to GX for consideration, see [CONTRIBUTING](https://github.com/great-expectations/great_expectations/blob/develop/CONTRIBUTING.md) in the `great_expectations` repository.
 
 If you're not sure where to start, or you want to learn what other contributors are doing, check out the [community-supported tab in the GX Issues board](https://github.com/orgs/great-expectations/projects/2/views/1?pane=info) and/or check out the [GX Slack community](https://greatexpectations.io/slack) and introduce yourself in the [#contributing channel](https://greatexpectationstalk.slack.com/archives/CV828B2UX).
 
