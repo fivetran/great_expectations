@@ -386,13 +386,6 @@ The website should then be available at:
 open http://localhost:3000/docs
 ```
 
-## Verifying doc links
-
-Great Expectations previously documented a `docs/checks/docs_link_checker.py` script for verifying links in the
-docs. That script no longer exists in the repository, and no equivalent check is currently wired into CI as a
-command contributors can run locally — a broken-link-checking step exists in `.github/workflows/ci.yml` but is
-disabled (commented out). Until a working replacement is in place, there is no supported local command for
-verifying doc links; this section will be updated once one exists.
 
 ## Generating the glossary
 
