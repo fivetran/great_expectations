@@ -79,21 +79,42 @@ A maintainer reviews your PR, requests changes if needed, and approves and merge
 Depending on your GitHub notification settings, you'll be notified when there are comments on your PR or
 when it's successfully merged.
 
+## Requesting comment on larger changes
+
+Some changes benefit from broader discussion before any code is written. An RFC (Request For Comment) is
+how that discussion happens in the open.
+
+**An RFC is required for:**
+
+- Breaking changes to a public API
+- Adding support for a new data source or execution engine
+- Changes to a canonical JSON schema's version
+- Cross-cutting architectural decisions that affect multiple subsystems
+
+**An RFC is not required for:**
+
+- Bug fixes
+- Additive, non-breaking API changes
+- New Expectations that conform to the existing Expectation interface
+- Documentation changes
+- Performance changes that don't alter behavior
+
+RFCs are posted in the **Request For Comment** category of
+[GitHub Discussions](https://github.com/great-expectations/great_expectations/discussions). If your idea is
+still half-baked or exploratory, start in the **Ideas** category instead — move it to Request For Comment
+once you're ready to propose a concrete change.
+
+Maintainers have final authority to approve or deny an RFC. If an RFC is denied, the maintainer who denies
+it provides written rationale for the decision.
+
+An RFC's status is tracked with a label: `rfc:proposed`, `rfc:final-comment`, `rfc:accepted`,
+`rfc:declined`, or `rfc:withdrawn`. See [.github/LABELS.md](./.github/LABELS.md) for what each label means.
+
+Once posted, an RFC stays open for public comment for a minimum of two weeks. A maintainer may extend the
+comment window at their discretion. After the comment window closes, maintainers aim to reach a decision
+within 14 days.
+
 ## Contributor License Agreement (CLA)
 
-> This section is expected to move to its own dedicated document as GX's contribution governance materials
-> expand. Until then, it lives here in full so nothing is lost in the meantime.
-
-*When you contribute code, you affirm that the contribution is your original work and that you license the
-work to the project under the project's open source license. Whether or not you state this explicitly, by
-submitting any copyrighted material via pull request, email, or other means you agree to license the
-material under the project's open source license and warrant that you have the legal authority to do so.*
-
-Please make sure you have signed our Contributor License Agreement (either
-[Individual Contributor License Agreement](https://docs.google.com/forms/d/e/1FAIpQLSdA-aWKQ15yBzp8wKcFPpuxIyGwohGU1Hx-6Pa4hfaEbbb3fg/viewform?usp=sf_link)
-or
-[Software Grant and Corporate Contributor License Agreement](https://docs.google.com/forms/d/e/1FAIpQLSf3RZ_ZRWOdymT8OnTxRh5FeIadfANLWUrhaSHadg_E20zBAQ/viewform?usp=sf_link)).
-
-We are not asking you to assign copyright to us, but to give us the right to distribute your code without
-restriction. We ask this of all contributors in order to assure our users of the origin and continuing
-existence of the code. You only need to sign the CLA once.
+Before your first contribution can be merged, you'll need to sign our Contributor License Agreement. See
+[CLA.md](./CLA.md) for what the CLA covers and how to complete it.
