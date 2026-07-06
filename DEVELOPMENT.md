@@ -269,9 +269,7 @@ pip install pyspark
 
 Great Expectations production code must be thoroughly tested, and you must perform unit testing on all branches of every method, including likely error states. Most new feature contributions should include multiple unit tests. Contributions that modify or extend existing features should include a test of the new behavior.
 
-Most contributions do not require new integration tests, unless they change the Great Expectations CLI.
-
-Great Expectations code is not tested against all SQL database types. Continuous Integration (CI) testing for SQL is limited to PostgreSQL, SQLite, MS SQL, and BigQuery.
+Additionally, all PRs impacting core behavior -- including changes to implementations of Expectations, ValidationDefinitions, Checkpoints, and Datasources -- must have integration test coverage in `tests/integration/data_sources_and_expectations`.
 
 ### Unit testing
 
@@ -311,108 +309,6 @@ When verification fails, a list of unmarked tests and the required markers appea
     GE_TEST_BIGQUERY_DATASET=test_ci
     pytest tests/test_definitions/test_expectations_cfe.py --bigquery
     ```
-
-### Unit testing Expectations
-
-One of the most significant features of an Expectation is that it produces the same result on all supported execution environments including pandas, SQLAlchemy, and Spark. To accomplish this, Great Expectations encapsulates unit tests for Expectations as JSON files. These files are used as fixtures and executed using a specialized test runner that executes tests against all execution environments.
-
-The following is the test fixture file structure:
-
-```json
-{
-    "expectation_type" : "expect_column_max_to_be_between",
-    "datasets" : [{
-        "data" : {...},
-        "schemas" : {...},
-        "tests" : [...]
-    }]
-}
-```
-
-Below `datasets` are three entries: `data`, `schemas`, and `tests`.
-
-#### Data
-
-The `data` parameter defines a DataFrame of sample data to apply Expectations against. The DataFrame is defined as a dictionary of lists, with keys containing column names and values containing lists of data entries. All lists within a dataset must have the same length. For example:
-
-```console
-"data" : {
-    "w" : [1, 2, 3, 4, 5, 5, 4, 3, 2, 1],
-    "x" : [2, 3, 4, 5, 6, 7, 8, 9, null, null],
-    "y" : [1, 1, 1, 2, 2, 2, 3, 3, 3, 4],
-    "z" : ["a", "b", "c", "d", "e", null, null, null, null, null],
-    "zz" : ["1/1/2016", "1/2/2016", "2/2/2016", "2/2/2016", "3/1/2016", "2/1/2017", null, null, null, null],
-    "a" : [null, 0, null, null, 1, null, null, 2, null, null],
-},
-```
-
-#### Schemas
-
-The `schema` parameter defines the types to be used when instantiating tests against different execution environments, including different SQL dialects. Each schema is defined as a dictionary with column names and types as key-value pairs. If the schema isn’t specified for a given execution environment, Great Expectations introspects values and attempts to identify the schema. For example:
-
-```console
-"schemas": {
-    "sqlite": {
-        "w" : "INTEGER",
-        "x" : "INTEGER",
-        "y" : "INTEGER",
-        "z" : "VARCHAR",
-        "zz" : "DATETIME",
-        "a" : "INTEGER",
-    },
-    "postgresql": {
-        "w" : "INTEGER",
-        "x" : "INTEGER",
-        "y" : "INTEGER",
-        "z" : "TEXT",
-        "zz" : "TIMESTAMP",
-        "a" : "INTEGER",
-    }
-},
-```
-#### Tests
-
-The `tests` parameter defines the tests to be executed against the DataFrame. Each item in `tests` must include `title`, `exact_match_out`, `in`, and `out`. The test runner executes the named Expectation once for each item, with the values in `in` supplied as kwargs.
-
-The test passes if the values in the expectation Validation Result correspond with the values in `out`. If `exact_match_out` is true, then every field in the Expectation output must have a corresponding, matching field in `out`. If it’s false, then only the fields specified in `out` need to match. For most use cases, false is a better result, because it allows narrower targeting of the relevant output.
-
-`suppress_test_for` is an optional parameter to disable an Expectation for a specific list of backends. For example:
-
-```sh
-"tests" : [{
-    "title": "Basic negative test case",
-    "exact_match_out" : false,
-    "in": {
-        "column": "w",
-        "result_format": "BASIC",
-        "min_value": null,
-        "max_value": 4
-    },
-    "out": {
-        "success": false,
-        "observed_value": 5
-    },
-    "suppress_test_for": ["sqlite"]
-},
-...
-]
-
-```
-
-The test fixture files are stored in subdirectories of `tests/test_definitions/` corresponding to the class of Expectation:
-
-- column_map_expectations
-- column_aggregate_expectations
-- column_pair_map_expectations
-- column_distributional_expectations
-- multicolumn_map_expectations
-- other_expectations
-
-By convention, the name of the file is the name of the Expectation, with a .json suffix. Creating a new JSON file automatically adds the new Expectation tests to the test suite.
-
-If you are implementing a new Expectation, but don’t plan to immediately implement it for all execution environments, you should add the new test to the appropriate lists in the `candidate_test_is_on_temporary_notimplemented_list_v2_api` method within `tests/test_utils.py`.
-
-You can run just the Expectation tests with `pytest tests/test_definitions/test_expectations.py`.
 
 ## Test performance
 
@@ -507,67 +403,3 @@ python3 ./build_glossary_page.py
 ```
 
 Run this command from the `scripts` directory.
-
-## IDE setup
-
-The following tips are useful for contributors setting up an IDE for Great Expectations development.
-
-### VS Code
-
-Create a `.vscode` directory and add the following files to it:
-
-_.vscode/extension.json_
-```json
-{
-    // See https://go.microsoft.com/fwlink/?LinkId=827846 to learn about workspace recommendations.
-	// Extension identifier format: ${publisher}.${name}. Example: vscode.csharp
-	// List of extensions which should be recommended for users of this workspace.
-	"recommendations": [
-		"stateful.runme"
-	],
-	// List of extensions recommended by VS Code that should not be recommended for users of this workspace.
-	"unwantedRecommendations": []
-}
-```
-
-_.vscode/launch.json_
-```json
-{
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "GX Docusarus Docs",
-            "type": "node-terminal",
-            "request": "launch",
-            "command": "invoke docs"
-        },
-        {
-            "name": "GX Start MySQL Container",
-            "type": "node-terminal",
-            "request": "launch",
-            "command": "docker-compose up -d",
-            "cwd": "${workspaceFolder}/assets/docker/mysql"
-        },
-        {
-            "name": "GX Start PostgreSQL Container",
-            "type": "node-terminal",
-            "request": "launch",
-            "command": "docker-compose up -d",
-            "cwd": "${workspaceFolder}/assets/docker/postgresql"
-        }
-    ]
-}
-```
-
-_.vscode/settings.json_
-```json
-{
-    "workbench.editorAssociations": {
-        "DEVELOPMENT.md": "runme"
-    }
-}
-```
-
-### PyCharm
-
-tbd.
