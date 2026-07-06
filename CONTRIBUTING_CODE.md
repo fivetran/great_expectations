@@ -506,7 +506,7 @@ Test the performance of code changes to determine they perform as expected. BigQ
 
 ## Issue labels
 
-Great Expectations uses a `stalebot` to automatically tag issues without activity as `stale`, and closes them when a response is not received within a week. To prevent `stalebot` from closing an issue, you can add the `stalebot-exempt` label.
+Great Expectations uses a `stalebot` to automatically tag issues awaiting requested information as `stale`, and closes them when a response is not received within a week.
 
 Additionally, Great Expectations adds the following labels to indicate issue status:
 

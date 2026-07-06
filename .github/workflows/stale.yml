@@ -23,9 +23,11 @@ jobs:
           days-before-stale: 30
           days-before-close: 60
 
-          # exempt all issues
-          days-before-issue-stale: -1
-          days-before-issue-close: -1
+          # Only issues labeled `needs-info` are eligible for staleness;
+          # everything else (including unlabeled issues) is exempt.
+          only-issue-labels: needs-info
+          days-before-issue-stale: 30
+          days-before-issue-close: 60
 
           # Issue messages
           stale-issue-message: >
