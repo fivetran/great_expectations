@@ -22,10 +22,14 @@ directory instead of following this guide.
    labeled `help wanted` or `good first issue` are good entry points if you're not sure where to start —
    check an issue's labels and existing comments to see whether it's still open for someone to pick up.
 
-2. Before you start work, comment on the issue to let maintainers and other contributors know you're
-   picking it up. If someone else has already commented that they're working on it, look for a different
-   issue instead of duplicating effort. If you're unsure whether an issue is still available, ask in the
-   comment thread rather than assuming.
+2. Before you start work, claim the issue so maintainers and other contributors know you're picking it
+   up. Issues open for claiming carry the `ready-for-work` label. To claim one, comment `/assign-me` on
+   the issue; once the claim succeeds, the bot applies a `claimed` label and assigns you. If an issue
+   doesn't carry `ready-for-work`, it isn't open for claiming yet — look for a different issue instead.
+   A claim goes stale after about a week without activity on the issue (not a week from when you claimed
+   it — commenting or otherwise engaging with the issue keeps your claim active) and becomes reclaimable
+   by someone else at that point, except for issues carrying a maintainer-applied `pinned` label, which
+   are exempt from this staleness handling.
 
 3. If no existing issue covers your change, open a new issue first and add a comment introducing yourself
    and describing what you plan to do. For a significant feature, open the issue before writing code so the
