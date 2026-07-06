@@ -1,0 +1,23 @@
+tests/integration/data_sources_and_expectations/data_sources/test_snowflake.py
+  d22585bc3160a40d 9,284-332
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.1",
+  "base_commit_sha": "951fe519cafef753d3a7ba9914fed45803a52284",
+  "prompts": {
+    "d22585bc3160a40d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "be9b101f-8808-4c93-b9dc-1a6c86c96d09",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 4,
+      "accepted_lines": 50,
+      "overriden_lines": 0
+    }
+  }
+}
