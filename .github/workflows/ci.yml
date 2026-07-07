@@ -249,16 +249,27 @@ jobs:
           cache-dependency-path: |
             reqs/requirements-dev-test.txt
 
+      # TEMPORARY (CI transition): the GCP service account these steps activate no
+      # longer exists, so `gcloud auth activate-service-account` fails with
+      # "invalid_grant: account not found" and hard-fails every docs-snippets leg
+      # before any test runs. No docs snippet test currently exercises a GCP-backed
+      # backend (the cloud/warehouse pytest flags were already removed from
+      # docs-creds-needed), so this setup is dead weight until the credentials are
+      # re-provisioned. Skip it until then; restore by removing the `if: false`
+      # guards once valid credentials are available.
       - name: Authenticate with GCP
+        if: false
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{secrets.GE_TEST_GCP_CREDENTIALS}}
 
       - name: Create JSON file for following step
+        if: false
         run: |
           echo "$GE_TEST_GCP_CREDENTIALS" > gcp-credentials.json
 
       - name: Install and setup Google Cloud SDK
+        if: false
         run: |
           # this is recommended by the Google documentation for CI/CD https://cloud.google.com/sdk/docs/install#other_installation_options
           curl -sS https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-370.0.0-linux-x86_64.tar.gz > ./google-cloud-sdk-370.0.0-linux-x86_64.tar.gz && tar -xf ./google-cloud-sdk-370.0.0-linux-x86_64.tar.gz
