@@ -1,0 +1,23 @@
+tests/integration/data_sources_and_expectations/expectations/test_expect_column_distinct_values_to_be_in_set.py
+  e1294eadc2a3f58a 52-71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.1",
+  "base_commit_sha": "c13e94239216d8e26288aa15067d46f93a8afebf",
+  "prompts": {
+    "e1294eadc2a3f58a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b9fc418e-28cf-45e8-942e-5ff122bbc9d0",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 25,
+      "total_deletions": 3,
+      "accepted_lines": 25,
+      "overriden_lines": 0
+    }
+  }
+}
