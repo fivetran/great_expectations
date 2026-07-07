@@ -530,6 +530,17 @@ def _check_for_skipped_tests(  # noqa: C901, PLR0912 # FIXME CoP
     ]
     if integration_test_fixture.name in TESTS_TO_SKIP_DURING_CI_TRANSITION:
         pytest.skip("CI TRANSITION")
+    # TEMPORARY: This custom-expectation example declares no backend dependencies, so
+    # it runs unconditionally, but its diagnostic checklist opens a connection to every
+    # installed SQL backend -- including BigQuery, whose credentials are unavailable
+    # during the CI transition. That makes it fail on GCP auth regardless of the backend
+    # pytest flags. Gate it by name until the credentials are re-provisioned; remove this
+    # block to re-enable.
+    TESTS_TO_SKIP_DURING_CI_TRANSITION_GCP = [
+        "expect_column_max_to_be_between_custom",
+    ]
+    if integration_test_fixture.name in TESTS_TO_SKIP_DURING_CI_TRANSITION_GCP:
+        pytest.skip("CI TRANSITION")
     dependencies = integration_test_fixture.backend_dependencies
     if not dependencies:
         return
