@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import re
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
 import numpy as np
@@ -41,6 +42,7 @@ if TYPE_CHECKING:
 _SQLALCHEMY_1_4_OR_GREATER = SQLALCHEMY_VERSION is not None and is_version_greater_or_equal(
     SQLALCHEMY_VERSION, "1.4.0"
 )
+_ISO_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
 # Type alias for scalar values that can appear in columns or value sets
@@ -103,7 +105,7 @@ def _coerce_value_set_to_column_type(
 
 
 def _coerce_value_set_for_sql(value_set: List[ScalarValue]) -> List[ScalarValue]:
-    """Coerce value_set string values that look like dates to datetime.date objects.
+    """Coerce ISO date string values to datetime.date objects.
 
     This is needed for databases like BigQuery that require exact type matching.
     For SQLAlchemy metrics where we don't have access to actual column values.
@@ -119,10 +121,9 @@ def _coerce_value_set_for_sql(value_set: List[ScalarValue]) -> List[ScalarValue]
 
     coerced: List[ScalarValue] = []
     for v in value_set:
-        if isinstance(v, str):
-            # Try to parse as date (common format: YYYY-MM-DD)
+        if isinstance(v, str) and _ISO_DATE_RE.fullmatch(v):
             try:
-                coerced.append(parse(v).date())
+                coerced.append(datetime.date.fromisoformat(v))
             except (ValueError, TypeError):
                 coerced.append(v)
         else:
