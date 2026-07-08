@@ -6,7 +6,7 @@ If you believe you've found a security vulnerability in Great Expectations, plea
 privately using GitHub's private vulnerability reporting feature rather than opening a public
 issue or discussion:
 
-**[Report a vulnerability](https://github.com/great-expectations/great_expectations/security/advisories/new)**
+**[Report a vulnerability](https://github.com/fivetran/great_expectations/security/advisories/new)**
 (Security tab → "Report a vulnerability")
 
 This creates a private draft security advisory that is visible only to maintainers, so the

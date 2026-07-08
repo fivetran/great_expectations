@@ -20,7 +20,7 @@ setup and test mechanics.
 
 ## Fork and clone the repository
 
-1. Open a browser and go to the [Great Expectations repository](https://github.com/great-expectations/great_expectations).
+1. Open a browser and go to the [Great Expectations repository](https://github.com/fivetran/great_expectations).
 
 2. Click **Fork** and then **Create Fork**.
 
@@ -290,7 +290,7 @@ Testing can generate warning messages. These warnings are often caused by depend
 
 ### Marking tests
 
-All tests in Great Expectations must include one marker from the `REQUIRED_MARKERS` list. To view the list of defined markers, see [tests/conftest.py](https://github.com/great-expectations/great_expectations/blob/develop/tests/conftest.py).
+All tests in Great Expectations must include one marker from the `REQUIRED_MARKERS` list. To view the list of defined markers, see [tests/conftest.py](https://github.com/fivetran/great_expectations/blob/develop/tests/conftest.py).
 To verify each test is marked, run `invoke marker-coverage` if [invoke](https://pypi.org/project/invoke/) is installed, or run `pytest --verify-marker-coverage-and-exit`.
 When verification fails, a list of unmarked tests and the required markers appears.
 

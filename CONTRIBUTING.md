@@ -10,9 +10,9 @@ configuring test backends, running the test suite, linting, and IDE setup — se
 
 Discuss a code change before you implement it on GitHub — ideally as a comment on the applicable issue if
 one exists, or by starting a new thread in
-[GitHub Discussions](https://github.com/great-expectations/great_expectations/discussions) if it doesn't.
+[GitHub Discussions](https://github.com/fivetran/great_expectations/discussions) if it doesn't.
 To request a documentation-only change, or a change that doesn't require local testing, see the
-[README](https://github.com/great-expectations/great_expectations/tree/develop/docs) in the `docs`
+[README](https://github.com/fivetran/great_expectations/tree/develop/docs) in the `docs`
 directory instead of following this guide.
 
 ## 1. Propose a change or claim an issue
@@ -100,7 +100,7 @@ how that discussion happens in the open.
 - Performance changes that don't alter behavior
 
 RFCs are posted in the **Request For Comment** category of
-[GitHub Discussions](https://github.com/great-expectations/great_expectations/discussions). If your idea is
+[GitHub Discussions](https://github.com/fivetran/great_expectations/discussions). If your idea is
 still half-baked or exploratory, start in the **Ideas** category instead — move it to Request For Comment
 once you're ready to propose a concrete change.
 
