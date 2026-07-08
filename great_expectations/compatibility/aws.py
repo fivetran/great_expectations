@@ -54,14 +54,14 @@ def get_s3_boto3_options(boto3_options: Dict[str, Any]) -> Dict[str, Any]:
     suffix = f"great-expectations/{_get_distribution_version()}"
     options = dict(boto3_options)
 
-    if not Config:
+    if isinstance(Config, NotImported):
         return options
 
     config = options.get("config")
-    existing = getattr(config, "user_agent_extra", None) if config else None
+    existing = getattr(config, "user_agent_extra", None) if config is not None else None
     user_agent_extra = f"{existing} {suffix}" if existing else suffix
 
-    if config:
+    if config is not None:
         options["config"] = config.merge(Config(user_agent_extra=user_agent_extra))
     else:
         options["config"] = Config(user_agent_extra=user_agent_extra)
