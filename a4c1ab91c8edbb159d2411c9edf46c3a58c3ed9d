@@ -1,0 +1,23 @@
+.github/LABELS.md
+  871298de5cea86c8 4,7,9-14,16-17,19,21-25,30-32,35-36,44,46,50-53,55,57,67-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.1",
+  "base_commit_sha": "a4c1ab91c8edbb159d2411c9edf46c3a58c3ed9d",
+  "prompts": {
+    "871298de5cea86c8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5eb64674-4ef3-4180-9791-e4655bc3b9f9",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 44,
+      "total_deletions": 32,
+      "accepted_lines": 41,
+      "overriden_lines": 0
+    }
+  }
+}
