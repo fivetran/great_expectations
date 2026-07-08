@@ -18,9 +18,8 @@ directory instead of following this guide.
 ## 1. Propose a change or claim an issue
 
 1. If you want to fix a bug or make a small, well-scoped change, look for an existing issue on the
-   [GX Issues board](https://github.com/orgs/great-expectations/projects/2/views/1?pane=info). Issues
-   labeled `help wanted` or `good first issue` are good entry points if you're not sure where to start —
-   check an issue's labels and existing comments to see whether it's still open for someone to pick up.
+   [GX Issues board](https://github.com/orgs/great-expectations/projects/2/views/11?visibleFields=%5B%22Title%22%2C%22Assignees%22%2C%22Linked+pull+requests%22%2C%22Labels%22%5D&sliceBy%5BcolumnId%5D=Labels&sortedBy%5Bdirection%5D=asc&sortedBy%5BcolumnId%5D=Labels). Issues
+   labeled `help wanted` or `good first issue` are good entry points if you're not sure where to start.
 
 2. Before you start work, claim the issue so maintainers and other contributors know you're picking it
    up. Issues open for claiming carry the `ready-for-work` label. To claim one, comment `/assign-me` on
