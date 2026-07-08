@@ -35,9 +35,6 @@ directory instead of following this guide.
    approach can be discussed and aligned with the project's direction — this ensures your time and effort
    are well spent.
 
-4. If you can't find an issue that interests you, or you're not sure where to start, ask in the
-   [#contributing Slack channel](https://greatexpectationstalk.slack.com/archives/CV828B2UX).
-
 ## 2. Set up your environment and make your change
 
 1. Follow DEVELOPMENT.md's "Fork and clone the repository" and "Set up your development environment"
