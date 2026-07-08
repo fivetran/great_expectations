@@ -49,6 +49,18 @@ def test_strings(batch_for_datasource: Batch) -> None:
 
 
 @parameterize_batch_for_data_sources(
+    data_source_configs=ALL_DATA_SOURCES,
+    data=pd.DataFrame({COL_NAME: ["0-10", "10-20", "20-30"]}),
+)
+def test_date_like_strings(batch_for_datasource: Batch) -> None:
+    expectation = gxe.ExpectColumnDistinctValuesToBeInSet(
+        column=COL_NAME, value_set=["0-10", "10-20", "20-30"]
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+
+
+@parameterize_batch_for_data_sources(
     data_source_configs=DATA_SOURCES_THAT_SUPPORT_DATE_COMPARISONS,
     data=pd.DataFrame({COL_NAME: [datetime(2024, 11, 19).date(), datetime(2024, 11, 20).date()]}),  # noqa: DTZ001 # FIXME CoP
 )
