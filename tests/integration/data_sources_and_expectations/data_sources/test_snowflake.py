@@ -6,6 +6,7 @@ import pytest
 from great_expectations import get_context
 from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
 from great_expectations.compatibility.sqlalchemy import sqltypes
+from great_expectations.datasource.fluent import TestConnectionError
 from great_expectations.expectations import (
     ExpectColumnDistinctValuesToContainSet,
     ExpectColumnSumToBeBetween,
@@ -280,3 +281,52 @@ class TestSnowflakeDataTypes:
                 )
             )
         assert result.success
+
+
+class TestSnowflakeConnection:
+    """Connection-level behavior when adding an asset.
+
+    Adding a table asset runs a connection test against the target table. It
+    must succeed for a table the datasource can query, and raise
+    ``TestConnectionError`` for one it cannot (here, a table that does not
+    exist). The batch setup provisions its own schema and table, so these
+    tests depend on no pre-existing warehouse state.
+    """
+
+    COLUMN = "col_a"
+
+    def _batch_setup(self) -> SnowflakeBatchTestSetup:
+        return SnowflakeBatchTestSetup(
+            config=SnowflakeDatasourceTestConfig(column_types={self.COLUMN: sqltypes.INTEGER}),
+            data=pd.DataFrame({self.COLUMN: [1, 2, 3, 4]}),
+            extra_data={},
+            context=get_context(mode="ephemeral"),
+        )
+
+    @pytest.mark.snowflake
+    def test_queryable_asset_should_pass_test_connection(self):
+        """A table the datasource can query is added successfully and is
+        queryable end-to-end."""
+        batch_setup = self._batch_setup()
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(
+                expect=ExpectColumnValuesToBeBetween(
+                    column=self.COLUMN,
+                    min_value=1,
+                    max_value=4,
+                )
+            )
+        assert result.success
+
+    @pytest.mark.snowflake
+    def test_un_queryable_asset_should_raise_error(self):
+        """Adding an asset for a table that cannot be queried (it does not
+        exist) fails the connection test and raises ``TestConnectionError``."""
+        batch_setup = self._batch_setup()
+        with batch_setup.asset_test_context() as asset:
+            datasource = asset.datasource
+            with pytest.raises(TestConnectionError):
+                datasource.add_table_asset(
+                    name="un-reachable asset",
+                    table_name="table_that_does_not_exist",
+                )
