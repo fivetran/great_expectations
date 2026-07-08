@@ -456,8 +456,7 @@ def pytest_collection_modifyitems(config, items):
         "redshift",
         "databricks",
         "bigquery",
-        "snowflake",
-    }  # "athena"
+    }
     for item in items:
         present = skipped_backend_marks.intersection(item.keywords)
         if present:
