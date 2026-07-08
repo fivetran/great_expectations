@@ -12,10 +12,6 @@ Please make sure you have signed our Contributor License Agreement (either the
 or the
 [Software Grant and Corporate Contributor License Agreement](https://docs.google.com/forms/d/e/1FAIpQLSf3RZ_ZRWOdymT8OnTxRh5FeIadfANLWUrhaSHadg_E20zBAQ/viewform?usp=sf_link)).
 
-The legal entity to which the CLA grants rights is pending legal verification following the project's
-acquisition by Fivetran. The forms linked above remain the authoritative signing mechanism in the meantime;
-this document will be updated once that verification is complete.
-
 We are not asking you to assign copyright to us, but to give us the right to distribute your code without
 restriction. We ask this of all contributors in order to assure our users of the origin and continuing
 existence of the code. You only need to sign the CLA once.
