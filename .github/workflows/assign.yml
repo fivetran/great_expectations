@@ -1,0 +1,44 @@
+---
+# Enables issue-claiming via comment commands (/assign-me, /unassign-me, /assign
+# @user, /unassign @user) and automatically releases claims that have gone
+# stale so issues don't sit locked to an inactive assignee.
+#
+# Reference: https://github.com/takanome-dev/assign-issue-action
+
+name: Assign Issue
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # Runs daily; drives automatic unassignment/reminders
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  assign:
+    # Always run for scheduled/manual triggers. For comment triggers, only run
+    # when the comment plausibly contains an assign/unassign command, so we
+    # don't invoke the action on every unrelated issue comment in the repo.
+    if: >-
+      github.event_name != 'issue_comment' ||
+      contains(github.event.comment.body, '/assign') ||
+      contains(github.event.comment.body, '/unassign')
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Assign or unassign issue
+        uses: takanome-dev/assign-issue-action@c7086b052ac0039e7192085e82de2f9d74080f0b # v3.1.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          maintainers: 'joshua-stauffer'
+          required_label: 'ready-for-work'
+          assigned_label: 'claimed'
+          pin_label: 'pinned'
+          days_until_unassign: 7
+          enable_reminder: true
+          reminder_days: auto
+          allow_self_assign_author: false
+          enable_auto_suggestion: true
+          max_assignments: 3
+          block_assignment: true
