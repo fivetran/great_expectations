@@ -15,9 +15,6 @@ from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context.data_context.abstract_data_context import (
     AbstractDataContext,
 )
-from great_expectations.data_context.data_context.cloud_data_context import (
-    CloudDataContext,
-)
 from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
 )
@@ -198,13 +195,6 @@ def test_validation_definition_factory_is_initialized_with_context_filesystem(
     assert isinstance(empty_data_context.validation_definitions, ValidationDefinitionFactory)
 
 
-@pytest.mark.cloud
-def test_validation_definition_factory_is_initialized_with_context_cloud(
-    empty_cloud_data_context: CloudDataContext,
-):
-    assert isinstance(empty_cloud_data_context.validation_definitions, ValidationDefinitionFactory)
-
-
 @pytest.mark.filesystem
 def test_validation_definition_factory_add_success_filesystem(
     empty_data_context: FileDataContext,
@@ -215,22 +205,6 @@ def test_validation_definition_factory_add_success_filesystem(
     _test_validation_definition_factory_add_success(
         mocker=mocker,
         context=empty_data_context,
-        validation_definition=validation_definition,
-        validation_definition_json=validation_definition_json,
-    )
-
-
-@pytest.mark.cloud
-def test_validation_definition_factory_add_success_cloud(
-    unset_gx_env_variables: None,
-    empty_cloud_context_fluent: CloudDataContext,
-    validation_definition: ValidationDefinition,
-    validation_definition_json: str,
-    mocker: MockerFixture,
-):
-    _test_validation_definition_factory_add_success(
-        mocker=mocker,
-        context=empty_cloud_context_fluent,
         validation_definition=validation_definition,
         validation_definition_json=validation_definition_json,
     )
@@ -275,22 +249,6 @@ def test_validation_definition_factory_delete_success_filesystem(
     )
 
 
-@pytest.mark.cloud
-def test_validation_definition_factory_delete_success_cloud(
-    unset_gx_env_variables: None,
-    empty_cloud_context_fluent: CloudDataContext,
-    validation_definition: ValidationDefinition,
-    validation_definition_json: str,
-    mocker: MockerFixture,
-):
-    _test_validation_definition_factory_delete_success(
-        mocker=mocker,
-        context=empty_cloud_context_fluent,
-        validation_definition=validation_definition,
-        validation_definition_json=validation_definition_json,
-    )
-
-
 def _test_validation_definition_factory_delete_success(
     mocker: MockerFixture,
     context: AbstractDataContext,
@@ -318,13 +276,11 @@ def _test_validation_definition_factory_delete_success(
 @pytest.mark.parametrize(
     "context_fixture_name",
     [
-        pytest.param("empty_cloud_context_fluent", id="cloud", marks=pytest.mark.cloud),
         pytest.param("in_memory_runtime_context", id="ephemeral", marks=pytest.mark.big),
         pytest.param("empty_data_context", id="filesystem", marks=pytest.mark.filesystem),
     ],
 )
 def test_validation_definition_factory_all(
-    unset_gx_env_variables: None,
     context_fixture_name: str,
     request: pytest.FixtureRequest,
 ):

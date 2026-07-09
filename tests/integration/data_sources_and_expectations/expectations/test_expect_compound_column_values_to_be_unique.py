@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pandas as pd
 import pytest
 
@@ -9,12 +11,17 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     ALL_DATA_SOURCES,
     JUST_PANDAS_DATA_SOURCES,
 )
-from tests.integration.test_utils.data_source_config import PostgreSQLDatasourceTestConfig
+from tests.integration.test_utils.data_source_config import (
+    PostgreSQLDatasourceTestConfig,
+    SparkFilesystemCsvDatasourceTestConfig,
+)
 
 STRING_COL = "string_col"
 INT_COL = "int_col"
 INT_COL_2 = "int_col_2"
 DUPLICATES = "duplicates"
+EVENT_TS = "event_ts"
+CATEGORY = "category"
 
 try:
     from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
@@ -25,8 +32,13 @@ try:
         INT_COL_2: PYSPARK_TYPES.IntegerType,
         DUPLICATES: PYSPARK_TYPES.IntegerType,
     }
+    SPARK_TIMESTAMP_COLUMN_TYPES = {
+        EVENT_TS: PYSPARK_TYPES.TimestampType,
+        CATEGORY: PYSPARK_TYPES.StringType,
+    }
 except ModuleNotFoundError:
     SPARK_COLUMN_TYPES = {}
+    SPARK_TIMESTAMP_COLUMN_TYPES = {}
 
 
 DATA = pd.DataFrame(
@@ -233,3 +245,47 @@ def test_unexpected_index_query_sql_suppressed(batch_for_datasource: Batch) -> N
 def test_invalid_config(column_list: list[str]) -> None:
     with pytest.raises(pydantic.ValidationError):
         gxe.ExpectCompoundColumnsToBeUnique(column_list=column_list)
+
+
+# Naive datetimes are intentional: Spark's CSV roundtrip and timestamp parsing
+# behave deterministically when input/output stay tz-naive, avoiding session/local
+# timezone interactions that would otherwise make the comparison flaky.
+DATA_WITH_TIMESTAMP_DUPLICATES = pd.DataFrame(
+    {
+        EVENT_TS: [
+            datetime(2024, 1, 1),  # noqa: DTZ001
+            datetime(2024, 1, 1),  # noqa: DTZ001
+            datetime(2024, 1, 2),  # noqa: DTZ001
+        ],
+        CATEGORY: ["A", "A", "B"],
+    }
+)
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        SparkFilesystemCsvDatasourceTestConfig(column_types=SPARK_TIMESTAMP_COLUMN_TYPES),
+    ],
+    data=DATA_WITH_TIMESTAMP_DUPLICATES,
+)
+def test_partial_unexpected_list_spark_with_timestamp_columns(batch_for_datasource: Batch) -> None:
+    # Regression test for https://github.com/great-expectations/great_expectations/issues/11633:
+    # the Spark codepath used .toPandas() to materialize unexpected rows, which fails on
+    # PySpark 3.1.x + Pandas 2.x because the corrected pandas type for TimestampType was
+    # bare ``np.datetime64`` (no precision) — Pandas 2.x rejects that with
+    # "Passing in 'datetime64' dtype with no precision is not allowed".
+    result = batch_for_datasource.validate(
+        gxe.ExpectCompoundColumnsToBeUnique(column_list=[EVENT_TS, CATEGORY]),
+        result_format={"result_format": "COMPLETE"},
+    )
+    assert not result.success
+    assert result.result["unexpected_count"] == 2
+
+    rows = result.result["partial_unexpected_list"]
+    assert len(rows) == 2
+    expected_ts = datetime(2024, 1, 1)  # noqa: DTZ001
+    for row in rows:
+        # pd.Timestamp and datetime.datetime compare equal for the same moment, so this
+        # assertion is independent of which Python type the metric returns.
+        assert row[EVENT_TS] == expected_ts
+        assert row[CATEGORY] == "A"

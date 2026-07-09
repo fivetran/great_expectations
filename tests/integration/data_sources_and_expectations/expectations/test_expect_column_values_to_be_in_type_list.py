@@ -204,7 +204,7 @@ def test_failure(
         ),
         pytest.param(
             gxe.ExpectColumnValuesToBeInTypeList(
-                column="VARBINARY", type_list=["VARBINARY", "BINARY"]
+                column="VARBINARY", type_list=["VARBINARY", "BINARY", "BINARY(8388608)"]
             ),
             id="VARBINARY",
         ),

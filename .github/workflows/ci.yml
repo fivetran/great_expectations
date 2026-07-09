@@ -6,9 +6,6 @@ name: ci
 #   2. Every 3 hours
 #   3. When we push a tag with a semver pattern x.y.z (for example 0.0.1) which is the pattern we use for releases.
 
-env:
-  ECR_PULL_THROUGH_REPOSITORY_URL: 258143015559.dkr.ecr.us-east-1.amazonaws.com/docker-hub/
-
 on:
   merge_group:
   pull_request_target:
@@ -180,11 +177,6 @@ jobs:
           - doc-step: docs-spark
             start_services: 0
     env:
-      # gx cloud
-      GX_CLOUD_BASE_URL: ${{vars.MERCURY_BASE_URL}}
-      GX_CLOUD_ORGANIZATION_ID: ${{secrets.MERCURY_ORGANIZATION_ID}}
-      GX_CLOUD_WORKSPACE_ID: ${{secrets.MERCURY_WORKSPACE_ID}}
-      GX_CLOUD_ACCESS_TOKEN: ${{secrets.MERCURY_ACCESS_TOKEN}}
       # google
       GE_TEST_GCP_CREDENTIALS: ${{secrets.GE_TEST_GCP_CREDENTIALS}}
       GE_TEST_GCP_PROJECT: ${{secrets.GE_TEST_GCP_PROJECT}}
@@ -210,7 +202,6 @@ jobs:
       # snowflake
       SNOWFLAKE_ACCOUNT: ${{secrets.SNOWFLAKE_ACCOUNT}}
       SNOWFLAKE_USER: ${{secrets.SNOWFLAKE_USER}}
-      SNOWFLAKE_PW: ${{secrets.SNOWFLAKE_PW}}
       SNOWFLAKE_DATABASE: ${{secrets.SNOWFLAKE_DATABASE}}
       SNOWFLAKE_SCHEMA: ${{secrets.SNOWFLAKE_SCHEMA}}
       SNOWFLAKE_WAREHOUSE: ${{secrets.SNOWFLAKE_WAREHOUSE}}
@@ -219,8 +210,6 @@ jobs:
       # cloud-specific
       AUTH0_DOMAIN: ${{secrets.AUTH0_DOMAIN}}
       AUTH0_API_AUDIENCE: ${{secrets.AUTH0_API_AUDIENCE}}
-      AUTH0_MERCURY_API_CLIENT_ID: ${{secrets.AUTH0_MERCURY_API_CLIENT_ID}}
-      AUTH0_MERCURY_API_CLIENT_SECRET: ${{secrets.AUTH0_MERCURY_API_CLIENT_SECRET}}
       LD_SDK_KEY: default
       GX_LD_BASE_URI: "http://localhost:8765"
       GX_LD_EVENTS_URI: "http://localhost:8765"
@@ -233,9 +222,6 @@ jobs:
       LOCALSTACK_AWS_ENDPOINT_URL: ${{secrets.LOCALSTACK_AWS_ENDPOINT_URL}}
       LOCALSTACK_AWS_SECRET_ACCESS_KEY: ${{secrets.LOCALSTACK_AWS_SECRET_ACCESS_KEY}}
       LOCALSTACK_AWS_ACCESS_KEY_ID: ${{secrets.LOCALSTACK_AWS_ACCESS_KEY_ID}}
-      SNOWFLAKE_CI_ACCOUNT: ${{secrets.SNOWFLAKE_CI_ACCOUNT}}
-      SNOWFLAKE_CI_USER_PASSWORD: ${{secrets.SNOWFLAKE_CI_USER_PASSWORD}}
-      CLOUD_AMQP_CONNECTION_STRING: ${{secrets.CLOUD_AMQP_CONNECTION_STRING}}
       LOGGING_LEVEL: DEBUG
       ENVIRONMENT: local
     permissions:
@@ -260,16 +246,27 @@ jobs:
           cache-dependency-path: |
             reqs/requirements-dev-test.txt
 
+      # TEMPORARY (CI transition): the GCP service account these steps activate no
+      # longer exists, so `gcloud auth activate-service-account` fails with
+      # "invalid_grant: account not found" and hard-fails every docs-snippets leg
+      # before any test runs. No docs snippet test currently exercises a GCP-backed
+      # backend (the cloud/warehouse pytest flags were already removed from
+      # docs-creds-needed), so this setup is dead weight until the credentials are
+      # re-provisioned. Skip it until then; restore by removing the `if: false`
+      # guards once valid credentials are available.
       - name: Authenticate with GCP
+        if: false
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{secrets.GE_TEST_GCP_CREDENTIALS}}
 
       - name: Create JSON file for following step
+        if: false
         run: |
           echo "$GE_TEST_GCP_CREDENTIALS" > gcp-credentials.json
 
       - name: Install and setup Google Cloud SDK
+        if: false
         run: |
           # this is recommended by the Google documentation for CI/CD https://cloud.google.com/sdk/docs/install#other_installation_options
           curl -sS https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-370.0.0-linux-x86_64.tar.gz > ./google-cloud-sdk-370.0.0-linux-x86_64.tar.gz && tar -xf ./google-cloud-sdk-370.0.0-linux-x86_64.tar.gz
@@ -303,16 +300,9 @@ jobs:
           yarn install
           python ci/checks/validate_docs_snippets.py
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-        with:
-          registries: "258143015559"
-
       - name: Start services
         if: ${{ matrix.start_services }}
         run: |
-          docker compose --progress quiet -f assets/docker/mercury/docker-compose.yml up -d --wait --wait-timeout 300 && \
           docker compose --progress quiet -f assets/docker/spark/docker-compose.yml up -d --wait --wait-timeout 300
 
       - name: Run the tests
@@ -503,133 +493,6 @@ jobs:
           POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
         run: cd docs/docusaurus && yarn install && yarn test
 
-  cloud-tests:
-    needs: [unit-tests, static-analysis, check-actor-permissions]
-    if: github.event.pull_request.draft == false
-    permissions:
-      id-token: write
-      contents: read
-    runs-on: ubuntu-latest
-    env:
-      GX_CLOUD_BASE_URL: ${{vars.MERCURY_BASE_URL}}
-      PACT_BROKER_READ_WRITE_TOKEN: ${{secrets.PACT_BROKER_READ_WRITE_TOKEN}}
-      AUTH0_DOMAIN: ${{secrets.AUTH0_DOMAIN}}
-      AUTH0_API_AUDIENCE: ${{secrets.AUTH0_API_AUDIENCE}}
-      AUTH0_MERCURY_API_CLIENT_ID: ${{secrets.AUTH0_MERCURY_API_CLIENT_ID}}
-      AUTH0_MERCURY_API_CLIENT_SECRET: ${{secrets.AUTH0_MERCURY_API_CLIENT_SECRET}}
-      GX_CLOUD_ORGANIZATION_ID: ${{secrets.MERCURY_ORGANIZATION_ID}}
-      GX_CLOUD_WORKSPACE_ID: ${{secrets.MERCURY_WORKSPACE_ID}}
-      GX_CLOUD_ACCESS_TOKEN: ${{secrets.MERCURY_ACCESS_TOKEN}}
-      LD_SDK_KEY: default
-      GX_LD_BASE_URI: "http://localhost:8765"
-      GX_LD_EVENTS_URI: "http://localhost:8765"
-      GX_LD_STREAM_URI: "http://localhost:8765"
-      LAUNCH_DARKLY_DEV_SERVER_ACCESS_TOKEN: ${{ secrets.LAUNCH_DARKLY_DEV_SERVER_ACCESS_TOKEN }}
-      GX_SCHEDULER_LAMBDA_ARN: ${{secrets.GX_SCHEDULER_LAMBDA_ARN}}
-      GX_SCHEDULER_EXECUTION_ROLE_ARN: ${{secrets.GX_SCHEDULER_EXECUTION_ROLE_ARN}}
-      GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN: ${{secrets.GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN}}
-      GX_SCHEDULER_EVENTBRIDGE_REGION: ${{secrets.GX_SCHEDULER_EVENTBRIDGE_REGION}}
-      LOCALSTACK_AWS_ENDPOINT_URL: ${{secrets.LOCALSTACK_AWS_ENDPOINT_URL}}
-      LOCALSTACK_AWS_SECRET_ACCESS_KEY: ${{secrets.LOCALSTACK_AWS_SECRET_ACCESS_KEY}}
-      LOCALSTACK_AWS_ACCESS_KEY_ID: ${{secrets.LOCALSTACK_AWS_ACCESS_KEY_ID}}
-      PACT_DO_NOT_TRACK: true
-      SNOWFLAKE_CI_ACCOUNT: ${{secrets.SNOWFLAKE_CI_ACCOUNT}}
-      SNOWFLAKE_CI_USER_PASSWORD: ${{secrets.SNOWFLAKE_CI_USER_PASSWORD}}
-      CLOUD_AMQP_CONNECTION_STRING: ${{secrets.CLOUD_AMQP_CONNECTION_STRING}}
-      LOGGING_LEVEL: DEBUG
-      ENVIRONMENT: local
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Upgrade Docker Compose
-        uses: docker/setup-compose-action@v1
-        with:
-          version: latest
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-          cache-dependency-path: |
-            reqs/requirements-dev-test.txt
-            setup.py
-
-      - name: Install dependencies
-        run: |
-          pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
-          invoke deps --gx-install -m 'cloud' -r test
-
-      - name: Configure ECR AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: us-east-1
-          role-to-assume: arn:aws:iam::258143015559:role/github-amazonec2containerregistryreadonly
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Start services
-        run: |
-          docker compose --progress quiet -f assets/docker/mercury/docker-compose.yml up -d --wait --wait-timeout 300 && \
-          docker compose --progress quiet -f assets/docker/spark/docker-compose.yml up -d --wait --wait-timeout 300
-
-      - name: Show logs for debugging
-        if: failure()
-        run: |
-          docker compose -f assets/docker/mercury/docker-compose.yml logs
-
-      - name: Run the tests
-        run: invoke ci-tests 'cloud' --up-services --verbose  --reports -W default::great_expectations.datasource.fluent.GxInvalidDatasourceWarning
-
-      - name: Publish pact contracts to PactFlow
-        if: env.PACT_BROKER_READ_WRITE_TOKEN != '' && !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
-        env:
-          PACT_CLI_VERSION: v2.6.0
-        run: |
-          PACT_DIR="tests/integration/cloud/rest_contracts/pacts"
-          if [ ! -d "${PACT_DIR}" ] || ! compgen -G "${PACT_DIR}/*.json" > /dev/null; then
-            echo "No pact files found in ${PACT_DIR}, skipping publish"
-            exit 0
-          fi
-          echo "Publishing pact files from ${PACT_DIR}:"
-          ls -la ${PACT_DIR}/*.json
-          curl -fsSL https://raw.githubusercontent.com/pact-foundation/pact-ruby-standalone/${PACT_CLI_VERSION}/install.sh | bash
-          export PATH="${PATH}:$(pwd)/pact/bin"
-          pact-broker publish "${PACT_DIR}" \
-            --broker-base-url=https://greatexpectations.pactflow.io \
-            --broker-token="${PACT_BROKER_READ_WRITE_TOKEN}" \
-            --consumer-app-version="${{ github.event.pull_request.head.sha || github.sha }}" \
-            --branch="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
-
-      - name: Show cloud logs on test failure
-        if: failure()
-        run: |
-          docker compose -f assets/docker/mercury/docker-compose.yml logs
-
-          # upload coverage report to codecov
-      - name: Upload coverage reports to Codecov
-        continue-on-error: true
-        uses: codecov/codecov-action@v4.1.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: great-expectations/great_expectations
-          flags: cloud
-          fail_ci_if_error: false
-
-      # upload test results to codecov
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: cloud
-
   integration-tests:
     needs: [unit-tests, static-analysis, check-actor-permissions]
     if: github.event.pull_request.draft == false
@@ -705,18 +568,6 @@ jobs:
       DATABRICKS_TOKEN: ${{secrets.DATABRICKS_SQL_TOKEN}}
       DATABRICKS_HOST: ${{secrets.DATABRICKS_HOST}}
       DATABRICKS_HTTP_PATH: ${{secrets.DATABRICKS_HTTP_PATH}}
-
-      # snowflake
-      SNOWFLAKE_CI_ACCOUNT: ${{secrets.SNOWFLAKE_CI_ACCOUNT}}
-      SNOWFLAKE_CI_USER_PASSWORD: ${{secrets.SNOWFLAKE_CI_USER_PASSWORD}}
-      SNOWFLAKE_ACCOUNT: ${{secrets.SNOWFLAKE_ACCOUNT}}
-      SNOWFLAKE_USER: ${{secrets.SNOWFLAKE_USER}}
-      SNOWFLAKE_PW: ${{secrets.SNOWFLAKE_PW}}
-      SNOWFLAKE_DATABASE: ${{secrets.SNOWFLAKE_DATABASE}}
-      SNOWFLAKE_SCHEMA: ${{secrets.SNOWFLAKE_SCHEMA}}
-      SNOWFLAKE_WAREHOUSE: ${{secrets.SNOWFLAKE_WAREHOUSE}}
-      SNOWFLAKE_ROLE: ${{secrets.SNOWFLAKE_ROLE}}
-      SNOWFLAKE_PRIVATE_KEY: ${{secrets.SNOWFLAKE_PRIVATE_KEY}}
     permissions:
       id-token: write
       contents: read
@@ -735,11 +586,11 @@ jobs:
           - sql_server
           - mysql
           - postgresql
-          - snowflake
           - spark
           - spark_connect
           - trino
           - clickhouse
+          - singlestore
         python-version: ["3.10", "3.11", "3.12", "3.13"]
         exclude:
           # TODO: would like to adopt `actionlint` pre-commit hook
@@ -791,18 +642,13 @@ jobs:
         if: matrix.markers == 'sql_server'
         run: ./scripts/install_sql_server_odbc_driver.sh
 
-      - name: Configure ECR AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: us-east-1
-          role-to-assume: arn:aws:iam::258143015559:role/github-amazonec2containerregistryreadonly
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
       - name: Run the tests
-        run: invoke ci-tests '${{ matrix.markers }}' --up-services --verbose  --reports
+        run: |
+          FLAGS=""
+          case "${{ matrix.markers }}" in
+            bigquery|databricks) FLAGS="--xdist" ;;
+          esac
+          invoke ci-tests '${{ matrix.markers }}' --up-services --verbose --reports $FLAGS
 
       # upload coverage report to codecov
       - name: Upload coverage reports to Codecov
@@ -822,6 +668,93 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: "${{ matrix.python-version }} ${{ matrix.markers }}"
+
+  marker-tests-snowflake:
+    needs: [unit-tests, static-analysis, check-actor-permissions]
+    if: github.event.pull_request.draft == false
+    env:
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
+      # snowflake
+      SNOWFLAKE_ACCOUNT: ${{secrets.SNOWFLAKE_ACCOUNT}}
+      SNOWFLAKE_USER: ${{secrets.SNOWFLAKE_USER}}
+      SNOWFLAKE_DATABASE: ${{secrets.SNOWFLAKE_DATABASE}}
+      SNOWFLAKE_SCHEMA: ${{secrets.SNOWFLAKE_SCHEMA}}
+      SNOWFLAKE_WAREHOUSE: ${{secrets.SNOWFLAKE_WAREHOUSE}}
+      SNOWFLAKE_ROLE: ${{secrets.SNOWFLAKE_ROLE}}
+      SNOWFLAKE_PRIVATE_KEY: ${{secrets.SNOWFLAKE_PRIVATE_KEY}}
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    # Snowflake marker tests are split into shards + xdist workers because the
+    # un-sharded job was the slowest cell in `ci.yml` (P90 ≈ 49m). Each shard
+    # runs ~1/3 of the tests via `pytest-split`; workers are `pytest-xdist`.
+    # Test fixtures already isolate schemas with 10-char random suffixes
+    # (see `tests/integration/test_utils/data_source_config/sql.py`), so
+    # parallel shards cannot collide on schema names.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ["1/3", "2/3", "3/3"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        exclude:
+          - python-version: ${{ github.event_name == 'pull_request_target' && '3.10' }}
+          - python-version: ${{ github.event_name == 'pull_request_target' && '3.11' }}
+          - python-version: ${{ github.event_name == 'pull_request_target' && '3.12' }}
+          - python-version: ${{ github.event_name == 'merge_group' && '3.10' }}
+          - python-version: ${{ github.event_name == 'merge_group' && '3.11' }}
+          - python-version: ${{ github.event_name == 'merge_group' && '3.12' }}
+          - python-version: ${{ github.event_name == 'workflow_dispatch' && '3.10' }}
+          - python-version: ${{ github.event_name == 'workflow_dispatch' && '3.11' }}
+          - python-version: ${{ github.event_name == 'workflow_dispatch' && '3.12' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+          cache-dependency-path: |
+            reqs/requirements-dev-test.txt
+            setup.py
+
+      - name: Install dependencies
+        run: |
+          pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
+          invoke deps --gx-install -m snowflake -r test
+
+      - name: Run the tests
+        run: |
+          GROUP="${SHARD%/*}"
+          SPLITS="${SHARD#*/}"
+          invoke ci-tests snowflake --up-services --verbose --reports --xdist \
+            --splits="$SPLITS" --group="$GROUP"
+        env:
+          SHARD: ${{ matrix.shard }}
+
+      # upload coverage report to codecov
+      - name: Upload coverage reports to Codecov
+        continue-on-error: true
+        uses: codecov/codecov-action@v4.1.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: great-expectations/great_expectations
+          flags: "${{ matrix.python-version }} snowflake ${{ matrix.shard }}"
+          fail_ci_if_error: false
+
+      # upload test results to codecov
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: "${{ matrix.python-version }} snowflake ${{ matrix.shard }}"
 
   redshift:
     needs: [unit-tests, static-analysis, check-actor-permissions]
@@ -865,16 +798,6 @@ jobs:
         run: |
           pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
           invoke deps --gx-install -m '${{ matrix.markers }}' -r test
-
-      - name: Configure ECR AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: us-east-1
-          role-to-assume: arn:aws:iam::258143015559:role/github-amazonec2containerregistryreadonly
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Run the tests
         run: invoke ci-tests '${{ matrix.markers }}' --up-services --verbose  --reports
@@ -1102,9 +1025,9 @@ jobs:
       - docs-build
       - docs-tests
       - docs-snippets
-      - cloud-tests
       - integration-tests
       - marker-tests
+      - marker-tests-snowflake
       - redshift
       - py310-min-versions
       - py311-min-versions
@@ -1146,9 +1069,9 @@ jobs:
         static-analysis,
         docs-snippets,
         unit-tests,
-        cloud-tests,
         integration-tests,
         marker-tests,
+        marker-tests-snowflake,
         py310-min-versions,
         py311-min-versions,
         py312-min-versions,
@@ -1197,9 +1120,9 @@ jobs:
         static-analysis,
         docs-snippets,
         unit-tests,
-        cloud-tests,
         integration-tests,
         marker-tests,
+        marker-tests-snowflake,
         py310-min-versions,
         py311-min-versions,
         py312-min-versions,

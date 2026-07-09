@@ -367,6 +367,8 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             )
         elif self.dialect_name == GXSqlDialect.DATABRICKS:
             self.dialect_module = import_library_module("databricks.sqlalchemy")
+        elif self.dialect_name == GXSqlDialect.SINGLESTOREDB:
+            self.dialect_module = import_library_module("sqlalchemy_singlestoredb")
         else:
             self.dialect_module = None
 

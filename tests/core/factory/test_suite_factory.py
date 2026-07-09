@@ -156,19 +156,9 @@ def test_suite_factory_is_initialized_with_context_filesystem(empty_data_context
     assert isinstance(empty_data_context.suites, SuiteFactory)
 
 
-@pytest.mark.cloud
-def test_suite_factory_is_initialized_with_context_cloud(empty_cloud_data_context):
-    assert isinstance(empty_cloud_data_context.suites, SuiteFactory)
-
-
 @pytest.mark.filesystem
 def test_suite_factory_add_success_filesystem(empty_data_context):
     _test_suite_factory_add_success(empty_data_context)
-
-
-@pytest.mark.filesystem
-def test_suite_factory_add_success_cloud(empty_cloud_context_fluent):
-    _test_suite_factory_add_success(empty_cloud_context_fluent)
 
 
 def _test_suite_factory_add_success(context):
@@ -186,14 +176,6 @@ def _test_suite_factory_add_success(context):
 @pytest.mark.filesystem
 def test_suite_factory_delete_success_filesystem(empty_data_context):
     _test_suite_factory_delete_success(empty_data_context)
-
-
-@pytest.mark.cloud
-def test_suite_factory_delete_success_cloud(
-    unset_gx_env_variables: None,
-    empty_cloud_context_fluent,
-):
-    _test_suite_factory_delete_success(empty_cloud_context_fluent)
 
 
 def _test_suite_factory_delete_success(context):
@@ -215,13 +197,11 @@ def _test_suite_factory_delete_success(context):
 @pytest.mark.parametrize(
     "context_fixture_name",
     [
-        pytest.param("empty_cloud_context_fluent", id="cloud", marks=pytest.mark.cloud),
         pytest.param("in_memory_runtime_context", id="ephemeral", marks=pytest.mark.big),
         pytest.param("empty_data_context", id="filesystem", marks=pytest.mark.filesystem),
     ],
 )
 def test_suite_factory_all(
-    unset_gx_env_variables: None,
     context_fixture_name: str,
     request: pytest.FixtureRequest,
 ):

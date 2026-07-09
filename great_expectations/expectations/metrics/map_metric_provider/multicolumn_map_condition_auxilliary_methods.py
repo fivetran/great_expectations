@@ -251,16 +251,13 @@ def _spark_multicolumn_map_condition_values(
 
     column_selector = [F.col(column_name).alias(column_name) for column_name in column_list]
 
+    limit = MAX_RESULT_RECORDS
     result_format = metric_value_kwargs["result_format"]
-    if result_format["result_format"] == "COMPLETE":
-        domain_values = (
-            filtered.select(column_selector).limit(MAX_RESULT_RECORDS).toPandas().to_dict("records")
-        )
-    else:
+    if result_format["result_format"] != "COMPLETE":
         limit = min(result_format["partial_unexpected_count"], MAX_RESULT_RECORDS)
-        domain_values = filtered.select(column_selector).limit(limit).toPandas().to_dict("records")
 
-    return domain_values
+    domain_values = filtered.select(column_selector).limit(limit)
+    return [row.asDict() for row in domain_values.collect()]
 
 
 def _spark_multicolumn_map_condition_filtered_row_count(

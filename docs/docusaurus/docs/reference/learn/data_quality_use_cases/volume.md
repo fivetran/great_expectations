@@ -2,8 +2,6 @@
 sidebar_label: 'Volume'
 title: 'Manage data volume with GX'
 ---
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
 
 Data volume, a critical aspect of data quality, refers to the quantity of records or data points within a dataset. Managing data volume effectively is crucial for maintaining data integrity, ensuring system performance, and deriving accurate insights. Unexpected changes in data volume can signal issues in data collection, processing, or storage, potentially leading to skewed analyses or system failures. Volume management is intrinsically linked to other aspects of data quality, such as data completeness and consistency, forming a crucial part of a comprehensive data quality strategy.
 
@@ -13,7 +11,7 @@ This guide will walk you through leveraging GX to effectively manage and validat
 
 ## Prerequisite knowledge
 
-This article assumes basic familiarity with GX components and workflows. If you're new to GX, start with the [GX Overview](/core/introduction/gx_overview.md) to familiarize yourself with key concepts and setup procedures.
+This article assumes basic familiarity with GX components and workflows. If you're new to GX, start with the [GX Core overview](/core/introduction/gx_overview.md) to familiarize yourself with key concepts and setup procedures.
 
 ## Data preview
 
@@ -28,7 +26,7 @@ This dataset represents daily financial transactions. In a real-world scenario, 
 
 ## Key volume Expectations
 
-GX provides several Expectations specifically designed for managing data volume, all of which can be added directly in GX Cloud or GX Core. 
+GX provides several Expectations specifically designed for managing data volume, all of which can be added directly in GX Core.
 
 ### Expect Table Row Count To Be Between
 
@@ -38,10 +36,6 @@ Ensures that the number of rows in a dataset falls within a specified range.
 
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/volume_resources/volume_expectations.py ExpectTableRowCountToBeBetween"
 ```
-
-:::tip Automate this rule with GX Cloud
-When you use the GX Cloud UI to [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add an Expectation](/cloud/expectations/manage_expectations.md#create-an-expectation) you can enable Anomaly Detection to catch volume changes that deviate from historical patterns. Note that these conveniences have some [Data Source limitations](/docs/cloud/data_sources/manage_data_sources/#workflow-and-feature-support).
-:::
 
 <small>View `ExpectTableRowCountToBeBetween` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_table_row_count_to_be_between).</small>
 
@@ -73,7 +67,7 @@ Compares the row count of the current table to another table within the same dat
 <br/>
 
 :::tip[GX tips for volume Expectations]
-- Regularly adjust your `ExpectTableRowCountToBeBetween` thresholds based on historical data and growth patterns to maintain relevance. Or to save time, automate a forecasted range with GX Cloud.
+- Regularly adjust your `ExpectTableRowCountToBeBetween` thresholds based on historical data and growth patterns to maintain relevance.
 - Use `ExpectTableRowCountToEqual` in conjunction with time-based partitioning for precise daily volume checks.
 - Implement `ExpectTableRowCountToEqualOtherTable` to ensure data integrity across your data pipeline stages.
 :::
@@ -82,17 +76,8 @@ Compares the row count of the current table to another table within the same dat
 
 **Context**: In SQL tables, data is often timestamped on row creation. Tables can hold historical data created over long ranges of time, however, organizations generally want to validate volume for a specific time period: over a year, over a month, over a day. When data arrives on a regular cadence, it is also useful to be able to monitor volume over the most recent window of time.
 
-**Goal**: Using the `ExpectTableRowCountToBeBetween` Expectation and either GX Core or GX Cloud, validate daily data volume by batching a single Data Asset (a Postgres table) on a time-based column, `transfer_ts`.
+**Goal**: Using the `ExpectTableRowCountToBeBetween` Expectation and GX Core, validate daily data volume by batching a single Data Asset (a Postgres table) on a time-based column, `transfer_ts`.
 
-<Tabs
-   defaultValue="gx_cloud"
-   values={[
-      {value: 'gx_core', label: 'GX Core'},
-      {value: 'gx_cloud', label: 'GX Cloud'}
-   ]}
->
-
-<TabItem value="gx_core" label="GX Core">
 Run the following GX Core workflow.
 
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/volume_resources/volume_workflow.py full example code"
@@ -109,35 +94,7 @@ Run the following GX Core workflow.
 | 2024-05-06 | False | 6 |
 | 2024-05-07 | True | 5 |
 
-</TabItem>
-
-<TabItem value="gx_cloud" label="GX Cloud">
-
-Use the GX Cloud UI to walk through the following steps.
-
-1. Create a Postgres Data Asset for the `volume_financial_transfers` table, using the connection string:
-   ```python title="Connection string"
-   postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality?options=-csearch_path%3Dpublic
-   ```
-
-2. Profile the Data Asset.
-3. Add an **Expect table row count to be between** Expectation to the freshly created Data Asset.
-4. Populate the Expectation with a **Min Value** of `1` and a **Max Value** of `5`.
-5. Save the Expectation.
-6. Click **Edit batch**.
-7. For **Batch interval**, select **Day**.
-8. Set **Validate by** to `transfer_ts`.
-9. Click **Save**.
-10. Click the **Validate** button and define which batch to validate.
-   * **Latest Batch** validates data for the most recent batch found in the Data Asset.
-   * **Custom Batch** validates data for the batch provided.
-11. Click **Run**.
-12. Review Validation Results.
-
-</TabItem>
-</Tabs>
-
-**GX solution**: GX enables volume validation for yearly, monthly, or daily ranges of data. Data validation can be defined and run using either GX Core or GX Cloud.
+**GX solution**: GX enables volume validation for yearly, monthly, or daily ranges of data. Data validation can be defined and run using GX Core.
 
 ## Scenarios
 
@@ -164,7 +121,7 @@ The scenarios in this section outline common real-world use cases for data volum
 
 ## Avoid common volume validation pitfalls
 
-- **Static Thresholds**: Avoid using fixed thresholds for `ExpectTableRowCountToBeBetween` that don't account for natural growth or seasonality. Regularly review and adjust your parameters. Or to save time, automate [Anomaly Detection](/cloud/overview/accelerating_test_coverage.md#anomaly-detection) with GX Cloud. For example, an e-commerce platform might need different volume thresholds for regular days versus holiday seasons.
+- **Static Thresholds**: Avoid using fixed thresholds for `ExpectTableRowCountToBeBetween` that don't account for natural growth or seasonality. Regularly review and adjust your parameters. For example, an e-commerce platform might need different volume thresholds for regular days versus holiday seasons.
 
 - **Ignoring Data Skew**: Data skew refers to the uneven distribution of data across partitions or nodes in a distributed system. Failing to account for data skew when validating volume can lead to misleading results. Monitor volume at the partition level and implement checks to detect and handle data skew.
 

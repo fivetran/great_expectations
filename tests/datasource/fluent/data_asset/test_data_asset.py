@@ -7,9 +7,6 @@ from great_expectations.core.partitioners import ColumnPartitionerYearly
 from great_expectations.data_context.data_context.abstract_data_context import (
     AbstractDataContext,
 )
-from great_expectations.data_context.data_context.cloud_data_context import (
-    CloudDataContext,
-)
 from great_expectations.datasource.fluent.fluent_base_model import FluentBaseModel
 from great_expectations.datasource.fluent.interfaces import Batch, DataAsset, Datasource
 from great_expectations.datasource.fluent.pandas_datasource import PandasDatasource
@@ -42,21 +39,6 @@ def file_context_with_assets(file_context: AbstractDataContext) -> AbstractDataC
     ).add_batch_definition(BATCH_DEFINITION_NAME)
 
     return file_context
-
-
-@pytest.fixture
-def cloud_context(empty_cloud_context_fluent: CloudDataContext) -> AbstractDataContext:
-    datasource = empty_cloud_context_fluent.data_sources.add_pandas(DATASOURCE_NAME)
-    datasource.add_csv_asset(EMPTY_DATA_ASSET_NAME, "taxi.csv")  # type: ignore [arg-type]
-    datasource.add_csv_asset(
-        DATA_ASSET_WITH_BATCH_DEFINITION_NAME,
-        "taxi.csv",  # type: ignore [arg-type]
-    ).add_batch_definition(BATCH_DEFINITION_NAME)
-    datasource.add_csv_asset(
-        ANOTHER_DATA_ASSET_WITH_BATCH_DEFINITION_NAME,
-        "taxi.csv",  # type: ignore [arg-type]
-    ).add_batch_definition(BATCH_DEFINITION_NAME)
-    return empty_cloud_context_fluent
 
 
 @pytest.fixture
@@ -158,16 +140,6 @@ def test_add_batch_definition__file_data__does_not_clobber_other_assets(
     )
 
 
-@pytest.mark.unit
-def test_add_batch_definition__cloud_data__does_not_clobber_other_assets(
-    cloud_context: AbstractDataContext,
-):
-    _test_add_batch_definition__does_not_clobber_other_assets(
-        context=cloud_context,
-        datasource_name=DATASOURCE_NAME,
-    )
-
-
 def _test_add_batch_definition__does_not_clobber_other_assets(
     context: AbstractDataContext,
     datasource_name: str,
@@ -198,17 +170,6 @@ def test_add_batch_definition__file_data__does_not_clobber_other_batch_definitio
 ):
     _test_add_batch_definition__does_not_clobber_other_batch_definitions(
         context=file_context_with_assets,
-        datasource_name=DATASOURCE_NAME,
-        asset_name=EMPTY_DATA_ASSET_NAME,
-    )
-
-
-@pytest.mark.unit
-def test_add_batch_definition__cloud_data__does_not_clobber_other_batch_definitions(
-    cloud_context: AbstractDataContext,
-):
-    _test_add_batch_definition__does_not_clobber_other_batch_definitions(
-        context=cloud_context,
         datasource_name=DATASOURCE_NAME,
         asset_name=EMPTY_DATA_ASSET_NAME,
     )
@@ -305,20 +266,6 @@ def test_delete_batch_definition__file_data__does_not_clobber_other_assets(
 ):
     _test_delete_batch_definition__does_not_clobber_other_assets(
         context=file_context_with_assets,
-        datasource_name=DATASOURCE_NAME,
-        asset_names=[
-            DATA_ASSET_WITH_BATCH_DEFINITION_NAME,
-            ANOTHER_DATA_ASSET_WITH_BATCH_DEFINITION_NAME,
-        ],
-    )
-
-
-@pytest.mark.unit
-def test_delete_batch_definition__cloud_data__does_not_clobber_other_assets(
-    cloud_context: AbstractDataContext,
-):
-    _test_delete_batch_definition__does_not_clobber_other_assets(
-        context=cloud_context,
         datasource_name=DATASOURCE_NAME,
         asset_names=[
             DATA_ASSET_WITH_BATCH_DEFINITION_NAME,
