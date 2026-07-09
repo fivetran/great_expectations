@@ -1,0 +1,33 @@
+tests/integration/data_sources_and_expectations/expectations/test_expect_column_chisquare_test_p_value_to_be_greater_than.py
+  d15813dcd875d227 71-87
+great_expectations/expectations/core/expect_column_pair_cramers_phi_value_to_be_less_than.py
+  d15813dcd875d227 80-84,100-105,121-125,129,247-253,456-459
+great_expectations/expectations/core/expect_column_bootstrapped_ks_test_p_value_to_be_greater_than.py
+  d15813dcd875d227 348-350
+tests/integration/data_sources_and_expectations/expectations/test_expect_column_pair_cramers_phi_value_to_be_less_than.py
+  d15813dcd875d227 1,35-69,141-204
+great_expectations/expectations/core/expect_column_parameterized_distribution_ks_test_p_value_to_be_greater_than.py
+  d15813dcd875d227 335-337
+tests/integration/data_sources_and_expectations/expectations/test_expect_column_bootstrapped_ks_test_p_value_to_be_greater_than.py
+  d15813dcd875d227 37-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.2",
+  "base_commit_sha": "d0a19c9fe3b97ca75ae409f098375bf29d788ecf",
+  "prompts": {
+    "d15813dcd875d227": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2b64176c-ae49-4625-9187-04a40dd800dd",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 165,
+      "total_deletions": 11,
+      "accepted_lines": 162,
+      "overriden_lines": 0
+    }
+  }
+}
