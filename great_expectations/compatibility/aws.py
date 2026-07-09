@@ -58,6 +58,9 @@ def get_s3_boto3_options(boto3_options: Dict[str, Any]) -> Dict[str, Any]:
         return options
 
     config = options.get("config")
+    if config is not None and not isinstance(config, Config):
+        return options
+
     existing = getattr(config, "user_agent_extra", None) if config is not None else None
     user_agent_extra = f"{existing} {suffix}" if existing else suffix
 

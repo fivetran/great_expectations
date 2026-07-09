@@ -167,7 +167,8 @@ class PandasExecutionEngine(ExecutionEngine[str]):
     def _instantiate_s3_client(self) -> None:
         # If s3_client was passed in (from data source) use it, otherwise create our own
         self._s3 = self._config.get("s3_client") or aws.boto3.client(
-            "s3", **aws.get_s3_boto3_options(self.config.get("boto3_options", {}))
+            "s3",
+            **aws.get_s3_boto3_options(self.config.get("boto3_options", {})),
         )
 
     def _instantiate_gcs_client(self) -> None:

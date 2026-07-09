@@ -41,3 +41,14 @@ def test_get_s3_boto3_options_appends_user_agent_and_preserves_options(
     )
     assert options["endpoint_url"] == "https://s3.example.com"
     assert boto3_options["config"] is config
+
+
+def test_get_s3_boto3_options_preserves_invalid_config() -> None:
+    boto3_options: Dict[str, Any] = {
+        "config": {"user_agent_extra": "invalid"},
+        "endpoint_url": "https://s3.example.com",
+    }
+
+    options = aws.get_s3_boto3_options(boto3_options)
+
+    assert options == boto3_options
