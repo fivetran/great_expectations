@@ -1,0 +1,49 @@
+great_expectations/expectations/core/__init__.py
+  38d50d3111f7471a 1-6,26-28,34-36
+great_expectations/expectations/core/expect_column_pair_cramers_phi_value_to_be_less_than.py
+  38d50d3111f7471a 3-4,6-14,19-22,33,39,44-110,112-138,142-201,203-217,219-266,271,275-276,278,284-287,294-326,329,343-345,353,356,367,371,373-374,379-380,382-389,391-400,402-405,407,409-431,433-451
+great_expectations/expectations/metrics/column_aggregate_metrics/column_parameterized_distribution_ks_test_p_value.py
+  38d50d3111f7471a 41-45
+great_expectations/expectations/core/expect_column_bootstrapped_ks_test_p_value_to_be_greater_than.py
+  38d50d3111f7471a 3-9,11-46,48-50,52-111,113,115-120,122-123,125-199,204,208-209,211,213,215-218,222-225,227-357
+great_expectations/expectations/__init__.py
+  38d50d3111f7471a 4-5,15,19
+tests/integration/data_sources_and_expectations/expectations/test_expect_column_chisquare_test_p_value_to_be_greater_than.py
+  38d50d3111f7471a 1-70
+great_expectations/expectations/metrics/column_aggregate_metrics/column_bootstrapped_ks_test_p_value.py
+  38d50d3111f7471a 28
+tests/integration/data_sources_and_expectations/expectations/test_expect_column_parameterized_distribution_ks_test_p_value_to_be_greater_than.py
+  38d50d3111f7471a 1-67
+great_expectations/expectations/metrics/column_aggregate_metrics/__init__.py
+  38d50d3111f7471a 1
+great_expectations/expectations/core/expect_column_chisquare_test_p_value_to_be_greater_than.py
+  38d50d3111f7471a 3-15,17-54,56-57,59-124,126-127,129-135,137-144,146-191,196,200-201,203,206-208,216-415
+tests/integration/data_sources_and_expectations/expectations/test_expect_column_pair_cramers_phi_value_to_be_less_than.py
+  38d50d3111f7471a 1-82
+tests/integration/data_sources_and_expectations/expectations/test_expect_column_bootstrapped_ks_test_p_value_to_be_greater_than.py
+  38d50d3111f7471a 1-71
+tasks.py
+  38d50d3111f7471a 616-619
+great_expectations/expectations/core/expect_column_parameterized_distribution_ks_test_p_value_to_be_greater_than.py
+  38d50d3111f7471a 3-9,11-50,52-105,107,109-112,114-183,188,192-193,195-333,335-346
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.1",
+  "base_commit_sha": "d5ea308e54b29a02caa933a5e825bd6380dab1f0",
+  "prompts": {
+    "38d50d3111f7471a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3c157775-df05-4c70-8f1c-c364f0e63c6e",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 1758,
+      "total_deletions": 134,
+      "accepted_lines": 1732,
+      "overriden_lines": 0
+    }
+  }
+}
