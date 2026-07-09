@@ -1,0 +1,25 @@
+tests/integration/data_sources_and_expectations/expectations/test_expect_column_pair_cramers_phi_value_to_be_less_than.py
+  38d50d3111f7471a 44-55,67-78
+tests/integration/data_sources_and_expectations/expectations/test_expect_column_parameterized_distribution_ks_test_p_value_to_be_greater_than.py
+  38d50d3111f7471a 30-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.2",
+  "base_commit_sha": "c38bb227256a39eed72e2c1254edc778847a36ca",
+  "prompts": {
+    "38d50d3111f7471a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3c157775-df05-4c70-8f1c-c364f0e63c6e",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 33,
+      "total_deletions": 3,
+      "accepted_lines": 33,
+      "overriden_lines": 0
+    }
+  }
+}
