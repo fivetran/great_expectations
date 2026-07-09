@@ -1,0 +1,23 @@
+tests/integration/data_sources_and_expectations/expectations/test_expect_column_bootstrapped_ks_test_p_value_to_be_greater_than.py
+  38d50d3111f7471a 15-16,32,45,68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.2",
+  "base_commit_sha": "51a5958e95863e9524053a28cdf7603c5f3e2dd7",
+  "prompts": {
+    "38d50d3111f7471a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3c157775-df05-4c70-8f1c-c364f0e63c6e",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 5,
+      "total_deletions": 1,
+      "accepted_lines": 5,
+      "overriden_lines": 0
+    }
+  }
+}
