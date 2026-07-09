@@ -42,3 +42,35 @@ jobs:
           enable_auto_suggestion: true
           max_assignments: 3
           block_assignment: true
+          # Override the action's default newcomer-welcome text: it links
+          # CONTRIBUTING.md with a relative path, which resolves to the
+          # issue's own URL instead of the repo file when rendered in an
+          # issue comment. Use an absolute link instead.
+          assigned_newcomer_text: |
+            ### 🎉 Welcome to the Project!
+
+            Hey @{{ handle }}, thank you for your interest in this issue! 🎊
+
+            We're excited to have you on board. Start by exploring our [Contributing guidelines](https://github.com/fivetran/great_expectations/blob/develop/CONTRIBUTING.md) and set up your local development workspace by following the steps in our documentation to get started smoothly.
+
+            > [!IMPORTANT]
+            > This issue will be automatically unassigned if idle for **{{ total_days }} days**.
+
+            <details>
+            <summary>ℹ️ Helpful resources for first-time contributors</summary>
+
+            - Check out the project's README for setup instructions
+            - Read through the codebase documentation if available
+            - Don't hesitate to ask questions here on GitHub
+            - Please open a (draft) pull request early to show the direction you're heading towards
+            </details>
+
+            <details>
+            <summary>📋 Assignment details</summary>
+
+            - To prevent automatic unassignment, a maintainer can add the **{{{ pin_label }}}** label
+            - You can unassign yourself at any time by commenting with `/unassign-me`
+            - Updates and status reports are encouraged to show progress
+            </details>
+
+            Happy coding! 🚀
