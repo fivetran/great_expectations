@@ -51,13 +51,6 @@ class DataContextVariableSchema(str, enum.Enum):
     DATA_CONTEXT_ID = "data_context_id"
     PROGRESS_BARS = "progress_bars"
 
-    @classmethod
-    def has_value(cls, value: str) -> bool:
-        """
-        Checks whether or not a string is a value from the possible enum pairs.
-        """
-        return value in cls._value2member_map_
-
 
 @public_api
 @dataclass
