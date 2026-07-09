@@ -612,7 +612,10 @@ class AbstractDataContext(ConfigPeer, ABC):
         This should generally be avoided.
         """  # noqa: E501 # FIXME CoP
         self.fluent_config.pop_datasource(name, None)
-        datasource = self.data_sources.all().get(name)
+        try:
+            datasource = self.data_sources.all()[name]
+        except KeyError:
+            datasource = None
         if datasource:
             if self._datasource_store.cloud_mode and _call_store:
                 self._datasource_store.delete(datasource)
@@ -620,7 +623,7 @@ class AbstractDataContext(ConfigPeer, ABC):
             # Raise key error instead?
             logger.info(f"No Datasource '{name}' to delete")
         self.data_sources.all().pop(name, None)
-        del self.config.fluent_datasources[name]
+        self.config.fluent_datasources.pop(name, None)
 
     def set_config(self, project_config: DataContextConfig) -> None:
         self._project_config = project_config

@@ -68,18 +68,23 @@ def test_suite_factory_add_uses_store_add():
     # Arrange
     name = "test-suite"
     store = Mock(spec=ExpectationsStore)
-    store.has_key.return_value = False
+    store.has_key.side_effect = [False, True]
     key = store.get_key.return_value
+    suite_dict = {"name": name, "id": "3a758816-64c8-46cb-8f7e-03c12cea1d67"}
+    store.get.return_value = suite_dict
     factory = SuiteFactory(store=store)
     context = Mock(spec=AbstractDataContext)
     set_context(context)
     suite = ExpectationSuite(name=name)
 
     # Act
-    factory.add(suite=suite)
+    result = factory.add(suite=suite)
 
     # Assert
     store.add.assert_called_once_with(key=key, value=suite)
+    store.get.assert_called_once_with(key=key)
+    store.deserialize_suite_dict.assert_called_once_with(suite_dict)
+    assert result == store.deserialize_suite_dict.return_value
 
 
 @pytest.mark.unit
@@ -151,19 +156,9 @@ def test_suite_factory_is_initialized_with_context_filesystem(empty_data_context
     assert isinstance(empty_data_context.suites, SuiteFactory)
 
 
-@pytest.mark.cloud
-def test_suite_factory_is_initialized_with_context_cloud(empty_cloud_data_context):
-    assert isinstance(empty_cloud_data_context.suites, SuiteFactory)
-
-
 @pytest.mark.filesystem
 def test_suite_factory_add_success_filesystem(empty_data_context):
     _test_suite_factory_add_success(empty_data_context)
-
-
-@pytest.mark.filesystem
-def test_suite_factory_add_success_cloud(empty_cloud_context_fluent):
-    _test_suite_factory_add_success(empty_cloud_context_fluent)
 
 
 def _test_suite_factory_add_success(context):
@@ -181,14 +176,6 @@ def _test_suite_factory_add_success(context):
 @pytest.mark.filesystem
 def test_suite_factory_delete_success_filesystem(empty_data_context):
     _test_suite_factory_delete_success(empty_data_context)
-
-
-@pytest.mark.cloud
-def test_suite_factory_delete_success_cloud(
-    unset_gx_env_variables: None,
-    empty_cloud_context_fluent,
-):
-    _test_suite_factory_delete_success(empty_cloud_context_fluent)
 
 
 def _test_suite_factory_delete_success(context):
@@ -210,13 +197,11 @@ def _test_suite_factory_delete_success(context):
 @pytest.mark.parametrize(
     "context_fixture_name",
     [
-        pytest.param("empty_cloud_context_fluent", id="cloud", marks=pytest.mark.cloud),
         pytest.param("in_memory_runtime_context", id="ephemeral", marks=pytest.mark.big),
         pytest.param("empty_data_context", id="filesystem", marks=pytest.mark.filesystem),
     ],
 )
 def test_suite_factory_all(
-    unset_gx_env_variables: None,
     context_fixture_name: str,
     request: pytest.FixtureRequest,
 ):
@@ -306,6 +291,61 @@ def test_suite_factory_all_with_bad_pydantic_config(
 
     # Assert
     assert result == []
+
+
+class TestSuiteFactoryFreshness:
+    """Suites returned by add/add_or_update must be fresh."""
+
+    @pytest.mark.unit
+    def test_add_returns_fresh_suite_in_ephemeral_context(
+        self,
+        in_memory_runtime_context: AbstractDataContext,
+    ):
+        """Suite returned by add() should pass freshness checks and work in ValidationDefinition."""
+        import great_expectations as gx
+        import great_expectations.expectations as gxe
+
+        context = in_memory_runtime_context
+
+        data_source = context.data_sources.add_pandas(name="my_pandas_datasource")
+        data_asset = data_source.add_dataframe_asset(name="my_dataframe_asset")
+        batch_definition = data_asset.add_batch_definition_whole_dataframe("my_batch_definition")
+
+        suite = gx.ExpectationSuite(name="my_suite")
+        expectation = gxe.ExpectTableColumnsToMatchSet(column_set={"value1"})
+        suite.add_expectation(expectation)
+        suite = context.suites.add(suite)
+
+        diagnostics = suite.is_fresh()
+        assert diagnostics.success, f"add() suite not fresh: {diagnostics.errors}"
+
+        validation_definition = gx.ValidationDefinition(
+            name="my_validation_definition",
+            data=batch_definition,
+            suite=suite,
+        )
+        validation_definition = context.validation_definitions.add(validation_definition)
+
+    @pytest.mark.unit
+    def test_add_or_update_returns_fresh_suite_in_ephemeral_context(
+        self,
+        in_memory_runtime_context: AbstractDataContext,
+    ):
+        """Suite returned by add_or_update() should pass freshness checks."""
+        import great_expectations as gx
+        import great_expectations.expectations as gxe
+
+        context = in_memory_runtime_context
+
+        suite = gx.ExpectationSuite(name="my_suite")
+        suite.add_expectation(gxe.ExpectTableColumnsToMatchSet(column_set={"value1"}))
+        suite = context.suites.add(suite)
+
+        suite.add_expectation(gxe.ExpectTableColumnsToMatchSet(column_set={"value2", "value3"}))
+        updated_suite = context.suites.add_or_update(suite)
+
+        diagnostics = updated_suite.is_fresh()
+        assert diagnostics.success, f"add_or_update() suite not fresh: {diagnostics.errors}"
 
 
 class TestSuiteFactoryAddOrUpdate:

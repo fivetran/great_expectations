@@ -19,6 +19,9 @@ export default function CodeBlockLine({
   getLineProps,
   getTokenProps,
 }) {
+  if (classNames?.includes('code-block-hide-line')) {
+    return null;
+  }
   const line = fixLineBreak(lineProp);
   const lineProps = getLineProps({
     line,

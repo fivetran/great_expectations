@@ -325,6 +325,10 @@ def _get_annotation_type(param: inspect.Parameter) -> Union[Type, str, object]:
     if not types:
         return UNSUPPORTED_TYPE
     if len(types) > 1:
+        # Ensure bool-like types precede str in the union so pydantic doesn't coerce
+        # False/True to "False"/"True" before reaching the bool/Literal match.
+        _BOOL_LIKE = {"bool", "Literal[False]", "Literal[True]"}
+        types.sort(key=lambda t: 0 if t in _BOOL_LIKE else 1)
         str_to_eval = f"Union[{', '.join(types)}]"
     else:
         str_to_eval = types[0]

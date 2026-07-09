@@ -7,9 +7,6 @@ import pytest
 
 import great_expectations as gx
 from great_expectations.data_context import get_context
-from great_expectations.data_context.store.gx_cloud_store_backend import (
-    GXCloudStoreBackend,
-)
 from great_expectations.data_context.store.inline_store_backend import (
     InlineStoreBackend,
 )
@@ -49,25 +46,29 @@ def pandas_enabled_datasource_config() -> dict:
 
 
 @pytest.mark.unit
-def test_data_context_instantiates_gx_cloud_store_backend_with_cloud_config(
+def test_get_context_with_cloud_config_raises_shutdown_error(
     tmp_path: pathlib.Path,
     data_context_config_with_datasources: DataContextConfig,
     ge_cloud_config: GXCloudConfig,
 ) -> None:
+    """GX Cloud is shut down: resolving a cloud context (cloud_mode=True) raises before build."""
     project_path = tmp_path / "my_data_context"
     project_path.mkdir()
 
-    context = get_context(
-        project_config=data_context_config_with_datasources,
-        context_root_dir=str(project_path),
-        cloud_base_url=ge_cloud_config.base_url,
-        cloud_access_token=ge_cloud_config.access_token,
-        cloud_organization_id=ge_cloud_config.organization_id,
-        cloud_workspace_id=ge_cloud_config.workspace_id,
-        cloud_mode=True,
+    shutdown_message = (
+        "GX Cloud has been shut down, so this no longer functions "
+        "and will be removed in great_expectations 2.0."
     )
-
-    assert isinstance(context._datasource_store.store_backend, GXCloudStoreBackend)
+    with pytest.raises(gx.exceptions.GreatExpectationsError, match=shutdown_message):
+        get_context(
+            project_config=data_context_config_with_datasources,
+            context_root_dir=str(project_path),
+            cloud_base_url=ge_cloud_config.base_url,
+            cloud_access_token=ge_cloud_config.access_token,
+            cloud_organization_id=ge_cloud_config.organization_id,
+            cloud_workspace_id=ge_cloud_config.workspace_id,
+            cloud_mode=True,
+        )
 
 
 @pytest.mark.filesystem

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import datetime
 import locale
 import logging
@@ -11,6 +10,7 @@ import re
 import shutil
 import string
 import urllib.parse
+import uuid
 import warnings
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Dict, Final, Generator, List, Optional
@@ -37,7 +37,6 @@ from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.core.yaml_handler import YAMLHandler
 from great_expectations.data_context import (
     AbstractDataContext,
-    CloudDataContext,
     get_context,
 )
 from great_expectations.data_context._version_checker import _VersionChecker
@@ -46,7 +45,6 @@ from great_expectations.data_context.cloud_constants import (
 )
 from great_expectations.data_context.data_context.context_factory import (
     project_manager,
-    set_context,
 )
 from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
@@ -65,7 +63,7 @@ from great_expectations.data_context.types.resource_identifiers import (
 from great_expectations.data_context.util import (
     file_relative_path,
 )
-from great_expectations.datasource.fluent import GxDatasourceWarning, PandasDatasource
+from great_expectations.datasource.fluent import GxDatasourceWarning
 from great_expectations.execution_engine import SparkDFExecutionEngine
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
@@ -81,18 +79,19 @@ from great_expectations.util import (
 )
 from great_expectations.validator.metric_configuration import MetricConfiguration
 from great_expectations.validator.validator import Validator
-from tests.datasource.fluent._fake_cloud_api import (
-    DUMMY_JWT_TOKEN,
-    FAKE_ORG_ID,
-    FAKE_WORKSPACE_ID,
-    GX_CLOUD_MOCK_BASE_URL,
-    CloudDetails,
-    gx_cloud_api_fake_ctx,
+
+# GX Cloud has been shut down, so the fake-cloud-API helper that previously hosted these
+# placeholder credential values no longer exists. The values are retained here only so the
+# surviving store-backend and config tests (which exercise cloud store/config classes without
+# constructing a cloud context) keep working; nothing here builds a live cloud context.
+GX_CLOUD_MOCK_BASE_URL: Final[str] = "https://app.greatexpectations.fake.io/"
+DUMMY_JWT_TOKEN: Final[str] = (
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 )
+FAKE_ORG_ID: Final[str] = str(uuid.UUID("12345678123456781234567812345678"))
+FAKE_WORKSPACE_ID: Final[str] = str(uuid.UUID("fffff6781234567812345678123fffff"))
 
 if TYPE_CHECKING:
-    from unittest.mock import MagicMock  # noqa: TID251 # type-checking only
-
     from pytest_mock import MockerFixture
 
     from great_expectations.compatibility import pyspark
@@ -135,6 +134,7 @@ REQUIRED_MARKERS: Final[set[str]] = {
     "project",
     "pyarrow",
     "redshift",
+    "singlestore",
     "snowflake",
     "spark",
     "spark_connect",
@@ -445,6 +445,27 @@ def pytest_collection_modifyitems(config, items):
             if category.mark in item.keywords:
                 marker = pytest.mark.skip(reason=category.reason)
                 item.add_marker(marker)
+
+    # --- BEGIN temporary backend skip shim ---
+    # The CI infrastructure for these external warehouse backends is in transition,
+    # and their tests can no longer connect and fail unrelated to any code
+    # change. Unconditionally skip every test carrying one of these markers,
+    # regardless of the corresponding --<backend> flag, until the backends are
+    # either restored. Delete this block to restore them.
+    skipped_backend_marks = {
+        "redshift",
+        "databricks",
+        "bigquery",
+    }
+    for item in items:
+        present = skipped_backend_marks.intersection(item.keywords)
+        if present:
+            marker = pytest.mark.skip(
+                reason="gx->fivetran CI transition: "
+                f"{', '.join(sorted(present))} backend infrastructure unavailable.",
+            )
+            item.add_marker(marker)
+    # --- END temporary backend skip shim ---
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -1805,192 +1826,10 @@ checkpoint_store_name: default_checkpoint_store
     return DataContextConfig(**data_context_config_dict)
 
 
-@pytest.fixture
-def ge_cloud_config_e2e() -> GXCloudConfig:
-    """
-    Uses live credentials stored in the Great Expectations Cloud backend.
-    """
-    env_vars = os.environ
-
-    base_url = env_vars.get(
-        GXCloudEnvironmentVariable.BASE_URL,
-    )
-    organization_id = env_vars.get(
-        GXCloudEnvironmentVariable.ORGANIZATION_ID,
-    )
-    access_token = env_vars.get(
-        GXCloudEnvironmentVariable.ACCESS_TOKEN,
-    )
-    cloud_config = GXCloudConfig(
-        base_url=base_url,  # type: ignore[arg-type] # FIXME CoP
-        organization_id=organization_id,
-        access_token=access_token,
-    )
-    return cloud_config
-
-
-@pytest.fixture
-@mock.patch(
-    "great_expectations.data_context.store.DatasourceStore.list_keys",
-    return_value=[],
-)
-def empty_base_data_context_in_cloud_mode(
-    mock_list_keys: MagicMock,  # Avoid making a call to Cloud backend during datasource instantiation  # noqa: E501 # FIXME CoP
-    tmp_path: pathlib.Path,
-    empty_ge_cloud_data_context_config: DataContextConfig,
-    ge_cloud_config: GXCloudConfig,
-) -> CloudDataContext:
-    project_path = tmp_path / "empty_data_context"
-    project_path.mkdir(exist_ok=True)
-
-    context = CloudDataContext(
-        project_config=empty_ge_cloud_data_context_config,
-        context_root_dir=project_path,
-        cloud_base_url=ge_cloud_config.base_url,
-        cloud_access_token=ge_cloud_config.access_token,
-        cloud_organization_id=ge_cloud_config.organization_id,
-        cloud_workspace_id=ge_cloud_config.workspace_id,
-    )
-    set_context(context)
-    return context
-
-
-@pytest.fixture
-def empty_data_context_in_cloud_mode(
-    tmp_path: pathlib.Path,
-    ge_cloud_config: GXCloudConfig,
-    empty_ge_cloud_data_context_config: DataContextConfig,
-):
-    """This fixture is a DataContext in cloud mode that mocks calls to the cloud backend during setup so that it can be instantiated in tests."""  # noqa: E501 # FIXME CoP
-    project_path = tmp_path / "empty_data_context"
-    project_path.mkdir(exist_ok=True)
-
-    def mocked_config(*args, **kwargs) -> DataContextConfig:
-        return empty_ge_cloud_data_context_config
-
-    def mocked_get_cloud_config(*args, **kwargs) -> GXCloudConfig:
-        return ge_cloud_config
-
-    with (
-        mock.patch(
-            "great_expectations.data_context.data_context.serializable_data_context.SerializableDataContext._save_project_config"
-        ),
-        mock.patch(
-            "great_expectations.data_context.data_context.cloud_data_context.CloudDataContext.retrieve_data_context_config_from_cloud",
-            autospec=True,
-            side_effect=mocked_config,
-        ),
-        mock.patch(
-            "great_expectations.data_context.data_context.CloudDataContext.get_cloud_config",
-            autospec=True,
-            side_effect=mocked_get_cloud_config,
-        ),
-    ):
-        context = CloudDataContext(context_root_dir=project_path)
-
-    context._datasources = {}  # type: ignore[assignment] # Basic in-memory mock for DatasourceDict to avoid HTTP calls
-    return context
-
-
-@pytest.fixture
-def empty_cloud_data_context(
-    cloud_api_fake,
-    tmp_path: pathlib.Path,
-    empty_ge_cloud_data_context_config: DataContextConfig,
-    ge_cloud_config: GXCloudConfig,
-) -> CloudDataContext:
-    project_path = tmp_path / "empty_data_context"
-    project_path.mkdir()
-    project_path_name: str = str(project_path)
-
-    context = CloudDataContext(
-        project_config=empty_ge_cloud_data_context_config,
-        context_root_dir=project_path_name,
-        cloud_base_url=ge_cloud_config.base_url,
-        cloud_access_token=ge_cloud_config.access_token,
-        cloud_organization_id=ge_cloud_config.organization_id,
-        cloud_workspace_id=ge_cloud_config.workspace_id,
-    )
-    set_context(context)
-    return context
-
-
-@pytest.fixture
-def cloud_details(
-    ge_cloud_base_url: str,
-    ge_cloud_organization_id: str,
-    ge_cloud_workspace_id: str,
-    ge_cloud_access_token: str,
-) -> CloudDetails:
-    return CloudDetails(
-        base_url=ge_cloud_base_url,
-        org_id=ge_cloud_organization_id,
-        workspace_id=ge_cloud_workspace_id,
-        access_token=ge_cloud_access_token,
-    )
-
-
-@pytest.fixture
-def cloud_api_fake(cloud_details: CloudDetails):
-    with gx_cloud_api_fake_ctx(cloud_details=cloud_details) as requests_mock:
-        yield requests_mock
-
-
-@pytest.fixture
-def empty_cloud_context_fluent(cloud_api_fake, cloud_details: CloudDetails) -> CloudDataContext:
-    context = gx.get_context(
-        cloud_access_token=cloud_details.access_token,
-        cloud_organization_id=cloud_details.org_id,
-        cloud_workspace_id=cloud_details.workspace_id,
-        cloud_base_url=cloud_details.base_url,
-        cloud_mode=True,
-    )
-    set_context(context)
-    return context
-
-
-@pytest.fixture
-@mock.patch(
-    "great_expectations.data_context.store.DatasourceStore.get_all",
-    return_value=[],
-)
-def empty_base_data_context_in_cloud_mode_custom_base_url(
-    mock_get_all: MagicMock,  # Avoid making a call to Cloud backend during datasource instantiation
-    tmp_path: pathlib.Path,
-    empty_ge_cloud_data_context_config: DataContextConfig,
-    ge_cloud_config: GXCloudConfig,
-) -> CloudDataContext:
-    project_path = tmp_path / "empty_data_context"
-    project_path.mkdir()
-    project_path = str(project_path)  # type: ignore[assignment] # FIXME CoP
-
-    custom_base_url: str = "https://some_url.org/"
-    custom_ge_cloud_config = copy.deepcopy(ge_cloud_config)
-    custom_ge_cloud_config.base_url = custom_base_url
-
-    context = CloudDataContext(
-        project_config=empty_ge_cloud_data_context_config,
-        context_root_dir=project_path,
-        cloud_base_url=custom_ge_cloud_config.base_url,
-        cloud_access_token=custom_ge_cloud_config.access_token,
-        cloud_organization_id=custom_ge_cloud_config.organization_id,
-        cloud_workspace_id=custom_ge_cloud_config.workspace_id,
-    )
-    assert context.list_datasources() == []
-    assert context.ge_cloud_config.base_url != ge_cloud_config.base_url
-    assert context.ge_cloud_config.base_url == custom_base_url
-    return context
-
-
-@pytest.fixture
-def cloud_data_context_with_datasource_pandas_engine(
-    empty_cloud_data_context: CloudDataContext, db_file
-):
-    context: CloudDataContext = empty_cloud_data_context
-
-    fds = PandasDatasource(name="my_datasource")
-    context.add_datasource(datasource=fds)
-    return context
+# GX Cloud has been shut down, so cloud contexts can no longer be constructed. The fixtures that
+# previously built a live CloudDataContext (directly or via get_context cloud mode) and the
+# fake-cloud-API plumbing they relied on have been removed. The placeholder credential value
+# fixtures above are retained because surviving store/config tests still use them.
 
 
 # TODO: AJB 20210525 This fixture is not yet used but may be helpful to generate batches for unit tests of multibatch  # noqa: E501 # FIXME CoP
@@ -2277,11 +2116,6 @@ def ephemeral_context_with_defaults() -> EphemeralDataContext:
     params=[
         pytest.param("ephemeral_context_with_defaults", marks=pytest.mark.unit, id="ephemeral"),
         pytest.param("empty_data_context", marks=pytest.mark.filesystem, id="file"),
-        pytest.param(
-            "empty_cloud_context_fluent",
-            marks=pytest.mark.cloud,
-            id="cloud",
-        ),
     ]
 )
 def data_context(request: pytest.FixtureRequest) -> AbstractDataContext:
@@ -2364,7 +2198,7 @@ def param_id(request: pytest.FixtureRequest) -> str:
     ```
     """
     raw_name: str = request.node.name
-    return raw_name.split("[")[1].split("]")[0]
+    return raw_name.split("[")[1].split("]", maxsplit=1)[0]
 
 
 def random_name() -> str:

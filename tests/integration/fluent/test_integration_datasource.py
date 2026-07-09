@@ -32,13 +32,10 @@ from tests.integration.fluent.integration_test_utils import (
 )
 
 if TYPE_CHECKING:
-    from responses import RequestsMock
-
     from great_expectations.compatibility.pyspark import DataFrame as SparkDataFrame
     from great_expectations.compatibility.pyspark import SparkSession
     from great_expectations.data_context import (
         AbstractDataContext,
-        CloudDataContext,
         EphemeralDataContext,
         FileDataContext,
     )
@@ -462,25 +459,6 @@ def test_batch_request_error_messages(
         batch_request.batch_slice = True
 
 
-@pytest.mark.cloud
-def test_pandas_data_adding_dataframe_in_cloud_context(
-    unset_gx_env_variables: None,
-    cloud_api_fake: RequestsMock,
-    empty_cloud_context_fluent: CloudDataContext,
-):
-    df = pd.DataFrame({"column_name": [1, 2, 3, 4, 5]})
-
-    context = empty_cloud_context_fluent
-
-    dataframe_asset: PandasDataFrameAsset = context.data_sources.add_or_update_pandas(
-        name="fluent_pandas_datasource"
-    ).add_dataframe_asset(name="my_df_asset")
-    batch_def = dataframe_asset.add_batch_definition_whole_dataframe(name="bd")
-    batch = batch_def.get_batch(batch_parameters={"dataframe": df})
-    assert isinstance(batch.data, PandasBatchData)
-    assert batch.data.dataframe.equals(df)
-
-
 @pytest.mark.filesystem
 def test_pandas_data_adding_dataframe_in_file_reloaded_context(
     empty_file_context: FileDataContext,
@@ -505,27 +483,6 @@ def test_pandas_data_adding_dataframe_in_file_reloaded_context(
     batch = reloaded_batch_def.get_batch(batch_parameters={"dataframe": df})
     assert isinstance(batch.data, PandasBatchData)
     assert batch.data.dataframe.equals(df)
-
-
-@pytest.mark.spark
-def test_spark_data_adding_dataframe_in_cloud_context(
-    spark_session,
-    spark_df_from_pandas_df,
-    cloud_api_fake: RequestsMock,
-    empty_cloud_context_fluent: CloudDataContext,
-):
-    df = pd.DataFrame({"column_name": [1, 2, 3, 4, 5]})
-    spark_df = spark_df_from_pandas_df(spark_session, df)
-
-    context = empty_cloud_context_fluent
-
-    dataframe_asset: SparkDataFrameAsset = context.data_sources.add_or_update_spark(
-        name="fluent_spark_datasource"
-    ).add_dataframe_asset(name="my_df_asset")
-    batch_def = dataframe_asset.add_batch_definition_whole_dataframe(name="bd")
-    batch = batch_def.get_batch(batch_parameters={"dataframe": spark_df})
-    assert isinstance(batch.data, SparkDFBatchData)
-    assert batch.data.dataframe.toPandas().equals(df)
 
 
 @pytest.mark.spark

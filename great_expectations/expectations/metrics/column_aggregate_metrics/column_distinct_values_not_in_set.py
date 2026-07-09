@@ -255,11 +255,8 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
             filtered_df = filtered_df.where(~F.col(column_name).isin(value_set))
 
         # Get distinct values with limit
-        results = (
-            filtered_df.select(F.col(column_name))
-            .distinct()
-            .limit(limit)
-            .rdd.flatMap(lambda x: x)
-            .collect()
-        )
-        return list(results)
+        results = [
+            row[0]
+            for row in filtered_df.select(F.col(column_name)).distinct().limit(limit).collect()
+        ]
+        return results

@@ -397,11 +397,6 @@ DEFAULT_EXCLUDES: list[IncludeExcludeDefinition] = [
         ),
     ),
     IncludeExcludeDefinition(
-        reason="This validate is a name collision with batch.validate().",
-        name="validate",
-        filepath=pathlib.Path("great_expectations/profile/base.py"),
-    ),
-    IncludeExcludeDefinition(
         reason="We do not want Expectations in our API docs. Expectation docs live in the gallery.",
         name="ExpectColumnValuesToBeBetween",
         filepath=pathlib.Path(

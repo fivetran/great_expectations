@@ -13,9 +13,9 @@ Ingesting raw data into a data pipeline can be a complex and often error-prone p
 - **Schema drift**: The structure of the incoming data can sometimes change over time. When the schema drift is drastic, it can lead to downstream issues like failed jobs or corrupted data. However, more subtle changes can go unnoticed, leading to poor decision-making or inaccurate models.
 
 
-### How can GX Cloud help solve these problems?
-GX Cloud gives you the freedom to decide when and how to validate your data. If the raw data has already been ingested to a staging area within your data warehouse, GX Cloud can connect directly to it and run Validations to ensure the integrity of the staged raw data. Alternatively, you can create in-memory Data Assets, allowing you to run Validations on your data before it lands in your data warehouse, thereby allowing you to take steps like deduplication and value backfilling.
+### How can GX help solve these problems?
+GX gives you the freedom to decide when and how to validate your data. If the raw data has already been ingested to a staging area within your data warehouse, GX can connect directly to it and run Validations to ensure the integrity of the staged raw data. Alternatively, you can create in-memory Data Assets, allowing you to run Validations on your data before it lands in your data warehouse, thereby allowing you to take steps like deduplication and value backfilling.
 
-![Example of how GX Cloud can detect issues as raw data is imported into a data warehouse. Expectations like 'Expect column values to be unique' and 'Expect column values to not be null' can be used to clean data.](/img/integration-ingestion.png)
+![Example of how GX can detect issues as raw data is imported into a data warehouse. Expectations like 'Expect column values to be unique' and 'Expect column values to not be null' can be used to clean data.](/img/integration-ingestion.png)
 
-GX Cloud offers the ability to either schedule validation runs directly through the UI on a time interval of your choice, or by using the API to trigger validation runs immediately after ingestion is complete. With both methods, you will have timely feedback on the health of your data and be able to take action to correct errors before they propagate downstream.
+GX offers the ability to trigger validation runs immediately after ingestion is complete, for example by calling GX from your pipeline or orchestrator. This gives you timely feedback on the health of your data and lets you take action to correct errors before they propagate downstream.

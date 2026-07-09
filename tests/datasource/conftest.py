@@ -145,7 +145,7 @@ def test_cases_for_sql_data_connector_sqlite_execution_engine(
     )
     _raw_dbapi_con = engine.raw_connection()
     try:
-        _raw_dbapi_con.create_function("sqrt", 1, lambda x: math.sqrt(x))
+        _raw_dbapi_con.create_function("sqrt", 1, math.sqrt)
         _raw_dbapi_con.create_function(
             "md5", 2, lambda x, d: hashlib.md5(str(x).encode("utf-8")).hexdigest()[-1 * d :]
         )

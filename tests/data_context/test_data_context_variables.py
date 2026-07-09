@@ -2,21 +2,14 @@ from __future__ import annotations
 
 import copy
 import pathlib
-import random
-import string
 import urllib.parse
 from typing import TYPE_CHECKING, Any
 from unittest.mock import ANY as MOCK_ANY
-from unittest.mock import patch as mock_patch
 
 import pytest
 
-from great_expectations import get_context
 from great_expectations.core.config_provider import _ConfigurationProvider
 from great_expectations.core.yaml_handler import YAMLHandler
-from great_expectations.data_context.data_context.cloud_data_context import (
-    CloudDataContext,
-)
 from great_expectations.data_context.data_context.context_factory import project_manager
 from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
@@ -30,13 +23,10 @@ from great_expectations.data_context.data_context_variables import (
 )
 from great_expectations.data_context.types.base import (
     DataContextConfig,
-    GXCloudConfig,
     ProgressBarsConfig,
 )
 
 if TYPE_CHECKING:
-    from unittest.mock import MagicMock  # noqa: TID251 # FIXME CoP
-
     from pytest_mock import MockerFixture
 
     from great_expectations.data_context.types.resource_identifiers import (
@@ -135,27 +125,6 @@ def file_data_context(
     context = FileDataContext(project_config=data_context_config, context_root_dir=context_root_dir)
     project_manager.set_project(context)
     return context
-
-
-@pytest.fixture
-def cloud_data_context(
-    tmp_path: pathlib.Path,
-    data_context_config: DataContextConfig,
-    ge_cloud_config_e2e: GXCloudConfig,
-) -> CloudDataContext:
-    project_path = tmp_path / "cloud_data_context"
-    project_path.mkdir()
-    context_root_dir = project_path / FileDataContext.GX_DIR
-
-    cloud_data_context = CloudDataContext(
-        project_config=data_context_config,
-        cloud_base_url=ge_cloud_config_e2e.base_url,
-        cloud_access_token=ge_cloud_config_e2e.access_token,
-        cloud_organization_id=ge_cloud_config_e2e.organization_id,
-        context_root_dir=context_root_dir,
-    )
-    project_manager.set_project(cloud_data_context)
-    return cloud_data_context
 
 
 def stores() -> dict:
@@ -474,77 +443,3 @@ def test_file_data_context_variables_e2e(
     assert config_saved_to_disk.progress_bars == updated_progress_bars.to_dict()
     assert file_data_context.variables.plugins_directory == value_associated_with_env_var
     assert config_saved_to_disk.plugins_directory == f"${env_var_name}"
-
-
-@pytest.mark.cloud
-@pytest.mark.xfail(
-    strict=False,
-    reason="GX Cloud E2E tests are failing due to new top-level `analytics` and `data_context_id` variables not yet being recognized by the server",  # noqa: E501 # FIXME CoP
-)
-def test_cloud_data_context_variables_successfully_hits_cloud_endpoint(
-    cloud_data_context: CloudDataContext,
-    data_context_config: DataContextConfig,
-) -> None:
-    """
-    What does this test do and why?
-
-    Ensures that the endpoint responsible for the DataContextVariables resource is accessible
-    through the Variables API.
-    """
-    cloud_data_context.variables.config = data_context_config
-    success = cloud_data_context.variables.save()
-
-    assert success is True
-
-
-@pytest.mark.cloud
-@mock_patch(
-    "great_expectations.data_context.data_context.serializable_data_context.SerializableDataContext._save_project_config"
-)
-@pytest.mark.xfail(
-    strict=False,
-    reason="GX Cloud E2E tests are failing due to env vars not being consistently recognized by Docker; x-failing for purposes of 0.15.22 release",  # noqa: E501 # FIXME CoP
-)
-def test_cloud_enabled_data_context_variables_e2e(
-    mock_save_project_config: MagicMock,
-    data_docs_sites: dict,
-    monkeypatch,
-) -> None:
-    """
-    What does this test do and why?
-
-    Tests the E2E workflow with a Cloud-enabled DataContext; as the CloudDataContext does not yet have 1-to-1
-    feature parity with the DataContext (as v0.15.15), this is the primary mechanism by which Great
-    Expectations Cloud interacts with variables.
-      1. User updates certain values and sets them as attributes.
-      2. User persists changes utilizing the save call defined by the Variables API.
-      3. Upon reading the result config from a GET request, we can confirm that changes were appropriately persisted.
-
-    It is also important to note that in the case of $VARS syntax, we NEVER want to persist the underlying
-    value in order to preserve sensitive information.
-    """  # noqa: E501 # FIXME CoP
-    # Prepare updated plugins directory to set and save to the Cloud backend.
-    # As values are persisted in the Cloud DB, we want to randomize our values each time for consistent test results  # noqa: E501 # FIXME CoP
-    updated_plugins_dir = f"plugins_dir_{''.join(random.choice(string.ascii_letters + string.digits) for _ in range(8))}"  # noqa: E501 # FIXME CoP
-
-    updated_data_docs_sites = data_docs_sites
-    new_site_name = f"docs_site_{''.join(random.choice(string.ascii_letters + string.digits) for _ in range(8))}"  # noqa: E501 # FIXME CoP
-    updated_data_docs_sites[new_site_name] = {}
-
-    context = get_context(cloud_mode=True)
-
-    assert context.variables.plugins_directory != updated_plugins_dir
-    assert context.variables.data_docs_sites != updated_data_docs_sites
-
-    context.variables.plugins_directory = updated_plugins_dir
-    context.variables.data_docs_sites = updated_data_docs_sites
-
-    assert context.variables.plugins_directory == updated_plugins_dir
-    assert context.variables.data_docs_sites == updated_data_docs_sites
-
-    context.variables.save()
-
-    context = get_context(cloud_mode=True)
-
-    assert context.variables.plugins_directory == updated_plugins_dir
-    assert context.variables.data_docs_sites == updated_data_docs_sites

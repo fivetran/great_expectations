@@ -7,7 +7,6 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 import PrereqPythonInstalled from '../_core_components/prerequisites/_python_installation.md';
-import GxCloudAdvert from '/static/docs/_static_components/_gx_cloud_advert.md'
 
 Start here to learn how to connect to data, create Expectations, validate data, and review Validation Results. This is an ideal place to start if you're new to GX Core and want to experiment with features and see what it offers.
 
@@ -212,5 +211,3 @@ Run the following steps in a Python interpreter, IDE, notebook, or script.
 - Go to the [Expectations Gallery](https://greatexpectations.io/expectations) and experiment with other Expectations.
 
 - If you're ready to start using GX Core with your own data, the [Set up a GX environment](/core/set_up_a_gx_environment/install_gx.md) documentation provides a more comprehensive guide to setting up GX to work with specific data formats and environments.
-
-- <GxCloudAdvert/>
