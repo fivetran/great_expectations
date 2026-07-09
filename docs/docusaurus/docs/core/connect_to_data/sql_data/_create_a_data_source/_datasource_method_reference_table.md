@@ -1,5 +1,6 @@
 | Database type        | Data Context method                                                          |
 |----------------------|------------------------------------------------------------------------------|
+| BigQuery             | `context.data_sources.add_bigquery(name: str, connection_string: str)`       |
 | DataBricks SQL       | `context.data_sources.add_databricks_sql(name: str, connection_string: str)` |
 | Microsoft Fabric     | `context.data_sources.add_fabric(name: str, host: str, database: str, schema: str, port: int, encrypt: Literal["Mandatory", "Optional", "Strict"], trust_server_certificate: bool = False, driver: str, tenant_id: str, client_id: str, client_secret: str,)`       |
 | Microsoft SQL Server | `context.data_sources.add_sql_server(name: str, host: str, database: str, schema: str, port: int, encrypt: Literal["Mandatory", "Optional", "Strict"], trust_server_certificate: bool = False, driver: str, authentication: Literal["SQL Server", "Entra ID"], username: str, password: str, tenant_id: str, client_id: str, client_secret: str,)`       |

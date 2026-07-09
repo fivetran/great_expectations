@@ -1,10 +1,8 @@
 from .meta_metric_provider import (  # isort:skip
     MetaMetricProvider,
-    DeprecatedMetaMetricProvider,
 )
 from .column_aggregate_metric_provider import (
     ColumnAggregateMetricProvider,
-    ColumnMetricProvider,  # This class name is being deprecated (use "ColumnAggregateMetricProvider" going forward).  # noqa: E501 # FIXME CoP
     column_aggregate_partial,
     column_aggregate_value,
 )

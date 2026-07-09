@@ -4,7 +4,7 @@ import os
 import pathlib
 import shutil
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import TYPE_CHECKING, Dict, Union
 
 import pytest
 
@@ -23,10 +23,7 @@ from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
 from great_expectations.render import (
-    AtomicPrescriptiveRendererType,
     AtomicRendererType,
-    RenderedAtomicContent,
-    renderedAtomicValueSchema,
 )
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.util import (
@@ -38,7 +35,6 @@ if TYPE_CHECKING:
     from great_expectations.data_context.data_context.abstract_data_context import (
         AbstractDataContext,
     )
-    from great_expectations.data_context.data_context.cloud_data_context import CloudDataContext
 
 yaml = YAMLHandler()
 
@@ -70,38 +66,6 @@ def data_context_with_bad_datasource(tmp_path_factory):
         str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118 # FIXME CoP
     )
     return get_context(context_root_dir=context_path)
-
-
-@pytest.mark.cloud
-def test_get_expectation_suite_include_rendered_content(
-    empty_cloud_data_context: CloudDataContext,
-):
-    context = empty_cloud_data_context
-
-    expectation_suite: ExpectationSuite = context.suites.add(
-        ExpectationSuite(name="this_data_asset_config_does_not_exist.default")
-    )
-    expectation_suite.expectation_configurations.append(
-        ExpectationConfiguration(type="expect_table_row_count_to_equal", kwargs={"value": 10})
-    )
-    for expectation in expectation_suite.expectation_configurations:
-        assert expectation.rendered_content is None
-    expectation_suite.save()
-    context.suites.get("this_data_asset_config_does_not_exist.default")
-    for expectation in expectation_suite.expectation_configurations:
-        assert expectation.rendered_content is None
-
-    expectation_suite_retrieved: ExpectationSuite = context.suites.get(
-        "this_data_asset_config_does_not_exist.default",
-    )
-
-    for expectation in expectation_suite_retrieved.expectation_configurations:
-        assert expectation.rendered_content
-        for rendered_content_block in expectation.rendered_content:
-            assert isinstance(
-                rendered_content_block,
-                RenderedAtomicContent,
-            )
 
 
 @pytest.mark.unit
@@ -719,92 +683,6 @@ class TestRenderedContent:
         assert all(
             expectation.rendered_content is None for expectation in expectation_suite.expectations
         )
-
-    @pytest.mark.cloud
-    def test_rendered_content_for_cloud(self, empty_cloud_data_context: CloudDataContext) -> None:
-        suite_name = "test_suite"
-        empty_cloud_data_context.suites.add(
-            ExpectationSuite(
-                name=suite_name,
-                expectations=[gx.expectations.ExpectTableRowCountToEqual(value=0)],
-            )
-        )
-        expectation_suite = empty_cloud_data_context.suites.get(name=suite_name)
-
-        rendered_content_blocks: list = []
-        for expectation in expectation_suite.expectations:
-            assert expectation.rendered_content is not None
-            rendered_content_blocks.extend(expectation.rendered_content)
-        assert rendered_content_blocks
-
-    @pytest.mark.cloud
-    def test_multiple_rendered_content_blocks_one_is_busted(
-        self, empty_cloud_data_context: CloudDataContext
-    ) -> None:
-        suite_name = "test_suite"
-        empty_cloud_data_context.suites.add(
-            ExpectationSuite(
-                name=suite_name,
-                expectations=[
-                    ExpectSkyToBeColor(color="blue"),
-                ],
-            )
-        )
-        expectation_suite = empty_cloud_data_context.suites.get(name=suite_name)
-
-        expected_rendered_content: List[RenderedAtomicContent] = [
-            RenderedAtomicContent(
-                name=AtomicPrescriptiveRendererType.FAILED,
-                value=renderedAtomicValueSchema.load(
-                    {
-                        "template": (
-                            "Rendering failed for Expectation: $expectation_type(**$kwargs)."
-                        ),
-                        "params": {
-                            "expectation_type": {
-                                "schema": {"type": "string"},
-                                "value": "expect_sky_to_be_color",
-                            },
-                            "kwargs": {
-                                "schema": {"type": "string"},
-                                "value": {"color": "blue"},
-                            },
-                        },
-                        "schema": {"type": "com.superconductive.rendered.string"},
-                    }
-                ),
-                value_type="StringValueType",
-                exception='Renderer "atomic.prescriptive.custom_renderer_type" failed to render Expectation '  # noqa: E501 # FIXME CoP
-                '"expect_sky_to_be_color with exception message: This renderer is broken!".',
-            ),
-            RenderedAtomicContent(
-                name=AtomicPrescriptiveRendererType.SUMMARY,
-                value=renderedAtomicValueSchema.load(
-                    {
-                        "schema": {"type": "com.superconductive.rendered.string"},
-                        "template": "$expectation_type(**$kwargs)",
-                        "params": {
-                            "expectation_type": {
-                                "schema": {"type": "string"},
-                                "value": "expect_sky_to_be_color",
-                            },
-                            "kwargs": {
-                                "schema": {"type": "string"},
-                                "value": {"color": "blue"},
-                            },
-                        },
-                    }
-                ),
-                value_type="StringValueType",
-            ),
-        ]
-
-        actual_rendered_content: List[RenderedAtomicContent] = []
-        for expectation in expectation_suite.expectations:
-            assert expectation.rendered_content is not None
-            actual_rendered_content.extend(expectation.rendered_content)
-
-        assert actual_rendered_content == expected_rendered_content
 
 
 @pytest.mark.filesystem

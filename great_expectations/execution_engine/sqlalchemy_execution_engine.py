@@ -367,6 +367,8 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             )
         elif self.dialect_name == GXSqlDialect.DATABRICKS:
             self.dialect_module = import_library_module("databricks.sqlalchemy")
+        elif self.dialect_name == GXSqlDialect.SINGLESTOREDB:
+            self.dialect_module = import_library_module("sqlalchemy_singlestoredb")
         else:
             self.dialect_module = None
 
@@ -1067,6 +1069,19 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             self._engine_backup.dispose()
         else:
             self.engine.dispose()
+
+    def __del__(self) -> None:
+        """Ensure database connections are closed when this object is garbage collected.
+
+        Python 3.13 raises ResourceWarning for unclosed sqlite3.Connection objects.
+        Calling close() here disposes the underlying SQLAlchemy engine (and its
+        connection pool) before the raw DBAPI connections are collected, preventing
+        those warnings from being emitted.
+        """
+        try:
+            self.close()
+        except Exception:
+            pass
 
     def _finalize_domain_query(
         self,

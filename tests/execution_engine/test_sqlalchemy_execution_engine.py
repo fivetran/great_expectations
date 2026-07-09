@@ -857,7 +857,7 @@ def test_get_compute_domain_with_unmeetable_row_condition(sa):
     assert accessor_kwargs == {"column": "a"}, "Accessor kwargs have been modified"
 
 
-# Testing to ensure that great expectation parser also works in terms of defining a compute domain  # noqa: E501 # FIXME CoP
+# Test that the great expectation parser also works for defining a compute domain  # FIXME CoP
 @pytest.mark.sqlite
 def test_get_compute_domain_with_gx_condition_parser(sa):
     execution_engine = build_sa_execution_engine(

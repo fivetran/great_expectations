@@ -2,18 +2,16 @@
 sidebar_label: 'Freshness'
 title: 'Validate data freshness with GX'
 ---
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
 
 Data freshness refers to how up-to-date, or current, data is relative to its source system or the real-world events it represents. Freshness is about the recency of data relative to its generation; its primary metric is the time since data was generated or updated.
 
 Data informs many time-sensitive tasks and decision-making processes in today's business environment. Stale data can lead to significant consequences in applications across industries. For example, in e-commerce, outdated inventory data can result in oversold products and frustrated customers. In financial trading, stale market data can lead to missed opportunities and potential compliance issues. These scenarios underscore the critical importance of data freshness validation to ensure accurate insights and timely decision-making.
 
-Great Expectations (GX) can be used to monitor and validate the freshness of your organization's data. Through use of the Expectations and features offered by both GX Cloud and GX Core, you can establish checks that ensure your datasets maintain the expected levels of freshness, catch staleness issues early, and prevent downstream issues in your data workflows. This article will discuss how to effectively manage and validate data freshness using GX, ensuring your organization has high-quality, up-to-date datasets for accurate insights and timely actions.
+Great Expectations (GX) can be used to monitor and validate the freshness of your organization's data. Through use of the Expectations and features offered by GX Core, you can establish checks that ensure your datasets maintain the expected levels of freshness, catch staleness issues early, and prevent downstream issues in your data workflows. This article will discuss how to effectively manage and validate data freshness using GX, ensuring your organization has high-quality, up-to-date datasets for accurate insights and timely actions.
 
 ## Prerequisite knowledge
 
-This article assumes basic familiarity with GX components and workflows. If you're new to GX, start with the [GX Cloud](https://docs.greatexpectations.io/docs/cloud/overview/gx_cloud_overview) and [GX Core](https://docs.greatexpectations.io/docs/core/introduction) overviews to familiarize yourself with key concepts and setup procedures.
+This article assumes basic familiarity with GX components and workflows. If you're new to GX, start with the [GX Core](https://docs.greatexpectations.io/docs/core/introduction) overview to familiarize yourself with key concepts and setup procedures.
 
 ## Data preview
 
@@ -35,10 +33,10 @@ Freshness checks can be run against both the `reading_ts` and `created_at` colum
 
 ## Key freshness Expectations
 
-GX Cloud and GX Core provide several options to use Expectations to validate freshness:
-1. Built-in Expectations, such as those discussed in this section, can be used on timestamp columns to create freshness checks. Built-in expectations can be added in GX Cloud or GX Core.
-2. Custom SQL Expectations can be used in [GX Cloud](/cloud/expectations/expectations_overview.md#custom-sql-expectations) or [GX Core](/core/customize_expectations/use_sql_to_define_a_custom_expectation.md) to define and check data freshness based on SQL logic.
-3. You can [customize Expectation classes](/core/customize_expectations/define_a_custom_expectation_class.md) with the GX Cloud API or in GX Core to create Expectations that use Python logic to define and validate data freshness.
+GX Core provides several options to use Expectations to validate freshness:
+1. Built-in Expectations, such as those discussed in this section, can be used on timestamp columns to create freshness checks.
+2. [Custom SQL Expectations](/core/customize_expectations/use_sql_to_define_a_custom_expectation.md) can be used to define and check data freshness based on SQL logic.
+3. You can [customize Expectation classes](/core/customize_expectations/define_a_custom_expectation_class.md) to create Expectations that use Python logic to define and validate data freshness.
 
 ### Expect column maximum to be between
 
@@ -75,48 +73,7 @@ Data freshness is often calculated relative to the current point in time. For in
 
 Data freshness might also be validated relative to multiple events. For instance, using the sample data above, another freshness check might be that sensor readings are available in the database no later than 10 minutes after they are captured by the sensor.
 
-The examples in this section showcase how to use available features in GX Cloud and GX Core to create and run Expectations that accommodate the dynamic nature of nature of freshness checks, including the use of `now()`-type functions and timestamp differences.
-
-### Create a freshness custom SQL Expectation using GX Cloud
-
-**Goal**: Create custom SQL Expectations in GX Cloud to validate data freshness and schedule data validation to run hourly.
-
-Use the GX Cloud UI to walk through the following steps:
-
-1. Using the following connection string to create a Postgres Data Source, create a Data Asset for the `freshness_sensor_readings` table:
-   ```python title="Connection string"
-   postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality?options=-csearch_path%3Dpublic
-   ```
-
-2. Using the query below, create a custom SQL Expectation on the `freshness_sensor_readings` Data Asset which expects that sensor readings are available in the database no more than 10 minutes after they are initially captured on the sensor.
-   ```sql
-   select *
-   from {batch}
-   where extract(epoch from (age(created_at, reading_ts))) > 10*60
-   ```
-
-3. Add a second custom SQL Expectation on the same Data Asset which expects that new sensor readings have arrived in the database within the last 5 minutes.
-   ```sql
-   select *
-   from (
-      select max(created_at) as most_recent_reading
-      from {batch}
-   ) t
-   where extract(epoch from (age(current_timestamp, most_recent_reading))) > 5*60
-   ```
-
-5. Edit the Validation schedule to turn **ON** recurring data validation with a **Frequency** of *Every 1 hour* to run recurring freshness checks each hour.
-
-6. Inspect the Validation Results on the `freshness_sensor_readings` Data Asset once validation has run.
-
-**Result**: One freshness Expectation passes, and the other fails.
-
-* The freshness Expectation that sensor readings are available in the database no more than 10 minutes after initial capture passes, as this condition holds true for all sensor readings accumulated in the database.
-
-* The freshness Expectation that new sensor readings have arrived in the database within the last 5 minutes fails, as the sample data represents readings from a past point in time and readings are not being continually refreshed in the Postgres database. However, if sensor readings were to be arriving regularly, this Expectation would be able to validate whether or not fresh data was arriving in the required time frame.
-
-**GX solution**: GX enables dynamic data freshness validation, relative to the current point in time, through the use of custom SQL Expectations. Though this example showcased use of a custom SQL Expectation in GX Cloud, this feature is also available in GX Core.
-
+The examples in this section showcase how to use available features in GX Core to create and run Expectations that accommodate the dynamic nature of nature of freshness checks, including the use of `now()`-type functions and timestamp differences.
 
 ### Create a freshness custom Expectation class using GX Core
 
@@ -135,7 +92,7 @@ Most recent reading timestamp: 2024-11-22 14:49:00
 
 The Expectation fails because the sample data represents readings from a past point in time, the sample data is not being continually refreshed in Postgres. However, were new sensor readings to be arriving in the database, the custom Expectation could be used to check that new readings had arrived within the desired time frame.
 
-**GX solution**: Use custom, Python-based logic to define and validate data freshness. Though this example showcased use of a custom Expectation class in GX Core, this feature is also available in GX Cloud.
+**GX solution**: Use custom, Python-based logic to define and validate data freshness.
 
 ## Identifying and setting freshness thresholds
 
@@ -157,7 +114,7 @@ Balancing these factors, appropriate freshness thresholds for this retail sales 
 - During peak hours: The latest transaction timestamp occurred within the last 30 minutes.
 - During off-hours: The latest transaction timestamp occurred within the last 2 hours.
 
-The thresholds are aggressive enough to quickly detect stale data that could impact the business, while accommodating source system realities and known temporal patterns. Thresholds could be set using the GX `ExpectColumnMaxToBeBetween` Expectation on the transaction timestamp column, and scheduled to run in GX Cloud on an hourly basis.
+The thresholds are aggressive enough to quickly detect stale data that could impact the business, while accommodating source system realities and known temporal patterns. Thresholds could be set using the GX `ExpectColumnMaxToBeBetween` Expectation on the transaction timestamp column, and scheduled to run on an hourly basis.
 
 By systematically working through the above steps and considering a holistic set of factors, you can define optimal freshness thresholds for your specific data assets and use cases. GX enables codifying these thresholds through data freshness validation to consistently to drive high data quality.
 

@@ -2,49 +2,16 @@ from __future__ import annotations
 
 import logging
 import pathlib
-import re
-import urllib.parse
-import uuid
 from collections import defaultdict
 from pprint import pformat as pf
 from typing import TYPE_CHECKING
 
-import pandas as pd
 import pytest
-import requests
 
-from great_expectations import get_context
-from great_expectations.core.partitioners import ColumnPartitionerYearly
 from great_expectations.core.yaml_handler import YAMLHandler
-from great_expectations.data_context import CloudDataContext, FileDataContext
-from great_expectations.datasource.fluent import (
-    GxInvalidDatasourceWarning,
-    InvalidDatasource,
-)
-from great_expectations.datasource.fluent.constants import (
-    DEFAULT_PANDAS_DATA_ASSET_NAME,
-)
-from great_expectations.datasource.fluent.pandas_filesystem_datasource import (
-    PandasFilesystemDatasource,
-)
-from tests.datasource.fluent._fake_cloud_api import (
-    DEFAULT_HEADERS,
-    FAKE_ORG_ID,
-    FAKE_WORKSPACE_ID,
-    GX_CLOUD_MOCK_BASE_URL,
-    UUID_REGEX,
-    CallbackResult,
-    CloudDetails,
-    CloudResponseSchema,
-)
 
 if TYPE_CHECKING:
-    from pytest_mock import MockerFixture
-    from requests import PreparedRequest
-    from responses import RequestsMock
-
-    from tests.datasource.fluent._fake_cloud_api import FakeDBTypedDict
-
+    from great_expectations.data_context import FileDataContext
 
 yaml = YAMLHandler()
 
@@ -56,34 +23,6 @@ def taxi_data_samples_dir() -> pathlib.Path:
     return (
         pathlib.Path(__file__).parent.parent.parent / "test_sets" / "taxi_yellow_tripdata_samples"
     ).resolve(strict=True)
-
-
-@pytest.mark.cloud
-def test_add_fluent_datasource_are_persisted(
-    unset_gx_env_variables: None,
-    cloud_api_fake: RequestsMock,
-    empty_cloud_context_fluent: CloudDataContext,
-    db_file: pathlib.Path,
-    mocker: MockerFixture,
-):
-    context = empty_cloud_context_fluent
-    set_spy = mocker.spy(context._datasource_store, "set")
-
-    datasource_name = "save_ds_test"
-
-    datasource = context.data_sources.add_sqlite(
-        name=datasource_name, connection_string=f"sqlite:///{db_file}"
-    )
-
-    assert datasource.id
-    assert set_spy.call_count == 1
-    cloud_api_fake.assert_call_count(
-        urllib.parse.urljoin(
-            GX_CLOUD_MOCK_BASE_URL,
-            f"api/v2/organizations/{FAKE_ORG_ID}/workspaces/{FAKE_WORKSPACE_ID}/datasources",
-        ),
-        2,
-    )
 
 
 @pytest.mark.filesystem
@@ -102,30 +41,6 @@ def test_add_fluent_datasource_are_persisted_without_duplicates(
     yaml_dict: dict = yaml.load(yaml_path.read_text())
     print(pf(yaml_dict, depth=2))
     assert datasource_name in yaml_dict["fluent_datasources"]
-
-
-@pytest.mark.cloud
-def test_partitioners_are_persisted_on_creation(
-    unset_gx_env_variables: None,
-    empty_cloud_context_fluent: CloudDataContext,
-    cloud_api_fake_db: FakeDBTypedDict,
-    db_file: pathlib.Path,
-):
-    context = empty_cloud_context_fluent
-
-    datasource_name = "save_ds_partitioners_test"
-    datasource = context.data_sources.add_sqlite(
-        name=datasource_name, connection_string=f"sqlite:///{db_file}"
-    )
-    my_asset = datasource.add_table_asset("table_partitioned_by_date_column__A")
-    my_asset.test_connection()
-    partitioner = ColumnPartitionerYearly(column_name="date")
-    my_asset.add_batch_definition(name="cloud partitioner test", partitioner=partitioner)
-
-    datasource_config = cloud_api_fake_db["datasources"][str(datasource.id)]["data"]
-
-    # partitioners should be present
-    assert datasource_config["assets"][0]["batch_definitions"][0]["partitioner"]
 
 
 @pytest.mark.filesystem
@@ -156,158 +71,33 @@ def test_assets_are_persisted_on_creation_and_removed_on_deletion(
     assert asset_name not in fds_after_delete[datasource_name].get("assets", {})
 
 
-@pytest.mark.cloud
-def test_delete_asset_with_cloud_data_context(
-    unset_gx_env_variables: None,
-    seeded_cloud_context: CloudDataContext,
-    cloud_api_fake_db: FakeDBTypedDict,
-    cloud_api_fake: RequestsMock,
-    mocker: MockerFixture,
-):
-    context = seeded_cloud_context
-    remove_key_spy = mocker.spy(context._data_asset_store, "remove_key")
-
-    datasource_name = "my_pg_ds"
-    datasource = context.fluent_datasources[datasource_name]
-    asset_name = "my_table_asset_wo_partitioners"
-    asset = [asset for asset in datasource.assets if asset.name == asset_name][0]
-    datasource.delete_asset(name=asset_name)
-
-    cloud_api_fake.assert_call_count(
-        urllib.parse.urljoin(
-            GX_CLOUD_MOCK_BASE_URL,
-            f"api/v1/organizations/{FAKE_ORG_ID}/workspaces/{FAKE_WORKSPACE_ID}/data-assets/{asset.id}",
-        ),
-        1,
-    )
-    assert remove_key_spy.call_count == 1
-
-    asset_names = [
-        asset["name"]
-        for asset in cloud_api_fake_db["datasources"][str(datasource.id)]["data"]["assets"]
-    ]
-    assert asset_name not in asset_names
-
-
-@pytest.mark.cloud
-def test_context_update_datasource(
-    unset_gx_env_variables: None,
-    cloud_api_fake: RequestsMock,
-    empty_cloud_context_fluent: CloudDataContext,
-    # db_file: pathlib.Path, TODO: sqlite deser broken
-    taxi_data_samples_dir: pathlib.Path,
-):
-    context = empty_cloud_context_fluent
-
-    datasource = context.data_sources.add_pandas_filesystem(
-        name="save_ds_test", base_directory=taxi_data_samples_dir
-    )
-    datasource.add_csv_asset(name="my_asset")
-
-    # TODO: adjust call counts as needed
-    datasources_url = urllib.parse.urljoin(
-        GX_CLOUD_MOCK_BASE_URL,
-        f"api/v2/organizations/{FAKE_ORG_ID}/workspaces/{FAKE_WORKSPACE_ID}/datasources",
-    )
-    cloud_api_fake.assert_call_count(
-        datasources_url,
-        2,
-    )
-    cloud_api_fake.assert_call_count(
-        f"{datasources_url}/{datasource.id}?name={datasource.name}",
-        2,
-    )
-
-    response = requests.get(f"{datasources_url}/{datasource.id}")
-    response.raise_for_status()
-    assert response.json()["data"].get("assets")
-
-    # update an arbitrary field
-    datasource.base_directory = taxi_data_samples_dir / "foo"
-
-    updated_datasource = context.update_datasource(datasource)
-    assert isinstance(updated_datasource, PandasFilesystemDatasource)
-    assert updated_datasource.base_directory == datasource.base_directory
-    assert updated_datasource is not datasource  # we should return the new one
-
-
-# This test is parameterized by the fixture `empty_context`. This fixture will mark the test as
-# cloud or filesystem as appropriate
+# This test is parameterized by the fixture `empty_contexts`, which now resolves to a
+# filesystem context only (the GX Cloud branch has been shut down).
 def test_context_add_or_update_datasource(
     unset_gx_env_variables: None,
-    cloud_api_fake: RequestsMock,
-    empty_contexts: CloudDataContext | FileDataContext,
+    empty_contexts: FileDataContext,
     # db_file: pathlib.Path, TODO: sqlite deser broken
     taxi_data_samples_dir: pathlib.Path,
 ):
     context = empty_contexts
 
-    datasource = context.data_sources.add_pandas_filesystem(
+    context.data_sources.add_pandas_filesystem(
         name="save_ds_test", base_directory=taxi_data_samples_dir
-    )
-    datasource.add_csv_asset(
+    ).add_csv_asset(
         name="my_asset",
     )
 
-    # TODO: spy the store.delete calls instead of ctx specific tests
-    if isinstance(empty_contexts, CloudDataContext):
-        # TODO: adjust call counts as needed
-        datasources_url = urllib.parse.urljoin(
-            GX_CLOUD_MOCK_BASE_URL,
-            f"api/v2/organizations/{FAKE_ORG_ID}/workspaces/{FAKE_WORKSPACE_ID}/datasources",
-        )
-        cloud_api_fake.assert_call_count(
-            datasources_url,
-            2,
-        )
-        cloud_api_fake.assert_call_count(
-            f"{datasources_url}/{datasource.id}?name={datasource.name}",
-            2,
-        )
-
-        response = requests.get(f"{datasources_url}/{datasource.id}")
-        response.raise_for_status()
-        print(pf(response.json(), depth=4))
-        assert response.json()["data"].get("assets")
-
     # add_or_update should be idempotent
-    datasource = context.data_sources.add_or_update_pandas_filesystem(
+    context.data_sources.add_or_update_pandas_filesystem(
         name="save_ds_test", base_directory=taxi_data_samples_dir
     )
 
 
-@pytest.mark.cloud
-def test_cloud_add_or_update_datasource_kw_vs_positional(
-    unset_gx_env_variables: None,
-    cloud_api_fake: RequestsMock,
-    empty_cloud_context_fluent: CloudDataContext,
-    taxi_data_samples_dir: pathlib.Path,
-):
-    name: str = "kw_vs_positional_test"
-
-    datasource1 = empty_cloud_context_fluent.data_sources.add_pandas_filesystem(
-        name=name, base_directory=taxi_data_samples_dir
-    )
-
-    # pass name as keyword arg
-    datasource2 = empty_cloud_context_fluent.data_sources.add_or_update_pandas_filesystem(
-        name=name, base_directory=taxi_data_samples_dir
-    )
-
-    # pass name as positional arg
-    datasource3 = empty_cloud_context_fluent.data_sources.add_or_update_pandas_filesystem(
-        name, base_directory=taxi_data_samples_dir
-    )
-
-    assert datasource1 == datasource2 == datasource3
-
-
-# This test is parameterized by the fixture `empty_context`. This fixture will mark the test as
-# cloud or filesystem as appropriate
+# This test is parameterized by the fixture `empty_contexts`, which now resolves to a
+# filesystem context only (the GX Cloud branch has been shut down).
 def test_context_add_and_then_update_datasource(
     unset_gx_env_variables: None,
-    cloud_api_fake: RequestsMock,
-    empty_contexts: CloudDataContext | FileDataContext,
+    empty_contexts: FileDataContext,
     taxi_data_samples_dir: pathlib.Path,
 ):
     context = empty_contexts
@@ -331,12 +121,11 @@ def test_context_add_and_then_update_datasource(
     assert datasource2 == datasource3
 
 
-# This test is parameterized by the fixture `empty_context`. This fixture will mark the test as
-# cloud or filesystem as appropriate
+# This test is parameterized by the fixture `empty_contexts`, which now resolves to a
+# filesystem context only (the GX Cloud branch has been shut down).
 def test_update_non_existant_datasource(
     unset_gx_env_variables: None,
-    cloud_api_fake: RequestsMock,
-    empty_contexts: CloudDataContext | FileDataContext,
+    empty_contexts: FileDataContext,
     taxi_data_samples_dir: pathlib.Path,
 ):
     context = empty_contexts
@@ -344,192 +133,6 @@ def test_update_non_existant_datasource(
     with pytest.raises(ValueError, match="I_DONT_EXIST"):
         context.data_sources.update_pandas_filesystem(
             name="I_DONT_EXIST", base_directory=taxi_data_samples_dir
-        )
-
-
-@pytest.mark.cloud
-def test_cloud_context_delete_datasource(
-    unset_gx_env_variables: None,
-    cloud_api_fake: RequestsMock,
-    empty_cloud_context_fluent: CloudDataContext,
-    taxi_data_samples_dir: pathlib.Path,
-):
-    context = empty_cloud_context_fluent
-
-    datasource = context.data_sources.add_pandas_filesystem(
-        name="delete_ds_test", base_directory=taxi_data_samples_dir
-    )
-    datasources_url = urllib.parse.urljoin(
-        GX_CLOUD_MOCK_BASE_URL,
-        f"api/v2/organizations/{FAKE_ORG_ID}/workspaces/{FAKE_WORKSPACE_ID}/datasources",
-    )
-
-    # check cloud_api_fake items
-    response1 = requests.get(
-        f"{datasources_url}/{datasource.id}",
-    )
-    print(f"Before Delete -> {response1}\n{pf(response1.json())}\n")
-    assert response1.status_code == 200
-
-    context.data_sources.delete(datasource.name)
-    assert datasource.name not in context.fluent_datasources
-
-    cloud_api_fake.assert_call_count(
-        datasources_url,
-        3,
-    )
-    cloud_api_fake.assert_call_count(
-        f"{datasources_url}/{datasource.id}",
-        2,
-    )
-
-    response2 = requests.get(
-        f"{datasources_url}/{datasource.id}",
-    )
-    print(f"After Delete -> {response2}\n{pf(response2.json())}")
-    assert response2.status_code == 404
-
-
-@pytest.mark.cloud
-@pytest.mark.parametrize(
-    "invalid_datasource_config",
-    [
-        pytest.param(
-            {"type": "not_a_real_datasource_type", "foo": "bar"},
-            id="invalid_type",
-        ),
-        pytest.param(
-            {"type": "postgres", "connection_string": "postmalone+pyscopg2://"},
-            id="invalid pg conn_string",
-        ),
-        pytest.param(
-            {
-                "type": "sqlite",
-                "connection_string": "sqlite:///",
-                "assets": [
-                    {
-                        "name": "bad_query_asset",
-                        "type": "query",
-                        "query": "select * from foo",
-                        "table_name": "this is not valid",
-                    }
-                ],
-            },
-            id="invalid asset",
-        ),
-        pytest.param(
-            {
-                "type": "sqlite",
-                "connection_string": "sqlite:///",
-                "assets": [
-                    {
-                        "name": "bad_asset_type",
-                        "type": "NOT_A_VALID_ASSET_TYPE",
-                    }
-                ],
-            },
-            id="invalid asset type",
-        ),
-    ],
-)
-def test_invalid_datasource_config_does_not_break_cloud_context(
-    unset_gx_env_variables: None,
-    cloud_api_fake: RequestsMock,
-    cloud_details: CloudDetails,
-    cloud_api_fake_db: dict,
-    invalid_datasource_config: dict,
-):
-    """
-    Ensure that a datasource with an invalid config does not break the cloud context
-    """
-    datasource_id: str = str(uuid.uuid4())
-    datasource_name: str = "invalid_datasource"
-    invalid_datasource_config["name"] = datasource_name
-    cloud_api_fake_db["datasources"][datasource_id] = {
-        "data": {
-            "id": datasource_id,
-            **invalid_datasource_config,
-        }
-    }
-    with pytest.warns(GxInvalidDatasourceWarning):
-        context = get_context(
-            cloud_base_url=cloud_details.base_url,
-            cloud_organization_id=cloud_details.org_id,
-            cloud_access_token=cloud_details.access_token,
-            cloud_workspace_id=cloud_details.workspace_id,
-        )
-        assert datasource_name in context.data_sources.all()
-        bad_datasource = context.data_sources.get(datasource_name)
-    # test __repr__ and __str__
-    print(f"{bad_datasource!r}\n{bad_datasource!s}")
-    assert isinstance(bad_datasource, InvalidDatasource)
-    assert bad_datasource.name == datasource_name
-    assert len(bad_datasource.assets) == len(invalid_datasource_config.get("assets", []))
-
-
-@pytest.fixture
-def verify_asset_names_mock(
-    cloud_api_fake: RequestsMock, cloud_details: CloudDetails, cloud_api_fake_db
-):
-    def verify_asset_name_cb(request: PreparedRequest) -> CallbackResult:
-        if request.body:
-            parsed_url_path = str(urllib.parse.urlparse(request.url).path)
-            datasource_id = parsed_url_path.rsplit("/", maxsplit=1)[-1]
-
-            payload = CloudResponseSchema.from_datasource_json(request.body)
-            LOGGER.info(f"PUT payload: ->\n{pf(payload.dict())}")
-            assets = payload.data["assets"]  # type: ignore[index] # FIXME CoP
-            assert assets, "No assets found"
-            for asset in assets:
-                if asset["name"] == DEFAULT_PANDAS_DATA_ASSET_NAME:
-                    raise ValueError(
-                        f"Asset name should not be default - '{DEFAULT_PANDAS_DATA_ASSET_NAME}'"
-                    )
-            old_datasource: dict | None = cloud_api_fake_db["datasources"].get(datasource_id)
-            if old_datasource:
-                if payload.data.name != old_datasource["data"]["name"]:
-                    raise NotImplementedError("Unsure how to handle name change")
-                cloud_api_fake_db["datasources"][datasource_id] = payload.dict()
-            return CallbackResult(
-                200,
-                headers=DEFAULT_HEADERS,
-                body=payload.json(),
-            )
-        return CallbackResult(500, DEFAULT_HEADERS, "No body found")
-
-    cloud_url = re.compile(
-        f"{cloud_details.base_url}/organizations/{cloud_details.org_id}/datasources/{UUID_REGEX}"
-    )
-
-    cloud_api_fake.remove("PUT", url=cloud_url)
-    cloud_api_fake.add_callback("PUT", url=cloud_url, callback=verify_asset_name_cb)
-
-    return cloud_api_fake
-
-
-class TestPandasDefaultWithCloud:
-    @pytest.mark.cloud
-    def test_payload_sent_to_cloud(
-        self,
-        unset_gx_env_variables: None,
-        cloud_details: CloudDetails,
-        empty_cloud_context_fluent: CloudDataContext,
-        verify_asset_names_mock: RequestsMock,
-    ):
-        context = empty_cloud_context_fluent
-        df = pd.DataFrame.from_dict({"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]})
-
-        context.data_sources.pandas_default.read_dataframe(df)
-
-        pandas_default_id = context.data_sources.pandas_default.id
-        assert pandas_default_id
-
-        assert verify_asset_names_mock.assert_call_count(
-            urllib.parse.urljoin(
-                cloud_details.base_url,
-                f"api/v2/organizations/{cloud_details.org_id}/workspaces/{cloud_details.workspace_id}/datasources/{pandas_default_id}",
-            ),
-            1,
         )
 
 

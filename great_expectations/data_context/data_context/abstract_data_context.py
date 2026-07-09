@@ -612,7 +612,10 @@ class AbstractDataContext(ConfigPeer, ABC):
         This should generally be avoided.
         """  # noqa: E501 # FIXME CoP
         self.fluent_config.pop_datasource(name, None)
-        datasource = self.data_sources.all().get(name)
+        try:
+            datasource = self.data_sources.all()[name]
+        except KeyError:
+            datasource = None
         if datasource:
             if self._datasource_store.cloud_mode and _call_store:
                 self._datasource_store.delete(datasource)
@@ -620,7 +623,7 @@ class AbstractDataContext(ConfigPeer, ABC):
             # Raise key error instead?
             logger.info(f"No Datasource '{name}' to delete")
         self.data_sources.all().pop(name, None)
-        del self.config.fluent_datasources[name]
+        self.config.fluent_datasources.pop(name, None)
 
     def set_config(self, project_config: DataContextConfig) -> None:
         self._project_config = project_config
@@ -1546,35 +1549,6 @@ class AbstractDataContext(ConfigPeer, ABC):
 
         return fluent_data_asset_names
 
-    def build_batch_kwargs(
-        self,
-        datasource,
-        batch_kwargs_generator,
-        data_asset_name=None,
-        partition_id=None,
-        **kwargs,
-    ):
-        """Builds batch kwargs using the provided datasource, batch kwargs generator, and batch_parameters.
-
-        Args:
-            datasource (str): the name of the datasource for which to build batch_kwargs
-            batch_kwargs_generator (str): the name of the batch kwargs generator to use to build batch_kwargs
-            data_asset_name (str): an optional name batch_parameter
-            **kwargs: additional batch_parameters
-
-        Returns:
-            BatchKwargs
-
-        """  # noqa: E501 # FIXME CoP
-        datasource_obj = self.data_sources.get(datasource)
-        batch_kwargs = datasource_obj.build_batch_kwargs(
-            batch_kwargs_generator=batch_kwargs_generator,
-            data_asset_name=data_asset_name,
-            partition_id=partition_id,
-            **kwargs,
-        )
-        return batch_kwargs
-
     def open_data_docs(
         self,
         resource_identifier: Optional[str] = None,
@@ -2081,15 +2055,6 @@ class AbstractDataContext(ConfigPeer, ABC):
                 expectation_validation_result.render()
 
         return validation_result
-
-    def store_validation_result_metrics(
-        self, requested_metrics, validation_results, target_store_name
-    ) -> None:
-        self._store_metrics(
-            requested_metrics=requested_metrics,
-            validation_results=validation_results,
-            target_store_name=target_store_name,
-        )
 
     def _store_metrics(self, requested_metrics, validation_results, target_store_name) -> None:
         """

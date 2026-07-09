@@ -132,38 +132,40 @@ def test_multicolumn_expectation_has_default_mostly(fake_expectation_cls, config
 @pytest.mark.unit
 @pytest.mark.parametrize(
     "fake_expectation_cls, config",
-    itertools.chain(
-        *[
-            [
-                (
-                    FakeMulticolumnExpectation,
-                    fake_expectation_config(
-                        "fake_multicolumn_expectation",
-                        {"column_list": ["column_1", "column_2"], "mostly": x},
-                    ),
-                )
-                for x in [0, 0.5, 1]
-            ],
-            [
-                (
-                    FakeColumnMapExpectation,
-                    fake_expectation_config(
-                        "fake_column_map_expectation", {"column": "col", "mostly": x}
-                    ),
-                )
-                for x in [0, 0.5, 1]
-            ],
-            [
-                (
-                    FakeColumnPairMapExpectation,
-                    fake_expectation_config(
-                        "fake_column_pair_map_expectation",
-                        {"column_A": "colA", "column_B": "colB", "mostly": x},
-                    ),
-                )
-                for x in [0, 0.5, 1]
-            ],
-        ]
+    list(
+        itertools.chain(
+            *[
+                [
+                    (
+                        FakeMulticolumnExpectation,
+                        fake_expectation_config(
+                            "fake_multicolumn_expectation",
+                            {"column_list": ["column_1", "column_2"], "mostly": x},
+                        ),
+                    )
+                    for x in [0, 0.5, 1]
+                ],
+                [
+                    (
+                        FakeColumnMapExpectation,
+                        fake_expectation_config(
+                            "fake_column_map_expectation", {"column": "col", "mostly": x}
+                        ),
+                    )
+                    for x in [0, 0.5, 1]
+                ],
+                [
+                    (
+                        FakeColumnPairMapExpectation,
+                        fake_expectation_config(
+                            "fake_column_pair_map_expectation",
+                            {"column_A": "colA", "column_B": "colB", "mostly": x},
+                        ),
+                    )
+                    for x in [0, 0.5, 1]
+                ],
+            ]
+        )
     ),
 )
 def test_expectation_succeeds_with_valid_mostly(fake_expectation_cls, config):

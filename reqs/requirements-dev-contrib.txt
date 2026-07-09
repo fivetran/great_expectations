@@ -1,5 +1,6 @@
 adr-tools-python==1.0.3
-invoke>=2.0.0
+# Pinned: invoke 3.0.2 introduced a breaking change that causes CI failures
+invoke==3.0.0
 mypy==1.19.0
 pre-commit>=2.21.0
 ruff==0.14.9

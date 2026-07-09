@@ -13,3 +13,4 @@ The following table lists the installation commands used to install GX Core depe
 | Redshift default with SQLAlchemy 1.4| `pip install 'great_expectations[redshift]'` |
 | Redshift GX fork with SQLAlchemy 2.0| `pip install 'great_expectations[gx-redshift]'` |
 | Snowflake | `pip install 'great_expectations[snowflake]'` |
+| Trino | `pip install 'great_expectations[trino]'` |

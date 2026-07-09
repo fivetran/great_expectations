@@ -820,10 +820,7 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             "reqs/requirements-dev-snowflake.txt",
             "reqs/requirements-dev-spark.txt",
         ),
-        services=(
-            "mercury",
-            "spark",
-        ),
+        services=("spark",),
         extra_pytest_args=("--cloud",),
     ),
     "databricks": TestDependencies(
@@ -856,16 +853,17 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             "reqs/requirements-dev-redshift.txt",
             "reqs/requirements-dev-snowflake.txt",
             "reqs/requirements-dev-sql-server.txt",
+            "reqs/requirements-dev-trino.txt",
             # "Deprecated API features detected" warning/error for test_docs[split_data_on_whole_table_bigquery] when pandas>=2.0  # noqa: E501
         ),
-        services=("mercury", "mssql"),
+        services=("mssql", "trino"),
         extra_pytest_args=(
-            "--aws",
-            "--azure",
-            "--bigquery",
-            "--redshift",
-            "--snowflake",
-            "--cloud",
+            # TEMPORARY (CI transition): the S3, GCS, Azure Blob, BigQuery, Redshift, and
+            # Snowflake backends are unavailable while their CI infrastructure is torn down.
+            # Requesting any of them makes test collection eagerly connect to a dead backend
+            # and abort the whole session, so only the still-available Trino backend is
+            # requested here. Restore the cloud/warehouse flags once the infra is back.
+            "--trino",
             "--docs-tests",
         ),
     ),
@@ -903,6 +901,10 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
     ),
     "redshift": TestDependencies(
         requirement_files=("reqs/requirements-dev-redshift.txt",),
+    ),
+    "singlestore": TestDependencies(
+        ("reqs/requirements-dev-singlestore.txt",),
+        services=("singlestore",),
     ),
     "snowflake": TestDependencies(
         requirement_files=("reqs/requirements-dev-snowflake.txt",),
@@ -1089,6 +1091,8 @@ def docs_snippet_tests(
     help={
         "pty": _PTY_HELP_DESC,
         "reports": "Generate coverage & result reports to be uploaded to codecov",
+        "splits": "Total number of pytest-split shards. Must be paired with --group.",
+        "group": "1-based pytest-split shard index to run. Must satisfy 1 <= group <= splits.",
         "W": "Warnings control",
     },
     iterable=["service_names", "up_services", "verbose"],
@@ -1103,6 +1107,13 @@ def ci_tests(  # noqa: C901 - too complex (9)
     slowest: int = 5,
     timeout: float = 0.0,  # 0 indicates no timeout
     xdist: bool = False,
+    # `invoke` infers each task arg's type from its default; using `int = 0`
+    # (rather than `int | None = None`) keeps the CLI converter as `int`. The
+    # value `0` is treated as the "unset" sentinel — explicit `--splits=0` /
+    # `--group=0` are caught by the `> 0` and `1 <= group <= splits` validators
+    # below, so users get a clear error rather than silently running unsharded.
+    splits: int = 0,
+    group: int = 0,
     W: str | None = None,
     pty: bool = True,
 ):
@@ -1123,7 +1134,23 @@ def ci_tests(  # noqa: C901 - too complex (9)
     pytest_options = [f"--durations={slowest}", "-rEf"]
 
     if xdist:
-        pytest_options.append("-n 4")
+        # `--dist loadfile` keeps every test from the same module on a single
+        # worker. Required because some integration test fixtures (notably the
+        # session-cached BatchTestSetup keyed by TestConfig) depend on test
+        # ordering within a module and break when xdist redistributes them
+        # across workers.
+        pytest_options.extend(["-n 4", "--dist", "loadfile"])
+
+    if splits or group:
+        if not (splits and group):
+            raise invoke.Exit("--splits and --group must be set together.")  # noqa: TRY003
+        if splits <= 0:
+            raise invoke.Exit("--splits must be > 0.")  # noqa: TRY003
+        if not 1 <= group <= splits:
+            raise invoke.Exit(  # noqa: TRY003
+                f"--group must be between 1 and {splits} (inclusive)."
+            )
+        pytest_options.extend([f"--splits={splits}", f"--group={group}"])
 
     if timeout != 0:
         pytest_options.append(f"--timeout={timeout}")
@@ -1190,25 +1217,6 @@ def service(
         print(f"  Starting services for {', '.join(service_names)} ...")
         for service_name in service_names:
             cmds = []
-
-            if service_name == "mercury" and os.environ.get("CI") != "true":
-                cmds.extend(
-                    [
-                        "FORCE_NO_ALIAS=true",
-                        "assume",
-                        "dev",
-                        "--exec",
-                        "'aws ecr get-login-password --region us-east-1'",
-                        "|",
-                        "docker",
-                        "login",
-                        "--username",
-                        "AWS",
-                        "--password-stdin",
-                        "258143015559.dkr.ecr.us-east-1.amazonaws.com",
-                        "&&",
-                    ]
-                )
 
             if restart_services:
                 print(f"  Removing existing containers and building latest for {service_name} ...")

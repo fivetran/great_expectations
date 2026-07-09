@@ -1,0 +1,398 @@
+# Development guide
+
+This guide covers everything needed to set up a local Great Expectations development environment: forking
+and cloning the repository, creating a virtual environment, installing Great Expectations and its extra
+requirements, configuring backends for testing, running the test suite, and testing performance.
+
+For the contribution journey itself — proposing a change, claiming an issue, submitting a pull request, and
+what happens during review — see [CONTRIBUTING.md](./CONTRIBUTING.md). This guide only covers environment
+setup and test mechanics.
+
+## Prerequisites
+
+- A GitHub account.
+
+- A working version of Git on your computer. See [Getting Started - Installing Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
+
+- A new SSH (Secure Shell Protocol) key. See [Generating a new SSH key and adding it to the ssh-agent](https://help.github.com/en/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent).
+
+- The latest Python version installed and configured. See [Python downloads](https://www.python.org/downloads/).
+
+## Fork and clone the repository
+
+1. Open a browser and go to the [Great Expectations repository](https://github.com/fivetran/great_expectations).
+
+2. Click **Fork** and then **Create Fork**.
+
+3. Click **Code** and then select the **HTTPS** or **SSH** tabs.
+
+4. Copy the URL, open a Git terminal, and then run the following command:
+
+    ```sh
+    git clone <url>
+    ```
+5. Run the following command to specify a new remote upstream repository that will be synced with the fork:
+
+    ```sh
+    git remote add upstream git@github.com:great-expectations/great_expectations.git
+    ```
+6. Run the following command to create a branch for your changes:
+
+    ```sh
+    git checkout -b <branch-name>
+    ```
+
+## Set up your development environment
+
+### Create a virtual environment (optional)
+
+A [virtual environment](https://peps.python.org/pep-0405) allows you to install an independent set of Python packages to their own site directory, isolated from the base/system install of Python.
+
+Great Expectations requires a Python version from 3.10 to 3.13.
+
+#### Python
+
+1. Run the following command to create a virtual environment named `gx_dev`:
+
+   ```sh
+   python3 -m venv <path_to_environments_folder>/gx_dev
+   ```
+2. Run the following command to activate the virtual environment:
+
+   ```sh
+   source <path_to_environments_folder>/gx_dev/bin/activate
+   ```
+3. Run the following command to upgrade pip, the "package installer" for Python:
+    ```sh
+    pip install --upgrade pip
+    ```
+
+#### Anaconda
+
+1. Run the following command to create a virtual environment named `gx_dev`:
+
+   ```sh
+   conda create --name gx_dev
+   ```
+2. Run the following command to activate the virtual environment:
+
+   ```sh
+   conda activate gx_dev
+   ```
+
+### Install Great Expectations and extra requirements from your local repository
+
+1. Run the following command from the root of the `great_expectations` repository to install Great Expectations in [editable mode](https://setuptools.pypa.io/en/latest/userguide/development_mode.html), with extra requirements for testing:
+
+    ```sh
+
+    pip install -c constraints-dev.txt -e ".[test]"
+    ```
+
+    To specify other dependencies, add a comma after `test` and enter the dependency name(s). **For example, ".[test, postgresql, trino]"**.
+
+    The supported extra dependencies include: `arrow`, `athena`, `aws_secrets`, `azure`, `azure_secrets`, `bigquery`, `clickhouse`, `cloud`, `dremio`, `excel`, `gcp`, `hive`, `sql-server`, `mysql`, `postgresql`, `redshift`, `s3`, `snowflake`, `spark`, `teradata`, `test`, `trino`, `vertica`.
+
+    Check below to see if any of your desired dependencies need system packages installed, **before `pip install`**.
+
+2. Optional. If you're using Amazon Redshift (`redshift`) or PostgreSQL (`postgresql`), run one of the following commands to install the `pg_config` executable, which is required to install the `psycopg2-binary` Python package:
+
+    ```sh
+    sudo apt-get install -y libpq-dev
+    ```
+    or
+    ```sh
+    brew install postgresql
+    ```
+
+3. Optional. If you're using Microsoft SQL Server or Dremio (`dremio`), run one of the following commands to install `unixodbc`, which is required to install the `pyodbc` Python package:
+
+    ```sh
+    sudo apt-get install -y unixodbc-dev
+    ```
+    or
+    ```sh
+    brew install unixodbc
+    ```
+
+    If your Mac computer has an Apple Silicon chip, you might need to
+
+    1. specify additional compiler or linker options. For example:
+
+    ```sh
+    export LDFLAGS="-L/opt/homebrew/Cellar/unixodbc/[your version]/lib"
+    export CPPFLAGS="-I/opt/homebrew/Cellar/unixodbc/[your version]/include"`
+    ```
+
+    2. reinstall pyodbc:
+
+    ```
+    python -m pip install --force-reinstall --no-binary :all: pyodbc
+    python -c "import pyodbc; print(pyodbc.version)"
+    ```
+
+    3. install the ODBC 17 driver: https://learn.microsoft.com/en-us/sql/connect/odbc/linux-mac/install-microsoft-odbc-driver-sql-server-macos?view=sql-server-ver15
+
+    4. see the following resources for more information:
+
+    - [Installing Microsoft ODBC driver for macOS](https://docs.microsoft.com/en-us/sql/connect/odbc/linux-mac/install-microsoft-odbc-driver-sql-server-macos)
+    - [Installing Microsoft ODBC driver for Linux](https://docs.microsoft.com/en-us/sql/connect/odbc/linux-mac/installing-the-microsoft-odbc-driver-for-sql-server)
+
+4. Add `ulimit -n 4096` to the `~/.zshrc` or `~/.bashrc` files to prevent `OSError: [Errno 24] Too many open files` errors.
+
+5. Run the following command to confirm pandas and SQLAlchemy with SQLite tests are passing:
+
+   ```sh
+    ulimit -n 4096
+
+    pytest -v
+   ```
+
+## Configure backends for testing
+
+Some Great Expectations features require specific backends for local testing. This section is optional —
+skip it if your change doesn't need a specific backend.
+
+### Prerequisites
+
+- Docker (PostgreSQL and MySQL). See [Get Docker](https://docs.docker.com/get-docker/).
+
+### PostgreSQL
+
+1. CD to `assets/docker/postgresql` in your `great_expectations` repository, and then and run the following command:
+
+    ```sh
+    docker-compose up -d
+    ```
+2. Run the following command to verify the PostgreSQL container is running:
+
+    ```sh
+    docker-compose ps
+    ```
+    The command should return results similar to the following example:
+
+    ````console
+		Name                       Command              State           Ports
+	———————————————————————————————————————————
+	postgresql_travis_db_1   docker-entrypoint.sh postgres   Up      0.0.0.0:5432->5432/tcp
+	````
+3. Run the following command to run tests on the PostgreSQL container:
+
+    ```sh
+    pytest -v --postgresql
+    ```
+
+4. When you finish testing, run the following command to shut down the PostgreSQL container:
+
+     ```sh
+    docker-compose down
+    ```
+#### Troubleshooting
+
+Errors similar to the following are returned when you try to start the PostgreSQL container and another service is using port 5432:
+
+````console
+	psycopg2.OperationalError: could not connect to server: Connection refused
+	    Is the server running on host "localhost" (::1) and accepting
+	    TCP/IP connections on port 5432?
+	could not connect to server: Connection refused
+	    Is the server running on host "localhost" (127.0.0.1) and accepting
+	    TCP/IP connections on port 5432?
+````
+````console
+	sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) FATAL:  database "test_ci" does not exist
+	(Background on this error at: http://sqlalche.me/e/e3q8)
+````
+To resolve these errors, configure Docker to run on another port and confirm the server details are correct.
+
+### MySQL
+
+If another service is using port 3306, Docker might start the container but silently fail to set up the port.
+
+1. CD to `assets/docker/mysql` in your `great_expectations` repository, and then and run the following command:
+
+    ```sh
+    docker-compose up -d
+    ```
+2. Run the following command to verify the MySQL container is running:
+
+    ```sh
+    docker-compose ps
+    ```
+    The command should return results similar to the following example:
+
+    ```console
+	      Name                   Command             State                 Ports
+	------------------------------------------------------------------------------------------
+	mysql_mysql_db_1   docker-entrypoint.sh mysqld   Up      0.0.0.0:3306->3306/tcp, 33060/tcp
+	````
+3. Run the following command to run tests on the MySQL container:
+
+    ```sh
+    pytest -v --mysql
+    ```
+
+4. When you finish testing, run the following command to shut down the MySQL container:
+
+    ```sh
+    docker-compose down
+    ```
+
+### Spark
+
+Use the following information to use Spark for code testing.
+
+#### Prerequisites
+
+- Java. See [Java downloads](https://www.java.com/en/download/).
+
+- The PATH or JAVA_HOME environment variables set correctly. See [Setting Java variables in Windows](https://www.ibm.com/docs/en/b2b-integrator/5.2?topic=installation-setting-java-variables-in-windows) or [Setting Java variables in Linux](https://www.ibm.com/docs/en/b2b-integrator/5.2?topic=installation-setting-java-variables-in-linux).
+
+On Mac, run the following commands to set the PATH and JAVA_HOME environment variables:
+```
+export JAVA_HOME=`/usr/libexec/java_home`
+export PATH=$PATH:$JAVA_HOME/bin
+```
+
+
+#### Install PySpark
+
+When you install PySpark, Spark is also installed. See [Spark Overview](https://spark.apache.org/docs/latest/index.html#downloading).
+
+Run the following command to install PySpark and Apache Spark:
+
+```console
+pip install pyspark
+```
+
+## Test code changes
+
+Great Expectations production code must be thoroughly tested, and you must perform unit testing on all branches of every method, including likely error states. Most new feature contributions should include multiple unit tests. Contributions that modify or extend existing features should include a test of the new behavior.
+
+Additionally, all PRs impacting core behavior -- including changes to implementations of Expectations, ValidationDefinitions, Checkpoints, and Datasources -- must have integration test coverage in `tests/integration/data_sources_and_expectations`.
+
+### Unit testing
+
+To perform unit testing, run `pytest` in the `great_expectations` directory root. By default, tests are run against `pandas` and `sqlite`. You can use `pytest` flags to test additional backends like `postgresql`, `spark`, and `sql-server`. For example, to run a test against PostgreSQL backend, you run `pytest --postgresql`.
+
+The following are the supported `pytest` flags for general testing:
+
+- `--spark`: Execute tests against Spark backend.
+- `--postgresql`: Execute tests against PostgreSQL.
+- `--mysql`: Execute tests against MySql.
+- `--sql-server`: Execute tests against Microsoft SQL Server.
+- `--bigquery`: Execute tests against Google BigQuery (requires additional set up).
+- `--aws`: Execute tests against AWS resources such as Amazon S3, Amazon Redshift, and Athena (requires additional setup).
+
+To skip all local backend tests (except pandas), run `pytest --no-sqlalchemy`.
+
+Testing can generate warning messages. These warnings are often caused by dependencies such as pandas or SQLAlchemy. Run `pytest --no-sqlalchemy --disable-pytest-warnings` to suppress these warnings.
+
+### Marking tests
+
+All tests in Great Expectations must include one marker from the `REQUIRED_MARKERS` list. To view the list of defined markers, see [tests/conftest.py](https://github.com/fivetran/great_expectations/blob/develop/tests/conftest.py).
+To verify each test is marked, run `invoke marker-coverage` if [invoke](https://pypi.org/project/invoke/) is installed, or run `pytest --verify-marker-coverage-and-exit`.
+When verification fails, a list of unmarked tests and the required markers appears.
+
+### BigQuery testing
+
+1. [Select or create a Cloud Platform project](https://console.cloud.google.com/project).
+
+2. [Setup Authentication](https://googleapis.dev/python/google-api-core/latest/auth.html).
+
+3. In your project, [create a BigQuery dataset](https://cloud.google.com/bigquery/docs/datasets) named `test_ci` and [set the dataset default table expiration](https://cloud.google.com/bigquery/docs/updating-datasets#table-expiration) to `.1` day.
+
+4. Run the following command to test your project with the `GE_TEST_BIGQUERY_PROJECT` and `GE_TEST_BIGQUERY_DATASET` environment variables:
+
+    ```bash
+    GE_TEST_BIGQUERY_PROJECT=<YOUR_GOOGLE_CLOUD_PROJECT>
+    GE_TEST_BIGQUERY_DATASET=test_ci
+    pytest tests/test_definitions/test_expectations_cfe.py --bigquery
+    ```
+
+## Test performance
+
+Test the performance of code changes to determine they perform as expected. BigQuery is required to complete performance testing.
+
+1. Run the following command to set up the data for testing:
+
+    ```bash
+    GE_TEST_BIGQUERY_PEFORMANCE_DATASET=<YOUR_GCP_PROJECT> tests/performance/setup_bigquery_tables_for_performance_test.sh
+    ```
+
+2. Run the following command to start the performance test:
+
+    ```sh
+    pytest tests/performance/test_bigquery_benchmarks.py \
+    --bigquery --performance-tests \
+    -k 'test_taxi_trips_benchmark[1-True-V3]'  \
+    --benchmark-json=tests/performance/results/`date "+%H%M"`_${USER}.json \
+    -rP -vv
+    ```
+
+    Some benchmarks take significant time to complete. In the previous example, only the `test_taxi_trips_benchmark[1-True-V3]` benchmark runs. The output should appear similar to the following:
+
+    ```console
+    --------------------------------------------------- benchmark: 1 tests ------------------------------------------------------
+    Name (time in s)                         Min     Max    Mean  StdDev  Median     IQR  Outliers     OPS  Rounds  Iterations
+    -----------------------------------------------------------------------------------------------------------------------------
+    test_taxi_trips_benchmark[1-True-V3]     5.0488  5.0488  5.0488  0.0000  5.0488  0.0000       0;0  0.1981       1           1
+    -----------------------------------------------------------------------------------------------------------------------------
+    ```
+3. Run the following command to compare the test results:
+
+    ```
+    $ py.test-benchmark compare --group-by name tests/performance/results/initial_baseline.json tests/performance/results/*${USER}.json
+    ```
+
+    The output should appear similar to the following:
+
+    ```console
+    ---------------------------------------------------------------------------- benchmark 'test_taxi_trips_benchmark[1-True-V3]': 2 tests ---------------------------------------------------------------------------
+    Name (time in s)                                        Min               Max              Mean            StdDev            Median               IQR            Outliers     OPS     Rounds  Iterations
+    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    test_taxi_trips_benchmark[1-True-V3] (initial_base)     5.0488 (1.0)      5.0488 (1.0)      5.0488 (1.0)      0.0000 (1.0)      5.0488 (1.0)      0.0000 (1.0)           0;0  0.1981 (1.0)           1           1
+    test_taxi_trips_benchmark[1-True-V3] (2114_work)        6.4675 (1.28)     6.4675 (1.28)     6.4675 (1.28)     0.0000 (1.0)      6.4675 (1.28)     0.0000 (1.0)           0;0  0.1546 (0.78)          1           1
+    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ```
+
+4. Optional. If your change is intended to improve performance, run the following command to generate the benchmark results that confirm the performance improvement:
+
+    ```
+    $ tests/performance/run_benchmark_multiple_times.sh minimal_multithreading
+    ```
+     The name for the tests should include the first argument provided to the script. In the previous example, this was `tests/performance/results/minimal_multithreading_*.json`.
+
+## Code linting
+
+Before submitting a pull request, make sure that your code passes the lint check. Run:
+
+```sh
+black .
+ruff . --fix
+```
+
+## Locally deploying docs
+
+You can find more information on developing Great Expectations docs in [/docs/docusaurus/README.md](/docs/docusaurus/README.md). To get a version of the docs deployed locally, run:
+
+```sh
+invoke docs
+```
+
+The website should then be available at:
+
+```sh
+open http://localhost:3000/docs
+```
+
+
+## Generating the glossary
+
+Generates a glossary page in the docs:
+
+```sh
+python3 ./build_glossary_page.py
+```
+
+Run this command from the `scripts` directory.
