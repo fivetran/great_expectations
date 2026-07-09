@@ -57,5 +57,7 @@ They are listed in the order in which GX is prioritizing the support issues:
 ## Contribute
 We truly value the contributions of our community and always welcome pull requests. PRs are encouraged for both bug fixes and new features. For feature requests, we ask that you first open an issue for discussion to ensure the feature fits within the vision for GX Core and to align on the approach so that your time and effort are well spent. Thank you for being a crucial part of GX Core!
 
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for details on how to propose a change, claim an issue, and submit a pull request.
+
 ## Code of conduct
 Everyone interacting in GX Core project codebases, Discourse forums, Slack channels, and email communications is expected to adhere to the [GX Community Code of Conduct](https://discourse.greatexpectations.io/t/gx-community-code-of-conduct/1199).
