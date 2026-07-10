@@ -81,13 +81,26 @@ def test_parse_condition_to_spark(spark_session):
     res = parse_condition_to_spark('col("foo") > 5')
     # This is mostly a demonstrative test; it may be brittle. I do not know how to test
     # a condition itself.
-    assert str(res) in ["Column<b'(foo > 5)'>", "Column<'(foo > 5)'>"]
+    # Spark renders Column reprs differently across versions: older Spark uses a
+    # byte-string prefix and infix operators, Spark 4 drops the prefix and renders
+    # comparisons in function-prefix form (">(foo, 5)").
+    assert str(res) in [
+        "Column<b'(foo > 5)'>",
+        "Column<'(foo > 5)'>",
+        "Column<'>(foo, 5)'>",
+    ]
 
     res = parse_condition_to_spark('col("foo").notNull()')
     # This is mostly a demonstrative test; it may be brittle. I do not know how to test
     # a condition itself.
     print(str(res))
-    assert str(res) in ["Column<b'(foo IS NOT NULL)'>", "Column<'(foo IS NOT NULL)'>"]
+    # Spark 4 renders the null check in function-prefix form ("isNotNull(foo)")
+    # rather than the older infix "(foo IS NOT NULL)".
+    assert str(res) in [
+        "Column<b'(foo IS NOT NULL)'>",
+        "Column<'(foo IS NOT NULL)'>",
+        "Column<'isNotNull(foo)'>",
+    ]
 
 
 @pytest.mark.unit
