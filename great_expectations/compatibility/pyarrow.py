@@ -7,4 +7,6 @@ PYARROW_NOT_IMPORTED = NotImported("pyarrow is not installed, please 'pip instal
 try:
     import pyarrow
 except ImportError:
-    pyarrow = PYARROW_NOT_IMPORTED  # type: ignore[assignment] # FIXME CoP
+    # The assignment error only occurs when pyarrow is installed, so the ignore is
+    # env-dependent; unused-ignore keeps --warn-unused-ignores quiet when it is not.
+    pyarrow = PYARROW_NOT_IMPORTED  # type: ignore[assignment,unused-ignore]
