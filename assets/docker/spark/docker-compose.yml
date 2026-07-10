@@ -1,6 +1,9 @@
 services:
   spark-connect:
-    image: apache/spark:latest@sha256:fb5c5e61e7bb1be94b7f3a31afe1f73c5b4d20b6008f4ffa7278fc085da08a9e
+    # Default server pinned by explicit version + digest (the image the `latest`
+    # tag previously resolved to). Override SPARK_IMAGE to run a different server
+    # version against a matching client.
+    image: ${SPARK_IMAGE:-apache/spark:4.0.1@sha256:fb5c5e61e7bb1be94b7f3a31afe1f73c5b4d20b6008f4ffa7278fc085da08a9e}
     ports:
       - "15002:15002" # Spark Connect port
     environment:

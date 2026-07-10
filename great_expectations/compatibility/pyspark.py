@@ -65,11 +65,6 @@ except (ImportError, AttributeError):
     SparkConnectSession = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
 
 try:
-    from pyspark.sql import SQLContext
-except (ImportError, AttributeError):
-    SQLContext = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
-
-try:
     from pyspark.sql import Window
 except (ImportError, AttributeError):
     Window = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
@@ -80,9 +75,13 @@ except (ImportError, AttributeError):
     DataFrameReader = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
 
 try:
-    from pyspark.sql.utils import AnalysisException
+    # pyspark >= 3.4; base class covering both classic and Spark Connect exception hierarchies
+    from pyspark.errors import AnalysisException
 except (ImportError, AttributeError):
-    AnalysisException = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    try:
+        from pyspark.sql.utils import AnalysisException  # pyspark < 3.4
+    except (ImportError, AttributeError):
+        AnalysisException = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
 
 try:
     from pyspark.errors import PySparkAttributeError

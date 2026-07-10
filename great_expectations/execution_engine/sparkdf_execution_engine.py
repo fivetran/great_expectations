@@ -289,7 +289,11 @@ class SparkDFExecutionEngine(ExecutionEngine[str]):
 
         spark_session: pyspark.SparkSession
         try:
-            spark_session = pyspark.SparkConnectSession.builder.getOrCreate()
+            # Under pyspark 4.x the Connect session is a distinct SparkSession subclass;
+            # the two session types are interchangeable here. The assignment error only
+            # occurs on pyspark 4.x, so unused-ignore keeps --warn-unused-ignores quiet
+            # on older pyspark.
+            spark_session = pyspark.SparkConnectSession.builder.getOrCreate()  # type: ignore[assignment,unused-ignore]
         except (ModuleNotFoundError, ValueError, KeyError):
             spark_session = pyspark.SparkSession.builder.getOrCreate()
 
