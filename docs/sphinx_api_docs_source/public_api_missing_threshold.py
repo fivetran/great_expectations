@@ -646,18 +646,6 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     ),
     PrintableDefinition(
         file=pathlib.Path(
-            "great_expectations/expectations/regex_based_column_map_expectation.py"
-        ),
-        name="validate_configuration",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path(
-            "great_expectations/expectations/set_based_column_map_expectation.py"
-        ),
-        name="validate_configuration",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path(
             "great_expectations/experimental/metric_repository/metric_retriever.py"
         ),
         name="get_validator",

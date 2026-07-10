@@ -568,6 +568,7 @@ jobs:
       DATABRICKS_TOKEN: ${{secrets.DATABRICKS_SQL_TOKEN}}
       DATABRICKS_HOST: ${{secrets.DATABRICKS_HOST}}
       DATABRICKS_HTTP_PATH: ${{secrets.DATABRICKS_HTTP_PATH}}
+      DATABRICKS_CATALOG: ${{ vars.DATABRICKS_CATALOG }}
     permissions:
       id-token: write
       contents: read

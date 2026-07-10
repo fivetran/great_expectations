@@ -94,12 +94,13 @@ class DatabricksConnectionConfig(BaseSettings):
     databricks_token: str
     databricks_host: str
     databricks_http_path: str
+    databricks_catalog: str
 
     def build_connection_string(self, schema: str | None = None) -> str:
         base = (
             "databricks://token:"
             f"{self.databricks_token}@{self.databricks_host}:443"
-            f"?http_path={self.databricks_http_path}&catalog=ci"
+            f"?http_path={self.databricks_http_path}&catalog={self.databricks_catalog}"
         )
         if schema:
             return f"{base}&schema={schema}"
