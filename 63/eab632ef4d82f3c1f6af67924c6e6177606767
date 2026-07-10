@@ -1,0 +1,23 @@
+constraints-dev.txt
+  cd843e00a6a39f63 8-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.2",
+  "base_commit_sha": "63eab632ef4d82f3c1f6af67924c6e6177606767",
+  "prompts": {
+    "cd843e00a6a39f63": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "26d124f3-6adf-4a78-958e-80e68eba2687",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 8,
+      "total_deletions": 0,
+      "accepted_lines": 8,
+      "overriden_lines": 0
+    }
+  }
+}
