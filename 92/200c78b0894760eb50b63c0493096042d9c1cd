@@ -1,0 +1,27 @@
+reqs/requirements-dev-spark-connect.txt
+  7c9c05906902554a 9-11
+tests/integration/data_sources_and_expectations/test_misconfigured_expectations.py
+  7c9c05906902554a 133-135
+tests/expectations/test_row_conditions.py
+  7c9c05906902554a 84-86,89-90,97-98,101-102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.2",
+  "base_commit_sha": "92200c78b0894760eb50b63c0493096042d9c1cd",
+  "prompts": {
+    "7c9c05906902554a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f845424c-bcd0-4179-b3cc-414c0d5a5067",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 21,
+      "total_deletions": 3,
+      "accepted_lines": 15,
+      "overriden_lines": 0
+    }
+  }
+}
