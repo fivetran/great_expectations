@@ -23,9 +23,7 @@ class DatabricksConnectionConfig(BaseSettings):
     DATABRICKS_TOKEN: str
     DATABRICKS_HOST: str
     DATABRICKS_HTTP_PATH: str
-    # Catalog to clean up. Defaults to the Unity Catalog `ci` catalog, but can be overridden
-    # (e.g. `hive_metastore`) to match the catalog the tests actually run against.
-    DATABRICKS_CATALOG: str = "ci"
+    DATABRICKS_CATALOG: str
 
     @property
     def connection_string(self) -> str:

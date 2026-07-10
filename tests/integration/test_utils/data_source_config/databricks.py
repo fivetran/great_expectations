@@ -94,9 +94,7 @@ class DatabricksConnectionConfig(BaseSettings):
     databricks_token: str
     databricks_host: str
     databricks_http_path: str
-    # Catalog to run tests against. Defaults to the Unity Catalog `ci` catalog, but can be
-    # overridden (e.g. `hive_metastore`) for warehouses that are not Unity Catalog-enabled.
-    databricks_catalog: str = "ci"
+    databricks_catalog: str
 
     def build_connection_string(self, schema: str | None = None) -> str:
         base = (
