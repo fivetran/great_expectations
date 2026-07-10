@@ -1,0 +1,49 @@
+great_expectations/expectations/metrics/multicolumn_map_metrics/multicolumn_sum_equal.py
+  7c9c05906902554a 44-47,49,51
+great_expectations/compatibility/pyspark.py
+  7c9c05906902554a 90-102
+great_expectations/expectations/legacy_row_conditions.py
+  7c9c05906902554a 128-152,155,163
+tests/expectations/metrics/column_map_metrics/test_unexpected_indices_and_query.py
+  7c9c05906902554a 6-7,12-19,738,777
+great_expectations/expectations/metrics/column_map_metrics/column_values_decreasing.py
+  7c9c05906902554a 94-109
+great_expectations/expectations/metrics/column_aggregate_metrics/column_sum.py
+  7c9c05906902554a 3-4,33-54
+great_expectations/expectations/metrics/column_map_metrics/column_values_z_score.py
+  7c9c05906902554a 91-97
+great_expectations/expectations/metrics/column_map_metrics/column_values_increasing.py
+  7c9c05906902554a 100-115
+great_expectations/execution_engine/sparkdf_execution_engine.py
+  7c9c05906902554a 388-391,684
+tests/expectations/metrics/test_map_metric.py
+  7c9c05906902554a 7-8,46-54,743,814
+great_expectations/expectations/metrics/column_map_metrics/column_values_between.py
+  7c9c05906902554a 28-63,218,220-221,275-281
+great_expectations/expectations/metrics/map_metric_provider/map_condition_auxilliary_methods.py
+  7c9c05906902554a 836-841,844-854
+great_expectations/expectations/metrics/column_aggregate_metrics/column_values_between_count.py
+  7c9c05906902554a 16-18,215-220
+tests/expectations/metrics/test_core.py
+  7c9c05906902554a 13,171-237
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.2",
+  "base_commit_sha": "804fcd11d573da715fed23bea5280e83e12f1e08",
+  "prompts": {
+    "7c9c05906902554a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f845424c-bcd0-4179-b3cc-414c0d5a5067",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 304,
+      "total_deletions": 64,
+      "accepted_lines": 280,
+      "overriden_lines": 0
+    }
+  }
+}
