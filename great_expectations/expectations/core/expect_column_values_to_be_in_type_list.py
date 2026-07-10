@@ -12,13 +12,6 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # noqa: TC001, RUF100 # FIXME CoP
 )
-from great_expectations.execution_engine.sqlalchemy_dialect import (
-    GXSqlDialect,
-)
-from great_expectations.expectations.core.expect_column_values_to_be_of_type import (
-    _get_potential_sqlalchemy_types,
-    _native_type_type_map,
-)
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     _style_row_condition,
@@ -30,6 +23,10 @@ from great_expectations.expectations.model_field_descriptions import (
     FAILURE_SEVERITY_DESCRIPTION,
 )
 from great_expectations.expectations.registry import get_metric_kwargs
+from great_expectations.expectations.type_comparison import (
+    compare_column_type_list,
+    native_type_type_map,
+)
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
@@ -432,7 +429,7 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
                     except AttributeError:
                         pass
 
-                native_type = _native_type_type_map(type_)
+                native_type = native_type_type_map(type_)
                 if native_type is not None:
                     comp_types.extend(native_type)
 
@@ -467,45 +464,12 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
 
     def _validate_sqlalchemy(self, actual_column_type, expected_types_list, execution_engine):
         if expected_types_list is None:
-            success = True
-        elif execution_engine.dialect_name in [
-            GXSqlDialect.DATABRICKS,
-            GXSqlDialect.POSTGRESQL,
-            GXSqlDialect.SNOWFLAKE,
-            GXSqlDialect.SQL_SERVER,
-            GXSqlDialect.TRINO,
-        ]:
-            if isinstance(actual_column_type, str):
-                success = any(
-                    actual_column_type.lower() == expected_type.lower()
-                    for expected_type in expected_types_list
-                )
-                ret_type = actual_column_type
-            else:
-                ret_type = type(actual_column_type).__name__
-                success = any(
-                    ret_type.lower() == expected_type.lower()
-                    for expected_type in expected_types_list
-                )
-
-            return {
-                "success": success,
-                "result": {"observed_value": ret_type},
-            }
-        else:
-            types = []
-            for type_ in expected_types_list:
-                types.extend(
-                    _get_potential_sqlalchemy_types(
-                        execution_engine=execution_engine, expected_type=type_
-                    )
-                )
-            success = isinstance(actual_column_type, tuple(types))
-
-        return {
-            "success": success,
-            "result": {"observed_value": type(actual_column_type).__name__},
-        }
+            observed = type(actual_column_type).__name__
+            return {"success": True, "result": {"observed_value": observed}}
+        success, observed_value = compare_column_type_list(
+            execution_engine, actual_column_type, expected_types_list
+        )
+        return {"success": success, "result": {"observed_value": observed_value}}
 
     def _validate_spark(
         self,

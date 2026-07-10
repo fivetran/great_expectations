@@ -15,6 +15,15 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.18.2
+* [BUGFIX] Fix .rdd usage in Spark distinct-values metrics for Spark Connect compatibility ([#11922](https://github.com/fivetran/great_expectations/pull/11922))
+* [DOCS] Fix typos in the Run a Validation Definition guide ([#11920](https://github.com/fivetran/great_expectations/pull/11920)) (thanks @zozo123)
+* [MAINTENANCE] Fix pytest parametrize non-Collection iterable deprecation breaking scheduled CI ([#11921](https://github.com/fivetran/great_expectations/pull/11921))
+* [MAINTENANCE] Fix BigQuery Python 3.13 collection error from NumPy 'generic' unit DeprecationWarning ([#11924](https://github.com/fivetran/great_expectations/pull/11924))
+* [MAINTENANCE] Bump http-proxy-middleware from 2.0.9 to 2.0.10 in /docs/docusaurus ([#11927](https://github.com/fivetran/great_expectations/pull/11927))
+* [MAINTENANCE] Bump webpack-dev-server from 5.2.3 to 5.2.5 in /docs/docusaurus ([#11926](https://github.com/fivetran/great_expectations/pull/11926))
+* [MAINTENANCE] Bump @babel/core from 7.28.6 to 7.29.6 in /docs/docusaurus ([#11925](https://github.com/fivetran/great_expectations/pull/11925))
+
 ### 1.18.1
 * [BUGFIX] Regex angle brackets not HTML-escaped in Data Docs ([#11909](https://github.com/great-expectations/great_expectations/pull/11909))
 * [DOCS] Sync docs version label to released 1.18.0 ([#11900](https://github.com/great-expectations/great_expectations/pull/11900))

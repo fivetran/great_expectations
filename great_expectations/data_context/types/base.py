@@ -284,10 +284,6 @@ class SorterConfigSchema(Schema):
         allow_none=True,
     )
 
-    @validates_schema
-    def validate_schema(self, data, **kwargs) -> None:
-        pass
-
     # noinspection PyUnusedLocal
     @post_load
     def make_sorter_config(self, data, **kwargs):
@@ -431,10 +427,6 @@ class AssetConfigSchema(Schema):
     sampling_kwargs = fields.Dict(required=False, allow_none=True)
 
     reader_options = fields.Dict(keys=fields.Str(), required=False, allow_none=True)
-
-    @validates_schema
-    def validate_schema(self, data, **kwargs) -> None:
-        pass
 
     @pre_dump
     def prepare_dump(self, data, **kwargs):
@@ -966,10 +958,6 @@ class ExecutionEngineConfig(DictDot):
     def class_name(self):
         return self._class_name
 
-    @property
-    def batch_spec_defaults(self):
-        return self._batch_spec_defaults
-
 
 class ExecutionEngineConfigSchema(Schema):
     class Meta:
@@ -1226,12 +1214,7 @@ class DataContextConfigDefaults(enum.Enum):
     DEFAULT_CONFIG_VARIABLES_FILEPATH = f"{UNCOMMITTED}/config_variables.yml"
     PLUGINS_BASE_DIRECTORY = "plugins"
     DEFAULT_PLUGINS_DIRECTORY = f"{PLUGINS_BASE_DIRECTORY}/"
-    DEFAULT_ACTION_LIST = [
-        {
-            "name": "update_data_docs",
-            "type": "update_data_docs",
-        },
-    ]
+
     DEFAULT_EXPECTATIONS_STORE = {
         "class_name": "ExpectationsStore",
         "store_backend": {
@@ -1644,7 +1627,4 @@ class CheckpointValidationDefinitionSchema(AbstractConfigSchema):
 
 dataContextConfigSchema = DataContextConfigSchema()
 dataConnectorConfigSchema = DataConnectorConfigSchema()
-executionEngineConfigSchema = ExecutionEngineConfigSchema()
 assetConfigSchema = AssetConfigSchema()
-sorterConfigSchema = SorterConfigSchema()
-progressBarsConfigSchema = ProgressBarsConfigSchema()

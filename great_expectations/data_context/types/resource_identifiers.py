@@ -9,10 +9,10 @@ import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.data_context_key import DataContextKey
-from great_expectations.core.id_dict import BatchKwargs, IDDict
 from great_expectations.core.run_identifier import RunIdentifier, RunIdentifierSchema
 
 if TYPE_CHECKING:
+    from great_expectations.core.id_dict import BatchKwargs
     from great_expectations.data_context.cloud_constants import GXCloudRESTResource
 
 logger = logging.getLogger(__name__)
@@ -168,25 +168,6 @@ class ValidationResultIdentifier(DataContextKey):
             ExpectationSuiteIdentifier(tuple_[0]),
             RunIdentifier.from_tuple((tuple_[1], tuple_[2])),
             tuple_[3],
-        )
-
-    @classmethod
-    def from_object(cls, validation_result):
-        batch_kwargs = validation_result.meta.get("batch_kwargs", {})
-        if isinstance(batch_kwargs, IDDict):
-            batch_identifier = batch_kwargs.to_id()
-        elif isinstance(batch_kwargs, dict):
-            batch_identifier = IDDict(batch_kwargs).to_id()
-        else:
-            raise gx_exceptions.DataContextError(  # noqa: TRY003 # FIXME CoP
-                "Unable to construct ValidationResultIdentifier from provided object."
-            )
-        return cls(
-            expectation_suite_identifier=ExpectationSuiteIdentifier(
-                validation_result.meta["expectation_suite_name"]
-            ),
-            run_id=validation_result.meta.get("run_id"),
-            batch_identifier=batch_identifier,
         )
 
 
@@ -507,17 +488,4 @@ class ConfigurationIdentifier(DataContextKey):
         return f"{self.__class__.__name__}::{self._configuration_key}"
 
 
-class ConfigurationIdentifierSchema(Schema):
-    configuration_key = fields.Str()
-
-    # noinspection PyUnusedLocal
-    @post_load
-    def make_configuration_identifier(self, data, **kwargs):
-        return ConfigurationIdentifier(**data)
-
-
-expectationSuiteIdentifierSchema = ExpectationSuiteIdentifierSchema()
 validationResultIdentifierSchema = ValidationResultIdentifierSchema()
-runIdentifierSchema = RunIdentifierSchema()
-batchIdentifierSchema = BatchIdentifierSchema()
-configurationIdentifierSchema = ConfigurationIdentifierSchema()
