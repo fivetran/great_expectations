@@ -1,0 +1,23 @@
+ci/constraints-test/pyspark4-install.txt
+  7c9c05906902554a 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.2",
+  "base_commit_sha": "f104c5c6d6d8cc2156c8656c7d878946a2a98770",
+  "prompts": {
+    "7c9c05906902554a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f845424c-bcd0-4179-b3cc-414c0d5a5067",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
