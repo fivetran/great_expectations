@@ -1,0 +1,25 @@
+.github/workflows/ci.yml
+  df26667d6fb53b0b 571
+.github/workflows/data_source_cleanup.yml
+  df26667d6fb53b0b 82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.3",
+  "base_commit_sha": "146c93f8e147ccec58c97bf95a09b8d85b243222",
+  "prompts": {
+    "df26667d6fb53b0b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1b54a3cd-abdb-4bef-8d1f-bb73dc6b8682",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 0,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    }
+  }
+}
