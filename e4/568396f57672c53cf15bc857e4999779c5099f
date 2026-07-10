@@ -1,0 +1,25 @@
+reqs/requirements-dev-spark.txt
+  cd843e00a6a39f63 1-4
+tests/test_packaging.py
+  cd843e00a6a39f63 214,250
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.2",
+  "base_commit_sha": "e4568396f57672c53cf15bc857e4999779c5099f",
+  "prompts": {
+    "cd843e00a6a39f63": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "26d124f3-6adf-4a78-958e-80e68eba2687",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 6,
+      "total_deletions": 3,
+      "accepted_lines": 6,
+      "overriden_lines": 0
+    }
+  }
+}
