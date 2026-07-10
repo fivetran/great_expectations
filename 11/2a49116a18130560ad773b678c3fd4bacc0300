@@ -1,0 +1,23 @@
+great_expectations/self_check/util.py
+  cd843e00a6a39f63 698-707
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.2",
+  "base_commit_sha": "112a49116a18130560ad773b678c3fd4bacc0300",
+  "prompts": {
+    "cd843e00a6a39f63": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "26d124f3-6adf-4a78-958e-80e68eba2687",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 10,
+      "total_deletions": 1,
+      "accepted_lines": 10,
+      "overriden_lines": 0
+    }
+  }
+}
