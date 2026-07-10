@@ -1,0 +1,45 @@
+great_expectations/expectations/metrics/column_aggregate_metrics/column_values_between_count.py
+  7c9c05906902554a 3,9,13,19,21,27-32,46-74,258-263
+great_expectations/expectations/legacy_row_conditions.py
+  7c9c05906902554a 7,129,157
+great_expectations/compatibility/pyspark.py
+  7c9c05906902554a 92-94,98-100,103
+tests/expectations/metrics/test_core.py
+  7c9c05906902554a 2223-2363,3089-3195,5812-5890
+great_expectations/expectations/metrics/column_map_metrics/column_values_increasing.py
+  7c9c05906902554a 6,101-112,117-120
+tests/integration/data_sources_and_expectations/expectations/test_expect_column_values_to_be_between.py
+  7c9c05906902554a 10-11,20-25,270-286
+great_expectations/expectations/metrics/column_map_metrics/column_values_between.py
+  7c9c05906902554a 9-10,66-80,294
+great_expectations/expectations/metrics/map_metric_provider/map_condition_auxilliary_methods.py
+  7c9c05906902554a 850-852
+tests/expectations/test_row_conditions.py
+  7c9c05906902554a 3-4,6,13-64
+great_expectations/expectations/metrics/multicolumn_map_metrics/multicolumn_sum_equal.py
+  7c9c05906902554a 3-4,46-70,72,74
+great_expectations/expectations/metrics/column_map_metrics/column_values_decreasing.py
+  7c9c05906902554a 6,95-106,111-114
+great_expectations/expectations/metrics/column_map_metrics/column_values_z_score.py
+  7c9c05906902554a 91-97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.2",
+  "base_commit_sha": "c962c4606c499c70e531b64955003da82b1c67e8",
+  "prompts": {
+    "7c9c05906902554a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f845424c-bcd0-4179-b3cc-414c0d5a5067",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 604,
+      "total_deletions": 92,
+      "accepted_lines": 554,
+      "overriden_lines": 0
+    }
+  }
+}
