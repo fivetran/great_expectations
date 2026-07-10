@@ -385,8 +385,10 @@ class SparkDFExecutionEngine(ExecutionEngine[str]):
                 # conf.get will look first at the runtime conf and then at the sparkContext conf
                 try:
                     current_value = spark_session.conf.get(key)
-                # Py4J Java Error can be raised if the option has not been set on the context at all
-                except py4j.protocol.Py4JJavaError:
+                # A missing config surfaces differently across Spark versions: older versions
+                # raise a generic Py4JJavaError, while Spark 4+ raises a typed
+                # SparkNoSuchElementException ([SQL_CONF_NOT_FOUND]). Treat both as "unset".
+                except (py4j.protocol.Py4JJavaError, pyspark.SparkNoSuchElementException):
                     current_value = None
                 if key != "spark.app.name" and (current_value != value or current_value is None):
                     # attempts to update the runtime config
@@ -679,7 +681,7 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
                 CONDITION_PARSER_GREAT_EXPECTATIONS,
                 CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
             ] and isinstance(row_condition, str):
-                return data.filter(parse_condition_to_spark(row_condition))
+                return data.filter(parse_condition_to_spark(row_condition, schema=data.schema))
             else:
                 raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
                     f"unrecognized condition_parser {condition_parser!s} for Spark execution engine"
