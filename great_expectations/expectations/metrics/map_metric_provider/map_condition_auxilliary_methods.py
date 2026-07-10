@@ -847,7 +847,9 @@ def _spark_map_condition_query(
         unexpected_condition_filtered = unexpected_condition_filtered[:-2]
     # Spark 3 wraps the whole condition in one extra outer paren pair; strip it so the
     # rendered query matches the historical output. The Spark 4 prefix grammar starts
-    # with a function name (never "("), so this leaves it untouched.
+    # with a function name (never "("), so this leaves it untouched. This assumes the
+    # top-level expression is fully parenthesized as a single group (true for the
+    # conditions GX builds); it is a harmless display-only heuristic.
     if unexpected_condition_filtered.startswith("(") and unexpected_condition_filtered.endswith(
         ")"
     ):

@@ -4,7 +4,7 @@ import enum
 import operator
 from dataclasses import dataclass
 from string import punctuation
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility import pyspark
@@ -125,7 +125,9 @@ def parse_great_expectations_condition(row_condition: str):
         raise ConditionParserError(f"unable to parse condition: {row_condition}")  # noqa: TRY003 # FIXME CoP
 
 
-def _condition_value_literal(value: str, column_name: str, schema=None):
+def _condition_value_literal(
+    value: str, column_name: str, schema: Optional[pyspark.types.StructType] = None
+):
     """Build a Spark literal for a parsed string condition value.
 
     When the target column is numeric, a bare string literal would be compared against a
@@ -152,7 +154,7 @@ def _condition_value_literal(value: str, column_name: str, schema=None):
 
 def parse_condition_to_spark(
     row_condition: str,
-    schema=None,
+    schema: Optional[pyspark.types.StructType] = None,
 ) -> pyspark.Column:
     parsed = parse_great_expectations_condition(row_condition)
     column = parsed["column"]

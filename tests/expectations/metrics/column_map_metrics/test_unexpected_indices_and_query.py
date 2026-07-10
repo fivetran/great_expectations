@@ -9,6 +9,13 @@ from great_expectations.core.metric_function_types import (
     MetricPartialFunctionTypeSuffixes,
     SummarizationMetricNameSuffixes,
 )
+from great_expectations.self_check.util import (
+    build_pandas_engine,
+    build_sa_execution_engine,
+    build_spark_engine,
+)
+from great_expectations.validator.metric_configuration import MetricConfiguration
+from tests.expectations.test_util import get_table_columns_metric
 
 # Spark 4 changed Column's string grammar from infix ("(a AND b)", "a IN (...)") to a
 # function-prefix form ("and(a, b)", "in(a, ...)"), so the rendered unexpected-index
@@ -18,13 +25,6 @@ _SPARK_IN_SET_UNEXPECTED_INDEX_QUERY = (
     if pyspark.pyspark and is_version_greater_or_equal(pyspark.pyspark.__version__, "4.0.0")
     else "df.filter(F.expr((animals IS NOT NULL) AND (NOT (animals IN (cat, fish, dog)))))"
 )
-from great_expectations.self_check.util import (
-    build_pandas_engine,
-    build_sa_execution_engine,
-    build_spark_engine,
-)
-from great_expectations.validator.metric_configuration import MetricConfiguration
-from tests.expectations.test_util import get_table_columns_metric
 
 if TYPE_CHECKING:
     from great_expectations.execution_engine import (

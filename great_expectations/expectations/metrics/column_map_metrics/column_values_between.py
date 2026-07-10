@@ -6,6 +6,8 @@ from typing import Optional, Union
 import pandas as pd
 from dateutil.parser import parse
 
+from great_expectations.compatibility import pyspark
+from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.execution_engine import (
@@ -59,6 +61,21 @@ def _column_type_from_metrics(metrics: dict, column_name: Optional[str]) -> Opti
     column_types = metrics.get("table.column_types", [])
     type_by_column = {ct.get("name"): str(ct.get("type", "")) for ct in column_types}
     return type_by_column.get(column_name)
+
+
+def _should_reject_incomparable_spark_column_type(min_value, max_value) -> bool:
+    """Decide whether an incomparable Spark column type should be rejected up front.
+
+    Only Spark 4 (and later) rejects an implicit string<->numeric comparison under ANSI
+    mode; earlier versions coerce instead of raising, so their results are left untouched
+    (byte-identical). Even under Spark 4, comparing a string/boolean column against string
+    bounds is a valid same-family comparison (e.g. ISO-date or version-string ranges), so
+    that case is not rejected -- only genuine string<->numeric comparisons are.
+    """
+    if not (pyspark.pyspark and is_version_greater_or_equal(pyspark.pyspark.__version__, "4.0.0")):
+        return False
+    bounds = [b for b in (min_value, max_value) if b is not None]
+    return not (bounds and all(isinstance(b, str) for b in bounds))
 
 
 class ColumnValuesBetween(ColumnMapMetricProvider):
@@ -274,10 +291,11 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
 
         # Reject incomparable column types up front so an implicit string<->numeric
         # comparison does not surface as an opaque engine error under ANSI mode.
-        metrics = kwargs.get("_metrics", {})
-        accessor_domain_kwargs = kwargs.get("_accessor_domain_kwargs", {})
-        column_type = _column_type_from_metrics(metrics, accessor_domain_kwargs.get("column"))
-        _raise_if_invalid_column_type(column_type)
+        if _should_reject_incomparable_spark_column_type(min_value, max_value):
+            metrics = kwargs.get("_metrics", {})
+            accessor_domain_kwargs = kwargs.get("_accessor_domain_kwargs", {})
+            column_type = _column_type_from_metrics(metrics, accessor_domain_kwargs.get("column"))
+            _raise_if_invalid_column_type(column_type)
 
         if min_value is None:
             if strict_max:

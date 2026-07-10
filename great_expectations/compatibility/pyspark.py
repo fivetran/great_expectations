@@ -89,14 +89,15 @@ except (ImportError, AttributeError):
     PySparkAttributeError = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
 
 try:
-    # pyspark >= 4.0: spark.conf.get() raises this typed error ([SQL_CONF_NOT_FOUND])
-    # when a config key is absent from SQLConf. Earlier versions raise a generic
+    # spark.conf.get() raises this typed error ([SQL_CONF_NOT_FOUND]) when a config key
+    # is absent from SQLConf. It is importable from pyspark.errors on modern releases
+    # (present since ~3.5); only much older pyspark lacks it and raises a generic
     # Py4JJavaError instead.
     from pyspark.errors import SparkNoSuchElementException
 except (ImportError, AttributeError):
-    # On pyspark < 4.0 the typed error does not exist. Use a private Exception
-    # subclass so that `except SparkNoSuchElementException` remains a valid clause
-    # while never matching a real runtime error (unlike the NotImported sentinel,
+    # On those much older pyspark versions the typed error is unavailable. Use a private
+    # Exception subclass so that `except SparkNoSuchElementException` remains a valid
+    # clause while never matching a real runtime error (unlike the NotImported sentinel,
     # which is not a usable exception type).
     class SparkNoSuchElementException(Exception):  # type: ignore[no-redef] # FIXME CoP
-        """Placeholder keeping `except SparkNoSuchElementException` valid on pyspark < 4.0."""
+        """Placeholder keeping `except SparkNoSuchElementException` valid on old pyspark."""
