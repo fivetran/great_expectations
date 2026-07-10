@@ -25,6 +25,42 @@ class InvalidColumnTypeError(ValueError):
         super().__init__(message)
 
 
+# Column types that cannot be meaningfully compared against numeric/date bounds.
+# Matched case-insensitively against the column's type name via startswith, which covers
+# both SQL type names (e.g. "VARCHAR") and Spark type reprs (e.g. "StringType()").
+INVALID_COLUMN_TYPES = (
+    "VARCHAR",
+    "CHAR",
+    "NVARCHAR",
+    "NCHAR",
+    "TEXT",
+    "STRING",
+    "BOOLEAN",
+    "BOOL",
+    "BIT",
+    "TINYTEXT",
+    "MEDIUMTEXT",
+    "LONGTEXT",
+)
+
+
+def _raise_if_invalid_column_type(column_type: Optional[str]) -> None:
+    """Raise InvalidColumnTypeError if the column type cannot be compared to numeric/date bounds.
+
+    Under engines that reject cross-type comparisons (e.g. Spark with ANSI enabled), an
+    implicit string<->numeric comparison would otherwise surface as an opaque engine error.
+    """
+    if column_type and column_type.upper().startswith(INVALID_COLUMN_TYPES):
+        raise InvalidColumnTypeError(column_type=column_type)
+
+
+def _column_type_from_metrics(metrics: dict, column_name: Optional[str]) -> Optional[str]:
+    """Look up a column's type name from the resolved table.column_types metric."""
+    column_types = metrics.get("table.column_types", [])
+    type_by_column = {ct.get("name"): str(ct.get("type", "")) for ct in column_types}
+    return type_by_column.get(column_name)
+
+
 class ColumnValuesBetween(ColumnMapMetricProvider):
     condition_metric_name = "column_values.between"
     condition_value_keys = (
@@ -179,30 +215,10 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
         # ColumnValuesBetween metrics only work on numbers/dates,
         # so we check for common string and boolean types.
 
-        # Retrieve column types from metrics.
+        # Check that the comparison won't raise on an incomparable column type.
         metrics = kwargs.get("_metrics", {})
-        column_types = metrics.get("table.column_types", [])
-
-        # Map column names to their types as strings.
-        type_by_column = {ct.get("name"): str(ct.get("type", "")) for ct in column_types}
-        column_type = type_by_column.get(column.name)
-
-        INVALID_COLUMN_TYPES = (
-            "VARCHAR",
-            "CHAR",
-            "NVARCHAR",
-            "NCHAR",
-            "TEXT",
-            "STRING",
-            "BOOLEAN",
-            "BOOL",
-            "BIT",
-            "TINYTEXT",
-            "MEDIUMTEXT",
-            "LONGTEXT",
-        )
-        if column_type and column_type.upper().startswith(INVALID_COLUMN_TYPES):
-            raise InvalidColumnTypeError(column_type=column_type)
+        column_type = _column_type_from_metrics(metrics, column.name)
+        _raise_if_invalid_column_type(column_type)
 
         if min_value is None:
             if strict_max:
@@ -255,6 +271,13 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
 
         if min_value is None and max_value is None:
             raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
+
+        # Reject incomparable column types up front so an implicit string<->numeric
+        # comparison does not surface as an opaque engine error under ANSI mode.
+        metrics = kwargs.get("_metrics", {})
+        accessor_domain_kwargs = kwargs.get("_accessor_domain_kwargs", {})
+        column_type = _column_type_from_metrics(metrics, accessor_domain_kwargs.get("column"))
+        _raise_if_invalid_column_type(column_type)
 
         if min_value is None:
             if strict_max:

@@ -91,7 +91,22 @@ class ColumnValuesDecreasing(ColumnMapMetricProvider):
                 F.lag(column).over(pyspark.Window.orderBy(F.lit("constant"))),
             )
         else:
-            diff = column - F.lag(column).over(pyspark.Window.orderBy(F.lit("constant")))
+            # Widen integral columns to double before subtracting so the difference does
+            # not overflow a LongType accumulator at extreme opposite-sign boundaries
+            # under ANSI arithmetic. The sign of the difference (all that matters below)
+            # is unchanged for normal values, and non-integral types are left as-is.
+            integral_types = (
+                pyspark.types.ByteType,
+                pyspark.types.ShortType,
+                pyspark.types.IntegerType,
+                pyspark.types.LongType,
+            )
+            diff_column = (
+                column.cast(pyspark.types.DoubleType())
+                if isinstance(column_metadata["type"], integral_types)
+                else column
+            )
+            diff = diff_column - F.lag(diff_column).over(pyspark.Window.orderBy(F.lit("constant")))
             diff = F.when(diff.isNull(), -1).otherwise(diff)
 
         # NOTE: because in spark we are implementing the window function directly,

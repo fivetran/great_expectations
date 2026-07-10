@@ -13,6 +13,9 @@ from great_expectations.execution_engine import (
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
+from great_expectations.expectations.metrics.column_map_metrics.column_values_between import (
+    _raise_if_invalid_column_type,
+)
 from great_expectations.expectations.metrics.metric_provider import (
     MetricProvider,
     metric_value,
@@ -209,7 +212,12 @@ class ColumnValuesBetweenCount(MetricProvider):
         ) = execution_engine.get_compute_domain(
             domain_kwargs=metric_domain_kwargs, domain_type=MetricDomainTypes.COLUMN
         )
-        column = F.col(accessor_domain_kwargs["column"])
+        column_name = accessor_domain_kwargs["column"]
+        column = F.col(column_name)
+
+        # Reject incomparable column types up front so an implicit string<->numeric
+        # comparison does not surface as an opaque engine error under ANSI mode.
+        _raise_if_invalid_column_type(str(df.schema[column_name].dataType))
 
         if min_value is not None and max_value is not None and min_value > max_value:
             raise ValueError("min_value cannot be greater than max_value")  # noqa: TRY003 # FIXME CoP

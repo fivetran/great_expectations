@@ -88,7 +88,13 @@ class ColumnValuesZScore(ColumnMapMetricProvider):
         mean = _metrics["column.mean"]
         standard_deviation = _metrics["column.standard_deviation"]
 
-        return (column - mean) / standard_deviation
+        # Guard against division by zero (constant column -> standard_deviation == 0).
+        # Returning null keeps the z-score undefined rather than producing Infinity and
+        # avoids a divide-by-zero error where the engine treats it as one.
+        return F.when(
+            F.lit(standard_deviation) != 0,
+            (column - mean) / standard_deviation,
+        ).otherwise(F.lit(None))
 
     @column_condition_partial(engine=SparkDFExecutionEngine)
     def _spark_condition(cls, column, _metrics, threshold, double_sided, **kwargs):

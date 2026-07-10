@@ -10,6 +10,7 @@ import pytest
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility import pyspark, sqlalchemy
+from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.compatibility.sqlalchemy_compatibility_wrappers import (
     add_dataframe_to_db,
 )
@@ -165,6 +166,73 @@ def test_column_sum_metric_spark(spark_session, dataframe, expected_result):
     results = engine.resolve_metrics(metrics_to_resolve=(desired_metric,), metrics=results)
 
     assert results == {desired_metric.id: expected_result}
+
+
+def _resolve_spark_column_sum(engine, column="a"):
+    """Resolve the ``column.sum`` metric for a Spark engine and return its value."""
+    table_columns_metric, results = get_table_columns_metric(execution_engine=engine)
+
+    aggregate_fn_metric = MetricConfiguration(
+        metric_name=f"column.sum.{MetricPartialFunctionTypes.AGGREGATE_FN.metric_suffix}",
+        metric_domain_kwargs={"column": column},
+        metric_value_kwargs=None,
+    )
+    aggregate_fn_metric.metric_dependencies = {"table.columns": table_columns_metric}
+    results = engine.resolve_metrics(metrics_to_resolve=(aggregate_fn_metric,))
+
+    desired_metric = MetricConfiguration(
+        metric_name="column.sum",
+        metric_domain_kwargs={},
+        metric_value_kwargs=None,
+    )
+    desired_metric.metric_dependencies = {"metric_partial_fn": aggregate_fn_metric}
+    results = engine.resolve_metrics(metrics_to_resolve=(desired_metric,), metrics=results)
+    return results[desired_metric.id]
+
+
+@pytest.mark.spark
+def test_column_sum_metric_spark_longtype_preserves_integer_type(spark_session):
+    # A genuine LongType, no-null column must keep an *integer* observed value on
+    # Spark 3, byte-identical to prior behavior. Spark 4 evaluates the Long
+    # accumulator under ANSI semantics and raises ARITHMETIC_OVERFLOW on overflow
+    # (Spark 3 silently wraps), so integral inputs are widened to DoubleType before
+    # summing there and the value legitimately surfaces as a float.
+    schema = pyspark.types.StructType(
+        [pyspark.types.StructField("a", pyspark.types.LongType(), nullable=False)]
+    )
+    spark_df = spark_session.createDataFrame([(1,), (2,), (3,)], schema=schema)
+    engine = build_spark_engine(spark=spark_session, df=spark_df, batch_id="my_id")
+
+    observed_value = _resolve_spark_column_sum(engine)
+
+    assert observed_value == 6
+    if pyspark.pyspark and is_version_greater_or_equal(pyspark.pyspark.__version__, "4.0.0"):
+        assert isinstance(observed_value, float)
+    else:
+        assert isinstance(observed_value, int) and not isinstance(observed_value, bool)
+
+
+@pytest.mark.spark
+def test_column_sum_metric_spark_longtype_overflow_does_not_raise(spark_session):
+    # Long-overflow-prone integral input: on Spark 4 the double-widening keeps the
+    # ANSI-mode aggregate from raising ARITHMETIC_OVERFLOW and yields the true
+    # (non-wrapped) magnitude; Spark 3 silently wraps the Long accumulator. Either
+    # way the computation must complete without raising.
+    max_long = 9223372036854775807
+    schema = pyspark.types.StructType(
+        [pyspark.types.StructField("a", pyspark.types.LongType(), nullable=False)]
+    )
+    spark_df = spark_session.createDataFrame([(max_long,), (max_long,)], schema=schema)
+    engine = build_spark_engine(spark=spark_session, df=spark_df, batch_id="my_id")
+
+    observed_value = _resolve_spark_column_sum(engine)
+
+    if pyspark.pyspark and is_version_greater_or_equal(pyspark.pyspark.__version__, "4.0.0"):
+        # Widened to double, so no overflow and the true magnitude is preserved.
+        assert observed_value == pytest.approx(float(2 * max_long))
+    else:
+        # Spark 3 wraps the Long accumulator rather than raising; assert it completed.
+        assert observed_value is not None
 
 
 @pytest.mark.big

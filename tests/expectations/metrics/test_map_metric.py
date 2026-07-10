@@ -4,7 +4,8 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
-from great_expectations.compatibility import sqlalchemy
+from great_expectations.compatibility import pyspark, sqlalchemy
+from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.compatibility.sqlalchemy_compatibility_wrappers import (
     add_dataframe_to_db,
@@ -41,6 +42,15 @@ from great_expectations.expectations.metrics.map_metric_provider import (
 from great_expectations.util import convert_to_json_serializable
 from great_expectations.validator.validation_graph import MetricConfiguration
 from great_expectations.validator.validator import Validator
+
+# Spark 4 changed Column's string grammar from infix ("(a AND b)", "a IN (...)") to a
+# function-prefix form ("and(a, b)", "in(a, ...)"), so the rendered unexpected-index
+# query legitimately differs by pyspark version.
+_SPARK_IN_SET_UNEXPECTED_INDEX_QUERY = (
+    "df.filter(F.expr(and(isNotNull(animals), !(in(animals, 'cat', 'fish', 'dog')))))"
+    if pyspark.pyspark and is_version_greater_or_equal(pyspark.pyspark.__version__, "4.0.0")
+    else "df.filter(F.expr((animals IS NOT NULL) AND (NOT (animals IN (cat, fish, dog)))))"
+)
 
 
 @pytest.fixture
@@ -730,8 +740,7 @@ def test_spark_single_column_complete_result_format(
         ],
         "partial_unexpected_list": ["giraffe", "lion", "zebra"],
         "unexpected_count": 3,
-        "unexpected_index_query": "df.filter(F.expr((animals IS NOT NULL) AND (NOT "
-        "(animals IN (cat, fish, dog)))))",
+        "unexpected_index_query": _SPARK_IN_SET_UNEXPECTED_INDEX_QUERY,
         "unexpected_list": ["giraffe", "lion", "zebra"],
         "unexpected_percent": 50.0,
         "unexpected_percent_nonmissing": 50.0,
@@ -802,8 +811,7 @@ def test_spark_single_column_complete_result_format_with_id_pk(
             {"animals": "lion", "pk_1": 4},
             {"animals": "zebra", "pk_1": 5},
         ],
-        "unexpected_index_query": "df.filter(F.expr((animals IS NOT NULL) AND (NOT "
-        "(animals IN (cat, fish, dog)))))",
+        "unexpected_index_query": _SPARK_IN_SET_UNEXPECTED_INDEX_QUERY,
         "unexpected_list": ["giraffe", "lion", "zebra"],
         "unexpected_percent": 50.0,
         "unexpected_percent_nonmissing": 50.0,
