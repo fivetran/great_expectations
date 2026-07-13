@@ -306,26 +306,7 @@ jobs:
           docker compose --progress quiet -f assets/docker/spark/docker-compose.yml up -d --wait --wait-timeout 300
 
       - name: Run the tests
-        run: invoke docs-snippet-tests '${{ matrix.doc-step }}' --up-services --verbose  --reports
-
-      # upload coverage report to codecov
-      - name: Upload coverage reports to Codecov
-        continue-on-error: true
-        uses: codecov/codecov-action@v4.1.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: great-expectations/great_expectations
-          flags: ${{ matrix.doc-step }}
-          fail_ci_if_error: false
-
-      # upload test results to codecov
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: ${{ matrix.doc-step }}
+        run: invoke docs-snippet-tests '${{ matrix.doc-step }}' --up-services --verbose
 
   unit-tests:
     needs: [check-actor-permissions, detect-changes]
@@ -358,26 +339,7 @@ jobs:
 
       - name: Run the unit tests
         # TODO: revert the timeout back to 1.5 or lower after resolving arc issues
-        run: invoke ci-tests -m "unit" --xdist --slowest=10 --timeout=2.0 --reports
-
-      # upload coverage report to codecov
-      - name: Upload coverage reports to Codecov
-        continue-on-error: true
-        uses: codecov/codecov-action@v4.1.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: great-expectations/great_expectations
-          flags: ${{ matrix.python-version }}
-          fail_ci_if_error: false
-
-      # upload test results to codecov
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: ${{ matrix.python-version }}
+        run: invoke ci-tests -m "unit" --xdist --slowest=10 --timeout=2.0
 
   doc-checks:
     needs: [check-actor-permissions]
@@ -532,25 +494,6 @@ jobs:
         run:
           invoke ci-tests 'integration' --verbose
 
-          # upload coverage report to codecov
-      - name: Upload coverage reports to Codecov
-        continue-on-error: true
-        uses: codecov/codecov-action@v4.1.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: great-expectations/great_expectations
-          flags: integration
-          fail_ci_if_error: false
-
-      # upload test results to codecov
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: integration
-
   marker-tests:
     needs: [unit-tests, static-analysis, check-actor-permissions]
     if: github.event.pull_request.draft == false
@@ -664,26 +607,7 @@ jobs:
           case "${{ matrix.markers }}" in
             bigquery|databricks) FLAGS="--xdist" ;;
           esac
-          invoke ci-tests '${{ matrix.markers }}' --up-services --verbose --reports $FLAGS
-
-      # upload coverage report to codecov
-      - name: Upload coverage reports to Codecov
-        continue-on-error: true
-        uses: codecov/codecov-action@v4.1.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: great-expectations/great_expectations
-          flags: "${{ matrix.python-version }} ${{ matrix.markers }}"
-          fail_ci_if_error: false
-
-      # upload test results to codecov
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: "${{ matrix.python-version }} ${{ matrix.markers }}"
+          invoke ci-tests '${{ matrix.markers }}' --up-services --verbose $FLAGS
 
   marker-tests-snowflake:
     needs: [unit-tests, static-analysis, check-actor-permissions]
@@ -748,29 +672,10 @@ jobs:
         run: |
           GROUP="${SHARD%/*}"
           SPLITS="${SHARD#*/}"
-          invoke ci-tests snowflake --up-services --verbose --reports --xdist \
+          invoke ci-tests snowflake --up-services --verbose --xdist \
             --splits="$SPLITS" --group="$GROUP"
         env:
           SHARD: ${{ matrix.shard }}
-
-      # upload coverage report to codecov
-      - name: Upload coverage reports to Codecov
-        continue-on-error: true
-        uses: codecov/codecov-action@v4.1.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: great-expectations/great_expectations
-          flags: "${{ matrix.python-version }} snowflake ${{ matrix.shard }}"
-          fail_ci_if_error: false
-
-      # upload test results to codecov
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: "${{ matrix.python-version }} snowflake ${{ matrix.shard }}"
 
   redshift:
     needs: [unit-tests, static-analysis, check-actor-permissions]
@@ -816,26 +721,7 @@ jobs:
           invoke deps --gx-install -m '${{ matrix.markers }}' -r test
 
       - name: Run the tests
-        run: invoke ci-tests '${{ matrix.markers }}' --up-services --verbose  --reports
-
-      # upload coverage report to codecov
-      - name: Upload coverage reports to Codecov
-        continue-on-error: true
-        uses: codecov/codecov-action@v4.1.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: great-expectations/great_expectations
-          flags: "${{ matrix.python-version }} ${{ matrix.markers }}"
-          fail_ci_if_error: false
-
-      # upload test results to codecov
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: "${{ matrix.python-version }} ${{ matrix.markers }}"
+        run: invoke ci-tests '${{ matrix.markers }}' --up-services --verbose
 
   py310-min-versions:
     needs: [unit-tests, static-analysis, check-actor-permissions]
