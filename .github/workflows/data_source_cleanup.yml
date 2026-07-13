@@ -76,7 +76,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # databricks
-      DATABRICKS_TOKEN: ${{secrets.DATABRICKS_SQL_TOKEN}}
+      # DATABRICKS_TOKEN is minted at runtime from the service principal's OAuth
+      # credentials in the "Mint Databricks OAuth access token" step below.
       DATABRICKS_HOST: ${{secrets.DATABRICKS_HOST}}
       DATABRICKS_HTTP_PATH: ${{secrets.DATABRICKS_HTTP_PATH}}
       DATABRICKS_CATALOG: ${{ vars.DATABRICKS_CATALOG }}
@@ -96,6 +97,16 @@ jobs:
           pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
           invoke deps --gx-install -m databricks
           pip install -e .
+      # Authenticate the service principal via OAuth M2M and export the
+      # masked bearer token as DATABRICKS_TOKEN for the cleanup script.
+      - name: Mint Databricks OAuth access token
+        env:
+          DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+          DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+        run: |
+          TOKEN="$(python ./scripts/mint_databricks_token.py)"
+          echo "::add-mask::$TOKEN"
+          echo "DATABRICKS_TOKEN=$TOKEN" >> "$GITHUB_ENV"
       - name: Run Databricks cleanup script
         run: |
           python ./scripts/cleanup/cleanup_databricks.py

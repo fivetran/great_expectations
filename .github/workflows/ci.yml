@@ -565,7 +565,8 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{secrets.CI_AWS_ACCESS_KEY_ID}}
       AWS_DEFAULT_REGION: ${{secrets.CI_AWS_DEFAULT_REGION}}
       AWS_SECRET_ACCESS_KEY: ${{secrets.CI_AWS_SECRET_ACCESS_KEY}}
-      DATABRICKS_TOKEN: ${{secrets.DATABRICKS_SQL_TOKEN}}
+      # DATABRICKS_TOKEN is minted at runtime from the service principal's OAuth
+      # credentials in the "Mint Databricks OAuth access token" step below.
       DATABRICKS_HOST: ${{secrets.DATABRICKS_HOST}}
       DATABRICKS_HTTP_PATH: ${{secrets.DATABRICKS_HTTP_PATH}}
       DATABRICKS_CATALOG: ${{ vars.DATABRICKS_CATALOG }}
@@ -642,6 +643,20 @@ jobs:
       - name: Install SQL Server odbc driver
         if: matrix.markers == 'sql_server'
         run: ./scripts/install_sql_server_odbc_driver.sh
+
+      # Authenticate the service principal via OAuth M2M. The minted
+      # bearer token is masked and exported as DATABRICKS_TOKEN so the existing
+      # token-based connection path is used unchanged. OAuth M2M tokens are valid
+      # for one hour, which comfortably covers the marker suite's runtime.
+      - name: Mint Databricks OAuth access token
+        if: matrix.markers == 'databricks'
+        env:
+          DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+          DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+        run: |
+          TOKEN="$(python ./scripts/mint_databricks_token.py)"
+          echo "::add-mask::$TOKEN"
+          echo "DATABRICKS_TOKEN=$TOKEN" >> "$GITHUB_ENV"
 
       - name: Run the tests
         run: |
