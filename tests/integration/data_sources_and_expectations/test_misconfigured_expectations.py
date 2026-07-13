@@ -130,7 +130,9 @@ class TestNonExistentColumnMisconfiguration:
     def test_spark(self, batch_for_datasource) -> None:
         self._assert_misconfiguration(
             batch_for_datasource=batch_for_datasource,
-            exception_message="A column or function parameter with name `b` cannot be resolved",
+            # Spark reworded this error across versions (Spark 4 inserts ", variable,"),
+            # so match on the stable fragment that still proves column `b` was unresolved.
+            exception_message="with name `b` cannot be resolved",
         )
 
     def _assert_misconfiguration(self, batch_for_datasource: Batch, exception_message: str) -> None:

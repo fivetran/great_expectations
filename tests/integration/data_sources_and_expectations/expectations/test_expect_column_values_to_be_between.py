@@ -7,7 +7,8 @@ import pytest
 
 import great_expectations.expectations as gxe
 from great_expectations import ExpectationSuite
-from great_expectations.compatibility import pydantic
+from great_expectations.compatibility import pydantic, pyspark
+from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
@@ -16,7 +17,12 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     NON_SQL_DATA_SOURCES,
     SQL_DATA_SOURCES,
 )
-from tests.integration.test_utils.data_source_config import PostgreSQLDatasourceTestConfig
+from tests.integration.test_utils.data_source_config import (
+    PostgreSQLDatasourceTestConfig,
+    SparkFilesystemCsvDatasourceTestConfig,
+)
+
+SPARK_DATA_SOURCES = [SparkFilesystemCsvDatasourceTestConfig()]
 
 NUMERIC_COLUMN = "numbers"
 DATE_COLUMN = "dates"
@@ -259,6 +265,23 @@ class TestColumnValuesBetweenAgainstInvalidColumn:
         exception_info = list(results_with_errors[0].exception_info.values())
         assert len(exception_info) == 1
         assert self.EXPECTED_ERROR in exception_info[0]["exception_message"]
+
+
+_INVALID_COLUMN_TYPE_ERROR = "ColumnValuesBetween metrics cannot be computed on column of type"
+
+
+@parameterize_batch_for_data_sources(data_source_configs=SPARK_DATA_SOURCES, data=DATA)
+def test_string_column_with_numeric_bounds_spark(batch_for_datasource: Batch) -> None:
+    # A genuine string<->numeric comparison is rejected up front under Spark 4 ANSI, where
+    # it would otherwise surface as an opaque engine error. Earlier Spark versions coerce
+    # instead of raising, so the guard does not fire there and results stay unchanged.
+    expect = gxe.ExpectColumnValuesToBeBetween(column=STRING_COLUMN, min_value=0, max_value=1)
+    result = batch_for_datasource.validate(expect=expect)
+    exception_info_str = str(result.exception_info)
+    if pyspark.pyspark and is_version_greater_or_equal(pyspark.pyspark.__version__, "4.0.0"):
+        assert _INVALID_COLUMN_TYPE_ERROR in exception_info_str
+    else:
+        assert _INVALID_COLUMN_TYPE_ERROR not in exception_info_str
 
 
 @pytest.mark.parametrize(

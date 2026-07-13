@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from great_expectations.compatibility import pyspark
+from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.execution_engine import (
     PandasExecutionEngine,
@@ -41,8 +43,33 @@ class MulticolumnSumEqual(MulticolumnMapMetricProvider):
     @multicolumn_condition_partial(engine=SparkDFExecutionEngine)
     def _spark(cls, column_list, **kwargs):
         sum_total = kwargs.get("sum_total")
-        expression = "+".join(
-            [f"COALESCE({column_name}, 0)" for column_name in column_list.columns]
-        )
-        row_wise_cond = F.expr(expression) == F.lit(sum_total)
+        if pyspark.pyspark and is_version_greater_or_equal(pyspark.pyspark.__version__, "4.0.0"):
+            # Spark 4 evaluates arithmetic under ANSI semantics by default and raises
+            # ARITHMETIC_OVERFLOW when an integral (Long) accumulator overflows, whereas
+            # Spark 3 silently wraps. Widen only integral operands to an exact wide DECIMAL
+            # so the row-wise sum cannot overflow. Decimal and floating operands are left
+            # untouched so exact decimal equality (e.g. 0.1 + 0.2 == 0.3) is preserved and
+            # floating sums keep their usual semantics (floats do not raise under ANSI).
+            integral_types = (
+                pyspark.types.ByteType,
+                pyspark.types.ShortType,
+                pyspark.types.IntegerType,
+                pyspark.types.LongType,
+            )
+            operands = []
+            for column_name in column_list.columns:
+                coalesced = f"COALESCE(`{column_name}`, 0)"
+                if isinstance(column_list.schema[column_name].dataType, integral_types):
+                    operands.append(f"CAST({coalesced} AS DECIMAL(38, 0))")
+                else:
+                    operands.append(coalesced)
+            expression = "+".join(operands)
+            row_wise_cond = F.expr(expression) == F.lit(sum_total)
+        else:
+            # Spark 3 wraps integral overflow rather than raising, so keep the original
+            # unwidened sum and literal comparison to preserve byte-identical results.
+            expression = "+".join(
+                [f"COALESCE({column_name}, 0)" for column_name in column_list.columns]
+            )
+            row_wise_cond = F.expr(expression) == F.lit(sum_total)
         return row_wise_cond

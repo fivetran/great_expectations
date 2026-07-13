@@ -88,6 +88,12 @@ class ColumnValuesZScore(ColumnMapMetricProvider):
         mean = _metrics["column.mean"]
         standard_deviation = _metrics["column.standard_deviation"]
 
+        # standard_deviation is an already-resolved Python scalar, so the divide-by-zero
+        # (constant column) and undefined (None) cases can be decided here rather than
+        # per row. Dividing by zero would yield Infinity (or raise under ANSI), so return
+        # a null z-score in those cases.
+        if standard_deviation is None or standard_deviation == 0:
+            return F.lit(None)
         return (column - mean) / standard_deviation
 
     @column_condition_partial(engine=SparkDFExecutionEngine)

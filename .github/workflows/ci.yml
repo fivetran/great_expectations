@@ -609,6 +609,65 @@ jobs:
           esac
           invoke ci-tests '${{ matrix.markers }}' --up-services --verbose $FLAGS
 
+  pyspark4-marker-tests:
+    needs: [unit-tests, static-analysis, check-actor-permissions]
+    if: github.event.pull_request.draft == false
+    env:
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
+      # Compose override, matched to the 4.1.x pip client installed below. No official
+      # client<->server cross-version guarantee exists for Spark Connect, so the image
+      # tag is kept in lockstep with the lane's pyspark constraint.
+      SPARK_IMAGE: apache/spark:4.1.2
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        markers:
+          - spark
+          - spark_connect
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Upgrade Docker Compose
+        uses: docker/setup-compose-action@v1
+        with:
+          version: latest
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+          cache-dependency-path: |
+            reqs/requirements-dev-test.txt
+            setup.py
+
+      - name: Set up Java
+        # Classic-path pyspark 4 needs a host JDK 17+; pin it here rather than relying
+        # on the runner default so this lane is deterministic.
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Verify pyspark 4.0.x resolution (dry run)
+        # Runs before the real install so the environment is clean. Proves the [spark]
+        # extra still resolves the 4.0.x line even though this lane pins 4.1.x.
+        run: pip install --dry-run --quiet ".[spark]" "pyspark~=4.0.3"
+
+      - name: Install dependencies
+        # Direct pip install with the lane constraint file, bypassing constraints-dev.txt
+        # (the 3.x freeze) so pyspark resolves to 4.1.x.
+        run: |
+          pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
+          pip install . -c ci/constraints-test/pyspark4-install.txt -r reqs/requirements-dev-test.txt -r reqs/requirements-dev-spark.txt -r reqs/requirements-dev-spark-connect.txt
+
+      - name: Run the tests
+        run: invoke ci-tests '${{ matrix.markers }}' --up-services --verbose --reports
+
   marker-tests-snowflake:
     needs: [unit-tests, static-analysis, check-actor-permissions]
     if: github.event.pull_request.draft == false

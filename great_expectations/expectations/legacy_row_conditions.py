@@ -4,9 +4,10 @@ import enum
 import operator
 from dataclasses import dataclass
 from string import punctuation
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import great_expectations.exceptions as gx_exceptions
+from great_expectations.compatibility import pyspark
 from great_expectations.compatibility.pyparsing import (
     CaselessLiteral,
     Combine,
@@ -29,7 +30,7 @@ from great_expectations.types import SerializableDictDot
 from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
 if TYPE_CHECKING:
-    from great_expectations.compatibility import pyspark, sqlalchemy
+    from great_expectations.compatibility import sqlalchemy
 
 
 def _set_notnull(s, l, t) -> None:  # noqa: E741 # ambiguous name `l`
@@ -124,14 +125,44 @@ def parse_great_expectations_condition(row_condition: str):
         raise ConditionParserError(f"unable to parse condition: {row_condition}")  # noqa: TRY003 # FIXME CoP
 
 
+def _condition_value_literal(
+    value: str, column_name: str, schema: Optional[pyspark.types.StructType] = None
+):
+    """Build a Spark literal for a parsed string condition value.
+
+    When the target column is numeric, a bare string literal would be compared against a
+    numeric column, which errors under ANSI mode (implicit string<->numeric coercion is
+    disallowed). To match the numeric-comparison semantics older Spark versions applied
+    implicitly, convert the value to a numeric literal so the comparison stays
+    numeric-vs-numeric (which is ANSI-safe). String columns keep the string literal.
+    """
+    if schema is not None and pyspark.types:
+        try:
+            column_type = schema[column_name].dataType
+        except (KeyError, TypeError):
+            column_type = None
+        if column_type is not None and isinstance(column_type, pyspark.types.NumericType):
+            try:
+                return F.lit(int(value))
+            except ValueError:
+                try:
+                    return F.lit(float(value))
+                except ValueError:
+                    pass
+    return F.lit(value)
+
+
 def parse_condition_to_spark(
     row_condition: str,
+    schema: Optional[pyspark.types.StructType] = None,
 ) -> pyspark.Column:
     parsed = parse_great_expectations_condition(row_condition)
     column = parsed["column"]
     if "condition_value" in parsed:
         return generate_condition_by_operator(
-            F.col(column), parsed["op"], F.lit(parsed["condition_value"])
+            F.col(column),
+            parsed["op"],
+            _condition_value_literal(parsed["condition_value"], column, schema),
         )
     elif "fnumber" in parsed:
         try:
