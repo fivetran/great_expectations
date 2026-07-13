@@ -644,8 +644,7 @@ jobs:
         if: matrix.markers == 'sql_server'
         run: ./scripts/install_sql_server_odbc_driver.sh
 
-      # Personal access tokens are disabled in the Databricks workspace by org
-      # policy, so authenticate the service principal via OAuth M2M. The minted
+      # Authenticate the service principal via OAuth M2M. The minted
       # bearer token is masked and exported as DATABRICKS_TOKEN so the existing
       # token-based connection path is used unchanged. OAuth M2M tokens are valid
       # for one hour, which comfortably covers the marker suite's runtime.

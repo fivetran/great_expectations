@@ -1,7 +1,6 @@
 """Mint a short-lived Databricks OAuth machine-to-machine (M2M) access token.
 
-Some Databricks workspaces disable personal access tokens (PATs) by organization
-policy. OAuth M2M lets a service principal authenticate with a client ID and secret
+OAuth M2M lets a service principal authenticate with a client ID and secret
 via the client-credentials grant; the resulting bearer token is accepted anywhere a
 PAT is and is valid for one hour.
 

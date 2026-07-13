@@ -97,8 +97,7 @@ jobs:
           pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
           invoke deps --gx-install -m databricks
           pip install -e .
-      # Personal access tokens are disabled in the Databricks workspace by org
-      # policy, so authenticate the service principal via OAuth M2M and export the
+      # Authenticate the service principal via OAuth M2M and export the
       # masked bearer token as DATABRICKS_TOKEN for the cleanup script.
       - name: Mint Databricks OAuth access token
         env:
