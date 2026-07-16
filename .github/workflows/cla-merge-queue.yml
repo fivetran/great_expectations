@@ -1,0 +1,91 @@
+# Reports the CLA status on merge-queue commits.
+#
+# The hosted CLA check runs on pull_request / issue_comment events, so it posts
+# `verification/cla-signed` on the PR head but NOT on the temporary commit the merge
+# queue builds. When `verification/cla-signed` is a required check, the queue waits
+# for it on that merge-queue commit — where nothing would otherwise report it — and
+# the entry would hang forever. This workflow closes that gap: on `merge_group` it
+# re-verifies every author in the queued range against the contributor-handle
+# endpoint (the same source of truth the PR-level check uses) and posts
+# `verification/cla-signed` on the merge-queue commit.
+#
+# merge_group runs in the base-repo context with a read-write token, so it works for
+# fork-originated PRs too (once queued) with no secret.
+
+name: CLA check (merge queue)
+
+on:
+  merge_group:
+
+permissions:
+  contents: read
+  statuses: write
+
+concurrency:
+  group: cla-merge-queue-${{ github.event.merge_group.head_sha }}
+  cancel-in-progress: false
+
+jobs:
+  cla-merge-queue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify CLA for queued commit authors and report status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const CLA_CONTEXT = 'verification/cla-signed';
+            // Must match `.clabot`'s `contributors` value (the contributor-handle endpoint,
+            // per-committer webhook form). cla-bot appends the bare login; so do we.
+            const ENDPOINT = 'https://script.google.com/macros/s/AKfycbw0IdCrD5hyElMg9J9gUCfl67py0bp8s5uCACnBY9_iUm3cTLd8G9oyB6ivNJPOw_Kt/exec?checkContributor=';
+
+            const mg = context.payload.merge_group;
+            const headSha = mg.head_sha;
+
+            // Commits the queue is adding on top of its base (the batched PR commits).
+            const cmp = await github.rest.repos.compareCommitsWithBasehead({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              basehead: `${mg.base_sha}...${mg.head_sha}`,
+            });
+
+            // The compare API returns at most 250 commits. If the range is larger we
+            // can't see every author, so fail closed rather than risk passing an
+            // unverified committer.
+            if (cmp.data.total_commits > cmp.data.commits.length) {
+              throw new Error(
+                `Merge group has ${cmp.data.total_commits} commits (> ${cmp.data.commits.length} returned); ` +
+                `cannot verify all authors — failing closed.`
+              );
+            }
+
+            // Unique GitHub author logins. Commits with no resolvable author account
+            // (e.g. the queue's own merge commit) contribute no login and are skipped;
+            // any genuinely-unidentified contributor commit would already have been
+            // stopped by the PR-head check before the PR could enter the queue.
+            const logins = [...new Set(
+              cmp.data.commits.map((c) => c.author && c.author.login).filter(Boolean)
+            )];
+
+            const unsigned = [];
+            for (const login of logins) {
+              const res = await fetch(ENDPOINT + encodeURIComponent(login));
+              if (!res.ok) {
+                // Fail closed: never post success if the endpoint can't be reached.
+                throw new Error(`CLA endpoint returned ${res.status} for ${login}`);
+              }
+              const body = await res.json();
+              if (!body.isContributor) unsigned.push(login);
+            }
+
+            const signed = unsigned.length === 0;
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: headSha,
+              context: CLA_CONTEXT,
+              state: signed ? 'success' : 'error',
+              description: signed
+                ? 'All committers have signed the CLA'
+                : `CLA not signed: ${unsigned.join(', ')}`.slice(0, 140),
+            });
+            core.info(`${CLA_CONTEXT} = ${signed ? 'success' : 'error'} on ${headSha} (checked ${logins.length} author(s))`);
