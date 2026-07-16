@@ -1,0 +1,23 @@
+.clabot
+  0fa1a39c01298017 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.3",
+  "base_commit_sha": "12fd2101a9df7dbeb01a324fb90176e6928e95eb",
+  "prompts": {
+    "0fa1a39c01298017": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "81a47bcd-8d8e-4423-9bf7-40ba3ebe3a30",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 7,
+      "total_deletions": 0,
+      "accepted_lines": 7,
+      "overriden_lines": 0
+    }
+  }
+}
