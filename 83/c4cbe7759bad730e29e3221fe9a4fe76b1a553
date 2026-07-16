@@ -1,0 +1,23 @@
+.github/workflows/cla-merge-queue.yml
+  0fa1a39c01298017 1-50,61-91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.3",
+  "base_commit_sha": "83c4cbe7759bad730e29e3221fe9a4fe76b1a553",
+  "prompts": {
+    "0fa1a39c01298017": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "81a47bcd-8d8e-4423-9bf7-40ba3ebe3a30",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 81,
+      "total_deletions": 0,
+      "accepted_lines": 81,
+      "overriden_lines": 0
+    }
+  }
+}
