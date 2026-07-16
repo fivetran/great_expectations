@@ -11,7 +11,7 @@ https://docusaurus.io/docs/installation#requirements
 
 ## Installation
 
-Follow the [CONTRIBUTING_CODE](https://github.com/great-expectations/great_expectations/blob/develop/CONTRIBUTING_CODE.md) guide in the `great_expectations` repository to install dev dependencies.
+Follow the [DEVELOPMENT](https://github.com/fivetran/great_expectations/blob/develop/DEVELOPMENT.md) guide in the `great_expectations` repository to install dev dependencies.
 
 Then run the following command from the repository root to install the rest of the dependencies and build documentation locally (including prior versions) and start a development server:
 

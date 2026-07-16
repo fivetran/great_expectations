@@ -160,3 +160,56 @@ def test_expect_column_values_to_be_in_type_list_nullable_int():
         },
         meta={},
     )
+
+
+# ---------------------------------------------------------------------------
+# Wiring tests: verify the expectation delegates to compare_column_type_list
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.sqlite
+def test_delegates_to_compare_column_type_list_success(sa, mocker):
+    """Verify the expectation calls compare_column_type_list and uses its return value."""
+    df = pd.DataFrame({"str_col": ["a", "b", "c"]})
+    validator = build_sa_validator_with_data(
+        df=df, sa_engine_name="sqlite", table_name="in_type_list_wiring_success"
+    )
+
+    mock_compare = mocker.patch(
+        "great_expectations.expectations.core.expect_column_values_to_be_in_type_list.compare_column_type_list",
+        return_value=(True, "SENTINEL_TYPE"),
+    )
+
+    result = validator.expect_column_values_to_be_in_type_list(
+        "str_col", type_list=["INTEGER", "TEXT"]
+    )
+
+    mock_compare.assert_called_once_with(
+        validator.execution_engine, mocker.ANY, ["INTEGER", "TEXT"]
+    )
+    assert result.success is True
+    assert result.result["observed_value"] == "SENTINEL_TYPE"
+
+
+@pytest.mark.sqlite
+def test_delegates_to_compare_column_type_list_failure(sa, mocker):
+    """Verify a False return from compare_column_type_list propagates as expectation failure."""
+    df = pd.DataFrame({"str_col": ["a", "b", "c"]})
+    validator = build_sa_validator_with_data(
+        df=df, sa_engine_name="sqlite", table_name="in_type_list_wiring_failure"
+    )
+
+    mock_compare = mocker.patch(
+        "great_expectations.expectations.core.expect_column_values_to_be_in_type_list.compare_column_type_list",
+        return_value=(False, "WHATEVER"),
+    )
+
+    result = validator.expect_column_values_to_be_in_type_list(
+        "str_col", type_list=["INTEGER", "FLOAT"]
+    )
+
+    mock_compare.assert_called_once_with(
+        validator.execution_engine, mocker.ANY, ["INTEGER", "FLOAT"]
+    )
+    assert result.success is False
+    assert result.result["observed_value"] == "WHATEVER"
