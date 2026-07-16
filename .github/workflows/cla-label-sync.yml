@@ -1,0 +1,141 @@
+# Keeps the CLA labels on a pull request in sync with its CLA status.
+#
+# The hosted CLA check posts a `verification/cla-signed` commit status but can apply
+# at most a single "signed" label and cannot apply an "unsigned" label or remove a
+# now-stale one. This workflow reconciles BOTH labels from that status so exactly one
+# of `cla-signed` / `cla-not-signed` is present and the stale one is removed on any
+# transition.
+#
+# Label state is derived ONLY from the `verification/cla-signed` status — never by
+# re-checking signatures — so the labels can never contradict the merge gate.
+#
+# Triggers:
+#   * status         — the primary path. Fires when the CLA check posts/updates the
+#                      status. Runs from the default branch with a read-write base-repo
+#                      token, so it can label fork-originated pull requests (the common
+#                      case) with no extra secret.
+#   * pull_request   — a backstop for the race where the status is posted before the PR
+#                      object is resolvable. NOTE: a pull_request run triggered from a
+#                      fork gets a read-only token, so it cannot label fork PRs; fork-PR
+#                      labeling therefore rests on the `status` path, which self-heals on
+#                      the next status event. This is safe because the merge gate is the
+#                      status itself, not the label.
+#
+# Note: the `status` trigger only takes effect once this file is on the default branch;
+# its behavior is validated on a live pull request there, not from a feature branch.
+
+name: CLA label sync
+
+on:
+  status: {}
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  statuses: read
+
+concurrency:
+  group: cla-label-sync-${{ github.event.sha || github.event.pull_request.head.sha }}
+  cancel-in-progress: false
+
+jobs:
+  sync-cla-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reconcile CLA labels from the verification/cla-signed status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const CLA_CONTEXT = 'verification/cla-signed';
+            const SIGNED = 'cla-signed';
+            const NOT_SIGNED = 'cla-not-signed';
+
+            // Convergent (set-to-match) reconcile: ensure `present` is on the PR and
+            // `absent` is off it. Both API calls are idempotent — adding a label that is
+            // already applied is a no-op, and removing an absent label 404s (guarded) —
+            // so repeated/out-of-order events converge without flapping, with no need to
+            // read (and paginate) the PR's current label set first.
+            async function reconcile(prNumber, present, absent) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: [present],
+              });
+              core.info(`PR #${prNumber}: ensured ${present}`);
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  name: absent,
+                });
+                core.info(`PR #${prNumber}: ensured ${absent} removed`);
+              } catch (err) {
+                if (err.status !== 404) throw err; // already absent: fine
+              }
+            }
+
+            // Map a CLA status state to the desired label pair. `pending`/unknown -> no-op.
+            function labelsForState(state) {
+              if (state === 'success') return { present: SIGNED, absent: NOT_SIGNED };
+              if (state === 'error' || state === 'failure') return { present: NOT_SIGNED, absent: SIGNED };
+              return null;
+            }
+
+            async function openPrsForSha(sha) {
+              const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: sha,
+              });
+              return prs.filter((pr) => pr.state === 'open');
+            }
+
+            if (context.eventName === 'status') {
+              const payload = context.payload;
+              if (payload.context !== CLA_CONTEXT) {
+                core.info(`Ignoring status for context ${payload.context}`);
+                return;
+              }
+              const target = labelsForState(payload.state);
+              if (!target) {
+                core.info(`No-op for state ${payload.state}`);
+                return;
+              }
+              const prs = await openPrsForSha(payload.sha);
+              if (prs.length === 0) {
+                // Rare: the status fired before the PR was resolvable. Self-heals on the
+                // next status event (a push or an @cla-bot check recheck re-fires this).
+                core.info(`No open PR for ${payload.sha}; nothing to label.`);
+                return;
+              }
+              for (const pr of prs) {
+                await reconcile(pr.number, target.present, target.absent);
+              }
+              return;
+            }
+
+            if (context.eventName === 'pull_request') {
+              const pr = context.payload.pull_request;
+              const sha = pr.head.sha;
+              // Read the already-posted CLA status for the head commit and reconcile to it.
+              const { data: combined } = await github.rest.repos.getCombinedStatusForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: sha,
+              });
+              const claStatus = combined.statuses.find((s) => s.context === CLA_CONTEXT);
+              if (!claStatus) {
+                core.info(`No ${CLA_CONTEXT} status yet for ${sha}; nothing to reconcile.`);
+                return;
+              }
+              const target = labelsForState(claStatus.state);
+              if (!target) {
+                core.info(`No-op for state ${claStatus.state}`);
+                return;
+              }
+              await reconcile(pr.number, target.present, target.absent);
+              return;
+            }
