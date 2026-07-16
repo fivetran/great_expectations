@@ -16,4 +16,3 @@ then
   echo "There should be ${NUM_ITEMS_SHOULD_BE} items in the repo root, you have ${NUM_ITEMS}"
   exit 1
 fi
-# random
