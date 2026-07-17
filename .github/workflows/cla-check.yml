@@ -144,7 +144,7 @@ jobs:
 
       - name: Post or update unsigned-CLA guiding comment
         if: steps.cla-status.outputs.state == 'error'
-        uses: thollander/actions-comment-pull-request@v2.5.0
+        uses: thollander/actions-comment-pull-request@fabd468d3a1a0b97feee5f6b9e499eab0dd903f6 # v2.5.0
         with:
           comment_tag: cla-check
           pr_number: ${{ github.event.pull_request.number }}
@@ -152,7 +152,7 @@ jobs:
 
       - name: Resolve guiding comment once the CLA is signed
         if: steps.cla-status.outputs.state == 'success'
-        uses: thollander/actions-comment-pull-request@v2.5.0
+        uses: thollander/actions-comment-pull-request@fabd468d3a1a0b97feee5f6b9e499eab0dd903f6 # v2.5.0
         with:
           comment_tag: cla-check
           # Only update a comment that's already there -- a PR that was fully
@@ -299,7 +299,7 @@ jobs:
 
       - name: Post or update unsigned-CLA guiding comment
         if: steps.enumerate.outputs.skip == 'false' && steps.cla-status.outputs.state == 'error'
-        uses: thollander/actions-comment-pull-request@v2.5.0
+        uses: thollander/actions-comment-pull-request@fabd468d3a1a0b97feee5f6b9e499eab0dd903f6 # v2.5.0
         with:
           comment_tag: cla-check
           pr_number: ${{ github.event.issue.number }}
@@ -307,7 +307,7 @@ jobs:
 
       - name: Resolve guiding comment once the CLA is signed
         if: steps.enumerate.outputs.skip == 'false' && steps.cla-status.outputs.state == 'success'
-        uses: thollander/actions-comment-pull-request@v2.5.0
+        uses: thollander/actions-comment-pull-request@fabd468d3a1a0b97feee5f6b9e499eab0dd903f6 # v2.5.0
         with:
           comment_tag: cla-check
           # Only update a comment that's already there -- a PR that was fully
