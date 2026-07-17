@@ -449,7 +449,6 @@ def pytest_collection_modifyitems(config, items):
     # regardless of the corresponding --<backend> flag, until the backends are
     # either restored. Delete this block to restore them.
     skipped_backend_marks = {
-        "redshift",
         "bigquery",
     }
     for item in items:
