@@ -29,17 +29,12 @@ jobs:
   cla-merge-queue:
     runs-on: ubuntu-latest
     steps:
-      - name: Verify CLA for queued commit authors and report status
+      - name: Enumerate queued commit authors
+        id: enumerate
         uses: actions/github-script@v7
         with:
           script: |
-            const CLA_CONTEXT = 'verification/cla-signed';
-            // Must match `.clabot`'s `contributors` value (the contributor-handle endpoint,
-            // per-committer webhook form). cla-bot appends the bare login; so do we.
-            const ENDPOINT = 'https://script.google.com/macros/s/AKfycbw0IdCrD5hyElMg9J9gUCfl67py0bp8s5uCACnBY9_iUm3cTLd8G9oyB6ivNJPOw_Kt/exec?checkContributor=';
-
             const mg = context.payload.merge_group;
-            const headSha = mg.head_sha;
 
             // Commits the queue is adding on top of its base (the batched PR commits).
             const cmp = await github.rest.repos.compareCommitsWithBasehead({
@@ -49,14 +44,9 @@ jobs:
             });
 
             // The compare API returns at most 250 commits. If the range is larger we
-            // can't see every author, so fail closed rather than risk passing an
-            // unverified committer.
-            if (cmp.data.total_commits > cmp.data.commits.length) {
-              throw new Error(
-                `Merge group has ${cmp.data.total_commits} commits (> ${cmp.data.commits.length} returned); ` +
-                `cannot verify all authors — failing closed.`
-              );
-            }
+            // can't see every author, so completeness must fail closed rather than
+            // silently treat a partial read as the full set.
+            const enumerationComplete = cmp.data.total_commits <= cmp.data.commits.length;
 
             // Unique GitHub author logins. Commits with no resolvable author account
             // (e.g. the queue's own merge commit) contribute no login and are skipped;
@@ -66,26 +56,29 @@ jobs:
               cmp.data.commits.map((c) => c.author && c.author.login).filter(Boolean)
             )];
 
-            const unsigned = [];
-            for (const login of logins) {
-              const res = await fetch(ENDPOINT + encodeURIComponent(login));
-              if (!res.ok) {
-                // Fail closed: never post success if the endpoint can't be reached.
-                throw new Error(`CLA endpoint returned ${res.status} for ${login}`);
-              }
-              const body = await res.json();
-              if (!body.isContributor) unsigned.push(login);
-            }
+            core.info(
+              `Merge group ${mg.head_sha}: enumerated ${cmp.data.commits.length}/${cmp.data.total_commits} commit(s), ` +
+              `${logins.length} login(s), enumeration-complete=${enumerationComplete}`
+            );
 
-            const signed = unsigned.length === 0;
-            await github.rest.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: headSha,
-              context: CLA_CONTEXT,
-              state: signed ? 'success' : 'error',
-              description: signed
-                ? 'All committers have signed the CLA'
-                : `CLA not signed: ${unsigned.join(', ')}`.slice(0, 140),
-            });
-            core.info(`${CLA_CONTEXT} = ${signed ? 'success' : 'error'} on ${headSha} (checked ${logins.length} author(s))`);
+            core.setOutput('logins', JSON.stringify(logins));
+            core.setOutput('enumeration-complete', enumerationComplete ? 'true' : 'false');
+
+      - name: Check CLA status and post verification/cla-signed
+        id: cla-status
+        # Referenced by repo path@ref, not a local `./` path, so this step resolves
+        # with no checkout: the runner fetches the action directly from the given
+        # ref, independent of this job's (empty) workspace. This also means the
+        # call always tracks develop's current tip at run time rather than a
+        # commit frozen to this workflow file -- acceptable for a same-repo
+        # self-reference to code that changes on the same cadence as this file.
+        uses: fivetran/great_expectations/.github/actions/cla-status@develop
+        with:
+          status-sha: ${{ github.event.merge_group.head_sha }}
+          logins: ${{ steps.enumerate.outputs.logins }}
+          enumeration-complete: ${{ steps.enumerate.outputs.enumeration-complete }}
+          # Queued commits were already vetted at the PR head before entering the
+          # queue, so an author with no resolvable login here is skipped rather
+          # than treated as unsigned.
+          unidentified-policy: skip
+          token: ${{ github.token }}
