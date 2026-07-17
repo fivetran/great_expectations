@@ -198,6 +198,92 @@ async function run() {
     });
   })();
 
+  console.log('endpoint non-OK for a login after an earlier login already succeeded -> throws (fail-closed regardless of position)');
+  await (async function () {
+    var calls = [];
+    var fetchImpl = function (url) {
+      calls.push(url);
+      if (url.indexOf('alice') !== -1) {
+        return Promise.resolve({ ok: true, status: 200, json: function () { return Promise.resolve({ isContributor: true }); } });
+      }
+      return Promise.resolve({ ok: false, status: 500, json: function () { return Promise.resolve({}); } });
+    };
+    var threw = false;
+    try {
+      await decide({
+        logins: ['alice', 'bob'],
+        enumerationComplete: true,
+        unidentified: [],
+        unidentifiedPolicy: 'fail',
+        endpoint: ENDPOINT,
+        fetchImpl: fetchImpl,
+      });
+    } catch (e) { threw = true; }
+    check('decide() rejects when any queried login is non-OK, not only the first', function () { assert.strictEqual(threw, true); });
+  })();
+
+  console.log('login value is percent-encoded before being appended to the endpoint URL (no raw query injection)');
+  await (async function () {
+    var calls = [];
+    var fetchImpl = function (url) {
+      calls.push(url);
+      return Promise.resolve({ ok: true, status: 200, json: function () { return Promise.resolve({ isContributor: true }); } });
+    };
+    var weirdLogin = 'weird user&extra=x';
+    await decide({
+      logins: [weirdLogin],
+      enumerationComplete: true,
+      unidentified: [],
+      unidentifiedPolicy: 'fail',
+      endpoint: ENDPOINT,
+      fetchImpl: fetchImpl,
+    });
+    check('the request URL is exactly the endpoint plus the percent-encoded login', function () {
+      assert.strictEqual(calls[0], ENDPOINT + encodeURIComponent(weirdLogin));
+    });
+    check('the raw, unescaped login never appears in the request URL', function () {
+      assert.strictEqual(calls[0].indexOf(weirdLogin), -1);
+    });
+  })();
+
+  console.log('unidentified commit refs are never sent to the endpoint, even when non-empty');
+  await (async function () {
+    var endpoint = stubEndpoint(['alice']);
+    var sensitiveRef = 'commit-authored-by-jane.doe@example.com';
+    await decide({
+      logins: ['alice'],
+      enumerationComplete: true,
+      unidentified: ['deadbeef', sensitiveRef],
+      unidentifiedPolicy: 'fail',
+      endpoint: ENDPOINT,
+      fetchImpl: endpoint,
+    });
+    check('endpoint is queried exactly once, for the login only', function () { assert.strictEqual(endpoint.calls.length, 1); });
+    check('no unidentified ref value appears in any endpoint call', function () {
+      endpoint.calls.forEach(function (url) {
+        assert.strictEqual(url.indexOf('deadbeef'), -1);
+        assert.strictEqual(url.indexOf('jane.doe'), -1);
+      });
+    });
+  })();
+
+  console.log('multiple logins are each queried with exactly their own bare, encoded handle -- no cross-contamination');
+  await (async function () {
+    var endpoint = stubEndpoint(['alice', 'bob']);
+    await decide({
+      logins: ['alice', 'bob'],
+      enumerationComplete: true,
+      unidentified: [],
+      unidentifiedPolicy: 'fail',
+      endpoint: ENDPOINT,
+      fetchImpl: endpoint,
+    });
+    check('exactly two calls were made', function () { assert.strictEqual(endpoint.calls.length, 2); });
+    check('each call is exactly the endpoint plus that login\'s own encoded handle', function () {
+      assert.deepStrictEqual(endpoint.calls, [ENDPOINT + 'alice', ENDPOINT + 'bob']);
+    });
+  })();
+
   console.log('description stays within the 140-character commit-status limit');
   await (async function () {
     var manyUnsigned = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r'];
