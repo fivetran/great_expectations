@@ -18,9 +18,17 @@ on:
       - reopened
       - synchronize
       - ready_for_review
+  issue_comment:
+    types:
+      - created
 
 jobs:
   cla-check:
+    # Scoped to its own trigger now that the workflow has a second one (issue_comment):
+    # context.payload.pull_request only exists on the pull_request_target event, so
+    # without this guard an issue_comment event (which carries issue/comment, not
+    # pull_request) would also activate this job and fail resolving the PR.
+    if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     permissions:
       statuses: write
@@ -73,6 +81,89 @@ jobs:
         # call always tracks develop's current tip at run time rather than a
         # commit frozen to this workflow file -- acceptable for a same-repo
         # self-reference to code that changes on the same cadence as this file.
+        uses: fivetran/great_expectations/.github/actions/cla-status@develop
+        with:
+          status-sha: ${{ steps.enumerate.outputs.head-sha }}
+          logins: ${{ steps.enumerate.outputs.logins }}
+          enumeration-complete: ${{ steps.enumerate.outputs.enumeration-complete }}
+          unidentified: ${{ steps.enumerate.outputs.unidentified }}
+          unidentified-policy: fail
+          token: ${{ github.token }}
+
+  cla-recheck:
+    # Lets a committer re-trigger the check after signing, without pushing a new commit
+    # (e.g. a commit made before signing would otherwise never get re-evaluated). Scoped
+    # to the exact recognized phrase so it can't be triggered by unrelated PR discussion,
+    # and to comments on a pull request specifically (issue_comment fires for both issues
+    # and PR comments; `issue.pull_request` is only set for the latter).
+    if: >-
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request != null &&
+      github.event.comment.body == '@cla-bot check'
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Resolve PR and re-enumerate committers
+        id: enumerate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = (await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.issue.number,
+            })).data;
+
+            // A comment can arrive after the PR closed or merged. There's nothing to
+            // re-check at that point -- exit cleanly rather than posting a status update
+            // to a PR that's no longer open for one.
+            if (pr.state !== 'open') {
+              core.info(`PR #${pr.number} is ${pr.state}; recheck is a no-op.`);
+              core.setOutput('skip', 'true');
+              return;
+            }
+
+            const commits = await github.paginate(github.rest.pulls.listCommits, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+            });
+
+            // --- enumeration transform (start) -------------------------------------
+            // Pure transform from `commits` + `pr.commits` only. Mirrored 1:1 by a
+            // standalone unit test elsewhere, since this workflow has no checkout
+            // step to require() this logic from live -- keep it self-contained here
+            // so that mirror stays easy to verify faithful.
+            //
+            // The pull-commits API hard-caps what a single (paginated) call can
+            // return. If the PR has more commits than were returned, some authors
+            // are invisible to us, so completeness must fail closed rather than
+            // silently treat a partial read as the full set.
+            const enumerationComplete = pr.commits <= commits.length;
+            const logins = [...new Set(commits.map(c => c.author && c.author.login).filter(Boolean))];
+            const unidentified = commits.filter(c => !(c.author && c.author.login)).map(c => c.sha);
+            // --- enumeration transform (end) ---------------------------------------
+
+            core.info(
+              `PR #${pr.number}: enumerated ${commits.length}/${pr.commits} commit(s), ` +
+              `${logins.length} login(s), ${unidentified.length} unidentified, ` +
+              `enumeration-complete=${enumerationComplete}`
+            );
+
+            core.setOutput('skip', 'false');
+            core.setOutput('head-sha', pr.head.sha);
+            core.setOutput('logins', JSON.stringify(logins));
+            core.setOutput('enumeration-complete', enumerationComplete ? 'true' : 'false');
+            core.setOutput('unidentified', JSON.stringify(unidentified));
+
+      - name: Check CLA status and post verification/cla-signed
+        if: steps.enumerate.outputs.skip == 'false'
+        # Same repo-path@ref reference as the pull_request_target job, for the same
+        # reason: this job also has no checkout step, so a local `./` action path would
+        # not resolve.
         uses: fivetran/great_expectations/.github/actions/cla-status@develop
         with:
           status-sha: ${{ steps.enumerate.outputs.head-sha }}
