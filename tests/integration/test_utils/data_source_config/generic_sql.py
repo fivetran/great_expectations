@@ -8,8 +8,6 @@ import pytest
 
 from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.data_context import AbstractDataContext
-from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
@@ -22,7 +20,9 @@ from tests.integration.test_utils.data_source_config.sql import (
 if TYPE_CHECKING:
     import pandas as pd
 
+    from great_expectations.data_context import AbstractDataContext
     from great_expectations.datasource.fluent.sql_datasource import TableAsset
+    from tests.integration.sql_session_manager import SessionSQLEngineManager
 
 
 @dataclass(frozen=True)
