@@ -1,0 +1,318 @@
+# Posts the required `verification/cla-signed` status on pull requests.
+#
+# Runs on pull_request_target rather than pull_request specifically so it has a
+# write-capable, base-repo GITHUB_TOKEN even on fork PRs -- pull_request would hand a
+# fork PR only a read-only token, unable to post a commit status at all. Because that
+# grants base-repo write access to a PR-triggered run, this workflow never checks out
+# the repository and never executes anything the pull request supplies: it only reads
+# pull-request and commit metadata through the API, then calls a composite action
+# that queries an external endpoint using already-public GitHub handles. No fork
+# secret is used -- only this workflow's own token.
+
+name: CLA check
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+  issue_comment:
+    types:
+      - created
+
+jobs:
+  cla-check:
+    # Scoped to its own trigger now that the workflow has a second one (issue_comment):
+    # context.payload.pull_request only exists on the pull_request_target event, so
+    # without this guard an issue_comment event (which carries issue/comment, not
+    # pull_request) would also activate this job and fail resolving the PR.
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Enumerate PR committers
+        id: enumerate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+
+            const commits = await github.paginate(github.rest.pulls.listCommits, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+            });
+
+            // --- enumeration transform (start) -------------------------------------
+            // Pure transform from `commits` + `pr.commits` only. Mirrored 1:1 by a
+            // standalone unit test elsewhere, since this workflow has no checkout
+            // step to require() this logic from live -- keep it self-contained here
+            // so that mirror stays easy to verify faithful.
+            //
+            // The pull-commits API hard-caps what a single (paginated) call can
+            // return. If the PR has more commits than were returned, some authors
+            // are invisible to us, so completeness must fail closed rather than
+            // silently treat a partial read as the full set.
+            const enumerationComplete = pr.commits <= commits.length;
+            const logins = [...new Set(commits.map(c => c.author && c.author.login).filter(Boolean))];
+            const unidentified = commits.filter(c => !(c.author && c.author.login)).map(c => c.sha);
+            // --- enumeration transform (end) ---------------------------------------
+
+            core.info(
+              `PR #${pr.number}: enumerated ${commits.length}/${pr.commits} commit(s), ` +
+              `${logins.length} login(s), ${unidentified.length} unidentified, ` +
+              `enumeration-complete=${enumerationComplete}`
+            );
+
+            core.setOutput('head-sha', pr.head.sha);
+            core.setOutput('logins', JSON.stringify(logins));
+            core.setOutput('enumeration-complete', enumerationComplete ? 'true' : 'false');
+            core.setOutput('unidentified', JSON.stringify(unidentified));
+
+      - name: Check CLA status and post verification/cla-signed
+        id: cla-status
+        # Referenced by repo path@ref, not a local `./` path, so this step resolves
+        # with no checkout: the runner fetches the action directly from the given
+        # ref, independent of this job's (empty) workspace. This also means the
+        # call always tracks develop's current tip at run time rather than a
+        # commit frozen to this workflow file -- acceptable for a same-repo
+        # self-reference to code that changes on the same cadence as this file.
+        uses: fivetran/great_expectations/.github/actions/cla-status@develop
+        with:
+          status-sha: ${{ steps.enumerate.outputs.head-sha }}
+          logins: ${{ steps.enumerate.outputs.logins }}
+          enumeration-complete: ${{ steps.enumerate.outputs.enumeration-complete }}
+          unidentified: ${{ steps.enumerate.outputs.unidentified }}
+          unidentified-policy: fail
+          token: ${{ github.token }}
+
+      - name: Build guiding comment body
+        id: build-comment
+        if: steps.cla-status.outputs.state == 'error'
+        uses: actions/github-script@v7
+        env:
+          CLA_UNSIGNED: ${{ steps.cla-status.outputs.unsigned }}
+          CLA_UNIDENTIFIED: ${{ steps.cla-status.outputs.unidentified }}
+        with:
+          script: |
+            // --- guiding-comment body transform (start) ----------------------------
+            // Mirrored 1:1 in the cla-recheck job below, for the same reason the
+            // enumeration transform above is: no checkout step here to require()
+            // shared logic from live.
+            const unsigned = JSON.parse(process.env.CLA_UNSIGNED || '[]');
+            const unidentified = JSON.parse(process.env.CLA_UNIDENTIFIED || '[]');
+
+            const sections = [];
+            if (unsigned.length > 0) {
+              const mentions = unsigned.map((login) => `@${login}`).join(', ');
+              sections.push(
+                `We could not find a signed CLA for: ${mentions}. Please sign the ` +
+                '[Individual Contributor License Agreement](https://forms.gle/wvregSivqgAaJNEX8), ' +
+                'or the [Software Grant and Corporate Contributor License Agreement]' +
+                '(https://forms.gle/6viSVNxZjui9Vhi29) if you are contributing on behalf of your ' +
+                'employer (see [CLA.md](https://github.com/fivetran/great_expectations/blob/develop/CLA.md) ' +
+                'for details).'
+              );
+            }
+            if (unidentified.length > 0) {
+              const refs = unidentified.map((sha) => `\`${String(sha).substring(0, 7)}\``).join(', ');
+              sections.push(
+                `We were unable to identify the GitHub account for the following commit(s): ${refs}. ` +
+                'Please make sure the email address on your commits is linked to your GitHub account.'
+              );
+            }
+            if (sections.length === 0) {
+              // Enumeration-incomplete case: state is `error` with neither list
+              // populated. Keep the comment non-empty and honest about why.
+              sections.push('We were unable to fully verify the CLA status for this pull request.');
+            }
+
+            const body = [
+              'Thank you for your contribution! Before we can merge this pull request, every ' +
+              'committer needs to have signed our Contributor License Agreement (CLA).',
+              ...sections,
+              'Once resolved, comment `@cla-bot check` on this pull request to re-run the check.',
+            ].join('\n\n');
+
+            core.setOutput('body', body);
+            // --- guiding-comment body transform (end) ------------------------------
+
+      - name: Post or update unsigned-CLA guiding comment
+        if: steps.cla-status.outputs.state == 'error'
+        uses: thollander/actions-comment-pull-request@fabd468d3a1a0b97feee5f6b9e499eab0dd903f6 # v2.5.0
+        with:
+          comment_tag: cla-check
+          pr_number: ${{ github.event.pull_request.number }}
+          message: ${{ steps.build-comment.outputs.body }}
+
+      - name: Resolve guiding comment once the CLA is signed
+        if: steps.cla-status.outputs.state == 'success'
+        uses: thollander/actions-comment-pull-request@fabd468d3a1a0b97feee5f6b9e499eab0dd903f6 # v2.5.0
+        with:
+          comment_tag: cla-check
+          # Only update a comment that's already there -- a PR that was fully
+          # signed from its first run never had an unsigned comment to resolve,
+          # so there's nothing to say here.
+          create_if_not_exists: false
+          pr_number: ${{ github.event.pull_request.number }}
+          message: 'All committers have signed the CLA. :white_check_mark:'
+
+  cla-recheck:
+    # Lets a committer re-trigger the check after signing, without pushing a new commit
+    # (e.g. a commit made before signing would otherwise never get re-evaluated). Scoped
+    # to the exact recognized phrase so it can't be triggered by unrelated PR discussion,
+    # and to comments on a pull request specifically (issue_comment fires for both issues
+    # and PR comments; `issue.pull_request` is only set for the latter).
+    if: >-
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request != null &&
+      github.event.comment.body == '@cla-bot check'
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Resolve PR and re-enumerate committers
+        id: enumerate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = (await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.issue.number,
+            })).data;
+
+            // A comment can arrive after the PR closed or merged. There's nothing to
+            // re-check at that point -- exit cleanly rather than posting a status update
+            // to a PR that's no longer open for one.
+            if (pr.state !== 'open') {
+              core.info(`PR #${pr.number} is ${pr.state}; recheck is a no-op.`);
+              core.setOutput('skip', 'true');
+              return;
+            }
+
+            const commits = await github.paginate(github.rest.pulls.listCommits, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+            });
+
+            // --- enumeration transform (start) -------------------------------------
+            // Pure transform from `commits` + `pr.commits` only. Mirrored 1:1 by a
+            // standalone unit test elsewhere, since this workflow has no checkout
+            // step to require() this logic from live -- keep it self-contained here
+            // so that mirror stays easy to verify faithful.
+            //
+            // The pull-commits API hard-caps what a single (paginated) call can
+            // return. If the PR has more commits than were returned, some authors
+            // are invisible to us, so completeness must fail closed rather than
+            // silently treat a partial read as the full set.
+            const enumerationComplete = pr.commits <= commits.length;
+            const logins = [...new Set(commits.map(c => c.author && c.author.login).filter(Boolean))];
+            const unidentified = commits.filter(c => !(c.author && c.author.login)).map(c => c.sha);
+            // --- enumeration transform (end) ---------------------------------------
+
+            core.info(
+              `PR #${pr.number}: enumerated ${commits.length}/${pr.commits} commit(s), ` +
+              `${logins.length} login(s), ${unidentified.length} unidentified, ` +
+              `enumeration-complete=${enumerationComplete}`
+            );
+
+            core.setOutput('skip', 'false');
+            core.setOutput('head-sha', pr.head.sha);
+            core.setOutput('logins', JSON.stringify(logins));
+            core.setOutput('enumeration-complete', enumerationComplete ? 'true' : 'false');
+            core.setOutput('unidentified', JSON.stringify(unidentified));
+
+      - name: Check CLA status and post verification/cla-signed
+        id: cla-status
+        if: steps.enumerate.outputs.skip == 'false'
+        # Same repo-path@ref reference as the pull_request_target job, for the same
+        # reason: this job also has no checkout step, so a local `./` action path would
+        # not resolve.
+        uses: fivetran/great_expectations/.github/actions/cla-status@develop
+        with:
+          status-sha: ${{ steps.enumerate.outputs.head-sha }}
+          logins: ${{ steps.enumerate.outputs.logins }}
+          enumeration-complete: ${{ steps.enumerate.outputs.enumeration-complete }}
+          unidentified: ${{ steps.enumerate.outputs.unidentified }}
+          unidentified-policy: fail
+          token: ${{ github.token }}
+
+      - name: Build guiding comment body
+        id: build-comment
+        if: steps.enumerate.outputs.skip == 'false' && steps.cla-status.outputs.state == 'error'
+        uses: actions/github-script@v7
+        env:
+          CLA_UNSIGNED: ${{ steps.cla-status.outputs.unsigned }}
+          CLA_UNIDENTIFIED: ${{ steps.cla-status.outputs.unidentified }}
+        with:
+          script: |
+            // --- guiding-comment body transform (start) ----------------------------
+            // Mirrored 1:1 from the cla-check job above, for the same reason the
+            // enumeration transform is: no checkout step here to require() shared
+            // logic from live.
+            const unsigned = JSON.parse(process.env.CLA_UNSIGNED || '[]');
+            const unidentified = JSON.parse(process.env.CLA_UNIDENTIFIED || '[]');
+
+            const sections = [];
+            if (unsigned.length > 0) {
+              const mentions = unsigned.map((login) => `@${login}`).join(', ');
+              sections.push(
+                `We could not find a signed CLA for: ${mentions}. Please sign the ` +
+                '[Individual Contributor License Agreement](https://forms.gle/wvregSivqgAaJNEX8), ' +
+                'or the [Software Grant and Corporate Contributor License Agreement]' +
+                '(https://forms.gle/6viSVNxZjui9Vhi29) if you are contributing on behalf of your ' +
+                'employer (see [CLA.md](https://github.com/fivetran/great_expectations/blob/develop/CLA.md) ' +
+                'for details).'
+              );
+            }
+            if (unidentified.length > 0) {
+              const refs = unidentified.map((sha) => `\`${String(sha).substring(0, 7)}\``).join(', ');
+              sections.push(
+                `We were unable to identify the GitHub account for the following commit(s): ${refs}. ` +
+                'Please make sure the email address on your commits is linked to your GitHub account.'
+              );
+            }
+            if (sections.length === 0) {
+              // Enumeration-incomplete case: state is `error` with neither list
+              // populated. Keep the comment non-empty and honest about why.
+              sections.push('We were unable to fully verify the CLA status for this pull request.');
+            }
+
+            const body = [
+              'Thank you for your contribution! Before we can merge this pull request, every ' +
+              'committer needs to have signed our Contributor License Agreement (CLA).',
+              ...sections,
+              'Once resolved, comment `@cla-bot check` on this pull request to re-run the check.',
+            ].join('\n\n');
+
+            core.setOutput('body', body);
+            // --- guiding-comment body transform (end) ------------------------------
+
+      - name: Post or update unsigned-CLA guiding comment
+        if: steps.enumerate.outputs.skip == 'false' && steps.cla-status.outputs.state == 'error'
+        uses: thollander/actions-comment-pull-request@fabd468d3a1a0b97feee5f6b9e499eab0dd903f6 # v2.5.0
+        with:
+          comment_tag: cla-check
+          pr_number: ${{ github.event.issue.number }}
+          message: ${{ steps.build-comment.outputs.body }}
+
+      - name: Resolve guiding comment once the CLA is signed
+        if: steps.enumerate.outputs.skip == 'false' && steps.cla-status.outputs.state == 'success'
+        uses: thollander/actions-comment-pull-request@fabd468d3a1a0b97feee5f6b9e499eab0dd903f6 # v2.5.0
+        with:
+          comment_tag: cla-check
+          # Only update a comment that's already there -- a PR that was fully
+          # signed from its first run never had an unsigned comment to resolve,
+          # so there's nothing to say here.
+          create_if_not_exists: false
+          pr_number: ${{ github.event.issue.number }}
+          message: 'All committers have signed the CLA. :white_check_mark:'
