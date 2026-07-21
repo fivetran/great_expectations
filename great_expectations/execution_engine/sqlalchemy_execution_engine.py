@@ -9,6 +9,7 @@ import os
 import random
 import re
 import string
+import time
 import traceback
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -41,6 +42,7 @@ from great_expectations.compatibility.not_imported import is_version_greater_or_
 from great_expectations.compatibility.sqlalchemy import (
     ColumnElement,
     DatabaseError,
+    OperationalError,
     PendingRollbackError,
     Subquery,
 )
@@ -280,6 +282,8 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
         url: Optional[str] = None,
         batch_data_dict: Optional[dict] = None,
         create_temp_table: bool = True,
+        connection_retry_count: int = 0,
+        connection_retry_backoff_factor: float = 0.5,
         # kwargs will be passed as optional parameters to the SQLAlchemy engine, **not** the ExecutionEngine  # noqa: E501 # FIXME CoP
         **kwargs,
     ) -> None:
@@ -290,6 +294,8 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
         self._connection_string = connection_string
         self._url = url
         self._create_temp_table = create_temp_table
+        self._connection_retry_count = connection_retry_count
+        self._connection_retry_backoff_factor = connection_retry_backoff_factor
         os.environ["SF_PARTNER"] = "great_expectations_oss"  # noqa: TID251 # FIXME CoP
 
         # sqlite/SQL Server temp tables only persist within a connection, so we need to keep the connection alive by  # noqa: E501 # FIXME CoP
@@ -1445,6 +1451,39 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
 
         return self._inspector  # type: ignore[return-value] # FIXME CoP
 
+    def _connect_with_retries(self) -> sqlalchemy.Connection:
+        """Establish a database connection with configurable retry logic.
+
+        Retries on OperationalError (transient network/connection failures)
+        using exponential backoff.
+
+        Returns:
+            A SQLAlchemy Connection object.
+
+        Raises:
+            The last OperationalError if all retries are exhausted,
+            or any non-retryable exception immediately.
+        """
+        max_attempts = 1 + self._connection_retry_count
+        for attempt in range(max_attempts):
+            try:
+                return self.engine.connect()
+            except OperationalError:
+                if attempt < max_attempts - 1:
+                    wait_time = self._connection_retry_backoff_factor * (2**attempt)
+                    logger.warning(
+                        "Database connection attempt %d of %d failed. "
+                        "Retrying in %.1f seconds...",
+                        attempt + 1,
+                        max_attempts,
+                        wait_time,
+                    )
+                    time.sleep(wait_time)
+                else:
+                    raise
+
+        raise RuntimeError("Unreachable")  # pragma: no cover
+
     @contextmanager
     def get_connection(self) -> Generator[sqlalchemy.Connection, None, None]:
         """Get a connection for executing queries.
@@ -1461,15 +1500,18 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
         if self.dialect_name in _PERSISTED_CONNECTION_DIALECTS:
             try:
                 if not self._connection:
-                    self._connection = self.engine.connect()
+                    self._connection = self._connect_with_retries()
                 yield self._connection
             finally:
                 # Temp tables only persist within a connection for some dialects,
                 # so we need to keep the connection alive.
                 pass
         else:
-            with self.engine.connect() as connection:
+            connection = self._connect_with_retries()
+            try:
                 yield connection
+            finally:
+                connection.close()
 
     @staticmethod
     def _execute_query_with_recovery(

@@ -1302,6 +1302,21 @@ class SQLDatasource(Datasource):
     type: Literal["sql"] = "sql"
     connection_string: Union[ConfigStr, str]
     create_temp_table: bool = False
+    connection_retry_count: int = pydantic.Field(
+        default=0,
+        ge=0,
+        description="Number of times to retry a failed database connection. "
+        "Defaults to 0 (no retries). Set to a positive integer to enable "
+        "automatic retries with exponential backoff on transient connection failures.",
+    )
+    connection_retry_backoff_factor: float = pydantic.Field(
+        default=0.5,
+        ge=0,
+        description="Backoff factor for connection retries using exponential backoff. "
+        "The wait time between retries is calculated as: "
+        "backoff_factor * (2 ** attempt_number). "
+        "For example, with the default of 0.5 the waits are 0.5s, 1s, 2s, 4s, etc.",
+    )
     kwargs: Dict[str, Union[ConfigStr, Any]] = pydantic.Field(
         default={},
         description="Optional dictionary of `kwargs` will be passed to the SQLAlchemy Engine"
