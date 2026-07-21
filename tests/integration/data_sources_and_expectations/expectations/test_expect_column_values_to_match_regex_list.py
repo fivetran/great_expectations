@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.compatibility import pydantic
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
@@ -286,3 +287,9 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     unexpected_rows_str = str(unexpected_rows_data)
     for value in ["abc", "def", "ghi"]:
         assert value in unexpected_rows_str
+
+
+@pytest.mark.unit
+def test_invalid_config() -> None:
+    with pytest.raises(pydantic.ValidationError):
+        gxe.ExpectColumnValuesToMatchRegexList(column=BASIC_STRINGS, regex_list=[])

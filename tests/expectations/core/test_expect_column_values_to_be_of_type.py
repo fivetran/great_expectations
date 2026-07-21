@@ -106,6 +106,46 @@ def test_expect_column_values_to_be_of_type_string_dialect_sqlite(sa):
     )
 
 
+@pytest.mark.sqlite
+def test_delegates_to_compare_column_type_success(sa, mocker):
+    """Verify the expectation calls compare_column_type and uses its return value."""
+    df = pd.DataFrame({"str_col": ["a", "b", "c"]})
+    validator = build_sa_validator_with_data(
+        df=df, sa_engine_name="sqlite", table_name="of_type_wiring_success"
+    )
+
+    mock_compare = mocker.patch(
+        "great_expectations.expectations.core.expect_column_values_to_be_of_type.compare_column_type",
+        return_value=(True, "SENTINEL_TYPE"),
+    )
+
+    result = validator.expect_column_values_to_be_of_type("str_col", type_="TEXT")
+
+    mock_compare.assert_called_once_with(validator.execution_engine, mocker.ANY, "TEXT")
+    assert result.success is True
+    assert result.result["observed_value"] == "SENTINEL_TYPE"
+
+
+@pytest.mark.sqlite
+def test_delegates_to_compare_column_type_failure(sa, mocker):
+    """Verify a False return from compare_column_type propagates as expectation failure."""
+    df = pd.DataFrame({"str_col": ["a", "b", "c"]})
+    validator = build_sa_validator_with_data(
+        df=df, sa_engine_name="sqlite", table_name="of_type_wiring_failure"
+    )
+
+    mock_compare = mocker.patch(
+        "great_expectations.expectations.core.expect_column_values_to_be_of_type.compare_column_type",
+        return_value=(False, "WHATEVER"),
+    )
+
+    result = validator.expect_column_values_to_be_of_type("str_col", type_="INTEGER")
+
+    mock_compare.assert_called_once_with(validator.execution_engine, mocker.ANY, "INTEGER")
+    assert result.success is False
+    assert result.result["observed_value"] == "WHATEVER"
+
+
 @pytest.mark.unit
 def test_expect_column_values_to_be_in_set_render_performance():
     """

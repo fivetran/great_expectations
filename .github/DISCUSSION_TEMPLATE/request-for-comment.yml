@@ -1,0 +1,42 @@
+labels: ["rfc:proposed"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to propose a change that needs discussion before implementation — for example,
+        a new public API, a change to existing public behavior, or an architectural shift that affects
+        more than one component. The project's contribution guide documents the comment window and
+        decision SLA that apply once an RFC discussion is opened; this template only covers the content
+        of the proposal itself.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem are you trying to solve? Include context on who is affected and why the status quo is insufficient.
+      placeholder: Describe the problem this RFC addresses.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the change you're proposing in enough detail for reviewers to evaluate it. Include relevant code sketches, interfaces, or examples if helpful.
+      placeholder: Describe the proposed change.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact on public API or architecture
+      description: Does this change any public API, existing behavior, or the architecture of a component? Note any backward-compatibility or migration concerns.
+      placeholder: Describe the impact on the public API or architecture, or explain why there is none.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches did you consider, and why did you choose this one instead?
+      placeholder: Describe alternative approaches and why they were not chosen.
+    validations:
+      required: true

@@ -1,0 +1,121 @@
+name: Bug report
+description: Report a problem with Great Expectations
+title: "[BUG] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report. The more detail you provide here, the faster
+        we can reproduce and fix the issue — ideally the reproduction below is complete enough that we
+        can turn it directly into a regression test.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is and what you expected to happen instead.
+      placeholder: |
+        What happened? What did you expect to happen?
+    validations:
+      required: true
+
+  - type: input
+    id: gx-version
+    attributes:
+      label: Great Expectations version
+      description: Output of `pip show great_expectations` or `python -c "import great_expectations; print(great_expectations.__version__)"`.
+      placeholder: "e.g. 1.18.2"
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      description: Output of `python --version`.
+      placeholder: "e.g. 3.13.14"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: execution-engine
+    attributes:
+      label: Execution engine / data source
+      description: Which backend were you using when the issue occurred?
+      multiple: false
+      options:
+        - Pandas
+        - Spark
+        - SQLite
+        - PostgreSQL
+        - MySQL
+        - Snowflake
+        - BigQuery
+        - Redshift
+        - Databricks (SQL)
+        - Databricks (Spark)
+        - Trino
+        - Other SQLAlchemy-compatible database
+        - Not applicable / not data-backend related
+        - Other (please name it below)
+    validations:
+      required: true
+
+  - type: input
+    id: execution-engine-other
+    attributes:
+      label: If "Other", name the execution engine or data source
+      placeholder: "e.g. ClickHouse, DuckDB"
+    validations:
+      required: false
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: |
+        Steps to reproduce the behavior, detailed enough for a maintainer to turn into an integration
+        test. Please include:
+        - The minimal `great_expectations` code (or CLI commands) that trigger the issue
+        - Sample data or a schema that reproduces it (a small inline CSV/JSON snippet or a synthetic
+          example is ideal — avoid attaching proprietary data)
+        - Any relevant configuration (e.g. `great_expectations.yml`, Data Source / Expectation Suite
+          definitions)
+        - The full stack trace of any error(s)
+      placeholder: |
+        1. Configure a Data Source with...
+        2. Create an Expectation Suite with...
+        3. Run validation with...
+        4. Observe the following error / incorrect result...
+
+        ```python
+        # minimal code sample
+        ```
+
+        ```
+        # sample data or schema
+        ```
+
+        ```
+        # full stack trace
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Additional environment details
+      description: Operating system, cloud/orchestration environment, and any other packages or versions that may be relevant.
+      placeholder: "e.g. macOS 14, running inside Airflow 2.9 on AWS MWAA"
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Anything else that would help us understand or prioritize this issue.
+    validations:
+      required: false

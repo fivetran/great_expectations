@@ -487,15 +487,10 @@ def _build_column_metadata_result(
     ]
 
     # Apply case-insensitive formatting for specific dialects
+    from great_expectations.expectations.type_comparison import CASE_INSENSITIVE_DIALECTS
+
     dialect_name = execution_engine.dialect.name
-    case_insensitive_dialects = {
-        GXSqlDialect.DATABRICKS,
-        GXSqlDialect.POSTGRESQL,
-        GXSqlDialect.SNOWFLAKE,
-        GXSqlDialect.SQL_SERVER,
-        GXSqlDialect.TRINO,
-    }
-    if dialect_name in case_insensitive_dialects:
+    if dialect_name in CASE_INSENSITIVE_DIALECTS:
         for col in result:
             if col.get("type"):
                 # column_reflection_fallback() returns plain strings

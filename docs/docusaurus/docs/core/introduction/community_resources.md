@@ -12,21 +12,21 @@ Often, open source (OSS) applications have a reputation for being unfriendly and
 GX has a [Discourse community forum](https://discourse.greatexpectations.io/) that includes a category for [GX Core Support](https://discourse.greatexpectations.io/c/gx-core-support/). Here you'll find guidance on [what information to provide to get your questions answered quickly](https://discourse.greatexpectations.io/t/how-to-get-your-questions-answered/1191).  
 
 <!--
-You can also use [GitHub Discussions](https://github.com/great-expectations/great_expectations/discussions/4951).
+You can also use [GitHub Discussions](https://github.com/fivetran/great_expectations/discussions/4951).
 -->
 
 <!--
 ## File a bug report or feature request
-If you've discovered a bug or want to request a new feature, see [upvote an existing issue](https://github.com/great-expectations/great_expectations/issues) or [open a new issue](https://github.com/great-expectations/great_expectations/issues/new).
+If you've discovered a bug or want to request a new feature, see [upvote an existing issue](https://github.com/fivetran/great_expectations/issues) or [open a new issue](https://github.com/fivetran/great_expectations/issues/new).
 -->
 
 ## Contribute code or documentation
 
 To contribute to GX documentation or code, see one of the following resources:
 
-- To request a documentation change, or a change that doesn't require local testing, see the [README](https://github.com/great-expectations/great_expectations/tree/develop/docs) in the `docs` repository.
+- To request a documentation change, or a change that doesn't require local testing, see the [README](https://github.com/fivetran/great_expectations/tree/develop/docs) in the `docs` repository.
 
-- To submit a code change to GX for consideration, see [CONTRIBUTING_CODE](https://github.com/great-expectations/great_expectations/blob/develop/CONTRIBUTING_CODE.md) in the `great_expectations` repository.
+- To submit a code change to GX for consideration, see [CONTRIBUTING](https://github.com/fivetran/great_expectations/blob/develop/CONTRIBUTING.md) in the `great_expectations` repository.
 
 If you're not sure where to start, or you want to learn what other contributors are doing, check out the [community-supported tab in the GX Issues board](https://github.com/orgs/great-expectations/projects/2/views/1?pane=info) and/or check out the [GX Slack community](https://greatexpectations.io/slack) and introduce yourself in the [#contributing channel](https://greatexpectationstalk.slack.com/archives/CV828B2UX).
 

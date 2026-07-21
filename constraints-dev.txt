@@ -5,3 +5,11 @@
 # We use it to place limits on certain packages to help the resolver come to a compatible configuration more quickly
 # To install dev dependencies using the new pip resolver (recommended) please use the following syntax:
 # `python -m pip install -c constraints-dev.txt ".[test, postgresql, spark]"`
+
+# pyspark is capped here so that every default dev and CI install stays on the 3.x line,
+# even though the spark extra's declared range (reqs/requirements-dev-spark.txt) now permits 4.x.
+# This keeps the spark, spark_connect, docs-spark, and cloud dependency sets, along with plain
+# local `invoke deps` installs, resolving pyspark exactly as they did before that range was widened.
+# The dedicated pyspark-4 CI lane installs WITHOUT this constraints file, using its own lane
+# constraint file (ci/constraints-test/pyspark4-install.txt) instead.
+pyspark<4.0
