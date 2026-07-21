@@ -20,7 +20,7 @@ jobs:
       GOOGLE_APPLICATION_CREDENTIALS: "gcp-credentials.json"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -53,7 +53,7 @@ jobs:
       REDSHIFT_SSLMODE: ${{secrets.REDSHIFT_SSLMODE}}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -83,7 +83,7 @@ jobs:
       DATABRICKS_CATALOG: ${{ vars.DATABRICKS_CATALOG }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -123,7 +123,7 @@ jobs:
       SNOWFLAKE_CI_ROLE: ${{secrets.SNOWFLAKE_CI_ROLE}}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
