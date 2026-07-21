@@ -122,7 +122,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -229,7 +229,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -322,7 +322,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -350,7 +350,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -396,7 +396,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -445,7 +445,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -468,7 +468,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -556,7 +556,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -627,7 +627,7 @@ jobs:
           - spark_connect
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -709,7 +709,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -761,7 +761,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -788,7 +788,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -811,7 +811,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -834,7 +834,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -853,7 +853,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -876,7 +876,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -899,7 +899,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -921,7 +921,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -955,7 +955,7 @@ jobs:
           - python-version: ${{ github.event_name == 'workflow_dispatch' && '3.12' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -1051,7 +1051,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.3.1
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
