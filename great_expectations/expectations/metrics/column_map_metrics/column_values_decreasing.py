@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict
 
 from great_expectations.compatibility import pyspark
+from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.core.metric_function_types import MetricPartialFunctionTypes
@@ -91,7 +92,27 @@ class ColumnValuesDecreasing(ColumnMapMetricProvider):
                 F.lag(column).over(pyspark.Window.orderBy(F.lit("constant"))),
             )
         else:
-            diff = column - F.lag(column).over(pyspark.Window.orderBy(F.lit("constant")))
+            # Subtracting adjacent integral values can overflow a LongType accumulator at
+            # extreme opposite-sign boundaries. Spark 4 evaluates arithmetic under ANSI
+            # semantics by default and raises ARITHMETIC_OVERFLOW there, whereas Spark 3
+            # silently wraps. On Spark 4 widen integral columns to an exact wide DECIMAL
+            # before subtracting so the difference (its sign is all that matters below) is
+            # computed without overflow and without the precision loss a DoubleType would
+            # introduce above 2**53. On Spark 3 the column is left untouched so results
+            # stay byte-identical.
+            diff_column = column
+            if pyspark.pyspark and is_version_greater_or_equal(
+                pyspark.pyspark.__version__, "4.0.0"
+            ):
+                integral_types = (
+                    pyspark.types.ByteType,
+                    pyspark.types.ShortType,
+                    pyspark.types.IntegerType,
+                    pyspark.types.LongType,
+                )
+                if isinstance(column_metadata["type"], integral_types):
+                    diff_column = column.cast(pyspark.types.DecimalType(38, 0))
+            diff = diff_column - F.lag(diff_column).over(pyspark.Window.orderBy(F.lit("constant")))
             diff = F.when(diff.isNull(), -1).otherwise(diff)
 
         # NOTE: because in spark we are implementing the window function directly,

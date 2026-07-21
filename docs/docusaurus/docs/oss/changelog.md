@@ -15,6 +15,29 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.19.0
+* [FEATURE] Spark 4 support ([#11969](https://github.com/fivetran/great_expectations/pull/11969))
+* [BUGFIX] Preserve date-like strings in SQL distinct value sets ([#11947](https://github.com/fivetran/great_expectations/pull/11947)) (thanks @yuricavalcanti06)
+* [BUGFIX] Reject empty regex_list in ExpectColumnValuesToMatchRegexList ([#11958](https://github.com/fivetran/great_expectations/pull/11958)) (thanks @anxkhn)
+* [BUGFIX] Fix broken link in issue assign welcome message ([#11961](https://github.com/fivetran/great_expectations/pull/11961))
+* [DOCS] Enumerate Ephemeral Data Context use cases in type overview ([#11931](https://github.com/fivetran/great_expectations/pull/11931)) (thanks @zozo123)
+* [MAINTENANCE] remove broken redirect entries ([#11936](https://github.com/fivetran/great_expectations/pull/11936))
+* [MAINTENANCE] Replace broken Wistia embed with YouTube on GX Core intro page ([#11932](https://github.com/fivetran/great_expectations/pull/11932))
+* [MAINTENANCE] Skip broken GCP SDK setup in docs-snippets during CI transition ([#11959](https://github.com/fivetran/great_expectations/pull/11959))
+* [MAINTENANCE] Self-provision data in Snowflake connection tests ([#11945](https://github.com/fivetran/great_expectations/pull/11945))
+* [MAINTENANCE] Contrib Docs ([#11950](https://github.com/fivetran/great_expectations/pull/11950))
+* [MAINTENANCE] Add bot-enforced issue claiming and scope stale bot to needs-info issues ([#11957](https://github.com/fivetran/great_expectations/pull/11957))
+* [MAINTENANCE] Bump launch-editor from 2.12.0 to 2.14.1 in /docs/docusaurus ([#11918](https://github.com/fivetran/great_expectations/pull/11918))
+* [MAINTENANCE] clean up unused code ([#11717](https://github.com/fivetran/great_expectations/pull/11717))
+* [MAINTENANCE] Extract type comparison logic into dedicated module ([#11798](https://github.com/fivetran/great_expectations/pull/11798)) 
+* [MAINTENANCE] Bump dompurify from 3.4.3 to 3.4.11 in /docs/docusaurus ([#11917](https://github.com/fivetran/great_expectations/pull/11917))
+* [MAINTENANCE] Make pyarrow compatibility type-ignore environment-independent ([#11966](https://github.com/fivetran/great_expectations/pull/11966))
+* [MAINTENANCE] Bump joi from 17.13.3 to 17.13.4 in /docs/docusaurus ([#11914](https://github.com/fivetran/great_expectations/pull/11914))
+* [MAINTENANCE] Remove dead expectation helpers and types/attributes ([#11765](https://github.com/fivetran/great_expectations/pull/11765))
+* [MAINTENANCE] Databricks CI ([#11968](https://github.com/fivetran/great_expectations/pull/11968))
+* [MAINTENANCE] Authenticate Databricks CI via OAuth M2M service principal ([#11970](https://github.com/fivetran/great_expectations/pull/11970))
+* [MAINTENANCE] Remove Codecov from CI and documentation ([#11971](https://github.com/fivetran/great_expectations/pull/11971))
+
 ### 1.18.2
 * [BUGFIX] Fix .rdd usage in Spark distinct-values metrics for Spark Connect compatibility ([#11922](https://github.com/fivetran/great_expectations/pull/11922))
 * [DOCS] Fix typos in the Run a Validation Definition guide ([#11920](https://github.com/fivetran/great_expectations/pull/11920)) (thanks @zozo123)

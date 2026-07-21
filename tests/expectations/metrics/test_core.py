@@ -10,6 +10,7 @@ import pytest
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility import pyspark, sqlalchemy
+from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.compatibility.sqlalchemy_compatibility_wrappers import (
     add_dataframe_to_db,
 )
@@ -165,6 +166,73 @@ def test_column_sum_metric_spark(spark_session, dataframe, expected_result):
     results = engine.resolve_metrics(metrics_to_resolve=(desired_metric,), metrics=results)
 
     assert results == {desired_metric.id: expected_result}
+
+
+def _resolve_spark_column_sum(engine, column="a"):
+    """Resolve the ``column.sum`` metric for a Spark engine and return its value."""
+    table_columns_metric, results = get_table_columns_metric(execution_engine=engine)
+
+    aggregate_fn_metric = MetricConfiguration(
+        metric_name=f"column.sum.{MetricPartialFunctionTypes.AGGREGATE_FN.metric_suffix}",
+        metric_domain_kwargs={"column": column},
+        metric_value_kwargs=None,
+    )
+    aggregate_fn_metric.metric_dependencies = {"table.columns": table_columns_metric}
+    results = engine.resolve_metrics(metrics_to_resolve=(aggregate_fn_metric,))
+
+    desired_metric = MetricConfiguration(
+        metric_name="column.sum",
+        metric_domain_kwargs={},
+        metric_value_kwargs=None,
+    )
+    desired_metric.metric_dependencies = {"metric_partial_fn": aggregate_fn_metric}
+    results = engine.resolve_metrics(metrics_to_resolve=(desired_metric,), metrics=results)
+    return results[desired_metric.id]
+
+
+@pytest.mark.spark
+def test_column_sum_metric_spark_longtype_preserves_integer_type(spark_session):
+    # A genuine LongType, no-null column must keep an *integer* observed value on
+    # Spark 3, byte-identical to prior behavior. Spark 4 evaluates the Long
+    # accumulator under ANSI semantics and raises ARITHMETIC_OVERFLOW on overflow
+    # (Spark 3 silently wraps), so integral inputs are widened to DoubleType before
+    # summing there and the value legitimately surfaces as a float.
+    schema = pyspark.types.StructType(
+        [pyspark.types.StructField("a", pyspark.types.LongType(), nullable=False)]
+    )
+    spark_df = spark_session.createDataFrame([(1,), (2,), (3,)], schema=schema)
+    engine = build_spark_engine(spark=spark_session, df=spark_df, batch_id="my_id")
+
+    observed_value = _resolve_spark_column_sum(engine)
+
+    assert observed_value == 6
+    if pyspark.pyspark and is_version_greater_or_equal(pyspark.pyspark.__version__, "4.0.0"):
+        assert isinstance(observed_value, float)
+    else:
+        assert isinstance(observed_value, int) and not isinstance(observed_value, bool)
+
+
+@pytest.mark.spark
+def test_column_sum_metric_spark_longtype_overflow_does_not_raise(spark_session):
+    # Long-overflow-prone integral input: on Spark 4 the double-widening keeps the
+    # ANSI-mode aggregate from raising ARITHMETIC_OVERFLOW and yields the true
+    # (non-wrapped) magnitude; Spark 3 silently wraps the Long accumulator. Either
+    # way the computation must complete without raising.
+    max_long = 9223372036854775807
+    schema = pyspark.types.StructType(
+        [pyspark.types.StructField("a", pyspark.types.LongType(), nullable=False)]
+    )
+    spark_df = spark_session.createDataFrame([(max_long,), (max_long,)], schema=schema)
+    engine = build_spark_engine(spark=spark_session, df=spark_df, batch_id="my_id")
+
+    observed_value = _resolve_spark_column_sum(engine)
+
+    if pyspark.pyspark and is_version_greater_or_equal(pyspark.pyspark.__version__, "4.0.0"):
+        # Widened to double, so no overflow and the true magnitude is preserved.
+        assert observed_value == pytest.approx(float(2 * max_long))
+    else:
+        # Spark 3 wraps the Long accumulator rather than raising; assert it completed.
+        assert observed_value is not None
 
 
 @pytest.mark.big
@@ -2152,6 +2220,147 @@ def test_map_column_values_increasing_spark(spark_session):
     ]
 
 
+def _resolve_strictly_monotonic_unexpected_count(engine, metric_stem: str):
+    """Resolve the unexpected count for a strictly increasing/decreasing metric."""
+    metrics: Dict[Tuple[str, str, str], MetricValue] = {}
+
+    table_columns_metric, results = get_table_columns_metric(execution_engine=engine)
+    metrics.update(results)
+
+    table_column_types = MetricConfiguration(
+        metric_name="table.column_types",
+        metric_domain_kwargs={},
+        metric_value_kwargs={"include_nested": True},
+    )
+    results = engine.resolve_metrics(metrics_to_resolve=(table_column_types,), metrics=metrics)
+    metrics.update(results)
+
+    condition_metric = MetricConfiguration(
+        metric_name=f"{metric_stem}.{MetricPartialFunctionTypeSuffixes.CONDITION.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs={"strictly": True},
+    )
+    condition_metric.metric_dependencies = {
+        "table.columns": table_columns_metric,
+        "table.column_types": table_column_types,
+    }
+    results = engine.resolve_metrics(metrics_to_resolve=(condition_metric,), metrics=metrics)
+    metrics.update(results)
+
+    unexpected_count_metric = MetricConfiguration(
+        metric_name=f"{metric_stem}.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    unexpected_count_metric.metric_dependencies = {
+        "unexpected_condition": condition_metric,
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(metrics_to_resolve=(unexpected_count_metric,), metrics=metrics)
+    metrics.update(results)
+    return metrics[unexpected_count_metric.id]
+
+
+@pytest.mark.spark
+def test_map_column_values_increasing_spark_large_longs(spark_session):
+    # Adjacent Long values above 2**53 that differ by 1 cannot be distinguished once
+    # widened to DoubleType (their difference collapses to 0), which would wrongly flag a
+    # strictly-increasing column as having an unexpected (non-increasing) row. An exact
+    # wide DECIMAL preserves the true difference, so no rows are unexpected on either
+    # Spark version.
+    schema = pyspark.types.StructType(
+        [pyspark.types.StructField("a", pyspark.types.LongType(), nullable=False)]
+    )
+    spark_df = spark_session.createDataFrame([(2**60,), (2**60 + 1,)], schema=schema)
+    engine = build_spark_engine(spark=spark_session, df=spark_df, batch_id="my_id")
+
+    unexpected_count = _resolve_strictly_monotonic_unexpected_count(
+        engine, "column_values.increasing"
+    )
+
+    assert unexpected_count == 0
+
+
+@pytest.mark.spark
+def test_map_column_values_decreasing_spark_large_longs(spark_session):
+    # Mirror of the increasing case: adjacent Long values above 2**53 differing by 1 must
+    # keep their exact difference so a strictly-decreasing column is not wrongly flagged.
+    schema = pyspark.types.StructType(
+        [pyspark.types.StructField("a", pyspark.types.LongType(), nullable=False)]
+    )
+    spark_df = spark_session.createDataFrame([(2**60 + 1,), (2**60,)], schema=schema)
+    engine = build_spark_engine(spark=spark_session, df=spark_df, batch_id="my_id")
+
+    unexpected_count = _resolve_strictly_monotonic_unexpected_count(
+        engine, "column_values.decreasing"
+    )
+
+    assert unexpected_count == 0
+
+
+@pytest.mark.spark
+def test_map_column_values_between_spark_string_column_string_bounds(spark_session):
+    # Comparing a string column against string bounds is a valid same-family comparison
+    # (e.g. ISO-date or version-string ranges) and must not be rejected as an incomparable
+    # type. It stays valid under Spark 4 ANSI as well, so no rows are unexpected on either
+    # Spark version.
+    schema = pyspark.types.StructType(
+        [pyspark.types.StructField("s", pyspark.types.StringType(), nullable=False)]
+    )
+    spark_df = spark_session.createDataFrame([("a",), ("b",), ("c",), ("d",)], schema=schema)
+    engine = build_spark_engine(spark=spark_session, df=spark_df, batch_id="my_id")
+
+    metrics: Dict[Tuple[str, str, str], MetricValue] = {}
+
+    table_columns_metric, results = get_table_columns_metric(execution_engine=engine)
+    metrics.update(results)
+
+    table_column_types = MetricConfiguration(
+        metric_name="table.column_types",
+        metric_domain_kwargs={},
+        metric_value_kwargs={"include_nested": True},
+    )
+    results = engine.resolve_metrics(metrics_to_resolve=(table_column_types,), metrics=metrics)
+    metrics.update(results)
+
+    condition_metric = MetricConfiguration(
+        metric_name=f"column_values.between.{MetricPartialFunctionTypeSuffixes.CONDITION.value}",
+        metric_domain_kwargs={"column": "s"},
+        metric_value_kwargs={
+            "min_value": "a",
+            "max_value": "z",
+            "strict_min": False,
+            "strict_max": False,
+        },
+    )
+    condition_metric.metric_dependencies = {
+        "table.columns": table_columns_metric,
+        "table.column_types": table_column_types,
+    }
+    results = engine.resolve_metrics(metrics_to_resolve=(condition_metric,), metrics=metrics)
+    metrics.update(results)
+
+    aggregate_fn_metric = MetricConfiguration(
+        metric_name=f"column_values.between.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}.{MetricPartialFunctionTypes.AGGREGATE_FN.metric_suffix}",
+        metric_domain_kwargs={"column": "s"},
+        metric_value_kwargs=None,
+    )
+    aggregate_fn_metric.metric_dependencies = {"unexpected_condition": condition_metric}
+    results = engine.resolve_metrics(metrics_to_resolve=(aggregate_fn_metric,), metrics=metrics)
+    metrics.update(results)
+
+    unexpected_count_metric = MetricConfiguration(
+        metric_name=f"column_values.between.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}",
+        metric_domain_kwargs={"column": "s"},
+        metric_value_kwargs=None,
+    )
+    unexpected_count_metric.metric_dependencies = {"metric_partial_fn": aggregate_fn_metric}
+    results = engine.resolve_metrics(metrics_to_resolve=(unexpected_count_metric,), metrics=metrics)
+    metrics.update(results)
+
+    assert metrics[unexpected_count_metric.id] == 0
+
+
 @pytest.mark.big
 @pytest.mark.filterwarnings(
     "ignore:pandas.Int64Index is deprecated*:FutureWarning:tests.expectations.metrics"
@@ -2875,6 +3084,113 @@ def test_z_score_under_threshold_spark(spark_session):
     }
     results = engine.resolve_metrics(metrics_to_resolve=(desired_metric,), metrics=metrics)
     assert results[desired_metric.id] == 0
+
+
+@pytest.mark.spark
+def test_z_score_under_threshold_spark_constant_column(spark_session):
+    # A constant column has a standard deviation of zero. Dividing by it would yield
+    # Infinity (or raise under ANSI arithmetic), so the z-score must resolve to null for
+    # every row -- producing no unexpected values and no error on either Spark version.
+    engine: SparkDFExecutionEngine = build_spark_engine(
+        spark=spark_session,
+        df=pd.DataFrame({"a": [5, 5, 5, 5]}),
+        batch_id="my_id",
+    )
+
+    metrics: Dict[Tuple[str, str, str], MetricValue] = {}
+
+    table_columns_metric, results = get_table_columns_metric(execution_engine=engine)
+    metrics.update(results)
+
+    column_mean_aggregate_fn_metric = MetricConfiguration(
+        metric_name=f"column.mean.{MetricPartialFunctionTypes.AGGREGATE_FN.metric_suffix}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    column_mean_aggregate_fn_metric.metric_dependencies = {
+        "table.columns": table_columns_metric,
+    }
+    column_standard_deviation_aggregate_fn_metric = MetricConfiguration(
+        metric_name=f"column.standard_deviation.{MetricPartialFunctionTypes.AGGREGATE_FN.metric_suffix}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    column_standard_deviation_aggregate_fn_metric.metric_dependencies = {
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(
+        metrics_to_resolve=(
+            column_mean_aggregate_fn_metric,
+            column_standard_deviation_aggregate_fn_metric,
+        ),
+        metrics=metrics,
+    )
+    metrics.update(results)
+
+    mean = MetricConfiguration(
+        metric_name="column.mean",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    mean.metric_dependencies = {"metric_partial_fn": column_mean_aggregate_fn_metric}
+    stdev = MetricConfiguration(
+        metric_name="column.standard_deviation",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    stdev.metric_dependencies = {
+        "metric_partial_fn": column_standard_deviation_aggregate_fn_metric,
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(metrics_to_resolve=(mean, stdev), metrics=metrics)
+    metrics.update(results)
+
+    # Confirm the constant column really does have a zero standard deviation.
+    assert metrics[stdev.id] == 0
+
+    z_score_map_metric = MetricConfiguration(
+        metric_name=f"column_values.z_score.{MetricPartialFunctionTypeSuffixes.MAP.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    z_score_map_metric.metric_dependencies = {
+        "column.standard_deviation": stdev,
+        "column.mean": mean,
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(metrics_to_resolve=(z_score_map_metric,), metrics=metrics)
+    metrics.update(results)
+
+    condition_metric = MetricConfiguration(
+        metric_name=f"column_values.z_score.under_threshold.{MetricPartialFunctionTypeSuffixes.CONDITION.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs={"double_sided": True, "threshold": 2},
+    )
+    condition_metric.metric_dependencies = {
+        f"column_values.z_score.{MetricPartialFunctionTypeSuffixes.MAP.value}": z_score_map_metric,
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(metrics_to_resolve=(condition_metric,), metrics=metrics)
+    metrics.update(results)
+
+    aggregate_fn_metric = MetricConfiguration(
+        metric_name=f"column_values.z_score.under_threshold.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}.{MetricPartialFunctionTypes.AGGREGATE_FN.metric_suffix}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs={"double_sided": True, "threshold": 2},
+    )
+    aggregate_fn_metric.metric_dependencies = {"unexpected_condition": condition_metric}
+    results = engine.resolve_metrics(metrics_to_resolve=(aggregate_fn_metric,), metrics=metrics)
+    metrics.update(results)
+
+    unexpected_count_metric = MetricConfiguration(
+        metric_name=f"column_values.z_score.under_threshold.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs={"double_sided": True, "threshold": 2},
+    )
+    unexpected_count_metric.metric_dependencies = {"metric_partial_fn": aggregate_fn_metric}
+    results = engine.resolve_metrics(metrics_to_resolve=(unexpected_count_metric,), metrics=metrics)
+
+    assert results[unexpected_count_metric.id] == 0
 
 
 @pytest.mark.unit
@@ -5491,6 +5807,85 @@ def test_map_multicolumn_sum_equal_spark(spark_session):  # noqa: PLR0915 # FIXM
 
     assert len(metrics[unexpected_values_metric.id]) == 1
     assert metrics[unexpected_values_metric.id] == [{"a": 2, "b": 3, "c": 1}]
+
+
+def _resolve_multicolumn_sum_equal_unexpected_count(engine, column_list, sum_total):
+    """Resolve the unexpected count for multicolumn_sum.equal over the given columns."""
+    metrics: Dict[Tuple[str, str, str], MetricValue] = {}
+
+    table_columns_metric, results = get_table_columns_metric(execution_engine=engine)
+    metrics.update(results)
+
+    condition_metric = MetricConfiguration(
+        metric_name=f"multicolumn_sum.equal.{MetricPartialFunctionTypeSuffixes.CONDITION.value}",
+        metric_domain_kwargs={"column_list": column_list},
+        metric_value_kwargs={"sum_total": sum_total},
+    )
+    condition_metric.metric_dependencies = {"table.columns": table_columns_metric}
+    results = engine.resolve_metrics(metrics_to_resolve=(condition_metric,), metrics=metrics)
+    metrics.update(results)
+
+    unexpected_count_metric = MetricConfiguration(
+        metric_name=f"multicolumn_sum.equal.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}",
+        metric_domain_kwargs={"column_list": column_list},
+        metric_value_kwargs=None,
+    )
+    unexpected_count_metric.metric_dependencies = {
+        "unexpected_condition": condition_metric,
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(metrics_to_resolve=(unexpected_count_metric,), metrics=metrics)
+    metrics.update(results)
+    return metrics[unexpected_count_metric.id]
+
+
+@pytest.mark.spark
+def test_map_multicolumn_sum_equal_spark_large_longs(spark_session):
+    # Summing large integral operands must not overflow the Long accumulator. Under Spark
+    # 4 ANSI arithmetic an overflowing Long sum raises ARITHMETIC_OVERFLOW; widening
+    # integral operands to an exact wide DECIMAL lets the equality resolve correctly. On
+    # Spark 3 the original Long arithmetic wraps around instead (its historical behavior),
+    # so the check is only asserted exact on Spark 4.
+    schema = pyspark.types.StructType(
+        [
+            pyspark.types.StructField("a", pyspark.types.LongType(), nullable=False),
+            pyspark.types.StructField("b", pyspark.types.LongType(), nullable=False),
+        ]
+    )
+    spark_df = spark_session.createDataFrame([(2**62, 2**62)], schema=schema)
+    engine = build_spark_engine(spark=spark_session, df=spark_df, batch_id="my_id")
+
+    unexpected_count = _resolve_multicolumn_sum_equal_unexpected_count(
+        engine, ["a", "b"], Decimal(2**63)
+    )
+
+    if pyspark.pyspark and is_version_greater_or_equal(pyspark.pyspark.__version__, "4.0.0"):
+        # Widened to DECIMAL: the sum equals 2**63 exactly and does not raise.
+        assert unexpected_count == 0
+    else:
+        # Spark 3 wraps the Long accumulator rather than raising; assert it completed.
+        assert isinstance(unexpected_count, int)
+
+
+@pytest.mark.spark
+def test_map_multicolumn_sum_equal_spark_decimal_operands(spark_session):
+    # Decimal operands must be summed exactly. Widening them to DOUBLE would reintroduce
+    # binary floating error (0.1 + 0.2 != 0.3), wrongly flagging the row as unexpected.
+    # Leaving decimals uncast keeps the equality exact on both Spark versions.
+    schema = pyspark.types.StructType(
+        [
+            pyspark.types.StructField("a", pyspark.types.DecimalType(2, 1), nullable=False),
+            pyspark.types.StructField("b", pyspark.types.DecimalType(2, 1), nullable=False),
+        ]
+    )
+    spark_df = spark_session.createDataFrame([(Decimal("0.1"), Decimal("0.2"))], schema=schema)
+    engine = build_spark_engine(spark=spark_session, df=spark_df, batch_id="my_id")
+
+    unexpected_count = _resolve_multicolumn_sum_equal_unexpected_count(
+        engine, ["a", "b"], Decimal("0.3")
+    )
+
+    assert unexpected_count == 0
 
 
 @pytest.mark.big

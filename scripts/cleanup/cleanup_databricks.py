@@ -14,8 +14,6 @@ SCHEMA_PATTERN_8_CHAR = "test_[a-f0-9]{8}"  # Databricks-specific tests
 SCHEMA_PATTERN_PY_VERSION = "py3[0-9]{1,2}_i[a-f0-9]{32}"  # Python version-specific test schemas
 SCHEMA_PATTERN = f"{SCHEMA_PATTERN_10_CHAR}|{SCHEMA_PATTERN_8_CHAR}|{SCHEMA_PATTERN_PY_VERSION}"
 
-CATALOG_NAME = "ci"
-
 
 class DatabricksConnectionConfig(BaseSettings):
     """Environment variables for Databricks connection.
@@ -25,10 +23,11 @@ class DatabricksConnectionConfig(BaseSettings):
     DATABRICKS_TOKEN: str
     DATABRICKS_HOST: str
     DATABRICKS_HTTP_PATH: str
+    DATABRICKS_CATALOG: str
 
     @property
     def connection_string(self) -> str:
-        return f"databricks://token:{self.DATABRICKS_TOKEN}@{self.DATABRICKS_HOST}?http_path={self.DATABRICKS_HTTP_PATH}&catalog=ci"
+        return f"databricks://token:{self.DATABRICKS_TOKEN}@{self.DATABRICKS_HOST}?http_path={self.DATABRICKS_HTTP_PATH}&catalog={self.DATABRICKS_CATALOG}"
 
 
 def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
@@ -46,7 +45,7 @@ def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
             ORDER BY created DESC
             """
             ),
-            {"catalog_name": CATALOG_NAME, "schema_pattern": SCHEMA_PATTERN},
+            {"catalog_name": config.DATABRICKS_CATALOG, "schema_pattern": SCHEMA_PATTERN},
         ).fetchall()
 
         if not results:

@@ -695,7 +695,16 @@ def _get_test_validator_with_data_spark(  # noqa: C901, PLR0912, PLR0915 # FIXME
             )
             spark_df = spark.createDataFrame(data_reshaped, string_schema)
             for c in spark_df.columns:
-                spark_df = spark_df.withColumn(c, spark_df[c].cast(spark_types[schema[c]]()))
+                # Coerce the string-loaded columns to their declared types via SQL try_cast
+                # rather than Column.cast. Under strict ANSI SQL evaluation, Column.cast raises
+                # on unparseable input, whereas try_cast resolves it to null. These legacy test
+                # fixtures intentionally include values that don't parse into their declared type
+                # and rely on those becoming null at load time, so try_cast preserves the intended
+                # semantics regardless of the ANSI evaluation mode.
+                type_str = spark_types[schema[c]]().simpleString()
+                spark_df = spark_df.withColumn(
+                    c, pyspark.functions.expr(f"try_cast(`{c}` as {type_str})")
+                )
     elif len(data_reshaped) == 0:
         # if we have an empty dataset and no schema, need to assign an arbitrary type
         columns = list(data.keys())

@@ -1,0 +1,58 @@
+name: Feature or Expectation request
+description: Suggest an idea, new Expectation, or new data source support for Great Expectations
+title: "[FEATURE] "
+labels: ["feature-request", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement. For larger or more open-ended ideas, consider starting a
+        discussion thread first so the design can be worked out before a formal request is filed.
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: What problem are you trying to solve? What are you unable to do today?
+      placeholder: "e.g. I'm always frustrated when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-capability
+    attributes:
+      label: Proposed capability
+      description: A clear and concise description of what you'd like to happen or be able to do.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: request-type
+    attributes:
+      label: Is this a net-new capability or an enhancement?
+      description: Help us route this correctly.
+      multiple: false
+      options:
+        - New Expectation
+        - New data source / execution engine support
+        - Enhancement to an existing Expectation
+        - Enhancement to an existing data source / execution engine
+        - Other / not applicable
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: A clear and concise description of any alternative solutions, workarounds, or features you've considered.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Add any other context, screenshots, or code samples about the feature request here.
+    validations:
+      required: false

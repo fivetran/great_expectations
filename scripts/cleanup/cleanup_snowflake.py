@@ -14,15 +14,24 @@ class SnowflakeConnectionConfig(BaseSettings):
     These are injected in via CI, but when running locally, you may use your own credentials.
     """
 
-    SNOWFLAKE_CI_USER_PASSWORD: str
+    SNOWFLAKE_CI_PRIVATE_KEY: str
     SNOWFLAKE_CI_ACCOUNT: str
+    SNOWFLAKE_CI_USER: str
+    SNOWFLAKE_CI_DATABASE: str
+    SNOWFLAKE_CI_WAREHOUSE: str
+    SNOWFLAKE_CI_ROLE: str
 
     @property
     def connection_string(self) -> str:
+        # Password omitted; private key is passed via connect_args
         return (
-            f"snowflake://ci:{self.SNOWFLAKE_CI_USER_PASSWORD}@oca29081.us-east-1/ci?"
-            f"warehouse=ci&role=ci"
+            f"snowflake://{self.SNOWFLAKE_CI_USER}:@{self.SNOWFLAKE_CI_ACCOUNT}/{self.SNOWFLAKE_CI_DATABASE}?"
+            f"warehouse={self.SNOWFLAKE_CI_WAREHOUSE}&role={self.SNOWFLAKE_CI_ROLE}"
         )
+
+    @property
+    def connect_args(self) -> dict:
+        return {"private_key": self.SNOWFLAKE_CI_PRIVATE_KEY}
 
 
 # Regex to match uppercase schema names
@@ -33,7 +42,7 @@ SCHEMA_FORMAT = f"{SCHEMA_PATTERN_TEST}|{SCHEMA_PATTERN_PY_VERSION}"
 
 
 def cleanup_snowflake(config: SnowflakeConnectionConfig) -> None:
-    engine = create_engine(url=config.connection_string)
+    engine = create_engine(url=config.connection_string, connect_args=config.connect_args)
     with engine.connect() as conn, conn.begin():
         results = conn.execute(
             TextClause(

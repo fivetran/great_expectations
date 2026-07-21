@@ -293,7 +293,6 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 /docs/guides/connecting_to_your_data/fluent/in_memory/how_to_connect_to_in_memory_data_using_pandas /docs/guides/connecting_to_your_data/fluent/in_memory/connect_in_memory_data
 /docs/guides/validation/how_to_validate_data_by_running_a_checkpoint /docs/guides/validation/checkpoints/how_to_create_a_new_checkpoint
 /docs/deployment_patterns/how_to_use_great_expectations_with_google_cloud_platform_and_bigquery /docs/guides/connecting_to_your_data/fluent/database/connect_sql_source_data
-/docs/oss/guides/setup/configuring_data_docs/host_and_share_data_docs
 
 # Redirects for pages removed as no longer applicable
 
@@ -355,17 +354,6 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 /docs/oss/guides/expectations/advanced/how_to_create_expectations_that_span_multiple_batches_using_suite_parameters https://docs.greatexpectations.io/docs/core/connect_to_data/filesystem_data/#create-a-batch-definition
 /docs/oss/guides/expectations/advanced/identify_failed_rows_expectations https://docs.greatexpectations.io/docs/core/trigger_actions_based_on_results/choose_a_result_format/#define-a-result-format-configuration
 /docs/oss/guides/expectations/advanced/how_to_dynamically_load_suite_parameters_from_a_database https://greatexpectations.io/expectations/
-https://docs.greatexpectations.io/docs/1.0-prerelease/core/configure_project_settings/configure_credentials
-https://docs.greatexpectations.io/docs/oss
-https://docs.greatexpectations.io/docs/oss/deployment_patterns/how_to_use_gx_with_aws/how_to_use_gx_with_aws_using_redshift
-https://docs.greatexpectations.io/docs/oss/get_started/get_started_with_gx_and_sql		404	1	1	0	0	2024-09-26	already redirecting?
-https://docs.greatexpectations.io/docs/oss/guides/expectations/creating_custom_expectations/how_to_use_custom_expectations		404	1	1	0	0	2024-09-20	already redirecting?
-https://docs.greatexpectations.io/docs/reference/api/core/batch/runtimebatchrequest_class/		404	1	1	0	0	2024-08-26	already redirecting?
-https://docs.greatexpectations.io/docs/reference/api/core/expectationconfiguration_class/ 		404	1	1	0	0	2024-08-27	already redirecting?
-https://docs.greatexpectations.io/docs/reference/api/datasource/data_connector/inferredassets3dataconnector_class/		404	1	1	0	0	2024-08-26	already redirecting?
-https://docs.greatexpectations.io/docs/reference/api/execution_engine/sparkdfexecutionengine_class/		404	1	1	0	0	2024-08-26	already redirecting?
-https://docs.greatexpectations.io/docs/reference/api/profile/user_configurable_profiler/userconfigurableprofiler_class/		404	1	1	0	0	2024-08-26	already redirecting?
-
 
 ## Redirects for GX Core version 1.0 prerelease
 /docs/1.0-prerelease/core/introduction/about_gx /docs/core/introduction/
