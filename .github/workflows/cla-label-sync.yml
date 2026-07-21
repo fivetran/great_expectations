@@ -9,17 +9,26 @@
 # Label state is derived ONLY from the `verification/cla-signed` status — never by
 # re-checking signatures — so the labels can never contradict the merge gate.
 #
+# cla-check.yml (the self-hosted check that posts this status) now syncs these same
+# labels itself, immediately after posting the status, using the write-capable
+# base-repo token it already holds. That is the primary path for every status it
+# posts: a commit status created with a workflow's own GITHUB_TOKEN does not fire
+# the `status` webhook event (GitHub's anti-recursion rule for the default token), so
+# this workflow's own `status` trigger never runs for those statuses. This workflow
+# now exists as a backstop, kept for any status posted by a different actor and for
+# the race where a PR is opened before the status is resolvable:
+#
 # Triggers:
-#   * status         — the primary path. Fires when the CLA check posts/updates the
-#                      status. Runs from the default branch with a read-write base-repo
-#                      token, so it can label fork-originated pull requests (the common
-#                      case) with no extra secret.
-#   * pull_request   — a backstop for the race where the status is posted before the PR
-#                      object is resolvable. NOTE: a pull_request run triggered from a
-#                      fork gets a read-only token, so it cannot label fork PRs; fork-PR
-#                      labeling therefore rests on the `status` path, which self-heals on
-#                      the next status event. This is safe because the merge gate is the
-#                      status itself, not the label.
+#   * status         — fires for a `verification/cla-signed` status posted by an actor
+#                      other than this repo's own GITHUB_TOKEN (e.g. a third-party
+#                      integration), or replayed for self-healing. Runs from the
+#                      default branch with a read-write base-repo token.
+#   * pull_request   — a backstop for the race where a status already exists before
+#                      the PR object is resolvable. NOTE: a pull_request run triggered
+#                      from a fork gets a read-only token, so it cannot label fork
+#                      PRs; that failure is expected and tolerated here (see below) —
+#                      fork PRs are labeled by cla-check.yml's own base-repo token
+#                      instead, not by this backstop.
 #
 # Note: the `status` trigger only takes effect once this file is on the default branch;
 # its behavior is validated on a live pull request there, not from a feature branch.
@@ -136,6 +145,22 @@ jobs:
                 core.info(`No-op for state ${claStatus.state}`);
                 return;
               }
-              await reconcile(pr.number, target.present, target.absent);
+              try {
+                await reconcile(pr.number, target.present, target.absent);
+              } catch (err) {
+                if (err.status === 403) {
+                  // Expected on a fork PR: a pull_request-triggered run gets a
+                  // read-only token and cannot write labels. cla-check.yml's own
+                  // base-repo token already synced these labels directly, so this
+                  // backstop has nothing left to do here.
+                  core.warning(
+                    `PR #${pr.number}: no write access to labels from this pull_request run ` +
+                    `(likely a fork PR with a read-only token). cla-check.yml's direct sync ` +
+                    'is the labeling path for this case; treating this as a no-op.'
+                  );
+                  return;
+                }
+                throw err;
+              }
               return;
             }

@@ -8,6 +8,14 @@
 # pull-request and commit metadata through the API, then calls a composite action
 # that queries an external endpoint using already-public GitHub handles. No fork
 # secret is used -- only this workflow's own token.
+#
+# Every job also syncs the cla-signed / cla-not-signed labels itself, right after
+# posting the status: a commit status created with this workflow's own GITHUB_TOKEN
+# does not fire the `status` event, so cla-label-sync.yml's primary `on: status`
+# trigger never runs for a status this workflow posts. Reconciling the labels here,
+# from the same write-capable token that already posted the status, keeps labeling in
+# lockstep with the status this workflow controls rather than depending on a webhook
+# that GitHub's own anti-recursion rule for GITHUB_TOKEN never delivers.
 
 name: CLA check
 
@@ -89,6 +97,13 @@ jobs:
           enumeration-complete: ${{ steps.enumerate.outputs.enumeration-complete }}
           unidentified: ${{ steps.enumerate.outputs.unidentified }}
           unidentified-policy: fail
+          token: ${{ github.token }}
+
+      - name: Sync CLA labels to this check's own result
+        uses: fivetran/great_expectations/.github/actions/cla-label-sync@develop
+        with:
+          pr-number: ${{ github.event.pull_request.number }}
+          state: ${{ steps.cla-status.outputs.state }}
           token: ${{ github.token }}
 
       - name: Build guiding comment body
@@ -244,6 +259,14 @@ jobs:
           enumeration-complete: ${{ steps.enumerate.outputs.enumeration-complete }}
           unidentified: ${{ steps.enumerate.outputs.unidentified }}
           unidentified-policy: fail
+          token: ${{ github.token }}
+
+      - name: Sync CLA labels to this check's own result
+        if: steps.enumerate.outputs.skip == 'false'
+        uses: fivetran/great_expectations/.github/actions/cla-label-sync@develop
+        with:
+          pr-number: ${{ github.event.issue.number }}
+          state: ${{ steps.cla-status.outputs.state }}
           token: ${{ github.token }}
 
       - name: Build guiding comment body
