@@ -30,6 +30,10 @@ from great_expectations.expectations.metrics.map_metric_provider import (
     column_condition_partial,
     column_function_partial,
 )
+from great_expectations.expectations.metrics.map_metric_provider.map_condition_auxilliary_methods import (  # noqa: E501
+    _get_sqlalchemy_customized_unexpected_index_list,
+)
+from great_expectations.expectations.metrics.util import sqlalchemy_select_to_sql_string
 from great_expectations.expectations.registry import register_metric
 from great_expectations.util import get_sqlalchemy_selectable
 from great_expectations.validator.validation_graph import MetricConfiguration
@@ -50,16 +54,19 @@ def _named_source_subquery(selectable, table_columns: List[str]):
 
     "SqlAlchemyBatchData" exposes the source table as a metadata-less
     "sa.Table" shell (no reflected columns), so its ".c" accessor is empty.
-    Wrapping it in an explicit projection gives us a subquery whose ".c"
-    collection is populated and can be used to unambiguously reference
-    source-side columns inside a join with the dup-keys subquery.
+    Likewise, when a row_condition is present "get_domain_records" returns a
+    "SELECT * FROM ... WHERE ..." Select whose ".c" collection carries no named
+    columns. Wrapping either shape in an explicit projection gives us a
+    subquery whose ".c" collection is populated and can be used to
+    unambiguously reference source-side columns inside a join with the
+    dup-keys subquery.
     """
-    base = (
-        selectable
-        if isinstance(selectable, Select)
-        else sa.select(*[sa.column(c) for c in table_columns]).select_from(selectable)
+    from_clause = selectable.subquery() if isinstance(selectable, Select) else selectable
+    return (
+        sa.select(*[sa.column(c) for c in table_columns])
+        .select_from(from_clause)
+        .subquery("column_values_unique_source")
     )
-    return base.subquery("column_values_unique_source")
 
 
 def _build_dup_keys_subquery(
@@ -185,18 +192,67 @@ def _sqlalchemy_unique_unexpected_index_list(
             message=f"An SQL execution Exception occurred: {oe!s}."
         )
 
-    if exclude_unexpected_values:
-        return [
-            {col: row[i] for i, col in enumerate(unexpected_index_column_names)}
-            for row in query_result
-        ]
-    return [
-        {
-            **{col: row[i] for i, col in enumerate(unexpected_index_column_names)},
-            column_name: row[-1],
-        }
-        for row in query_result
-    ]
+    return _get_sqlalchemy_customized_unexpected_index_list(
+        exclude_unexpected_values=exclude_unexpected_values,
+        unexpected_index_column_names=unexpected_index_column_names,
+        query_result=query_result,
+        domain_column_name_list=[column_name],
+    )
+
+
+def _sqlalchemy_unique_unexpected_index_query(
+    cls,
+    execution_engine: SqlAlchemyExecutionEngine,
+    metric_domain_kwargs: Dict[str, Any],
+    metric_value_kwargs: Dict[str, Any],
+    metrics: Dict[str, Any],
+    **kwargs,
+) -> Optional[str]:
+    """Return an executable SQL string selecting the duplicate rows.
+
+    The default "_sqlalchemy_map_condition_query" renders the map condition
+    against the raw source table, but our condition references the narrow
+    count-per-value subquery, which is absent from that FROM clause. Build the
+    query string from the same join-back pattern used by the other
+    row-retrieval paths instead, so the string surfaced in validation results
+    and Data Docs runs against the source database as-is.
+    """
+    result_format = metric_value_kwargs["result_format"]
+    if result_format.get("return_unexpected_index_query") is False:
+        return None
+
+    column_name: str = metric_domain_kwargs["column"]
+    all_table_columns: List[str] = metrics.get("table.columns", [])
+    unexpected_index_column_names: List[str] = (
+        result_format.get("unexpected_index_column_names") or []
+    )
+    for idx_col in unexpected_index_column_names:
+        if idx_col not in all_table_columns:
+            raise gx_exceptions.InvalidMetricAccessorDomainKwargsKeyError(
+                message=(
+                    f'Error: The unexpected_index_column: "{idx_col}" does not exist in '
+                    "SQL Table. Please check your configuration and try again."
+                )
+            )
+
+    source_selectable = _named_source_subquery(
+        execution_engine.get_domain_records(domain_kwargs=metric_domain_kwargs),
+        all_table_columns,
+    )
+    dup_keys = _build_dup_keys_subquery(
+        execution_engine=execution_engine,
+        metric_domain_kwargs=metric_domain_kwargs,
+        column_name=column_name,
+    )
+    column_selector = [source_selectable.c[c] for c in unexpected_index_column_names]
+    column_selector.append(source_selectable.c[column_name])
+    query = sa.select(*column_selector).select_from(
+        source_selectable.join(
+            dup_keys,
+            source_selectable.c[column_name] == dup_keys.c[column_name],
+        )
+    )
+    return sqlalchemy_select_to_sql_string(engine=execution_engine, select_statement=query)
 
 
 class ColumnValuesUnique(ColumnMapMetricProvider):
@@ -323,5 +379,15 @@ class ColumnValuesUnique(ColumnMapMetricProvider):
             execution_engine=SqlAlchemyExecutionEngine,
             metric_class=cls,
             metric_provider=_sqlalchemy_unique_unexpected_index_list,
+            metric_fn_type=MetricFunctionTypes.VALUE,
+        )
+        register_metric(
+            metric_name=f"{cls.condition_metric_name}."
+            f"{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_QUERY.value}",
+            metric_domain_keys=cls.condition_domain_keys,
+            metric_value_keys=(*cls.condition_value_keys, "result_format"),
+            execution_engine=SqlAlchemyExecutionEngine,
+            metric_class=cls,
+            metric_provider=_sqlalchemy_unique_unexpected_index_query,
             metric_fn_type=MetricFunctionTypes.VALUE,
         )
