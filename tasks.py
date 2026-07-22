@@ -1090,7 +1090,7 @@ def docs_snippet_tests(
 @invoke.task(
     help={
         "pty": _PTY_HELP_DESC,
-        "reports": "Generate coverage & result reports to be uploaded to codecov",
+        "reports": "Generate coverage & test-result reports (coverage.xml, junit.xml).",
         "splits": "Total number of pytest-split shards. Must be paired with --group.",
         "group": "1-based pytest-split shard index to run. Must satisfy 1 <= group <= splits.",
         "W": "Warnings control",

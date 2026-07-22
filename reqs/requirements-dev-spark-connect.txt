@@ -6,3 +6,6 @@
 googleapis-common-protos>=1.56.4
 grpcio>=1.48.1
 grpcio-status>=1.48.1
+# pyspark 4.1's Spark Connect client hard-requires zstandard; without it the
+# connect client fails at import with [PACKAGE_NOT_INSTALLED]. Harmless on older Spark.
+zstandard>=0.25.0

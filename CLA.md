@@ -8,9 +8,9 @@ material under the project's open source license and warrant that you have the l
 ## Signing the CLA
 
 Please make sure you have signed our Contributor License Agreement (either the
-[Individual Contributor License Agreement](https://docs.google.com/forms/d/e/1FAIpQLSdA-aWKQ15yBzp8wKcFPpuxIyGwohGU1Hx-6Pa4hfaEbbb3fg/viewform?usp=sf_link)
+[Individual Contributor License Agreement](https://forms.gle/wvregSivqgAaJNEX8)
 or the
-[Software Grant and Corporate Contributor License Agreement](https://docs.google.com/forms/d/e/1FAIpQLSf3RZ_ZRWOdymT8OnTxRh5FeIadfANLWUrhaSHadg_E20zBAQ/viewform?usp=sf_link)).
+[Software Grant and Corporate Contributor License Agreement](https://forms.gle/tFdJftyGYm2otPKA8)).
 
 We are not asking you to assign copyright to us, but to give us the right to distribute your code without
 restriction. We ask this of all contributors in order to assure our users of the origin and continuing

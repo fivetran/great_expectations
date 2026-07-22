@@ -15,7 +15,6 @@ from great_expectations.datasource.fluent.data_connector.file_path_data_connecto
 
 if TYPE_CHECKING:
     from great_expectations.alias_types import PathStr
-    from great_expectations.compatibility import azure
     from great_expectations.core.batch import LegacyBatchDefinition
 
 

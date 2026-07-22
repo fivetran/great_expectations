@@ -1,0 +1,110 @@
+name: 'CLA status'
+description: >-
+  Queries the contributor-handle endpoint for a set of committer logins and posts
+  the verification/cla-signed commit status as success or error, failing closed
+  whenever committer enumeration is incomplete, the endpoint is unreachable or
+  returns an error, or a committer could not be resolved to a handle.
+
+inputs:
+  endpoint:
+    description: >-
+      Contributor-handle endpoint; the encoded login is appended directly to this
+      value per query. Held here as the single URL literal so every caller shares
+      one endpoint-query path.
+    required: false
+    default: 'https://script.google.com/macros/s/AKfycbw0IdCrD5hyElMg9J9gUCfl67py0bp8s5uCACnBY9_iUm3cTLd8G9oyB6ivNJPOw_Kt/exec?checkContributor='
+  status-sha:
+    description: 'Commit SHA to post the verification/cla-signed status on.'
+    required: true
+  logins:
+    description: 'JSON array of unique GitHub logins to check.'
+    required: true
+  enumeration-complete:
+    description: >-
+      "true" when every committer in the evaluated range was enumerated; "false"
+      fails the check closed without querying the endpoint.
+    required: true
+  unidentified:
+    description: 'JSON array of commit refs with no resolvable author login.'
+    required: false
+    default: '[]'
+  unidentified-policy:
+    description: >-
+      How to treat `unidentified`: "fail" counts each one as not signed, "skip"
+      ignores them entirely.
+    required: false
+    default: 'fail'
+  token:
+    description: 'Base-repo token used to post the commit status.'
+    required: true
+
+outputs:
+  state:
+    description: 'The posted status state: "success" or "error".'
+    value: ${{ steps.decide.outputs.state }}
+  unsigned:
+    description: 'JSON array of logins that have not signed the CLA.'
+    value: ${{ steps.decide.outputs.unsigned }}
+  unidentified:
+    description: 'JSON array of commit refs with no resolvable author login (echoed input).'
+    value: ${{ steps.decide.outputs.unidentified }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Determine CLA status and post it
+      id: decide
+      uses: actions/github-script@v7
+      env:
+        # `github.action_path` is resolved at YAML-evaluation time against this
+        # composite action, unambiguously -- unlike the `GITHUB_ACTION_PATH`
+        # runtime env var, which a nested action invocation (github-script here)
+        # can rebind to its own install directory.
+        CLA_ACTION_PATH: ${{ github.action_path }}
+        CLA_ENDPOINT: ${{ inputs.endpoint }}
+        CLA_STATUS_SHA: ${{ inputs.status-sha }}
+        CLA_LOGINS: ${{ inputs.logins }}
+        CLA_ENUMERATION_COMPLETE: ${{ inputs.enumeration-complete }}
+        CLA_UNIDENTIFIED: ${{ inputs.unidentified }}
+        CLA_UNIDENTIFIED_POLICY: ${{ inputs.unidentified-policy }}
+      with:
+        github-token: ${{ inputs.token }}
+        script: |
+          // Every committer-adjacent value arrives via env/process.env above, never
+          // string-interpolated into this script body -- so nothing a pull request
+          // controls (a login, a commit SHA) can execute as script content here.
+          const { decide } = require(`${process.env.CLA_ACTION_PATH}/decide.js`);
+
+          const logins = JSON.parse(process.env.CLA_LOGINS || '[]');
+          const unidentified = JSON.parse(process.env.CLA_UNIDENTIFIED || '[]');
+          const enumerationComplete = process.env.CLA_ENUMERATION_COMPLETE === 'true';
+          const unidentifiedPolicy = process.env.CLA_UNIDENTIFIED_POLICY === 'skip' ? 'skip' : 'fail';
+          const endpoint = process.env.CLA_ENDPOINT;
+          const statusSha = process.env.CLA_STATUS_SHA;
+
+          // decide() rejects (throws) on an unreachable or non-OK endpoint response;
+          // left unhandled here, that fails this step -- and the job -- with no
+          // commit status posted at all, never a silent success on an outage.
+          const result = await decide({
+            logins,
+            enumerationComplete,
+            unidentified,
+            unidentifiedPolicy,
+            endpoint,
+            fetchImpl: fetch,
+          });
+
+          await github.rest.repos.createCommitStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            sha: statusSha,
+            context: 'verification/cla-signed',
+            state: result.state,
+            description: result.description,
+          });
+
+          core.info(`verification/cla-signed = ${result.state} on ${statusSha} (checked ${logins.length} login(s))`);
+
+          core.setOutput('state', result.state);
+          core.setOutput('unsigned', JSON.stringify(result.unsigned));
+          core.setOutput('unidentified', JSON.stringify(result.unidentified));
