@@ -211,7 +211,7 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         (
             "requirements-dev-spark.txt",
             "pyspark",
-            (("<", "4.0"), (">=", "2.3.2")),
+            (("<", "4.2"), (">=", "2.3.2")),
         ),
         ("requirements-dev-sqlalchemy.txt", "moto", (("<", "5.0"), (">=", "4.2.13"))),
         ("requirements-dev-sqlalchemy.txt", "pact-python", (("<", "4"), (">=", "3.1.0"))),
@@ -247,7 +247,7 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         (
             "requirements-dev.txt",
             "pyspark",
-            (("<", "4.0"), (">=", "2.3.2")),
+            (("<", "4.2"), (">=", "2.3.2")),
         ),
         ("requirements-dev.txt", "pypd", (("==", "1.1.0"),)),
         ("requirements-dev.txt", "sqlalchemy", (("<", "2.0.0"),)),

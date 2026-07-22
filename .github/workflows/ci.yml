@@ -122,7 +122,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -229,7 +229,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -306,26 +306,7 @@ jobs:
           docker compose --progress quiet -f assets/docker/spark/docker-compose.yml up -d --wait --wait-timeout 300
 
       - name: Run the tests
-        run: invoke docs-snippet-tests '${{ matrix.doc-step }}' --up-services --verbose  --reports
-
-      # upload coverage report to codecov
-      - name: Upload coverage reports to Codecov
-        continue-on-error: true
-        uses: codecov/codecov-action@v4.1.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: great-expectations/great_expectations
-          flags: ${{ matrix.doc-step }}
-          fail_ci_if_error: false
-
-      # upload test results to codecov
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: ${{ matrix.doc-step }}
+        run: invoke docs-snippet-tests '${{ matrix.doc-step }}' --up-services --verbose
 
   unit-tests:
     needs: [check-actor-permissions, detect-changes]
@@ -341,7 +322,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -358,26 +339,7 @@ jobs:
 
       - name: Run the unit tests
         # TODO: revert the timeout back to 1.5 or lower after resolving arc issues
-        run: invoke ci-tests -m "unit" --xdist --slowest=10 --timeout=2.0 --reports
-
-      # upload coverage report to codecov
-      - name: Upload coverage reports to Codecov
-        continue-on-error: true
-        uses: codecov/codecov-action@v4.1.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: great-expectations/great_expectations
-          flags: ${{ matrix.python-version }}
-          fail_ci_if_error: false
-
-      # upload test results to codecov
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: ${{ matrix.python-version }}
+        run: invoke ci-tests -m "unit" --xdist --slowest=10 --timeout=2.0
 
   doc-checks:
     needs: [check-actor-permissions]
@@ -388,7 +350,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -434,7 +396,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -483,7 +445,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -506,7 +468,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -532,25 +494,6 @@ jobs:
         run:
           invoke ci-tests 'integration' --verbose
 
-          # upload coverage report to codecov
-      - name: Upload coverage reports to Codecov
-        continue-on-error: true
-        uses: codecov/codecov-action@v4.1.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: great-expectations/great_expectations
-          flags: integration
-          fail_ci_if_error: false
-
-      # upload test results to codecov
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: integration
-
   marker-tests:
     needs: [unit-tests, static-analysis, check-actor-permissions]
     if: github.event.pull_request.draft == false
@@ -565,9 +508,11 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{secrets.CI_AWS_ACCESS_KEY_ID}}
       AWS_DEFAULT_REGION: ${{secrets.CI_AWS_DEFAULT_REGION}}
       AWS_SECRET_ACCESS_KEY: ${{secrets.CI_AWS_SECRET_ACCESS_KEY}}
-      DATABRICKS_TOKEN: ${{secrets.DATABRICKS_SQL_TOKEN}}
+      # DATABRICKS_TOKEN is minted at runtime from the service principal's OAuth
+      # credentials in the "Mint Databricks OAuth access token" step below.
       DATABRICKS_HOST: ${{secrets.DATABRICKS_HOST}}
       DATABRICKS_HTTP_PATH: ${{secrets.DATABRICKS_HTTP_PATH}}
+      DATABRICKS_CATALOG: ${{ vars.DATABRICKS_CATALOG }}
     permissions:
       id-token: write
       contents: read
@@ -611,7 +556,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -642,32 +587,86 @@ jobs:
         if: matrix.markers == 'sql_server'
         run: ./scripts/install_sql_server_odbc_driver.sh
 
+      # Authenticate the service principal via OAuth M2M. The minted
+      # bearer token is masked and exported as DATABRICKS_TOKEN so the existing
+      # token-based connection path is used unchanged. OAuth M2M tokens are valid
+      # for one hour, which comfortably covers the marker suite's runtime.
+      - name: Mint Databricks OAuth access token
+        if: matrix.markers == 'databricks'
+        env:
+          DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+          DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+        run: |
+          TOKEN="$(python ./scripts/mint_databricks_token.py)"
+          echo "::add-mask::$TOKEN"
+          echo "DATABRICKS_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+
       - name: Run the tests
         run: |
           FLAGS=""
           case "${{ matrix.markers }}" in
             bigquery|databricks) FLAGS="--xdist" ;;
           esac
-          invoke ci-tests '${{ matrix.markers }}' --up-services --verbose --reports $FLAGS
+          invoke ci-tests '${{ matrix.markers }}' --up-services --verbose $FLAGS
 
-      # upload coverage report to codecov
-      - name: Upload coverage reports to Codecov
-        continue-on-error: true
-        uses: codecov/codecov-action@v4.1.0
+  pyspark4-marker-tests:
+    needs: [unit-tests, static-analysis, check-actor-permissions]
+    if: github.event.pull_request.draft == false
+    env:
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
+      # Compose override, matched to the 4.1.x pip client installed below. No official
+      # client<->server cross-version guarantee exists for Spark Connect, so the image
+      # tag is kept in lockstep with the lane's pyspark constraint.
+      SPARK_IMAGE: apache/spark:4.1.2
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        markers:
+          - spark
+          - spark_connect
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.3.1
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: great-expectations/great_expectations
-          flags: "${{ matrix.python-version }} ${{ matrix.markers }}"
-          fail_ci_if_error: false
+          ref: ${{ github.event.pull_request.head.sha }}
 
-      # upload test results to codecov
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: codecov/test-results-action@v1
+      - name: Upgrade Docker Compose
+        uses: docker/setup-compose-action@v1
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: "${{ matrix.python-version }} ${{ matrix.markers }}"
+          version: latest
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+          cache-dependency-path: |
+            reqs/requirements-dev-test.txt
+            setup.py
+
+      - name: Set up Java
+        # Classic-path pyspark 4 needs a host JDK 17+; pin it here rather than relying
+        # on the runner default so this lane is deterministic.
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Verify pyspark 4.0.x resolution (dry run)
+        # Runs before the real install so the environment is clean. Proves the [spark]
+        # extra still resolves the 4.0.x line even though this lane pins 4.1.x.
+        run: pip install --dry-run --quiet ".[spark]" "pyspark~=4.0.3"
+
+      - name: Install dependencies
+        # Direct pip install with the lane constraint file, bypassing constraints-dev.txt
+        # (the 3.x freeze) so pyspark resolves to 4.1.x.
+        run: |
+          pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
+          pip install . -c ci/constraints-test/pyspark4-install.txt -r reqs/requirements-dev-test.txt -r reqs/requirements-dev-spark.txt -r reqs/requirements-dev-spark-connect.txt
+
+      - name: Run the tests
+        run: invoke ci-tests '${{ matrix.markers }}' --up-services --verbose --reports
 
   marker-tests-snowflake:
     needs: [unit-tests, static-analysis, check-actor-permissions]
@@ -710,7 +709,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -732,29 +731,10 @@ jobs:
         run: |
           GROUP="${SHARD%/*}"
           SPLITS="${SHARD#*/}"
-          invoke ci-tests snowflake --up-services --verbose --reports --xdist \
+          invoke ci-tests snowflake --up-services --verbose --xdist \
             --splits="$SPLITS" --group="$GROUP"
         env:
           SHARD: ${{ matrix.shard }}
-
-      # upload coverage report to codecov
-      - name: Upload coverage reports to Codecov
-        continue-on-error: true
-        uses: codecov/codecov-action@v4.1.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: great-expectations/great_expectations
-          flags: "${{ matrix.python-version }} snowflake ${{ matrix.shard }}"
-          fail_ci_if_error: false
-
-      # upload test results to codecov
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: "${{ matrix.python-version }} snowflake ${{ matrix.shard }}"
 
   redshift:
     needs: [unit-tests, static-analysis, check-actor-permissions]
@@ -781,7 +761,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -800,26 +780,7 @@ jobs:
           invoke deps --gx-install -m '${{ matrix.markers }}' -r test
 
       - name: Run the tests
-        run: invoke ci-tests '${{ matrix.markers }}' --up-services --verbose  --reports
-
-      # upload coverage report to codecov
-      - name: Upload coverage reports to Codecov
-        continue-on-error: true
-        uses: codecov/codecov-action@v4.1.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: great-expectations/great_expectations
-          flags: "${{ matrix.python-version }} ${{ matrix.markers }}"
-          fail_ci_if_error: false
-
-      # upload test results to codecov
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: "${{ matrix.python-version }} ${{ matrix.markers }}"
+        run: invoke ci-tests '${{ matrix.markers }}' --up-services --verbose
 
   py310-min-versions:
     needs: [unit-tests, static-analysis, check-actor-permissions]
@@ -827,7 +788,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -850,7 +811,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -873,7 +834,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -892,7 +853,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -915,7 +876,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -938,7 +899,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -960,7 +921,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -994,7 +955,7 @@ jobs:
           - python-version: ${{ github.event_name == 'workflow_dispatch' && '3.12' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -1090,7 +1051,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.3.1
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:

@@ -65,11 +65,6 @@ except (ImportError, AttributeError):
     SparkConnectSession = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
 
 try:
-    from pyspark.sql import SQLContext
-except (ImportError, AttributeError):
-    SQLContext = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
-
-try:
     from pyspark.sql import Window
 except (ImportError, AttributeError):
     Window = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
@@ -80,11 +75,29 @@ except (ImportError, AttributeError):
     DataFrameReader = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
 
 try:
-    from pyspark.sql.utils import AnalysisException
+    # pyspark >= 3.4; base class covering both classic and Spark Connect exception hierarchies
+    from pyspark.errors import AnalysisException
 except (ImportError, AttributeError):
-    AnalysisException = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    try:
+        from pyspark.sql.utils import AnalysisException  # pyspark < 3.4
+    except (ImportError, AttributeError):
+        AnalysisException = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
 
 try:
     from pyspark.errors import PySparkAttributeError
 except (ImportError, AttributeError):
     PySparkAttributeError = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+
+try:
+    # spark.conf.get() raises this typed error ([SQL_CONF_NOT_FOUND]) when a config key
+    # is absent from SQLConf. It is importable from pyspark.errors on modern releases
+    # (present since ~3.5); only much older pyspark lacks it and raises a generic
+    # Py4JJavaError instead.
+    from pyspark.errors import SparkNoSuchElementException
+except (ImportError, AttributeError):
+    # On those much older pyspark versions the typed error is unavailable. Use a private
+    # Exception subclass so that `except SparkNoSuchElementException` remains a valid
+    # clause while never matching a real runtime error (unlike the NotImported sentinel,
+    # which is not a usable exception type).
+    class SparkNoSuchElementException(Exception):  # type: ignore[no-redef] # FIXME CoP
+        """Placeholder keeping `except SparkNoSuchElementException` valid on old pyspark."""

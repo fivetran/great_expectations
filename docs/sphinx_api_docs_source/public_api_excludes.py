@@ -296,11 +296,6 @@ DEFAULT_EXCLUDES: list[IncludeExcludeDefinition] = [
     IncludeExcludeDefinition(
         reason="to_json_dict is an internal helper method",
         name="to_json_dict",
-        filepath=pathlib.Path("great_expectations/types/attributes.py"),
-    ),
-    IncludeExcludeDefinition(
-        reason="to_json_dict is an internal helper method",
-        name="to_json_dict",
         filepath=pathlib.Path("great_expectations/types/base.py"),
     ),
     IncludeExcludeDefinition(

@@ -110,6 +110,9 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
     Notes:
         The success value for this expectation will match that of \
     [ExpectColumnValuesToBeInSet](https://greatexpectations.io/expectations/expect_column_values_to_be_in_set).
+        The observed_value field is always None. To inspect violations, use unexpected_count and \
+    partial_unexpected_list (distinct column values not in value_set, capped at 20). When the \
+    Expectation passes, partial_unexpected_list is empty.
 
     See Also:
         [ExpectColumnDistinctValuesToContainSet](https://greatexpectations.io/expectations/expect_column_distinct_values_to_contain_set)
@@ -156,27 +159,9 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
                     "exception_message": null
                   }},
                   "result": {{
-                    "observed_value": [
-                      1,
-                      2,
-                      4
-                    ],
-                    "details": {{
-                      "value_counts": [
-                        {{
-                          "value": 1,
-                          "count": 1
-                        }},
-                        {{
-                          "value": 2,
-                          "count": 1
-                        }},
-                        {{
-                          "value": 4,
-                          "count": 1
-                        }}
-                      ]
-                    }}
+                    "observed_value": null,
+                    "unexpected_count": 0,
+                    "partial_unexpected_list": []
                   }},
                   "meta": {{}},
                   "success": true
@@ -197,17 +182,11 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
                     "exception_message": null
                   }},
                   "result": {{
-                    "observed_value": [
+                    "observed_value": null,
+                    "unexpected_count": 1,
+                    "partial_unexpected_list": [
                       1
-                    ],
-                    "details": {{
-                      "value_counts": [
-                        {{
-                          "value": 1,
-                          "count": 3
-                        }}
-                      ]
-                    }}
+                    ]
                   }},
                   "meta": {{}},
                   "success": false

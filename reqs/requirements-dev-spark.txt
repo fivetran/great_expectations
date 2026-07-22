@@ -1,1 +1,4 @@
-pyspark>=2.3.2,<4.0  # spark
+# The ceiling admits the 4.x line (tested through 4.1.x) while keeping the 2.3.2 floor.
+# Everyday dev/CI resolution is held to the 3.x series by constraints-dev.txt; a
+# separate CI lane with its own constraint file exercises the pyspark-4 resolution.
+pyspark>=2.3.2,<4.2  # spark

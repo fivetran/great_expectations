@@ -1,0 +1,5 @@
+# Lane pin for the dedicated pyspark-4 CI job: exercises great_expectations[spark]
+# against the current 4.1.x line. This lane installs WITHOUT constraints-dev.txt
+# (which caps pyspark at <4.0 for every default dev/CI install), so this file is
+# what resolves pyspark here. Floats patch releases within 4.1.x.
+pyspark~=4.1.2
