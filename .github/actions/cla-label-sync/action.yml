@@ -1,0 +1,75 @@
+name: 'CLA label sync'
+description: >-
+  Reconciles the cla-signed / cla-not-signed labels on a single pull request to
+  match a verification/cla-signed status state, ensuring the matching label is
+  present and the stale one is removed.
+
+inputs:
+  pr-number:
+    description: 'Pull request number to reconcile labels on.'
+    required: true
+  state:
+    description: >-
+      The verification/cla-signed status state to reconcile to: "success" or
+      "error"/"failure". Any other value (e.g. "pending") is a no-op.
+    required: true
+  token:
+    description: 'Token used to read/write labels on the pull request.'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Reconcile CLA labels to the given state
+      uses: actions/github-script@v7
+      env:
+        CLA_PR_NUMBER: ${{ inputs.pr-number }}
+        CLA_STATE: ${{ inputs.state }}
+      with:
+        github-token: ${{ inputs.token }}
+        script: |
+          // Kept in lockstep with the equivalent status-event reconcile logic in
+          // cla-label-sync.yml, which cannot call this action directly because it
+          // fans out over a dynamically-sized list of PRs discovered at runtime
+          // (a composite action can only be invoked as a static job step).
+          const SIGNED = 'cla-signed';
+          const NOT_SIGNED = 'cla-not-signed';
+
+          const prNumber = Number(process.env.CLA_PR_NUMBER);
+          const state = process.env.CLA_STATE;
+
+          // Map a CLA status state to the desired label pair. `pending`/unknown -> no-op.
+          function labelsForState(s) {
+            if (s === 'success') return { present: SIGNED, absent: NOT_SIGNED };
+            if (s === 'error' || s === 'failure') return { present: NOT_SIGNED, absent: SIGNED };
+            return null;
+          }
+
+          const target = labelsForState(state);
+          if (!target) {
+            core.info(`No-op for state ${state}`);
+            return;
+          }
+
+          // Convergent (set-to-match) reconcile: ensure `present` is on the PR and
+          // `absent` is off it. Both API calls are idempotent -- adding a label that
+          // is already applied is a no-op, and removing an absent label 404s
+          // (guarded) -- so repeated/out-of-order calls converge without flapping.
+          await github.rest.issues.addLabels({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: prNumber,
+            labels: [target.present],
+          });
+          core.info(`PR #${prNumber}: ensured ${target.present}`);
+          try {
+            await github.rest.issues.removeLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              name: target.absent,
+            });
+            core.info(`PR #${prNumber}: ensured ${target.absent} removed`);
+          } catch (err) {
+            if (err.status !== 404) throw err; // already absent: fine
+          }
