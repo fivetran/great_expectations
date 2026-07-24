@@ -201,6 +201,31 @@ def test_data_context_is_project_scaffolded(empty_context):
 
 
 @pytest.mark.filesystem
+def test_data_context_is_project_scaffolded_true_when_uncommitted_dirs_absent(empty_context):
+    """A committed great_expectations.yml is sufficient, even when the gitignored
+    uncommitted/* runtime-output directories are absent, e.g. on a fresh version-control
+    checkout.
+    """
+    ge_dir = empty_context.root_directory
+    shutil.rmtree(os.path.join(ge_dir, "uncommitted"))  # noqa: PTH118 # FIXME CoP
+
+    assert FileDataContext.does_config_exist_on_disk(ge_dir) is True
+    assert not FileDataContext.all_uncommitted_directories_exist(ge_dir)
+    assert FileDataContext.is_project_scaffolded(ge_dir) is True
+
+
+@pytest.mark.filesystem
+def test_data_context_is_project_scaffolded_false_when_no_config(empty_context):
+    """A project root with no great_expectations.yml on disk must not be treated as
+    already set up.
+    """
+    ge_dir = empty_context.root_directory
+    safe_remove(os.path.join(ge_dir, empty_context.GX_YML))  # noqa: PTH118 # FIXME CoP
+
+    assert FileDataContext.is_project_scaffolded(ge_dir) is False
+
+
+@pytest.mark.filesystem
 def test_data_context_does_ge_yml_exist_returns_true_when_it_does_exist(empty_context):
     ge_dir = empty_context.root_directory
     assert FileDataContext.does_config_exist_on_disk(ge_dir) is True
@@ -381,24 +406,27 @@ def test_data_context_create_raises_warning_and_leaves_existing_yml_untouched(
 
 
 @pytest.mark.filesystem
-def test_data_context_create_makes_uncommitted_dirs_when_all_are_missing(
+def test_data_context_recognizes_existing_project_and_does_not_recreate_uncommitted_dirs(
     tmp_path_factory,
 ):
+    """A project root carrying a committed great_expectations.yml is recognized as already
+    set up even when its gitignored uncommitted/* directories are absent (e.g. a fresh
+    version-control checkout) - re-running create must not perform a destructive re-scaffold
+    of the whole project. The one exception is the validation-results store's own directory,
+    which is (re)created lazily, independent of the scaffold decision.
+    """
     project_path = str(tmp_path_factory.mktemp("data_context"))
     gx.get_context(mode="file", project_root_dir=project_path)
 
-    # mangle the existing setup
+    # mangle the existing setup, simulating a fresh checkout where uncommitted/ is gitignored
     ge_dir = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
     uncommitted_dir = os.path.join(ge_dir, "uncommitted")  # noqa: PTH118 # FIXME CoP
     shutil.rmtree(uncommitted_dir)
 
-    # re-run create to simulate onboarding
+    # re-run create against the existing, committed project
     gx.get_context(mode="file", project_root_dir=project_path)
     obs = gen_directory_tree_str(ge_dir)
 
-    assert os.path.isdir(  # noqa: PTH112 # FIXME CoP
-        uncommitted_dir
-    ), "No uncommitted directory created"
     assert (
         obs
         == """\
@@ -415,8 +443,6 @@ gx/
                 data_docs_custom_styles.css
             views/
     uncommitted/
-        config_variables.yml
-        data_docs/
         validations/
             .ge_store_backend_id
     validation_definitions/
