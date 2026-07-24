@@ -1,0 +1,23 @@
+.github/workflows/assign.yml
+  a8e0b69394f10e03 77-142
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.3",
+  "base_commit_sha": "05f59c4e10a3f698330e01053125e2bd16bb9131",
+  "prompts": {
+    "a8e0b69394f10e03": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4fa2d4a0-517a-4be5-9cd0-0fc33cafb3d1",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 66,
+      "total_deletions": 0,
+      "accepted_lines": 66,
+      "overriden_lines": 0
+    }
+  }
+}
