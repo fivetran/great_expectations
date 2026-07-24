@@ -15,6 +15,30 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.19.1
+* [FEATURE] Self-hosted CLA status check ([#11985](https://github.com/fivetran/great_expectations/pull/11985))
+* [BUGFIX] Pin actions/checkout to v4.3.1 across workflows ([#11988](https://github.com/fivetran/great_expectations/pull/11988))
+* [BUGFIX] Sync CLA labels directly from the CLA check, not via the status webhook ([#11992](https://github.com/fivetran/great_expectations/pull/11992))
+* [BUGFIX] Render id/pk-only unexpected indices instead of raising (fixes #11933) ([#11935](https://github.com/fivetran/great_expectations/pull/11935)) (thanks @anxkhn)
+* [MAINTENANCE] Update CLA links ([#11974](https://github.com/fivetran/great_expectations/pull/11974))
+* [MAINTENANCE] Ignore pyOpenSSL X509.get_subject deprecation warning for snowflake ([#11979](https://github.com/fivetran/great_expectations/pull/11979))
+* [MAINTENANCE] CLA Enforcement ([#11980](https://github.com/fivetran/great_expectations/pull/11980))
+* [MAINTENANCE] Update cla links ([#11982](https://github.com/fivetran/great_expectations/pull/11982))
+* [MAINTENANCE] Report CLA status on merge-queue commits ([#11983](https://github.com/fivetran/great_expectations/pull/11983))
+* [MAINTENANCE] enable redshift ci ([#11984](https://github.com/fivetran/great_expectations/pull/11984))
+* [MAINTENANCE] Bump websocket-driver from 0.7.4 to 0.7.5 in /docs/docusaurus ([#11977](https://github.com/fivetran/great_expectations/pull/11977))
+* [MAINTENANCE] Bump webpack-dev-server from 5.2.5 to 5.2.6 in /docs/docusaurus ([#11990](https://github.com/fivetran/great_expectations/pull/11990))
+* [MAINTENANCE] pre-commit autoupdate (ruff 0.15.12 -> 0.15.15) ([#11895](https://github.com/fivetran/great_expectations/pull/11895))
+* [MAINTENANCE] Assert store access in DatasourceDict just-in-time tests ([#11949](https://github.com/fivetran/great_expectations/pull/11949)) (thanks @anxkhn)
+* [MAINTENANCE] Bump brace-expansion from 1.1.13 to 1.1.16 in /docs/docusaurus ([#11991](https://github.com/fivetran/great_expectations/pull/11991))
+* [MAINTENANCE] Bump body-parser from 1.20.4 to 1.20.6 in /docs/docusaurus ([#11989](https://github.com/fivetran/great_expectations/pull/11989))
+* [MAINTENANCE] Bump svgo from 3.3.3 to 3.3.4 in /docs/docusaurus ([#11994](https://github.com/fivetran/great_expectations/pull/11994))
+* [MAINTENANCE] Bump immutable from 4.3.8 to 4.3.9 in /docs/docusaurus ([#11996](https://github.com/fivetran/great_expectations/pull/11996))
+* [MAINTENANCE] Bump fast-uri from 3.1.2 to 3.1.4 in /docs/docusaurus ([#11995](https://github.com/fivetran/great_expectations/pull/11995))
+* [MAINTENANCE] Bump dompurify from 3.4.11 to 3.4.12 in /docs/docusaurus ([#11997](https://github.com/fivetran/great_expectations/pull/11997))
+* [MAINTENANCE] Add per-metric override hooks for SqlAlchemy row-retrieval providers ([#11998](https://github.com/fivetran/great_expectations/pull/11998))
+* [CONTRIB] Update distinct values set Expectations to document observed_value contract ([#11934](https://github.com/fivetran/great_expectations/pull/11934)) (thanks @EshwarCVS)
+
 ### 1.19.0
 * [FEATURE] Spark 4 support ([#11969](https://github.com/fivetran/great_expectations/pull/11969))
 * [BUGFIX] Preserve date-like strings in SQL distinct value sets ([#11947](https://github.com/fivetran/great_expectations/pull/11947)) (thanks @yuricavalcanti06)
