@@ -1,0 +1,25 @@
+tests/data_context/store/test_store_backends.py
+  faa9202e401b1920 1,230-236,238-274,276-284,286-292
+great_expectations/data_context/store/tuple_store_backend.py
+  faa9202e401b1920 4,268-277,281-287
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.3",
+  "base_commit_sha": "42e67819a625a887a4fa5630fd44fdf21f56c31f",
+  "prompts": {
+    "faa9202e401b1920": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5d69703f-051b-4ac9-9a87-ff705a93111b",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 87,
+      "total_deletions": 4,
+      "accepted_lines": 80,
+      "overriden_lines": 3
+    }
+  }
+}
