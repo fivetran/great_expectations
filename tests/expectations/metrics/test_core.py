@@ -2645,7 +2645,7 @@ def test_map_unique_column_exists_sa(sa):
         metric_value_kwargs=None,
     )
     condition_metric.metric_dependencies = {
-        f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}": count_per_value_metric,  # noqa: E501
+        f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}": count_per_value_metric,  # noqa: E501 # metric name exceeds line length
         "table.columns": table_columns_metric,
     }
     results = engine.resolve_metrics(metrics_to_resolve=(condition_metric,), metrics=metrics)
@@ -2768,7 +2768,7 @@ def test_map_unique_empty_query_sa(sa):
         metric_value_kwargs=None,
     )
     condition_metric.metric_dependencies = {
-        f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}": count_per_value_metric,  # noqa: E501
+        f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}": count_per_value_metric,  # noqa: E501 # metric name exceeds line length
         "table.columns": table_columns_metric,
     }
     results = engine.resolve_metrics(metrics_to_resolve=(condition_metric,), metrics=metrics)
@@ -2835,7 +2835,7 @@ def test_map_unique_unexpected_count_sql_shape_sa(sa):
         metric_value_kwargs=None,
     )
     condition_metric.metric_dependencies = {
-        f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}": count_per_value_metric,  # noqa: E501
+        f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}": count_per_value_metric,  # noqa: E501 # metric name exceeds line length
         "table.columns": table_columns_metric,
     }
     results = engine.resolve_metrics(metrics_to_resolve=(condition_metric,), metrics=metrics)
@@ -2921,7 +2921,7 @@ def test_map_unique_unexpected_rows_join_back_sa(sa):
         metric_value_kwargs=None,
     )
     condition_metric.metric_dependencies = {
-        f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}": count_per_value_metric,  # noqa: E501
+        f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}": count_per_value_metric,  # noqa: E501 # metric name exceeds line length
         "table.columns": table_columns_metric,
     }
     results = engine.resolve_metrics(metrics_to_resolve=(condition_metric,), metrics=metrics)

@@ -28,7 +28,7 @@ from great_expectations.expectations.metrics.map_metric_provider import (
     column_condition_partial,
     column_function_partial,
 )
-from great_expectations.expectations.metrics.map_metric_provider.map_condition_auxilliary_methods import (  # noqa: E501
+from great_expectations.expectations.metrics.map_metric_provider.map_condition_auxilliary_methods import (  # noqa: E501 # long module path
     _get_sqlalchemy_customized_unexpected_index_list,
 )
 from great_expectations.expectations.metrics.util import sqlalchemy_select_to_sql_string
@@ -83,7 +83,7 @@ def _build_dup_keys_subquery(
         .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
         .where(sa.column(column_name).is_not(None))
         .group_by(sa.column(column_name))
-        .having(sa.func.count() >= 2)  # noqa: PLR2004
+        .having(sa.func.count() >= 2)  # noqa: PLR2004 # 2 is the duplicate threshold
         .subquery("column_values_unique_dup_keys")
     )
 
@@ -322,7 +322,7 @@ class ColumnValuesUnique(ColumnMapMetricProvider):
         count_per_value_query, _, _ = metrics[
             f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}"
         ]
-        return count_per_value_query.c[_DUP_KEY_COUNT_LABEL] < 2  # noqa: PLR2004
+        return count_per_value_query.c[_DUP_KEY_COUNT_LABEL] < 2  # noqa: PLR2004 # 2 is the duplicate threshold
 
     @column_condition_partial(
         engine=SparkDFExecutionEngine,
