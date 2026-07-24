@@ -77,10 +77,10 @@ def _build_dup_keys_subquery(
     friendly on distributed engines and avoids wide-row window sort.
     """
     selectable = execution_engine.get_domain_records(domain_kwargs=metric_domain_kwargs)
-    selectable = get_sqlalchemy_selectable(selectable)
+    selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type] # FIXME CoP
     return (
         sa.select(sa.column(column_name))
-        .select_from(selectable)
+        .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
         .where(sa.column(column_name).is_not(None))
         .group_by(sa.column(column_name))
         .having(sa.func.count() >= 2)  # noqa: PLR2004
@@ -183,7 +183,7 @@ def _sqlalchemy_unique_unexpected_index_list(
     )
     exclude_unexpected_values: bool = result_format.get("exclude_unexpected_values", False)
     try:
-        query_result = execution_engine.execute_query(query).fetchall()
+        query_result: List[sqlalchemy.Row] = execution_engine.execute_query(query).fetchall()  # type: ignore[assignment] # FIXME CoP
     except sqlalchemy.OperationalError as oe:
         raise gx_exceptions.InvalidMetricAccessorDomainKwargsKeyError(
             message=f"An SQL execution Exception occurred: {oe!s}."
