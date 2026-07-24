@@ -14,10 +14,8 @@ from great_expectations.compatibility.sqlalchemy import (
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.constants import MAX_RESULT_RECORDS
 from great_expectations.core.metric_function_types import (
-    MetricFunctionTypes,
     MetricPartialFunctionTypes,
     MetricPartialFunctionTypeSuffixes,
-    SummarizationMetricNameSuffixes,
 )
 from great_expectations.execution_engine import (
     ExecutionEngine,
@@ -34,7 +32,6 @@ from great_expectations.expectations.metrics.map_metric_provider.map_condition_a
     _get_sqlalchemy_customized_unexpected_index_list,
 )
 from great_expectations.expectations.metrics.util import sqlalchemy_select_to_sql_string
-from great_expectations.expectations.registry import register_metric
 from great_expectations.util import get_sqlalchemy_selectable
 from great_expectations.validator.validation_graph import MetricConfiguration
 
@@ -279,6 +276,20 @@ class ColumnValuesUnique(ColumnMapMetricProvider):
     function_metric_name = "column_values.count_per_value"
     condition_metric_name = "column_values.unique"
 
+    # The narrow windowed subquery (below) carries only the target column. The
+    # default map-condition row-retrieval providers assume the selectable
+    # carries every table column (compound_columns.unique pattern), which
+    # would re-introduce the wide-row window on Redshift. Override the three
+    # SqlAlchemy row-retrieval hooks with narrow dup-keys subqueries joined
+    # back to source.
+    sqlalchemy_unexpected_rows_provider = staticmethod(_sqlalchemy_unique_unexpected_rows)
+    sqlalchemy_unexpected_index_list_provider = staticmethod(
+        _sqlalchemy_unique_unexpected_index_list
+    )
+    sqlalchemy_unexpected_index_query_provider = staticmethod(
+        _sqlalchemy_unique_unexpected_index_query
+    )
+
     @column_condition_partial(engine=PandasExecutionEngine)
     def _pandas(cls, column, **kwargs):
         return ~column.duplicated(keep=False)
@@ -288,9 +299,8 @@ class ColumnValuesUnique(ColumnMapMetricProvider):
         # Narrow projection: only the target column and the window count per value.
         # Auxiliary methods that consume this selectable (unexpected_count,
         # unexpected_values, unexpected_value_counts) only ever read these two
-        # columns. Paths that need additional source columns ("unexpected_rows",
-        # "unexpected_index_list") are overridden in _register_metric_functions
-        # to join back to source.
+        # columns. Paths that need additional source columns are overridden via
+        # the sqlalchemy_*_provider class attributes to join back to source.
         from_clause = _table.subquery() if isinstance(_table, Select) else _table
         return (
             sa.select(
@@ -350,44 +360,3 @@ class ColumnValuesUnique(ColumnMapMetricProvider):
             )
 
         return dependencies
-
-    @classmethod
-    @override
-    def _register_metric_functions(cls):
-        super()._register_metric_functions()
-        # The narrow windowed subquery (above) carries only the target column.
-        # The default map-condition auxiliary methods for row-retrieval paths
-        # assume the selectable carries every table column (compound_columns.unique
-        # pattern), which would re-introduce the wide-row window on Redshift.
-        # Override those two paths with a single narrow dup-keys subquery joined
-        # back to source.
-        register_metric(
-            metric_name=f"{cls.condition_metric_name}."
-            f"{SummarizationMetricNameSuffixes.UNEXPECTED_ROWS.value}",
-            metric_domain_keys=cls.condition_domain_keys,
-            metric_value_keys=(*cls.condition_value_keys, "result_format"),
-            execution_engine=SqlAlchemyExecutionEngine,
-            metric_class=cls,
-            metric_provider=_sqlalchemy_unique_unexpected_rows,
-            metric_fn_type=MetricFunctionTypes.VALUE,
-        )
-        register_metric(
-            metric_name=f"{cls.condition_metric_name}."
-            f"{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_LIST.value}",
-            metric_domain_keys=cls.condition_domain_keys,
-            metric_value_keys=(*cls.condition_value_keys, "result_format"),
-            execution_engine=SqlAlchemyExecutionEngine,
-            metric_class=cls,
-            metric_provider=_sqlalchemy_unique_unexpected_index_list,
-            metric_fn_type=MetricFunctionTypes.VALUE,
-        )
-        register_metric(
-            metric_name=f"{cls.condition_metric_name}."
-            f"{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_QUERY.value}",
-            metric_domain_keys=cls.condition_domain_keys,
-            metric_value_keys=(*cls.condition_value_keys, "result_format"),
-            execution_engine=SqlAlchemyExecutionEngine,
-            metric_class=cls,
-            metric_provider=_sqlalchemy_unique_unexpected_index_query,
-            metric_fn_type=MetricFunctionTypes.VALUE,
-        )
