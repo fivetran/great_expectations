@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 import logging
 import warnings
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility.typing_extensions import override
@@ -101,6 +101,21 @@ class MapMetricProvider(MetricProvider):
     condition_value_keys: tuple[str, ...] = tuple()
     function_value_keys: tuple[str, ...] = tuple()
     filter_column_isnull = True
+
+    # Deliberately limited to the SQLAlchemy row-retrieval providers: only the SQL path has a
+    # narrow-selectable variant that needs to diverge from the generic full-row builders below.
+    # Assign plain module functions here, never a `@column_condition_partial`-decorated method —
+    # a decorated method carries `metric_engine` and would be double-registered by the
+    # `inspect.getmembers` scan in `_register_metric_functions` below.
+    sqlalchemy_unexpected_rows_provider: Callable[..., Any] = staticmethod(
+        _sqlalchemy_map_condition_rows
+    )
+    sqlalchemy_unexpected_index_list_provider: Callable[..., Any] = staticmethod(
+        _sqlalchemy_map_condition_index
+    )
+    sqlalchemy_unexpected_index_query_provider: Callable[..., Any] = staticmethod(
+        _sqlalchemy_map_condition_query
+    )
 
     @classmethod
     @override
@@ -267,7 +282,7 @@ class MapMetricProvider(MetricProvider):
                         metric_value_keys=(*metric_value_keys, "result_format"),
                         execution_engine=engine,
                         metric_class=cls,
-                        metric_provider=_sqlalchemy_map_condition_rows,
+                        metric_provider=cls.sqlalchemy_unexpected_rows_provider,
                         metric_fn_type=MetricFunctionTypes.VALUE,
                     )
                     register_metric(
@@ -276,7 +291,7 @@ class MapMetricProvider(MetricProvider):
                         metric_value_keys=(*metric_value_keys, "result_format"),
                         execution_engine=engine,
                         metric_class=cls,
-                        metric_provider=_sqlalchemy_map_condition_index,
+                        metric_provider=cls.sqlalchemy_unexpected_index_list_provider,
                         metric_fn_type=MetricFunctionTypes.VALUE,
                     )
                     register_metric(
@@ -285,7 +300,7 @@ class MapMetricProvider(MetricProvider):
                         metric_value_keys=(*metric_value_keys, "result_format"),
                         execution_engine=engine,
                         metric_class=cls,
-                        metric_provider=_sqlalchemy_map_condition_query,
+                        metric_provider=cls.sqlalchemy_unexpected_index_query_provider,
                         metric_fn_type=MetricFunctionTypes.VALUE,
                     )
                     if metric_fn_type == MetricPartialFunctionTypes.MAP_CONDITION_FN:
