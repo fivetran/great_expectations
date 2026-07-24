@@ -1,2 +1,0 @@
-orjson>=3.9.7
-pact-python>=3.1.0,<4

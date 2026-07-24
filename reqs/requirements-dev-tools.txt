@@ -1,7 +1,0 @@
-# Do not `pip install -r` this file locally or in CI.
-# It only exists to be used in the Dockerfile.tests file.
-
-jupyter
-jupyterlab
-matplotlib
-scikit-learn

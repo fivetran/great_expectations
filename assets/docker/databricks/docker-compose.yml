@@ -1,3 +1,0 @@
-services:
-  databricks:
-    image: databricksruntime/python

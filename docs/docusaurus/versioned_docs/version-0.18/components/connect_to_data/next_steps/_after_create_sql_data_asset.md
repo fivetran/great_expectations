@@ -1,1 +1,0 @@
-- [Organize a SQL Data Asset into multiple Batches](/oss/guides/connecting_to_your_data/fluent/database/sql_data_assets.md)

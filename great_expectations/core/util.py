@@ -73,7 +73,7 @@ def nested_update(
     """
     for k, v in u.items():
         if isinstance(v, Mapping):
-            d[k] = nested_update(d.get(k, {}), v, dedup=dedup)
+            d[k] = nested_update(d.get(k, {}), v, dedup=dedup, concat_lists=concat_lists)
         elif isinstance(v, set) or (k in d and isinstance(d[k], set)):
             s1 = d.get(k, set())
             s2 = v or set()

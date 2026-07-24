@@ -119,6 +119,19 @@ def test_nested_update_lists():
 
 
 @pytest.mark.unit
+def test_nested_update_lists_concat_lists_false_replaces_nested_lists():
+    # concat_lists=False must replace lists at every depth, not only the top
+    # level; the flag was dropped on the recursive call, so a nested list was
+    # still concatenated.
+    base = {"outer": {"items": [1, 2]}, "items": [1, 2]}
+    update = {"outer": {"items": [3, 4]}, "items": [3, 4]}
+
+    nested_update(base, update, concat_lists=False)
+
+    assert base == {"outer": {"items": [3, 4]}, "items": [3, 4]}
+
+
+@pytest.mark.unit
 def test_filter_properties_dict():
     source_dict: dict = {
         "integer_zero": 0,
