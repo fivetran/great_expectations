@@ -1,23 +1,28 @@
-from typing import Sequence
-
 import pandas as pd
-import pytest
 
 import great_expectations.expectations as gxe
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
+    PandasDataFrameDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.base import DataSourceTestConfig
 
-pyspark_types = pytest.importorskip("pyspark.sql.types")
-
-SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
-    SparkFilesystemCsvDatasourceTestConfig(
-        column_types={"timestamps": pyspark_types.StringType},
-    ),
+SUPPORTED_DATA_SOURCES: list[DataSourceTestConfig] = [
+    PandasDataFrameDatasourceTestConfig(),
 ]
+
+try:
+    import pyspark.sql.types as pyspark_types
+except ImportError:
+    pass
+else:
+    SUPPORTED_DATA_SOURCES.append(
+        SparkFilesystemCsvDatasourceTestConfig(
+            column_types={"timestamps": pyspark_types.StringType},
+        )
+    )
 
 TIMESTAMPS = "timestamps"
 
