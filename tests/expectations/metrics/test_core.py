@@ -842,6 +842,34 @@ def test_quantiles_metric_sa(sa):
     results = engine.resolve_metrics(metrics_to_resolve=(table_row_count_metric,), metrics=metrics)
     metrics.update(results)
 
+    column_values_null_condition_metric = MetricConfiguration(
+        metric_name=f"column_values.null.{MetricPartialFunctionTypeSuffixes.CONDITION.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    column_values_null_condition_metric.metric_dependencies = {
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(
+        metrics_to_resolve=(column_values_null_condition_metric,), metrics=metrics
+    )
+    metrics.update(results)
+
+    column_values_nonnull_count_metric = MetricConfiguration(
+        metric_name=f"column_values.null.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    column_values_nonnull_count_metric.metric_dependencies = {
+        "unexpected_condition": column_values_null_condition_metric,
+        "metric_partial_fn": partial_metric,
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(
+        metrics_to_resolve=(column_values_nonnull_count_metric,), metrics=metrics
+    )
+    metrics.update(results)
+
     desired_metric = MetricConfiguration(
         metric_name="column.quantile_values",
         metric_domain_kwargs={"column": "a"},
@@ -852,6 +880,7 @@ def test_quantiles_metric_sa(sa):
     desired_metric.metric_dependencies = {
         "table.columns": table_columns_metric,
         "table.row_count": table_row_count_metric,
+        "column_values.nonnull.count": column_values_nonnull_count_metric,
     }
     results = engine.resolve_metrics(metrics_to_resolve=(desired_metric,), metrics=metrics)
     metrics.update(results)

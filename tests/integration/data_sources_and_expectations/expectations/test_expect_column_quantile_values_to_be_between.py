@@ -40,6 +40,19 @@ COL_NAME = "my_col"
 
 DATA = pd.DataFrame({COL_NAME: [1, 2, 2, 3, 3, 3, 4]})
 
+# Same distribution as DATA, plus nulls. Excluding the nulls from the computation must yield the
+# same quantiles DATA produces. The dtype keeps the column an integer one on the SQL backends, so
+# that the nulls are the only thing that differs from DATA.
+DATA_WITH_NULLS = pd.DataFrame({COL_NAME: [1, 2, 2, 3, 3, 3, 4, None, None]}, dtype="object")
+
+# No duplicates, and quantiles chosen so that quantile * row_count is not a whole number, which is
+# where the selected rank is easiest to get wrong.
+DISTINCT_DATA = pd.DataFrame({COL_NAME: [10, 20, 30, 40]})
+
+# 0.56 * 25 is 14.000000000000002 in binary floating point, so a rank computed in floating point
+# rounds up to 15 and returns the wrong value.
+TWENTY_FIVE_ROWS = pd.DataFrame({COL_NAME: list(range(1, 26))})
+
 ALL_NULLS = pd.DataFrame({COL_NAME: [None, None, None]}, dtype="object")
 
 # An all-null column carries no type of its own, so each backend is told what to make it.
@@ -120,6 +133,82 @@ def test_all_null_column_reports_unmet_expectation(batch_for_datasource: Batch) 
         },
         "details": {
             "success_details": [False, False],
+        },
+    }
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=ALL_DATA_SOURCES_EXCEPT_BIGQUERY, data=DATA_WITH_NULLS
+)
+def test_nulls_are_excluded_from_quantiles(batch_for_datasource: Batch) -> None:
+    expectation = gxe.ExpectColumnQuantileValuesToBeBetween(
+        column=COL_NAME,
+        quantile_ranges=QuantileRange(
+            quantiles=[0, 0.333, 0.667, 1],
+            value_ranges=[[0, 1], [2, 3], [3, 4], [4, 5]],
+        ),
+    )
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    assert result.success
+    assert result.to_json_dict()["result"] == {
+        "observed_value": {
+            "quantiles": [0.0, 0.333, 0.667, 1.0],
+            "values": [1, 2, 3, 4],
+        },
+        "details": {
+            "success_details": [True, True, True, True],
+        },
+    }
+
+
+# Pandas and SQLite only. The MySQL implementation resolves quantiles from percent_rank, which
+# picks the largest rank at or below the quantile rather than the first one to reach it, so it
+# reports [10, 20] for this data. That predates this change and is left alone here.
+@parameterize_batch_for_data_sources(
+    data_source_configs=[*JUST_PANDAS_DATA_SOURCES, SqliteDatasourceTestConfig()],
+    data=DISTINCT_DATA,
+)
+def test_quantiles_select_the_first_rank_reaching_the_quantile(
+    batch_for_datasource: Batch,
+) -> None:
+    expectation = gxe.ExpectColumnQuantileValuesToBeBetween(
+        column=COL_NAME,
+        quantile_ranges=QuantileRange(
+            quantiles=[0.3, 0.6],
+            value_ranges=[[20, 20], [30, 30]],
+        ),
+    )
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    assert result.success
+    assert result.to_json_dict()["result"] == {
+        "observed_value": {
+            "quantiles": [0.3, 0.6],
+            "values": [20, 30],
+        },
+        "details": {
+            "success_details": [True, True],
+        },
+    }
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[*JUST_PANDAS_DATA_SOURCES, SqliteDatasourceTestConfig()],
+    data=TWENTY_FIVE_ROWS,
+)
+def test_quantile_times_count_inexact_in_binary_float(batch_for_datasource: Batch) -> None:
+    expectation = gxe.ExpectColumnQuantileValuesToBeBetween(
+        column=COL_NAME,
+        quantile_ranges=QuantileRange(quantiles=[0.56], value_ranges=[[14, 14]]),
+    )
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    assert result.success
+    assert result.to_json_dict()["result"] == {
+        "observed_value": {
+            "quantiles": [0.56],
+            "values": [14],
+        },
+        "details": {
+            "success_details": [True],
         },
     }
 
