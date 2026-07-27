@@ -8,8 +8,6 @@ import pytest
 
 from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.data_context import AbstractDataContext
-from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,

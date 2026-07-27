@@ -101,6 +101,11 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
 
         Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.
 
+    Notes:
+        The observed_value field is always None. To inspect violations, use unexpected_count and \
+    partial_unexpected_list (distinct column values not in value_set) and missing_count and \
+    partial_missing_list (values in value_set not present in the column). Each list is capped at 20.
+
     See Also:
         [ExpectColumnDistinctValuesToBeInSet](https://greatexpectations.io/expectations/expect_column_distinct_values_to_be_in_set)
         [ExpectColumnDistinctValuesToContainSet](https://greatexpectations.io/expectations/expect_column_distinct_values_to_contain_set)
@@ -145,27 +150,11 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
                     "exception_message": null
                   }},
                   "result": {{
-                    "observed_value": [
-                      1,
-                      2,
-                      4
-                    ],
-                    "details": {{
-                      "value_counts": [
-                        {{
-                          "value": 1,
-                          "count": 1
-                        }},
-                        {{
-                          "value": 2,
-                          "count": 1
-                        }},
-                        {{
-                          "value": 4,
-                          "count": 1
-                        }}
-                      ]
-                    }}
+                    "observed_value": null,
+                    "unexpected_count": 0,
+                    "missing_count": 0,
+                    "partial_unexpected_list": [],
+                    "partial_missing_list": []
                   }},
                   "meta": {{}},
                   "success": true
@@ -186,17 +175,17 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
                     "exception_message": null
                   }},
                   "result": {{
-                    "observed_value": [
+                    "observed_value": null,
+                    "unexpected_count": 1,
+                    "missing_count": 3,
+                    "partial_unexpected_list": [
                       1
                     ],
-                    "details": {{
-                      "value_counts": [
-                        {{
-                          "value": 1,
-                          "count": 3
-                        }}
-                      ]
-                    }}
+                    "partial_missing_list": [
+                      2,
+                      3,
+                      4
+                    ]
                   }},
                   "meta": {{}},
                   "success": false

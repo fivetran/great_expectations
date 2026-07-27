@@ -173,7 +173,6 @@ except ImportError:
 if TYPE_CHECKING:
     from sqlalchemy.engine import Engine as SaEngine  # noqa: TID251 # FIXME CoP
 
-    from great_expectations.compatibility import sqlalchemy
 
 SQLAColumnClause: TypeAlias = object  # sqlalchemy isn't installed in all environments
 

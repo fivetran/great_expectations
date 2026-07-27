@@ -74,3 +74,69 @@ jobs:
             </details>
 
             Happy coding! 🚀
+
+      # The assignment action above silently declines a `/assign-me` self-claim
+      # when the issue lacks the `ready-for-work` label — it posts no comment,
+      # so the contributor gets no explanation. Close that gap with a friendly
+      # note that says why the claim didn't take and points to the issues that
+      # are actually open for claiming. Only fires for self-claims on open
+      # issues that are missing the label; maintainer `/assign @user` and
+      # already-ready issues are unaffected.
+      - name: Explain why a not-ready issue can't be self-claimed
+        if: >-
+          github.event_name == 'issue_comment' &&
+          github.event.issue.state == 'open' &&
+          contains(github.event.comment.body, '/assign-me') &&
+          !contains(github.event.issue.labels.*.name, 'ready-for-work')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Hidden marker so we can recognize our own note and avoid
+            // re-posting it every time a contributor re-comments `/assign-me`
+            // on the same not-ready issue (the event fires on each comment).
+            const MARKER = '<!-- assign-me:not-ready-for-work -->';
+            const issue_number = context.payload.issue.number;
+            const handle = context.payload.comment.user.login;
+
+            // Skip if we already left this note on the issue within the last
+            // day, mirroring the assignment action's own anti-spam window.
+            const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            const recent = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+              since: since.toISOString(),
+              per_page: 100,
+            });
+            if (recent.some((c) => c.body && c.body.includes(MARKER))) {
+              core.info(`Already explained on issue #${issue_number} recently; skipping.`);
+              return;
+            }
+
+            const readyUrl =
+              'https://github.com/fivetran/great_expectations/issues' +
+              '?q=is%3Aopen+label%3Aready-for-work+-label%3Aclaimed';
+
+            const body = [
+              `Thanks for your interest, @${handle}! 🙌`,
+              '',
+              "This issue isn't marked **`ready-for-work`** yet, so it can't be " +
+                'self-claimed right now. Issues get that label once they have been ' +
+                'triaged and are ready for a contributor to pick up.',
+              '',
+              `👉 **[Browse issues that are ready to claim](${readyUrl})** ` +
+                '(open, `ready-for-work`, and not already claimed).',
+              '',
+              'Find one that interests you and comment `/assign-me` on it to claim it. ' +
+                'Happy contributing! 🚀',
+              '',
+              MARKER,
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+              body,
+            });
+            core.info(`Posted not-ready explanation on issue #${issue_number}.`);
