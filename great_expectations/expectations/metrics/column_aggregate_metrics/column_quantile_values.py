@@ -134,7 +134,9 @@ class ColumnQuantileValues(ColumnAggregateMetricProvider):
                 execution_engine=execution_engine,
             )
         elif dialect_name == GXSqlDialect.SQLITE:
-            nonnull_count = metrics.get("column_values.nonnull.count")
+            # Subscript rather than "get", so a missing dependency raises instead of being read as
+            # an empty column and silently returning NaN.
+            nonnull_count = metrics["column_values.nonnull.count"]
             if not nonnull_count:
                 return [np.nan] * len(quantiles)
             return _get_column_quantiles_sqlite(

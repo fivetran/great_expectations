@@ -168,7 +168,7 @@ def test_nulls_are_excluded_from_quantiles(batch_for_datasource: Batch) -> None:
     data_source_configs=[*JUST_PANDAS_DATA_SOURCES, SqliteDatasourceTestConfig()],
     data=DISTINCT_DATA,
 )
-def test_quantiles_select_the_first_rank_reaching_the_quantile(
+def test_quantiles_when_quantile_times_count_is_not_whole(
     batch_for_datasource: Batch,
 ) -> None:
     expectation = gxe.ExpectColumnQuantileValuesToBeBetween(
