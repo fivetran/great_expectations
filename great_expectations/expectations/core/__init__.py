@@ -74,6 +74,7 @@ from .expect_column_values_to_match_strftime_format import (
 )
 from .expect_column_values_to_not_be_in_set import ExpectColumnValuesToNotBeInSet
 from .expect_column_values_to_not_be_null import ExpectColumnValuesToNotBeNull
+from .expect_column_values_to_not_be_outliers import ExpectColumnValuesToNotBeOutliers
 from .expect_column_values_to_not_match_like_pattern import (
     ExpectColumnValuesToNotMatchLikePattern,
 )

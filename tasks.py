@@ -624,6 +624,7 @@ def type_schema(  # noqa: C901 - too complex
         core.ExpectColumnValuesToMatchRegexList,
         core.ExpectColumnValuesToNotBeInSet,
         core.ExpectColumnValuesToNotBeNull,
+        core.ExpectColumnValuesToNotBeOutliers,
         core.ExpectColumnValuesToNotMatchLikePattern,
         core.ExpectColumnValuesToNotMatchLikePatternList,
         core.ExpectColumnValuesToNotMatchRegex,
