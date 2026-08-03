@@ -319,6 +319,7 @@ class ColumnValuesNotOutliers(ColumnMapMetricProvider):
 
     condition_metric_name = "column_values.not_outliers"
     condition_value_keys = ("method", "multiplier")
+    filter_column_isnull = True
 
     @column_condition_partial(engine=PandasExecutionEngine)
     def _pandas(
