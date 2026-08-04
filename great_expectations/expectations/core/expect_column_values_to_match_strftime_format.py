@@ -58,7 +58,9 @@ class ExpectColumnValuesToMatchStrftimeFormat(ColumnMapExpectation):
 
     Column Map Expectations are one of the most common types of Expectation.
     They are evaluated for a single column and ask a yes/no question for every row in that column.
-    Based on the result, they then calculate the percentage of rows that gave a positive answer. If the percentage is high enough, the Expectation considers that data valid.
+    Based on the result, they then calculate the percentage of rows that gave a positive answer. If the percentage is high enough, the Expectation considers that data valid. \
+    SQL data sources are not currently supported: strftime format tokens do not map cleanly \
+    onto the date-format models of SQL dialects.
 
     Args:
         column (str): \
@@ -69,7 +71,7 @@ class ExpectColumnValuesToMatchStrftimeFormat(ColumnMapExpectation):
     Other Parameters:
         mostly (None or a float between 0 and 1): \
             {MOSTLY_DESCRIPTION} \
-            For more detail, see [mostly](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#mostly).
+            For more detail, see [mostly](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#mostly). Default 1.
         result_format (str or None): \
             Which output mode to use: BOOLEAN_ONLY, BASIC, COMPLETE, or SUMMARY. \
             For more detail, see [result_format](https://docs.greatexpectations.io/docs/reference/expectations/result_format).
@@ -92,17 +94,14 @@ class ExpectColumnValuesToMatchStrftimeFormat(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-        SQL data sources are not currently supported: strftime format tokens do not map cleanly \
-        onto the date-format models of SQL dialects.
-
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
-                event_date
-            0   "2024-01-15"
-            1   "2024-06-20"
-            2   "not-a-date"
+                event_date      invalid_date
+            0   "2024-01-15"    "01/15/2024"
+            1   "2024-06-20"    "06/20/2024"
+            2   "2024-12-31"    "12/31/2024"
 
     Code Examples:
         Passing Case:
@@ -121,25 +120,23 @@ class ExpectColumnValuesToMatchStrftimeFormat(ColumnMapExpectation):
                   }},
                   "result": {{
                     "element_count": 3,
-                    "unexpected_count": 1,
-                    "unexpected_percent": 33.33333333333333,
-                    "partial_unexpected_list": [
-                      "not-a-date"
-                    ],
+                    "unexpected_count": 0,
+                    "unexpected_percent": 0.0,
+                    "partial_unexpected_list": [],
                     "missing_count": 0,
                     "missing_percent": 0.0,
-                    "unexpected_percent_total": 33.33333333333333,
-                    "unexpected_percent_nonmissing": 33.33333333333333
+                    "unexpected_percent_total": 0.0,
+                    "unexpected_percent_nonmissing": 0.0
                   }},
                   "meta": {{}},
-                  "success": false
+                  "success": true
                 }}
 
         Failing Case:
             Input:
                 ExpectColumnValuesToMatchStrftimeFormat(
-                    column="event_date",
-                    strftime_format="%m/%d/%Y",
+                    column="invalid_date",
+                    strftime_format="%Y-%m-%d",
             )
 
             Output:
@@ -154,9 +151,9 @@ class ExpectColumnValuesToMatchStrftimeFormat(ColumnMapExpectation):
                     "unexpected_count": 3,
                     "unexpected_percent": 100.0,
                     "partial_unexpected_list": [
-                      "2024-01-15",
-                      "2024-06-20",
-                      "not-a-date"
+                      "01/15/2024",
+                      "06/20/2024",
+                      "12/31/2024"
                     ],
                     "missing_count": 0,
                     "missing_percent": 0.0,
