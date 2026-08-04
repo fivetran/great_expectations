@@ -58,9 +58,8 @@ class ExpectColumnValuesToMatchStrftimeFormat(ColumnMapExpectation):
 
     Column Map Expectations are one of the most common types of Expectation.
     They are evaluated for a single column and ask a yes/no question for every row in that column.
-    Based on the result, they then calculate the percentage of rows that gave a positive answer. If the percentage is high enough, the Expectation considers that data valid. \
-    SQL data sources are not currently supported: strftime format tokens do not map cleanly \
-    onto the date-format models of SQL dialects.
+    Based on the result, they then calculate the percentage of rows that gave a positive answer. If the percentage is high enough, the Expectation considers that data valid.
+    SQL data sources are not currently supported: strftime format tokens do not map cleanly onto the date-format models of SQL dialects.
 
     Args:
         column (str): \
