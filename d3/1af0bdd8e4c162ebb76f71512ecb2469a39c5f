@@ -1,0 +1,29 @@
+scripts/cleanup/cleanup_snowflake.py
+  b6d2d97248478c73 39
+scripts/cleanup/cleanup_databricks.py
+  b6d2d97248478c73 12
+scripts/cleanup/cleanup_big_query.py
+  b6d2d97248478c73 28
+tests/integration/execution_engine/test_databricks_execution_engine.py
+  b6d2d97248478c73 36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.3",
+  "base_commit_sha": "d31af0bdd8e4c162ebb76f71512ecb2469a39c5f",
+  "prompts": {
+    "b6d2d97248478c73": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e116c410-fe10-4b5a-bc6f-1ab68e3acbb9",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Josh Stauffer <66793731+joshua-stauffer@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 4,
+      "total_deletions": 4,
+      "accepted_lines": 4,
+      "overriden_lines": 0
+    }
+  }
+}
