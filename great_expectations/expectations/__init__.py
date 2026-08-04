@@ -47,6 +47,7 @@ from .core import (
     ExpectColumnValueZScoresToBeLessThan,
     ExpectCompoundColumnsToBeUnique,
     ExpectMulticolumnSumToEqual,
+    ExpectMulticolumnValuesToBeEqual,
     ExpectMulticolumnValuesToBeUnique,
     ExpectQueryResultsToMatchComparison,
     ExpectSelectColumnValuesToBeUniqueWithinRecord,

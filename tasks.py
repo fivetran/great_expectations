@@ -595,6 +595,7 @@ def type_schema(  # noqa: C901 - too complex
         core.ExpectTableRowCountToEqual,
         core.ExpectColumnPairValuesToBeEqual,
         core.ExpectMulticolumnSumToEqual,
+        core.ExpectMulticolumnValuesToBeEqual,
         core.ExpectCompoundColumnsToBeUnique,
         core.ExpectSelectColumnValuesToBeUniqueWithinRecord,
         core.ExpectColumnPairValuesAToBeGreaterThanB,
