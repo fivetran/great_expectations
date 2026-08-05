@@ -33,7 +33,7 @@ def generate_large_table_for_metrics(sa):
         df = pd.DataFrame(data)
 
         config = DatabricksConnectionConfig()
-        schema_name = f"test_{uuid.uuid4().hex[:8]}"
+        schema_name = f"gx_ci_test_{uuid.uuid4().hex[:8]}"
         connection_string = config.build_connection_string(schema_name)
 
         execution_engine = SqlAlchemyExecutionEngine(connection_string=connection_string)

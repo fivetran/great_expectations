@@ -86,7 +86,7 @@ InferredColumnTypes = dict[str, Union[type[TypeEngine], TypeEngine]]
 
 
 class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_ConfigT]):
-    SCHEMA_PREFIX = "test_"
+    SCHEMA_PREFIX = "gx_ci_test_"
 
     @abstractmethod
     def build_connection_string(self, schema: str | None = None) -> str:

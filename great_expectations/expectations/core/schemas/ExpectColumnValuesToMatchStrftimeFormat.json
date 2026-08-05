@@ -1,0 +1,448 @@
+{
+    "title": "Expect column values to match strftime format",
+    "description": "Expect the column entries to be strings representing a date or time with a given format.\n\nExpectColumnValuesToMatchStrftimeFormat is a     Column Map Expectation.\n\nColumn Map Expectations are one of the most common types of Expectation.\nThey are evaluated for a single column and ask a yes/no question for every row in that column.\nBased on the result, they then calculate the percentage of rows that gave a positive answer. If the percentage is high enough, the Expectation considers that data valid.\nSQL data sources are not currently supported: strftime format tokens do not map cleanly onto the date-format models of SQL dialects.\n\nArgs:\n    column (str):             The column name.\n    strftime_format (str or SuiteParameterDict):             A strftime format string to use for matching.\n\nOther Parameters:\n    mostly (None or a float between 0 and 1):             Successful if at least `mostly` fraction of values match the Expectation.             For more detail, see [mostly](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#mostly). Default 1.\n    result_format (str or None):             Which output mode to use: BOOLEAN_ONLY, BASIC, COMPLETE, or SUMMARY.             For more detail, see [result_format](https://docs.greatexpectations.io/docs/reference/expectations/result_format).\n    catch_exceptions (boolean or None):             If True, then catch exceptions and include them as part of the result object.             For more detail, see [catch_exceptions](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#catch_exceptions).\n    meta (dict or None):             A JSON-serializable dictionary (nesting allowed) that will be included in the output without             modification. For more detail, see [meta](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#meta).\n    severity (str or None):             The impact of this Expectation failing: critical, warning, or info. Defaults to critical if not set. Severity levels can be used to trigger different alerting patterns and actions.             For more detail, see [failure severity](https://docs.greatexpectations.io/docs/cloud/expectations/expectations_overview/#failure-severity).\n\nReturns:\n    An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)\n\n    Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.\n\nSupported Data Sources:\n    [Pandas](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [Spark](https://docs.greatexpectations.io/docs/application_integration_support/)\n\nData Quality Issues:\n    Validity\n\nExample Data:\n            event_date      invalid_date\n        0   \"2024-01-15\"    \"01/15/2024\"\n        1   \"2024-06-20\"    \"06/20/2024\"\n        2   \"2024-12-31\"    \"12/31/2024\"\n\nCode Examples:\n    Passing Case:\n        Input:\n            ExpectColumnValuesToMatchStrftimeFormat(\n                column=\"event_date\",\n                strftime_format=\"%Y-%m-%d\",\n        )\n\n        Output:\n            {\n              \"exception_info\": {\n                \"raised_exception\": false,\n                \"exception_traceback\": null,\n                \"exception_message\": null\n              },\n              \"result\": {\n                \"element_count\": 3,\n                \"unexpected_count\": 0,\n                \"unexpected_percent\": 0.0,\n                \"partial_unexpected_list\": [],\n                \"missing_count\": 0,\n                \"missing_percent\": 0.0,\n                \"unexpected_percent_total\": 0.0,\n                \"unexpected_percent_nonmissing\": 0.0\n              },\n              \"meta\": {},\n              \"success\": true\n            }\n\n    Failing Case:\n        Input:\n            ExpectColumnValuesToMatchStrftimeFormat(\n                column=\"invalid_date\",\n                strftime_format=\"%Y-%m-%d\",\n        )\n\n        Output:\n            {\n              \"exception_info\": {\n                \"raised_exception\": false,\n                \"exception_traceback\": null,\n                \"exception_message\": null\n              },\n              \"result\": {\n                \"element_count\": 3,\n                \"unexpected_count\": 3,\n                \"unexpected_percent\": 100.0,\n                \"partial_unexpected_list\": [\n                  \"01/15/2024\",\n                  \"06/20/2024\",\n                  \"12/31/2024\"\n                ],\n                \"missing_count\": 0,\n                \"missing_percent\": 0.0,\n                \"unexpected_percent_total\": 100.0,\n                \"unexpected_percent_nonmissing\": 100.0\n              },\n              \"meta\": {},\n              \"success\": false\n            }",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "Id",
+            "type": "string"
+        },
+        "meta": {
+            "title": "Meta",
+            "type": "object"
+        },
+        "notes": {
+            "title": "Notes",
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "result_format": {
+            "title": "Result Format",
+            "default": "BASIC",
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/ResultFormat"
+                },
+                {
+                    "type": "object"
+                }
+            ]
+        },
+        "description": {
+            "title": "Description",
+            "description": "A short description of your Expectation",
+            "type": "string"
+        },
+        "catch_exceptions": {
+            "title": "Catch Exceptions",
+            "default": true,
+            "type": "boolean"
+        },
+        "rendered_content": {
+            "title": "Rendered Content",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
+        "severity": {
+            "description": "Indicate the impact of this Expectation failing. Severity levels can be used to trigger different alerting patterns and actions.",
+            "default": "critical",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/FailureSeverity"
+                }
+            ]
+        },
+        "windows": {
+            "title": "Windows",
+            "description": "Definition(s) for evaluation of temporal windows",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Window"
+            }
+        },
+        "batch_id": {
+            "title": "Batch Id",
+            "type": "string"
+        },
+        "column": {
+            "title": "Column",
+            "description": "The column name.",
+            "minLength": 1,
+            "type": "string"
+        },
+        "mostly": {
+            "title": "Mostly",
+            "description": "Successful if at least `mostly` fraction of values match the Expectation.",
+            "default": 1,
+            "anyOf": [
+                {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0
+                },
+                {
+                    "type": "object"
+                }
+            ],
+            "multipleOf": 0.01
+        },
+        "row_condition": {
+            "title": "Row Condition",
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "$ref": "#/definitions/ComparisonCondition"
+                },
+                {
+                    "$ref": "#/definitions/NullityCondition"
+                },
+                {
+                    "$ref": "#/definitions/AndCondition"
+                },
+                {
+                    "$ref": "#/definitions/OrCondition"
+                },
+                {
+                    "$ref": "#/definitions/PassThroughCondition"
+                }
+            ]
+        },
+        "condition_parser": {
+            "title": "Condition Parser",
+            "enum": [
+                "great_expectations",
+                "great_expectations__experimental__",
+                "pandas",
+                "spark"
+            ],
+            "type": "string"
+        },
+        "strftime_format": {
+            "title": "Strftime Format",
+            "description": "A strftime format string to use for matching.",
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "object"
+                }
+            ]
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "expectation_class": {
+                    "title": "Expectation Class",
+                    "type": "string",
+                    "const": "ExpectColumnValuesToMatchStrftimeFormat"
+                },
+                "expectation_type": {
+                    "title": "Expectation Type",
+                    "type": "string",
+                    "const": "expect_column_values_to_match_strftime_format"
+                },
+                "domain_type": {
+                    "title": "Domain Type",
+                    "type": "string",
+                    "const": "column",
+                    "description": "Column Map"
+                },
+                "data_quality_issues": {
+                    "title": "Data Quality Issues",
+                    "type": "array",
+                    "const": [
+                        "Validity"
+                    ]
+                },
+                "library_metadata": {
+                    "title": "Library Metadata",
+                    "type": "object",
+                    "const": {
+                        "maturity": "production",
+                        "tags": [
+                            "core expectation",
+                            "column map expectation"
+                        ],
+                        "contributors": [
+                            "@great_expectations"
+                        ],
+                        "requirements": [],
+                        "has_full_test_suite": true,
+                        "manually_reviewed_code": true
+                    }
+                },
+                "short_description": {
+                    "title": "Short Description",
+                    "type": "string",
+                    "const": "Expect the column entries to be strings representing a date or time with a given format."
+                },
+                "supported_data_sources": {
+                    "title": "Supported Data Sources",
+                    "type": "array",
+                    "const": [
+                        "Pandas",
+                        "Spark"
+                    ]
+                }
+            }
+        }
+    },
+    "required": [
+        "column",
+        "strftime_format"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "ResultFormat": {
+            "title": "ResultFormat",
+            "description": "An enumeration.",
+            "enum": [
+                "BOOLEAN_ONLY",
+                "BASIC",
+                "COMPLETE",
+                "SUMMARY"
+            ],
+            "type": "string"
+        },
+        "FailureSeverity": {
+            "title": "FailureSeverity",
+            "description": "Severity levels for Expectation failures.",
+            "enum": [
+                "critical",
+                "warning",
+                "info"
+            ],
+            "type": "string"
+        },
+        "Offset": {
+            "title": "Offset",
+            "description": "A threshold in which a metric will be considered passable",
+            "type": "object",
+            "properties": {
+                "positive": {
+                    "title": "Positive",
+                    "type": "number"
+                },
+                "negative": {
+                    "title": "Negative",
+                    "type": "number"
+                }
+            },
+            "required": [
+                "positive",
+                "negative"
+            ],
+            "additionalProperties": false
+        },
+        "Window": {
+            "title": "Window",
+            "description": "A definition for a temporal window across <`range`> number of previous invocations",
+            "type": "object",
+            "properties": {
+                "constraint_fn": {
+                    "title": "Constraint Fn",
+                    "type": "string"
+                },
+                "parameter_name": {
+                    "title": "Parameter Name",
+                    "type": "string"
+                },
+                "range": {
+                    "title": "Range",
+                    "type": "integer"
+                },
+                "offset": {
+                    "$ref": "#/definitions/Offset"
+                },
+                "strict": {
+                    "title": "Strict",
+                    "default": false,
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "constraint_fn",
+                "parameter_name",
+                "range",
+                "offset"
+            ],
+            "additionalProperties": false
+        },
+        "Column": {
+            "title": "Column",
+            "description": "--Public API--\nSpecify the column in a condition statement.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ]
+        },
+        "Operator": {
+            "title": "Operator",
+            "description": "An enumeration.",
+            "enum": [
+                "==",
+                "!=",
+                "<",
+                "<=",
+                ">",
+                ">=",
+                "IN",
+                "NOT_IN"
+            ],
+            "type": "string"
+        },
+        "ComparisonCondition": {
+            "title": "ComparisonCondition",
+            "description": "--Public API--Condition representing the comparison of a column with a parameter.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "comparison",
+                    "enum": [
+                        "comparison"
+                    ],
+                    "type": "string"
+                },
+                "column": {
+                    "$ref": "#/definitions/Column"
+                },
+                "operator": {
+                    "$ref": "#/definitions/Operator"
+                },
+                "parameter": {
+                    "title": "Parameter"
+                }
+            },
+            "required": [
+                "column",
+                "operator",
+                "parameter"
+            ]
+        },
+        "NullityCondition": {
+            "title": "NullityCondition",
+            "description": "--Public API--Condition representing the whether or not a column is null.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "nullity",
+                    "enum": [
+                        "nullity"
+                    ],
+                    "type": "string"
+                },
+                "column": {
+                    "$ref": "#/definitions/Column"
+                },
+                "is_null": {
+                    "title": "Is Null",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "column",
+                "is_null"
+            ]
+        },
+        "Condition": {
+            "title": "Condition",
+            "description": "Base class for conditions.",
+            "type": "object",
+            "properties": {}
+        },
+        "AndCondition": {
+            "title": "AndCondition",
+            "description": "--Public API--Represents an AND condition composed of multiple conditions.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "and",
+                    "enum": [
+                        "and"
+                    ],
+                    "type": "string"
+                },
+                "conditions": {
+                    "title": "Conditions",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Condition"
+                    }
+                }
+            },
+            "required": [
+                "conditions"
+            ]
+        },
+        "OrCondition": {
+            "title": "OrCondition",
+            "description": "--Public API--Represents an OR condition composed of multiple conditions.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "or",
+                    "enum": [
+                        "or"
+                    ],
+                    "type": "string"
+                },
+                "conditions": {
+                    "title": "Conditions",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Condition"
+                    }
+                }
+            },
+            "required": [
+                "conditions"
+            ]
+        },
+        "PassThroughCondition": {
+            "title": "PassThroughCondition",
+            "description": "Condition that passes a filter string directly to the execution engine.\n\nThis is used for legacy pandas/spark condition_parser syntax where the\nrow_condition string is passed directly to DataFrame.query() or DataFrame.filter().",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "pass_through",
+                    "enum": [
+                        "pass_through"
+                    ],
+                    "type": "string"
+                },
+                "pass_through_filter": {
+                    "title": "Pass Through Filter",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "pass_through_filter"
+            ]
+        }
+    }
+}
