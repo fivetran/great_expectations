@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Dict, List, NamedTuple, Optional, Sequence, Union
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility import pyspark, sqlalchemy
@@ -23,6 +23,7 @@ from great_expectations.execution_engine import (
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
+from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from great_expectations.expectations.metrics.map_metric_provider import (
     ColumnMapMetricProvider,
     column_condition_partial,
@@ -43,9 +44,17 @@ if TYPE_CHECKING:
 
 _DUP_KEY_COUNT_LABEL = "_num_rows"
 _DUP_KEY_SUBQUERY_ALIAS = "column_values_count_per_value_subquery"
+_SOURCE_SUBQUERY_ALIAS = "column_values_unique_source"
+_DUP_KEYS_SUBQUERY_ALIAS = "column_values_unique_dup_keys"
 
 # A value is a duplicate once it occurs at least this many times.
 _DUPLICATE_THRESHOLD = 2
+
+# MySQL and its wire-compatible forks refuse to reference the same temporary table more
+# than once in a single statement ("Can't reopen table"), and a batch built from a query
+# is materialized into one when the datasource is configured with create_temp_table.
+# Row retrieval must therefore read the batch exactly once on these engines.
+_SINGLE_REFERENCE_DIALECTS = frozenset({GXSqlDialect.MYSQL.value, GXSqlDialect.SINGLESTOREDB.value})
 
 
 def _count_label(table_columns: Sequence[Any]) -> str:
@@ -63,46 +72,83 @@ def _count_label(table_columns: Sequence[Any]) -> str:
     return label
 
 
-def _named_source_subquery(selectable, table_columns: List[str]):
-    """Return a named subquery that explicitly projects "table_columns" from
-    the source selectable.
+class _DuplicateRowsSource(NamedTuple):
+    """The pieces of a query that returns the source rows whose target value repeats.
 
-    "SqlAlchemyBatchData" exposes the source table as a metadata-less
-    "sa.Table" shell (no reflected columns), so its ".c" accessor is empty.
-    Likewise, when a row_condition is present "get_domain_records" returns a
-    "SELECT * FROM ... WHERE ..." Select whose ".c" collection carries no named
-    columns. Wrapping either shape in an explicit projection gives us a
-    subquery whose ".c" collection is populated and can be used to
-    unambiguously reference source-side columns inside a join with the
-    dup-keys subquery.
+    "columns" exposes the source columns via its ".c" accessor, "from_clause" is what
+    the query selects FROM, and "whereclause" is an extra filter to apply (or None).
     """
-    from_clause = selectable.subquery() if isinstance(selectable, Select) else selectable
-    return (
-        sa.select(*[sa.column(c) for c in table_columns])
-        .select_from(from_clause)
-        .subquery("column_values_unique_source")
-    )
+
+    columns: Any
+    from_clause: Any
+    whereclause: Any
 
 
-def _build_dup_keys_subquery(
+def _build_duplicate_rows_source(
     execution_engine: SqlAlchemyExecutionEngine,
     metric_domain_kwargs: Dict[str, Any],
     column_name: str,
-):
-    """Narrow GROUP BY/HAVING subquery: one row per duplicated value.
+    table_columns: Sequence[Any],
+) -> _DuplicateRowsSource:
+    """Build the FROM clause shared by the row-retrieval metrics.
 
-    Reads only the target column from the source table; partial-aggregation
-    friendly on distributed engines and avoids wide-row window sort.
+    The default shape joins a narrow GROUP BY/HAVING aggregate back to the source. The
+    aggregate reads only the target column, so no engine has to carry the full row width
+    through a sort, but it does read the source twice. Engines that cannot tolerate the
+    second read get a single-pass window instead; carrying every column through the
+    window is acceptable there because they are row stores, which is also why the wide
+    window is what "compound_columns.unique" already uses on them.
+
+    "SqlAlchemyBatchData" exposes the source table as a metadata-less "sa.Table" shell
+    (no reflected columns), so its ".c" accessor is empty. Likewise, when a row_condition
+    is present "get_domain_records" returns a "SELECT * FROM ... WHERE ..." Select whose
+    ".c" collection carries no named columns. Both shapes are wrapped in an explicit
+    projection so that ".c" is populated and source-side columns can be referenced
+    unambiguously.
     """
-    selectable = execution_engine.get_domain_records(domain_kwargs=metric_domain_kwargs)
-    selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type] # FIXME CoP
-    return (
+    selectable = get_sqlalchemy_selectable(
+        execution_engine.get_domain_records(domain_kwargs=metric_domain_kwargs)  # type: ignore[arg-type] # FIXME CoP
+    )
+
+    if execution_engine.dialect_name in _SINGLE_REFERENCE_DIALECTS:
+        count_label = _count_label(table_columns)
+        source = (
+            sa.select(
+                *[sa.column(c) for c in table_columns],
+                sa.func.count().over(partition_by=sa.column(column_name)).label(count_label),
+            )
+            .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
+            # Excluded here rather than downstream so that null rows never join a
+            # partition and inflate its count.
+            .where(sa.column(column_name).is_not(None))
+            .subquery(_SOURCE_SUBQUERY_ALIAS)
+        )
+        return _DuplicateRowsSource(
+            columns=source,
+            from_clause=source,
+            whereclause=source.c[count_label] >= _DUPLICATE_THRESHOLD,
+        )
+
+    source = (
+        sa.select(*[sa.column(c) for c in table_columns])
+        .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
+        .subquery(_SOURCE_SUBQUERY_ALIAS)
+    )
+    dup_keys = (
         sa.select(sa.column(column_name))
         .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
         .where(sa.column(column_name).is_not(None))
         .group_by(sa.column(column_name))
         .having(sa.func.count() >= _DUPLICATE_THRESHOLD)
-        .subquery("column_values_unique_dup_keys")
+        .subquery(_DUP_KEYS_SUBQUERY_ALIAS)
+    )
+    return _DuplicateRowsSource(
+        columns=source,
+        from_clause=source.join(
+            dup_keys,
+            source.c[column_name] == dup_keys.c[column_name],
+        ),
+        whereclause=None,
     )
 
 
@@ -116,28 +162,22 @@ def _sqlalchemy_unique_unexpected_rows(
 ) -> Sequence[Any]:
     """Return full source rows for values that appear more than once.
 
-    Source is scanned twice (cheap narrow hash-aggregate + hash join back),
-    but only when the caller requests "unexpected_rows" (typically COMPLETE
+    On most engines the source is read twice (cheap narrow hash-aggregate + hash join
+    back), but only when the caller requests "unexpected_rows" (typically COMPLETE
     result_format). The dominant "unexpected_count" path stays single-scan.
     """
     column_name: str = metric_domain_kwargs["column"]
     table_columns: List[str] = metrics["table.columns"]
-    source_selectable = _named_source_subquery(
-        execution_engine.get_domain_records(domain_kwargs=metric_domain_kwargs),
-        table_columns,
-    )
-    dup_keys = _build_dup_keys_subquery(
+    duplicates = _build_duplicate_rows_source(
         execution_engine=execution_engine,
         metric_domain_kwargs=metric_domain_kwargs,
         column_name=column_name,
+        table_columns=table_columns,
     )
-    column_selector = [source_selectable.c[c] for c in table_columns]
-    query = sa.select(*column_selector).select_from(
-        source_selectable.join(
-            dup_keys,
-            source_selectable.c[column_name] == dup_keys.c[column_name],
-        )
-    )
+    column_selector = [duplicates.columns.c[c] for c in table_columns]
+    query = sa.select(*column_selector).select_from(duplicates.from_clause)
+    if duplicates.whereclause is not None:
+        query = query.where(duplicates.whereclause)
     result_format = metric_value_kwargs["result_format"]
     if result_format["result_format"] != "COMPLETE":
         limit = min(result_format["partial_unexpected_count"], MAX_RESULT_RECORDS)
@@ -178,27 +218,18 @@ def _sqlalchemy_unique_unexpected_index_list(
                 )
             )
 
-    source_selectable = _named_source_subquery(
-        execution_engine.get_domain_records(domain_kwargs=metric_domain_kwargs),
-        all_table_columns,
-    )
-    dup_keys = _build_dup_keys_subquery(
+    duplicates = _build_duplicate_rows_source(
         execution_engine=execution_engine,
         metric_domain_kwargs=metric_domain_kwargs,
         column_name=column_name,
+        table_columns=all_table_columns,
     )
-    column_selector = [source_selectable.c[c] for c in unexpected_index_column_names]
-    column_selector.append(source_selectable.c[column_name])
-    query = (
-        sa.select(*column_selector)
-        .select_from(
-            source_selectable.join(
-                dup_keys,
-                source_selectable.c[column_name] == dup_keys.c[column_name],
-            )
-        )
-        .limit(result_format["partial_unexpected_count"])
-    )
+    column_selector = [duplicates.columns.c[c] for c in unexpected_index_column_names]
+    column_selector.append(duplicates.columns.c[column_name])
+    query = sa.select(*column_selector).select_from(duplicates.from_clause)
+    if duplicates.whereclause is not None:
+        query = query.where(duplicates.whereclause)
+    query = query.limit(result_format["partial_unexpected_count"])
     exclude_unexpected_values: bool = result_format.get("exclude_unexpected_values", False)
     try:
         query_result: List[sqlalchemy.Row] = execution_engine.execute_query(query).fetchall()  # type: ignore[assignment] # FIXME CoP
@@ -250,23 +281,17 @@ def _sqlalchemy_unique_unexpected_index_query(
                 )
             )
 
-    source_selectable = _named_source_subquery(
-        execution_engine.get_domain_records(domain_kwargs=metric_domain_kwargs),
-        all_table_columns,
-    )
-    dup_keys = _build_dup_keys_subquery(
+    duplicates = _build_duplicate_rows_source(
         execution_engine=execution_engine,
         metric_domain_kwargs=metric_domain_kwargs,
         column_name=column_name,
+        table_columns=all_table_columns,
     )
-    column_selector = [source_selectable.c[c] for c in unexpected_index_column_names]
-    column_selector.append(source_selectable.c[column_name])
-    query = sa.select(*column_selector).select_from(
-        source_selectable.join(
-            dup_keys,
-            source_selectable.c[column_name] == dup_keys.c[column_name],
-        )
-    )
+    column_selector = [duplicates.columns.c[c] for c in unexpected_index_column_names]
+    column_selector.append(duplicates.columns.c[column_name])
+    query = sa.select(*column_selector).select_from(duplicates.from_clause)
+    if duplicates.whereclause is not None:
+        query = query.where(duplicates.whereclause)
     return sqlalchemy_select_to_sql_string(engine=execution_engine, select_statement=query)
 
 
