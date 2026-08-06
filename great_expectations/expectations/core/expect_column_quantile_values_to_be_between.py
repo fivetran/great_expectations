@@ -770,17 +770,7 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
             for (lower_bound, upper_bound) in quantile_value_ranges
         ]
         success_details = [
-            isclose(
-                operand_a=quantile_vals[idx],
-                operand_b=range_[0],
-                rtol=1.0e-4,
-            )
-            or isclose(
-                operand_a=quantile_vals[idx],
-                operand_b=range_[1],
-                rtol=1.0e-4,
-            )
-            or range_[0] <= quantile_vals[idx] <= range_[1]
+            _quantile_is_in_range(value=quantile_vals[idx], range_=range_)
             for idx, range_ in enumerate(comparison_quantile_ranges)
         ]
 
@@ -791,3 +781,20 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
                 "details": {"success_details": success_details},
             },
         }
+
+
+def _quantile_is_in_range(value, range_) -> bool:
+    """Whether an observed quantile falls within its expected range.
+
+    A column with no non-null values has no quantiles. The backends report that absence
+    differently -- SQL engines return NULL and pandas returns NaN -- and neither can satisfy
+    a range, so both are reported as an unmet expectation rather than being compared.
+    """
+    if value is None:
+        return False
+
+    return (
+        isclose(operand_a=value, operand_b=range_[0], rtol=1.0e-4)
+        or isclose(operand_a=value, operand_b=range_[1], rtol=1.0e-4)
+        or range_[0] <= value <= range_[1]
+    )

@@ -18,6 +18,10 @@ COL_NAME = "my_col"
 
 DATA = pd.DataFrame({COL_NAME: [1, 2, 2, 3, 3, 3, 4]})
 
+# A column with no non-null values has no quantiles. The dtype keeps the column nullable on the
+# SQL backends rather than being inferred as all-NaN floats.
+ALL_NULLS = pd.DataFrame({COL_NAME: [None, None, None]}, dtype="object")
+
 ALL_DATA_SOURCES_EXCEPT_BIGQUERY = [
     ds for ds in ALL_DATA_SOURCES if not isinstance(ds, BigQueryDatasourceTestConfig)
 ]
@@ -45,6 +49,32 @@ def test_success_complete_results(batch_for_datasource: Batch) -> None:
         },
         "details": {
             "success_details": [True, True, True, True],
+        },
+    }
+
+
+# Every backend, including BigQuery: this asserts only that no quantile was observed, so unlike
+# the cases above it does not depend on the type or shape of a returned value.
+@parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=ALL_NULLS)
+def test_all_null_column_reports_unmet_expectation(batch_for_datasource: Batch) -> None:
+    """A column with no quantiles fails the expectation instead of raising.
+
+    The backends report the absent quantile differently -- SQL engines return NULL and pandas
+    returns NaN -- and every one of them must report it as an unmet expectation.
+    """
+    expectation = gxe.ExpectColumnQuantileValuesToBeBetween(
+        column=COL_NAME,
+        quantile_ranges=QuantileRange(quantiles=[0.25, 0.5], value_ranges=[[0, 99], [0, 99]]),
+    )
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    assert not result.success
+    assert result.to_json_dict()["result"] == {
+        "observed_value": {
+            "quantiles": [0.25, 0.5],
+            "values": [None, None],
+        },
+        "details": {
+            "success_details": [False, False],
         },
     }
 
