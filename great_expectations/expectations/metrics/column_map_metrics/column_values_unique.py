@@ -44,6 +44,24 @@ if TYPE_CHECKING:
 _DUP_KEY_COUNT_LABEL = "_num_rows"
 _DUP_KEY_SUBQUERY_ALIAS = "column_values_count_per_value_subquery"
 
+# A value is a duplicate once it occurs at least this many times.
+_DUPLICATE_THRESHOLD = 2
+
+
+def _count_label(table_columns: Sequence[Any]) -> str:
+    """Return a label for the window count that no source column can shadow.
+
+    Nothing stops a table from containing a column called "_num_rows". Reusing that name
+    for the count would put two columns of the same name in one projection, and column
+    access by name would then silently resolve to the source data rather than to the
+    count -- producing wrong results with no error.
+    """
+    taken = {str(column_name) for column_name in table_columns}
+    label = _DUP_KEY_COUNT_LABEL
+    while label in taken:
+        label = f"_{label}"
+    return label
+
 
 def _named_source_subquery(selectable, table_columns: List[str]):
     """Return a named subquery that explicitly projects "table_columns" from
@@ -83,7 +101,7 @@ def _build_dup_keys_subquery(
         .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
         .where(sa.column(column_name).is_not(None))
         .group_by(sa.column(column_name))
-        .having(sa.func.count() >= 2)  # noqa: PLR2004 # 2 is the duplicate threshold
+        .having(sa.func.count() >= _DUPLICATE_THRESHOLD)
         .subquery("column_values_unique_dup_keys")
     )
 
@@ -301,13 +319,12 @@ class ColumnValuesUnique(ColumnMapMetricProvider):
         # unexpected_values, unexpected_value_counts) only ever read these two
         # columns. Paths that need additional source columns are overridden via
         # the sqlalchemy_*_provider class attributes to join back to source.
+        count_label = _count_label(kwargs["_metrics"]["table.columns"])
         from_clause = _table.subquery() if isinstance(_table, Select) else _table
         return (
             sa.select(
                 sa.column(column.name),
-                sa.func.count()
-                .over(partition_by=sa.column(column.name))
-                .label(_DUP_KEY_COUNT_LABEL),
+                sa.func.count().over(partition_by=sa.column(column.name)).label(count_label),
             )
             .select_from(from_clause)
             .alias(_DUP_KEY_SUBQUERY_ALIAS)
@@ -318,11 +335,14 @@ class ColumnValuesUnique(ColumnMapMetricProvider):
         partial_fn_type=MetricPartialFunctionTypes.WINDOW_CONDITION_FN,
     )
     def _sqlalchemy_condition(cls, column, **kwargs):
-        metrics = kwargs.get("_metrics")
+        metrics = kwargs["_metrics"]
         count_per_value_query, _, _ = metrics[
             f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}"
         ]
-        return count_per_value_query.c[_DUP_KEY_COUNT_LABEL] < 2  # noqa: PLR2004 # 2 is the duplicate threshold
+        # Derived the same way as in "_sqlalchemy_function" so that both agree on which
+        # column of the projection holds the count.
+        count_label = _count_label(metrics["table.columns"])
+        return count_per_value_query.c[count_label] < _DUPLICATE_THRESHOLD
 
     @column_condition_partial(
         engine=SparkDFExecutionEngine,

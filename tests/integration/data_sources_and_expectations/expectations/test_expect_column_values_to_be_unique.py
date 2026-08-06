@@ -380,6 +380,50 @@ def test_exclude_unexpected_values_returns_columnar_index_list_sql(
     assert DUPLICATE_VALUES not in unexpected_index_list[0]
 
 
+# The SQL implementation adds a helper count column to an intermediate projection.
+# Nothing stops a user column from carrying the same name, so the data below is shaped
+# to collide with it deliberately.
+COUNT_LABEL_COLLISION_COLUMN = "_num_rows"
+
+COUNT_LABEL_COLLISION_DATA = pd.DataFrame(
+    {
+        ROW_ID: [1, 2, 3],
+        COUNT_LABEL_COLLISION_COLUMN: [10, 10, 20],
+    }
+)
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=RESULT_FORMAT_GUARD_DATA_SOURCES, data=COUNT_LABEL_COLLISION_DATA
+)
+def test_column_named_like_internal_count_label_sql(
+    batch_for_datasource: Batch,
+) -> None:
+    """A source column may share a name with a helper column the implementation adds.
+
+    The duplicate check must compare against its own count column, never against a
+    same-named source column that happens to sit in the same projection. When the two
+    are confused the comparison silently runs against user data: no error is raised,
+    but the summary fields report the wrong rows and disagree with the index list,
+    which is built by a separate code path.
+    """
+    expectation = gxe.ExpectColumnValuesToBeUnique(column=COUNT_LABEL_COLLISION_COLUMN)
+    result = batch_for_datasource.validate(
+        expectation,
+        result_format={
+            "result_format": "COMPLETE",
+            "unexpected_index_column_names": [ROW_ID],
+        },
+    )
+
+    _assert_no_metric_exceptions(result)
+    assert not result.success
+    # Only the value 10 repeats, so both of its rows are unexpected and 20 is not.
+    assert result.result["unexpected_count"] == 2
+    assert sorted(result.result["unexpected_list"]) == [10, 10]
+    assert sorted(entry[ROW_ID] for entry in result.result["unexpected_index_list"]) == [1, 2]
+
+
 @pytest.mark.timeout(30)  # the subprocess pays full library import cost
 @pytest.mark.unit
 def test_import_does_not_emit_metric_reregistration_warnings() -> None:
