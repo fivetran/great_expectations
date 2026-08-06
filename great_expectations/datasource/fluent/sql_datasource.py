@@ -1170,11 +1170,18 @@ class TableAsset(_SQLAsset):
         )
 
         effective_schema = self._effective_schema_name
-        if effective_schema and effective_schema not in schema_names:
-            raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
-                f'Attempt to connect to table: "{self.qualified_name}" failed because the schema '
-                f'"{effective_schema}" does not exist.'
+        if effective_schema:
+            normalized_effective = self._to_lower_if_not_bracketed_by_quotes(effective_schema)
+            schema_exists = (
+                effective_schema in schema_names
+                or normalized_effective in schema_names
+                or effective_schema.lower() in [s.lower() for s in schema_names]
             )
+            if not schema_exists:
+                raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
+                    f'Attempt to connect to table: "{self.qualified_name}" failed because the schema '
+                    f'"{effective_schema}" does not exist.'
+                )
 
         try:
             with engine.connect() as connection:
