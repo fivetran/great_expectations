@@ -1,8 +1,10 @@
+import datetime
 import logging
+import re
 import sys
 
+from great_expectations.compatibility.google import NotFound, python_bigquery
 from great_expectations.compatibility.pydantic import BaseSettings
-from great_expectations.compatibility.sqlalchemy import TextClause, create_engine
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -10,47 +12,81 @@ logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
 class BigQueryConnectionConfig(BaseSettings):
-    """Environment variables for BigQuery connection.
+    """Environment variables for BigQuery access.
     These are injected in via CI, but when running locally, you may use your own credentials.
-    GOOGLE_APPLICATION_CREDENTIALS must be kept secret
+    GOOGLE_APPLICATION_CREDENTIALS must be kept secret. It is not read directly by this script;
+    Application Default Credentials picks it up automatically.
     """
 
     GE_TEST_GCP_PROJECT: str
     GE_TEST_BIGQUERY_DATASET: str
     GOOGLE_APPLICATION_CREDENTIALS: str
 
-    @property
-    def connection_string(self) -> str:
-        return f"bigquery://{self.GE_TEST_GCP_PROJECT}/{self.GE_TEST_BIGQUERY_DATASET}?credentials_path={self.GOOGLE_APPLICATION_CREDENTIALS}"
+
+# Tables created by the SQL test framework, named by `SQLBatchTestSetup._create_table_name`:
+# a fixed prefix, an optional caller-supplied label, and a uuid4-derived suffix. The suffix
+# is anchored and required so a table someone created deliberately in this dataset is never
+# a candidate for deletion.
+TABLE_PATTERN = re.compile(r"^expectation_test_table(?:_[A-Za-z0-9_]+)?_[0-9a-f]{10}$")
+
+# Only sweep tables older than this, so a table belonging to a run that is still in progress
+# is never deleted out from under it.
+DEFAULT_MAX_AGE = datetime.timedelta(hours=1)
 
 
-# Schema patterns for different test types
-SCHEMA_PATTERN_TEST = "^gx_ci_test_[a-f0-9]{10}$"  # General SQL testing framework
-SCHEMA_PATTERN_PY_VERSION = "^py3[0-9]{1,2}_i[a-f0-9]{32}$"  # Python version-specific test schemas
-SCHEMA_FORMAT = f"{SCHEMA_PATTERN_TEST}|{SCHEMA_PATTERN_PY_VERSION}"
+def find_stale_table_ids(
+    client: python_bigquery.Client,
+    dataset_id: str,
+    max_age: datetime.timedelta = DEFAULT_MAX_AGE,
+) -> list[str]:
+    """Find test table ids in ``dataset_id`` old enough to be cleaned up.
+
+    Scoped to the single configured CI dataset rather than searching the project. Tests
+    create their tables there directly, so there is nowhere else to look -- and staying
+    dataset-scoped means this runs with a credential that can see only that dataset, and
+    never pays to enumerate a project that may hold many thousands of unrelated datasets.
+
+    ``tables.list`` reports creation time for each table, so age filtering needs no
+    follow-up request per candidate.
+    """
+    now = datetime.datetime.now(datetime.timezone.utc)
+    stale_ids = []
+
+    for table_item in client.list_tables(dataset_id):
+        if not TABLE_PATTERN.match(table_item.table_id):
+            continue
+
+        created = table_item.created
+        # Treat an unknown creation time as too new to touch: with no age to compare we
+        # cannot tell a leftover from a table an in-flight run is about to query.
+        if created is not None and now - created > max_age:
+            stale_ids.append(table_item.table_id)
+
+    return stale_ids
 
 
-def cleanup_big_query(config: BigQueryConnectionConfig) -> None:
-    engine = create_engine(url=config.connection_string)
-    with engine.connect() as conn, conn.begin():
-        results = conn.execute(
-            TextClause(
-                """
-                SELECT 'DROP SCHEMA ' || schema_name || ' CASCADE;'
-                FROM INFORMATION_SCHEMA.SCHEMATA
-                WHERE REGEXP_CONTAINS(schema_name, :schema_format)
-                AND creation_time < TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 HOUR);
-                """
-            ),
-            {"schema_format": SCHEMA_FORMAT},
-        ).fetchall()
-        if results:
-            to_run = TextClause("\n".join([row[0] for row in results]))
-            conn.execute(to_run)
-            logger.info(f"Cleaned up {len(results)} BigQuery schema(s)")
-        else:
-            logger.info("No BigQuery schemas to clean up!")
-    engine.dispose()
+def cleanup_big_query(
+    config: BigQueryConnectionConfig, max_age: datetime.timedelta = DEFAULT_MAX_AGE
+) -> None:
+    client = python_bigquery.Client(project=config.GE_TEST_GCP_PROJECT)
+    dataset_id = f"{config.GE_TEST_GCP_PROJECT}.{config.GE_TEST_BIGQUERY_DATASET}"
+
+    stale_ids = find_stale_table_ids(client, dataset_id, max_age=max_age)
+    if not stale_ids:
+        logger.info("No BigQuery tables to clean up!")
+        return
+
+    cleaned_up = 0
+    for table_id in stale_ids:
+        try:
+            client.delete_table(f"{dataset_id}.{table_id}")
+            cleaned_up += 1
+        except NotFound:
+            # Deleted between listing and deleting, by a concurrent sweep or by its own
+            # run reaching teardown.
+            logger.info(f"Table {table_id} was already deleted")
+
+    logger.info(f"Cleaned up {cleaned_up} BigQuery table(s)")
 
 
 if __name__ == "__main__":
