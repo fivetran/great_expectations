@@ -30,7 +30,11 @@ class MySQLDatasourceTestConfig(SqlDatasourceTestConfig):
         provisioning=BackendProvisioning.LOCAL_CONTAINER,
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="mysql"),
         uses_schema=True,
-        # mysql requires a length for VARCHAR
+        # mysql requires a length for VARCHAR.
+        # This restates `MySQLBatchTestSetup.inferrable_types_lookup` below, which is still the
+        # value actually in use: nothing reads the declared overrides yet. The two must agree
+        # until the shared setup merges this field, at which point the override below is deleted
+        # and this becomes the single statement of the fact.
         column_type_overrides={str: sqltypes.VARCHAR(255)},
         dev_requirements_file="reqs/requirements-dev-mysql.txt",
         task_runner_marker="mysql",
