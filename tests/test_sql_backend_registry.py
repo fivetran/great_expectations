@@ -302,7 +302,7 @@ class TestRegisterSqlBackendTableSchemaItems:
     def test_non_callable_table_schema_items_raises(self) -> None:
         config_class = _make_config_class(
             "NotCallable",
-            _make_spec(table_schema_items="not-a-callable"),  # type: ignore[arg-type]
+            _make_spec(table_schema_items="not-a-callable"),
         )
 
         with pytest.raises(ValueError, match="NotCallable"):
