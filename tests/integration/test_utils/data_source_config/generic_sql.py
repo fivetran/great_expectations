@@ -1,51 +1,76 @@
 from __future__ import annotations
 
+import dataclasses
 import os
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Mapping, Optional
-
-import pytest
+from typing import TYPE_CHECKING, ClassVar, Mapping, Optional
 
 from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.compatibility.typing_extensions import override
-from tests.integration.test_utils.data_source_config.base import (
-    BatchTestSetup,
-    DataSourceTestConfig,
+from tests.integration.test_utils.data_source_config.backend_spec import (
+    BackendProvisioning,
+    CiLaneRef,
+    SqlBackendSpec,
+    TransactionMode,
 )
 from tests.integration.test_utils.data_source_config.sql import (
     InferrableTypesLookup,
     SQLBatchTestSetup,
 )
+from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
 if TYPE_CHECKING:
     import pandas as pd
+    import pytest
 
     from great_expectations.data_context import AbstractDataContext
     from great_expectations.datasource.fluent.sql_datasource import TableAsset
     from tests.integration.sql_session_manager import SessionSQLEngineManager
+    from tests.integration.test_utils.data_source_config.base import BatchTestSetup
 
 
-@dataclass(frozen=True)
-class GenericSQLDatasourceTestConfig(DataSourceTestConfig):
+@dataclass(frozen=True, eq=False)
+class GenericSQLDatasourceTestConfig(SqlDatasourceTestConfig):
     """Config for testing against any SQL backend via a caller-provided connection string.
 
-    Unlike the dialect-specific configs (e.g. PostgreSQLDatasourceTestConfig),
-    the connection string is not baked in — it must be supplied at construction
-    time.  This makes the config reusable across any SQLAlchemy-compatible
-    database.
+    Unlike the dialect-specific configs (e.g. PostgreSQLDatasourceTestConfig), the connection
+    string is not baked in — it must be supplied at construction time. This makes the config
+    reusable across any SQLAlchemy-compatible database, but it also means this config has no
+    fixed identity to enrol in the SQL backend registry: it is deliberately never decorated with
+    `@register_sql_backend`, and must never appear in the set that gates CI.
+
+    `eq=False` is required here for the same reason `sql_config.py`'s class docstring gives for
+    the base class itself: this class adds fields, which requires re-decorating with
+    `@dataclass`, and a bare `@dataclass(frozen=True)` would silently regenerate `__eq__` and
+    `__hash__` — discarding `DataSourceTestConfig`'s hand-written `__hash__`, which reduces
+    `extra_column_types` to a hashable tuple before hashing it, in favor of one that hashes the
+    raw `dict` value and raises on every instance.
     """
+
+    BACKEND_SPEC: ClassVar[SqlBackendSpec] = SqlBackendSpec(
+        label="generic_sql",
+        marker="generic_sql",
+        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="generic_sql"),
+        uses_schema=False,
+    )
 
     connection_string: str = ""
 
-    @property
-    @override
-    def label(self) -> str:
-        return "generic_sql"
+    autocommit: bool = False
+    """Per-instance transaction mode, since this config has no fixed identity for `BACKEND_SPEC`
+    to state it once. `__post_init__` below derives a `backend_spec_override` from it, using the
+    per-instance seam `SqlDatasourceTestConfig` defines for exactly this: a declaration that
+    varies per call rather than per class. Leave unset for the default explicit-commit mode.
+    """
 
-    @property
-    @override
-    def pytest_mark(self) -> pytest.MarkDecorator:
-        return pytest.mark.generic_sql
+    def __post_init__(self) -> None:
+        if self.autocommit and self.backend_spec_override is None:
+            object.__setattr__(
+                self,
+                "backend_spec_override",
+                dataclasses.replace(self.BACKEND_SPEC, transaction_mode=TransactionMode.AUTOCOMMIT),
+            )
 
     @override
     def create_batch_setup(
