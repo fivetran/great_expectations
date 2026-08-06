@@ -203,6 +203,15 @@ class TestRegisterSqlBackendEmptyFields:
         with pytest.raises(ValueError, match="BlankMarker"):
             register_sql_backend(config_class)
 
+    def test_empty_ci_lane_workflow_job_raises(self) -> None:
+        config_class = _make_config_class(
+            "BlankWorkflowJob",
+            _make_spec(ci_lane=CiLaneRef(workflow_job="", marker_token="postgresql")),
+        )
+
+        with pytest.raises(ValueError, match="BlankWorkflowJob"):
+            register_sql_backend(config_class)
+
     def test_empty_ci_lane_marker_token_raises(self) -> None:
         config_class = _make_config_class(
             "BlankCiLane",
@@ -459,3 +468,47 @@ class TestLocallyVerifiableBackendsRegisterInLabelOrder:
             PostgreSQLDatasourceTestConfig,  # postgresql
             SqliteDatasourceTestConfig,  # sqlite
         )
+
+
+class TestRegisteredBackendsKeepTheInheritedHash:
+    def test_no_registered_backend_regenerated_eq_or_hash(self) -> None:
+        """Every registered config must inherit `DataSourceTestConfig`'s `__eq__`/`__hash__`.
+
+        Those are hand-written to reduce `extra_column_types` to a hashable tuple first. A config
+        re-decorated with a bare `@dataclass(frozen=True)` silently regenerates both, and the
+        generated `__hash__` hashes that raw `dict` and raises `TypeError` on every instance.
+
+        This is checked here rather than in `__init_subclass__` because a class decorator runs
+        *after* class creation: `__init_subclass__` observes the class before `@dataclass` has
+        replaced anything, so it cannot see the regeneration it would be trying to prevent.
+
+        The failure this guards against costs session time rather than turning a test red — a
+        config that cannot be hashed, or that hashes inconsistently, degrades the batch-setup
+        cache instead of failing — which is why it needs a mechanical check rather than a
+        convention.
+        """
+
+        # Walks subclasses rather than the registry: this module's autouse fixture wraps every
+        # test in the isolation seam, which clears the registry, so iterating it here would
+        # examine nothing and pass vacuously. Subclasses also reach configs that are declared
+        # but deliberately unregistered.
+        def _descendants(cls: type) -> Iterator[type]:
+            for sub in cls.__subclasses__():
+                yield sub
+                yield from _descendants(sub)
+
+        checked = [
+            c for c in _descendants(SqlDatasourceTestConfig) if not c.__name__.startswith("_")
+        ]
+        assert checked, "no concrete SQL config subclasses were found to check"
+
+        for config_class in checked:
+            assert config_class.__eq__ is DataSourceTestConfig.__eq__, (
+                f"{config_class.__name__} regenerated __eq__; a subclass re-decorated with "
+                f"@dataclass must pass eq=False"
+            )
+            assert config_class.__hash__ is DataSourceTestConfig.__hash__, (
+                f"{config_class.__name__} regenerated __hash__; a subclass re-decorated with "
+                f"@dataclass must pass eq=False"
+            )
+            hash(config_class())  # a regenerated hash raises TypeError here

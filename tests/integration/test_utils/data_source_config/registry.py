@@ -58,6 +58,13 @@ def _validate_identity(config_class: type, spec: SqlBackendSpec) -> None:
             f"{config_class.__name__} declares an empty SQL backend marker; it must be a "
             f"non-empty string naming the pytest mark used to select this backend's tests"
         )
+    if not spec.ci_lane.workflow_job:
+        raise ValueError(
+            f"{config_class.__name__} declares an empty CI lane workflow job; it must be a "
+            f"non-empty string naming the workflow job that runs this backend's lane. A lane "
+            f"naming no job cannot be located in the workflow file, so its wiring cannot be "
+            f"checked at all"
+        )
     if not spec.ci_lane.marker_token:
         raise ValueError(
             f"{config_class.__name__} declares an empty CI lane marker token; it must be a "
