@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Literal, Optional, Type, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Literal, Optional, Tuple, Type, Union
 
 from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import SuiteParameterDict  # noqa: TC001 # FIXME CoP
 from great_expectations.expectations.expectation import MulticolumnMapExpectation
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
@@ -112,7 +113,9 @@ class ExpectMulticolumnValuesToBeEqual(MulticolumnMapExpectation):
     ignore_row_if: Union[
         Literal["all_values_are_missing", "any_value_is_missing", "never"],
         SuiteParameterDict,
-    ] = pydantic.Field(default="never", description=IGNORE_ROW_IF_DESCRIPTION)
+    ] = pydantic.Field(  # type: ignore[assignment]
+        default="never", description=IGNORE_ROW_IF_DESCRIPTION
+    )
 
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {
         "maturity": "production",
@@ -125,7 +128,7 @@ class ExpectMulticolumnValuesToBeEqual(MulticolumnMapExpectation):
     _library_metadata = library_metadata
 
     map_metric = "multicolumn_values.equal"
-    success_keys = ("column_list", "ignore_row_if", "mostly")
+    success_keys: ClassVar[Tuple[str, ...]] = ("column_list", "ignore_row_if", "mostly")
     args_keys = ("column_list",)
 
     class Config:
@@ -162,6 +165,7 @@ class ExpectMulticolumnValuesToBeEqual(MulticolumnMapExpectation):
             )
 
     @classmethod
+    @override
     def _prescriptive_template(
         cls, renderer_configuration: RendererConfiguration
     ) -> RendererConfiguration:
@@ -197,6 +201,7 @@ class ExpectMulticolumnValuesToBeEqual(MulticolumnMapExpectation):
         return renderer_configuration
 
     @classmethod
+    @override
     @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
     def _prescriptive_renderer(
         cls,
@@ -206,6 +211,8 @@ class ExpectMulticolumnValuesToBeEqual(MulticolumnMapExpectation):
         **kwargs,
     ) -> List[RenderedStringTemplateContent]:
         runtime_configuration = runtime_configuration or {}
+        if configuration is None:
+            return []
         params = substitute_none_for_missing(configuration.kwargs, ["column_list", "mostly"])
         mostly_str = ""
         if params["mostly"] is not None:
@@ -221,7 +228,7 @@ class ExpectMulticolumnValuesToBeEqual(MulticolumnMapExpectation):
 
         return [
             RenderedStringTemplateContent(
-                **{
+                **{  # type: ignore[arg-type]  # FIXME CoP
                     "content_block_type": "string_template",
                     "string_template": {
                         "template": (
