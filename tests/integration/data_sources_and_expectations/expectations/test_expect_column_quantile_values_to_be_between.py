@@ -103,8 +103,9 @@ def test_success_complete_results(batch_for_datasource: Batch) -> None:
 def test_all_null_column_reports_unmet_expectation(batch_for_datasource: Batch) -> None:
     """A column with no quantiles fails the expectation instead of raising.
 
-    The backends report the absent quantile differently -- SQL engines return NULL and pandas
-    returns NaN -- and every one of them must report it as an unmet expectation.
+    The backends report the absent quantile differently -- SQL engines return NULL, pandas
+    returns NaN, and Spark returns no values at all -- and every one of them must report it as
+    an unmet expectation.
     """
     expectation = gxe.ExpectColumnQuantileValuesToBeBetween(
         column=COL_NAME,

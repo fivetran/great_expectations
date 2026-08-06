@@ -180,7 +180,16 @@ class ColumnQuantileValues(ColumnAggregateMetricProvider):
                 "SparkDFExecutionEngine requires relative error to be False or to be a float between 0 and 1."  # noqa: E501 # FIXME CoP
             )
 
-        return df.approxQuantile(column, list(quantiles), allow_relative_error)  # type: ignore[attr-defined] # FIXME CoP
+        quantiles = list(quantiles)
+        quantile_values = df.approxQuantile(column, quantiles, allow_relative_error)  # type: ignore[attr-defined] # FIXME CoP
+
+        # "approxQuantile" returns an empty list for a column with no non-null values, where the
+        # other backends return one null per requested quantile. Keep the metric the same shape
+        # on every backend, so that consumers can index it by quantile.
+        if not quantile_values:
+            return [None] * len(quantiles)
+
+        return quantile_values
 
 
 def _get_column_quantiles_sql_server(
