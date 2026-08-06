@@ -419,18 +419,14 @@ class SerializableDataContext(AbstractDataContext):
     @classmethod
     def is_project_scaffolded(cls, ge_dir: PathStr) -> bool:
         """
-        Return True if the project is scaffolded (required filesystem changes have occurred).
+        Return True if the project is already set up and must not be re-scaffolded.
 
-        To be considered scaffolded, all of the following must be true:
-        - all project directories exist (including uncommitted directories)
-        - a valid great_expectations.yml is on disk
-        - a config_variables.yml is on disk
+        A project is considered set up when a great_expectations.yml is present on disk.
+        Version-control-ignored runtime-output directories (uncommitted/*) are intentionally
+        not required: they are absent on a clean checkout and are created on demand at write
+        time.
         """
-        return (
-            cls.does_config_exist_on_disk(ge_dir)
-            and cls.all_uncommitted_directories_exist(ge_dir)
-            and cls.config_variables_yml_exist(ge_dir)
-        )
+        return cls.does_config_exist_on_disk(ge_dir)
 
     @classmethod
     def _does_project_have_a_datasource_in_config_file(cls, ge_dir: PathStr) -> bool:

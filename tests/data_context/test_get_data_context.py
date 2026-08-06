@@ -1,6 +1,10 @@
+import os
 import pathlib
 import shutil
-from typing import Any
+import stat
+from collections.abc import Iterator
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
 from unittest import mock
 
 import pytest
@@ -19,6 +23,9 @@ from great_expectations.exceptions.exceptions import (
     GitIgnoreScaffoldingError,
 )
 from tests.test_utils import working_directory
+
+if TYPE_CHECKING:
+    from great_expectations.datasource.fluent import SqliteDatasource
 
 GX_CLOUD_PARAMS_ALL = {
     "cloud_base_url": "localhost:7000",
@@ -319,3 +326,216 @@ def test_get_context_finds_legacy_great_expectations_dir(
 
     project_root_dir = pathlib.Path(context.root_directory)
     assert project_root_dir.stem == FileDataContext._LEGACY_GX_DIR
+
+
+# --------------------------------------------------------------------------------------------
+# Read-only filesystem regression suite
+#
+# Standing up a FileDataContext against a fully-scaffolded, version-controlled project must
+# work on a read-only filesystem (e.g. a read-only CI/CD deploy target or a mounted read-only
+# container filesystem), and read operations must work end to end. The fixture below builds
+# such a project and then makes its subtree genuinely read-only so the guarantee is exercised
+# against a real filesystem, not merely against mocked permissions.
+# --------------------------------------------------------------------------------------------
+
+_READ_ONLY_FIXTURE_SQLITE_DB = (
+    pathlib.Path(__file__).parent.parent
+    / "test_sets"
+    / "taxi_yellow_tripdata_samples"
+    / "sqlite"
+    / "yellow_tripdata.db"
+).resolve()
+_READ_ONLY_CONN_STR_ENV_VAR = "GX_READ_ONLY_PROJECT_TEST_CONN_STR"
+_READ_ONLY_DATASOURCE_NAME = "read_only_project_datasource"
+_READ_ONLY_ASSET_NAME = "yellow_tripdata"
+_READ_ONLY_TABLE_NAME = "yellow_tripdata_sample_2019_01"
+_READ_ONLY_SUITE_NAME = "read_only_project_suite"
+_READ_ONLY_EXPECTATION_COLUMN = "passenger_count"
+
+
+@dataclass(frozen=True)
+class ReadOnlyProject:
+    """Where a fully-scaffolded, then made-read-only, project lives on disk, plus the names
+    needed to look up its configured datasource and expectation suite.
+    """
+
+    project_root_dir: pathlib.Path
+    datasource_name: str
+    asset_name: str
+    suite_name: str
+
+
+def _remove_write_permissions(path: pathlib.Path) -> None:
+    """Recursively strip write bits from every entry under (and including) path."""
+    for dirpath, dirnames, filenames in os.walk(path):
+        for entry_name in [*dirnames, *filenames]:
+            entry = pathlib.Path(dirpath) / entry_name
+            entry.chmod(entry.stat().st_mode & ~(stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH))
+    path.chmod(path.stat().st_mode & ~(stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH))
+
+
+def _restore_write_permissions(path: pathlib.Path) -> None:
+    """Recursively restore the owner write bit under (and including) path so tmp_path's own
+    teardown can remove it.
+    """
+    path.chmod(path.stat().st_mode | stat.S_IWUSR)
+    for dirpath, dirnames, filenames in os.walk(path):
+        for entry_name in [*dirnames, *filenames]:
+            entry = pathlib.Path(dirpath) / entry_name
+            entry.chmod(entry.stat().st_mode | stat.S_IWUSR)
+
+
+@pytest.fixture
+def read_only_project(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> Iterator[ReadOnlyProject]:
+    """Build a fully-scaffolded project - a committed config, a datasource resolved through
+    environment-variable interpolation, and a saved expectation suite - then make its subtree
+    genuinely read-only.
+
+    Deleting the gitignored ``uncommitted/`` subtree before making the project read-only is
+    load-bearing, not a cleanup step. On a project that is still fully scaffolded, the
+    "already set up" decision is satisfied by the uncommitted/* directories alone, and the
+    filesystem store backend's eager directory creation targets a directory that already
+    exists - so initialization would succeed on a read-only filesystem whether or not the
+    underlying fixes are present, and the tests below would pass false-green. Removing
+    uncommitted/ restores the two preconditions of a genuine fresh version-control checkout -
+    the gitignored runtime directories and the config-variables file are both absent, exactly
+    as they are immediately after a clone - so a regression in either fix makes these tests
+    fail again.
+
+    The datasource's connection string resolves through an environment variable rather than
+    uncommitted/config_variables.yml, since that file no longer exists once the deletion above
+    has run; this exercises environment-variable interpolation for real rather than only "by
+    construction".
+    """
+    project_root_dir = tmp_path / "read_only_project"
+    project_root_dir.mkdir()
+
+    connection_string_value = f"sqlite:///{_READ_ONLY_FIXTURE_SQLITE_DB}"
+    monkeypatch.setenv(_READ_ONLY_CONN_STR_ENV_VAR, connection_string_value)
+
+    context = gx.get_context(mode="file", project_root_dir=str(project_root_dir))
+    datasource = context.data_sources.add_sqlite(
+        name=_READ_ONLY_DATASOURCE_NAME,
+        connection_string="${" + _READ_ONLY_CONN_STR_ENV_VAR + "}",
+        create_temp_table=False,
+    )
+    datasource.add_table_asset(name=_READ_ONLY_ASSET_NAME, table_name=_READ_ONLY_TABLE_NAME)
+    context.suites.add(
+        gx.ExpectationSuite(
+            name=_READ_ONLY_SUITE_NAME,
+            expectations=[
+                gx.expectations.ExpectColumnValuesToBeBetween(
+                    column=_READ_ONLY_EXPECTATION_COLUMN, min_value=0, max_value=10
+                )
+            ],
+        )
+    )
+
+    ge_dir = pathlib.Path(context.root_directory)
+    shutil.rmtree(ge_dir / "uncommitted")
+
+    _remove_write_permissions(project_root_dir)
+
+    # Skip-clean probe: some environments (running as root, or a filesystem/CI mount that
+    # ignores mode bits) do not enforce the chmod above. Detect that and skip cleanly rather
+    # than false-failing the assertions below, restoring permissions first so tmp_path's
+    # teardown can still remove the directory.
+    probe_path = ge_dir / "_read_only_probe"
+    write_still_succeeds = True
+    try:
+        probe_path.mkdir()
+    except OSError:
+        write_still_succeeds = False
+    else:
+        probe_path.rmdir()
+
+    if write_still_succeeds:
+        _restore_write_permissions(project_root_dir)
+        pytest.skip("read-only filesystem cannot be enforced in this environment")
+
+    try:
+        yield ReadOnlyProject(
+            project_root_dir=project_root_dir,
+            datasource_name=_READ_ONLY_DATASOURCE_NAME,
+            asset_name=_READ_ONLY_ASSET_NAME,
+            suite_name=_READ_ONLY_SUITE_NAME,
+        )
+    finally:
+        _restore_write_permissions(project_root_dir)
+
+
+@pytest.mark.filesystem
+def test_get_context_succeeds_against_read_only_project(read_only_project: ReadOnlyProject):
+    """Standing up a FileDataContext against a fully-scaffolded, version-controlled project on
+    a read-only filesystem completes initialization without raising.
+    """
+    context = gx.get_context(mode="file", project_root_dir=str(read_only_project.project_root_dir))
+    assert isinstance(context, FileDataContext)
+
+
+@pytest.mark.filesystem
+def test_read_only_project_resolves_configured_datasource(read_only_project: ReadOnlyProject):
+    """A datasource configured with an environment-variable-interpolated value resolves
+    without raising, even though uncommitted/config_variables.yml is absent.
+    """
+    context = gx.get_context(mode="file", project_root_dir=str(read_only_project.project_root_dir))
+
+    datasource: SqliteDatasource = context.data_sources.get(  # type: ignore[assignment]
+        read_only_project.datasource_name
+    )
+
+    connection_string = datasource.connection_string
+    assert str(connection_string) == "${" + _READ_ONLY_CONN_STR_ENV_VAR + "}"
+    assert (
+        connection_string.get_config_value(  # type: ignore[union-attr]
+            context.config_provider
+        )
+        == f"sqlite:///{_READ_ONLY_FIXTURE_SQLITE_DB}"
+    )
+
+
+@pytest.mark.filesystem
+def test_read_only_project_runs_validation_end_to_end(read_only_project: ReadOnlyProject):
+    """Loading an existing expectation suite, building a validator, and running a validation
+    against a read-only project succeeds and returns an in-memory result.
+    """
+    context = gx.get_context(mode="file", project_root_dir=str(read_only_project.project_root_dir))
+    datasource = context.data_sources.get(read_only_project.datasource_name)
+    batch_request = datasource.get_asset(read_only_project.asset_name).build_batch_request()
+
+    validator = context.get_validator(
+        batch_request=batch_request,
+        expectation_suite_name=read_only_project.suite_name,
+    )
+    result = validator.validate()
+
+    assert result.success is True
+
+
+@pytest.mark.filesystem
+def test_read_only_project_write_raises_clear_error(read_only_project: ReadOnlyProject):
+    """A store-backed write attempted against a read-only project (here, saving a new
+    expectation suite) fails with a clear error rather than being silently swallowed.
+    """
+    context = gx.get_context(mode="file", project_root_dir=str(read_only_project.project_root_dir))
+
+    with pytest.raises(OSError):
+        context.suites.add(gx.ExpectationSuite(name="a_suite_that_cannot_be_saved"))
+
+
+@pytest.mark.filesystem
+def test_get_context_still_scaffolds_new_project_on_writable_filesystem(
+    tmp_path: pathlib.Path,
+):
+    """A genuinely new/empty project root on a writable filesystem still receives a full
+    first-use scaffold: the relaxed already-set-up decision must not affect a project with no
+    great_expectations.yml on disk.
+    """
+    context = gx.get_context(mode="file", project_root_dir=str(tmp_path))
+
+    ge_dir = pathlib.Path(context.root_directory)
+    assert (ge_dir / FileDataContext.GX_YML).is_file()
+    assert (ge_dir / "uncommitted").is_dir()
+    assert (ge_dir / "uncommitted" / "config_variables.yml").is_file()

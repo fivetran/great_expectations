@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.core.suite_parameters import (
@@ -11,6 +11,12 @@ from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     _style_row_condition,
     render_suite_parameter_string,
+)
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
+from great_expectations.expectations.model_field_descriptions import (
+    COLUMN_DESCRIPTION,
+    FAILURE_SEVERITY_DESCRIPTION,
+    MOSTLY_DESCRIPTION,
 )
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
@@ -33,25 +39,38 @@ if TYPE_CHECKING:
     )
     from great_expectations.render.renderer_configuration import AddParamArgs
 
+EXPECTATION_SHORT_DESCRIPTION = (
+    "Expect the column entries to be strings representing a date or time with a given format."
+)
+STRFTIME_FORMAT_DESCRIPTION = "A strftime format string to use for matching."
+DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
+SUPPORTED_DATA_SOURCES = [
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+]
+
 
 class ExpectColumnValuesToMatchStrftimeFormat(ColumnMapExpectation):
-    """Expect the column entries to be strings representing a date or time with a given format.
+    __doc__ = f"""{EXPECTATION_SHORT_DESCRIPTION}
 
     ExpectColumnValuesToMatchStrftimeFormat is a \
     Column Map Expectation.
 
+    Column Map Expectations are one of the most common types of Expectation.
+    They are evaluated for a single column and ask a yes/no question for every row in that column.
+    Based on the result, they then calculate the percentage of rows that gave a positive answer. If the percentage is high enough, the Expectation considers that data valid.
+    SQL data sources are not currently supported: strftime format tokens do not map cleanly onto the date-format models of SQL dialects.
+
     Args:
         column (str): \
-            The column name.
+            {COLUMN_DESCRIPTION}
         strftime_format (str or SuiteParameterDict): \
-            A strftime format string to use for matching
-
-    Keyword Args:
-        mostly (None or a float between 0 and 1): \
-            Successful if at least mostly fraction of values match the expectation. \
-            For more detail, see [mostly](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#mostly).
+            {STRFTIME_FORMAT_DESCRIPTION}
 
     Other Parameters:
+        mostly (None or a float between 0 and 1): \
+            {MOSTLY_DESCRIPTION} \
+            For more detail, see [mostly](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#mostly). Default 1.
         result_format (str or None): \
             Which output mode to use: BOOLEAN_ONLY, BASIC, COMPLETE, or SUMMARY. \
             For more detail, see [result_format](https://docs.greatexpectations.io/docs/reference/expectations/result_format).
@@ -69,9 +88,85 @@ class ExpectColumnValuesToMatchStrftimeFormat(ColumnMapExpectation):
         An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)
 
         Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.
+
+    Supported Data Sources:
+        [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+
+    Data Quality Issues:
+        {DATA_QUALITY_ISSUES[0]}
+
+    Example Data:
+                event_date      invalid_date
+            0   "2024-01-15"    "01/15/2024"
+            1   "2024-06-20"    "06/20/2024"
+            2   "2024-12-31"    "12/31/2024"
+
+    Code Examples:
+        Passing Case:
+            Input:
+                ExpectColumnValuesToMatchStrftimeFormat(
+                    column="event_date",
+                    strftime_format="%Y-%m-%d",
+            )
+
+            Output:
+                {{
+                  "exception_info": {{
+                    "raised_exception": false,
+                    "exception_traceback": null,
+                    "exception_message": null
+                  }},
+                  "result": {{
+                    "element_count": 3,
+                    "unexpected_count": 0,
+                    "unexpected_percent": 0.0,
+                    "partial_unexpected_list": [],
+                    "missing_count": 0,
+                    "missing_percent": 0.0,
+                    "unexpected_percent_total": 0.0,
+                    "unexpected_percent_nonmissing": 0.0
+                  }},
+                  "meta": {{}},
+                  "success": true
+                }}
+
+        Failing Case:
+            Input:
+                ExpectColumnValuesToMatchStrftimeFormat(
+                    column="invalid_date",
+                    strftime_format="%Y-%m-%d",
+            )
+
+            Output:
+                {{
+                  "exception_info": {{
+                    "raised_exception": false,
+                    "exception_traceback": null,
+                    "exception_message": null
+                  }},
+                  "result": {{
+                    "element_count": 3,
+                    "unexpected_count": 3,
+                    "unexpected_percent": 100.0,
+                    "partial_unexpected_list": [
+                      "01/15/2024",
+                      "06/20/2024",
+                      "12/31/2024"
+                    ],
+                    "missing_count": 0,
+                    "missing_percent": 0.0,
+                    "unexpected_percent_total": 100.0,
+                    "unexpected_percent_nonmissing": 100.0
+                  }},
+                  "meta": {{}},
+                  "success": false
+                }}
     """  # noqa: E501 # FIXME CoP
 
-    strftime_format: Union[str, SuiteParameterDict]
+    strftime_format: Union[str, SuiteParameterDict] = pydantic.Field(
+        description=STRFTIME_FORMAT_DESCRIPTION
+    )
 
     @pydantic.validator("strftime_format")
     def validate_strftime_format(
@@ -88,7 +183,7 @@ class ExpectColumnValuesToMatchStrftimeFormat(ColumnMapExpectation):
 
         return strftime_format
 
-    library_metadata = {
+    library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {
         "maturity": "production",
         "tags": ["core expectation", "column map expectation"],
         "contributors": [
@@ -98,6 +193,7 @@ class ExpectColumnValuesToMatchStrftimeFormat(ColumnMapExpectation):
         "has_full_test_suite": True,
         "manually_reviewed_code": True,
     }
+    _library_metadata = library_metadata
 
     map_metric = "column_values.match_strftime_format"
     success_keys = (
@@ -108,6 +204,39 @@ class ExpectColumnValuesToMatchStrftimeFormat(ColumnMapExpectation):
         "column",
         "strftime_format",
     )
+
+    class Config:
+        title = "Expect column values to match strftime format"
+
+        @staticmethod
+        def schema_extra(
+            schema: Dict[str, Any], model: Type[ExpectColumnValuesToMatchStrftimeFormat]
+        ) -> None:
+            ColumnMapExpectation.Config.schema_extra(schema, model)
+            schema["properties"]["metadata"]["properties"].update(
+                {
+                    "data_quality_issues": {
+                        "title": "Data Quality Issues",
+                        "type": "array",
+                        "const": DATA_QUALITY_ISSUES,
+                    },
+                    "library_metadata": {
+                        "title": "Library Metadata",
+                        "type": "object",
+                        "const": model._library_metadata,
+                    },
+                    "short_description": {
+                        "title": "Short Description",
+                        "type": "string",
+                        "const": EXPECTATION_SHORT_DESCRIPTION,
+                    },
+                    "supported_data_sources": {
+                        "title": "Supported Data Sources",
+                        "type": "array",
+                        "const": SUPPORTED_DATA_SOURCES,
+                    },
+                }
+            )
 
     @classmethod
     def _prescriptive_template(
