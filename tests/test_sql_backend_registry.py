@@ -1,14 +1,19 @@
 from __future__ import annotations
 
-from typing import Iterator, List
+from typing import TYPE_CHECKING, Iterator, List, Mapping, Optional
 
 import pytest
 
+from great_expectations.compatibility.typing_extensions import override
 from tests.integration.test_utils.data_source_config.backend_spec import (
     BackendProvisioning,
     BackendTier,
     CiLaneRef,
     SqlBackendSpec,
+)
+from tests.integration.test_utils.data_source_config.base import (
+    BatchTestSetup,
+    DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.registry import (
     isolated_registry,
@@ -16,6 +21,15 @@ from tests.integration.test_utils.data_source_config.registry import (
     register_sql_backend,
     sql_backends_for_tier,
 )
+from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
+
+if TYPE_CHECKING:
+    import pandas as pd
+
+    from great_expectations.data_context.data_context.abstract_data_context import (
+        AbstractDataContext,
+    )
+    from tests.integration.test_utils.data_source_config.sql import SessionSQLEngineManager
 
 pytestmark = pytest.mark.project
 
@@ -306,3 +320,105 @@ class TestRegisterSqlBackendTableSchemaItems:
         register_sql_backend(config_class)
 
         assert calls == []
+
+
+class _HandWrittenControlConfig(DataSourceTestConfig):
+    """A config written the way today's backends are, with `label` and `pytest_mark` as
+    hand-coded properties. Used as the behavior-preservation control for
+    `SqlDatasourceTestConfig`: the divergent label/marker pair (SQL Server's label is `mssql`,
+    its marker is `sql_server`) is the case that most directly exercises whether a declaration-
+    derived config produces the same identity as one written by hand.
+    """
+
+    @property
+    @override
+    def label(self) -> str:
+        return "mssql"
+
+    @property
+    @override
+    def pytest_mark(self) -> pytest.MarkDecorator:
+        return pytest.mark.sql_server
+
+    @override
+    def create_batch_setup(
+        self,
+        request: pytest.FixtureRequest,
+        data: pd.DataFrame,
+        extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
+        engine_manager: Optional[SessionSQLEngineManager] = None,
+    ) -> BatchTestSetup:
+        raise NotImplementedError("not exercised by these tests")
+
+
+_THROWAWAY_DECLARED_SPEC = SqlBackendSpec(
+    label="mssql",
+    marker="sql_server",
+    provisioning=BackendProvisioning.LOCAL_FILE,
+    ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="sql_server"),
+    uses_schema=True,
+)
+
+
+class _DeclaredConfig(SqlDatasourceTestConfig):
+    """Throwaway config that derives its identity from a declared `SqlBackendSpec`, mirroring
+    `_HandWrittenControlConfig`'s label and marker exactly."""
+
+    BACKEND_SPEC = _THROWAWAY_DECLARED_SPEC
+
+    @override
+    def create_batch_setup(
+        self,
+        request: pytest.FixtureRequest,
+        data: pd.DataFrame,
+        extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
+        engine_manager: Optional[SessionSQLEngineManager] = None,
+    ) -> BatchTestSetup:
+        raise NotImplementedError("not exercised by these tests")
+
+
+class TestSqlDatasourceTestConfigDerivesIdentity:
+    def test_derives_label_and_mark_matching_a_hand_written_control(self) -> None:
+        control = _HandWrittenControlConfig()
+        declared = _DeclaredConfig()
+
+        assert declared.label == control.label == "mssql"
+        assert declared.pytest_mark == control.pytest_mark == pytest.mark.sql_server
+        assert declared.test_id == control.test_id
+        assert hash(declared) == hash(control)
+        assert declared == control
+
+
+class TestSqlDatasourceTestConfigOverrideSeam:
+    def test_instance_level_backend_spec_overrides_the_class_declaration(self) -> None:
+        override_spec = SqlBackendSpec(
+            label="ad-hoc",
+            marker="generic_sql",
+            provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+            ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="generic_sql"),
+            uses_schema=False,
+        )
+
+        default_instance = _DeclaredConfig()
+        overridden_instance = _DeclaredConfig(backend_spec_override=override_spec)
+
+        assert default_instance.label == "mssql"
+        assert default_instance.pytest_mark == pytest.mark.sql_server
+        assert overridden_instance.label == "ad-hoc"
+        assert overridden_instance.pytest_mark == pytest.mark.generic_sql
+        # The class-level declaration itself is untouched by the per-instance override.
+        assert _DeclaredConfig.BACKEND_SPEC is _THROWAWAY_DECLARED_SPEC
+
+
+class TestSqlDatasourceTestConfigSatisfiesRegistrationProtocol:
+    def test_a_declared_config_class_registers_successfully(self) -> None:
+        # `register_sql_backend` is typed to accept only a class exposing
+        # `BACKEND_SPEC: ClassVar[SqlBackendSpec]`. This call site is the first proof, under
+        # mypy, that a real config class built on the declaration-derived base satisfies that
+        # shape structurally rather than by explicit inheritance.
+        with isolated_registry():
+            register_sql_backend(_DeclaredConfig)
+
+            assert _DeclaredConfig in iter_sql_backends()
