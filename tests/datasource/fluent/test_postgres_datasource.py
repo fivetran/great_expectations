@@ -826,10 +826,11 @@ def _schema_qualified_datasource() -> PostgresDatasource:
 @pytest.fixture
 def spy_inspector(mocker: MockFixture) -> Mock:
     """An inspector whose get_schema_names is a spy, so calls can be asserted on."""
+    spy = mocker.Mock(return_value=["my_schema"])
     inspector = MockSaInspector()
-    inspector.get_schema_names = mocker.Mock(return_value=["my_schema"])  # type: ignore[method-assign]
+    inspector.get_schema_names = spy  # type: ignore[method-assign] # FIXME CoP
     mocker.patch("sqlalchemy.inspect").return_value = inspector
-    return inspector.get_schema_names
+    return spy
 
 
 @pytest.mark.postgresql
