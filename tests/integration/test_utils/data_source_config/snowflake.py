@@ -120,11 +120,6 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
     def private_key(self) -> Optional[str]:
         return self.snowflake_connection_config.private_key
 
-    @property
-    @override
-    def use_schema(self) -> bool:
-        return True
-
     def __init__(
         self,
         config: SnowflakeDatasourceTestConfig,

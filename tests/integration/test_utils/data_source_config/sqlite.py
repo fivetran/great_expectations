@@ -81,11 +81,6 @@ class SqliteBatchTestSetup(SQLBatchTestSetup[SqliteDatasourceTestConfig]):
         return f"sqlite:///{self.db_file_path}"
 
     @property
-    @override
-    def use_schema(self) -> bool:
-        return False
-
-    @property
     def db_file_path(self) -> pathlib.Path:
         return self._base_dir / "database.db"
 

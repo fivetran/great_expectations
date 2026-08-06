@@ -106,11 +106,6 @@ class _ThrowawayBatchTestSetup(SQLBatchTestSetup[_ThrowawayDatasourceTestConfig]
         return f"sqlite:///{self.db_file_path}"
 
     @property
-    @override
-    def use_schema(self) -> bool:
-        return False
-
-    @property
     def db_file_path(self) -> pathlib.Path:
         return self._base_dir / "database.db"
 
@@ -233,6 +228,28 @@ class TestTableSchemaItemFactoryIsCalledOncePerTableWithFreshItems:
             assert main_item is not extra_item
         finally:
             batch_setup.teardown()
+
+
+class TestSchemaNameConflictsWithNoSchemaDeclarationRaises:
+    def test_explicit_schema_name_against_a_no_schema_declaration_raises(
+        self, tmp_path: pathlib.Path
+    ) -> None:
+        config = _ThrowawayDatasourceTestConfig(schema_name="some_schema")
+        batch_setup = _ThrowawayBatchTestSetup(
+            data=_DATA,
+            config=config,
+            base_dir=tmp_path,
+            extra_data=_EXTRA_DATA,
+            context=gx.get_context(mode="ephemeral"),
+        )
+
+        with pytest.raises(ValueError) as excinfo:
+            _ = batch_setup.schema
+
+        assert (
+            str(excinfo.value)
+            == "Schema name provided but use_schema is False for this datasource type."
+        )
 
 
 _CACHE_REGRESSION_SETUP_CALLS: List[None] = []

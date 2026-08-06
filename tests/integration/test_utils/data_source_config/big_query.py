@@ -32,6 +32,8 @@ class BigQueryDatasourceTestConfig(SqlDatasourceTestConfig):
         marker="bigquery",
         provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="bigquery"),
+        # BigQuery calls its schemas "datasets". Their docs show that the sql way of defining a
+        # dataset is to create a schema: https://cloud.google.com/bigquery/docs/datasets#sql
         uses_schema=True,
         tiers=frozenset({BackendTier.STANDARD_SQL}),
         dev_requirements_file="reqs/requirements-dev-bigquery.txt",
@@ -61,13 +63,6 @@ class BigQueryBatchTestSetup(SQLBatchTestSetup[BigQueryDatasourceTestConfig]):
     @override
     def build_connection_string(self, schema: str | None = None) -> str:
         return self.big_query_connection_config.build_connection_string(dataset=schema)
-
-    @property
-    @override
-    def use_schema(self) -> bool:
-        # BigQuery calls its schemas "datasets". Their docs show that the sql way of defining a
-        # dataset is to create a schema: https://cloud.google.com/bigquery/docs/datasets#sql
-        return True
 
     @override
     def make_asset(self) -> TableAsset:

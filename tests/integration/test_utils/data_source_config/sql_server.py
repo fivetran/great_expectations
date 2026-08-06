@@ -88,11 +88,6 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
         url = self._connection_details(schema).build_connection_string()
         return f"{url}&autocommit=true"
 
-    @property
-    @override
-    def use_schema(self) -> bool:
-        return True
-
     @override
     def make_asset(self) -> TableAsset:
         return self.context.data_sources.add_sql_server(

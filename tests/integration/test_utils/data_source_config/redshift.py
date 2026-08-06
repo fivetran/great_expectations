@@ -84,11 +84,6 @@ class RedshiftBatchTestSetup(SQLBatchTestSetup[RedshiftDatasourceTestConfig]):
     def build_connection_string(self, schema: str | None = None) -> RedshiftDsn:
         return self.redshift_connection_config.build_connection_string(schema=schema)
 
-    @property
-    @override
-    def use_schema(self) -> bool:
-        return True
-
     def __init__(
         self,
         config: RedshiftDatasourceTestConfig,

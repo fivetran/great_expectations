@@ -133,11 +133,6 @@ class GenericSQLBatchTestSetup(SQLBatchTestSetup[GenericSQLDatasourceTestConfig]
     def build_connection_string(self, schema: str | None = None) -> str:
         return self._connection_string
 
-    @property
-    @override
-    def use_schema(self) -> bool:
-        return False
-
     @override
     def make_asset(self) -> TableAsset:
         return self.context.data_sources.add_sql(

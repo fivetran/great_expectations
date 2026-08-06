@@ -104,12 +104,12 @@ class SQLBatchTestSetup(BatchTestSetup[_SqlConfigT, TableAsset], ABC, Generic[_S
         """
 
     @property
-    @abstractmethod
     def use_schema(self) -> bool:
         """Whether to use a schema when connecting to SQL backend.
 
         If `True`, a schema will be automatically created.
         """
+        return self.backend_spec.uses_schema
 
     @property
     def inferrable_types_lookup(self) -> InferrableTypesLookup:
