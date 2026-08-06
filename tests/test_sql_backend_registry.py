@@ -422,3 +422,40 @@ class TestSqlDatasourceTestConfigSatisfiesRegistrationProtocol:
             register_sql_backend(_DeclaredConfig)
 
             assert _DeclaredConfig in iter_sql_backends()
+
+
+class TestLocallyVerifiableBackendsRegisterInLabelOrder:
+    def test_postgres_mysql_sql_server_and_sqlite_appear_in_label_order(self) -> None:
+        # Re-register the four real, locally verifiable backend configs inside this module's
+        # isolation seam. Each class is already enrolled once, for real, at import time via its
+        # own `@register_sql_backend` decorator; re-registering it here (against the seam's
+        # cleared, isolated dicts, not the real registry) proves the same fact the real import
+        # already established, without depending on import order relative to the eight other
+        # backend modules that will be added in later tasks.
+        from tests.integration.test_utils.data_source_config.mysql import (
+            MySQLDatasourceTestConfig,
+        )
+        from tests.integration.test_utils.data_source_config.postgres import (
+            PostgreSQLDatasourceTestConfig,
+        )
+        from tests.integration.test_utils.data_source_config.sql_server import (
+            SQLServerDatasourceTestConfig,
+        )
+        from tests.integration.test_utils.data_source_config.sqlite import (
+            SqliteDatasourceTestConfig,
+        )
+
+        for config_class in (
+            PostgreSQLDatasourceTestConfig,
+            MySQLDatasourceTestConfig,
+            SQLServerDatasourceTestConfig,
+            SqliteDatasourceTestConfig,
+        ):
+            register_sql_backend(config_class)
+
+        assert iter_sql_backends() == (
+            SQLServerDatasourceTestConfig,  # mssql
+            MySQLDatasourceTestConfig,  # mysql
+            PostgreSQLDatasourceTestConfig,  # postgresql
+            SqliteDatasourceTestConfig,  # sqlite
+        )
