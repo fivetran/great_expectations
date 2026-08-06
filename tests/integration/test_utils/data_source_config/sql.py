@@ -113,9 +113,13 @@ class SQLBatchTestSetup(BatchTestSetup[_SqlConfigT, TableAsset], ABC, Generic[_S
 
     @property
     def inferrable_types_lookup(self) -> InferrableTypesLookup:
-        """Dict of Python type keys mapped to SQL dialect-specific SqlAlchemy types."""
-        # implementations of the class can override this if more specific types are required
-        return {
+        """Dict of Python type keys mapped to SQL dialect-specific SqlAlchemy types.
+
+        The backend's declared `column_type_overrides` are merged over this shared default map,
+        so a backend that needs a different type for a given Python type (e.g. a length-carrying
+        string type) states that fact once, in its spec, rather than by overriding this property.
+        """
+        default: InferrableTypesLookup = {
             str: sqltypes.VARCHAR,
             int: sqltypes.INTEGER,
             float: sqltypes.DECIMAL,
@@ -124,6 +128,7 @@ class SQLBatchTestSetup(BatchTestSetup[_SqlConfigT, TableAsset], ABC, Generic[_S
             datetime: sqltypes.DATETIME,
             pd.Timestamp: sqltypes.DATETIME,
         }
+        return {**default, **self.backend_spec.column_type_overrides}
 
     def __init__(
         self,

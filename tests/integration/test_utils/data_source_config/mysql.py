@@ -15,10 +15,7 @@ from tests.integration.test_utils.data_source_config.backend_spec import (
 )
 from tests.integration.test_utils.data_source_config.base import BatchTestSetup
 from tests.integration.test_utils.data_source_config.registry import register_sql_backend
-from tests.integration.test_utils.data_source_config.sql import (
-    InferrableTypesLookup,
-    SQLBatchTestSetup,
-)
+from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
 
@@ -30,11 +27,7 @@ class MySQLDatasourceTestConfig(SqlDatasourceTestConfig):
         provisioning=BackendProvisioning.LOCAL_CONTAINER,
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="mysql"),
         uses_schema=True,
-        # mysql requires a length for VARCHAR.
-        # This restates `MySQLBatchTestSetup.inferrable_types_lookup` below, which is still the
-        # value actually in use: nothing reads the declared overrides yet. The two must agree
-        # until the shared setup merges this field, at which point the override below is deleted
-        # and this becomes the single statement of the fact.
+        # MySQL requires a length for VARCHAR.
         column_type_overrides={str: sqltypes.VARCHAR(255)},
         dev_requirements_file="reqs/requirements-dev-mysql.txt",
         task_runner_marker="mysql",
@@ -67,15 +60,6 @@ class MySQLBatchTestSetup(SQLBatchTestSetup[MySQLDatasourceTestConfig]):
     def build_connection_string(self, schema: str | None = None) -> str:
         database = schema or "test_ci"
         return f"{self._BASE_CONNECTION_STRING}/{database}"
-
-    @property
-    @override
-    def inferrable_types_lookup(self) -> InferrableTypesLookup:
-        # mysql requires a length for VARCHAR
-        overrides: InferrableTypesLookup = {
-            str: sqltypes.VARCHAR(255),
-        }
-        return super().inferrable_types_lookup | overrides
 
     @override
     def make_asset(self) -> TableAsset:
