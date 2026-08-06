@@ -80,7 +80,15 @@ class SqlDatasourceTestConfig(DataSourceTestConfig):
     backend_spec_override: Optional[SqlBackendSpec] = None
     """Per-instance declaration override. `None` (the default) means "use `BACKEND_SPEC`"; every
     concrete backend except the generic-SQL escape hatch leaves this unset. See the class
-    docstring for why this seam exists and why it is per-instance rather than per-class."""
+    docstring for why this seam exists and why it is per-instance rather than per-class.
+
+    **An override must also vary the label.** This field takes no part in equality: two instances
+    of one class whose overrides differ but whose labels agree compare equal. The session-scoped
+    batch-setup cache is keyed on a wrapper whose own equality defers to config equality, so such
+    instances share a single `BatchTestSetup` — the second one silently reusing the first one's
+    tables, built from the first one's declaration. That surfaces as wrong data rather than as an
+    error, so a caller varying the declaration per instance must vary the label with it.
+    """
 
     @property
     def backend_spec(self) -> SqlBackendSpec:
