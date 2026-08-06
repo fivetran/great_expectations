@@ -9,12 +9,39 @@ from scripts.cleanup.cleanup_big_query import (
     find_stale_table_ids,
 )
 
-from great_expectations.compatibility.google import NotFound
-
 pytestmark = pytest.mark.unit
 
 DATASET = "my-project.great_expectations_ci"
 NOW = datetime.datetime(2026, 8, 6, 12, 0, tzinfo=datetime.timezone.utc)
+
+
+class _NotFound(Exception):
+    """Stands in for google.cloud.exceptions.NotFound.
+
+    These tests run in environments without the Google client libraries installed,
+    where `NotFound` is a NotImported sentinel that raises on any attribute access.
+    Substituting a plain exception keeps the control flow under test -- that a table
+    disappearing mid-sweep is tolerated rather than fatal -- without requiring the
+    optional dependency.
+    """
+
+
+@pytest.fixture
+def bigquery_module(mocker: MockerFixture):
+    """Stand in for the `python_bigquery` module the script imported.
+
+    Replaces the whole name rather than an attribute on it: without the optional
+    dependency installed the name is a NotImported sentinel, which raises from both
+    __getattr__ and __setattr__, so `python_bigquery.Client` cannot be patched.
+
+    `new=` is passed explicitly because patch's default path inspects the object it
+    is replacing -- `hasattr(original, "__func__")` -- and NotImported raises
+    ModuleNotFoundError rather than AttributeError, which hasattr does not swallow.
+    """
+    module = mocker.MagicMock()
+    mocker.patch("scripts.cleanup.cleanup_big_query.python_bigquery", new=module)
+    mocker.patch("scripts.cleanup.cleanup_big_query.NotFound", new=_NotFound)
+    return module
 
 
 def _table(mocker: MockerFixture, table_id: str, age: datetime.timedelta | None):
@@ -127,9 +154,9 @@ def _config() -> BigQueryConnectionConfig:
     )
 
 
-def test_cleanup_deletes_each_stale_table(mocker: MockerFixture, frozen_now):
+def test_cleanup_deletes_each_stale_table(mocker: MockerFixture, frozen_now, bigquery_module):
     client = mocker.Mock()
-    mocker.patch("scripts.cleanup.cleanup_big_query.python_bigquery.Client", return_value=client)
+    bigquery_module.Client.return_value = client
     client.list_tables.return_value = [
         _table(mocker, "expectation_test_table_aaaaaaaaaa", datetime.timedelta(days=1)),
         _table(mocker, "expectation_test_table_bbbbbbbbbb", datetime.timedelta(days=1)),
@@ -144,24 +171,47 @@ def test_cleanup_deletes_each_stale_table(mocker: MockerFixture, frozen_now):
     ]
 
 
-def test_cleanup_tolerates_a_table_vanishing_mid_sweep(mocker: MockerFixture, frozen_now):
+def test_cleanup_tolerates_a_table_vanishing_mid_sweep(
+    mocker: MockerFixture, frozen_now, bigquery_module
+):
     """A run finishing its own teardown between listing and deleting is not an error."""
     client = mocker.Mock()
-    mocker.patch("scripts.cleanup.cleanup_big_query.python_bigquery.Client", return_value=client)
+    bigquery_module.Client.return_value = client
     client.list_tables.return_value = [
         _table(mocker, "expectation_test_table_aaaaaaaaaa", datetime.timedelta(days=1)),
         _table(mocker, "expectation_test_table_bbbbbbbbbb", datetime.timedelta(days=1)),
     ]
-    client.delete_table.side_effect = [NotFound("gone"), None]
+    client.delete_table.side_effect = [_NotFound("gone"), None]
 
     cleanup_big_query(_config())
 
     assert client.delete_table.call_count == 2
 
 
-def test_cleanup_makes_no_delete_calls_when_nothing_is_stale(mocker: MockerFixture, frozen_now):
+def test_cleanup_does_not_swallow_unexpected_delete_errors(
+    mocker: MockerFixture, frozen_now, bigquery_module
+):
+    """Only a table already being gone is tolerable.
+
+    Anything else -- a permissions problem, a transport failure -- means the sweep is
+    not working and must be visible rather than logged as a routine skip.
+    """
     client = mocker.Mock()
-    mocker.patch("scripts.cleanup.cleanup_big_query.python_bigquery.Client", return_value=client)
+    bigquery_module.Client.return_value = client
+    client.list_tables.return_value = [
+        _table(mocker, "expectation_test_table_aaaaaaaaaa", datetime.timedelta(days=1))
+    ]
+    client.delete_table.side_effect = PermissionError("caller lacks bigquery.tables.delete")
+
+    with pytest.raises(PermissionError):
+        cleanup_big_query(_config())
+
+
+def test_cleanup_makes_no_delete_calls_when_nothing_is_stale(
+    mocker: MockerFixture, frozen_now, bigquery_module
+):
+    client = mocker.Mock()
+    bigquery_module.Client.return_value = client
     client.list_tables.return_value = []
 
     cleanup_big_query(_config())
