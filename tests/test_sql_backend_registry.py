@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Iterator, List
+
 import pytest
 
 from tests.integration.test_utils.data_source_config.backend_spec import (
@@ -7,6 +9,12 @@ from tests.integration.test_utils.data_source_config.backend_spec import (
     BackendTier,
     CiLaneRef,
     SqlBackendSpec,
+)
+from tests.integration.test_utils.data_source_config.registry import (
+    isolated_registry,
+    iter_sql_backends,
+    register_sql_backend,
+    sql_backends_for_tier,
 )
 
 pytestmark = pytest.mark.project
@@ -22,6 +30,22 @@ def _make_spec(**overrides: object) -> SqlBackendSpec:
     )
     defaults.update(overrides)
     return SqlBackendSpec(**defaults)  # type: ignore[arg-type]
+
+
+def _make_config_class(name: str, spec: SqlBackendSpec) -> type:
+    return type(name, (), {"BACKEND_SPEC": spec})
+
+
+@pytest.fixture(autouse=True)
+def _snapshot_registry() -> Iterator[None]:
+    """Wrap every test in this module in the registry's snapshot/restore seam.
+
+    The registry is process-global, so a throwaway registration in one test must not survive to
+    the next test, and must not survive into the real registry that the wiring drift check and
+    other consumers rely on.
+    """
+    with isolated_registry():
+        yield
 
 
 class TestSqlBackendSpecMarkRoundTrip:
@@ -41,3 +65,244 @@ class TestSqlBackendSpecTableSchemaItemsDefault:
         spec = _make_spec()
 
         assert spec.table_schema_items is None
+
+
+class TestIsolatedSnapshotEmptyRegistryCase:
+    def test_registry_is_empty_within_a_fresh_isolated_snapshot(self) -> None:
+        with isolated_registry():
+            assert iter_sql_backends() == ()
+
+
+class TestIsolatedSnapshotRestoresRealRegistry:
+    def test_registering_a_throwaway_does_not_survive_the_snapshot(self) -> None:
+        # Establish a populated baseline inside the module's own autouse isolation, so this test
+        # proves both halves of the seam: that entering it clears down to empty, and that exiting
+        # it restores exactly what was there beforehand — regardless of what the real registry
+        # elsewhere happens to hold.
+        register_sql_backend(_make_config_class("Baseline", _make_spec(label="baseline")))
+        before = iter_sql_backends()
+        assert before != ()
+
+        with isolated_registry():
+            assert iter_sql_backends() == ()
+            register_sql_backend(_make_config_class("Throwaway", _make_spec()))
+            assert iter_sql_backends() != before
+
+        assert iter_sql_backends() == before
+
+
+class TestRegisterSqlBackendOrdering:
+    def test_iter_sql_backends_orders_registrations_by_label_not_registration_order(self) -> None:
+        zebra = _make_config_class("Zebra", _make_spec(label="zebra", marker="zebra_marker"))
+        apple = _make_config_class("Apple", _make_spec(label="apple", marker="apple_marker"))
+
+        register_sql_backend(zebra)
+        register_sql_backend(apple)
+
+        assert iter_sql_backends() == (apple, zebra)
+
+
+class TestSqlBackendsForTier:
+    def test_returns_only_backends_declaring_the_tier_ordered_by_label(self) -> None:
+        member = _make_config_class(
+            "Member",
+            _make_spec(
+                label="member",
+                marker="member_marker",
+                tiers=frozenset({BackendTier.CURATED_SQL}),
+            ),
+        )
+        non_member = _make_config_class(
+            "NonMember", _make_spec(label="non-member", marker="non_member_marker")
+        )
+
+        register_sql_backend(member)
+        register_sql_backend(non_member)
+
+        assert sql_backends_for_tier(BackendTier.CURATED_SQL) == (member,)
+
+
+class TestRegisterSqlBackendDuplicateLabel:
+    def test_duplicate_label_raises_naming_both_classes(self) -> None:
+        first = _make_config_class("First", _make_spec(label="dup-label", marker="first_marker"))
+        second = _make_config_class("Second", _make_spec(label="dup-label", marker="second_marker"))
+        register_sql_backend(first)
+
+        with pytest.raises(ValueError) as excinfo:
+            register_sql_backend(second)
+
+        message = str(excinfo.value)
+        assert "First" in message
+        assert "Second" in message
+        assert "dup-label" in message
+
+
+class TestRegisterSqlBackendDuplicateMarker:
+    def test_duplicate_marker_raises_naming_both_classes(self) -> None:
+        first = _make_config_class("First", _make_spec(label="first-label", marker="dup_marker"))
+        second = _make_config_class("Second", _make_spec(label="second-label", marker="dup_marker"))
+        register_sql_backend(first)
+
+        with pytest.raises(ValueError) as excinfo:
+            register_sql_backend(second)
+
+        message = str(excinfo.value)
+        assert "First" in message
+        assert "Second" in message
+        assert "dup_marker" in message
+
+
+class TestRegisterSqlBackendContainerProvisioning:
+    def test_local_container_without_container_service_raises(self) -> None:
+        config_class = _make_config_class(
+            "NoService",
+            _make_spec(provisioning=BackendProvisioning.LOCAL_CONTAINER, container_service=None),
+        )
+
+        with pytest.raises(ValueError) as excinfo:
+            register_sql_backend(config_class)
+
+        assert "NoService" in str(excinfo.value)
+
+    def test_container_service_without_local_container_raises(self) -> None:
+        config_class = _make_config_class(
+            "StrayService",
+            _make_spec(provisioning=BackendProvisioning.LOCAL_FILE, container_service="throwaway"),
+        )
+
+        with pytest.raises(ValueError) as excinfo:
+            register_sql_backend(config_class)
+
+        assert "StrayService" in str(excinfo.value)
+
+
+class TestRegisterSqlBackendEmptyFields:
+    def test_empty_label_raises(self) -> None:
+        config_class = _make_config_class("BlankLabel", _make_spec(label=""))
+
+        with pytest.raises(ValueError, match="BlankLabel"):
+            register_sql_backend(config_class)
+
+    def test_empty_marker_raises(self) -> None:
+        config_class = _make_config_class("BlankMarker", _make_spec(marker=""))
+
+        with pytest.raises(ValueError, match="BlankMarker"):
+            register_sql_backend(config_class)
+
+    def test_empty_ci_lane_marker_token_raises(self) -> None:
+        config_class = _make_config_class(
+            "BlankCiLane",
+            _make_spec(ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="")),
+        )
+
+        with pytest.raises(ValueError, match="BlankCiLane"):
+            register_sql_backend(config_class)
+
+    def test_non_positive_insert_parameter_limit_raises(self) -> None:
+        config_class = _make_config_class("ZeroLimit", _make_spec(insert_parameter_limit=0))
+
+        with pytest.raises(ValueError, match="ZeroLimit"):
+            register_sql_backend(config_class)
+
+    def test_negative_insert_parameter_limit_raises(self) -> None:
+        config_class = _make_config_class("NegativeLimit", _make_spec(insert_parameter_limit=-1))
+
+        with pytest.raises(ValueError, match="NegativeLimit"):
+            register_sql_backend(config_class)
+
+
+class TestRegisterSqlBackendTierCaseExclusionReasons:
+    def test_empty_case_key_raises(self) -> None:
+        config_class = _make_config_class(
+            "BlankKey", _make_spec(tier_case_exclusions={"": "a reason"})
+        )
+
+        with pytest.raises(ValueError, match="BlankKey"):
+            register_sql_backend(config_class)
+
+    def test_empty_reason_raises_naming_class_and_case_key(self) -> None:
+        config_class = _make_config_class(
+            "BlankReason", _make_spec(tier_case_exclusions={"some_case": ""})
+        )
+
+        with pytest.raises(ValueError) as excinfo:
+            register_sql_backend(config_class)
+
+        message = str(excinfo.value)
+        assert "BlankReason" in message
+        assert "some_case" in message
+
+    def test_whitespace_only_reason_raises_naming_class_and_case_key(self) -> None:
+        config_class = _make_config_class(
+            "WhitespaceReason", _make_spec(tier_case_exclusions={"some_case": "   "})
+        )
+
+        with pytest.raises(ValueError) as excinfo:
+            register_sql_backend(config_class)
+
+        message = str(excinfo.value)
+        assert "WhitespaceReason" in message
+        assert "some_case" in message
+
+
+class TestRegisterSqlBackendTierCaseExclusionCeiling:
+    def test_exactly_two_exclusions_registers_cleanly(self) -> None:
+        config_class = _make_config_class(
+            "TwoExclusions",
+            _make_spec(
+                tier_case_exclusions={
+                    "case_one": "dialect gap, see issue #1",
+                    "case_two": "dialect gap, see issue #2",
+                }
+            ),
+        )
+
+        register_sql_backend(config_class)
+
+        assert config_class in iter_sql_backends()
+
+    def test_three_exclusions_raises_naming_class_count_and_all_keys(self) -> None:
+        config_class = _make_config_class(
+            "ThreeExclusions",
+            _make_spec(
+                tier_case_exclusions={
+                    "case_one": "dialect gap, see issue #1",
+                    "case_two": "dialect gap, see issue #2",
+                    "case_three": "observed non-determinism, see issue #3",
+                }
+            ),
+        )
+
+        with pytest.raises(ValueError) as excinfo:
+            register_sql_backend(config_class)
+
+        message = str(excinfo.value)
+        assert "ThreeExclusions" in message
+        assert "3" in message
+        assert "case_one" in message
+        assert "case_two" in message
+        assert "case_three" in message
+
+
+class TestRegisterSqlBackendTableSchemaItems:
+    def test_non_callable_table_schema_items_raises(self) -> None:
+        config_class = _make_config_class(
+            "NotCallable",
+            _make_spec(table_schema_items="not-a-callable"),  # type: ignore[arg-type]
+        )
+
+        with pytest.raises(ValueError, match="NotCallable"):
+            register_sql_backend(config_class)
+
+    def test_callable_table_schema_items_is_validated_without_being_invoked(self) -> None:
+        calls: List[None] = []
+
+        def factory() -> List[object]:
+            calls.append(None)
+            return []
+
+        config_class = _make_config_class("Callable", _make_spec(table_schema_items=factory))
+
+        register_sql_backend(config_class)
+
+        assert calls == []
