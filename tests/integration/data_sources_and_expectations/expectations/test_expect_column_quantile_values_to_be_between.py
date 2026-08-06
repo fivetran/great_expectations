@@ -1,5 +1,6 @@
 import pandas as pd
 import pytest
+from sqlalchemy import types as sqlatypes
 
 import great_expectations.expectations as gxe
 from great_expectations.core.result_format import ResultFormat
@@ -12,15 +13,58 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     ALL_DATA_SOURCES,
     JUST_PANDAS_DATA_SOURCES,
 )
+from tests.integration.test_utils.data_source_config import (
+    GenericSQLDatasourceTestConfig,
+    RedshiftDatasourceTestConfig,
+)
 from tests.integration.test_utils.data_source_config.big_query import BigQueryDatasourceTestConfig
+from tests.integration.test_utils.data_source_config.databricks import (
+    DatabricksDatasourceTestConfig,
+)
+from tests.integration.test_utils.data_source_config.mysql import MySQLDatasourceTestConfig
+from tests.integration.test_utils.data_source_config.pandas_data_frame import (
+    PandasDataFrameDatasourceTestConfig,
+)
+from tests.integration.test_utils.data_source_config.pandas_filesystem_csv import (
+    PandasFilesystemCsvDatasourceTestConfig,
+)
+from tests.integration.test_utils.data_source_config.postgres import PostgreSQLDatasourceTestConfig
+from tests.integration.test_utils.data_source_config.snowflake import SnowflakeDatasourceTestConfig
+from tests.integration.test_utils.data_source_config.spark_filesystem_csv import (
+    SparkFilesystemCsvDatasourceTestConfig,
+)
+from tests.integration.test_utils.data_source_config.sql_server import SQLServerDatasourceTestConfig
+from tests.integration.test_utils.data_source_config.sqlite import SqliteDatasourceTestConfig
 
 COL_NAME = "my_col"
 
 DATA = pd.DataFrame({COL_NAME: [1, 2, 2, 3, 3, 3, 4]})
 
-# A column with no non-null values has no quantiles. The dtype keeps the column nullable on the
-# SQL backends rather than being inferred as all-NaN floats.
 ALL_NULLS = pd.DataFrame({COL_NAME: [None, None, None]}, dtype="object")
+
+# An all-null column carries no type of its own, so each backend is told what to make it.
+ALL_NULLS_COLUMN_TYPES = {COL_NAME: sqlatypes.INTEGER}
+try:
+    from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
+
+    ALL_NULLS_SPARK_COLUMN_TYPES = {COL_NAME: PYSPARK_TYPES.IntegerType}
+except ModuleNotFoundError:
+    ALL_NULLS_SPARK_COLUMN_TYPES = {}
+
+ALL_NULLS_DATA_SOURCES = [
+    BigQueryDatasourceTestConfig(column_types=ALL_NULLS_COLUMN_TYPES),
+    DatabricksDatasourceTestConfig(column_types=ALL_NULLS_COLUMN_TYPES),
+    SQLServerDatasourceTestConfig(column_types=ALL_NULLS_COLUMN_TYPES),
+    MySQLDatasourceTestConfig(column_types=ALL_NULLS_COLUMN_TYPES),
+    PandasDataFrameDatasourceTestConfig(),
+    PandasFilesystemCsvDatasourceTestConfig(),
+    PostgreSQLDatasourceTestConfig(column_types=ALL_NULLS_COLUMN_TYPES),
+    RedshiftDatasourceTestConfig(column_types=ALL_NULLS_COLUMN_TYPES),
+    GenericSQLDatasourceTestConfig(column_types=ALL_NULLS_COLUMN_TYPES),
+    SnowflakeDatasourceTestConfig(column_types=ALL_NULLS_COLUMN_TYPES),
+    SparkFilesystemCsvDatasourceTestConfig(column_types=ALL_NULLS_SPARK_COLUMN_TYPES),
+    SqliteDatasourceTestConfig(column_types=ALL_NULLS_COLUMN_TYPES),
+]
 
 ALL_DATA_SOURCES_EXCEPT_BIGQUERY = [
     ds for ds in ALL_DATA_SOURCES if not isinstance(ds, BigQueryDatasourceTestConfig)
@@ -55,7 +99,7 @@ def test_success_complete_results(batch_for_datasource: Batch) -> None:
 
 # Every backend, including BigQuery: this asserts only that no quantile was observed, so unlike
 # the cases above it does not depend on the type or shape of a returned value.
-@parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=ALL_NULLS)
+@parameterize_batch_for_data_sources(data_source_configs=ALL_NULLS_DATA_SOURCES, data=ALL_NULLS)
 def test_all_null_column_reports_unmet_expectation(batch_for_datasource: Batch) -> None:
     """A column with no quantiles fails the expectation instead of raising.
 
