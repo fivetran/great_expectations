@@ -1,2 +1,10 @@
-gx-sqlalchemy-redshift
+# Deprecated alias for requirements-dev-redshift.txt.
+# Both files install the upstream sqlalchemy-redshift dialect; this one is kept
+# so that `pip install 'great_expectations[gx-redshift]'` keeps working. Slated
+# for removal in a future major release.
+#
+# Keep in sync with requirements-dev-redshift.txt. The contents are duplicated
+# rather than pulled in with `--requirement` because the requirements parser in
+# setup.py, which builds the extras, does not resolve file references.
 psycopg2-binary>=2.7.6
+sqlalchemy-redshift>=1.0.0

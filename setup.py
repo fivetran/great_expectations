@@ -56,7 +56,6 @@ def get_extras_require():
     }
     sqla1x_only_keys = (
         "clickhouse",  # https://github.com/xzkostyan/clickhouse-sqlalchemy/blob/master/setup.py
-        "redshift",  # https://github.com/sqlalchemy-redshift/sqlalchemy-redshift/blob/main/setup.py
         "teradata",  # https://pypi.org/project/teradatasqlalchemy   https://support.teradata.com/knowledge?id=kb_article_view&sys_kb_id=a5a869149729251ced863fe3f153af27
     )
     sqla_keys = (
@@ -71,7 +70,8 @@ def get_extras_require():
         "vertica",  # https://github.com/bluelabsio/sqlalchemy-vertica-python/blob/master/setup.py
         "databricks",  # https://github.com/databricks/databricks-sql-python/blob/main/pyproject.toml
         "snowflake",  # https://github.com/snowflakedb/snowflake-sqlalchemy/blob/main/setup.cfg
-        "gx-redshift",  # https://github.com/great-expectations/sqlalchemy-redshift/blob/main/setup.py
+        "redshift",  # https://github.com/sqlalchemy-redshift/sqlalchemy-redshift/blob/main/setup.py
+        "gx-redshift",  # deprecated alias for "redshift"
     )
     ignore_keys = (
         "sqlalchemy",

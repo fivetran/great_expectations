@@ -733,8 +733,7 @@ jobs:
       fail-fast: false
       matrix:
         markers:
-          # - redshift
-          - gx-redshift
+          - redshift
         python-version: ["3.13"]
 
     steps:
