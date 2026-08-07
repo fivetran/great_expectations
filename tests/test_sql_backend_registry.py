@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterator, List, Mapping, Optional
+from dataclasses import fields
+from typing import TYPE_CHECKING, Iterator, List, Mapping, Optional, Tuple
 
 import pytest
 
@@ -995,6 +996,14 @@ class TestMetricsConftestsReexportTheSharedDefinition:
 _REGISTERED_STANDARD_SQL = tuple(sql_backends_for_tier(BackendTier.STANDARD_SQL))
 _REGISTERED_CURATED_SQL = tuple(sql_backends_for_tier(BackendTier.CURATED_SQL))
 
+# Also captured here, at this module's own import time and for the same reason as the two tuples
+# above: this module's `_snapshot_registry` autouse fixture clears the registry around every test,
+# so a test body calling `iter_sql_backends()` directly would iterate nothing and pass vacuously.
+# Unlike the two tuples above, this one is not sensitive to import order relative to `tiers.py` -
+# it is the whole registered set, not a tier-filtered derivation of it - but it still has to be
+# read before any test runs, hence the same module-scope placement.
+_REGISTERED_SQL_BACKENDS: Tuple[type, ...] = tuple(iter_sql_backends())
+
 
 class TestDerivedSqlListsReachEveryRegisteredBackend:
     """Guards `tiers.py`'s derived lists against a backend that is declared and registered but
@@ -1014,3 +1023,48 @@ class TestDerivedSqlListsReachEveryRegisteredBackend:
         assert [type(config) for config in CURATED_SQL_DATA_SOURCES] == list(
             _REGISTERED_CURATED_SQL
         )
+
+
+class TestRegisteredBackendDeclarationsSurviveAnAbsentDialectPackage:
+    """This whole module runs in a lane that installs no third-party SQL dialect driver (no
+    `pymysql`, no `psycopg2`, no Snowflake connector, and so on) - the same lane the registered-
+    set membership pins above already run in. Those pins prove the package-level import succeeds
+    with every dialect absent, since importing this module imports every backend module first;
+    this test makes the *reason* that matters explicit rather than leaving it implicit in a pin
+    whose primary purpose reads as something else.
+
+    It catches a backend that reaches for its dialect driver at module scope without an import
+    guard - which would already fail collection of this whole module - and, independently, a
+    declared field whose value is only unsafe to touch once the instance exists (for example a
+    property that dereferences the driver lazily instead of at class-body evaluation time, which
+    an import failure alone would not catch). Instantiating with no arguments and reading every
+    field is what exercises that second case; the table-schema-item field is checked for shape
+    only; calling it is exactly the operation that would need the driver, so this test never does.
+
+    What this deliberately does not cover: the *contents* of a `column_type_overrides` mapping
+    built at module scope behind an import guard. That is a permitted shape for a backend whose
+    override values come from its own driver - the same source line yields a populated mapping
+    where the driver is installed and an empty one where it is not. Because no driver is installed
+    in this lane, reading *such a mapping* here always observes its empty variant, which is the
+    correct, intended behavior for *this* lane and says nothing about what it holds in a lane
+    where the driver is present. An assertion pinning override contents belongs under that
+    backend's own marker, in the lane that installs its driver.
+
+    That scoping matters: it is a claim about the guarded shape, not about the field. A backend
+    whose overrides come from core SQLAlchemy rather than from a driver declares the same mapping
+    in every lane, so its entries are visible here too.
+    """
+
+    def test_no_argument_construction_and_full_field_read_raise_nothing(self) -> None:
+        assert _REGISTERED_SQL_BACKENDS, "no SQL backends were registered to check"
+
+        for config_class in _REGISTERED_SQL_BACKENDS:
+            config = config_class()  # no arguments
+            spec = config.backend_spec
+
+            for declared_field in fields(spec):
+                getattr(spec, declared_field.name)  # every field; must not raise
+
+            # Checked for shape only. Calling it is exactly the operation that would require the
+            # driver this lane does not install, so it is never invoked here.
+            assert spec.table_schema_items is None or callable(spec.table_schema_items)
