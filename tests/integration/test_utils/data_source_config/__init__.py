@@ -21,6 +21,7 @@ from .registry import (
     register_sql_backend,
     sql_backends_for_tier,
 )
+from .singlestore import SingleStoreDatasourceTestConfig
 from .snowflake import SnowflakeDatasourceTestConfig
 from .spark_filesystem_csv import SparkFilesystemCsvDatasourceTestConfig
 from .sql_config import SqlDatasourceTestConfig
