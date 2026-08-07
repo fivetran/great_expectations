@@ -22,7 +22,6 @@ from great_expectations.compatibility.sqlalchemy import (
     sqltypes,
 )
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
-from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from tests.integration.sql_session_manager import (
     ConnectionDetails,
     SessionSQLEngineManager,
@@ -228,7 +227,6 @@ class SQLBatchTestSetup(BatchTestSetup[_SqlConfigT, TableAsset], ABC, Generic[_S
     @override
     def setup(self) -> None:
         engine, cleanup = self._get_engine()
-        dialect = engine.dialect.name.lower()
 
         with engine.connect() as conn:
             # create schema if needed
@@ -254,8 +252,9 @@ class SQLBatchTestSetup(BatchTestSetup[_SqlConfigT, TableAsset], ABC, Generic[_S
                 # because None is cast back to np.nan in numeric dtypes.
                 values = list(table_data.df.to_dict("index").values())
                 values = self._sanitize_null_values(values)
-                max_params = 250 if dialect == GXSqlDialect.DATABRICKS else None
-                self._safe_bulk_insert(conn, table_data.table, values, max_params)
+                self._safe_bulk_insert(
+                    conn, table_data.table, values, self.backend_spec.insert_parameter_limit
+                )
 
             # Commit transaction (safe for databases without transaction support)
             self._safe_commit(conn)
