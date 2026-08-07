@@ -322,7 +322,12 @@ def _get_column_quantiles_mysql(
 
     try:
         quantiles_results = execution_engine.execute_query(quantiles_query).fetchone()
-        return list(quantiles_results)  # type: ignore[arg-type] # FIXME CoP
+        # Filtering the nulls out of the CTE leaves it empty for a column with no non-null values,
+        # and the query then returns no row at all. Report one absent quantile per requested
+        # quantile, which is what the engines with a native "percentile_disc" return.
+        if quantiles_results is None:
+            return [None] * len(selects)
+        return list(quantiles_results)
     except sqlalchemy.ProgrammingError as pe:
         exception_message: str = "An SQL syntax Exception occurred."
         exception_traceback: str = traceback.format_exc()
