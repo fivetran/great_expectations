@@ -570,6 +570,101 @@ class TestGenericSqlEscapeHatchAutocommitSeam:
             == TransactionMode.EXPLICIT_COMMIT
         )
 
+    def test_autocommit_varies_the_label_so_two_configs_no_longer_collide(self) -> None:
+        """An instance whose only observable difference from another is its transaction mode
+        must not compare equal to it and must not share a cache key with it: the session-scoped
+        batch-setup cache is a plain `dict` keyed on config equality, and equality here is
+        defined in terms of `label`, so two configs sharing a label but disagreeing on
+        transaction mode would collide - the second one silently reusing the first one's cached
+        setup and inheriting its commit behavior.
+        """
+        from tests.integration.test_utils.data_source_config.generic_sql import (
+            GenericSQLDatasourceTestConfig,
+        )
+
+        explicit = GenericSQLDatasourceTestConfig(
+            connection_string="mysql+pymysql://x/y", autocommit=False
+        )
+        autocommit = GenericSQLDatasourceTestConfig(
+            connection_string="mysql+pymysql://x/y", autocommit=True
+        )
+
+        assert explicit.label != autocommit.label
+        assert explicit != autocommit
+        assert hash(explicit) != hash(autocommit)
+
+        # The exact shape the session-scoped cache uses: a plain dict keyed on the config.
+        cache = {explicit: "setup-for-explicit"}
+        assert autocommit not in cache
+
+
+class TestGenericSqlEscapeHatchEnvironmentAutocommit:
+    """`GX_TEST_GENERIC_SQL_AUTOCOMMIT` is an out-of-code way to ask for the same behavior the
+    `autocommit` field declares in code. It is read once a batch setup is constructed for a
+    config, not when the config itself is constructed or when the harness is imported - so a
+    config built before the variable is set still picks it up once a batch setup is built for
+    it.
+    """
+
+    def test_env_var_is_read_at_batch_setup_construction_not_at_config_construction(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from typing import cast
+
+        import pandas as pd
+
+        from tests.integration.test_utils.data_source_config.backend_spec import TransactionMode
+        from tests.integration.test_utils.data_source_config.generic_sql import (
+            GenericSQLBatchTestSetup,
+            GenericSQLDatasourceTestConfig,
+        )
+
+        monkeypatch.setenv("GX_TEST_GENERIC_SQL_AUTOCOMMIT", "1")
+
+        config = GenericSQLDatasourceTestConfig(connection_string="sqlite:///:memory:")
+        # The config's own field is untouched by the environment, so its declaration - read on
+        # its own, with no batch setup involved - still reports the explicit-commit default.
+        assert config.autocommit is False
+        assert config.backend_spec.transaction_mode == TransactionMode.EXPLICIT_COMMIT
+
+        batch_setup = GenericSQLBatchTestSetup(
+            config=config,
+            data=pd.DataFrame({"a": [1]}),
+            extra_data={},
+            context=cast("AbstractDataContext", object()),
+        )
+
+        # Once a batch setup exists for that same config, the environment variable it read at
+        # construction takes effect.
+        assert batch_setup.backend_spec.transaction_mode == TransactionMode.AUTOCOMMIT
+
+    def test_env_var_unset_leaves_explicit_commit_in_place(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # Clear the variable rather than assuming it is unset: exporting it is the escape
+        # hatch's own documented usage, so a developer running that way would otherwise turn
+        # this negative control red for a reason that has nothing to do with what it asserts.
+        monkeypatch.delenv("GX_TEST_GENERIC_SQL_AUTOCOMMIT", raising=False)
+        from typing import cast
+
+        import pandas as pd
+
+        from tests.integration.test_utils.data_source_config.backend_spec import TransactionMode
+        from tests.integration.test_utils.data_source_config.generic_sql import (
+            GenericSQLBatchTestSetup,
+            GenericSQLDatasourceTestConfig,
+        )
+
+        config = GenericSQLDatasourceTestConfig(connection_string="sqlite:///:memory:")
+        batch_setup = GenericSQLBatchTestSetup(
+            config=config,
+            data=pd.DataFrame({"a": [1]}),
+            extra_data={},
+            context=cast("AbstractDataContext", object()),
+        )
+
+        assert batch_setup.backend_spec.transaction_mode == TransactionMode.EXPLICIT_COMMIT
+
 
 class TestGenericSqlEscapeHatchHashRegression:
     """Regression coverage for a trap in re-decorating a `SqlDatasourceTestConfig` subclass with
