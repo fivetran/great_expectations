@@ -1070,12 +1070,28 @@ def test_sa_batch_unexpected_condition_temp_table(caplog, sa):
 
     validate_tmp_tables(execution_engine=execution_engine)
 
+    count_per_value_metric = MetricConfiguration(
+        metric_name=f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    count_per_value_metric.metric_dependencies = {
+        "table.columns": table_columns_metric,
+    }
+    results = execution_engine.resolve_metrics(
+        metrics_to_resolve=(count_per_value_metric,), metrics=metrics
+    )
+    metrics.update(results)
+
+    validate_tmp_tables(execution_engine=execution_engine)
+
     condition_metric = MetricConfiguration(
         metric_name=f"column_values.unique.{MetricPartialFunctionTypeSuffixes.CONDITION.value}",
         metric_domain_kwargs={"column": "a"},
         metric_value_kwargs=None,
     )
     condition_metric.metric_dependencies = {
+        f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}": count_per_value_metric,  # noqa: E501 # metric name exceeds line length
         "table.columns": table_columns_metric,
     }
     results = execution_engine.resolve_metrics(

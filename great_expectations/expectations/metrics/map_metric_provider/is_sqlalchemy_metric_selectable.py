@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 SQLALCHEMY_SELECTABLE_METRICS: Set[str] = {
     "compound_columns.count",
     "compound_columns.unique",
+    "column_values.unique",
 }
 
 

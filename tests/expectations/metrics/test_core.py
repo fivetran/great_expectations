@@ -2628,12 +2628,24 @@ def test_map_unique_column_exists_sa(sa):
     table_columns_metric, results = get_table_columns_metric(execution_engine=engine)
     metrics.update(results)
 
+    count_per_value_metric = MetricConfiguration(
+        metric_name=f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    count_per_value_metric.metric_dependencies = {
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(metrics_to_resolve=(count_per_value_metric,), metrics=metrics)
+    metrics.update(results)
+
     condition_metric = MetricConfiguration(
         metric_name=f"column_values.unique.{MetricPartialFunctionTypeSuffixes.CONDITION.value}",
         metric_domain_kwargs={"column": "a"},
         metric_value_kwargs=None,
     )
     condition_metric.metric_dependencies = {
+        f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}": count_per_value_metric,  # noqa: E501 # metric name exceeds line length
         "table.columns": table_columns_metric,
     }
     results = engine.resolve_metrics(metrics_to_resolve=(condition_metric,), metrics=metrics)
@@ -2741,12 +2753,22 @@ def test_map_unique_empty_query_sa(sa):
     metrics: dict
     table_columns_metric, metrics = get_table_columns_metric(execution_engine=engine)
 
+    count_per_value_metric = MetricConfiguration(
+        metric_name=f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    count_per_value_metric.metric_dependencies = {"table.columns": table_columns_metric}
+    results = engine.resolve_metrics(metrics_to_resolve=(count_per_value_metric,), metrics=metrics)
+    metrics.update(results)
+
     condition_metric = MetricConfiguration(
         metric_name=f"column_values.unique.{MetricPartialFunctionTypeSuffixes.CONDITION.value}",
         metric_domain_kwargs={"column": "a"},
         metric_value_kwargs=None,
     )
     condition_metric.metric_dependencies = {
+        f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}": count_per_value_metric,  # noqa: E501 # metric name exceeds line length
         "table.columns": table_columns_metric,
     }
     results = engine.resolve_metrics(metrics_to_resolve=(condition_metric,), metrics=metrics)
@@ -2766,6 +2788,167 @@ def test_map_unique_empty_query_sa(sa):
         metrics=metrics,
     )
     assert results[desired_metric.id] == 0
+
+
+@pytest.mark.sqlite
+def test_map_unique_unexpected_count_sql_shape_sa(sa):
+    """Regression test for Redshift WLM "low_timeout" fixes.
+
+    The single most common path on SQLAlchemy is "unexpected_count" (BASIC
+    result_format). The generated SQL must:
+
+      * scan the source table exactly once (no "col NOT IN (dup_subquery)"
+        semi-join pattern, which double-scans on column-store backends),
+      * carry only the target column through the window operator (the inner
+        windowed subquery must NOT project arbitrary table columns, because
+        that materializes every column — including JSON/SUPER fields on
+        Redshift — through the partition sort and was observed to trip the
+        WLM "low_timeout" rule even after the double-scan was removed).
+    """
+    engine = build_sa_execution_engine(
+        pd.DataFrame({"a": [1, 2, 3, 3, None], "b": ["x", "y", "z", "z", "w"]}),
+        sa,
+    )
+
+    executed_sql: list[str] = []
+
+    @sa.event.listens_for(engine.engine, "before_cursor_execute")
+    def capture_sql(conn, cursor, statement, parameters, context, executemany):
+        executed_sql.append(statement)
+
+    table_columns_metric: MetricConfiguration
+    metrics: dict
+    table_columns_metric, metrics = get_table_columns_metric(execution_engine=engine)
+
+    count_per_value_metric = MetricConfiguration(
+        metric_name=f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    count_per_value_metric.metric_dependencies = {"table.columns": table_columns_metric}
+    results = engine.resolve_metrics(metrics_to_resolve=(count_per_value_metric,), metrics=metrics)
+    metrics.update(results)
+
+    condition_metric = MetricConfiguration(
+        metric_name=f"column_values.unique.{MetricPartialFunctionTypeSuffixes.CONDITION.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    condition_metric.metric_dependencies = {
+        f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}": count_per_value_metric,  # noqa: E501 # metric name exceeds line length
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(metrics_to_resolve=(condition_metric,), metrics=metrics)
+    metrics.update(results)
+
+    unexpected_count_metric = MetricConfiguration(
+        metric_name=f"column_values.unique.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    unexpected_count_metric.metric_dependencies = {
+        "unexpected_condition": condition_metric,
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(metrics_to_resolve=(unexpected_count_metric,), metrics=metrics)
+    assert results[unexpected_count_metric.id] == 2
+
+    combined = " ".join(executed_sql)
+    combined_upper = combined.upper()
+
+    # Single-pass: no semi-join double-scan.
+    assert "NOT IN" not in combined_upper, (
+        "Duplicate detection must not rely on a NOT IN (dup_subquery) pattern "
+        "(double-scans source on column-store DBs like Redshift)."
+    )
+
+    # Window must still be used for the count path (single scan, no GROUP BY
+    # collapse, framework's SUM(CASE) wrapper relies on one row per source row).
+    assert "PARTITION BY" in combined_upper, (
+        f"Expected windowed unique check for unexpected_count, got: {executed_sql}"
+    )
+
+    # Narrow projection: only target column "a" must appear inside the windowed
+    # subquery. Column "b" must NOT be projected through the window operator —
+    # that was the wide-row failure mode that kept tripping WLM "low_timeout".
+    assert ", b," not in combined and ", b " not in combined and ', "b"' not in combined, (
+        "Inner windowed subquery must project only the target column; carrying "
+        "extra source columns through the window operator re-introduces the "
+        "wide-row sort that trips Redshift WLM `low_timeout`. "
+        f"Got SQL: {executed_sql}"
+    )
+
+
+@pytest.mark.sqlite
+def test_map_unique_unexpected_rows_join_back_sa(sa):
+    """The "unexpected_rows" path must hydrate full source rows by joining a
+    narrow dup-keys aggregate back to the source — never by widening the
+    windowed subquery to carry every source column.
+    """
+    engine = build_sa_execution_engine(
+        pd.DataFrame(
+            {
+                "a": [1, 2, 3, 3, None],
+                "b": ["x", "y", "z1", "z2", "w"],
+                "c": [10, 20, 30, 31, 40],
+            }
+        ),
+        sa,
+    )
+
+    executed_sql: list[str] = []
+
+    @sa.event.listens_for(engine.engine, "before_cursor_execute")
+    def capture_sql(conn, cursor, statement, parameters, context, executemany):
+        executed_sql.append(statement)
+
+    table_columns_metric: MetricConfiguration
+    metrics: dict
+    table_columns_metric, metrics = get_table_columns_metric(execution_engine=engine)
+
+    count_per_value_metric = MetricConfiguration(
+        metric_name=f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    count_per_value_metric.metric_dependencies = {"table.columns": table_columns_metric}
+    results = engine.resolve_metrics(metrics_to_resolve=(count_per_value_metric,), metrics=metrics)
+    metrics.update(results)
+
+    condition_metric = MetricConfiguration(
+        metric_name=f"column_values.unique.{MetricPartialFunctionTypeSuffixes.CONDITION.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    condition_metric.metric_dependencies = {
+        f"column_values.count_per_value.{MetricPartialFunctionTypeSuffixes.MAP.value}": count_per_value_metric,  # noqa: E501 # metric name exceeds line length
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(metrics_to_resolve=(condition_metric,), metrics=metrics)
+    metrics.update(results)
+
+    unexpected_rows_metric = MetricConfiguration(
+        metric_name=f"column_values.unique.{SummarizationMetricNameSuffixes.UNEXPECTED_ROWS.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs={
+            "result_format": {"result_format": "COMPLETE", "partial_unexpected_count": 20}
+        },
+    )
+    unexpected_rows_metric.metric_dependencies = {
+        "unexpected_condition": condition_metric,
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(metrics_to_resolve=(unexpected_rows_metric,), metrics=metrics)
+
+    rows = results[unexpected_rows_metric.id]
+    duplicated_a = sorted(r["a"] for r in rows)
+    assert duplicated_a == [3, 3]
+
+    combined_upper = " ".join(executed_sql).upper()
+    assert "GROUP BY" in combined_upper and "HAVING" in combined_upper, (
+        "unexpected_rows must use a narrow GROUP BY/HAVING dup-keys subquery "
+        f"joined back to source; got: {executed_sql}"
+    )
 
 
 @pytest.mark.spark
