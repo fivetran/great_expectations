@@ -17,7 +17,7 @@ Before we completely remove the functionality in a new major release, there will
 
 ### 1.20.0
 * [BUGFIX] Support standing up a FileDataContext on a read-only filesystem ([#12000](https://github.com/fivetran/great_expectations/pull/12000))
-* [BUGFIX] Narrow single-pass column_values.unique on SQLAlchemy (Redshift WLM) ([#11863](https://github.com/fivetran/great_expectations/pull/11863)) (thanks @leodrivera, Claude Fable 5)
+* [BUGFIX] Narrow single-pass column_values.unique on SQLAlchemy (Redshift WLM) ([#11863](https://github.com/fivetran/great_expectations/pull/11863)) (thanks @leodrivera)
 * [BUGFIX] deduplicate sql metric aliases to prevent view schema collisions (#10926) ([#11905](https://github.com/fivetran/great_expectations/pull/11905)) (thanks @TemidayoA)
 * [BUGFIX] Report an unmet expectation when a column has no quantiles ([#12026](https://github.com/fivetran/great_expectations/pull/12026))
 * [BUGFIX] Exclude nulls and fix the rank offset in the SQLite quantile metric ([#12008](https://github.com/fivetran/great_expectations/pull/12008)) (thanks @SreeramaYeshwanthGowd)
@@ -28,7 +28,7 @@ Before we completely remove the functionality in a new major release, there will
 * [MAINTENANCE] Bump fast-uri from 3.1.4 to 3.1.5 in /docs/docusaurus ([#12019](https://github.com/fivetran/great_expectations/pull/12019))
 * [MAINTENANCE] Defer the schema listing in TableAsset.test_connection to the failure path ([#12020](https://github.com/fivetran/great_expectations/pull/12020))
 * [MAINTENANCE] BigQuery CI ([#12016](https://github.com/fivetran/great_expectations/pull/12016))
-* [CONTRIB] Promote ExpectColumnValuesToMatchStrftimeFormat to supported-core ([#12009](https://github.com/fivetran/great_expectations/pull/12009)) (thanks @nanjeshramesh, Claude Sonnet 5)
+* [CONTRIB] Promote ExpectColumnValuesToMatchStrftimeFormat to supported-core ([#12009](https://github.com/fivetran/great_expectations/pull/12009)) (thanks @nanjeshramesh)
 
 ### 1.19.1
 * [FEATURE] Self-hosted CLA status check ([#11985](https://github.com/fivetran/great_expectations/pull/11985))
