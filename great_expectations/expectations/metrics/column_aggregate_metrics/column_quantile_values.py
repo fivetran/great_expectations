@@ -385,8 +385,14 @@ def _get_column_quantiles_sqlite(
     Ranks are taken over the non-null values only and follow "percentile_disc", which returns the
     first value whose cumulative distribution reaches the quantile.
     """  # noqa: E501 # FIXME CoP
-    # "Fraction" rather than float arithmetic: 0.56 * 25 is 14.000000000000002, which would round
-    # up to the next rank and return the wrong value.
+    # The rank is "ceil(quantile * count)" evaluated on the quantile as written, not on its binary
+    # approximation. 0.56 is not representable in binary, so 0.56 * 25 is 14.000000000000002 and
+    # ceiling that selects rank 15. Rank 14 is the correct answer, because 14/25 is exactly 0.56
+    # and so already reaches the quantile.
+    #
+    # Note that this deliberately differs from the SQL engines that implement "percentile_disc" in
+    # double precision: PostgreSQL returns the 15th value here. The divergence is confined to
+    # quantiles whose product with the count is a whole number in decimal but not in binary.
     ranks: list[int] = [
         max(math.ceil(Fraction(str(quantile)) * nonnull_count), 1) for quantile in quantiles
     ]

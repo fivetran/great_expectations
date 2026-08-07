@@ -49,8 +49,8 @@ DATA_WITH_NULLS = pd.DataFrame({COL_NAME: [1, 2, 2, 3, 3, 3, 4, None, None]}, dt
 # where the selected rank is easiest to get wrong.
 DISTINCT_DATA = pd.DataFrame({COL_NAME: [10, 20, 30, 40]})
 
-# 0.56 * 25 is 14.000000000000002 in binary floating point, so a rank computed in floating point
-# rounds up to 15 and returns the wrong value.
+# 0.56 is not representable in binary, so 0.56 * 25 is 14.000000000000002 and a rank computed in
+# floating point rounds up to 15. The correct rank is 14, because 14/25 is exactly 0.56.
 TWENTY_FIVE_ROWS = pd.DataFrame({COL_NAME: list(range(1, 26))})
 
 ALL_NULLS = pd.DataFrame({COL_NAME: [None, None, None]}, dtype="object")
@@ -191,6 +191,12 @@ def test_quantiles_when_quantile_times_count_is_not_whole(
     }
 
 
+# Pandas and SQLite only, and deliberately so: do not extend this to the other SQL backends. They
+# implement "percentile_disc" in double precision, where 0.56 * 25 exceeds 14, so PostgreSQL and
+# its peers report 15 for this data. SQLite ranks on the quantile as written and reports 14.
+#
+# This case already passes on develop, where truncating the offset happens to land on 14. It is
+# here to pin the exact-decimal arithmetic, not to reproduce a defect.
 @parameterize_batch_for_data_sources(
     data_source_configs=[*JUST_PANDAS_DATA_SOURCES, SqliteDatasourceTestConfig()],
     data=TWENTY_FIVE_ROWS,
