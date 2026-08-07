@@ -46,4 +46,5 @@ from .tiers import (
     PANDAS_DATA_SOURCES,
     SPARK_DATA_SOURCES,
     SQL_DATA_SOURCES,
+    data_sources_for_tier_case,
 )
