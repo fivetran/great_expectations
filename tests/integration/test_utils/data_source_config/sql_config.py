@@ -111,5 +111,7 @@ class SqlDatasourceTestConfig(DataSourceTestConfig):
 
 _SqlConfigT = TypeVar("_SqlConfigT", bound=SqlDatasourceTestConfig)  # noqa: PYI018
 """Bound to `SqlDatasourceTestConfig` rather than the wider `_ConfigT` (`base.py`). Unused within
-this module by design: re-binding the shared SQL setup's generic parameter to it is a later,
-separate task, so nothing in this module consumes it yet."""
+this module by design: `sql.py`'s `SQLBatchTestSetup` imports it to re-bind its own generic
+parameter, so every concrete `SQLBatchTestSetup` subclass is statically tied to a config that
+carries a declared `SqlBackendSpec` - not merely any `DataSourceTestConfig` - and can therefore
+read `backend_spec` off `self.config` without a cast."""
