@@ -36,7 +36,7 @@ class GenericSQLDatasourceTestConfig(SqlDatasourceTestConfig):
     Unlike the dialect-specific configs (e.g. PostgreSQLDatasourceTestConfig), the connection
     string is not baked in — it must be supplied at construction time. This makes the config
     reusable across any SQLAlchemy-compatible database, but it also means this config has no
-    fixed identity to enrol in the SQL backend registry: it is deliberately never decorated with
+    fixed identity to enroll in the SQL backend registry: it is deliberately never decorated with
     `@register_sql_backend`, and must never appear in the set that gates CI.
 
     `eq=False` is required here for the same reason `sql_config.py`'s class docstring gives for
