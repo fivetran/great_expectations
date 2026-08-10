@@ -157,7 +157,7 @@ def _validate_spec(config_class: type, spec: SqlBackendSpec) -> None:
 
 
 def register_sql_backend(config_class: type[_C]) -> type[_C]:
-    """Enrol a SQL config class. Raises `ValueError` at decoration time on a duplicate label,
+    """Enroll a SQL config class. Raises `ValueError` at decoration time on a duplicate label,
     duplicate marker, or any invariant violation in its declared spec.
     """
     spec = config_class.BACKEND_SPEC
