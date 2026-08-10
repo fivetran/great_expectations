@@ -601,6 +601,10 @@ class TestLocallyVerifiableBackendsRegisterInLabelOrder:
         ):
             register_sql_backend(config_class)
 
+        # This is the seam-local ordering subset, not the registered-set pin further down this
+        # module. The two literals look alike - same classes, same trailing label comments - but
+        # they answer different questions, and only the other one has to grow when a backend is
+        # added. Edit by line, not by matching on these lines.
         assert iter_sql_backends() == (
             SQLServerDatasourceTestConfig,  # mssql
             MySQLDatasourceTestConfig,  # mysql
@@ -1024,6 +1028,63 @@ _REGISTERED_CURATED_SQL = tuple(sql_backends_for_tier(BackendTier.CURATED_SQL))
 # it is the whole registered set, not a tier-filtered derivation of it - but it still has to be
 # read before any test runs, hence the same module-scope placement.
 _REGISTERED_SQL_BACKENDS: Tuple[type, ...] = tuple(iter_sql_backends())
+
+
+class TestRegisteredSqlBackendsEqualTheNineInLabelOrder:
+    """Pins the registry itself: every registered SQL backend, named individually, in label order.
+
+    This is an *equality* assertion against an *ordered* literal naming every registered class -
+    not a subset check, not a membership check, not a count. That shape is what makes registering
+    a tenth backend without extending this literal fail immediately: "register the config" and
+    "extend this literal" become one change with a single, same-change failure signal, rather than
+    a widening nobody notices until something downstream quietly starts seeing one more backend
+    than it expected. A subset or count check would let a new registration pass silently here,
+    which defeats the point, so neither is an acceptable substitute for the other.
+
+    This module runs in a lane that installs no SQL dialect driver at all, and importing this
+    module imports the whole harness package first, which in turn imports every backend module -
+    each one registering itself as a side effect of being imported. An equality assertion over all
+    nine registered classes therefore runs only in a process where every backend module imported
+    successfully with every dialect driver absent.
+
+    Be precise about which half of that each mechanism carries. A backend module that fails to
+    import takes the whole package down with it, so every test here dies at collection - the
+    import statement is what proves importability, not this assertion. What this assertion adds
+    is that all nine modules actually *registered*: importing a module and registering from it
+    are separate events, and only the second is observable here. Weakening this to a subset or
+    count check would discard exactly that, letting a backend that imported but never enrolled
+    itself pass unnoticed.
+
+    Distinct from its neighbours: two test classes earlier in this module prove label ordering for
+    two named subsets of backends (the ones verifiable without external credentials, and the ones
+    gated on them), and another test elsewhere in this module pins the curated tier's one member.
+    This one pins the full registered set - every backend that exists, not a subset of them - which
+    is why it, and not either of those, is the assertion that fails when a new backend is
+    registered without a matching update here.
+    """
+
+    def test_registered_backends_equal_the_nine_in_label_order(self) -> None:
+        from tests.integration.test_utils.data_source_config.mysql import (
+            MySQLDatasourceTestConfig,
+        )
+        from tests.integration.test_utils.data_source_config.redshift import (
+            RedshiftDatasourceTestConfig,
+        )
+        from tests.integration.test_utils.data_source_config.sql_server import (
+            SQLServerDatasourceTestConfig,
+        )
+
+        assert (
+            BigQueryDatasourceTestConfig,  # big-query
+            DatabricksDatasourceTestConfig,  # databricks
+            SQLServerDatasourceTestConfig,  # mssql
+            MySQLDatasourceTestConfig,  # mysql
+            PostgreSQLDatasourceTestConfig,  # postgresql
+            RedshiftDatasourceTestConfig,  # redshift
+            SingleStoreDatasourceTestConfig,  # singlestore
+            SnowflakeDatasourceTestConfig,  # snowflake
+            SqliteDatasourceTestConfig,  # sqlite
+        ) == _REGISTERED_SQL_BACKENDS
 
 
 class TestDerivedSqlListsReachEveryRegisteredBackend:
