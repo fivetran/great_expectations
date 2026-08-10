@@ -470,6 +470,45 @@ class TestLocallyVerifiableBackendsRegisterInLabelOrder:
         )
 
 
+class TestCredentialGatedBackendsRegisterInLabelOrder:
+    def test_bigquery_databricks_redshift_and_snowflake_appear_in_label_order(self) -> None:
+        # These four cannot have their suites run locally (no credentials for any of the four
+        # hosted services), but registration itself has no dependency on credentials or on the
+        # dialect package being installed - it only reads the declared spec. Re-registering the
+        # real classes here, against this module's isolated seam, proves label ordering without
+        # depending on import order relative to the other backend modules.
+        from tests.integration.test_utils.data_source_config.big_query import (
+            BigQueryDatasourceTestConfig,
+        )
+        from tests.integration.test_utils.data_source_config.databricks import (
+            DatabricksDatasourceTestConfig,
+        )
+        from tests.integration.test_utils.data_source_config.redshift import (
+            RedshiftDatasourceTestConfig,
+        )
+        from tests.integration.test_utils.data_source_config.snowflake import (
+            SnowflakeDatasourceTestConfig,
+        )
+
+        # Registered deliberately out of label order: an implementation returning insertion
+        # order would produce this tuple instead of the sorted one asserted below, so the
+        # assertion discriminates label ordering rather than merely recording these labels.
+        for config_class in (
+            SnowflakeDatasourceTestConfig,
+            BigQueryDatasourceTestConfig,
+            RedshiftDatasourceTestConfig,
+            DatabricksDatasourceTestConfig,
+        ):
+            register_sql_backend(config_class)
+
+        assert iter_sql_backends() == (
+            BigQueryDatasourceTestConfig,  # big-query
+            DatabricksDatasourceTestConfig,  # databricks
+            RedshiftDatasourceTestConfig,  # redshift
+            SnowflakeDatasourceTestConfig,  # snowflake
+        )
+
+
 class TestRegisteredBackendsKeepTheInheritedHash:
     def test_no_registered_backend_regenerated_eq_or_hash(self) -> None:
         """Every registered config must inherit `DataSourceTestConfig`'s `__eq__`/`__hash__`.
