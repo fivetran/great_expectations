@@ -55,7 +55,6 @@ from great_expectations.execution_engine.sqlalchemy_dialect import (
 )
 from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
 from tests.integration.fluent.conftest import TEST_TABLE_NAME
-from tests.integration.test_utils.data_source_config.sql import _AUTO_COMMIT_DIALECTS
 from tests.test_utils import (
     SQL_SERVER_DATABASE,
     SQL_SERVER_DRIVER,
@@ -98,6 +97,14 @@ TRINO_TABLE: Final[str] = "customer"
 DO_NOT_CREATE_TABLES: set[str] = {"trino"}
 # sqlite db files should be using fresh tmp_path on every test
 DO_NOT_DROP_TABLES: set[str] = {"sqlite"}
+
+# Dialects that auto-commit and may not have active transactions. This module owns this
+# constant: a dialect goes in here only once tables actually get created for it (i.e. once it
+# is removed from DO_NOT_CREATE_TABLES above), because until then `_safe_commit` below never
+# runs for that dialect and this set has no observable effect on it. Whoever removes a dialect
+# from DO_NOT_CREATE_TABLES is responsible for adding it here if, and only if, that dialect
+# does not support explicit transactions.
+_AUTO_COMMIT_DIALECTS = {GXSqlDialect.DATABRICKS}
 
 DatabaseType: TypeAlias = Literal["postgres", "sqlite", "trino", "sql_server"]
 TableNameCase: TypeAlias = Literal[
