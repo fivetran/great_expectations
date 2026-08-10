@@ -509,6 +509,128 @@ class TestCredentialGatedBackendsRegisterInLabelOrder:
         )
 
 
+class TestGenericSqlEscapeHatchIsDeclaredButUnregistered:
+    """The ad-hoc, caller-supplied-connection-string config has no fixed identity to enroll, so
+    unlike the eight dialect-specific backends it must never appear in the registry that gates
+    CI - even though, like them, it now derives its identity from a declared spec.
+    """
+
+    def test_is_absent_from_the_registry(self) -> None:
+        from tests.integration.test_utils.data_source_config.generic_sql import (
+            GenericSQLDatasourceTestConfig,
+        )
+
+        assert GenericSQLDatasourceTestConfig not in iter_sql_backends()
+        assert "generic_sql" not in {backend.BACKEND_SPEC.label for backend in iter_sql_backends()}
+
+    def test_registering_it_would_still_succeed_if_it_were_ever_registered(self) -> None:
+        # Proves the absence above is a deliberate omission, not a side effect of the spec
+        # failing registration's own validation.
+        from tests.integration.test_utils.data_source_config.generic_sql import (
+            GenericSQLDatasourceTestConfig,
+        )
+
+        with isolated_registry():
+            register_sql_backend(GenericSQLDatasourceTestConfig)
+
+            assert GenericSQLDatasourceTestConfig in iter_sql_backends()
+
+
+class TestGenericSqlEscapeHatchAutocommitSeam:
+    def test_default_instance_reports_explicit_commit(self) -> None:
+        from tests.integration.test_utils.data_source_config.backend_spec import TransactionMode
+        from tests.integration.test_utils.data_source_config.generic_sql import (
+            GenericSQLDatasourceTestConfig,
+        )
+
+        config = GenericSQLDatasourceTestConfig()
+
+        assert config.backend_spec.transaction_mode == TransactionMode.EXPLICIT_COMMIT
+
+    def test_autocommit_instance_reports_autocommit_mode(self) -> None:
+        from tests.integration.test_utils.data_source_config.backend_spec import TransactionMode
+        from tests.integration.test_utils.data_source_config.generic_sql import (
+            GenericSQLDatasourceTestConfig,
+        )
+
+        config = GenericSQLDatasourceTestConfig(autocommit=True)
+
+        assert config.backend_spec.transaction_mode == TransactionMode.AUTOCOMMIT
+
+    def test_autocommit_does_not_mutate_the_class_level_declaration(self) -> None:
+        from tests.integration.test_utils.data_source_config.backend_spec import TransactionMode
+        from tests.integration.test_utils.data_source_config.generic_sql import (
+            GenericSQLDatasourceTestConfig,
+        )
+
+        GenericSQLDatasourceTestConfig(autocommit=True)
+
+        assert (
+            GenericSQLDatasourceTestConfig.BACKEND_SPEC.transaction_mode
+            == TransactionMode.EXPLICIT_COMMIT
+        )
+
+
+class TestGenericSqlEscapeHatchHashRegression:
+    """Regression coverage for a trap in re-decorating a `SqlDatasourceTestConfig` subclass with
+    a bare `@dataclass(frozen=True)`: doing so silently regenerates `__eq__`/`__hash__`,
+    discarding the hand-written `__hash__` that reduces `extra_column_types` to a hashable tuple
+    before hashing it. The generated replacement hashes the raw `dict` value instead, which
+    raises unconditionally - even for a config with no `extra_column_types` at all, since the
+    empty-dict default is still a `dict`. This has no test-suite-visible symptom (nothing calls
+    `hash()` on a config directly in the ordinary suite), which is exactly why it must be pinned
+    here rather than left to be noticed by whatever else happens to depend on it.
+    """
+
+    def test_hash_does_not_raise_on_a_default_instance(self) -> None:
+        from tests.integration.test_utils.data_source_config.generic_sql import (
+            GenericSQLDatasourceTestConfig,
+        )
+
+        hash(GenericSQLDatasourceTestConfig())  # must not raise TypeError: unhashable type: dict
+
+    def test_hash_does_not_raise_with_non_empty_extra_column_types(self) -> None:
+        from tests.integration.test_utils.data_source_config.generic_sql import (
+            GenericSQLDatasourceTestConfig,
+        )
+
+        config = GenericSQLDatasourceTestConfig(extra_column_types={"other_table": {"col": str}})
+
+        hash(config)  # must not raise TypeError: unhashable type: dict
+
+    def test_eq_and_hash_resolve_to_the_shared_base_implementation(self) -> None:
+        from tests.integration.test_utils.data_source_config.generic_sql import (
+            GenericSQLDatasourceTestConfig,
+        )
+
+        assert (
+            GenericSQLDatasourceTestConfig.__eq__.__qualname__
+            == DataSourceTestConfig.__eq__.__qualname__
+        )
+        assert (
+            GenericSQLDatasourceTestConfig.__hash__.__qualname__
+            == DataSourceTestConfig.__hash__.__qualname__
+        )
+
+
+class TestGenericSqlEscapeHatchPublicNames:
+    """The escape hatch is imported by name from several call sites across the suite; this pins
+    that both names used elsewhere in the repo still resolve after the base class changes.
+    """
+
+    def test_config_and_batch_setup_classes_are_still_importable_and_constructible(self) -> None:
+        from tests.integration.test_utils.data_source_config.generic_sql import (
+            GenericSQLBatchTestSetup,
+            GenericSQLDatasourceTestConfig,
+        )
+
+        config = GenericSQLDatasourceTestConfig(connection_string="sqlite:///:memory:")
+
+        assert config.label == "generic_sql"
+        assert config.pytest_mark == pytest.mark.generic_sql
+        assert GenericSQLBatchTestSetup is not None
+
+
 class TestRegisteredBackendsKeepTheInheritedHash:
     def test_no_registered_backend_regenerated_eq_or_hash(self) -> None:
         """Every registered config must inherit `DataSourceTestConfig`'s `__eq__`/`__hash__`.
