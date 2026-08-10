@@ -92,19 +92,11 @@ LOGGER: Final = logging.getLogger("tests")
 
 TRINO_TABLE: Final[str] = "customer"
 
-# NOTE: can we create tables in trino?
-# some of the trino tests probably don't make sense if we can't create tables
-DO_NOT_CREATE_TABLES: set[str] = {"trino"}
 # sqlite db files should be using fresh tmp_path on every test
 DO_NOT_DROP_TABLES: set[str] = {"sqlite"}
 
-# Dialects that auto-commit and may not have active transactions. This module owns this
-# constant: a dialect goes in here only once tables actually get created for it (i.e. once it
-# is removed from DO_NOT_CREATE_TABLES above), because until then `_safe_commit` below never
-# runs for that dialect and this set has no observable effect on it. Whoever removes a dialect
-# from DO_NOT_CREATE_TABLES is responsible for adding it here if, and only if, that dialect
-# does not support explicit transactions.
-_AUTO_COMMIT_DIALECTS = {GXSqlDialect.DATABRICKS}
+# Dialects that auto-commit and may not have active transactions.
+_AUTO_COMMIT_DIALECTS = {GXSqlDialect.DATABRICKS, GXSqlDialect.TRINO}
 
 DatabaseType: TypeAlias = Literal["postgres", "sqlite", "trino", "sql_server"]
 TableNameCase: TypeAlias = Literal[
@@ -131,10 +123,10 @@ TABLE_NAME_MAPPING: Final[Mapping[DatabaseType, Mapping[TableNameCase, str]]] = 
     },
     "trino": {
         "unquoted_lower": TRINO_TABLE.lower(),
-        "quoted_lower": f"'{TRINO_TABLE.lower()}'",
+        "quoted_lower": f'"{TRINO_TABLE.lower()}"',
         # "unquoted_upper": TRINO_TABLE.upper(),
-        # "quoted_upper": f"'{TRINO_TABLE.upper()}'",
-        # "quoted_mixed": f"'TRINO_TABLE.title()'",
+        # "quoted_upper": f'"{TRINO_TABLE.upper()}"',
+        # "quoted_mixed": f'"{TRINO_TABLE.title()}"',
         # "unquoted_mixed": TRINO_TABLE.title(),
     },
     "sqlite": {
@@ -327,23 +319,26 @@ COLUMN_DDL: Final[Mapping[ColNameParams, str]] = {
 FAILS_EXPECTATION: Final[Mapping[ColNameParamId, list[DatabaseType]]] = {
     # DDL: unquoted_lower_col ------
     "str unquoted_lower_col": [],
-    'str "unquoted_lower_col"': ["postgres", "sqlite"],
+    # A pre-quoted string passed as the column identifier gets quoted a second time by the
+    # dialect's own compiler, producing an identifier no column matches. Shared by every
+    # double-quote dialect, not particular to any one of them.
+    'str "unquoted_lower_col"': ["postgres", "sqlite", "trino"],
     "str UNQUOTED_LOWER_COL": ["postgres", "sqlite"],
     'str "UNQUOTED_LOWER_COL"': ["sqlite"],
     # DDL: UNQUOTED_UPPER_COL ------
     "str unquoted_upper_col": ["sqlite"],
     'str "unquoted_upper_col"': ["postgres", "sqlite"],
     "str UNQUOTED_UPPER_COL": ["postgres"],
-    'str "UNQUOTED_UPPER_COL"': ["postgres", "sqlite"],
+    'str "UNQUOTED_UPPER_COL"': ["postgres", "sqlite", "trino"],
     # DDL: "quoted_lower_col" -----
-    'str "quoted_lower_col"': ["postgres", "sqlite"],
+    'str "quoted_lower_col"': ["postgres", "sqlite", "trino"],
     "str QUOTED_LOWER_COL": ["postgres", "sqlite"],
     'str "QUOTED_LOWER_COL"': ["sqlite"],
     # DDl: "QUOTED_UPPER_COL" ----
     "str quoted_upper_col": ["sqlite", "postgres"],
     'str "quoted_upper_col"': ["sqlite"],
     "str QUOTED_UPPER_COL": [],
-    'str "QUOTED_UPPER_COL"': ["postgres", "sqlite"],
+    'str "QUOTED_UPPER_COL"': ["postgres", "sqlite", "trino"],
     # DDL: "quotedMixed" -----
     "str quotedmixed": [
         "postgres",
@@ -352,13 +347,14 @@ FAILS_EXPECTATION: Final[Mapping[ColNameParamId, list[DatabaseType]]] = {
     'str "quotedMixed"': [
         "postgres",
         "sqlite",
+        "trino",
     ],
     "str QUOTEDMIXED": [
         "postgres",
         "sqlite",
     ],
     # DDL: "quoted.w.dots" -------
-    'str "quoted.w.dots"': ["postgres", "sqlite"],
+    'str "quoted.w.dots"': ["postgres", "sqlite", "trino"],
     "str QUOTED.W.DOTS": ["sqlite", "postgres"],
     'str "QUOTED.W.DOTS"': ["sqlite"],
 }
@@ -423,9 +419,6 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXM
         data: Sequence[Row] = tuple(),
     ) -> None:
         sa_engine = gx_engine.engine
-        if sa_engine.dialect.name in DO_NOT_CREATE_TABLES:
-            LOGGER.info(f"Skipping table creation for {table_names} for {sa_engine.dialect.name}")
-            return
         LOGGER.info(
             f"SQLA:{SQLA_VERSION} - Creating `{sa_engine.dialect.name}` table for {table_names} if it does not exist"  # noqa: E501 # FIXME CoP
         )
@@ -506,6 +499,15 @@ def trino_ds(context: EphemeralDataContext) -> SQLDatasource:
 
 
 @pytest.fixture
+def trino_writable_ds(context: EphemeralDataContext) -> SQLDatasource:
+    ds = context.data_sources.add_sql(
+        "trino_writable",
+        connection_string="trino://test@localhost:8088/memory/default",
+    )
+    return ds
+
+
+@pytest.fixture
 def postgres_ds(context: EphemeralDataContext) -> PostgresDatasource:
     ds = context.data_sources.add_postgres(
         "postgres",
@@ -542,13 +544,7 @@ def sql_server_ds(context: EphemeralDataContext) -> SQLServerDatasource:
 
 @pytest.fixture(
     params=[
-        param(
-            "trino",
-            marks=[
-                pytest.mark.trino,
-                pytest.mark.skip(reason="cannot create trino tables"),
-            ],
-        ),
+        param("trino", marks=[pytest.mark.trino]),
         param("postgres", marks=[pytest.mark.postgresql]),
         param("sqlite", marks=[pytest.mark.sqlite]),
     ]
@@ -557,7 +553,11 @@ def self_hosted_sql_datasources(
     request: pytest.FixtureRequest,
     capture_engine_logs: pytest.LogCaptureFixture,
 ) -> Generator[SQLDatasource, None, None]:
-    datasource = request.getfixturevalue(f"{request.param}_ds")
+    # Trino's table-creating parameters connect through the writable catalog; the read-only
+    # benchmark catalog (`trino_ds`) stays reserved for the introspection test, which never
+    # creates tables.
+    fixture_name = "trino_writable_ds" if request.param == "trino" else f"{request.param}_ds"
+    datasource = request.getfixturevalue(fixture_name)
     yield datasource
 
 
@@ -660,7 +660,12 @@ class TestTableIdentifiers:
         datasource_type: DatabaseType,
         schema: str | None,
     ):
-        datasource: SQLDatasource = request.getfixturevalue(f"{datasource_type}_ds")
+        # Trino's table-creating parameter connects through the writable catalog; the read-only
+        # benchmark catalog (`trino_ds`) stays reserved for the introspection test.
+        fixture_name = (
+            "trino_writable_ds" if datasource_type == "trino" else f"{datasource_type}_ds"
+        )
+        datasource: SQLDatasource = request.getfixturevalue(fixture_name)
 
         table_name: str | None = TABLE_NAME_MAPPING[datasource_type].get(asset_name)
         if not table_name:
