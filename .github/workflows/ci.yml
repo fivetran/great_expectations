@@ -517,6 +517,12 @@ jobs:
       id-token: write
       contents: read
     runs-on: ubuntu-latest
+    # These jobs talk to external warehouses, so a hang is a question of when,
+    # not if -- and without a timeout a hung job runs until the repository-wide
+    # default of 6 hours. Over the last month the slowest run of any marker in
+    # this matrix was under 17 minutes, so 30 leaves ample headroom while
+    # failing a genuinely stuck job in minutes rather than hours.
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
