@@ -5,6 +5,21 @@ from typing import TYPE_CHECKING, Iterator, List, Mapping, Optional
 import pytest
 
 from great_expectations.compatibility.typing_extensions import override
+from tests.integration.test_utils.data_source_config import (
+    ALL_DATA_SOURCES,
+    CURATED_SQL_DATA_SOURCES,
+    PANDAS_DATA_SOURCES,
+    SPARK_DATA_SOURCES,
+    SQL_DATA_SOURCES,
+    BigQueryDatasourceTestConfig,
+    DatabricksDatasourceTestConfig,
+    PandasDataFrameDatasourceTestConfig,
+    PandasFilesystemCsvDatasourceTestConfig,
+    PostgreSQLDatasourceTestConfig,
+    SnowflakeDatasourceTestConfig,
+    SparkFilesystemCsvDatasourceTestConfig,
+    SqliteDatasourceTestConfig,
+)
 from tests.integration.test_utils.data_source_config.backend_spec import (
     BackendProvisioning,
     BackendTier,
@@ -510,7 +525,7 @@ class TestCredentialGatedBackendsRegisterInLabelOrder:
 
 
 class TestGenericSqlEscapeHatchIsDeclaredButUnregistered:
-    """The ad-hoc, caller-supplied-connection-string config has no fixed identity to enroll, so
+    """The ad-hoc, caller-supplied-connection-string config has no fixed identity to , so
     unlike the eight dialect-specific backends it must never appear in the registry that gates
     CI - even though, like them, it now derives its identity from a declared spec.
     """
@@ -768,3 +783,112 @@ class TestRegisteredBackendsKeepTheInheritedHash:
                 f"@dataclass must pass eq=False"
             )
             hash(config_class())  # a regenerated hash raises TypeError here
+
+
+class TestStandardDataSourceListsMatchPreChangeMembership:
+    """Regression pin for the four standard data-source lists now defined once in `tiers.py`.
+
+    Every literal below is transcribed from the two metrics conftest modules exactly as they
+    existed before those lists gained a single shared definition, not derived from the module
+    under test — so a mistake in the derivation shows up as a mismatch here rather than agreeing
+    with itself. `PANDAS_DATA_SOURCES` is deliberately not alphabetical: the filesystem CSV
+    config is listed before the DataFrame config, and that order is preserved on purpose.
+
+    The four constants imported above are captured at module-import time, before any test in this
+    module runs. That matters because this module's `_snapshot_registry` fixture clears the
+    registry around every test: asserting against those already-built module-level objects, or
+    reading `PANDAS_DATA_SOURCES` and `SPARK_DATA_SOURCES` (which never touch the registry) is
+    safe, while re-deriving `SQL_DATA_SOURCES` from the registry *inside* a test body would
+    observe the isolation seam's emptied registry and pass vacuously.
+    """
+
+    def test_pandas_data_sources_match_pre_change_membership_and_order(self) -> None:
+        assert [
+            PandasFilesystemCsvDatasourceTestConfig(),
+            PandasDataFrameDatasourceTestConfig(),
+        ] == PANDAS_DATA_SOURCES
+
+    def test_spark_data_sources_match_pre_change_membership_and_order(self) -> None:
+        assert [
+            SparkFilesystemCsvDatasourceTestConfig(),
+        ] == SPARK_DATA_SOURCES
+
+    def test_sql_data_sources_match_pre_change_membership_and_order(self) -> None:
+        assert [
+            BigQueryDatasourceTestConfig(),
+            DatabricksDatasourceTestConfig(),
+            PostgreSQLDatasourceTestConfig(),
+            SnowflakeDatasourceTestConfig(),
+            SqliteDatasourceTestConfig(),
+        ] == SQL_DATA_SOURCES
+
+    def test_all_data_sources_match_pre_change_membership_and_order(self) -> None:
+        assert [
+            PandasFilesystemCsvDatasourceTestConfig(),
+            PandasDataFrameDatasourceTestConfig(),
+            SparkFilesystemCsvDatasourceTestConfig(),
+            BigQueryDatasourceTestConfig(),
+            DatabricksDatasourceTestConfig(),
+            PostgreSQLDatasourceTestConfig(),
+            SnowflakeDatasourceTestConfig(),
+            SqliteDatasourceTestConfig(),
+        ] == ALL_DATA_SOURCES
+
+
+class TestMetricsConftestsReexportTheSharedDefinition:
+    """Both metrics conftest modules must expose the exact same list objects `tiers.py` builds,
+    not equal-but-separate copies: an equal-but-separate list would let the two drift again the
+    next time someone edits one and not the other, which is the failure mode this whole change
+    removes.
+    """
+
+    def test_both_conftests_expose_objects_identical_to_the_shared_definition(self) -> None:
+        import tests.integration.metrics.conftest as integration_metrics_conftest
+        import tests.metrics.conftest as metrics_conftest
+
+        assert metrics_conftest.PANDAS_DATA_SOURCES is PANDAS_DATA_SOURCES
+        assert metrics_conftest.SPARK_DATA_SOURCES is SPARK_DATA_SOURCES
+        assert metrics_conftest.SQL_DATA_SOURCES is SQL_DATA_SOURCES
+        assert metrics_conftest.ALL_DATA_SOURCES is ALL_DATA_SOURCES
+
+        assert integration_metrics_conftest.PANDAS_DATA_SOURCES is PANDAS_DATA_SOURCES
+        assert integration_metrics_conftest.SPARK_DATA_SOURCES is SPARK_DATA_SOURCES
+        assert integration_metrics_conftest.SQL_DATA_SOURCES is SQL_DATA_SOURCES
+        assert integration_metrics_conftest.ALL_DATA_SOURCES is ALL_DATA_SOURCES
+
+
+# Captured at this module's own import time — after the `tests.integration.test_utils.
+# data_source_config` import above has already run that package's `__init__`, which imports every
+# backend module and only then imports `tiers`, and before any test in this module runs (in
+# particular, before this module's own `_snapshot_registry` autouse fixture ever clears the
+# registry). `tiers.py` builds `SQL_DATA_SOURCES` and `CURATED_SQL_DATA_SOURCES` once, at *its*
+# import time, from whatever the registry holds at that moment. If some backend module were
+# imported after `tiers` instead of before it, that backend would finish registering only once
+# this module's own top-level import statement reaches it — later than `tiers` already built its
+# lists — so it would be absent from both lists even though `sql_backends_for_tier` called here,
+# afterward, reports it correctly. Comparing the two below is what turns that ordering accident
+# into a failing test instead of a silent gap: the repo's own import-sorter routinely places a new
+# backend module's import after `tiers`'s for any module name that sorts alphabetically later, and
+# nothing else in this suite would catch the result.
+_REGISTERED_STANDARD_SQL = tuple(sql_backends_for_tier(BackendTier.STANDARD_SQL))
+_REGISTERED_CURATED_SQL = tuple(sql_backends_for_tier(BackendTier.CURATED_SQL))
+
+
+class TestDerivedSqlListsReachEveryRegisteredBackend:
+    """Guards `tiers.py`'s derived lists against a backend that is declared and registered but
+    never reaches `SQL_DATA_SOURCES` or `CURATED_SQL_DATA_SOURCES`, because its own module was
+    imported after `tiers`'s in this package's `__init__.py`. Both derived lists are built once,
+    at `tiers.py`'s own import time; a backend that registers later is invisible to the
+    already-built list even though the registry itself reports it correctly from then on, since
+    `iter_sql_backends`/`sql_backends_for_tier` re-read the live registry on every call. This
+    covers both SQL tiers, not just the standard one, since both lists are built the same way and
+    are equally exposed to the same import-order accident.
+    """
+
+    def test_standard_sql_data_sources_includes_every_registered_standard_backend(self) -> None:
+        assert [type(config) for config in SQL_DATA_SOURCES] == list(_REGISTERED_STANDARD_SQL)
+
+    def test_curated_sql_data_sources_includes_every_registered_curated_backend(self) -> None:
+        assert [type(config) for config in CURATED_SQL_DATA_SOURCES] == list(
+            _REGISTERED_CURATED_SQL
+        )
