@@ -1,5 +1,11 @@
 services:
   trino_db:
-    image: trinodb/trino:latest
+    image: trinodb/trino:483
     ports:
       - "8088:8080"
+    healthcheck:
+      test: ["CMD", "/usr/lib/trino/bin/health-check"]
+      interval: 5s
+      timeout: 5s
+      start_period: 30s
+      retries: 40
