@@ -27,13 +27,15 @@ from tests.integration.sql_session_manager import (
     ConnectionDetails,
     SessionSQLEngineManager,
 )
-from tests.integration.test_utils.data_source_config.base import BatchTestSetup, _ConfigT
+from tests.integration.test_utils.data_source_config.base import BatchTestSetup
+from tests.integration.test_utils.data_source_config.sql_config import _SqlConfigT
 
 if TYPE_CHECKING:
     import sqlalchemy as sa
 
     from great_expectations.data_context import AbstractDataContext
     from great_expectations.datasource.fluent.interfaces import Batch
+    from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
 
 logger = logging.getLogger(__name__)
 
@@ -85,8 +87,12 @@ InferrableTypesLookup = dict[type[Any], Union[type[TypeEngine], TypeEngine]]
 InferredColumnTypes = dict[str, Union[type[TypeEngine], TypeEngine]]
 
 
-class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_ConfigT]):
+class SQLBatchTestSetup(BatchTestSetup[_SqlConfigT, TableAsset], ABC, Generic[_SqlConfigT]):
     SCHEMA_PREFIX = "gx_ci_test_"
+
+    @property
+    def backend_spec(self) -> SqlBackendSpec:
+        return self.config.backend_spec
 
     @abstractmethod
     def build_connection_string(self, schema: str | None = None) -> str:
@@ -121,7 +127,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     def __init__(
         self,
-        config: _ConfigT,
+        config: _SqlConfigT,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
@@ -320,7 +326,12 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     def _create_table(self, name: str, columns: InferredColumnTypes) -> Table:
         column_list = [Column(col_name, col_type) for col_name, col_type in columns.items()]
-        return Table(name, self.metadata, *column_list, schema=self.schema)
+        # Called once per table: a dialect storage-engine construct binds to the first table it
+        # is attached to, so each table needs freshly constructed items rather than one instance
+        # shared across every table this setup creates.
+        table_schema_items = self.backend_spec.table_schema_items
+        items = table_schema_items() if table_schema_items is not None else ()
+        return Table(name, self.metadata, *column_list, *items, schema=self.schema)
 
     def _get_column_types(
         self,
