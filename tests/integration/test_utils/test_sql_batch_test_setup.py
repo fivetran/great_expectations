@@ -301,6 +301,96 @@ class TestColumnTypeOverridesMergeOverSharedDefault:
             batch_setup.teardown()
 
 
+def _count_insert_statements(
+    monkeypatch: pytest.MonkeyPatch,
+) -> List[sa.Insert]:
+    """Patch `sa.Connection.execute` to record every `Insert` statement issued through it, and
+    return the list that accumulates them.
+
+    Patching at the connection-class level, rather than stubbing `_safe_bulk_insert` or its
+    caller, observes the actual number of statements sent to the database - the chunking
+    arithmetic's real, external effect - rather than merely the arguments the caller passed in.
+    Non-insert statements (schema DDL, table creation) also flow through this same method during
+    `setup()`, so the filter on `isinstance(statement, sa.Insert)` is what isolates the count to
+    inserts specifically.
+    """
+    insert_calls: List[sa.Insert] = []
+    original_execute = sa.Connection.execute
+
+    def counting_execute(
+        self: sa.Connection, statement: sa.Executable, *args: object, **kwargs: object
+    ) -> object:
+        if isinstance(statement, sa.Insert):
+            insert_calls.append(statement)
+        return original_execute(self, statement, *args, **kwargs)  # type: ignore[call-overload]
+
+    monkeypatch.setattr(sa.Connection, "execute", counting_execute)
+    return insert_calls
+
+
+class TestDeclaredInsertParameterLimitDrivesChunking:
+    """The shared insert path reads its chunking limit from `self.backend_spec.insert_parameter_
+    limit` rather than from any property of the live connection. A declaration that carries a
+    limit must split a known-width insert into the exact chunk count the limit's own arithmetic
+    predicts; a declaration that carries none must issue the whole insert as a single statement.
+    Both tests use a single-table declaration (no extra data) so every recorded `Insert` belongs
+    to the one table under test, and count actual statements rather than merely asserting that
+    some parameter value was forwarded - a caller that forwarded the right number but the
+    chunking helper ignored it would still pass a "value was passed" assertion but must fail
+    this one.
+    """
+
+    def test_declared_limit_splits_a_known_width_insert_into_the_expected_statement_count(
+        self, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        insert_calls = _count_insert_statements(monkeypatch)
+
+        # Two columns, limit of 5 -> max_rows = 5 // 2 = 2 rows per statement. Seven rows then
+        # split as [2, 2, 2, 1]: ceil(7 / 2) = 4 statements, an exact figure derived from the
+        # declared limit and the data's own shape rather than an observed count taken on faith.
+        data = pd.DataFrame({"col_a": range(7), "col_b": range(7)})
+        config = _ThrowawayDatasourceTestConfig(
+            backend_spec_override=dataclasses.replace(_BASE_SPEC, insert_parameter_limit=5)
+        )
+        batch_setup = _ThrowawayBatchTestSetup(
+            data=data,
+            config=config,
+            base_dir=tmp_path,
+            extra_data={},
+            context=gx.get_context(mode="ephemeral"),
+        )
+
+        batch_setup.setup()
+        try:
+            assert len(insert_calls) == 4
+        finally:
+            batch_setup.teardown()
+
+    def test_declaration_with_no_limit_issues_a_single_statement(
+        self, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        insert_calls = _count_insert_statements(monkeypatch)
+
+        # Same data shape as the positive case above - the only thing that differs is the
+        # declaration, which is `_BASE_SPEC` unmodified: `insert_parameter_limit` defaults to
+        # `None`.
+        data = pd.DataFrame({"col_a": range(7), "col_b": range(7)})
+        config = _ThrowawayDatasourceTestConfig()
+        batch_setup = _ThrowawayBatchTestSetup(
+            data=data,
+            config=config,
+            base_dir=tmp_path,
+            extra_data={},
+            context=gx.get_context(mode="ephemeral"),
+        )
+
+        batch_setup.setup()
+        try:
+            assert len(insert_calls) == 1
+        finally:
+            batch_setup.teardown()
+
+
 _CACHE_REGRESSION_SETUP_CALLS: List[None] = []
 _CACHE_REGRESSION_TEARDOWN_CALLS: List[None] = []
 _CACHE_REGRESSION_SETUP_IDENTITY: List[BatchTestSetup] = []
@@ -620,10 +710,11 @@ class TestSharedSetupModuleHasNoImportTimeEnvironmentRead:
         assert "_register_generic_sql_driver" not in source
         assert "GX_TEST_GENERIC_SQL_DRIVER" not in source
         assert "GX_TEST_GENERIC_SQL_AUTOCOMMIT" not in source
-        # No construction of the enumeration remains - only a plain attribute reference
-        # (the insert parameter limit still inlined a few lines below it), which is deliberately
-        # left as-is here and belongs to a follow-on change.
+        # No construction of the enumeration remains, and no reference to it at all: the insert
+        # parameter limit that used to be inlined here now reads the declared value off the
+        # backend's own spec instead of comparing against a dialect-enumeration member.
         assert "GXSqlDialect(" not in source
+        assert "GXSqlDialect" not in source
 
 
 class _UnrecognizedDialect(SQLiteDialect_pysqlite):
