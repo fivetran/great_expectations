@@ -1160,21 +1160,7 @@ class TableAsset(_SQLAsset):
         """
         datasource: SQLDatasource = self.datasource
         engine: sqlalchemy.Engine = datasource.get_engine()
-        inspector: sqlalchemy.Inspector = sa.inspect(engine)
-
-        schema_names = inspector.get_schema_names()
-        schema_names = (
-            [self._to_lower_if_not_bracketed_by_quotes(name) for name in schema_names]
-            if schema_names
-            else []
-        )
-
         effective_schema = self._effective_schema_name
-        if effective_schema and effective_schema not in schema_names:
-            raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
-                f'Attempt to connect to table: "{self.qualified_name}" failed because the schema '
-                f'"{effective_schema}" does not exist.'
-            )
 
         try:
             with engine.connect() as connection:
@@ -1183,10 +1169,41 @@ class TableAsset(_SQLAsset):
                 connection.execute(sa.select(1, table).limit(1))
         except Exception as query_error:
             LOGGER.info(f"{self.name} `.test_connection()` query failed: {query_error!r}")
+            # A missing schema is a common cause of this failure and deserves a more
+            # specific message, but determining it requires listing every schema on the
+            # server. On some backends that listing is dramatically more expensive than
+            # the probe query itself -- it can be a server-wide metadata scan whose cost
+            # scales with the whole instance rather than with this table -- so it is only
+            # worth paying for once we already know the probe failed.
+            if effective_schema and not self._schema_exists(engine, effective_schema):
+                raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
+                    f'Attempt to connect to table: "{self.qualified_name}" failed because '
+                    f'the schema "{effective_schema}" does not exist.'
+                ) from query_error
             raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
                 f"Attempt to connect to table: {self.qualified_name} failed because the test query "
                 f"failed. Ensure the table exists and the user has access to select data from the table: {query_error}"  # noqa: E501 # FIXME CoP
             ) from query_error
+
+    def _schema_exists(self, engine: sqlalchemy.Engine, effective_schema: str) -> bool:
+        """Whether ``effective_schema`` is visible on the server.
+
+        Only ever called after the connection probe has already failed, to decide
+        between two error messages. If the listing itself fails we cannot tell, so
+        report the schema as present and let the caller fall back to the generic
+        message rather than masking the original error with this one.
+        """
+        try:
+            inspector: sqlalchemy.Inspector = sa.inspect(engine)
+            schema_names = inspector.get_schema_names() or []
+        except Exception as inspect_error:
+            LOGGER.info(
+                f"{self.name} `.test_connection()` could not list schemas: {inspect_error!r}"
+            )
+            return True
+        return effective_schema in [
+            self._to_lower_if_not_bracketed_by_quotes(name) for name in schema_names
+        ]
 
     @override
     def as_selectable(self) -> sqlalchemy.Selectable:
