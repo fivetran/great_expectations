@@ -19,6 +19,7 @@ from tests.integration.test_utils.data_source_config import (
     SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
     SqliteDatasourceTestConfig,
+    data_sources_for_tier_case,
 )
 from tests.integration.test_utils.data_source_config.backend_spec import (
     BackendProvisioning,
@@ -149,6 +150,127 @@ class TestSqlBackendsForTier:
         register_sql_backend(non_member)
 
         assert sql_backends_for_tier(BackendTier.CURATED_SQL) == (member,)
+
+
+class TestDataSourcesForTierCase:
+    """`data_sources_for_tier_case` is the one place a backend's `tier_case_exclusions` entry
+    takes effect: it returns a tier's members, instantiated in label order, omitting only those
+    declaring an exclusion for the given case key.
+    """
+
+    def test_omits_only_the_backend_excluding_the_case_and_keeps_the_rest_for_other_keys(
+        self,
+    ) -> None:
+        # Registered zebra before apple - non-alphabetical - so a result in label order can only
+        # come from `sql_backends_for_tier`'s own label sort, never from registration order.
+        zebra = _make_config_class(
+            "Zebra",
+            _make_spec(
+                label="zebra",
+                marker="zebra_marker",
+                tiers=frozenset({BackendTier.CURATED_SQL}),
+                tier_case_exclusions={"flaky_case": "observed non-determinism, see issue #1"},
+            ),
+        )
+        apple = _make_config_class(
+            "Apple",
+            _make_spec(
+                label="apple",
+                marker="apple_marker",
+                tiers=frozenset({BackendTier.CURATED_SQL}),
+            ),
+        )
+        register_sql_backend(zebra)
+        register_sql_backend(apple)
+
+        excluded_case = data_sources_for_tier_case(BackendTier.CURATED_SQL, "flaky_case")
+        assert [type(config) for config in excluded_case] == [apple]
+
+        other_case = data_sources_for_tier_case(BackendTier.CURATED_SQL, "unrelated_case")
+        assert [type(config) for config in other_case] == [apple, zebra]
+
+    def test_with_no_exclusions_declared_matches_the_tiers_call_time_membership(self) -> None:
+        """The behavior-preservation oracle for this accessor, stated call-time-to-call-time
+        rather than against `CURATED_SQL_DATA_SOURCES`.
+
+        `sql_backends_for_tier` reads the registry fresh on every call. `CURATED_SQL_DATA_SOURCES`
+        is a list built once, when the defining module is first imported, from whatever the
+        registry held at that moment. This module's autouse fixture clears the registry around
+        every test, so inside a test body a call-time read and that import-time snapshot are
+        answering two different questions: comparing them here would pass vacuously today (both
+        happen to be empty, since nothing yet declares the curated tier at import time) and would
+        fail for a reason that has nothing to do with this accessor the first time a real backend
+        joins that tier here without also being re-imported. Comparing `data_sources_for_tier_case`
+        to `sql_backends_for_tier` instead keeps both sides of the comparison call-time, so the
+        assertion is meaningful inside this isolated registry and stays correct regardless of what
+        the real, outside-the-seam registry holds at any given moment. The published-key,
+        `CURATED_SQL_DATA_SOURCES`-referencing form of this same oracle belongs in the curated
+        suite's own module, which runs against the real, unmodified registry rather than this
+        isolated one.
+        """
+        zebra = _make_config_class(
+            "Zebra",
+            _make_spec(
+                label="zebra", marker="zebra_marker", tiers=frozenset({BackendTier.CURATED_SQL})
+            ),
+        )
+        apple = _make_config_class(
+            "Apple",
+            _make_spec(
+                label="apple", marker="apple_marker", tiers=frozenset({BackendTier.CURATED_SQL})
+            ),
+        )
+        register_sql_backend(zebra)
+        register_sql_backend(apple)
+
+        result = data_sources_for_tier_case(BackendTier.CURATED_SQL, "arbitrary_case")
+
+        assert [type(config) for config in result] == list(
+            sql_backends_for_tier(BackendTier.CURATED_SQL)
+        )
+
+    def test_filters_the_tier_it_is_asked_for_rather_than_a_fixed_one(self) -> None:
+        """Exclusion is a property of tiers in general, so the accessor has to honour whichever
+        tier it is given. Without this, an implementation that ignored its `tier` argument and
+        always read one particular tier would satisfy every other test in this class, because
+        they all happen to ask about the same tier.
+        """
+        curated = _make_config_class(
+            "Curated",
+            _make_spec(
+                label="curated-only",
+                marker="curated_only_marker",
+                tiers=frozenset({BackendTier.CURATED_SQL}),
+            ),
+        )
+        standard = _make_config_class(
+            "Standard",
+            _make_spec(
+                label="standard-only",
+                marker="standard_only_marker",
+                tiers=frozenset({BackendTier.STANDARD_SQL}),
+                tier_case_exclusions={"skipped_case": "not meaningful for this dialect"},
+            ),
+        )
+        register_sql_backend(curated)
+        register_sql_backend(standard)
+
+        # Each tier sees only its own member, so a hard-coded tier would return the wrong one.
+        assert [
+            type(config)
+            for config in data_sources_for_tier_case(BackendTier.STANDARD_SQL, "unrelated_case")
+        ] == [standard]
+        assert [
+            type(config)
+            for config in data_sources_for_tier_case(BackendTier.CURATED_SQL, "unrelated_case")
+        ] == [curated]
+
+        # And the exclusion applies within the tier that declared it, not across tiers.
+        assert data_sources_for_tier_case(BackendTier.STANDARD_SQL, "skipped_case") == []
+        assert [
+            type(config)
+            for config in data_sources_for_tier_case(BackendTier.CURATED_SQL, "skipped_case")
+        ] == [curated]
 
 
 class TestRegisterSqlBackendDuplicateLabel:
@@ -525,7 +647,7 @@ class TestCredentialGatedBackendsRegisterInLabelOrder:
 
 
 class TestGenericSqlEscapeHatchIsDeclaredButUnregistered:
-    """The ad-hoc, caller-supplied-connection-string config has no fixed identity to , so
+    """The ad-hoc, caller-supplied-connection-string config has no fixed identity to enrol, so
     unlike the eight dialect-specific backends it must never appear in the registry that gates
     CI - even though, like them, it now derives its identity from a declared spec.
     """

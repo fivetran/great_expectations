@@ -79,3 +79,31 @@ arguments, in label order. Empty until a backend declares that tier."""
 ALL_DATA_SOURCES: Final[List[DataSourceTestConfig]] = (
     PANDAS_DATA_SOURCES + SPARK_DATA_SOURCES + SQL_DATA_SOURCES
 )
+
+
+def data_sources_for_tier_case(tier: BackendTier, case_key: str) -> List[DataSourceTestConfig]:
+    """The tier's members, minus any declaring a `tier_case_exclusions` entry for `case_key`.
+
+    A backend joins a tier as a whole; `tier_case_exclusions` (declared on `SqlBackendSpec`, see
+    `backend_spec.py`) is the one way a member can sit out a single named case within that tier's
+    suite instead of the whole tier. This accessor is the only place that mapping takes effect —
+    registration validates it, but nothing else filters tier membership by case — which keeps
+    "does this exclusion take
+    effect" a one-module question instead of a property every future consumer has to reimplement
+    correctly. It is written to take a tier and a case key, not to be specialized to one tier: the
+    exclusion mechanism belongs to tiers in general, and a version hard-coded to one tier would
+    have to be undone the moment a second tier needs the same mechanism.
+
+    Unlike the module-level lists above, this reads the registry fresh on every call (through
+    `sql_backends_for_tier`, itself call-time) rather than once at import — the exclusion mapping
+    it filters on can only be known per call, from the tier's live membership, not baked into a
+    list built before any caller has said which case it means.
+
+    Returns instances, in the tier's label order, with an empty exclusion mapping on every member
+    yielding exactly that tier's derived list.
+    """
+    return [
+        cast("DataSourceTestConfig", config_class())
+        for config_class in sql_backends_for_tier(tier)
+        if case_key not in config_class.BACKEND_SPEC.tier_case_exclusions
+    ]
