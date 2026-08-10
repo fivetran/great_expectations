@@ -3,9 +3,11 @@ from __future__ import annotations
 import ast
 import itertools
 import logging
+import math
 import traceback
 from collections.abc import Iterable
-from typing import Any
+from fractions import Fraction
+from typing import TYPE_CHECKING, Any, Optional
 
 import numpy as np
 
@@ -13,8 +15,10 @@ from great_expectations.compatibility import sqlalchemy, trino
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.execution_engine import (
+    ExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
@@ -27,6 +31,12 @@ from great_expectations.expectations.metrics.column_aggregate_metric_provider im
 )
 from great_expectations.expectations.metrics.metric_provider import metric_value
 from great_expectations.expectations.metrics.util import attempt_allowing_relative_error
+from great_expectations.validator.metric_configuration import MetricConfiguration
+
+if TYPE_CHECKING:
+    from great_expectations.expectations.expectation_configuration import (
+        ExpectationConfiguration,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +82,6 @@ class ColumnQuantileValues(ColumnAggregateMetricProvider):
         dialect_name = execution_engine.dialect_name
         quantiles = metric_value_kwargs["quantiles"]
         allow_relative_error = metric_value_kwargs.get("allow_relative_error", False)
-        table_row_count = metrics.get("table.row_count")
         if dialect_name == GXSqlDialect.SQL_SERVER:
             return _get_column_quantiles_sql_server(
                 column=column,
@@ -125,12 +134,17 @@ class ColumnQuantileValues(ColumnAggregateMetricProvider):
                 execution_engine=execution_engine,
             )
         elif dialect_name == GXSqlDialect.SQLITE:
+            # Subscript rather than "get", so a missing dependency raises instead of being read as
+            # an empty column and silently returning NaN.
+            nonnull_count = metrics["column_values.nonnull.count"]
+            if not nonnull_count:
+                return [np.nan] * len(quantiles)
             return _get_column_quantiles_sqlite(
                 column=column,
                 quantiles=quantiles,
                 selectable=selectable,
                 execution_engine=execution_engine,
-                table_row_count=table_row_count,
+                nonnull_count=nonnull_count,
             )
         elif dialect_name == GXSqlDialect.AWSATHENA:
             return _get_column_quantiles_athena(
@@ -180,7 +194,45 @@ class ColumnQuantileValues(ColumnAggregateMetricProvider):
                 "SparkDFExecutionEngine requires relative error to be False or to be a float between 0 and 1."  # noqa: E501 # FIXME CoP
             )
 
-        return df.approxQuantile(column, list(quantiles), allow_relative_error)  # type: ignore[attr-defined] # FIXME CoP
+        quantiles = list(quantiles)
+        quantile_values = df.approxQuantile(column, quantiles, allow_relative_error)  # type: ignore[attr-defined] # FIXME CoP
+
+        # "approxQuantile" returns an empty list for a column with no non-null values, where the
+        # other backends return one null per requested quantile. Keep the metric the same shape
+        # on every backend, so that consumers can index it by quantile.
+        if not quantile_values:
+            return [None] * len(quantiles)
+
+        return quantile_values
+
+    @classmethod
+    @override
+    def _get_evaluation_dependencies(
+        cls,
+        metric: MetricConfiguration,
+        configuration: Optional[ExpectationConfiguration] = None,
+        execution_engine: Optional[ExecutionEngine] = None,
+        runtime_configuration: Optional[dict] = None,
+    ):
+        """The SQLite implementation ranks over the non-null values, so it needs their count."""
+        dependencies: dict = super()._get_evaluation_dependencies(
+            metric=metric,
+            configuration=configuration,
+            execution_engine=execution_engine,
+            runtime_configuration=runtime_configuration,
+        )
+
+        # Only SQLite reads this, so the other dialects are not charged an extra aggregate.
+        if (
+            isinstance(execution_engine, SqlAlchemyExecutionEngine)
+            and execution_engine.dialect_name == GXSqlDialect.SQLITE
+        ):
+            dependencies["column_values.nonnull.count"] = MetricConfiguration(
+                metric_name="column_values.nonnull.count",
+                metric_domain_kwargs=metric.metric_domain_kwargs,
+            )
+
+        return dependencies
 
 
 def _get_column_quantiles_sql_server(
@@ -238,6 +290,7 @@ def _get_column_quantiles_mysql(
                 sa.dialects.mysql.DECIMAL(18, 15),
             ).label("p"),
         )
+        .where(column != None)  # noqa: E711 # FIXME CoP
         .order_by(sa.column("p").asc())
         .select_from(selectable)
         .cte("t")
@@ -269,7 +322,12 @@ def _get_column_quantiles_mysql(
 
     try:
         quantiles_results = execution_engine.execute_query(quantiles_query).fetchone()
-        return list(quantiles_results)  # type: ignore[arg-type] # FIXME CoP
+        # Filtering the nulls out of the CTE leaves it empty for a column with no non-null values,
+        # and the query then returns no row at all. Report one absent quantile per requested
+        # quantile, which is what the engines with a native "percentile_disc" return.
+        if quantiles_results is None:
+            return [None] * len(selects)
+        return list(quantiles_results)
     except sqlalchemy.ProgrammingError as pe:
         exception_message: str = "An SQL syntax Exception occurred."
         exception_traceback: str = traceback.format_exc()
@@ -321,18 +379,36 @@ def _get_column_quantiles_sqlite(
     quantiles: Iterable,
     selectable,
     execution_engine: SqlAlchemyExecutionEngine,
-    table_row_count,
+    nonnull_count: int,
 ) -> list:
     """
     The present implementation is somewhat inefficient, because it requires as many calls to
     "execution_engine.execute_query()" as the number of partitions in the "quantiles" parameter (albeit, typically,
     only a few).  However, this is the only mechanism available for SQLite at the present time (11/17/2021), because
     the analytical processing is not a very strongly represented capability of the SQLite database management system.
+
+    Ranks are taken over the non-null values only and follow "percentile_disc", which returns the
+    first value whose cumulative distribution reaches the quantile.
     """  # noqa: E501 # FIXME CoP
-    offsets: list[int] = [quantile * table_row_count - 1 for quantile in quantiles]
+    # The rank is "ceil(quantile * count)" evaluated on the quantile as written, not on its binary
+    # approximation. 0.56 is not representable in binary, so 0.56 * 25 is 14.000000000000002 and
+    # ceiling that selects rank 15. Rank 14 is the correct answer, because 14/25 is exactly 0.56
+    # and so already reaches the quantile.
+    #
+    # Note that this deliberately differs from the SQL engines that implement "percentile_disc" in
+    # double precision: PostgreSQL returns the 15th value here. The divergence is confined to
+    # quantiles whose product with the count is a whole number in decimal but not in binary.
+    ranks: list[int] = [
+        max(math.ceil(Fraction(str(quantile)) * nonnull_count), 1) for quantile in quantiles
+    ]
     quantile_queries: list[sqlalchemy.Select] = [
-        sa.select(column).order_by(column.asc()).offset(offset).limit(1).select_from(selectable)
-        for offset in offsets
+        sa.select(column)
+        .where(column != None)  # noqa: E711 # FIXME CoP
+        .order_by(column.asc())
+        .offset(rank - 1)
+        .limit(1)
+        .select_from(selectable)
+        for rank in ranks
     ]
 
     try:

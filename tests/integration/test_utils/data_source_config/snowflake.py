@@ -9,29 +9,41 @@ from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from great_expectations.self_check.util import _get_snowflake_connect_args
 from tests.integration.sql_session_manager import SessionSQLEngineManager
+from tests.integration.test_utils.data_source_config.backend_spec import (
+    BackendProvisioning,
+    BackendTier,
+    CiLaneRef,
+    SqlBackendSpec,
+)
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
-    DataSourceTestConfig,
 )
+from tests.integration.test_utils.data_source_config.registry import register_sql_backend
 from tests.integration.test_utils.data_source_config.sql import (
     ConnectionDetails,
     SQLBatchTestSetup,
 )
+from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
 if TYPE_CHECKING:
     from great_expectations.types.connect_args import ConnectArgs
 
 
-class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
-    @property
-    @override
-    def label(self) -> str:
-        return "snowflake"
-
-    @property
-    @override
-    def pytest_mark(self) -> pytest.MarkDecorator:
-        return pytest.mark.snowflake
+@register_sql_backend
+class SnowflakeDatasourceTestConfig(SqlDatasourceTestConfig):
+    BACKEND_SPEC = SqlBackendSpec(
+        label="snowflake",
+        marker="snowflake",
+        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        # Snowflake's CI lane is a dedicated job (`marker-tests-snowflake`), not a
+        # `marker-tests` matrix entry: it is sharded across `pytest-split` groups rather than
+        # selected as one matrix cell among many markers.
+        ci_lane=CiLaneRef(workflow_job="marker-tests-snowflake", marker_token="snowflake"),
+        uses_schema=True,
+        tiers=frozenset({BackendTier.STANDARD_SQL}),
+        dev_requirements_file="reqs/requirements-dev-snowflake.txt",
+        task_runner_marker="snowflake",
+    )
 
     @override
     def create_batch_setup(
@@ -107,11 +119,6 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
     @property
     def private_key(self) -> Optional[str]:
         return self.snowflake_connection_config.private_key
-
-    @property
-    @override
-    def use_schema(self) -> bool:
-        return True
 
     def __init__(
         self,

@@ -1,6 +1,7 @@
 # PYTHON 2 - py2 - update to ABC direct use rather than __metaclass__ once we drop py2 support
 from __future__ import annotations
 
+import errno
 import logging
 import os
 import pathlib
@@ -264,10 +265,27 @@ class TupleFilesystemStoreBackend(TupleStoreBackend):
                     root_directory, base_directory
                 )
 
-        os.makedirs(  # noqa: PTH103 # FIXME CoP
-            str(os.path.dirname(self.full_base_directory)),  # noqa: PTH120 # FIXME CoP
-            exist_ok=True,
-        )
+        # The parent directory is created eagerly here for convenience only: _set and _move
+        # (below) create their own leaf directory before writing, so this eager creation is
+        # redundant for an actual write. On a read-only filesystem it must not abort
+        # construction: reads require no directory, and a genuine write still raises clearly
+        # later at write time. The tolerance is narrowed to the two read-only signals so a real
+        # fault on a writable filesystem (e.g. out-of-space, a path collision) still fails fast
+        # at construction, exactly as before:
+        #   - read-only mount -> OSError with errno EROFS
+        #   - read-only dir   -> PermissionError (EACCES/EPERM), a subclass of OSError
+        try:
+            os.makedirs(  # noqa: PTH103 # FIXME CoP
+                str(os.path.dirname(self.full_base_directory)),  # noqa: PTH120 # FIXME CoP
+                exist_ok=True,
+            )
+        except OSError as e:
+            if not isinstance(e, PermissionError) and e.errno != errno.EROFS:
+                raise
+            logger.debug(
+                f"Could not pre-create directory for store backend at "
+                f"{self.full_base_directory}: {e}. It will be created on first write."
+            )
         # Initialize with store_backend_id if not part of an HTMLSiteStore
         if not self._suppress_store_backend_id:
             _ = self.store_backend_id

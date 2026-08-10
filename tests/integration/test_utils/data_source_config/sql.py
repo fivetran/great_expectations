@@ -22,55 +22,22 @@ from great_expectations.compatibility.sqlalchemy import (
     sqltypes,
 )
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
-from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from tests.integration.sql_session_manager import (
     ConnectionDetails,
     SessionSQLEngineManager,
 )
-from tests.integration.test_utils.data_source_config.base import BatchTestSetup, _ConfigT
+from tests.integration.test_utils.data_source_config.backend_spec import TransactionMode
+from tests.integration.test_utils.data_source_config.base import BatchTestSetup
+from tests.integration.test_utils.data_source_config.sql_config import _SqlConfigT
 
 if TYPE_CHECKING:
     import sqlalchemy as sa
 
     from great_expectations.data_context import AbstractDataContext
     from great_expectations.datasource.fluent.interfaces import Batch
+    from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
 
 logger = logging.getLogger(__name__)
-
-# Dialects that auto-commit and may not have active transactions
-_AUTO_COMMIT_DIALECTS = {GXSqlDialect.DATABRICKS}
-
-
-def _register_generic_sql_driver() -> None:
-    """Dynamically register a SQL dialect from environment variables.
-
-    Reads ``GX_TEST_GENERIC_SQL_DRIVER`` and, when set, ensures the driver
-    string is a valid ``GXSqlDialect`` member.  If
-    ``GX_TEST_GENERIC_SQL_AUTOCOMMIT`` is also set (non-empty), the dialect is
-    added to ``_AUTO_COMMIT_DIALECTS``.
-    """
-    import os
-
-    driver = os.environ.get("GX_TEST_GENERIC_SQL_DRIVER", "")
-    if not driver:
-        return
-
-    try:
-        dialect_member = GXSqlDialect(driver)
-    except ValueError:
-        dialect_member = object.__new__(GXSqlDialect)
-        dialect_member._name_ = f"_GENERIC_TEST_{driver.upper()}"
-        dialect_member._value_ = driver
-        dialect_member.__objclass__ = GXSqlDialect  # type: ignore[attr-defined] # mypy doesn't know about this CPython enum internal
-        GXSqlDialect._value2member_map_[driver] = dialect_member
-        GXSqlDialect._member_map_[dialect_member._name_] = dialect_member
-
-    autocommit = os.environ.get("GX_TEST_GENERIC_SQL_AUTOCOMMIT", "")
-    if autocommit:
-        _AUTO_COMMIT_DIALECTS.add(dialect_member)
-
-
-_register_generic_sql_driver()
 
 
 @dataclass(frozen=True)
@@ -85,8 +52,12 @@ InferrableTypesLookup = dict[type[Any], Union[type[TypeEngine], TypeEngine]]
 InferredColumnTypes = dict[str, Union[type[TypeEngine], TypeEngine]]
 
 
-class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_ConfigT]):
+class SQLBatchTestSetup(BatchTestSetup[_SqlConfigT, TableAsset], ABC, Generic[_SqlConfigT]):
     SCHEMA_PREFIX = "gx_ci_test_"
+
+    @property
+    def backend_spec(self) -> SqlBackendSpec:
+        return self.config.backend_spec
 
     @abstractmethod
     def build_connection_string(self, schema: str | None = None) -> str:
@@ -98,18 +69,22 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         """
 
     @property
-    @abstractmethod
     def use_schema(self) -> bool:
         """Whether to use a schema when connecting to SQL backend.
 
         If `True`, a schema will be automatically created.
         """
+        return self.backend_spec.uses_schema
 
     @property
     def inferrable_types_lookup(self) -> InferrableTypesLookup:
-        """Dict of Python type keys mapped to SQL dialect-specific SqlAlchemy types."""
-        # implementations of the class can override this if more specific types are required
-        return {
+        """Dict of Python type keys mapped to SQL dialect-specific SqlAlchemy types.
+
+        The backend's declared `column_type_overrides` are merged over this shared default map,
+        so a backend that needs a different type for a given Python type (e.g. a length-carrying
+        string type) states that fact once, in its spec, rather than by overriding this property.
+        """
+        default: InferrableTypesLookup = {
             str: sqltypes.VARCHAR,
             int: sqltypes.INTEGER,
             float: sqltypes.DECIMAL,
@@ -118,10 +93,11 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             datetime: sqltypes.DATETIME,
             pd.Timestamp: sqltypes.DATETIME,
         }
+        return {**default, **self.backend_spec.column_type_overrides}
 
     def __init__(
         self,
-        config: _ConfigT,
+        config: _SqlConfigT,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
@@ -194,20 +170,17 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             engine = create_engine(url=self.build_connection_string())
             return engine, engine.dispose
 
-    @staticmethod
-    def _safe_commit(conn: sa.Connection) -> None:
-        """Safely commit a connection, skipping auto-commit databases.
+    def _safe_commit(self, conn: sa.Connection) -> None:
+        """Safely commit a connection, skipping backends that declare they auto-commit.
 
         Some databases like Databricks auto-commit and don't support explicit transactions.
-        For these dialects, we skip the commit call entirely.
+        For a backend whose declaration states that, this method skips the commit call
+        entirely, trusting the declaration rather than inspecting the connection's dialect.
 
         Args:
             conn: SQLAlchemy connection to commit
         """
-        dialect_name = GXSqlDialect(conn.dialect.name)
-
-        # Skip commit for auto-commit databases (they commit automatically)
-        if dialect_name not in _AUTO_COMMIT_DIALECTS:
+        if self.backend_spec.transaction_mode is TransactionMode.EXPLICIT_COMMIT:
             conn.commit()
 
     @staticmethod
@@ -254,7 +227,6 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
     @override
     def setup(self) -> None:
         engine, cleanup = self._get_engine()
-        dialect = engine.dialect.name.lower()
 
         with engine.connect() as conn:
             # create schema if needed
@@ -280,8 +252,9 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
                 # because None is cast back to np.nan in numeric dtypes.
                 values = list(table_data.df.to_dict("index").values())
                 values = self._sanitize_null_values(values)
-                max_params = 250 if dialect == GXSqlDialect.DATABRICKS else None
-                self._safe_bulk_insert(conn, table_data.table, values, max_params)
+                self._safe_bulk_insert(
+                    conn, table_data.table, values, self.backend_spec.insert_parameter_limit
+                )
 
             # Commit transaction (safe for databases without transaction support)
             self._safe_commit(conn)
@@ -320,7 +293,12 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     def _create_table(self, name: str, columns: InferredColumnTypes) -> Table:
         column_list = [Column(col_name, col_type) for col_name, col_type in columns.items()]
-        return Table(name, self.metadata, *column_list, schema=self.schema)
+        # Called once per table: a dialect storage-engine construct binds to the first table it
+        # is attached to, so each table needs freshly constructed items rather than one instance
+        # shared across every table this setup creates.
+        table_schema_items = self.backend_spec.table_schema_items
+        items = table_schema_items() if table_schema_items is not None else ()
+        return Table(name, self.metadata, *column_list, *items, schema=self.schema)
 
     def _get_column_types(
         self,

@@ -3,38 +3,46 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING, Mapping, Optional
 
-import pytest
-
 from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.compatibility.typing_extensions import override
-from tests.integration.test_utils.data_source_config.base import (
-    BatchTestSetup,
-    DataSourceTestConfig,
+from tests.integration.test_utils.data_source_config.backend_spec import (
+    BackendProvisioning,
+    BackendTier,
+    CiLaneRef,
+    SqlBackendSpec,
+    TransactionMode,
 )
-from tests.integration.test_utils.data_source_config.sql import (
-    InferrableTypesLookup,
-    SQLBatchTestSetup,
-)
+from tests.integration.test_utils.data_source_config.registry import register_sql_backend
+from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
+from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
 if TYPE_CHECKING:
     import pandas as pd
+    import pytest
 
     from great_expectations.data_context import AbstractDataContext
     from great_expectations.datasource.fluent.sql_datasource import TableAsset
     from tests.integration.sql_session_manager import SessionSQLEngineManager
+    from tests.integration.test_utils.data_source_config.base import BatchTestSetup
 
 
-class DatabricksDatasourceTestConfig(DataSourceTestConfig):
-    @property
-    @override
-    def label(self) -> str:
-        return "databricks"
-
-    @property
-    @override
-    def pytest_mark(self) -> pytest.MarkDecorator:
-        return pytest.mark.databricks
+@register_sql_backend
+class DatabricksDatasourceTestConfig(SqlDatasourceTestConfig):
+    BACKEND_SPEC = SqlBackendSpec(
+        label="databricks",
+        marker="databricks",
+        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="databricks"),
+        uses_schema=True,
+        transaction_mode=TransactionMode.AUTOCOMMIT,
+        # databricks requires a length for VARCHAR
+        column_type_overrides={str: sqltypes.VARCHAR(255)},
+        insert_parameter_limit=250,
+        tiers=frozenset({BackendTier.STANDARD_SQL}),
+        dev_requirements_file="reqs/requirements-dev-databricks.txt",
+        task_runner_marker="databricks",
+    )
 
     @override
     def create_batch_setup(
@@ -59,20 +67,6 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
     @override
     def build_connection_string(self, schema: str | None = None) -> str:
         return self._databrics_connection_config.build_connection_string(schema=schema)
-
-    @property
-    @override
-    def use_schema(self) -> bool:
-        return True
-
-    @property
-    @override
-    def inferrable_types_lookup(self) -> InferrableTypesLookup:
-        # databricks requires a length for VARCHAR
-        overrides: InferrableTypesLookup = {
-            str: sqltypes.VARCHAR(255),
-        }
-        return super().inferrable_types_lookup | overrides
 
     @cached_property
     def _databrics_connection_config(self) -> DatabricksConnectionConfig:

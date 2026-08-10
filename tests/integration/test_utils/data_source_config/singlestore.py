@@ -1,9 +1,9 @@
-import pathlib
 from typing import Mapping, Optional
 
 import pandas as pd
 import pytest
 
+from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
@@ -21,15 +21,19 @@ from tests.integration.test_utils.data_source_config.sql_config import SqlDataso
 
 
 @register_sql_backend
-class SqliteDatasourceTestConfig(SqlDatasourceTestConfig):
+class SingleStoreDatasourceTestConfig(SqlDatasourceTestConfig):
     BACKEND_SPEC = SqlBackendSpec(
-        label="sqlite",
-        marker="sqlite",
-        provisioning=BackendProvisioning.LOCAL_FILE,
-        ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="sqlite"),
+        label="singlestore",
+        marker="singlestore",
+        provisioning=BackendProvisioning.LOCAL_CONTAINER,
+        ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="singlestore"),
         uses_schema=False,
-        tiers=frozenset({BackendTier.STANDARD_SQL}),
-        # SQLite has neither a dev-requirements file nor a task-runner entry.
+        tiers=frozenset({BackendTier.CURATED_SQL}),
+        # SingleStore requires a length for VARCHAR, the same requirement MySQL declares.
+        column_type_overrides={str: sqltypes.VARCHAR(255)},
+        dev_requirements_file="reqs/requirements-dev-singlestore.txt",
+        task_runner_marker="singlestore",
+        container_service="singlestore",
     )
 
     @override
@@ -41,13 +45,9 @@ class SqliteDatasourceTestConfig(SqlDatasourceTestConfig):
         context: AbstractDataContext,
         engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
-        tmp_path = request.getfixturevalue("tmp_path")
-        assert isinstance(tmp_path, pathlib.Path)
-
-        return SqliteBatchTestSetup(
+        return SingleStoreBatchTestSetup(
             data=data,
             config=self,
-            base_dir=tmp_path,
             extra_data=extra_data,
             table_name=self.table_name,
             context=context,
@@ -55,38 +55,21 @@ class SqliteDatasourceTestConfig(SqlDatasourceTestConfig):
         )
 
 
-class SqliteBatchTestSetup(SQLBatchTestSetup[SqliteDatasourceTestConfig]):
-    def __init__(
-        self,
-        data: pd.DataFrame,
-        config: SqliteDatasourceTestConfig,
-        extra_data: Mapping[str, pd.DataFrame],
-        context: AbstractDataContext,
-        base_dir: pathlib.Path,
-        table_name: Optional[str] = None,
-        engine_manager: Optional[SessionSQLEngineManager] = None,
-    ) -> None:
-        self._base_dir = base_dir
-        super().__init__(
-            config=config,
-            data=data,
-            extra_data=extra_data,
-            table_name=table_name,
-            engine_manager=engine_manager,
-            context=context,
-        )
+class SingleStoreBatchTestSetup(SQLBatchTestSetup[SingleStoreDatasourceTestConfig]):
+    _BASE_CONNECTION_STRING = "singlestoredb://root:test_superuser@127.0.0.1:3306/test_ci"
 
     @override
     def build_connection_string(self, schema: str | None = None) -> str:
-        return f"sqlite:///{self.db_file_path}"
-
-    @property
-    def db_file_path(self) -> pathlib.Path:
-        return self._base_dir / "database.db"
+        return self._BASE_CONNECTION_STRING
 
     @override
     def make_asset(self) -> TableAsset:
-        return self.context.data_sources.add_sqlite(
+        # No SingleStore-specific fluent datasource exists, so this reaches its datasource
+        # through the dialect-agnostic SQL datasource instead.
+        return self.context.data_sources.add_sql(
             name=self._random_resource_name(),
             connection_string=self.build_connection_string(),
-        ).add_table_asset(name=self._random_resource_name(), table_name=self.table_name)
+        ).add_table_asset(
+            name=self._random_resource_name(),
+            table_name=self.table_name,
+        )

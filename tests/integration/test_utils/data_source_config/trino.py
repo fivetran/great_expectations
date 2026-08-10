@@ -10,8 +10,10 @@ from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.backend_spec import (
     BackendProvisioning,
+    BackendTier,
     CiLaneRef,
     SqlBackendSpec,
+    TransactionMode,
 )
 from tests.integration.test_utils.data_source_config.base import BatchTestSetup
 from tests.integration.test_utils.data_source_config.registry import register_sql_backend
@@ -20,18 +22,22 @@ from tests.integration.test_utils.data_source_config.sql_config import SqlDataso
 
 
 @register_sql_backend
-class MySQLDatasourceTestConfig(SqlDatasourceTestConfig):
+class TrinoDatasourceTestConfig(SqlDatasourceTestConfig):
     BACKEND_SPEC = SqlBackendSpec(
-        label="mysql",
-        marker="mysql",
+        label="trino",
+        marker="trino",
         provisioning=BackendProvisioning.LOCAL_CONTAINER,
-        ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="mysql"),
+        ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="trino"),
         uses_schema=True,
-        # MySQL requires a length for VARCHAR.
-        column_type_overrides={str: sqltypes.VARCHAR(255)},
-        dev_requirements_file="reqs/requirements-dev-mysql.txt",
-        task_runner_marker="mysql",
-        container_service="mysql",
+        transaction_mode=TransactionMode.AUTOCOMMIT,
+        # The shared default maps `float` to an unqualified DECIMAL, which Trino resolves to
+        # scale zero, silently rounding fractional values to integers. A precision-carrying
+        # FLOAT compiles to double precision and round-trips exactly.
+        column_type_overrides={float: sqltypes.FLOAT(precision=53)},
+        tiers=frozenset({BackendTier.CURATED_SQL}),
+        dev_requirements_file="reqs/requirements-dev-trino.txt",
+        task_runner_marker="trino",
+        container_service="trino",
     )
 
     @override
@@ -43,7 +49,7 @@ class MySQLDatasourceTestConfig(SqlDatasourceTestConfig):
         context: AbstractDataContext,
         engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
-        return MySQLBatchTestSetup(
+        return TrinoBatchTestSetup(
             data=data,
             config=self,
             extra_data=extra_data,
@@ -53,16 +59,20 @@ class MySQLDatasourceTestConfig(SqlDatasourceTestConfig):
         )
 
 
-class MySQLBatchTestSetup(SQLBatchTestSetup[MySQLDatasourceTestConfig]):
-    _BASE_CONNECTION_STRING = "mysql+pymysql://root@localhost"
+class TrinoBatchTestSetup(SQLBatchTestSetup[TrinoDatasourceTestConfig]):
+    _CATALOG_PREFIX = "trino://test@localhost:8088/memory"
+    _DEFAULT_SCHEMA = "default"
 
     @override
     def build_connection_string(self, schema: str | None = None) -> str:
-        database = schema or "test_ci"
-        return f"{self._BASE_CONNECTION_STRING}/{database}"
+        # The memory connector always has a `default` schema, so setup/teardown (which
+        # connect with no schema) always have a valid session schema to run DDL against.
+        return f"{self._CATALOG_PREFIX}/{schema or self._DEFAULT_SCHEMA}"
 
     @override
     def make_asset(self) -> TableAsset:
+        # No Trino-specific fluent datasource exists, so this reaches its datasource through
+        # the dialect-agnostic SQL datasource instead.
         return self.context.data_sources.add_sql(
             name=self._random_resource_name(),
             connection_string=self.build_connection_string(schema=self.schema),

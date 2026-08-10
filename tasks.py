@@ -623,6 +623,7 @@ def type_schema(  # noqa: C901 - too complex
         core.ExpectColumnValuesToMatchLikePatternList,
         core.ExpectColumnValuesToMatchRegex,
         core.ExpectColumnValuesToMatchRegexList,
+        core.ExpectColumnValuesToMatchStrftimeFormat,
         core.ExpectColumnValuesToNotBeInSet,
         core.ExpectColumnValuesToNotBeNull,
         core.ExpectColumnValuesToNotMatchLikePattern,

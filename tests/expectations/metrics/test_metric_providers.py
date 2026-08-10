@@ -16,6 +16,11 @@ from great_expectations.execution_engine import (
     SqlAlchemyExecutionEngine,
 )
 from great_expectations.expectations import registry
+from great_expectations.expectations.metrics.column_map_metrics.column_values_unique import (
+    _sqlalchemy_unique_unexpected_index_list,
+    _sqlalchemy_unique_unexpected_index_query,
+    _sqlalchemy_unique_unexpected_rows,
+)
 from great_expectations.expectations.metrics.map_metric_provider import (
     ColumnMapMetricProvider,
     ColumnPairMapMetricProvider,
@@ -26,11 +31,6 @@ from great_expectations.expectations.metrics.map_metric_provider.column_conditio
 )
 from great_expectations.expectations.metrics.map_metric_provider.column_pair_condition_partial import (  # noqa: E501 # FIXME CoP
     column_pair_condition_partial,
-)
-from great_expectations.expectations.metrics.map_metric_provider.map_condition_auxilliary_methods import (  # noqa: E501 # FIXME CoP
-    _sqlalchemy_map_condition_index,
-    _sqlalchemy_map_condition_query,
-    _sqlalchemy_map_condition_rows,
 )
 from great_expectations.expectations.metrics.map_metric_provider.multicolumn_condition_partial import (  # noqa: E501 # FIXME CoP
     multicolumn_condition_partial,
@@ -270,16 +270,15 @@ def test__map_metric_provider__sqlalchemy_row_retrieval_provider_hooks(
     assert index_query_fn is _custom_index_query
 
 
-def test__column_values_unique__sqlalchemy_row_retrieval_providers_are_generic(mock_registry):
+def test__column_values_unique__sqlalchemy_row_retrieval_providers_are_narrow(mock_registry):
     """Regression guard for `column_values.unique`'s SqlAlchemy row-retrieval providers.
 
-    `ColumnValuesUnique` does not currently override the `MapMetricProvider` row-retrieval
-    provider hooks (see `test__map_metric_provider__sqlalchemy_row_retrieval_provider_hooks`), so
-    it still resolves to the generic full-row builders today. Once it overrides
-    `sqlalchemy_unexpected_rows_provider` / `sqlalchemy_unexpected_index_list_provider` /
-    `sqlalchemy_unexpected_index_query_provider` with narrow, single-scan providers, this test
-    must be updated to assert identity against those custom providers instead -- turning it into
-    a guard against silently reverting to the generic (wide-row) providers.
+    `ColumnValuesUnique` overrides the `MapMetricProvider` row-retrieval provider hooks
+    (`sqlalchemy_unexpected_rows_provider` / `sqlalchemy_unexpected_index_list_provider` /
+    `sqlalchemy_unexpected_index_query_provider`) with narrow, single-scan providers that
+    join a dup-keys subquery back to source instead of dragging every table column
+    through the window sort. This test guards against silently reverting to the generic
+    (wide-row) providers.
     """  # FIXME CoP
     _, rows_fn = mock_registry.get_sqlalchemy_metric_provider(
         "column_values.unique.unexpected_rows"
@@ -291,9 +290,9 @@ def test__column_values_unique__sqlalchemy_row_retrieval_providers_are_generic(m
         "column_values.unique.unexpected_index_query"
     )
 
-    assert rows_fn is _sqlalchemy_map_condition_rows
-    assert index_list_fn is _sqlalchemy_map_condition_index
-    assert index_query_fn is _sqlalchemy_map_condition_query
+    assert rows_fn is _sqlalchemy_unique_unexpected_rows
+    assert index_list_fn is _sqlalchemy_unique_unexpected_index_list
+    assert index_query_fn is _sqlalchemy_unique_unexpected_index_query
 
 
 def test__column_pair_map_metric__registration(mock_registry):

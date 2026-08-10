@@ -809,6 +809,94 @@ def test_test_connection_failures(
         bad_configuration_datasource.test_connection()
 
 
+def _schema_qualified_datasource() -> PostgresDatasource:
+    return PostgresDatasource(
+        name="postgres_datasource",
+        connection_string="postgresql+psycopg2://postgres:@localhost/test_ci",
+        assets=[
+            TableAsset(
+                name="table_asset",
+                table_name="my_table",
+                schema_name="my_schema",
+            )
+        ],
+    )
+
+
+@pytest.fixture
+def spy_inspector(mocker: MockFixture) -> Mock:
+    """An inspector whose get_schema_names is a spy, so calls can be asserted on."""
+    spy = mocker.Mock(return_value=["my_schema"])
+    inspector = MockSaInspector()
+    inspector.get_schema_names = spy  # type: ignore[method-assign] # FIXME CoP
+    mocker.patch("sqlalchemy.inspect").return_value = inspector
+    return spy
+
+
+@pytest.mark.postgresql
+def test_test_connection_does_not_list_schemas_when_probe_succeeds(
+    mock_create_engine: Mock,
+    spy_inspector: Mock,
+):
+    """The schema listing exists only to refine an error message.
+
+    Listing every schema on the server can cost far more than the probe query --
+    on some backends it is a server-wide metadata scan -- so nothing should list
+    schemas while the connection is healthy.
+    """
+    _schema_qualified_datasource().test_connection()
+
+    spy_inspector.assert_not_called()
+
+
+@pytest.mark.postgresql
+def test_test_connection_reports_missing_schema_when_probe_fails(
+    mock_create_engine: Mock,
+    mock_connection_execute_failure: Mock,
+    spy_inspector: Mock,
+):
+    """A failed probe plus an absent schema still names the schema as the cause."""
+    spy_inspector.return_value = ["some_other_schema"]
+
+    with pytest.raises(TestConnectionError) as exc_info:
+        _schema_qualified_datasource().test_connection()
+
+    assert 'schema "my_schema" does not exist' in str(exc_info.value)
+    spy_inspector.assert_called_once()
+
+
+@pytest.mark.postgresql
+def test_test_connection_reports_query_failure_when_schema_exists(
+    mock_create_engine: Mock,
+    mock_connection_execute_failure: Mock,
+    spy_inspector: Mock,
+):
+    """A failed probe against a schema that does exist reports the query failure."""
+    spy_inspector.return_value = ["my_schema"]
+
+    with pytest.raises(TestConnectionError) as exc_info:
+        _schema_qualified_datasource().test_connection()
+
+    assert "the test query" in str(exc_info.value)
+    assert "does not exist" not in str(exc_info.value)
+
+
+@pytest.mark.postgresql
+def test_test_connection_query_failure_survives_unusable_schema_listing(
+    mock_create_engine: Mock,
+    mock_connection_execute_failure: Mock,
+    spy_inspector: Mock,
+):
+    """A broken schema listing must not mask the probe failure that came first."""
+    spy_inspector.side_effect = Exception("metadata backend unavailable")
+
+    with pytest.raises(TestConnectionError) as exc_info:
+        _schema_qualified_datasource().test_connection()
+
+    assert "the test query" in str(exc_info.value)
+    assert "metadata backend unavailable" not in str(exc_info.value)
+
+
 @pytest.mark.filesystem
 def test_query_data_asset(empty_data_context, create_source):
     query = "SELECT * FROM my_table"
