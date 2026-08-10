@@ -1,7 +1,7 @@
 """Process-global registry of SQL backend declarations.
 
 A `SqlBackendSpec` (see `backend_spec.py`) is free to construct; nothing about building one has
-any side effect. Registration is the separate, deliberate act that enrols a config class's spec
+any side effect. Registration is the separate, deliberate act that enrolls a config class's spec
 into the set the harness treats as "the SQL backends that exist" — the set completeness checks,
 derived suite membership, and CI wiring checks all walk. That split is what lets a test build a
 throwaway spec, or even a throwaway registered class, without polluting the set that gates CI.
