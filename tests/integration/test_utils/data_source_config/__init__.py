@@ -27,6 +27,7 @@ from .spark_filesystem_csv import SparkFilesystemCsvDatasourceTestConfig
 from .sql_config import SqlDatasourceTestConfig
 from .sql_server import SQLServerDatasourceTestConfig
 from .sqlite import SqliteDatasourceTestConfig
+from .trino import TrinoDatasourceTestConfig
 
 # `tiers` derives its lists by reading the registry, so every module above whose import
 # registers a backend must be imported before this one: importing a submodule always runs this
