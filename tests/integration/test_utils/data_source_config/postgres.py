@@ -63,11 +63,6 @@ class PostgresBatchTestSetup(SQLBatchTestSetup[PostgreSQLDatasourceTestConfig]):
             return f"{self._BASE_CONNECTION_STRING}?{options}"
         return self._BASE_CONNECTION_STRING
 
-    @property
-    @override
-    def use_schema(self) -> bool:
-        return True
-
     @override
     def make_asset(self) -> TableAsset:
         return self.context.data_sources.add_postgres(
