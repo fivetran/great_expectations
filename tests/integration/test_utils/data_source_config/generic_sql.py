@@ -13,10 +13,7 @@ from tests.integration.test_utils.data_source_config.backend_spec import (
     SqlBackendSpec,
     TransactionMode,
 )
-from tests.integration.test_utils.data_source_config.sql import (
-    InferrableTypesLookup,
-    SQLBatchTestSetup,
-)
+from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
 if TYPE_CHECKING:
@@ -53,6 +50,9 @@ class GenericSQLDatasourceTestConfig(SqlDatasourceTestConfig):
         provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="generic_sql"),
         uses_schema=False,
+        # The caller-supplied connection string may point at a dialect that requires a length
+        # for VARCHAR, and this backend cannot know in advance which dialect that will be.
+        column_type_overrides={str: sqltypes.VARCHAR(255)},
     )
 
     connection_string: str = ""
@@ -142,12 +142,3 @@ class GenericSQLBatchTestSetup(SQLBatchTestSetup[GenericSQLDatasourceTestConfig]
             name=self._random_resource_name(),
             table_name=self.table_name,
         )
-
-    @property
-    @override
-    def inferrable_types_lookup(self) -> InferrableTypesLookup:
-        # databricks requires a length for VARCHAR
-        overrides: InferrableTypesLookup = {
-            str: sqltypes.VARCHAR(255),
-        }
-        return super().inferrable_types_lookup | overrides
