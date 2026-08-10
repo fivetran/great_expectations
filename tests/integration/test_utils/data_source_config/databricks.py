@@ -73,11 +73,6 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
 
     @property
     @override
-    def use_schema(self) -> bool:
-        return True
-
-    @property
-    @override
     def inferrable_types_lookup(self) -> InferrableTypesLookup:
         # databricks requires a length for VARCHAR
         overrides: InferrableTypesLookup = {

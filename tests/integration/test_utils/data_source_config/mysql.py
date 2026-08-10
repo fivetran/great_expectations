@@ -70,11 +70,6 @@ class MySQLBatchTestSetup(SQLBatchTestSetup[MySQLDatasourceTestConfig]):
 
     @property
     @override
-    def use_schema(self) -> bool:
-        return True
-
-    @property
-    @override
     def inferrable_types_lookup(self) -> InferrableTypesLookup:
         # mysql requires a length for VARCHAR
         overrides: InferrableTypesLookup = {
