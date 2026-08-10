@@ -252,6 +252,42 @@ class TestSchemaNameConflictsWithNoSchemaDeclarationRaises:
         )
 
 
+class TestColumnTypeOverridesMergeOverSharedDefault:
+    def test_overridden_type_applies_only_to_the_declared_python_type(
+        self, tmp_path: pathlib.Path
+    ) -> None:
+        # A length distinct from the one any real backend declares, so a pass here can only be
+        # explained by this declaration's own override actually being read - not by coincidental
+        # agreement with, say, MySQL's or Databricks' `VARCHAR(255)`.
+        config = _ThrowawayDatasourceTestConfig(
+            backend_spec_override=dataclasses.replace(
+                _BASE_SPEC, column_type_overrides={str: sa.VARCHAR(42)}
+            )
+        )
+        batch_setup = _ThrowawayBatchTestSetup(
+            data=pd.DataFrame({"col_str": ["a", "b"], "col_int": [1, 2]}),
+            config=config,
+            base_dir=tmp_path,
+            extra_data=_EXTRA_DATA,
+            context=gx.get_context(mode="ephemeral"),
+        )
+
+        batch_setup.setup()
+        try:
+            columns = {c.name: c.type for c in batch_setup.main_table_data.table.columns}
+
+            # The Python type named in the override receives the declared type...
+            str_column_type = columns["col_str"]
+            assert isinstance(str_column_type, sa.VARCHAR)
+            assert str_column_type.length == 42
+
+            # ...while every other Python type still receives the shared default, unaffected by
+            # the override declared for a different type.
+            assert isinstance(columns["col_int"], sa.INTEGER)
+        finally:
+            batch_setup.teardown()
+
+
 _CACHE_REGRESSION_SETUP_CALLS: List[None] = []
 _CACHE_REGRESSION_TEARDOWN_CALLS: List[None] = []
 _CACHE_REGRESSION_SETUP_IDENTITY: List[BatchTestSetup] = []

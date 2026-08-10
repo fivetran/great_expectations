@@ -14,10 +14,7 @@ from tests.integration.test_utils.data_source_config.backend_spec import (
     TransactionMode,
 )
 from tests.integration.test_utils.data_source_config.registry import register_sql_backend
-from tests.integration.test_utils.data_source_config.sql import (
-    InferrableTypesLookup,
-    SQLBatchTestSetup,
-)
+from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
 if TYPE_CHECKING:
@@ -70,15 +67,6 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
     @override
     def build_connection_string(self, schema: str | None = None) -> str:
         return self._databrics_connection_config.build_connection_string(schema=schema)
-
-    @property
-    @override
-    def inferrable_types_lookup(self) -> InferrableTypesLookup:
-        # databricks requires a length for VARCHAR
-        overrides: InferrableTypesLookup = {
-            str: sqltypes.VARCHAR(255),
-        }
-        return super().inferrable_types_lookup | overrides
 
     @cached_property
     def _databrics_connection_config(self) -> DatabricksConnectionConfig:
