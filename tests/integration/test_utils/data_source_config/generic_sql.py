@@ -66,10 +66,19 @@ class GenericSQLDatasourceTestConfig(SqlDatasourceTestConfig):
 
     def __post_init__(self) -> None:
         if self.autocommit and self.backend_spec_override is None:
+            # An override must also vary the label: two instances that differ only in
+            # `autocommit` would otherwise declare the same label, and the session-scoped
+            # batch-setup cache is keyed on config equality (which compares label, not this
+            # field) - so they would collide and silently share one setup, with the second
+            # instance inheriting the first instance's transaction behavior.
             object.__setattr__(
                 self,
                 "backend_spec_override",
-                dataclasses.replace(self.BACKEND_SPEC, transaction_mode=TransactionMode.AUTOCOMMIT),
+                dataclasses.replace(
+                    self.BACKEND_SPEC,
+                    transaction_mode=TransactionMode.AUTOCOMMIT,
+                    label=f"{self.BACKEND_SPEC.label}_autocommit",
+                ),
             )
 
     @override
@@ -120,6 +129,16 @@ class GenericSQLBatchTestSetup(SQLBatchTestSetup[GenericSQLDatasourceTestConfig]
                 "Either pass connection_string to GenericSQLDatasourceTestConfig "
                 "or set GX_TEST_GENERIC_SQL_CONNECTION_STRING environment variable."
             )
+        # `config.autocommit` is the in-code declaration; a non-empty environment variable
+        # is an additional, out-of-code way to request the same behavior, read here (batch-setup
+        # construction time) rather than at import, alongside the connection-string read above.
+        # Unlike `autocommit`, this variable is never folded into a label: it is process-global,
+        # so every escape-hatch setup in a run resolves it identically and no two cache entries
+        # can disagree - unlike the per-instance field, where two instances in one session can
+        # differ and would otherwise collide.
+        self._autocommit = config.autocommit or bool(
+            os.environ.get("GX_TEST_GENERIC_SQL_AUTOCOMMIT", "")
+        )
         super().__init__(
             config=config,
             data=data,
@@ -128,6 +147,14 @@ class GenericSQLBatchTestSetup(SQLBatchTestSetup[GenericSQLDatasourceTestConfig]
             engine_manager=engine_manager,
             context=context,
         )
+
+    @property
+    @override
+    def backend_spec(self) -> SqlBackendSpec:
+        spec = self.config.backend_spec
+        if self._autocommit and spec.transaction_mode is not TransactionMode.AUTOCOMMIT:
+            return dataclasses.replace(spec, transaction_mode=TransactionMode.AUTOCOMMIT)
+        return spec
 
     @override
     def build_connection_string(self, schema: str | None = None) -> str:

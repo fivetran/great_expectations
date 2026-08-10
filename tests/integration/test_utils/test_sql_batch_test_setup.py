@@ -9,20 +9,33 @@ involved, so the whole module runs against a file-backed SQLite database and nee
 from __future__ import annotations
 
 import dataclasses
+import json
+import os
 import pathlib
-from typing import TYPE_CHECKING, ClassVar, List, Mapping, Optional, Sequence
+import subprocess
+import sys
+from typing import TYPE_CHECKING, ClassVar, List, Mapping, Optional, Sequence, cast
 
 import pandas as pd
 import pytest
 import sqlalchemy as sa
+from sqlalchemy.dialects import registry as sa_dialect_registry
+from sqlalchemy.dialects.sqlite.pysqlite import SQLiteDialect_pysqlite
 
 import great_expectations as gx
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.integration.test_utils.data_source_config import sql as sql_module
 from tests.integration.test_utils.data_source_config.backend_spec import (
     BackendProvisioning,
     CiLaneRef,
     SqlBackendSpec,
+    TransactionMode,
+)
+from tests.integration.test_utils.data_source_config.generic_sql import (
+    GenericSQLBatchTestSetup,
+    GenericSQLDatasourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
@@ -416,3 +429,236 @@ class TestSessionCacheSharesOneBatchSetupAcrossEqualConfigs:
 
         assert len(_CACHE_REGRESSION_SETUP_CALLS) == 1
         assert len(_CACHE_REGRESSION_TEARDOWN_CALLS) == 1
+
+
+class _RecordingConnection:
+    """A stand-in for `sa.Connection` that records whether `commit()` is invoked, without
+    touching a real database. The commit decision under test only ever calls `.commit()` on
+    its argument, so a double exposing just that one method is enough to observe it."""
+
+    def __init__(self) -> None:
+        self.commit_calls = 0
+
+    def commit(self) -> None:
+        self.commit_calls += 1
+
+
+class TestTransactionModeControlsCommit:
+    """`setup()` and `teardown()` both call `self._safe_commit(conn)` once, at the same
+    relative position, and nothing else sits between that call and the connection. Calling
+    `_safe_commit` directly, once per site, exercises exactly what each site does without
+    depending on a live database honoring an auto-commit declaration - sqlite, the file-backed
+    dialect the throwaway declarations in this module use, does not persist uncommitted rows past
+    the connection that issued them (schema DDL survives regardless), so a round trip asserting
+    data visibility would fail for a reason unrelated to the decision itself.
+    """
+
+    def test_autocommit_declaration_causes_no_commit_call_in_setup_or_teardown(
+        self, tmp_path: pathlib.Path
+    ) -> None:
+        config = _ThrowawayDatasourceTestConfig(
+            backend_spec_override=dataclasses.replace(
+                _BASE_SPEC, transaction_mode=TransactionMode.AUTOCOMMIT
+            )
+        )
+        batch_setup = _ThrowawayBatchTestSetup(
+            data=_DATA,
+            config=config,
+            base_dir=tmp_path,
+            extra_data=_EXTRA_DATA,
+            context=gx.get_context(mode="ephemeral"),
+        )
+        conn = _RecordingConnection()
+        sa_conn = cast("sa.Connection", conn)
+
+        batch_setup._safe_commit(sa_conn)  # what setup() does at its own call site
+        batch_setup._safe_commit(sa_conn)  # what teardown() does at its own call site
+
+        assert conn.commit_calls == 0
+
+    def test_explicit_commit_declaration_causes_exactly_one_commit_call_per_call_site(
+        self, tmp_path: pathlib.Path
+    ) -> None:
+        config = _ThrowawayDatasourceTestConfig()  # default declaration: explicit commit
+        batch_setup = _ThrowawayBatchTestSetup(
+            data=_DATA,
+            config=config,
+            base_dir=tmp_path,
+            extra_data=_EXTRA_DATA,
+            context=gx.get_context(mode="ephemeral"),
+        )
+        conn = _RecordingConnection()
+        sa_conn = cast("sa.Connection", conn)
+
+        batch_setup._safe_commit(sa_conn)  # what setup() does at its own call site
+        assert conn.commit_calls == 1
+
+        batch_setup._safe_commit(sa_conn)  # what teardown() does at its own call site
+        assert conn.commit_calls == 2
+
+
+class TestGenericSqlEscapeHatchRoutesToTheSameCommitDecision:
+    """`TestTransactionModeControlsCommit` above proves `_safe_commit` honors
+    `self.backend_spec.transaction_mode`. It does not prove that the generic-SQL escape hatch's
+    two routes to autocommit - the `GX_TEST_GENERIC_SQL_AUTOCOMMIT` environment variable and the
+    `autocommit=True` field - actually reach that property. Both routes resolve through
+    `GenericSQLBatchTestSetup.backend_spec`, but by different mechanisms: the environment
+    variable is applied by that override itself, while the field has already been folded into
+    the config's own declaration at construction, so the override passes it through untouched.
+    The environment route is therefore the one that pins the override; a base class
+    that instead read `self.config.backend_spec` directly would skip that override, silently
+    reintroducing a commit call, and every existing test in both changed test modules would still
+    pass. Only a real `GenericSQLBatchTestSetup` against a real backend spec, driven through
+    `_safe_commit`, distinguishes the two.
+    """
+
+    def test_environment_variable_route_causes_no_commit_call(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("GX_TEST_GENERIC_SQL_AUTOCOMMIT", "1")
+        config = GenericSQLDatasourceTestConfig(connection_string="sqlite:///:memory:")
+        batch_setup = GenericSQLBatchTestSetup(
+            data=_DATA,
+            config=config,
+            extra_data=_EXTRA_DATA,
+            context=gx.get_context(mode="ephemeral"),
+        )
+        conn = _RecordingConnection()
+        sa_conn = cast("sa.Connection", conn)
+
+        batch_setup._safe_commit(sa_conn)  # what setup() does at its own call site
+        batch_setup._safe_commit(sa_conn)  # what teardown() does at its own call site
+
+        assert conn.commit_calls == 0
+
+    def test_autocommit_field_route_causes_no_commit_call(self) -> None:
+        config = GenericSQLDatasourceTestConfig(
+            connection_string="sqlite:///:memory:", autocommit=True
+        )
+        batch_setup = GenericSQLBatchTestSetup(
+            data=_DATA,
+            config=config,
+            extra_data=_EXTRA_DATA,
+            context=gx.get_context(mode="ephemeral"),
+        )
+        conn = _RecordingConnection()
+        sa_conn = cast("sa.Connection", conn)
+
+        batch_setup._safe_commit(sa_conn)  # what setup() does at its own call site
+        batch_setup._safe_commit(sa_conn)  # what teardown() does at its own call site
+
+        assert conn.commit_calls == 0
+
+    def test_neither_route_set_causes_exactly_one_commit_call_per_call_site(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # Clear the variable rather than assuming it is unset: exporting it is the escape
+        # hatch's own documented usage, so a developer running that way would otherwise turn
+        # this negative control red for a reason that has nothing to do with what it asserts.
+        monkeypatch.delenv("GX_TEST_GENERIC_SQL_AUTOCOMMIT", raising=False)
+        config = GenericSQLDatasourceTestConfig(connection_string="sqlite:///:memory:")
+        batch_setup = GenericSQLBatchTestSetup(
+            data=_DATA,
+            config=config,
+            extra_data=_EXTRA_DATA,
+            context=gx.get_context(mode="ephemeral"),
+        )
+        conn = _RecordingConnection()
+        sa_conn = cast("sa.Connection", conn)
+
+        batch_setup._safe_commit(sa_conn)  # what setup() does at its own call site
+        assert conn.commit_calls == 1
+
+        batch_setup._safe_commit(sa_conn)  # what teardown() does at its own call site
+        assert conn.commit_calls == 2
+
+
+class TestSharedSetupModuleHasNoImportTimeEnvironmentRead:
+    """Guards the shared setup module's import-time behavior: no environment variable is read
+    and no module-level mutable dialect state is built when the module is imported.
+
+    The primary test below is behavioral: it checks that the dialect enumeration's member map is
+    unchanged after import with the former driver-registration environment variable set. It runs
+    in a subprocess rather than via
+    `importlib.reload`: reload would leave every already-imported dependent module (the nine SQL
+    batch-setup subclasses, in particular, each of which captured its own reference to the
+    pre-reload class object at its own import time) holding a stale reference, whereas a fresh
+    interpreter has no prior import to go stale.
+
+    The second test is a source-level assertion kept as a mechanical backstop: it fails fast and
+    with a precise pointer if the deleted names are ever reintroduced, which the behavioral test
+    alone would not localize as clearly.
+    """
+
+    def test_dialect_enumeration_unchanged_after_import_with_former_driver_env_var_set(
+        self,
+    ) -> None:
+        script = (
+            "import json\n"
+            "from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect\n"
+            "import tests.integration.test_utils.data_source_config.sql  # noqa: F401\n"
+            "print(json.dumps(sorted(GXSqlDialect._value2member_map_)))\n"
+        )
+        child_env = dict(os.environ)
+        child_env["GX_TEST_GENERIC_SQL_DRIVER"] = "gx_test_unrecognized_dialect"
+
+        result = subprocess.run(
+            [sys.executable, "-c", script],
+            env=child_env,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        child_member_map = json.loads(result.stdout)
+        assert child_member_map == sorted(GXSqlDialect._value2member_map_)
+
+    def test_source_reads_no_environment_variable_and_builds_no_dialect_member(self) -> None:
+        source = pathlib.Path(sql_module.__file__).read_text()
+
+        assert "os.environ" not in source
+        assert "_register_generic_sql_driver" not in source
+        assert "GX_TEST_GENERIC_SQL_DRIVER" not in source
+        assert "GX_TEST_GENERIC_SQL_AUTOCOMMIT" not in source
+        # No construction of the enumeration remains - only a plain attribute reference
+        # (the insert parameter limit still inlined a few lines below it), which is deliberately
+        # left as-is here and belongs to a follow-on change.
+        assert "GXSqlDialect(" not in source
+
+
+class _UnrecognizedDialect(SQLiteDialect_pysqlite):
+    """Sqlite's real driver implementation under a name `GXSqlDialect` has never heard of -
+    standing in for a database driver the enumeration does not know about, the way
+    `GX_TEST_GENERIC_SQL_DRIVER` used to let a caller register one."""
+
+    name = "gx_test_unrecognized_dialect"
+    supports_statement_cache = True
+
+
+sa_dialect_registry.register(
+    "gx_test_unrecognized_dialect",
+    __name__,
+    _UnrecognizedDialect.__name__,
+)
+
+
+class TestGenericSqlEscapeHatchWorksAgainstAnUnrecognizedDialect:
+    def test_setup_and_teardown_do_not_raise_for_a_dialect_outside_the_enumeration(
+        self, tmp_path: pathlib.Path
+    ) -> None:
+        assert "gx_test_unrecognized_dialect" not in GXSqlDialect._value2member_map_
+
+        connection_string = f"gx_test_unrecognized_dialect:///{tmp_path / 'unrecognized.db'}"
+        config = GenericSQLDatasourceTestConfig(connection_string=connection_string)
+        batch_setup = GenericSQLBatchTestSetup(
+            data=_DATA,
+            config=config,
+            extra_data=_EXTRA_DATA,
+            context=gx.get_context(mode="ephemeral"),
+        )
+
+        batch_setup.setup()
+        try:
+            assert {c.name for c in batch_setup.main_table_data.table.columns} == {"col_a"}
+        finally:
+            batch_setup.teardown()
