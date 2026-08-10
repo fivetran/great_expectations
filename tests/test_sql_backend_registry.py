@@ -17,6 +17,7 @@ from tests.integration.test_utils.data_source_config import (
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
+    SingleStoreDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
     SqliteDatasourceTestConfig,
@@ -956,6 +957,26 @@ class TestStandardDataSourceListsMatchPreChangeMembership:
             SnowflakeDatasourceTestConfig(),
             SqliteDatasourceTestConfig(),
         ] == ALL_DATA_SOURCES
+
+
+class TestCuratedSqlDataSourcesContainsExactlySingleStore:
+    """Regression pin for the curated tier's first member.
+
+    `CURATED_SQL_DATA_SOURCES` was empty until a backend declared curated-tier membership, so
+    every assertion involving it was vacuously true (empty equals empty). SingleStore is the
+    first backend to join that tier, which is what makes this pin non-vacuous: it fails on a
+    curated-tier backend registering without also joining this literal, and fails just as loudly
+    on the reverse — a config landing in this literal without the corresponding registration.
+
+    `CURATED_SQL_DATA_SOURCES` is imported at this module's own import time (see the module
+    docstring on `TestStandardDataSourceListsMatchPreChangeMembership` above for why that
+    matters): it is safe to assert against directly here, unlike a call-time re-derivation from
+    the registry, which this module's `_snapshot_registry` autouse fixture would observe as
+    empty.
+    """
+
+    def test_curated_sql_data_sources_contains_exactly_singlestore(self) -> None:
+        assert [SingleStoreDatasourceTestConfig()] == CURATED_SQL_DATA_SOURCES
 
 
 class TestMetricsConftestsReexportTheSharedDefinition:
