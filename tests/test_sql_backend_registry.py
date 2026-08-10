@@ -510,7 +510,7 @@ class TestCredentialGatedBackendsRegisterInLabelOrder:
 
 
 class TestGenericSqlEscapeHatchIsDeclaredButUnregistered:
-    """The ad-hoc, caller-supplied-connection-string config has no fixed identity to enrol, so
+    """The ad-hoc, caller-supplied-connection-string config has no fixed identity to enroll, so
     unlike the eight dialect-specific backends it must never appear in the registry that gates
     CI - even though, like them, it now derives its identity from a declared spec.
     """
