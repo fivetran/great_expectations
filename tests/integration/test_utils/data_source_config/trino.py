@@ -10,6 +10,7 @@ from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.backend_spec import (
     BackendProvisioning,
+    BackendTier,
     CiLaneRef,
     SqlBackendSpec,
     TransactionMode,
@@ -33,6 +34,7 @@ class TrinoDatasourceTestConfig(SqlDatasourceTestConfig):
         # scale zero, silently rounding fractional values to integers. A precision-carrying
         # FLOAT compiles to double precision and round-trips exactly.
         column_type_overrides={float: sqltypes.FLOAT(precision=53)},
+        tiers=frozenset({BackendTier.CURATED_SQL}),
         dev_requirements_file="reqs/requirements-dev-trino.txt",
         task_runner_marker="trino",
         container_service="trino",
