@@ -963,15 +963,15 @@ class TestStandardDataSourceListsMatchPreChangeMembership:
         ] == ALL_DATA_SOURCES
 
 
-class TestCuratedSqlDataSourcesEqualsSingleStoreAndTrino:
+class TestCuratedSqlDataSourcesEqualsClickHouseSingleStoreAndTrino:
     """Regression pin for the curated tier's members, in label order.
 
     `CURATED_SQL_DATA_SOURCES` was empty until a backend declared curated-tier membership, so
     every assertion involving it was vacuously true (empty equals empty). SingleStore was the
-    first backend to join that tier, and Trino is the second — both are what make this pin
-    non-vacuous: it fails on a curated-tier backend registering without also joining this
-    literal, and fails just as loudly on the reverse — a config landing in this literal without
-    the corresponding registration.
+    first backend to join that tier, Trino was the second, and ClickHouse is the third — all
+    three are what make this pin non-vacuous: it fails on a curated-tier backend registering
+    without also joining this literal, and fails just as loudly on the reverse — a config landing
+    in this literal without the corresponding registration.
 
     `CURATED_SQL_DATA_SOURCES` is imported at this module's own import time (see the module
     docstring on `TestStandardDataSourceListsMatchPreChangeMembership` above for why that
@@ -980,12 +980,18 @@ class TestCuratedSqlDataSourcesEqualsSingleStoreAndTrino:
     empty.
     """
 
-    def test_curated_sql_data_sources_equals_singlestore_and_trino_in_label_order(self) -> None:
+    def test_curated_sql_data_sources_equals_clickhouse_singlestore_and_trino_in_label_order(
+        self,
+    ) -> None:
+        from tests.integration.test_utils.data_source_config.clickhouse import (
+            ClickHouseDatasourceTestConfig,
+        )
         from tests.integration.test_utils.data_source_config.trino import (
             TrinoDatasourceTestConfig,
         )
 
         assert [
+            ClickHouseDatasourceTestConfig(),
             SingleStoreDatasourceTestConfig(),
             TrinoDatasourceTestConfig(),
         ] == CURATED_SQL_DATA_SOURCES
