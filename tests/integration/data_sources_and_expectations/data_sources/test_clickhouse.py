@@ -1,18 +1,16 @@
 """Backend-scoped ClickHouse coverage.
 
-This module exists only for GX Core code paths that no other lane reaches -- see
-`.kiro/specs/clickhouse-test-harness/design.md`'s `ClickHouseDialectSuite` section for the
-authoritative rationale table. Its four groups are disjoint from the curated suite's assertion
-groups by construction:
+This module exists only for GX Core code paths that no other lane reaches. Its four groups are
+disjoint from the curated suite's assertion groups by construction:
 
-* Quantile values (5.3) -- the bespoke `_get_column_quantiles_clickhouse` helper has no live
-  coverage anywhere else, because the only cross-backend quantile assertion is parameterized over
-  the canonical-expectations list, which this backend does not join.
-* Regular expression and pattern matching (5.4) -- the dialect-specific `regexp_like` regex branch
-  and the LIKE-support branch in `great_expectations/expectations/metrics/util.py`.
-* Null-bearing data (5.5's nulls half, 3.8) -- the curated data sets carry no nulls; this dialect's
-  columns are all declared `Nullable(...)` specifically so real nulls round-trip.
-* Column types (3.7) -- one expectation per declared Python-type override in
+* Quantile values -- the bespoke `_get_column_quantiles_clickhouse` helper has no live coverage
+  anywhere else, because the only cross-backend quantile assertion is parameterized over the
+  canonical-expectations list, which this backend does not join.
+* Regular expression and pattern matching -- the dialect-specific `regexp_like` regex branch and
+  the LIKE-support branch in `great_expectations/expectations/metrics/util.py`.
+* Null-bearing data -- the curated data sets carry no nulls; this dialect's columns are all
+  declared `Nullable(...)` specifically so real nulls round-trip.
+* Column types -- one expectation per declared Python-type override in
   `tests/integration/test_utils/data_source_config/clickhouse.py`'s `_COLUMN_TYPE_OVERRIDES`.
 
 Deliberately absent: a quoted-identifier group. The curated suite's second data set already covers
@@ -26,8 +24,7 @@ identifier-preparer quirks. Those are behaviors of `clickhouse-sqlalchemy`'s own
 GX Core path this lane reaches, so exercising them here would test the dependency, not the product.
 
 Findings recorded here are from a real run against the container started by
-`invoke service --markers=clickhouse`; see task 3.1's status report for the full, current record
-of what passed, what failed, and why.
+`invoke service --markers=clickhouse`.
 """
 
 from datetime import date, datetime, timezone
@@ -64,8 +61,8 @@ def _naive_datetime(
 
 
 class TestClickHouseQuantileValues:
-    """Requirement 5.3: exercise the bespoke ClickHouse quantile-values metric against a running
-    server. This is the only live coverage of `_get_column_quantiles_clickhouse` in the repo,
+    """Exercise the bespoke ClickHouse quantile-values metric against a running server. This is
+    the only live coverage of `_get_column_quantiles_clickhouse` in the repo,
     because the sole cross-backend quantile assertion is parameterized over the
     canonical-expectations list, which this backend deliberately does not join.
 
@@ -99,17 +96,16 @@ class TestClickHouseQuantileValues:
 
 
 class TestClickHouseRegexAndLikePatterns:
-    """Requirement 5.4: exercise the ClickHouse-specific regular-expression branch and the
-    LIKE-support branch in `great_expectations/expectations/metrics/util.py`
+    """Exercise the ClickHouse-specific regular-expression branch and the LIKE-support branch in
+    `great_expectations/expectations/metrics/util.py`
     (`get_dialect_regex_expression` and `get_dialect_like_pattern_expression` respectively).
 
     Observed on this baseline: the regex branch (both `ExpectColumnValuesToMatchRegex` and
     `ExpectColumnValuesToNotMatchRegex`, which share `get_dialect_regex_expression`'s
     `sa.func.regexp_like(...)` call) **fails for real** -- ClickHouse has no SQL function named
     `regexp_like`; the server rejects the query with
-    `DB::Exception: Function with name 'regexp_like' does not exist`. This is not a
-    pre-identified defect in the design and is a new finding from this coverage: ClickHouse's own
-    regex function is `match(haystack, pattern)`, not `regexp_like`. An equivalent hand-written
+    `DB::Exception: Function with name 'regexp_like' does not exist`. ClickHouse's own regex
+    function is `match(haystack, pattern)`, not `regexp_like`. An equivalent hand-written
     connection issuing the same generated SQL against this server would fail identically -- this is
     a real server-side rejection, not a harness or test-authoring problem.
 
@@ -169,8 +165,8 @@ class TestClickHouseRegexAndLikePatterns:
 
 
 class TestClickHouseNullBearingData:
-    """Requirement 5.5 (nulls half) and 3.8: insert real nulls into a string, an integer, a float
-    and a date column -- each column carries at least one non-null value, because the shared
+    """Insert real nulls into a string, an integer, a float and a date column -- each column
+    carries at least one non-null value, because the shared
     type-inference path in `SQLBatchTestSetup._infer_column_types` hardcodes `INTEGER` for a
     column that is entirely null, bypassing this backend's declared type overrides. Confirms a
     null-aware expectation correctly identifies exactly the null cell in each column.
@@ -230,7 +226,7 @@ class TestClickHouseNullBearingData:
 
 
 class TestClickHouseColumnTypes:
-    """Requirement 3.7: one expectation per declared Python-type override in
+    """One expectation per declared Python-type override in
     `_COLUMN_TYPE_OVERRIDES`, confirming each renders and round-trips correctly through a real
     expectation. Each test declares the exact SQLAlchemy type the override map declares for that
     Python type, so this is coverage of the declaration itself rather than of type inference.
@@ -393,7 +389,7 @@ class TestClickHouseColumnTypes:
 
 
 class TestClickHouseBundledSameMetric:
-    """Requirements 5.10 / 5.11: probe -- by observation against the running server, not by
+    """Probe -- by observation against the running server, not by
     reading source -- whether this dialect bundles multiple metrics resolving to the same
     underlying metric name (on different columns) into one query, then assert the shape of
     community issue #10926 against whatever the probe found.
@@ -409,14 +405,14 @@ class TestClickHouseBundledSameMetric:
                    AS "column_values.nonnull.unexpected_count_1"
         FROM (...)
 
-    So the bundling path *is* entered on this backend, and 5.10 is satisfied here rather than
-    unreachable. The aliases collide on the bare metric name
+    So the bundling path *is* entered on this backend, and this coverage is a real, satisfied
+    observation rather than an unreachable probe. The aliases collide on the bare metric name
     (`column_values.nonnull.unexpected_count`) and are deduplicated with a numeric suffix
     (`_1`). **That dedup is generic, dialect-independent logic already present in
     `SqlAlchemyExecutionEngine._organize_metrics_by_domain`** (an `existing_aliases` check that
-    appends `_1`, `_2`, ... on collision) -- it is not a ClickHouse-specific behavior, and it is not
-    the "random letters" label-composition the design's Integration notes speculated might be in
-    play. The batch succeeds: ClickHouse accepts the double-quoted, dot-containing aliases without
+    appends `_1`, `_2`, ... on collision) -- it is not a ClickHouse-specific behavior, and it is
+    not a dialect-specific random-letters label composition. The batch succeeds: ClickHouse
+    accepts the double-quoted, dot-containing aliases without
     complaint. So this passes because the generic alias-dedup fix already exists upstream of this
     dialect and the dialect itself raises no objection to the resulting identifiers -- not because
     the bundling path was never entered.
