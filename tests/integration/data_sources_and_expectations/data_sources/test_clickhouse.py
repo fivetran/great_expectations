@@ -31,7 +31,11 @@ from datetime import date, datetime, timezone
 
 import pandas as pd
 import pytest
-from clickhouse_sqlalchemy import types as clickhouse_types
+
+try:
+    from clickhouse_sqlalchemy import types as clickhouse_types
+except ImportError:
+    clickhouse_types = None
 
 import great_expectations.expectations as gxe
 from great_expectations import get_context
