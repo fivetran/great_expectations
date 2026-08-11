@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import date, datetime
 from functools import cached_property
-from typing import TYPE_CHECKING, Any, Callable, Generic, Mapping, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Callable, Generic, Mapping, Optional, Sequence, Union, cast
 
 import numpy as np
 import pandas as pd
@@ -215,7 +215,24 @@ class SQLBatchTestSetup(BatchTestSetup[_SqlConfigT, TableAsset], ABC, Generic[_S
             return
 
         if not max_params:
-            conn.execute(insert(table).values(values))
+            # Pass `values` as `execute()`'s parameters rather than via `.values(...)`.
+            # `insert(table).values(values)` is SQLAlchemy's "multi-values" Core idiom: it
+            # compiles ONE INSERT statement with inline VALUES tuples, flattening the row
+            # dicts into synthetic per-position parameter names (`col_m0`, `col_m1`, ...).
+            # That's harmless for dialects whose DBAPI just binds one flat parameter dict to
+            # one literal statement, but ClickHouse's SQLAlchemy dialect
+            # (`clickhouse_sqlalchemy`) unconditionally forces the executemany path for any
+            # non-empty INSERT and its compiler strips the inline VALUES text, expecting real
+            # per-row dicts keyed by actual column names instead -- so the driver raises a
+            # `KeyError` on the first column it looks up. `execute(insert(table), values)` is
+            # SQLAlchemy's documented dialect-transparent executemany calling convention: it
+            # lets each dialect compile and bind the statement the way it needs to.
+            #
+            # `execute()`'s parameters overload only accepts mapping rows (not tuples), unlike
+            # `.values()`. The sole caller (`setup()`, below) always passes rows produced by
+            # `_sanitize_null_values`, which are always dicts, so this narrows the declared
+            # `dict | tuple` union to the shape actually passed at runtime.
+            conn.execute(insert(table), cast("Sequence[Mapping[str, Any]]", values))
         else:
             num_columns = len(values[0])
             max_rows = max_params // num_columns
