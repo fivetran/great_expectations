@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from typing import TYPE_CHECKING, Mapping, Optional, Sequence
 
 import pandas as pd
@@ -23,6 +24,11 @@ from tests.integration.test_utils.data_source_config.sql_config import SqlDataso
 if TYPE_CHECKING:
     import sqlalchemy as sa  # type-only, exactly as `sql.py` and `backend_spec.py` do it
 
+try:
+    from clickhouse_sqlalchemy import types as clickhouse_types
+except ImportError:
+    clickhouse_types = None
+
 
 def _clickhouse_table_engines() -> Sequence["sa.sql.schema.SchemaItem"]:
     from clickhouse_sqlalchemy import engines
@@ -33,6 +39,38 @@ def _clickhouse_table_engines() -> Sequence["sa.sql.schema.SchemaItem"]:
 # Alias-conformance binding: this is the value the record declares, and its annotation is the
 # framework's alias rather than a restatement of the signature.
 _CLICKHOUSE_TABLE_SCHEMA_ITEMS: TableSchemaItemFactory = _clickhouse_table_engines
+
+# Every ClickHouse type is wrapped in `Nullable(...)` because this dialect carries nullability
+# as a property of the column type rather than as a column attribute: the dialect's DDL compiler
+# forces `nullable=True` on every column regardless, so an unwrapped type would still compile but
+# reject nulls at insert. The harness's insert path converts pandas/numpy null sentinels to real
+# `None` before insert, so this matters for round-tripping nulls correctly.
+#
+# `int -> Int64` and `float -> Float64` replace the shared map's `INTEGER` (ClickHouse's 32-bit
+# alias) and `DECIMAL` (no precision/scale, not usable). `date -> Date32` and
+# `datetime -> DateTime64()` replace the shared map's narrower `DATE` (starts at 1970) and
+# `DATETIME` (second resolution); `pd.Timestamp` is overridden alongside `datetime` because it is
+# a separate key in the shared inferred-type map. No length is declared for `str`: a length on
+# this dialect's generic `String` type renders `FixedString(n)`, a padded fixed-width type, not
+# what's wanted here -- unlike the length-carrying `str` override other backends declare.
+#
+# The map is built eagerly at module scope, behind an import guard, because -- unlike the
+# table-schema-item factory above, which is deferred since its engine object binds to a table --
+# this map is immutable, shareable, inert data with no per-table freshness need. This resolves to
+# an empty mapping when the dialect package is absent, satisfying Contract 7.
+_COLUMN_TYPE_OVERRIDES = (
+    {}
+    if clickhouse_types is None
+    else {
+        str: clickhouse_types.Nullable(clickhouse_types.String),
+        int: clickhouse_types.Nullable(clickhouse_types.Int64),
+        float: clickhouse_types.Nullable(clickhouse_types.Float64),
+        bool: clickhouse_types.Nullable(clickhouse_types.Boolean),
+        date: clickhouse_types.Nullable(clickhouse_types.Date32),
+        datetime: clickhouse_types.Nullable(clickhouse_types.DateTime64()),
+        pd.Timestamp: clickhouse_types.Nullable(clickhouse_types.DateTime64()),
+    }
+)
 
 
 @register_sql_backend
@@ -49,6 +87,7 @@ class ClickHouseDatasourceTestConfig(SqlDatasourceTestConfig):
         # is a no-op.
         transaction_mode=TransactionMode.AUTOCOMMIT,
         table_schema_items=_CLICKHOUSE_TABLE_SCHEMA_ITEMS,
+        column_type_overrides=_COLUMN_TYPE_OVERRIDES,
         dev_requirements_file="reqs/requirements-dev-clickhouse.txt",
         task_runner_marker="clickhouse",
         container_service="clickhouse",
