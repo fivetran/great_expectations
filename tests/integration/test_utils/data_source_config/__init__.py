@@ -8,6 +8,7 @@ from .backend_spec import (
 )
 from .base import DataSourceTestConfig
 from .big_query import BigQueryDatasourceTestConfig
+from .clickhouse import ClickHouseDatasourceTestConfig
 from .databricks import DatabricksDatasourceTestConfig
 from .generic_sql import GenericSQLDatasourceTestConfig
 from .mysql import MySQLDatasourceTestConfig
