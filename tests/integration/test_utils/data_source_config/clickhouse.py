@@ -58,7 +58,8 @@ _CLICKHOUSE_TABLE_SCHEMA_ITEMS: TableSchemaItemFactory = _clickhouse_table_engin
 # The map is built eagerly at module scope, behind an import guard, because -- unlike the
 # table-schema-item factory above, which is deferred since its engine object binds to a table --
 # this map is immutable, shareable, inert data with no per-table freshness need. This resolves to
-# an empty mapping when the dialect package is absent, satisfying Contract 7.
+# an empty mapping when the dialect package is absent, so importing this module never requires
+# the dialect package to be installed.
 _COLUMN_TYPE_OVERRIDES = (
     {}
     if clickhouse_types is None
