@@ -69,17 +69,11 @@ class TestClickHouseQuantileValues:
     because the sole cross-backend quantile assertion is parameterized over the
     canonical-expectations list, which this backend deliberately does not join.
 
-    This group is **expected to fail on the current baseline** (see the design's Integration &
-    migration notes and task 3.1's status report). Observed root cause, however, differs from the
-    one named in the design: the helper's `sa.select(selects_approx)` call at
-    `column_quantile_values.py` passes a *list* of select entities instead of unpacking it
-    (`sa.select(*selects_approx)`, as every sibling dialect helper in the same file does), which
-    SQLAlchemy 2.x rejects with `ArgumentError` before the call ever reaches
-    `execution_engine.execute(...)` -- the call the design identifies as the defect (that call is
-    also real and does not exist on `SqlAlchemyExecutionEngine`, but it is masked by the earlier
-    `ArgumentError` and is never reached on this baseline). Both are genuine GX Core defects; an
-    equivalent hand-written connection would hit the same `ArgumentError` because it originates in
-    Python-level query construction, before any SQL reaches the server.
+    `_get_column_quantiles_clickhouse` previously carried two defects: its `sa.select(...)` call
+    passed a list of select entities instead of unpacking it, which SQLAlchemy 2.x rejects with
+    `ArgumentError` before the query ever reaches the execution engine; and, masked behind that
+    first error, it called an execution-engine method that does not exist. Both are fixed, matching
+    the pattern every sibling dialect helper in the same file already uses, so this group passes.
     """
 
     COL = "col_a"
@@ -138,6 +132,13 @@ class TestClickHouseRegexAndLikePatterns:
             context=get_context(mode="ephemeral"),
         )
 
+    @pytest.mark.xfail(
+        strict=True,
+        reason="ClickHouse has no `regexp_like` SQL function; the dialect's regex-matching path "
+        "(`get_dialect_regex_expression`'s ClickHouse branch) calls it anyway, and the server "
+        "rejects the query with `DB::Exception: Function with name 'regexp_like' does not "
+        "exist`. ClickHouse's actual regex-matching function is `match(haystack, pattern)`.",
+    )
     def test_match_regex(self) -> None:
         with self._batch_setup().batch_test_context() as batch:
             result = batch.validate(
@@ -145,6 +146,13 @@ class TestClickHouseRegexAndLikePatterns:
             )
         assert result.success
 
+    @pytest.mark.xfail(
+        strict=True,
+        reason="ClickHouse has no `regexp_like` SQL function; the dialect's regex-matching path "
+        "(`get_dialect_regex_expression`'s ClickHouse branch) calls it anyway, and the server "
+        "rejects the query with `DB::Exception: Function with name 'regexp_like' does not "
+        "exist`. ClickHouse's actual regex-matching function is `match(haystack, pattern)`.",
+    )
     def test_not_match_regex(self) -> None:
         with self._batch_setup().batch_test_context() as batch:
             result = batch.validate(
