@@ -878,7 +878,10 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             "reqs/requirements-dev-spark.txt",
         ),
         services=("spark",),
-        extra_pytest_args=("--spark", "--docs-tests"),
+        # --gcs as well as --spark: the GCS fixtures that also need Spark are reachable
+        # only from a leg that requests both. docs-creds-needed requests --gcs without
+        # --spark, so without this they are skipped everywhere and the gap is silent.
+        extra_pytest_args=("--gcs", "--spark", "--docs-tests"),
     ),
     "gcs_deps": TestDependencies(("reqs/requirements-dev-gcs.txt",)),
     "gx-redshift": TestDependencies(
