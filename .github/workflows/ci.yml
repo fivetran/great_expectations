@@ -535,6 +535,7 @@ jobs:
           - bigquery
           - databricks
           - filesystem
+          - gcs_deps
           - sql_server
           - mysql
           - postgresql
