@@ -854,6 +854,9 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             "reqs/requirements-dev-azure.txt",
             "reqs/requirements-dev-bigquery.txt",
             "reqs/requirements-dev-cloud.txt",
+            # Explicit rather than inherited from the bigquery requirements, so that GCS
+            # coverage here does not quietly depend on BigQuery staying installed.
+            "reqs/requirements-dev-gcs.txt",
             "reqs/requirements-dev-redshift.txt",
             "reqs/requirements-dev-snowflake.txt",
             "reqs/requirements-dev-sql-server.txt",
@@ -876,6 +879,9 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         requirement_files=(
             "reqs/requirements-dev-test.txt",
             "reqs/requirements-dev-spark.txt",
+            # The GCS datasources list objects with the Python client before Spark reads
+            # them, and neither the test nor the spark requirements pull it in.
+            "reqs/requirements-dev-gcs.txt",
         ),
         services=("spark",),
         # --gcs as well as --spark: the GCS fixtures that also need Spark are reachable
