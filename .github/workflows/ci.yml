@@ -181,7 +181,10 @@ jobs:
       GE_TEST_GCP_CREDENTIALS: ${{secrets.GE_TEST_GCP_CREDENTIALS}}
       GE_TEST_GCP_PROJECT: ${{secrets.GE_TEST_GCP_PROJECT}}
       GE_TEST_BIGQUERY_DATASET: ${{secrets.GE_TEST_BIGQUERY_DATASET}}
-      GOOGLE_APPLICATION_CREDENTIALS: "gcp-credentials.json"
+      # Absolute, not relative: the docs snippet runner chdirs into a temp directory
+      # before executing each script, and Application Default Credentials resolves this
+      # path at client-construction time -- i.e. after the chdir.
+      GOOGLE_APPLICATION_CREDENTIALS: "${{github.workspace}}/gcp-credentials.json"
       GX_GCS_TEST_BUCKET: ${{vars.GX_GCS_TEST_BUCKET}}
       # aws
       AWS_ACCESS_KEY_ID: ${{secrets.CI_AWS_ACCESS_KEY_ID}}
@@ -247,39 +250,9 @@ jobs:
           cache-dependency-path: |
             reqs/requirements-dev-test.txt
 
-      # TEMPORARY (CI transition): the GCP service account these steps activate no
-      # longer exists, so `gcloud auth activate-service-account` fails with
-      # "invalid_grant: account not found" and hard-fails every docs-snippets leg
-      # before any test runs. No docs snippet test currently exercises a GCP-backed
-      # backend (the cloud/warehouse pytest flags were already removed from
-      # docs-creds-needed), so this setup is dead weight until the credentials are
-      # re-provisioned. Skip it until then; restore by removing the `if: false`
-      # guards once valid credentials are available.
-      - name: Authenticate with GCP
-        if: false
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{secrets.GE_TEST_GCP_CREDENTIALS}}
-
-      - name: Create JSON file for following step
-        if: false
+      - name: Copy GCP credentials to file
         run: |
-          echo "$GE_TEST_GCP_CREDENTIALS" > gcp-credentials.json
-
-      - name: Install and setup Google Cloud SDK
-        if: false
-        run: |
-          # this is recommended by the Google documentation for CI/CD https://cloud.google.com/sdk/docs/install#other_installation_options
-          curl -sS https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-370.0.0-linux-x86_64.tar.gz > ./google-cloud-sdk-370.0.0-linux-x86_64.tar.gz && tar -xf ./google-cloud-sdk-370.0.0-linux-x86_64.tar.gz
-          ./google-cloud-sdk/install.sh --usage-reporting=False --path-update=True --quiet --install-python=False
-          # creating new named configuration
-          ./google-cloud-sdk/bin/gcloud config configurations create ge-oss-ci-cd-configurations
-          # setting account config using project and service account info
-          ./google-cloud-sdk/bin/gcloud config set account account-for-azure-tests --project=$GE_TEST_GCP_PROJECT --access-token-file=$GOOGLE_APPLICATION_CREDENTIALS
-          # Pass the configured Cloud SDK authentication to gsutil.
-          ./google-cloud-sdk/bin/gcloud config set pass_credentials_to_gsutil True
-          # Authorize access to Google Cloud with a service account
-          ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+          echo "$GE_TEST_GCP_CREDENTIALS" > "$GOOGLE_APPLICATION_CREDENTIALS"
 
       - name: Install cloud dependencies
         if: ${{ matrix.start_services }}
