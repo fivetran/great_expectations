@@ -121,6 +121,7 @@ REQUIRED_MARKERS: Final[set[str]] = {
     "databricks",
     "docs",
     "filesystem",
+    "gcs_deps",
     "generic_sql",
     "integration",
     "mysql",

@@ -880,6 +880,7 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         services=("spark",),
         extra_pytest_args=("--spark", "--docs-tests"),
     ),
+    "gcs_deps": TestDependencies(("reqs/requirements-dev-gcs.txt",)),
     "gx-redshift": TestDependencies(
         requirement_files=("reqs/requirements-dev-gx-redshift.txt",),
     ),
