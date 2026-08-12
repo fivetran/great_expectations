@@ -5,6 +5,8 @@ pytest -v --docs-tests -k "how_to_connect_to_data_on_gcs_using_spark" tests/inte
 ```
 """
 
+import os
+
 import great_expectations as gx
 
 context = gx.get_context()
@@ -16,7 +18,7 @@ bucket_or_name = "my_bucket"
 gcs_options = {}
 # </snippet>
 
-bucket_or_name = "test_docs_data"
+bucket_or_name = os.environ["GX_GCS_TEST_BUCKET"]
 
 # Python
 # <snippet name="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/filesystem/how_to_connect_to_data_on_gcs_using_spark.py create_datasource">

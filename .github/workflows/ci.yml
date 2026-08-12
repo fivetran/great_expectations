@@ -182,6 +182,7 @@ jobs:
       GE_TEST_GCP_PROJECT: ${{secrets.GE_TEST_GCP_PROJECT}}
       GE_TEST_BIGQUERY_DATASET: ${{secrets.GE_TEST_BIGQUERY_DATASET}}
       GOOGLE_APPLICATION_CREDENTIALS: "gcp-credentials.json"
+      GX_GCS_TEST_BUCKET: ${{vars.GX_GCS_TEST_BUCKET}}
       # aws
       AWS_ACCESS_KEY_ID: ${{secrets.CI_AWS_ACCESS_KEY_ID}}
       AWS_DEFAULT_REGION: ${{secrets.CI_AWS_DEFAULT_REGION}}
