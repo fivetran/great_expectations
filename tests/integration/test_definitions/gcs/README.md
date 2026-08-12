@@ -28,3 +28,23 @@ pytest -v --docs-tests --gcs -k "gcs" tests/integration/test_script_runner.py
 
 Watch for skips rather than failures — a skip means the flag or a gate is still wrong, and
 a green run of zero tests is the failure mode worth guarding against.
+
+## What does not run yet: Spark
+
+Two fixtures need both GCS and Spark — `create_a_data_source_filesystem_gcs_spark` and
+`create_a_data_asset_filesystem_gcs_directory_asset` — plus the Spark half of
+`how_to_connect_to_data_on_gcs_using_spark`. They are deliberately left skipped: the
+`docs-creds-needed` leg requests `--gcs` without `--spark`, and `docs-spark` requests
+`--spark` without `--gcs`, so no leg requests both.
+
+The blocker is not the pytest flags. Spark reads GCS through `gs://` URIs, which Hadoop
+resolves only when the GCS connector is on the JVM classpath. Without it the read fails:
+
+```
+org.apache.hadoop.fs.UnsupportedFileSystemException: No FileSystem for scheme "gs"
+```
+
+The connector is a jar that must be present when the JVM starts, so no Python requirement
+can supply it — it needs `PYSPARK_SUBMIT_ARGS` or a pre-staged jar in the workflow, and
+Hadoop config for `fs.gs.impl` and service account auth. Adding `--gcs` to `docs-spark`
+before that exists only converts a skip into a failure.

@@ -879,15 +879,14 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         requirement_files=(
             "reqs/requirements-dev-test.txt",
             "reqs/requirements-dev-spark.txt",
-            # The GCS datasources list objects with the Python client before Spark reads
-            # them, and neither the test nor the spark requirements pull it in.
-            "reqs/requirements-dev-gcs.txt",
         ),
         services=("spark",),
-        # --gcs as well as --spark: the GCS fixtures that also need Spark are reachable
-        # only from a leg that requests both. docs-creds-needed requests --gcs without
-        # --spark, so without this they are skipped everywhere and the gap is silent.
-        extra_pytest_args=("--gcs", "--spark", "--docs-tests"),
+        # No --gcs here, so the two fixtures needing both GCS and Spark stay skipped.
+        # Spark reads GCS over gs:// URIs, which requires the GCS Hadoop connector on the
+        # JVM classpath; without it the read fails with UnsupportedFileSystemException.
+        # Supplying that jar is CI infrastructure work, not a Python requirement. See
+        # tests/integration/test_definitions/gcs/README.md.
+        extra_pytest_args=("--spark", "--docs-tests"),
     ),
     "gcs_deps": TestDependencies(("reqs/requirements-dev-gcs.txt",)),
     "gx-redshift": TestDependencies(
