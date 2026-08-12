@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Literal, Optional, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Literal, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
@@ -128,7 +128,11 @@ class ExpectMulticolumnValuesToBeEqual(MulticolumnMapExpectation):
     _library_metadata = library_metadata
 
     map_metric = "multicolumn_values.equal"
-    success_keys: ClassVar[Tuple[str, ...]] = ("column_list", "ignore_row_if", "mostly")
+    success_keys = (  # type: ignore[assignment] # FIXME CoP
+        "column_list",
+        "ignore_row_if",
+        "mostly",
+    )
     args_keys = ("column_list",)
 
     class Config:
