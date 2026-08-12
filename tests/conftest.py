@@ -237,6 +237,11 @@ def pytest_addoption(parser):
         help="If set, execute tests against bigquery",
     )
     parser.addoption(
+        "--gcs",
+        action="store_true",
+        help="If set, execute tests against Google Cloud Storage",
+    )
+    parser.addoption(
         "--aws",
         action="store_true",
         help="If set, execute tests against AWS resources like S3, RedShift and Athena",
