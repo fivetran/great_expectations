@@ -28,7 +28,10 @@ from great_expectations.data_context.data_context.file_data_context import (
 )
 from great_expectations.data_context.util import file_relative_path
 from tests.integration.backend_dependencies import BackendDependencies
-from tests.integration.integration_test_fixture import IntegrationTestFixture
+from tests.integration.integration_test_fixture import (
+    IntegrationTestFixture,
+    substitute_gcs_test_bucket,
+)
 from tests.integration.test_definitions.abs.integration_tests import (
     abs_integration_tests,
 )
@@ -425,6 +428,7 @@ def _execute_integration_test(  # noqa: C901, PLR0915 # FIXME CoP
                 context_source_dir,
                 test_context_dir,
             )
+            substitute_gcs_test_bucket(test_context_dir / FileDataContext.GX_YML)
 
         # Test Data
         data_dir = integration_test_fixture.data_dir
