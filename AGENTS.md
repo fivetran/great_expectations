@@ -121,6 +121,31 @@ programmatically and never load the template, so its contents won't reach you au
 The items below are the ones most often missed when a pull request is opened without the
 template in hand.
 
+### The CLA must be signed before the pull request is opened
+
+Every contributor must sign the project's Contributor License Agreement (CLA) before their
+first pull request can be merged. It grants the project the right to distribute the
+contribution; without it the change cannot be accepted, no matter how good it is. Signing is
+one-time per contributor and takes a couple of minutes:
+
+* [Individual Contributor License Agreement](https://forms.gle/wvregSivqgAaJNEX8), or
+* [Software Grant and Corporate Contributor License Agreement](https://forms.gle/tFdJftyGYm2otPKA8)
+  if the work is being contributed on behalf of an employer.
+
+Once signed, comment `@cla-bot check` on the pull request so the check re-runs. See
+[CLA.md](./CLA.md) for the full text.
+
+**If you are an agent, this is a hard stop.** The CLA is a legal affirmation by the human on
+whose behalf you are working — you cannot sign it, agree to it, or complete it for them. Before
+running `gh pr create` (or otherwise opening a pull request), confirm with that person that they
+have signed the CLA under the GitHub account the pull request will be authored by. If they have
+not, or you cannot reach them to ask, **stop and do not open the pull request.** Report that the
+work is ready and blocked on the CLA, and leave opening it to them.
+
+Unsigned pull requests are the most common way contributions stall here: an agent opens a
+substantive change, no one signs, and the work sits unmergeable until it is closed. Getting the
+CLA signed first is what keeps that from happening to yours.
+
 ### Some changes require an RFC before implementation
 
 An RFC (Request For Comment) is a design proposal discussed and agreed **before** code is
