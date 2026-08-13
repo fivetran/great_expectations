@@ -120,18 +120,22 @@ def check_installed_digests_match_manifest(project_root: Path) -> None:
     ownership manifest.
 
     That match is what lets a later run tell an untouched install apart from one the
-    user edited, and until now it has only ever been proven against a synthetic
-    fixture tree or the source checkout under an editable install -- never against
-    genuinely packaged, ``pip install``-ed bytes. Hashing is done with the installer's
-    own ``_tree_digest`` rather than a second, independently written function: the
-    manifest's ``content_sha256`` field is defined as that function's output, so the
-    only way to ask "does this destination still match what its manifest recorded" is
-    to recompute the same function and compare -- a differently framed hash would
-    disagree with the manifest even for byte-identical content, which would make this
-    check fail on every run rather than only on a real regression. What it verifies is
-    still a genuine property of the real install pipeline: that ``shutil.copytree``
-    reproduced the installed package's own skill directory byte for byte into a fresh
-    project, here run for the first time against a real wheel instead of a fixture.
+    user edited. Checking it here, against a genuinely packaged and installed
+    distribution, covers a case the test suite cannot reach: the suite exercises a
+    fixture tree or a source checkout under an editable install, neither of which is
+    the artifact a user actually receives.
+
+    Hashing is done with the installer's own ``_tree_digest`` rather than a second,
+    independently written function: the manifest's ``content_sha256`` field is defined
+    as that function's output, so the only way to ask "does this destination still
+    match what its manifest recorded" is to recompute the same function and compare --
+    a differently framed hash would disagree with the manifest even for byte-identical
+    content, and this check would fail on every run rather than only on a real
+    regression. That is not circular, because the two hashes are taken over different
+    trees: the manifest's value is computed from the installed package's own bundled
+    directory, while this recomputes over the copy placed in the project. Equality is
+    therefore a real property of the install pipeline -- that ``shutil.copytree``
+    reproduced the source directory byte for byte.
     """
     report = install_skills(project_root, targets=(SkillTarget.AGENTS, SkillTarget.CLAUDE))
     assert not report.failed, (
