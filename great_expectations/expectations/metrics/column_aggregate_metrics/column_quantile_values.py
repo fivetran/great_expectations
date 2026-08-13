@@ -361,9 +361,9 @@ def _get_column_quantiles_clickhouse(
     quantiles_list = list(quantiles)
     sql_approx: str = f"quantilesExact({', '.join([str(x) for x in quantiles_list])})({column})"
     selects_approx: list[sqlalchemy.TextClause] = [sa.text(sql_approx)]
-    quantiles_query: sqlalchemy.Select = sa.select(selects_approx).select_from(selectable)  # type: ignore[call-overload] # FIXME CoP
+    quantiles_query: sqlalchemy.Select = sa.select(*selects_approx).select_from(selectable)
     try:
-        quantiles_results = execution_engine.execute(quantiles_query).fetchone()[0]
+        quantiles_results = execution_engine.execute_query(quantiles_query).fetchone()[0]
         return quantiles_results
 
     except sqlalchemy.ProgrammingError as pe:

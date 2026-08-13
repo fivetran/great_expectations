@@ -44,13 +44,14 @@ class TestGenericSQL:
     ``GX_TEST_GENERIC_SQL_CONNECTION_STRING`` (required)
         SQLAlchemy connection string for the target database, e.g.
         ``singlestoredb://user:pass@host:3306/db``.
-    ``GX_TEST_GENERIC_SQL_DRIVER``
-        SQLAlchemy dialect name (e.g. ``singlestoredb``).  When set, the
-        driver is dynamically registered as a ``GXSqlDialect`` member.
-        Leave unset if the dialect is already in ``GXSqlDialect``.
     ``GX_TEST_GENERIC_SQL_AUTOCOMMIT``
-        Set to any non-empty value to mark the dialect as auto-committing,
-        Leave unset or empty for databases that use normal transactions.
+        Set to any non-empty value to skip explicit commits against the target
+        database, for a database that auto-commits and does not support normal
+        transactions. Read once, when the batch is set up, and applied only to
+        that batch - it does not register the target database's dialect
+        globally. Leave unset or empty for databases that use normal
+        transactions. The same behavior can also be requested in code by
+        constructing ``GenericSQLDatasourceTestConfig(autocommit=True)``.
     """
 
     DATA = pd.DataFrame(
