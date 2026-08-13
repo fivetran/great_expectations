@@ -10,10 +10,53 @@ Offer this at a natural point — after a data source and batch definition are
 verified working, or after a suite has been built and run — not as an
 unprompted interruption mid-task. Only do it when the user agrees.
 
-## Confirm a target directory first
+## The gate: two things the user has to have said
 
-Never guess a location. Ask the user where the project should live (an
-absolute path is safest), and confirm it back before writing anything.
+This procedure creates a project on the user's disk.
+`gx.get_context(mode="file", project_root_dir=...)` **creates** the project at
+that path when one isn't already there. It does not refuse, does not prompt,
+and its return value looks identical either way — there is no signal
+afterwards distinguishing a project it opened from one it just brought into
+existence. Whatever path you pass is where a project appears.
+
+So before the first line of the procedure runs, two things have to be true,
+and both are things the **user said**, not things you concluded:
+
+1. They agreed to write the session out.
+2. They named the directory it should go in.
+
+Neither is satisfied by inference. A request to "add a data source", "set this
+up", or "get this working" is a request about data access — it is not
+agreement to create a project, and it does not name a location. If the session
+is in memory and you are holding one of those requests, the correct end state
+is the in-memory result, reported, with write-out **offered**. An absolute
+path is safest; confirm it back before writing anything.
+
+**If you cannot point to the user's message where they agreed, and the one
+where they named the path, you are not past the gate.** Ask, and end your turn
+there.
+
+### The gate is skipped by construction, not by decision
+
+The way this goes wrong is rarely a considered choice to skip the
+confirmation. It is a script: the configure steps, the probe, and this
+procedure assembled into one program and run in a single step. Batched that
+way there is no moment at which the user could have answered — the gate is not
+declined, it simply never occurs, and the project exists by the time anyone
+reports anything.
+
+**Write-out is its own run, and it begins after a user's reply.** If the call
+below is sitting in the same program as the configure and verify calls, that
+program skips the gate no matter what the surrounding prose says. Split it out.
+
+### Why this is the only place to catch it
+
+A project created without asking cannot be detected later. On the next turn —
+and in every session after it — discovery finds the directory and truthfully
+reports an existing project at that path, exactly as it would report one the
+user made themselves. Nothing marks it, nothing records where it came from,
+and no later step has anything to notice. Nobody downstream is going to catch
+this for you.
 
 ## The procedure: public factories, not the built-in migrator
 
@@ -62,7 +105,9 @@ several assets on it:
 ```python executable
 import great_expectations as gx
 
-# 1. Open (or create) the file-backed project at the confirmed location.
+# 1. Create the project at the location the user named. Past this line a
+#    directory exists on their disk, so do not run it until the gate above is
+#    satisfied: they agreed, and the path below is the one they gave.
 file_context = gx.get_context(mode="file", project_root_dir="<confirmed_path>")
 
 def _add_datasource():

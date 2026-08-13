@@ -309,6 +309,14 @@ the work survives — see `references/write-out.md` for the procedure and for
 what the user needs to know about dataframe assets, which carry configuration
 but no data. Offer it; don't do it unprompted, and don't pick the location.
 
+**The offer ends this flow.** Write-out creates a project on the user's disk,
+so it starts only from their reply — a separate run, after they have agreed
+and named a directory. Reporting the result and then writing it out in the
+same breath means they were never asked; putting the write-out call in the
+same program as the configure and verify calls means the same thing, because
+there was no point in it where an answer could have arrived.
+`references/write-out.md` opens with the gate this depends on.
+
 ## Where this flow ends
 
 **The verified batch definition is the end state.** Do not build a suite of

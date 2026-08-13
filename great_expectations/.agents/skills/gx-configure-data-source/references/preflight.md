@@ -93,10 +93,14 @@ to do on their behalf or without being asked. Two things follow from this:
 
   Do not walk them through it interactively or pick the path for them.
 
-This applies during preflight. It does not apply to the write-out procedure in
-`write-out.md`, which also calls `gx.get_context(mode="file", ...)` — there,
-the target directory has already been confirmed with the user as an explicit
-step, so the call is expected and disclosed rather than a silent side effect.
+`write-out.md` is the one procedure that does call `gx.get_context(mode="file",
+...)`, and it is not an exception to this rule — it is this rule with its
+condition met. What makes that call legitimate is not which document it appears
+in; it is that the user agreed to the write-out and named the directory, in
+their own messages, before it ran. Read the gate at the top of that document
+before running any part of it. If those two things haven't happened yet, the
+call is the same silent side effect it is here, and being inside the write-out
+procedure does not make it something else.
 
 ## Never treat "no project" as a stop condition
 

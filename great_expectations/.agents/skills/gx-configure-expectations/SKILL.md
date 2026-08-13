@@ -328,6 +328,14 @@ the suite along with the data source, asset, and batch definition it depends
 on; writing out a suite without them leaves a project that cannot run it.
 Offer it; don't do it unprompted, and don't pick the location.
 
+**The offer ends this flow.** Write-out creates a project on the user's disk,
+so it starts only from their reply — a separate run, after they have agreed
+and named a directory. Reporting the results and then writing them out in the
+same breath means they were never asked; putting the write-out call in the
+same program as the suite and validation calls means the same thing, because
+there was no point in it where an answer could have arrived.
+`references/write-out.md` opens with the gate this depends on.
+
 ## Worked example
 
 A file-backed project that already holds a verified batch definition over an

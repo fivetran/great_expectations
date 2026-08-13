@@ -38,6 +38,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import pathlib
+import re
 import sqlite3
 import textwrap
 from typing import TYPE_CHECKING, Any, Callable, Final, Iterator
@@ -130,6 +131,19 @@ TRUNCATION_SUFFIX: Final = "... (truncated)"
 
 #: Text unique to the write-out procedure snippet, used to locate it after it ran.
 WRITE_OUT_STEPS_NEEDLE: Final = "for label, step in steps:"
+
+#: A ``get_context`` call and its arguments. Snippets keep their calls on one logical
+#: line, and no argument the skills pass contains a nested call, so stopping at the first
+#: closing parenthesis reads the whole argument list.
+GET_CONTEXT_CALL: Final = re.compile(r"get_context\((?P<arguments>[^)]*)\)", re.DOTALL)
+
+#: The argument that turns ``get_context`` into a call that *creates* a project.
+FILE_MODE_ARGUMENT: Final = 'mode="file"'
+PROJECT_ROOT_ARGUMENT: Final = "project_root_dir"
+
+#: A directory the user is meant to supply, spelled in angle brackets inside the string
+#: so that a snippet carrying one cannot be copied and run as it stands.
+PLACEHOLDER_DIRECTORY: Final = re.compile(r"""["']<[^>'"]+>["']""")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -480,6 +494,133 @@ def test_the_write_out_snippet_still_carries_its_placeholder():
         f"expected exactly one snippet in {document} to carry"
         f" {CONFIRMED_PATH_PLACEHOLDER!r}, found {len(holders)}"
     )
+
+
+# ---------------------------------------------------------------------------
+# No shipped snippet can create a project without the user naming where.
+# ---------------------------------------------------------------------------
+
+
+def project_creating_calls(block: CodeBlock) -> list[str]:
+    """The argument lists of every ``get_context(mode="file", ...)`` call in a block."""
+    return [
+        match.group("arguments")
+        for match in GET_CONTEXT_CALL.finditer(block.source)
+        if FILE_MODE_ARGUMENT in match.group("arguments")
+    ]
+
+
+def unconfirmed_directory_problems(blocks: list[CodeBlock]) -> list[str]:
+    """Report every snippet that would create a project at a directory of its own choosing.
+
+    ``get_context(mode="file", ...)`` creates the project when the path holds none, so
+    the directory is not an implementation detail of the snippet -- it is the thing the
+    user has to have chosen. Two shapes take that choice away, and both read as
+    perfectly ordinary code:
+
+    * a **concrete path** written into the call. An example directory is the one part of
+      a snippet a reader is least likely to revisit, because it already looks filled in.
+    * **no** ``project_root_dir`` at all, which creates a project in the current working
+      directory with no path stated anywhere.
+
+    A placeholder cannot be run as it stands, which is what keeps the confirmation the
+    documents require in front of the call rather than behind it.
+    """
+    problems: list[str] = []
+    for block in blocks:
+        for arguments in project_creating_calls(block):
+            if PROJECT_ROOT_ARGUMENT not in arguments:
+                problems.append(
+                    f"{block.identifier}: get_context({arguments.strip()}) creates a project"
+                    f" in the current working directory -- no {PROJECT_ROOT_ARGUMENT} is"
+                    " passed, so no directory is ever named or confirmed."
+                )
+            elif not PLACEHOLDER_DIRECTORY.search(arguments):
+                problems.append(
+                    f"{block.identifier}: get_context({arguments.strip()}) creates a project"
+                    " at a directory the snippet chose. The directory belongs to the user:"
+                    " keep it a <placeholder> so the call cannot run until they name one."
+                )
+    return problems
+
+
+@pytest.mark.unit
+def test_no_snippet_creates_a_project_at_a_directory_of_its_own_choosing():
+    """A path baked into a snippet is a project created somewhere nobody agreed to.
+
+    Every document here says the user names the directory, but prose is not what gets
+    copied into a program -- the snippet is. This keeps the two from drifting apart.
+    """
+    assert project_creating_calls_exist(), (
+        'no snippet calls get_context(mode="file", ...) any more, so this check passes'
+        " vacuously; find where the write-out procedure moved to"
+    )
+
+    problems = unconfirmed_directory_problems(ALL_PYTHON_BLOCKS)
+
+    assert not problems, "\n".join(problems)
+
+
+def project_creating_calls_exist() -> bool:
+    return any(project_creating_calls(block) for block in ALL_PYTHON_BLOCKS)
+
+
+@pytest.mark.unit
+def test_a_snippet_with_a_hardcoded_project_directory_is_reported(tmp_path: pathlib.Path):
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        context = gx.get_context(mode="file", project_root_dir="/Users/someone/project")
+        ```
+        """,
+    )
+
+    (problem,) = unconfirmed_directory_problems(python_blocks(document))
+
+    assert "a directory the snippet chose" in problem
+
+
+@pytest.mark.unit
+def test_a_snippet_creating_a_project_in_the_working_directory_is_reported(
+    tmp_path: pathlib.Path,
+):
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        context = gx.get_context(mode="file")
+        ```
+        """,
+    )
+
+    (problem,) = unconfirmed_directory_problems(python_blocks(document))
+
+    assert "current working directory" in problem
+
+
+@pytest.mark.unit
+def test_a_placeholder_directory_and_a_read_only_call_are_both_accepted(
+    tmp_path: pathlib.Path,
+):
+    """The check has to stay silent on the two shapes the skills actually ship."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        confirmed = gx.get_context(mode="file", project_root_dir="<confirmed_path>")
+        discovered = gx.get_context(cloud_mode=False)
+        ```
+        """,
+    )
+
+    assert unconfirmed_directory_problems(python_blocks(document)) == []
 
 
 # ---------------------------------------------------------------------------
