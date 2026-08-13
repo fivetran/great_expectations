@@ -815,7 +815,10 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
     "athena": TestDependencies(("reqs/requirements-dev-athena.txt",)),
     "aws_deps": TestDependencies(("reqs/requirements-dev-lite.txt",)),
     "bigquery": TestDependencies(("reqs/requirements-dev-bigquery.txt",)),
-    "clickhouse": TestDependencies(("reqs/requirements-dev-clickhouse.txt",)),
+    "clickhouse": TestDependencies(
+        ("reqs/requirements-dev-clickhouse.txt",),
+        services=("clickhouse",),
+    ),
     "cloud": TestDependencies(
         (
             "reqs/requirements-dev-cloud.txt",
@@ -852,6 +855,9 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             "reqs/requirements-dev-azure.txt",
             "reqs/requirements-dev-bigquery.txt",
             "reqs/requirements-dev-cloud.txt",
+            # Explicit rather than inherited from the bigquery requirements, so that GCS
+            # coverage here does not quietly depend on BigQuery staying installed.
+            "reqs/requirements-dev-gcs.txt",
             "reqs/requirements-dev-redshift.txt",
             "reqs/requirements-dev-snowflake.txt",
             "reqs/requirements-dev-sql-server.txt",
@@ -860,11 +866,12 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         ),
         services=("mssql", "trino"),
         extra_pytest_args=(
-            # TEMPORARY (CI transition): the S3, GCS, Azure Blob, BigQuery, Redshift, and
+            # TEMPORARY (CI transition): the S3, Azure Blob, BigQuery, Redshift, and
             # Snowflake backends are unavailable while their CI infrastructure is torn down.
             # Requesting any of them makes test collection eagerly connect to a dead backend
-            # and abort the whole session, so only the still-available Trino backend is
-            # requested here. Restore the cloud/warehouse flags once the infra is back.
+            # and abort the whole session, so only the available backends are requested here.
+            # Restore the remaining cloud/warehouse flags once the infra is back.
+            "--gcs",
             "--trino",
             "--docs-tests",
         ),
@@ -875,11 +882,14 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             "reqs/requirements-dev-spark.txt",
         ),
         services=("spark",),
+        # No --gcs here, so the two fixtures needing both GCS and Spark stay skipped.
+        # Spark reads GCS over gs:// URIs, which requires the GCS Hadoop connector on the
+        # JVM classpath; without it the read fails with UnsupportedFileSystemException.
+        # Supplying that jar is CI infrastructure work, not a Python requirement. See
+        # tests/integration/test_definitions/gcs/README.md.
         extra_pytest_args=("--spark", "--docs-tests"),
     ),
-    "gx-redshift": TestDependencies(
-        requirement_files=("reqs/requirements-dev-gx-redshift.txt",),
-    ),
+    "gcs_deps": TestDependencies(("reqs/requirements-dev-gcs.txt",)),
     "sql_server": TestDependencies(
         ("reqs/requirements-dev-sql-server.txt",),
         services=("mssql",),
@@ -945,8 +955,6 @@ def _marker_statement(marker: str) -> str:
         "trino",
     ]:
         return f"'all_backends or {marker}'"
-    elif marker == "gx-redshift":
-        return "'redshift'"
     else:
         return f"'{marker}'"
 

@@ -1,12 +1,16 @@
 # <snippet name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_data_source/_gcs/_pandas.py - full example">
+import os
+
 import great_expectations as gx
 
 context = gx.get_context()
 
 # Define the Data Source's parameters:
 data_source_name = "my_filesystem_data_source"
-bucket_or_name = "test_docs_data"
+bucket_or_name = "my_bucket"
 gcs_options = {}
+
+bucket_or_name = os.environ["GX_GCS_TEST_BUCKET"]
 
 # Create the Data Source:
 # <snippet name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_data_source/_gcs/_pandas.py - add Data Source">
