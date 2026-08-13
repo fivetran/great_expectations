@@ -153,6 +153,15 @@ config = {
             # become part of the distribution.
             "expectations/core/schemas/*.json",
             "datasource/fluent/schemas/**/*.json",
+            # Agent-facing guidance, read by a coding agent rather than imported by
+            # Python. Matched by file rather than by a directory glob, because a
+            # setuptools package_data pattern only ever selects files -- an empty
+            # directory in the pattern's path is never itself a match, and wheels
+            # cannot record an empty directory anyway. Scoped to the skills tree
+            # rather than a blanket markdown glob, so an unrelated markdown file
+            # added elsewhere in the package does not silently become part of the
+            # distribution.
+            ".agents/skills/**/*.md",
         ]
     },
     "name": "great_expectations",
