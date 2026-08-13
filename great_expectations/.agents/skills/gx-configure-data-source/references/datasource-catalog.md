@@ -224,3 +224,43 @@ Either way, follow `robustness.md`'s rule for reporting a failure — what
 failed, why as far as it is known, and one concrete next step — and stop
 there. Installing packages or provisioning credentials in the user's
 environment is their call, not yours.
+
+### Name the install the way the package declares it
+
+When the missing piece is a driver, the concrete next step is an install
+command, and which command you hand over matters.
+
+Great Expectations' own missing-driver errors name the bare package — a
+Postgres data source in an environment without SQLAlchemy raises
+`ModuleNotFoundError: sqlalchemy is not installed, please 'pip install
+sqlalchemy'`. That message is worth relaying for what it identifies, but not
+for what it instructs: installing the bare package resolves a version against
+nothing in particular, and it leaves the user's environment with no record of
+which backend the dependency was for.
+
+Great Expectations declares an optional dependency group per backend, and
+installing through the group is the canonical form:
+
+```bash
+pip install 'great_expectations[postgresql]'
+```
+
+The group names come from the installed distribution, so read them rather than
+recalling them — they are matched to the version in front of you, and a
+guessed name simply does not resolve:
+
+```python
+from importlib.metadata import metadata
+
+print(sorted(metadata("great_expectations").get_all("Provides-Extra")))
+```
+
+Match the user's backend against that list. Most groups are named for the
+backend, and enough of them are not — `postgresql` rather than `postgres`,
+`sql-server`, `gx-redshift` — that reading the list is the difference between
+a command that works and one that fails on a name that was never declared. If
+no group matches, the driver genuinely is not one Great Expectations declares:
+say so, and pass on the bare package the error message named.
+
+Hand the command over either way. The rule above does not soften because you
+now know exactly what to type.
