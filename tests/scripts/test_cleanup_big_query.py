@@ -1,13 +1,17 @@
 import datetime
+import logging
 
 import pytest
 from pytest_mock import MockerFixture
 from scripts.cleanup.cleanup_big_query import (
     DEFAULT_MAX_AGE,
+    TABLE_PATTERN,
     BigQueryConnectionConfig,
     cleanup_big_query,
     find_stale_table_ids,
 )
+
+from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 
 pytestmark = pytest.mark.unit
 
@@ -97,6 +101,46 @@ def test_only_generated_test_tables_are_candidates(
     stale = find_stale_table_ids(client, DATASET)
 
     assert stale == ([table_id] if expected else [])
+
+
+@pytest.mark.parametrize("label", [None, "col_b", "other_table", "table_2"])
+def test_the_pattern_matches_what_the_harness_actually_generates(label):
+    """Pin the pattern to the generator it exists to describe.
+
+    Every other test in this module types a table name out by hand, so all of them keep
+    passing if the harness changes the names it produces -- and the sweeper would then
+    match nothing, silently, with unbounded table growth as the only symptom. That is
+    exactly the failure #12015 fixed for the schema-based sweep, where the pattern had
+    drifted to one that could never match. Deriving the name from the harness means a
+    change to the prefix, the separator, or the width of the random suffix fails here.
+
+    `_create_table_name` is called with the class in place of `self`: the only attribute
+    it reaches for is `_random_resource_name`, a staticmethod, and `SQLBatchTestSetup` is
+    abstract, so there is no instance to build.
+    """
+    name = SQLBatchTestSetup._create_table_name(SQLBatchTestSetup, label)
+
+    assert TABLE_PATTERN.match(name), f"sweeper pattern does not match generated name {name!r}"
+
+
+def test_listed_and_matched_counts_are_reported_separately(
+    mocker: MockerFixture, frozen_now, client, caplog
+):
+    """Tables present but none matched must not read like a clean dataset.
+
+    Both end with nothing to delete. Only the counts tell a drifted pattern apart from
+    genuinely having nothing to do, so a summary that collapses them is not a summary.
+    """
+    client.list_tables.return_value = [
+        _table(mocker, "not_a_test_table", datetime.timedelta(days=1)),
+        _table(mocker, "also_not_a_test_table", datetime.timedelta(days=1)),
+    ]
+
+    with caplog.at_level(logging.INFO, logger="scripts.cleanup.cleanup_big_query"):
+        assert find_stale_table_ids(client, DATASET) == []
+
+    assert "2 table(s)" in caplog.text
+    assert "0 matched" in caplog.text
 
 
 def test_recent_tables_are_left_alone(mocker: MockerFixture, frozen_now, client):
