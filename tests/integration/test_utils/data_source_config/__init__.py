@@ -8,6 +8,7 @@ from .backend_spec import (
 )
 from .base import DataSourceTestConfig
 from .big_query import BigQueryDatasourceTestConfig
+from .clickhouse import ClickHouseDatasourceTestConfig
 from .databricks import DatabricksDatasourceTestConfig
 from .generic_sql import GenericSQLDatasourceTestConfig
 from .mysql import MySQLDatasourceTestConfig
@@ -27,6 +28,7 @@ from .spark_filesystem_csv import SparkFilesystemCsvDatasourceTestConfig
 from .sql_config import SqlDatasourceTestConfig
 from .sql_server import SQLServerDatasourceTestConfig
 from .sqlite import SqliteDatasourceTestConfig
+from .trino import TrinoDatasourceTestConfig
 
 # `tiers` derives its lists by reading the registry, so every module above whose import
 # registers a backend must be imported before this one: importing a submodule always runs this

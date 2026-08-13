@@ -1,2 +1,12 @@
+# The floor stays at 0.8.8 rather than 1.0.0 so that the extra stays installable
+# on SQLAlchemy 1.x. sqlalchemy-redshift 1.0.0 requires SQLAlchemy>=2, so pinning
+# the floor there makes `great_expectations[redshift]` unresolvable for anyone
+# holding SQLAlchemy 1.4 — a break, not a deprecation. With this floor, a
+# SQLAlchemy 2 install still resolves to 1.0.0; a SQLAlchemy 1.4 install falls
+# back to 0.8.14. 0.8.8 is the lowest release exporting every symbol
+# great_expectations/compatibility/aws.py imports (GEOMETRY and SUPER arrive
+# after 0.8.0).
+#
+# Keep in sync with requirements-dev-gx-redshift.txt.
 psycopg2-binary>=2.7.6
 sqlalchemy-redshift>=0.8.8

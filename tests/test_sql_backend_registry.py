@@ -963,14 +963,15 @@ class TestStandardDataSourceListsMatchPreChangeMembership:
         ] == ALL_DATA_SOURCES
 
 
-class TestCuratedSqlDataSourcesContainsExactlySingleStore:
-    """Regression pin for the curated tier's first member.
+class TestCuratedSqlDataSourcesEqualsClickHouseSingleStoreAndTrino:
+    """Regression pin for the curated tier's members, in label order.
 
     `CURATED_SQL_DATA_SOURCES` was empty until a backend declared curated-tier membership, so
-    every assertion involving it was vacuously true (empty equals empty). SingleStore is the
-    first backend to join that tier, which is what makes this pin non-vacuous: it fails on a
-    curated-tier backend registering without also joining this literal, and fails just as loudly
-    on the reverse — a config landing in this literal without the corresponding registration.
+    every assertion involving it was vacuously true (empty equals empty). SingleStore was the
+    first backend to join that tier, Trino was the second, and ClickHouse is the third — all
+    three are what make this pin non-vacuous: it fails on a curated-tier backend registering
+    without also joining this literal, and fails just as loudly on the reverse — a config landing
+    in this literal without the corresponding registration.
 
     `CURATED_SQL_DATA_SOURCES` is imported at this module's own import time (see the module
     docstring on `TestStandardDataSourceListsMatchPreChangeMembership` above for why that
@@ -979,8 +980,21 @@ class TestCuratedSqlDataSourcesContainsExactlySingleStore:
     empty.
     """
 
-    def test_curated_sql_data_sources_contains_exactly_singlestore(self) -> None:
-        assert [SingleStoreDatasourceTestConfig()] == CURATED_SQL_DATA_SOURCES
+    def test_curated_sql_data_sources_equals_clickhouse_singlestore_and_trino_in_label_order(
+        self,
+    ) -> None:
+        from tests.integration.test_utils.data_source_config.clickhouse import (
+            ClickHouseDatasourceTestConfig,
+        )
+        from tests.integration.test_utils.data_source_config.trino import (
+            TrinoDatasourceTestConfig,
+        )
+
+        assert [
+            ClickHouseDatasourceTestConfig(),
+            SingleStoreDatasourceTestConfig(),
+            TrinoDatasourceTestConfig(),
+        ] == CURATED_SQL_DATA_SOURCES
 
 
 class TestMetricsConftestsReexportTheSharedDefinition:
@@ -1030,12 +1044,12 @@ _REGISTERED_CURATED_SQL = tuple(sql_backends_for_tier(BackendTier.CURATED_SQL))
 _REGISTERED_SQL_BACKENDS: Tuple[type, ...] = tuple(iter_sql_backends())
 
 
-class TestRegisteredSqlBackendsEqualTheNineInLabelOrder:
+class TestRegisteredSqlBackendsEqualTheElevenInLabelOrder:
     """Pins the registry itself: every registered SQL backend, named individually, in label order.
 
     This is an *equality* assertion against an *ordered* literal naming every registered class -
     not a subset check, not a membership check, not a count. That shape is what makes registering
-    a tenth backend without extending this literal fail immediately: "register the config" and
+    a twelfth backend without extending this literal fail immediately: "register the config" and
     "extend this literal" become one change with a single, same-change failure signal, rather than
     a widening nobody notices until something downstream quietly starts seeing one more backend
     than it expected. A subset or count check would let a new registration pass silently here,
@@ -1044,13 +1058,13 @@ class TestRegisteredSqlBackendsEqualTheNineInLabelOrder:
     This module runs in a lane that installs no SQL dialect driver at all, and importing this
     module imports the whole harness package first, which in turn imports every backend module -
     each one registering itself as a side effect of being imported. An equality assertion over all
-    nine registered classes therefore runs only in a process where every backend module imported
+    eleven registered classes therefore runs only in a process where every backend module imported
     successfully with every dialect driver absent.
 
     Be precise about which half of that each mechanism carries. A backend module that fails to
     import takes the whole package down with it, so every test here dies at collection - the
     import statement is what proves importability, not this assertion. What this assertion adds
-    is that all nine modules actually *registered*: importing a module and registering from it
+    is that all eleven modules actually *registered*: importing a module and registering from it
     are separate events, and only the second is observable here. Weakening this to a subset or
     count check would discard exactly that, letting a backend that imported but never enrolled
     itself pass unnoticed.
@@ -1063,7 +1077,10 @@ class TestRegisteredSqlBackendsEqualTheNineInLabelOrder:
     registered without a matching update here.
     """
 
-    def test_registered_backends_equal_the_nine_in_label_order(self) -> None:
+    def test_registered_backends_equal_the_eleven_in_label_order(self) -> None:
+        from tests.integration.test_utils.data_source_config.clickhouse import (
+            ClickHouseDatasourceTestConfig,
+        )
         from tests.integration.test_utils.data_source_config.mysql import (
             MySQLDatasourceTestConfig,
         )
@@ -1073,9 +1090,13 @@ class TestRegisteredSqlBackendsEqualTheNineInLabelOrder:
         from tests.integration.test_utils.data_source_config.sql_server import (
             SQLServerDatasourceTestConfig,
         )
+        from tests.integration.test_utils.data_source_config.trino import (
+            TrinoDatasourceTestConfig,
+        )
 
         assert (
             BigQueryDatasourceTestConfig,  # big-query
+            ClickHouseDatasourceTestConfig,  # clickhouse
             DatabricksDatasourceTestConfig,  # databricks
             SQLServerDatasourceTestConfig,  # mssql
             MySQLDatasourceTestConfig,  # mysql
@@ -1084,6 +1105,7 @@ class TestRegisteredSqlBackendsEqualTheNineInLabelOrder:
             SingleStoreDatasourceTestConfig,  # singlestore
             SnowflakeDatasourceTestConfig,  # snowflake
             SqliteDatasourceTestConfig,  # sqlite
+            TrinoDatasourceTestConfig,  # trino
         ) == _REGISTERED_SQL_BACKENDS
 
 

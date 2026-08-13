@@ -19,7 +19,7 @@ test module because they need this module's own published key set — a registry
 integration suite would run the dependency the wrong direction.
 """
 
-from typing import FrozenSet, List
+from typing import FrozenSet, List, cast
 
 import pandas as pd
 import pytest
@@ -31,6 +31,7 @@ from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     BackendTier,
     DataSourceTestConfig,
+    SqlDatasourceTestConfig,
     data_sources_for_tier_case,
     iter_sql_backends,
 )
@@ -246,20 +247,31 @@ def test_every_declared_exclusion_key_is_a_published_case_key() -> None:
 
 
 @pytest.mark.project
-def test_case_accessor_matches_full_curated_list_while_no_exclusions_are_declared() -> None:
-    """For every published case key, the exclusion accessor returns the whole curated list.
+def test_case_accessor_matches_the_curated_list_minus_declared_exclusions() -> None:
+    """For every published case key, the accessor returns the curated list minus whichever
+    members declare an exclusion for that key — computed from each member's own live
+    `tier_case_exclusions`, not assumed to be the full list.
 
-    True precisely because no backend declares an exclusion right now; the published-key form of
-    the same behavior-preservation oracle that guards the accessor at the registry level. The
-    registry test module compares call-time membership to call-time membership because its own
-    autouse fixture clears the registry around every test; this module carries no such fixture, so
-    the registry stays live for the whole run and comparing against `CURATED_SQL_DATA_SOURCES`
-    (built once, at this package's import time, from that same live registry) is exact here.
+    Earlier this asserted the accessor always returns the full curated list, which was true only
+    because no backend declared an exclusion yet; the first real one (ClickHouse, on
+    `regex_match` and `quoted_identifiers`) would have falsified that assumption while leaving the
+    accessor itself correct. Deriving the expected result from each member's declaration instead
+    of the full list keeps this a genuine invariant — one that holds whether zero, one, or several
+    members exclude a given case — rather than a coincidental snapshot of today's zero-exclusion
+    state. The registry test module compares call-time membership to call-time membership because
+    its own autouse fixture clears the registry around every test; this module carries no such
+    fixture, so the registry stays live for the whole run and comparing against
+    `CURATED_SQL_DATA_SOURCES` (built once, at this package's import time, from that same live
+    registry) is exact here.
     """
     for case_key in CURATED_CASE_KEYS:
-        assert data_sources_for_tier_case(BackendTier.CURATED_SQL, case_key) == (
-            CURATED_SQL_DATA_SOURCES
-        )
+        expected = [
+            config
+            for config in CURATED_SQL_DATA_SOURCES
+            if case_key
+            not in cast("SqlDatasourceTestConfig", config).BACKEND_SPEC.tier_case_exclusions
+        ]
+        assert data_sources_for_tier_case(BackendTier.CURATED_SQL, case_key) == expected
 
 
 @pytest.mark.project

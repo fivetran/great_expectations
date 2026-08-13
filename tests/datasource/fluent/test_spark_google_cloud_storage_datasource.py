@@ -81,7 +81,7 @@ def object_keys() -> List[str]:
 
 @pytest.fixture
 @mock.patch(
-    "great_expectations.datasource.fluent.data_asset.data_connector.google_cloud_storage_data_connector.list_gcs_keys"
+    "great_expectations.datasource.fluent.data_connector.google_cloud_storage_data_connector.list_gcs_keys"
 )
 def csv_asset(
     mock_list_keys,
@@ -95,7 +95,7 @@ def csv_asset(
     return asset
 
 
-@pytest.mark.big
+@pytest.mark.gcs_deps
 def test_construct_spark_gcs_datasource_without_gcs_options():
     google_cred_file = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
     if not google_cred_file:
@@ -112,9 +112,9 @@ def test_construct_spark_gcs_datasource_without_gcs_options():
     assert spark_gcs_datasource.name == "spark_gcs_datasource"
 
 
-@pytest.mark.big
+@pytest.mark.gcs_deps
 @mock.patch(
-    "great_expectations.datasource.fluent.data_asset.data_connector.google_cloud_storage_data_connector.list_gcs_keys"
+    "great_expectations.datasource.fluent.data_connector.google_cloud_storage_data_connector.list_gcs_keys"
 )
 @mock.patch("google.oauth2.service_account.Credentials.from_service_account_file")
 @mock.patch("google.cloud.storage.Client")
@@ -134,9 +134,9 @@ def test_construct_spark_gcs_datasource_with_filename_in_gcs_options(
     assert spark_gcs_datasource.name == "spark_gcs_datasource"
 
 
-@pytest.mark.big
+@pytest.mark.gcs_deps
 @mock.patch(
-    "great_expectations.datasource.fluent.data_asset.data_connector.google_cloud_storage_data_connector.list_gcs_keys"
+    "great_expectations.datasource.fluent.data_connector.google_cloud_storage_data_connector.list_gcs_keys"
 )
 @mock.patch("google.oauth2.service_account.Credentials.from_service_account_info")
 @mock.patch("google.cloud.storage.Client")
@@ -156,9 +156,9 @@ def test_construct_spark_gcs_datasource_with_info_in_gcs_options(
     assert spark_gcs_datasource.name == "spark_gcs_datasource"
 
 
-@pytest.mark.big
+@pytest.mark.gcs_deps
 @mock.patch(
-    "great_expectations.datasource.fluent.data_asset.data_connector.google_cloud_storage_data_connector.list_gcs_keys"
+    "great_expectations.datasource.fluent.data_connector.google_cloud_storage_data_connector.list_gcs_keys"
 )
 @mock.patch("google.cloud.storage.Client")
 def test_add_csv_asset_to_datasource(
@@ -177,9 +177,9 @@ def test_add_csv_asset_to_datasource(
     assert asset.batch_metadata == asset_specified_metadata
 
 
-@pytest.mark.big
+@pytest.mark.gcs_deps
 @mock.patch(
-    "great_expectations.datasource.fluent.data_asset.data_connector.google_cloud_storage_data_connector.list_gcs_keys"
+    "great_expectations.datasource.fluent.data_connector.google_cloud_storage_data_connector.list_gcs_keys"
 )
 @mock.patch("google.cloud.storage.Client")
 def test_construct_csv_asset_directly(mock_gcs_client, mock_list_keys, object_keys: List[str]):
@@ -190,9 +190,9 @@ def test_construct_csv_asset_directly(mock_gcs_client, mock_list_keys, object_ke
     assert asset.name == "csv_asset"
 
 
-@pytest.mark.big
+@pytest.mark.gcs_deps
 @mock.patch(
-    "great_expectations.datasource.fluent.data_asset.data_connector.google_cloud_storage_data_connector.list_gcs_keys"
+    "great_expectations.datasource.fluent.data_connector.google_cloud_storage_data_connector.list_gcs_keys"
 )
 @mock.patch("google.cloud.storage.Client")
 def test_csv_asset_with_batching_regex_named_parameters(
@@ -211,9 +211,9 @@ def test_csv_asset_with_batching_regex_named_parameters(
     assert options == ("path", "year", "month")
 
 
-@pytest.mark.big
+@pytest.mark.gcs_deps
 @mock.patch(
-    "great_expectations.datasource.fluent.data_asset.data_connector.google_cloud_storage_data_connector.list_gcs_keys"
+    "great_expectations.datasource.fluent.data_connector.google_cloud_storage_data_connector.list_gcs_keys"
 )
 @mock.patch("google.cloud.storage.Client")
 def test_csv_asset_with_non_string_batching_regex_named_parameters(
@@ -235,9 +235,9 @@ def test_csv_asset_with_non_string_batching_regex_named_parameters(
         )
 
 
-@pytest.mark.big
+@pytest.mark.gcs_deps
 @mock.patch(
-    "great_expectations.datasource.fluent.data_asset.data_connector.google_cloud_storage_data_connector.list_gcs_keys"
+    "great_expectations.datasource.fluent.data_connector.google_cloud_storage_data_connector.list_gcs_keys"
 )
 @mock.patch("google.cloud.storage.Client")
 def test_add_csv_asset_with_recursive_file_discovery_to_datasource(

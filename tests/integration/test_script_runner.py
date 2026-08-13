@@ -28,7 +28,10 @@ from great_expectations.data_context.data_context.file_data_context import (
 )
 from great_expectations.data_context.util import file_relative_path
 from tests.integration.backend_dependencies import BackendDependencies
-from tests.integration.integration_test_fixture import IntegrationTestFixture
+from tests.integration.integration_test_fixture import (
+    IntegrationTestFixture,
+    substitute_gcs_test_bucket,
+)
 from tests.integration.test_definitions.abs.integration_tests import (
     abs_integration_tests,
 )
@@ -425,6 +428,7 @@ def _execute_integration_test(  # noqa: C901, PLR0915 # FIXME CoP
                 context_source_dir,
                 test_context_dir,
             )
+            substitute_gcs_test_bucket(test_context_dir / FileDataContext.GX_YML)
 
         # Test Data
         data_dir = integration_test_fixture.data_dir
@@ -544,13 +548,13 @@ def _check_for_skipped_tests(  # noqa: C901, PLR0912 # FIXME CoP
     dependencies = integration_test_fixture.backend_dependencies
     if not dependencies:
         return
-    # TEMPORARY: Tests backed by cloud object stores (S3, GCS, Azure Blob) are
-    # unconditionally skipped during the CI transition. Remove this block to re-enable.
+    # TEMPORARY: Tests backed by S3 and Azure Blob are unconditionally skipped during the
+    # CI transition -- neither has a bucket or a live credential to run against. Remove
+    # this block once that infrastructure is restored.
     elif any(
         dependency
         in (
             BackendDependencies.AWS,
-            BackendDependencies.GCS,
             BackendDependencies.AZURE,
         )
         for dependency in dependencies
@@ -573,8 +577,7 @@ def _check_for_skipped_tests(  # noqa: C901, PLR0912 # FIXME CoP
     ):
         # TODO : Investigate whether this test should be handled by azure-pipelines-cloud-db-integration.yml  # noqa: E501 # FIXME CoP
         pytest.skip("Skipping bigquery tests")
-    elif BackendDependencies.GCS in dependencies and not pytest_args.bigquery:
-        # TODO : Investigate whether this test should be handled by azure-pipelines-cloud-db-integration.yml  # noqa: E501 # FIXME CoP
+    elif BackendDependencies.GCS in dependencies and not pytest_args.gcs:
         pytest.skip("Skipping GCS tests")
     elif BackendDependencies.AWS in dependencies and not pytest_args.aws:
         pytest.skip("Skipping AWS tests")
