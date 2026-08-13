@@ -1,11 +1,13 @@
 ---
-# Checks that a pull request carries the context a reviewer needs before review starts:
-# a recognized title prefix, and — when the diff looks like it crosses the RFC threshold —
+# Checks that a pull request whose diff looks like it crosses the RFC threshold carries
 # either a link to an accepted RFC or an explicit statement that none is needed.
 #
 # The RFC threshold itself is documented in CONTRIBUTING.md ("Requesting comment on larger
 # changes"); this workflow only enforces that the question was answered, never what the answer
 # is. A contributor or reviewer who judges that no RFC applies says so in one line and moves on.
+#
+# Title prefixes are deliberately *not* checked here — pr-title-checker.yml owns that, and a
+# second check with its own copy of the prefix list would drift from it.
 #
 # Runs on `pull_request_target` deliberately: it reads pull-request metadata through the API and
 # never checks out or executes code from the pull request, so it is safe to run on fork pull
@@ -18,6 +20,14 @@ on:
   pull_request_target:
     types: [opened, edited, reopened, synchronize, ready_for_review]
 
+# The guiding comment is posted at most once per pull request, and that "once" is enforced by
+# reading the existing comments and then writing — not atomic. Serializing per pull request
+# keeps two overlapping runs (a push and a description edit seconds apart, say) from both
+# observing no marker and both commenting.
+concurrency:
+  group: pr-hygiene-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   pull-requests: write
@@ -26,36 +36,13 @@ jobs:
   pr-hygiene:
     runs-on: ubuntu-latest
     steps:
-      - name: Check title prefix and RFC disclosure
+      - name: Check RFC disclosure
         uses: actions/github-script@v7
         with:
           script: |
             const pr = context.payload.pull_request;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-
-            // ---------------------------------------------------------------
-            // Title prefix
-            // ---------------------------------------------------------------
-            // The release process reads these prefixes when generating the changelog, so an
-            // unprefixed title costs work at release time. Bot-authored pull requests are
-            // exempt: their titles are generated upstream and retitled by a maintainer on merge.
-            const BOT_AUTHORS = ['dependabot[bot]', 'pre-commit-ci[bot]', 'github-actions[bot]'];
-            const PREFIXES = [
-              'BUGFIX', 'FEATURE', 'DOCS', 'MAINTENANCE', 'CONTRIB',
-              'RELEASE', 'MINORBUMP', 'MAJORBUMP', 'BREAKING',
-            ];
-
-            const failures = [];
-            const isBot = BOT_AUTHORS.includes(pr.user.login);
-            const titleOk = PREFIXES.some((p) => pr.title.trim().startsWith(`[${p}]`));
-
-            if (!isBot && !titleOk) {
-              failures.push(
-                `Pull-request title must start with one of: ${PREFIXES.map((p) => `[${p}]`).join(', ')}.\n` +
-                `  Current title: ${pr.title}`
-              );
-            }
 
             // ---------------------------------------------------------------
             // RFC threshold
@@ -92,15 +79,23 @@ jobs:
               }
             }
 
+            // Accept the declaration however Markdown dresses it: as a list item, inside a
+            // blockquote, wrapped in emphasis or code ticks. The guiding comment below presents
+            // both forms as bullets, so a contributor who pastes one verbatim must match — a
+            // check that rejects the fix it just asked for is worse than no check.
+            const DECLARED = [
+              /^\s*>?\s*(?:[-*+]|\d+[.)])?\s*[`*_]*RFC[`*_]*\s*:/im,
+              /^\s*>?\s*(?:[-*+]|\d+[.)])?\s*[`*_]*No RFC needed[`*_]*\s*:/im,
+            ];
+
             let rfcFailed = false;
+            const failures = [];
             if (tripped.length > 0) {
               // Strip HTML comments before scanning: the pull-request template's own guidance
               // lives in a comment and contains the literal token we're looking for, so scanning
               // the raw body would pass every unedited template.
               const body = (pr.body || '').replace(/<!--[\s\S]*?-->/g, '');
-              const declared =
-                /^\s*>?\s*(\*\*)?RFC(\*\*)?\s*:/im.test(body) ||
-                /^\s*>?\s*(\*\*)?No RFC needed(\*\*)?\s*:/im.test(body);
+              const declared = DECLARED.some((re) => re.test(body));
 
               if (!declared) {
                 rfcFailed = true;
@@ -115,9 +110,8 @@ jobs:
             // ---------------------------------------------------------------
             // Report
             // ---------------------------------------------------------------
-            // Only the RFC case gets a comment: it needs explanation a check annotation can't
-            // carry, and it fires rarely. A missing title prefix is self-evident from the
-            // annotation alone and would be pure noise as a comment.
+            // The failure gets a comment as well as an annotation: it needs explanation a check
+            // annotation can't carry, and it fires rarely.
             if (rfcFailed) {
               const MARKER = '<!-- pr-hygiene:rfc-threshold -->';
               const comments = await github.paginate(github.rest.issues.listComments, {

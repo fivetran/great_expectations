@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Share an early-stage idea
-    url: https://github.com/great-expectations/great_expectations/discussions/categories/ideas
+    url: https://github.com/fivetran/great_expectations/discussions/categories/ideas
     about: Have a half-baked idea that isn't ready for a formal feature request yet? Start a discussion in the Ideas category first.
   - name: Propose a change requiring an RFC
-    url: https://github.com/great-expectations/great_expectations/discussions/categories/request-for-comment
+    url: https://github.com/fivetran/great_expectations/discussions/categories/request-for-comment
     about: For proposals that need broader design discussion before implementation, open a Request For Comment discussion.
   - name: Report a security vulnerability
-    url: https://github.com/great-expectations/great_expectations/security/advisories/new
+    url: https://github.com/fivetran/great_expectations/security/advisories/new
     about: Please do not report security vulnerabilities through public GitHub issues — use private vulnerability reporting instead (see SECURITY.md).
