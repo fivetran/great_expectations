@@ -68,9 +68,18 @@ on the type; the catalog reference enumerates them.
 
 **4. The batching cadence.** Whole collection, or sliced by day, month, or
 year. Ask what the natural unit of the user's data is — if they check data
-daily, a daily batch definition matches how they work. If the data has no
-usable date column, the whole collection is the right answer and there is
-nothing to apologize for.
+daily, a daily batch definition matches how they work.
+
+**A user who expresses no preference has not chosen the whole collection.**
+Don't let silence settle it. Carry the question forward to step 4 instead,
+where the probe's own output tells you whether the data can carry a time slice
+at all, and an open question becomes a recommendation: "`ordered_at` looks
+like your time column — monthly?" is something a user can answer, where "how
+would you like to batch this?" mostly is not.
+
+If nothing in the data can carry a time slice, the whole collection is the
+right answer and there is nothing to apologize for — say that you looked and
+found nothing, so the user hears a finding rather than a default.
 
 ### Secrets: templates only, never values
 
@@ -271,6 +280,15 @@ Four outcomes, and three of them are not failures:
   recover the real database error behind it. Do not report success, and do not
   retry with different parameters hoping something sticks.
 
+**If the cadence is still open from step 2, close it here.** The probe's frame
+is the survey you needed: `head.data.dtypes` names every column and its type,
+so a date or timestamp among them is the recommendation to bring back. A
+whole-collection definition standing where a time column exists should be
+something the user chose, not something they were never offered — say what you
+found, say what it would slice by, and let them decide. Switching is the
+`replace_batch_definition` path in step 3, which leaves the asset and every
+other batch definition on it untouched.
+
 ## Step 5 — Report, and offer write-out when in memory
 
 Tell the user, concretely:
@@ -307,11 +325,16 @@ flow, report it, and then move on.
 ## Worked examples
 
 Each of these shows the object chain — data source, asset, batch definition,
-verified batch — for a **fresh** setup where none of these names exist yet.
-Preflight comes first in all three, and step 3's fetch-first pattern still
-applies: the moment there is any chance the project already holds a data
-source by that name, wrap these calls in it rather than copying them as they
-stand, or the data-source call will drop assets that are already there.
+verified batch. Preflight comes first in all three.
+
+All three carry step 3's fetch-first guard on the data-source call, because
+these are the blocks that get copied. A bare `add_or_update_<type>` sitting in
+an example reads as the shape to follow, and followed against a name that
+already exists it silently drops every asset on that data source — the caveat
+in the prose above it does not survive the copy. The asset and
+batch-definition calls are left bare to keep the per-backend differences
+legible: those raise on a name that already exists rather than destroying
+anything, and step 3 carries the reuse pattern for them.
 
 Take the factory names and arguments for the user's actual backend from
 `references/datasource-catalog.md`.
@@ -324,10 +347,13 @@ be strings** — passing `2024` instead of `"2024"` raises
 `InvalidBatchRequestError`.
 
 ```python
-datasource = context.data_sources.add_or_update_pandas_filesystem(
-    name="sales_files",
-    base_directory="/data/sales",
-)
+try:
+    datasource = context.data_sources.get("sales_files")
+except LookupError:
+    datasource = context.data_sources.add_or_update_pandas_filesystem(
+        name="sales_files",
+        base_directory="/data/sales",
+    )
 asset = datasource.add_csv_asset(name="monthly_sales")
 batch_definition = asset.add_batch_definition_monthly(
     name="by_month",
@@ -346,10 +372,13 @@ credential-bearing part of the connection string is a `${VARIABLE_NAME}`
 reference, never a literal.
 
 ```python
-datasource = context.data_sources.add_or_update_postgres(
-    name="warehouse",
-    connection_string="postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@warehouse.internal:5432/analytics",
-)
+try:
+    datasource = context.data_sources.get("warehouse")
+except LookupError:
+    datasource = context.data_sources.add_or_update_postgres(
+        name="warehouse",
+        connection_string="postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@warehouse.internal:5432/analytics",
+    )
 asset = datasource.add_table_asset(name="orders", table_name="orders")
 batch_definition = asset.add_batch_definition_monthly(name="by_month", column="ordered_at")
 
@@ -369,7 +398,10 @@ A dataframe asset stores configuration only — the data itself is handed over
 at retrieval time, every time, in this session and in every future one:
 
 ```python executable
-datasource = context.data_sources.add_or_update_pandas(name="in_memory")
+try:
+    datasource = context.data_sources.get("in_memory")
+except LookupError:
+    datasource = context.data_sources.add_or_update_pandas(name="in_memory")
 asset = datasource.add_dataframe_asset(name="customers")
 batch_definition = asset.add_batch_definition_whole_dataframe(name="all_rows")
 
