@@ -889,11 +889,6 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         extra_pytest_args=("--spark", "--docs-tests"),
     ),
     "gcs_deps": TestDependencies(("reqs/requirements-dev-gcs.txt",)),
-    # Deprecated alias for "redshift". Both now install the same upstream dialect;
-    # kept so existing invocations keep resolving.
-    "gx-redshift": TestDependencies(
-        requirement_files=("reqs/requirements-dev-gx-redshift.txt",),
-    ),
     "sql_server": TestDependencies(
         ("reqs/requirements-dev-sql-server.txt",),
         services=("mssql",),
@@ -959,8 +954,6 @@ def _marker_statement(marker: str) -> str:
         "trino",
     ]:
         return f"'all_backends or {marker}'"
-    elif marker == "gx-redshift":
-        return "'redshift'"
     else:
         return f"'{marker}'"
 
