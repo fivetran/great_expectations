@@ -26,7 +26,6 @@ https://github.com/fivetran/great_expectations/blob/develop/CONTRIBUTING.md#requ
 - [ ] Code is linted - run `invoke lint` (uses `ruff format` + `ruff check`)
 - [ ] Appropriate tests and docs have been updated
 - [ ] For any behavioral change to a data source, validation mechanic, or Expectation, at least one integration test exists in `tests/integration/data_sources_and_expectations` (see [AGENTS.md](https://github.com/fivetran/great_expectations/blob/develop/AGENTS.md#integration-test-requirement))
-- [ ] CI is green, including linting, mypy type-checking, and tests - this is required for merge
 - [ ] If this PR proposes adopting or recommending a particular third-party library or service, any affiliation with it (employment, financial interest, maintainership) is disclosed above for the reviewer's context
 
 For more information about contributing, visit our [community resources](https://docs.greatexpectations.io/docs/core/introduction/community_resources#contribute-code-or-documentation).
