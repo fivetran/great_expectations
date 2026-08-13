@@ -52,17 +52,31 @@ def find_stale_table_ids(
     follow-up request per candidate.
     """
     now = datetime.datetime.now(datetime.timezone.utc)
+    listed = 0
+    matched = 0
     stale_ids = []
 
     for table_item in client.list_tables(dataset_id):
+        listed += 1
         if not TABLE_PATTERN.match(table_item.table_id):
             continue
+        matched += 1
 
         created = table_item.created
         # Treat an unknown creation time as too new to touch: with no age to compare we
         # cannot tell a leftover from a table an in-flight run is about to query.
         if created is not None and now - created > max_age:
             stale_ids.append(table_item.table_id)
+
+    # A pattern that has drifted away from what the harness generates and a dataset that is
+    # genuinely clean both end this function with nothing to delete, and both would otherwise
+    # log the same reassuring line. Reporting the counts separately distinguishes them: tables
+    # listed but none matched is the signature of the pattern no longer describing the names,
+    # which is otherwise invisible until the dataset has grown without bound.
+    logger.info(
+        f"{listed} table(s) in {dataset_id}; {matched} matched the test-table pattern; "
+        f"{len(stale_ids)} older than {max_age}"
+    )
 
     return stale_ids
 
