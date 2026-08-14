@@ -220,7 +220,13 @@ def _add_validation_definition():
         .get_asset("my_asset")
         .get_batch_definition("my_batch_definition")
     )
-    target_suite = file_context.suites.get("my_suite")
+    # Fetched by the session suite's own name, not by a literal: unlike the
+    # datasource, asset and batch definition above -- which this procedure
+    # creates under the names written here -- the suite arrives from the
+    # session already named, and a literal that disagrees with it fails the
+    # lookup. The loop below swallows that into `failed`, so the write-out
+    # would finish silently short of a validation definition and a checkpoint.
+    target_suite = file_context.suites.get(suite.name)
     # Existence is checked through all() rather than get()/except: unlike
     # LookupError on the earlier steps, a missing validation definition or
     # checkpoint surfaces as a data-context-level error that isn't part of
