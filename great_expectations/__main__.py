@@ -52,8 +52,9 @@ _REASON_WIDTH: Final = 88
 
 _SKILLS_DESCRIPTION: Final = (
     "Great Expectations bundles skills that teach a coding agent to configure data "
-    "sources and expectations. Agents look for skills in directories inside your "
-    "project, so the skills have to be installed there before an agent can find them."
+    "sources, expectations, and checkpoint orchestration. Agents look for skills in "
+    "directories inside your project, so the skills have to be installed there before "
+    "an agent can find them."
 )
 
 _INSTALL_DESCRIPTION: Final = (
