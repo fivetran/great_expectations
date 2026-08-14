@@ -30,6 +30,8 @@ import pytest
 from ruamel.yaml import YAML
 from ruamel.yaml.error import YAMLError
 
+from great_expectations.compatibility.pydantic import BaseModel
+
 pytestmark = [pytest.mark.unit]
 
 PROJECT_ROOT: Final = pathlib.Path(__file__).parents[2]
@@ -58,11 +60,29 @@ SKILL_NAME_PATTERN: Final = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 
 #: Number of skills the package is known to bundle. Guards against a discovery bug
 #: silently reducing every parametrized test below to zero cases.
-MIN_BUNDLED_SKILLS: Final = 2
+MIN_BUNDLED_SKILLS: Final = 3
+
+#: The checkpoint skill's action-catalog reference, checked against the live action
+#: registry below.
+ACTION_CATALOG_SKILL: Final = "gx-configure-checkpoint"
+ACTION_CATALOG_REFERENCE: Final = "action-catalog.md"
 
 FRONTMATTER_PATTERN: Final = re.compile(r"\A---\n(?P<body>.*?)\n---\n", re.DOTALL)
 CODE_SPAN_PATTERN: Final = re.compile(r"`([^`\n]+)`")
 MARKDOWN_LINK_PATTERN: Final = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
+#: A reference-shaped path -- one that already carries the ``references/`` prefix --
+#: found inside a fenced code block. Bare filenames in fenced comments ("per
+#: preflight.md") are deliberately not references (see ``_strip_code_fences``), but a
+#: prefixed path is unambiguously meant as one, fence or not.
+FENCED_REFERENCE_PATTERN: Final = re.compile(r"references/[\w./-]+\.md")
+#: A skill of this bundle's naming family (``gx-configure-*``) named in prose as
+#: inline code, e.g. a hand-off ("route to `gx-configure-checkpoint`"). Scoped to the
+#: family prefix so an unrelated ``gx-``-prefixed token -- a package extra name like
+#: ``gx-redshift`` -- is not mistaken for a skill hand-off.
+SKILL_MENTION_PATTERN: Final = re.compile(r"`(gx-configure-[a-z0-9]+(?:-[a-z0-9]+)*)`")
+#: The action catalog's stability-split table rows, e.g.
+#: ``| `SlackNotificationAction` | `slack` | `@public_api` |``.
+ACTION_TABLE_ROW_PATTERN: Final = re.compile(r"^\| `\w+` \| `(?P<type>\w+)` \|", re.MULTILINE)
 
 
 class SkillContentError(Exception):
@@ -194,12 +214,43 @@ def find_relative_references(document: pathlib.Path) -> set[str]:
     return {candidate for candidate in candidates if _is_relative_document_reference(candidate)}
 
 
+def _code_fence_contents(text: str) -> str:
+    """Return only fenced code block content -- the inverse of ``_strip_code_fences``."""
+    fenced: list[str] = []
+    inside_fence = False
+    for line in text.splitlines():
+        if line.lstrip().startswith("```"):
+            inside_fence = not inside_fence
+            continue
+        if inside_fence:
+            fenced.append(line)
+    return "\n".join(fenced)
+
+
+def find_fenced_references(document: pathlib.Path) -> set[str]:
+    """Return reference-shaped paths mentioned inside fenced code blocks.
+
+    ``_strip_code_fences`` drops fenced content before ``find_relative_references``
+    runs, so a wrong ``references/...`` path sitting inside a code comment resolves
+    against nothing and passes silently -- that gap has already shipped a broken
+    reference once, caught only by reading. This scans fenced content on its own,
+    narrowly, for paths that already carry the ``references/`` prefix.
+    """
+    fenced_text = _code_fence_contents(document.read_text(encoding="utf-8"))
+    return set(FENCED_REFERENCE_PATTERN.findall(fenced_text))
+
+
+def find_all_references(document: pathlib.Path) -> set[str]:
+    """Return every reference a document points at, prose and fenced alike."""
+    return find_relative_references(document) | find_fenced_references(document)
+
+
 def reference_problems(skill_dir: pathlib.Path) -> list[str]:
     """Return every reference in a skill that fails to resolve inside the skill."""
     skill_root = skill_dir.resolve()
     problems: list[str] = []
     for document in sorted(skill_dir.rglob("*.md")):
-        for reference in sorted(find_relative_references(document)):
+        for reference in sorted(find_all_references(document)):
             target = (document.parent / reference.split("#", 1)[0]).resolve()
             try:
                 relative = target.relative_to(skill_root)
@@ -225,7 +276,7 @@ def reference_problems(skill_dir: pathlib.Path) -> list[str]:
 
 
 def count_references(skill_dir: pathlib.Path) -> int:
-    return sum(len(find_relative_references(document)) for document in skill_dir.rglob("*.md"))
+    return sum(len(find_all_references(document)) for document in skill_dir.rglob("*.md"))
 
 
 def shared_reference_problems(skills_root: pathlib.Path) -> list[str]:
@@ -258,6 +309,119 @@ def skills_holding(skills_root: pathlib.Path, shared_name: str) -> list[pathlib.
         for skill_dir in discover_skills(skills_root)
         if (skill_dir / REFERENCE_DIR / shared_name).is_file()
     ]
+
+
+def carriage_problems(skills_root: pathlib.Path) -> list[str]:
+    """Return every bundled skill directory missing one of the shared references.
+
+    ``shared_reference_problems`` above compares copies that exist against the
+    canonical one -- it is a byte-equality check with nothing to say about a skill
+    that ships without a copy at all, because there is nothing there to compare.
+    This is the carriage check that byte-equality alone cannot be: every bundled
+    skill must hold its own copy of every shared reference.
+    """
+    problems: list[str] = []
+    for skill_dir in discover_skills(skills_root):
+        for shared_name in SHARED_REFERENCES:
+            if not (skill_dir / REFERENCE_DIR / shared_name).is_file():
+                problems.append(
+                    f"{skill_dir} is missing {REFERENCE_DIR}/{shared_name}. Every bundled"
+                    f" skill must carry its own copy of {shared_name}; copy it from"
+                    f" {skills_root / CANONICAL_SKILL / REFERENCE_DIR / shared_name}."
+                )
+    return problems
+
+
+def find_skill_mentions(document: pathlib.Path) -> set[str]:
+    """Return skill names of this bundle's naming family mentioned in prose."""
+    text = _strip_code_fences(document.read_text(encoding="utf-8"))
+    return set(SKILL_MENTION_PATTERN.findall(text))
+
+
+def unresolved_skill_mention_problems(
+    skills_root: pathlib.Path, skill_dir: pathlib.Path
+) -> list[str]:
+    """Return every prose-mentioned skill name that does not resolve to a bundled skill.
+
+    Nothing else in this suite checks this: frontmatter, references, and shared-copy
+    checks are all silent about a hand-off that names a skill that does not exist. A
+    stale or misspelled name here passes green and misroutes a real user at runtime.
+    """
+    known_skill_names = {known.name for known in discover_skills(skills_root)}
+    problems: list[str] = []
+    for document in sorted(skill_dir.rglob("*.md")):
+        for mentioned in sorted(find_skill_mentions(document)):
+            if mentioned not in known_skill_names:
+                problems.append(
+                    f"{document}: mentions skill {mentioned!r}, which is not a bundled"
+                    f" skill directory under {skills_root}. Fix the name or add the skill."
+                )
+    return problems
+
+
+def _closure_of_subclasses(cls: type[BaseModel]) -> set[type[BaseModel]]:
+    found: set[type[BaseModel]] = set(cls.__subclasses__())
+    for subclass in list(found):
+        found |= _closure_of_subclasses(subclass)
+    return found
+
+
+def _attachable_types_scoped_to(cls: type[BaseModel], owner_module: str) -> frozenset[str]:
+    """Return the ``type`` default of every subclass of ``cls`` owned by ``owner_module``.
+
+    A class is attachable when it declares its own non-``None`` default for the
+    ``type`` field -- that selects concrete actions and excludes abstract bases, whose
+    ``type`` has no default of its own. Scoping to ``owner_module`` is what keeps a
+    third party's own registration from turning a completeness check red; split out
+    as a pure function of its two inputs so that scoping can be proven against a
+    synthetic hierarchy without touching Great Expectations' real action registry.
+    """
+    attachable = (
+        candidate
+        for candidate in _closure_of_subclasses(cls)
+        if candidate.__module__ == owner_module and candidate.__fields__["type"].default is not None
+    )
+    return frozenset(candidate.__fields__["type"].default for candidate in attachable)
+
+
+def gx_attachable_action_types() -> frozenset[str]:
+    """Return the ``type`` literal of every action Great Expectations itself attaches.
+
+    Mirrors the closure the action-catalog reference documents and verifies against,
+    scoped to classes defined inside Great Expectations' own action module -- a third
+    party registering an action of its own must not turn this assertion red.
+    """
+    from great_expectations.checkpoint import actions as actions_module
+
+    return _attachable_types_scoped_to(actions_module.ValidationAction, actions_module.__name__)
+
+
+def documented_action_types(action_catalog: pathlib.Path) -> frozenset[str]:
+    """Return the ``type`` values documented in the action catalog's stability table."""
+    text = action_catalog.read_text(encoding="utf-8")
+    return frozenset(match.group("type") for match in ACTION_TABLE_ROW_PATTERN.finditer(text))
+
+
+def action_catalog_drift_problems(action_catalog: pathlib.Path) -> list[str]:
+    """Return every mismatch between the documented action catalog and the live registry."""
+    documented = documented_action_types(action_catalog)
+    actual = gx_attachable_action_types()
+    problems: list[str] = []
+    missing = actual - documented
+    if missing:
+        problems.append(
+            f"{action_catalog} does not document action type(s) {sorted(missing)}, which"
+            " Great Expectations registers as attachable. This catalog is meant to cover"
+            " every action Great Expectations offers, not a curated subset -- add a row"
+            " and a field table for each."
+        )
+    extra = documented - actual
+    if extra:
+        problems.append(
+            f"{action_catalog} documents action type(s) {sorted(extra)}, which Great"
+            " Expectations no longer registers as attachable. Remove the stale row(s)."
+        )
+    return problems
 
 
 def entry_document_size_problems(skill_dir: pathlib.Path) -> list[str]:
@@ -360,6 +524,24 @@ def test_shared_reference_is_carried_by_every_skill_that_needs_it(shared_name: s
 
 def test_shared_references_are_byte_identical():
     problems = shared_reference_problems(SKILLS_ROOT)
+    assert not problems, "\n".join(problems)
+
+
+def test_every_bundled_skill_carries_every_shared_reference():
+    problems = carriage_problems(SKILLS_ROOT)
+    assert not problems, "\n".join(problems)
+
+
+@pytest.mark.parametrize("skill_dir", SKILL_DIRS, ids=lambda skill_dir: skill_dir.name)
+def test_skill_mentions_in_prose_resolve_to_bundled_skills(skill_dir: pathlib.Path):
+    problems = unresolved_skill_mention_problems(SKILLS_ROOT, skill_dir)
+    assert not problems, "\n".join(problems)
+
+
+def test_action_catalog_matches_the_live_action_registry():
+    action_catalog = SKILLS_ROOT / ACTION_CATALOG_SKILL / REFERENCE_DIR / ACTION_CATALOG_REFERENCE
+    assert action_catalog.is_file(), f"{action_catalog} does not exist"
+    problems = action_catalog_drift_problems(action_catalog)
     assert not problems, "\n".join(problems)
 
 
@@ -541,3 +723,155 @@ def test_over_budget_entry_document_is_reported(violating_skills: pathlib.Path):
     problems = entry_document_size_problems(skill_dir)
 
     assert [problem for problem in problems if "the budget is" in problem]
+
+
+def test_fenced_reference_that_does_not_exist_is_reported(violating_skills: pathlib.Path):
+    """The extractor used to see only prose references -- a wrong path inside a fenced
+    code comment resolved against nothing and passed silently. This is the mutation
+    proof that fenced content is checked too.
+    """
+    skill_dir = violating_skills / CANONICAL_SKILL
+    entry = skill_dir / ENTRY_DOCUMENT
+    text = entry.read_text(encoding="utf-8")
+    entry.write_text(
+        f"{text}\n```python\n# step 1, per references/does-not-exist-in-a-fence.md\n```\n",
+        encoding="utf-8",
+    )
+
+    problems = reference_problems(skill_dir)
+
+    assert [
+        problem
+        for problem in problems
+        if "does-not-exist-in-a-fence.md" in problem and "does not exist" in problem
+    ]
+
+
+def test_fenced_bare_filename_comment_is_not_treated_as_a_reference(
+    violating_skills: pathlib.Path,
+):
+    """A bare filename in a fenced comment ("per preflight.md") is deliberately not a
+    reference -- only a path already carrying the ``references/`` prefix is. This is
+    the counter-proof that the fenced check does not over-fire on ordinary prose.
+    """
+    skill_dir = violating_skills / CANONICAL_SKILL
+    entry = skill_dir / ENTRY_DOCUMENT
+    text = entry.read_text(encoding="utf-8")
+    entry.write_text(
+        f"{text}\n```python\n# step 1, per preflight.md, not a path\n```\n",
+        encoding="utf-8",
+    )
+
+    references = find_fenced_references(entry)
+
+    assert "preflight.md" not in references
+    assert not [reference for reference in references if "does-not-exist" in reference]
+
+
+@pytest.mark.parametrize("shared_name", SHARED_REFERENCES)
+def test_skill_missing_a_shared_reference_is_reported_by_carriage_check_only(
+    violating_skills: pathlib.Path, shared_name: str
+):
+    """The existing byte-equality check compares copies that exist -- it has nothing
+    to say about a skill that ships without a copy at all. This proves the carriage
+    check catches exactly that gap, and that byte-equality alone does not.
+    """
+    sibling = next(
+        skill_dir
+        for skill_dir in discover_skills(violating_skills)
+        if skill_dir.name != CANONICAL_SKILL
+    )
+    (sibling / REFERENCE_DIR / shared_name).unlink()
+
+    carriage = carriage_problems(violating_skills)
+    byte_equality = shared_reference_problems(violating_skills)
+
+    assert [problem for problem in carriage if str(sibling) in problem and shared_name in problem]
+    assert not [problem for problem in byte_equality if str(sibling) in problem], (
+        "byte-equality alone must not notice a missing copy -- that is exactly the gap"
+        " the carriage check exists to close"
+    )
+
+
+def test_unresolved_skill_mention_is_reported(violating_skills: pathlib.Path):
+    skill_dir = violating_skills / ACTION_CATALOG_SKILL
+    entry = skill_dir / ENTRY_DOCUMENT
+    anchor = "- No batch definition → hand off to `gx-configure-data-source`.\n"
+    text = entry.read_text(encoding="utf-8")
+    assert text.count(anchor) == 1, f"anchor is not unique in {entry}"
+    entry.write_text(
+        text.replace(
+            anchor, "- No batch definition → hand off to `gx-configure-nonexistent`.\n", 1
+        ),
+        encoding="utf-8",
+    )
+
+    problems = unresolved_skill_mention_problems(violating_skills, skill_dir)
+
+    assert [problem for problem in problems if "gx-configure-nonexistent" in problem]
+
+
+def test_action_catalog_missing_a_registered_action_is_reported(violating_skills: pathlib.Path):
+    action_catalog = (
+        violating_skills / ACTION_CATALOG_SKILL / REFERENCE_DIR / ACTION_CATALOG_REFERENCE
+    )
+    text = action_catalog.read_text(encoding="utf-8")
+    anchor = "| `UpdateDataDocsAction` | `update_data_docs` | `@public_api` |\n"
+    assert text.count(anchor) == 1, f"anchor is not unique in {action_catalog}"
+    action_catalog.write_text(text.replace(anchor, "", 1), encoding="utf-8")
+
+    problems = action_catalog_drift_problems(action_catalog)
+
+    assert [
+        problem
+        for problem in problems
+        if "update_data_docs" in problem and "does not document" in problem
+    ]
+
+
+def test_action_catalog_documenting_a_nonexistent_action_is_reported(
+    violating_skills: pathlib.Path,
+):
+    action_catalog = (
+        violating_skills / ACTION_CATALOG_SKILL / REFERENCE_DIR / ACTION_CATALOG_REFERENCE
+    )
+    text = action_catalog.read_text(encoding="utf-8")
+    anchor = "| `SlackNotificationAction` | `slack` | `@public_api` |\n"
+    assert text.count(anchor) == 1, f"anchor is not unique in {action_catalog}"
+    bogus_row = "| `FakeAction` | `fake_action_type` | `@public_api` |\n"
+    action_catalog.write_text(text.replace(anchor, anchor + bogus_row, 1), encoding="utf-8")
+
+    problems = action_catalog_drift_problems(action_catalog)
+
+    assert [
+        problem
+        for problem in problems
+        if "fake_action_type" in problem and "no longer registers" in problem
+    ]
+
+
+def test_action_type_filter_is_scoped_to_the_owning_module():
+    """The action-catalog completeness check must fire for Great Expectations' own
+    action registrations and must not fire for anyone else's. Proven against a
+    synthetic hierarchy -- not Great Expectations' real action registry -- because
+    subclassing the real `ValidationAction` registers the class into Great
+    Expectations' process-wide action registry as a side effect, which would leak a
+    fake action into that registry for the rest of the test session.
+    """
+
+    class Base(BaseModel):
+        type: str
+        name: str
+
+    class OwnedAction(Base):
+        type: str = "owned_action_type"
+
+    class ForeignAction(Base):
+        type: str = "foreign_action_type"
+
+    ForeignAction.__module__ = "some_third_party_package.actions"
+
+    scoped = _attachable_types_scoped_to(Base, __name__)
+
+    assert scoped == frozenset({"owned_action_type"})
+    assert "foreign_action_type" not in scoped
