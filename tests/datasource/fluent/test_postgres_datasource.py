@@ -1436,6 +1436,135 @@ def test_build_batch_request_without_options_does_not_resolve_the_partitioner(
 
 
 @pytest.mark.postgresql
+def test_no_available_batches_names_uninterpretable_numeric_parameter(
+    empty_data_context,
+    create_source: CreateSourceFixture,
+):
+    """A value that cannot be interpreted as an integer for a numeric batch parameter
+    (e.g. a typo like "202O" with a letter O in place of a zero) previously matched
+    nothing and surfaced as a bare no-available-batches error, indistinguishable from
+    genuinely absent data. The error now names the offending parameter and value and
+    tells the user to pass an integer."""
+    with create_source(
+        validate_batch_spec=lambda _: None,
+        dialect="postgresql",
+        data_context=empty_data_context,
+        partitioner_query_response=[{"year": 2020, "month": 1}, {"year": 2020, "month": 2}],
+    ) as source:
+        asset = source.add_query_asset(name="query_asset", query="SELECT * from table")
+        partitioner = ColumnPartitionerMonthly(column_name="my_col")
+        batch_request = asset.build_batch_request(
+            {"year": "202O", "month": 1}, partitioner=partitioner
+        )
+
+        with pytest.raises(NoAvailableBatchesError) as exc_info:
+            asset.get_batch(batch_request)
+
+        message = str(exc_info.value)
+        assert "year" in message
+        assert "202O" in message
+        assert "integer" in message
+
+
+@pytest.mark.postgresql
+def test_no_available_batches_for_absent_partition_reports_candidates_checked(
+    empty_data_context,
+    create_source: CreateSourceFixture,
+):
+    """When well-typed parameters simply match no data -- a genuinely absent partition
+    -- the error still raises the same exception type from the same raise site as
+    before (the real compatibility guarantee), but the message now names how many
+    candidate batches were checked and against what request options, so a user isn't
+    left unable to tell absent data apart from malformed parameters."""
+    with create_source(
+        validate_batch_spec=lambda _: None,
+        dialect="postgresql",
+        data_context=empty_data_context,
+        partitioner_query_response=[{"year": 2020, "month": 1}, {"year": 2020, "month": 2}],
+    ) as source:
+        asset = source.add_query_asset(name="query_asset", query="SELECT * from table")
+        partitioner = ColumnPartitionerMonthly(column_name="my_col")
+        batch_request = asset.build_batch_request(
+            {"year": 1995, "month": 1}, partitioner=partitioner
+        )
+
+        with pytest.raises(NoAvailableBatchesError) as exc_info:
+            asset.get_batch(batch_request)
+
+        message = str(exc_info.value)
+        assert "2" in message
+        assert "1995" in message
+
+
+@pytest.mark.postgresql
+def test_no_available_batches_for_zero_candidates_distinguishable_from_none_matched(
+    empty_data_context,
+    create_source: CreateSourceFixture,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """An empty table or column produces zero candidate batches to begin with, which
+    is a different situation from candidates existing but none matching the request.
+    The message for the two cases must not be identical.
+
+    The `create_source`/`_source` test fixture treats an empty
+    `partitioner_query_response` list as "use the default non-empty response" (a
+    falsy-list `or` fallback), so a genuinely empty candidate query is produced here by
+    patching `param_defaults` directly rather than by passing `[]` through the fixture.
+    """
+    monkeypatch.setattr(SqlPartitionerYearAndMonth, "param_defaults", lambda self, sql_asset: [])
+
+    with create_source(
+        validate_batch_spec=lambda _: None,
+        dialect="postgresql",
+        data_context=empty_data_context,
+    ) as source:
+        asset = source.add_query_asset(name="query_asset", query="SELECT * from table")
+        partitioner = ColumnPartitionerMonthly(column_name="my_col")
+        batch_request = asset.build_batch_request(
+            {"year": 1995, "month": 1}, partitioner=partitioner
+        )
+
+        with pytest.raises(NoAvailableBatchesError) as exc_info:
+            asset.get_batch(batch_request)
+
+        message = str(exc_info.value)
+
+    # Content unique to the empty-source case. Asserting only that this differs from the
+    # default text would also hold if the two situations shared a message, since the
+    # candidate-count wording differs from the default too.
+    assert "no candidate batches exist" in message
+    # And it must not describe candidates having been checked, which is the other case.
+    assert "candidate batch(es) were checked" not in message
+    assert "1995" not in message
+
+
+@pytest.mark.unit
+def test_no_available_batches_error_default_message_unchanged():
+    """A bare NoAvailableBatchesError() -- the compatibility pin for callers that
+    construct it directly rather than by way of a no-match get_batch -- still produces
+    exactly today's text, byte for byte."""
+    assert str(NoAvailableBatchesError()) == "No available batches found."
+
+
+def _raise_enriched_no_available_batches_error() -> None:
+    raise NoAvailableBatchesError("some enriched diagnostic text")
+
+
+@pytest.mark.unit
+def test_no_available_batches_error_existing_catcher_still_catches_enriched_form():
+    """An enriched message is additive: a bare `except NoAvailableBatchesError` still
+    catches it, since the class and raise mechanics are unchanged."""
+    caught: Optional[NoAvailableBatchesError] = None
+    try:
+        _raise_enriched_no_available_batches_error()
+    except NoAvailableBatchesError as e:
+        caught = e
+
+    assert caught is not None
+    assert "enriched" in str(caught)
+
+
+@pytest.mark.postgresql
 def test_sorting_none_in_metadata(
     empty_data_context,
     create_source: CreateSourceFixture,

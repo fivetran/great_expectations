@@ -10,6 +10,7 @@ from typing import (
     Any,
     Callable,
     ClassVar,
+    Collection,
     Dict,
     Final,
     Generic,
@@ -17,6 +18,7 @@ from typing import (
     List,
     Literal,
     Mapping,
+    NamedTuple,
     Optional,
     Protocol,
     Sequence,
@@ -55,6 +57,7 @@ from great_expectations.core.partitioners import (
     PartitionerMultiColumnValue,
 )
 from great_expectations.datasource.fluent.batch_parameter_normalization import (
+    is_digit_string,
     normalize_batch_parameters,
     numeric_parameter_names_of,
 )
@@ -565,6 +568,64 @@ SqlPartitioner = Union[
 ]
 
 
+class _NoMatchDiagnostics(NamedTuple):
+    """What the single candidate pass in `_fully_specified_batch_requests` learned,
+    carried forward so a no-match error can be composed without re-running the
+    (live, DB-backed) candidate query at the raise site."""
+
+    candidate_count: int
+    offending_param: Optional[Tuple[str, Any]]
+
+
+def _first_numerically_uninterpretable_param(
+    options: Optional[BatchParameters], numeric_param_names: Collection[str]
+) -> Optional[Tuple[str, Any]]:
+    """The first requested numeric-parameter value that is a string but not a digit
+    string (e.g. "202O"), so it cannot be interpreted as an integer. None when every
+    requested numeric parameter is either absent or already numerically interpretable.
+    """
+    if not options:
+        return None
+    for name in sorted(numeric_param_names):
+        if name not in options:
+            continue
+        value = options[name]
+        if isinstance(value, str) and not is_digit_string(value):
+            return name, value
+    return None
+
+
+def _compose_no_available_batches_message(
+    diagnostics: _NoMatchDiagnostics, options: Optional[BatchParameters]
+) -> str:
+    """Diagnostic text for a no-match raise.
+
+    Zero candidates (an empty table or column) is distinguished from candidates
+    existing but none matching: the latter always names the candidate count and the
+    requested options, since a bare "no batches found" leaves a user unable to tell
+    whether the data is absent or their parameters were malformed. When a numeric
+    parameter's value is a string that cannot be interpreted as an integer (e.g. a
+    typo like "202O"), that is very likely the actual explanation, so it's named
+    on top of the candidate-count text.
+    """
+    if diagnostics.candidate_count == 0:
+        return (
+            "No available batches found: no candidate batches exist for this asset "
+            "(e.g. an empty table or column)."
+        )
+    message = (
+        f"No available batches found: {diagnostics.candidate_count} candidate batch(es) "
+        f"were checked against the requested options {options!r}, but none matched."
+    )
+    if diagnostics.offending_param is not None:
+        name, value = diagnostics.offending_param
+        message += (
+            f" Parameter {name!r} has value {value!r}, which cannot be interpreted "
+            "as an integer; pass an integer instead."
+        )
+    return message
+
+
 @public_api
 class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT]):
     """A _SQLAsset Mixin
@@ -631,8 +692,15 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                 return False
         return True
 
-    def _fully_specified_batch_requests(self, batch_request: BatchRequest) -> List[BatchRequest]:
-        """Populates a batch requests unspecified params producing a list of batch requests."""
+    def _fully_specified_batch_requests(
+        self, batch_request: BatchRequest
+    ) -> Tuple[List[BatchRequest], _NoMatchDiagnostics]:
+        """Populates a batch requests unspecified params producing a list of batch requests.
+
+        Also returns diagnostics describing the single candidate pass below, so a caller
+        that ends up with no fully-specified requests can compose a no-match error
+        without re-running the (live, DB-backed) candidate query.
+        """
 
         if batch_request.partitioner is None:
             # Currently batch_request.options is complete determined by the presence of a
@@ -641,13 +709,20 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
             # empty, ie {}.
             # In the future, if there are options that are not determined by the partitioner
             # this check will have to be generalized.
-            return [batch_request]
+            # The request itself is the only candidate, and it always matches, so this
+            # count describes the returned list rather than standing in for one.
+            return [batch_request], _NoMatchDiagnostics(
+                candidate_count=len([batch_request]), offending_param=None
+            )
 
         sql_partitioner = self.get_partitioner_implementation(batch_request.partitioner)
+        numeric_param_names = numeric_parameter_names_of(sql_partitioner)
+
+        candidates = list(sql_partitioner.param_defaults(self))
 
         batch_requests: List[BatchRequest] = []
         # We iterate through all possible batches as determined by the partitioner
-        for params in sql_partitioner.param_defaults(self):
+        for params in candidates:
             # If the params from the partitioner don't match the batch parameters
             # we don't create this batch.
             if not _SQLAsset._matches_request_options(params, batch_request.options):
@@ -662,7 +737,14 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                     partitioner=batch_request.partitioner,
                 )
             )
-        return batch_requests
+
+        diagnostics = _NoMatchDiagnostics(
+            candidate_count=len(candidates),
+            offending_param=_first_numerically_uninterpretable_param(
+                batch_request.options, numeric_param_names
+            ),
+        )
+        return batch_requests, diagnostics
 
     @override
     def get_batch_identifiers_list(self, batch_request: BatchRequest) -> List[dict]:
@@ -672,7 +754,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         else:
             sql_partitioner = None
 
-        requests = self._fully_specified_batch_requests(batch_request)
+        requests, _diagnostics = self._fully_specified_batch_requests(batch_request)
         metadata_dicts = [self._get_batch_metadata_from_batch_request(r) for r in requests]
 
         if sql_partitioner:
@@ -699,11 +781,13 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
             sql_partitioner = None
 
         batch_spec_kwargs: Dict[str, str | dict | None]
-        requests = self._fully_specified_batch_requests(batch_request)
+        requests, diagnostics = self._fully_specified_batch_requests(batch_request)
         unsorted_metadata_dicts = [self._get_batch_metadata_from_batch_request(r) for r in requests]
 
         if not unsorted_metadata_dicts:
-            raise NoAvailableBatchesError()
+            raise NoAvailableBatchesError(
+                _compose_no_available_batches_message(diagnostics, batch_request.options)
+            )
 
         if sql_partitioner:
             sorted_metadata_dicts = self.sort_batch_identifiers_list(
