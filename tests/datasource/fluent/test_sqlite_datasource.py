@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pathlib
+import warnings
 from contextlib import _GeneratorContextManager, contextmanager
 from typing import TYPE_CHECKING, Any, Callable, Generator, Optional
 
@@ -234,6 +235,38 @@ def test_connection_updating_plain_connection_string():
     assert isinstance(datasource.connection_string, SqliteDsn), (
         f"Expected SqliteDsn for plain connection string, got {type(datasource.connection_string)}"
     )
+
+
+@pytest.mark.unit
+def test_converted_datetime_string_batch_parameter_keeps_working_with_zero_warnings(
+    empty_data_context,
+    create_sqlite_source,
+):
+    """Sqlite's converted-datetime partitioner represents datetimes as formatted
+    strings by design. Resolving through the sqlite datasource's overridden
+    partitioner-implementation map must pick up SqlitePartitionerConvertedDateTime,
+    whose declared numeric parameters are empty -- so its string batch parameter keeps
+    selecting a batch exactly as before, with zero warnings emitted."""
+    with create_sqlite_source(
+        data_context=empty_data_context,
+        partitioner_query_response=[("2019-02-01",), ("2019-02-23",)],
+    ) as source:
+        asset = source.add_query_asset(name="query_asset", query="SELECT * from table")
+        partitioner = PartitionerConvertedDatetime(
+            column_name="pickup_datetime", date_format_string="%Y-%m-%d"
+        )
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            batch_request = asset.build_batch_request(
+                {"datetime": "2019-02-23"}, partitioner=partitioner
+            )
+        assert caught == []
+        assert batch_request.options == {"datetime": "2019-02-23"}
+
+        batches = asset.get_batch_identifiers_list(batch_request)
+        assert len(batches) == 1
+        assert asset.get_batch(batch_request).metadata == {"datetime": "2019-02-23"}
 
 
 @pytest.mark.unit

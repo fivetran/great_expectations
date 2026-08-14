@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import copy
+import datetime
 import logging
 import pathlib
+import warnings
 from typing import (
     TYPE_CHECKING,
     Generator,
@@ -24,6 +26,7 @@ from great_expectations.core.partitioners import (
     ColumnPartitionerMonthly,
     ColumnPartitionerYearly,
     PartitionerColumnValue,
+    PartitionerConvertedDatetime,
     PartitionerDatetimePart,
     PartitionerDividedInteger,
     PartitionerModInteger,
@@ -48,6 +51,7 @@ from great_expectations.datasource.fluent.sql_datasource import (
 )
 from great_expectations.exceptions.exceptions import NoAvailableBatchesError
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
+from great_expectations.warnings import GxDeprecationWarning
 from tests.datasource.fluent.conftest import (
     _DEFAULT_TEST_MONTHS,
     _DEFAULT_TEST_YEARS,
@@ -1282,6 +1286,153 @@ def test_partitioner(
         specified_batches = asset.get_batch_identifiers_list(batch_request)
         assert len(specified_batches) == specified_batch_cnt
         assert asset.get_batch(batch_request).metadata == last_specified_batch_metadata
+
+
+@pytest.mark.postgresql
+def test_digit_string_batch_parameter_selects_int_equivalent_batch_and_warns(
+    empty_data_context,
+    create_source: CreateSourceFixture,
+):
+    """A digit-string value for a numeric SQL partitioner parameter previously matched
+    nothing, because query candidates come back from the database as ints. It now
+    selects the numerically equivalent batch, with a deprecation warning naming
+    integers as the replacement."""
+    with create_source(
+        validate_batch_spec=lambda _: None,
+        dialect="postgresql",
+        data_context=empty_data_context,
+        partitioner_query_response=[{"year": 2020, "month": 1}, {"year": 2020, "month": 2}],
+    ) as source:
+        asset = source.add_query_asset(name="query_asset", query="SELECT * from table")
+        partitioner = ColumnPartitionerMonthly(column_name="my_col")
+
+        with pytest.warns(GxDeprecationWarning):
+            batch_request = asset.build_batch_request(
+                {"year": "2020", "month": "01"}, partitioner=partitioner
+            )
+        assert batch_request.options == {"year": 2020, "month": 1}
+
+        batches = asset.get_batch_identifiers_list(batch_request)
+        assert len(batches) == 1
+        assert asset.get_batch(batch_request).metadata == {"year": 2020, "month": 1}
+
+
+@pytest.mark.postgresql
+def test_integer_batch_parameter_selection_unchanged(
+    empty_data_context,
+    create_source: CreateSourceFixture,
+):
+    """Integer values for numeric SQL partitioner parameters keep selecting exactly the
+    batches they select today: normalization is an identity pass-through for
+    already-int input, so no warning fires and selection is unaffected."""
+    with create_source(
+        validate_batch_spec=lambda _: None,
+        dialect="postgresql",
+        data_context=empty_data_context,
+        partitioner_query_response=[{"year": 2020, "month": 1}, {"year": 2020, "month": 2}],
+    ) as source:
+        asset = source.add_query_asset(name="query_asset", query="SELECT * from table")
+        partitioner = ColumnPartitionerMonthly(column_name="my_col")
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            batch_request = asset.build_batch_request(
+                {"year": 2020, "month": 1}, partitioner=partitioner
+            )
+        assert caught == []
+        assert batch_request.options == {"year": 2020, "month": 1}
+
+        batches = asset.get_batch_identifiers_list(batch_request)
+        assert len(batches) == 1
+        assert asset.get_batch(batch_request).metadata == {"year": 2020, "month": 1}
+
+
+@pytest.mark.postgresql
+def test_column_value_partitioner_column_named_year_is_never_coerced(
+    empty_data_context,
+    create_source: CreateSourceFixture,
+):
+    """A column-value partitioner names its parameter after the column, which may
+    legitimately be `year` -- that kind declares no numeric parameters, so its values
+    are neither coerced nor warned on. A digit-string request still matches only by
+    today's exact-match rule: the string "01" never begins matching the integer 1."""
+    with create_source(
+        validate_batch_spec=lambda _: None,
+        dialect="postgresql",
+        data_context=empty_data_context,
+        partitioner_query_response=[(1,), (2,)],
+    ) as source:
+        asset = source.add_query_asset(name="query_asset", query="SELECT * from table")
+        partitioner = PartitionerColumnValue(column_name="year")
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            batch_request = asset.build_batch_request({"year": "01"}, partitioner=partitioner)
+        assert caught == []
+        # Not coerced: the digit-string request value is left exactly as passed.
+        assert batch_request.options == {"year": "01"}
+
+        # And it does not begin matching the integer candidate 1.
+        batches = asset.get_batch_identifiers_list(batch_request)
+        assert batches == []
+        with pytest.raises(NoAvailableBatchesError):
+            asset.get_batch(batch_request)
+
+
+@pytest.mark.postgresql
+def test_column_value_partitioner_over_date_column_keeps_string_inputs_working(
+    empty_data_context,
+    create_source: CreateSourceFixture,
+):
+    """Candidates from a date-typed column are compared as strings, so a column-value
+    partitioner over such a column takes string input. That kind declares no numeric
+    parameters, so the string is neither coerced nor warned on and keeps selecting."""
+    with create_source(
+        validate_batch_spec=lambda _: None,
+        dialect="postgresql",
+        data_context=empty_data_context,
+        partitioner_query_response=[(datetime.date(2018, 4, 1),), (datetime.date(2018, 5, 1),)],
+    ) as source:
+        asset = source.add_query_asset(name="query_asset", query="SELECT * from table")
+        partitioner = PartitionerColumnValue(column_name="pickup_date")
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            batch_request = asset.build_batch_request(
+                {"pickup_date": "2018-04-01"}, partitioner=partitioner
+            )
+        assert caught == []
+        assert batch_request.options == {"pickup_date": "2018-04-01"}
+
+        batches = asset.get_batch_identifiers_list(batch_request)
+        assert batches == [{"pickup_date": "2018-04-01"}]
+
+
+@pytest.mark.postgresql
+def test_build_batch_request_without_options_does_not_resolve_the_partitioner(
+    empty_data_context,
+    create_source: CreateSourceFixture,
+):
+    """Building a request has never been the step that rejects a partitioner the asset
+    cannot implement -- that is reported when batches are fetched. With no values to
+    coerce there is nothing to classify, so the report stays where it was."""
+    with create_source(
+        validate_batch_spec=lambda _: None,
+        dialect="postgresql",
+        data_context=empty_data_context,
+        partitioner_query_response=[(2018,)],
+    ) as source:
+        asset = source.add_query_asset(name="query_asset", query="SELECT * from table")
+        # This kind is implemented for sqlite only, so resolving it raises.
+        partitioner = PartitionerConvertedDatetime(
+            column_name="pickup_datetime", date_format_string="%Y-%m-%d"
+        )
+
+        batch_request = asset.build_batch_request(partitioner=partitioner)
+        assert batch_request.options == {}
+
+        with pytest.raises(ValueError, match="is not implemented"):
+            asset.get_batch_identifiers_list(batch_request)
 
 
 @pytest.mark.postgresql

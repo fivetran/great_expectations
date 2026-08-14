@@ -54,6 +54,10 @@ from great_expectations.core.partitioners import (
     PartitionerModInteger,
     PartitionerMultiColumnValue,
 )
+from great_expectations.datasource.fluent.batch_parameter_normalization import (
+    normalize_batch_parameters,
+    numeric_parameter_names_of,
+)
 from great_expectations.datasource.fluent.batch_request import (
     BatchRequest,
 )
@@ -770,6 +774,15 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
             A BatchRequest object that can be used to obtain a batch from an Asset by calling the
             get_batch method.
         """  # noqa: E501 # FIXME CoP
+        # Resolving the partitioner is what reports an unimplemented kind, so it stays
+        # behind the same guard the rest of this method uses: with no values to coerce
+        # there is nothing to classify, and building a request has never been the step
+        # that rejects a partitioner the asset cannot implement.
+        if options and partitioner is not None:
+            sql_partitioner = self.get_partitioner_implementation(partitioner)
+            numeric_param_names = numeric_parameter_names_of(sql_partitioner)
+            options = normalize_batch_parameters(options, numeric_param_names)
+
         if options is not None and not self._batch_parameters_are_valid(
             options=options, partitioner=partitioner
         ):
