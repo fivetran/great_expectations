@@ -328,13 +328,14 @@ the suite along with the data source, asset, and batch definition it depends
 on; writing out a suite without them leaves a project that cannot run it.
 Offer it; don't do it unprompted, and don't pick the location.
 
-**The offer ends this flow.** Write-out creates a project on the user's disk,
-so it starts only from their reply — a separate run, after they have agreed
-and named a directory. Reporting the results and then writing them out in the
-same breath means they were never asked; putting the write-out call in the
-same program as the suite and validation calls means the same thing, because
-there was no point in it where an answer could have arrived.
-`references/write-out.md` opens with the gate this depends on.
+**The offer ends this step, not the flow.** Write-out creates a project on
+the user's disk, so it starts only from their reply — a separate run, after
+they have agreed and named a directory. Reporting the results and then
+writing them out in the same breath means they were never asked; putting the
+write-out call in the same program as the suite and validation calls means
+the same thing, because there was no point in it where an answer could have
+arrived. `references/write-out.md` opens with the gate this depends on.
+Written out or not, what comes next is below.
 
 ## Worked example
 
@@ -392,15 +393,24 @@ as *one of four rows has no customer, and one amount is negative (-5.0)*; the
 
 ## Where this flow ends
 
-The saved, run, reported suite is the end state. Three things sit outside it:
+**The saved, run, reported suite is this flow's own end state.** The one
+thing that stays outside it is **rendering results anywhere but this
+conversation** — report what the run found; do not build reporting surfaces
+the user did not ask for. Setting up data access when the precondition fails
+(step 2) and building only what the user described rather than profiling
+(step 3) are already hard rules earlier in this flow, not items this closing
+note needs to repeat.
 
-- **Setting up data access.** If the precondition in step 2 fails, that is
-  the `gx-configure-data-source` skill's work, not something to improvise
-  around.
-- **Proposing expectations from the data.** The user describes; this flow
-  builds. See step 3.
-- **Rendering results anywhere but this conversation.** Report what the run
-  found; do not build reporting surfaces the user did not ask for.
+What no longer ends here: turning a validated suite into a check that
+survives the session. Offer the `gx-configure-checkpoint` skill as the next
+step — it binds the batch definition and suite this flow just built into a
+persisted, re-runnable checkpoint with post-run actions, verified by a run of
+its own. If the user asks for both in one breath, finish this flow, report
+it, and then move on.
+
+Declining the offer is a fine place to stop. Whether or not the user takes
+it, this flow's own job — build what was described, run it, report it, and
+persist or offer to persist it — is already done.
 
 ## References
 
