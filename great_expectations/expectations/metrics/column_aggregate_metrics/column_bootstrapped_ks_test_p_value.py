@@ -25,7 +25,7 @@ class ColumnBootstrappedKSTestPValue(ColumnAggregateMetricProvider):
     """MetricProvider Class for Aggregate Standard Deviation metric"""
 
     metric_name = "column.bootstrapped_ks_test_p_value"
-    value_keys = ("partition_object", "p", "bootstrap_sample", "bootstrap_sample_size")
+    value_keys = ("partition_object", "p", "bootstrap_samples", "bootstrap_sample_size")
 
     @column_aggregate_value(engine=PandasExecutionEngine)
     def _pandas(  # noqa: C901 # FIXME CoP

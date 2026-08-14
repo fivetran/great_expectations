@@ -1,0 +1,266 @@
+{
+    "title": "Expect column pair Cram\u00e9r's phi value to be less than",
+    "description": "Expect the Cram\u00e9r's phi (V) measure of association between two columns to be less than or equal to a threshold.\n\nExpectColumnPairCramersPhiValueToBeLessThan is a     Batch Expectation.\n\nBatchExpectations are one of the most common types of Expectation.\nThey are evaluated for an entire Batch, and answer a semantic question about the Batch itself.\n\nCram\u00e9r's phi (also written Cram\u00e9r's V) measures the strength of association between two     categorical variables, derived from the Chi-square statistic of their contingency table.     A value near 0 indicates the columns are (close to) independent; larger values indicate     stronger association. Numeric columns are discretized into bins before the table is built.\n\nArgs:\n    column_A (str):             The first column name.\n    column_B (str):             The second column name.\n    threshold (float):             The maximum Cram\u00e9r's phi value for which to return success=True. Cram\u00e9r's phi ranges from 0 (no association / independent) to 1 (perfect association). Defaults to 0.1.\n    bins_A (list or None):             Explicit bin edges (numeric column) or groups of values (categorical column) used to discretize column_A before building the contingency table.\n    bins_B (list or None):             As bins_A, but for column_B.\n    n_bins_A (int or None):             The number of bins to use for column_A when bins_A is not provided. Defaults to 10.\n    n_bins_B (int or None):             As n_bins_A, but for column_B.\n\nOther Parameters:\n    result_format (str or None):             Which output mode to use: BOOLEAN_ONLY, BASIC, COMPLETE, or SUMMARY.             For more detail, see [result_format](https://docs.greatexpectations.io/docs/reference/expectations/result_format).\n    catch_exceptions (boolean or None):             If True, then catch exceptions and include them as part of the result object.             For more detail, see [catch_exceptions](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#catch_exceptions).\n    meta (dict or None):             A JSON-serializable dictionary (nesting allowed) that will be included in the output without             modification. For more detail, see [meta](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#meta).\n    severity (str or None):             The impact of this Expectation failing: critical, warning, or info. Defaults to critical if not set. Severity levels can be used to trigger different alerting patterns and actions.             For more detail, see [failure severity](https://docs.greatexpectations.io/docs/cloud/expectations/expectations_overview/#failure-severity).\n\nReturns:\n    An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)\n\n    Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.\n\nNotes:\n    * observed_value field in the result object is customized for this expectation to be the           Cram\u00e9r's phi (V) value.\n    * details.crosstab is customized for this expectation to be a serializable representation           of the contingency table between column_A and column_B.\n    * The Expectation succeeds when the observed Cram\u00e9r's phi is less than or equal to threshold.\n\nSupported Data Sources:\n    [Pandas](https://docs.greatexpectations.io/docs/application_integration_support/)\n\nData Quality Issues:\n    Numeric\n\nExample Data:\n            test    test2\n        0   \"A\"     \"X\"\n        1   \"A\"     \"Y\"\n        2   \"B\"     \"X\"\n        3   \"B\"     \"Y\"\n\nCode Examples:\n    Passing Case:\n        Input:\n            ExpectColumnPairCramersPhiValueToBeLessThan(\n                column_A=\"test\",\n                column_B=\"test2\",\n                threshold=0.1\n        )\n\n        Output:\n            {\n              \"exception_info\": {\n                \"raised_exception\": false,\n                \"exception_traceback\": null,\n                \"exception_message\": null\n              },\n              \"result\": {\n                \"observed_value\": 0.0\n              },\n              \"meta\": {},\n              \"success\": true\n            }\n\n    Failing Case:\n        Input (test2 is fully determined by test, so the columns are perfectly associated):\n            test    test2\n        0   \"A\"     \"X\"\n        1   \"A\"     \"X\"\n        2   \"B\"     \"Y\"\n        3   \"B\"     \"Y\"\n\n            ExpectColumnPairCramersPhiValueToBeLessThan(\n                column_A=\"test\",\n                column_B=\"test2\",\n                threshold=0.1\n        )\n\n        Output:\n            {\n              \"exception_info\": {\n                \"raised_exception\": false,\n                \"exception_traceback\": null,\n                \"exception_message\": null\n              },\n              \"result\": {\n                \"observed_value\": 1.0\n              },\n              \"meta\": {},\n              \"success\": false\n            }",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "Id",
+            "type": "string"
+        },
+        "meta": {
+            "title": "Meta",
+            "type": "object"
+        },
+        "notes": {
+            "title": "Notes",
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "result_format": {
+            "title": "Result Format",
+            "default": "BASIC",
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/ResultFormat"
+                },
+                {
+                    "type": "object"
+                }
+            ]
+        },
+        "description": {
+            "title": "Description",
+            "description": "A short description of your Expectation",
+            "type": "string"
+        },
+        "catch_exceptions": {
+            "title": "Catch Exceptions",
+            "default": false,
+            "type": "boolean"
+        },
+        "rendered_content": {
+            "title": "Rendered Content",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
+        "severity": {
+            "description": "Indicate the impact of this Expectation failing. Severity levels can be used to trigger different alerting patterns and actions.",
+            "default": "critical",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/FailureSeverity"
+                }
+            ]
+        },
+        "windows": {
+            "title": "Windows",
+            "description": "Definition(s) for evaluation of temporal windows",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Window"
+            }
+        },
+        "batch_id": {
+            "title": "Batch Id",
+            "type": "string"
+        },
+        "column_A": {
+            "title": "Column A",
+            "description": "The first column name.",
+            "minLength": 1,
+            "type": "string"
+        },
+        "column_B": {
+            "title": "Column B",
+            "description": "The second column name.",
+            "minLength": 1,
+            "type": "string"
+        },
+        "threshold": {
+            "title": "Threshold",
+            "description": "The maximum Cram\u00e9r's phi value for which to return success=True. Cram\u00e9r's phi ranges from 0 (no association / independent) to 1 (perfect association). Defaults to 0.1.",
+            "default": 0.1,
+            "anyOf": [
+                {
+                    "type": "number"
+                },
+                {
+                    "type": "object"
+                }
+            ]
+        },
+        "bins_A": {
+            "title": "Bins A",
+            "description": "Explicit bin edges (numeric column) or groups of values (categorical column) used to discretize column_A before building the contingency table.",
+            "type": "array",
+            "items": {}
+        },
+        "bins_B": {
+            "title": "Bins B",
+            "description": "As bins_A, but for column_B.",
+            "type": "array",
+            "items": {}
+        },
+        "n_bins_A": {
+            "title": "N Bins A",
+            "description": "The number of bins to use for column_A when bins_A is not provided. Defaults to 10.",
+            "type": "integer"
+        },
+        "n_bins_B": {
+            "title": "N Bins B",
+            "description": "As n_bins_A, but for column_B.",
+            "type": "integer"
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "expectation_class": {
+                    "title": "Expectation Class",
+                    "type": "string",
+                    "const": "ExpectColumnPairCramersPhiValueToBeLessThan"
+                },
+                "expectation_type": {
+                    "title": "Expectation Type",
+                    "type": "string",
+                    "const": "expect_column_pair_cramers_phi_value_to_be_less_than"
+                },
+                "domain_type": {
+                    "title": "Domain Type",
+                    "type": "string",
+                    "const": "table",
+                    "description": "Batch"
+                },
+                "data_quality_issues": {
+                    "title": "Data Quality Issues",
+                    "type": "array",
+                    "const": [
+                        "Numeric"
+                    ]
+                },
+                "library_metadata": {
+                    "title": "Library Metadata",
+                    "type": "object",
+                    "const": {
+                        "maturity": "production",
+                        "tags": [
+                            "core expectation",
+                            "multi-column expectation",
+                            "distributional expectation"
+                        ],
+                        "contributors": [
+                            "@great_expectations"
+                        ],
+                        "requirements": [],
+                        "has_full_test_suite": true,
+                        "manually_reviewed_code": true
+                    }
+                },
+                "short_description": {
+                    "title": "Short Description",
+                    "type": "string",
+                    "const": "Expect the Cram\u00e9r's phi (V) measure of association between two columns to be less than or equal to a threshold."
+                },
+                "supported_data_sources": {
+                    "title": "Supported Data Sources",
+                    "type": "array",
+                    "const": [
+                        "Pandas"
+                    ]
+                }
+            }
+        }
+    },
+    "required": [
+        "column_A",
+        "column_B"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "ResultFormat": {
+            "title": "ResultFormat",
+            "description": "An enumeration.",
+            "enum": [
+                "BOOLEAN_ONLY",
+                "BASIC",
+                "COMPLETE",
+                "SUMMARY"
+            ],
+            "type": "string"
+        },
+        "FailureSeverity": {
+            "title": "FailureSeverity",
+            "description": "Severity levels for Expectation failures.",
+            "enum": [
+                "critical",
+                "warning",
+                "info"
+            ],
+            "type": "string"
+        },
+        "Offset": {
+            "title": "Offset",
+            "description": "A threshold in which a metric will be considered passable",
+            "type": "object",
+            "properties": {
+                "positive": {
+                    "title": "Positive",
+                    "type": "number"
+                },
+                "negative": {
+                    "title": "Negative",
+                    "type": "number"
+                }
+            },
+            "required": [
+                "positive",
+                "negative"
+            ],
+            "additionalProperties": false
+        },
+        "Window": {
+            "title": "Window",
+            "description": "A definition for a temporal window across <`range`> number of previous invocations",
+            "type": "object",
+            "properties": {
+                "constraint_fn": {
+                    "title": "Constraint Fn",
+                    "type": "string"
+                },
+                "parameter_name": {
+                    "title": "Parameter Name",
+                    "type": "string"
+                },
+                "range": {
+                    "title": "Range",
+                    "type": "integer"
+                },
+                "offset": {
+                    "$ref": "#/definitions/Offset"
+                },
+                "strict": {
+                    "title": "Strict",
+                    "default": false,
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "constraint_fn",
+                "parameter_name",
+                "range",
+                "offset"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

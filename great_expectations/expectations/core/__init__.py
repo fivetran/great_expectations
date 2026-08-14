@@ -1,3 +1,9 @@
+from .expect_column_bootstrapped_ks_test_p_value_to_be_greater_than import (
+    ExpectColumnBootstrappedKsTestPValueToBeGreaterThan,
+)
+from .expect_column_chisquare_test_p_value_to_be_greater_than import (
+    ExpectColumnChisquareTestPValueToBeGreaterThan,
+)
 from .expect_column_distinct_values_to_be_in_set import (
     ExpectColumnDistinctValuesToBeInSet,
 )
@@ -17,11 +23,17 @@ from .expect_column_min_to_be_between import ExpectColumnMinToBeBetween
 from .expect_column_most_common_value_to_be_in_set import (
     ExpectColumnMostCommonValueToBeInSet,
 )
+from .expect_column_pair_cramers_phi_value_to_be_less_than import (
+    ExpectColumnPairCramersPhiValueToBeLessThan,
+)
 from .expect_column_pair_values_a_to_be_greater_than_b import (
     ExpectColumnPairValuesAToBeGreaterThanB,
 )
 from .expect_column_pair_values_to_be_equal import ExpectColumnPairValuesToBeEqual
 from .expect_column_pair_values_to_be_in_set import ExpectColumnPairValuesToBeInSet
+from .expect_column_parameterized_distribution_ks_test_p_value_to_be_greater_than import (
+    ExpectColumnParameterizedDistributionKsTestPValueToBeGreaterThan,
+)
 from .expect_column_proportion_of_non_null_values_to_be_between import (
     ExpectColumnProportionOfNonNullValuesToBeBetween,
 )

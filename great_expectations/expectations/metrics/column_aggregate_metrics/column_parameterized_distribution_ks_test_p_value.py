@@ -38,7 +38,10 @@ class ColumnParameterizedDistributionKSTestPValue(ColumnAggregateMetricProvider)
         else:
             positional_parameters = params
 
-        # K-S Test
-        ks_result = stats.kstest(column, distribution, args=positional_parameters)
+        # K-S Test. Build a frozen distribution from the requested parameters and test against
+        # its CDF. Passing a distribution name with `args=` is no longer supported by scipy for
+        # parameterless CDFs (e.g. ``norm``), so freeze the distribution explicitly instead.
+        frozen_distribution = getattr(stats, distribution)(*(positional_parameters or ()))
+        ks_result = stats.kstest(column, frozen_distribution.cdf)
 
         return ks_result

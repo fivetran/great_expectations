@@ -1,6 +1,8 @@
 from great_expectations.expectations.expectation import Expectation
 
 from .core import (
+    ExpectColumnBootstrappedKsTestPValueToBeGreaterThan,
+    ExpectColumnChisquareTestPValueToBeGreaterThan,
     ExpectColumnDistinctValuesToBeInSet,
     ExpectColumnDistinctValuesToContainSet,
     ExpectColumnDistinctValuesToEqualSet,
@@ -10,9 +12,11 @@ from .core import (
     ExpectColumnMedianToBeBetween,
     ExpectColumnMinToBeBetween,
     ExpectColumnMostCommonValueToBeInSet,
+    ExpectColumnPairCramersPhiValueToBeLessThan,
     ExpectColumnPairValuesAToBeGreaterThanB,
     ExpectColumnPairValuesToBeEqual,
     ExpectColumnPairValuesToBeInSet,
+    ExpectColumnParameterizedDistributionKsTestPValueToBeGreaterThan,
     ExpectColumnProportionOfNonNullValuesToBeBetween,
     ExpectColumnProportionOfUniqueValuesToBeBetween,
     ExpectColumnQuantileValuesToBeBetween,
