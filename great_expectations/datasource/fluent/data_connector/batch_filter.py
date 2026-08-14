@@ -8,6 +8,9 @@ import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility.pydantic import StrictInt, StrictStr
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.id_dict import IDDict
+from great_expectations.datasource.fluent.batch_parameter_normalization import (
+    batch_parameter_values_match,
+)
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
@@ -334,7 +337,9 @@ class BatchFilter:
                 for batch_filter_parameter, val in self.batch_filter_parameters.items():
                     if not (
                         batch_filter_parameter in batch_identifiers
-                        and batch_identifiers[batch_filter_parameter] == val
+                        and batch_parameter_values_match(
+                            val, batch_identifiers[batch_filter_parameter]
+                        )
                     ):
                         return False
 
