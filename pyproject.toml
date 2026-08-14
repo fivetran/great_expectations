@@ -506,6 +506,10 @@ filterwarnings = [
     # strips schema_name from new serializations, so these will clean up over time.
     'once:The `schema_name` argument is deprecated:DeprecationWarning',
     'once:`schema_name` is deprecated:DeprecationWarning',
+    # Digit-string batch parameter values are deprecated in favor of ints; the once-per
+    # message-prefix filter keeps the existing digit-string call sites in the suite green
+    # while the deprecation window is open.
+    'once:String values for numeric batch parameters are deprecated:UserWarning',
 
     # --------------------------------------- TEMPORARY IGNORES --------------------------------------------------------
     # The warnings in this section should be addressed (fixed or ignored) but are ignored here temporarily to help allow
