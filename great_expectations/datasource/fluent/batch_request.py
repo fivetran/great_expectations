@@ -43,6 +43,9 @@ if TYPE_CHECKING:
 # partitioner, and we want to query all months in the year 2020, the batch parameters
 # would look like:
 #   options = { "year": 2020 }
+# Passing the value as a digit string (e.g. "2020") still works today but is deprecated
+# and emits a warning; support for string values will be removed in version 2.0. Use the
+# int form shown above.
 BatchParameters: TypeAlias = Dict[StrictStr, Any]
 
 
