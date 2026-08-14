@@ -121,6 +121,7 @@ REQUIRED_MARKERS: Final[set[str]] = {
     "databricks",
     "docs",
     "filesystem",
+    "gcs_deps",
     "generic_sql",
     "integration",
     "mysql",
@@ -235,6 +236,11 @@ def pytest_addoption(parser):
         "--bigquery",
         action="store_true",
         help="If set, execute tests against bigquery",
+    )
+    parser.addoption(
+        "--gcs",
+        action="store_true",
+        help="If set, execute tests against Google Cloud Storage",
     )
     parser.addoption(
         "--aws",

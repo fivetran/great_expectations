@@ -22,8 +22,6 @@ azure_options = {
 }
 # </snippet>
 
-bucket_or_name = "test_docs_data"
-
 # Python
 # <snippet name="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/filesystem/how_to_connect_to_data_on_azure_blob_storage_using_pandas.py create_datasource">
 datasource = context.data_sources.add_pandas_abs(

@@ -103,14 +103,14 @@ connect_to_filesystem_data_create_a_data_source = [
     # GCS, pandas/spark
     IntegrationTestFixture(
         # To test, run:
-        # pytest --docs-tests --bigquery -k "create_a_data_source_filesystem_gcs_pandas" tests/integration/test_script_runner.py
+        # pytest --docs-tests --gcs -k "create_a_data_source_filesystem_gcs_pandas" tests/integration/test_script_runner.py
         name="create_a_data_source_filesystem_gcs_pandas",
         user_flow_script="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_data_source/_gcs/_pandas.py",
         backend_dependencies=[BackendDependencies.GCS],
     ),
     IntegrationTestFixture(
         # To test, run:
-        # pytest --docs-tests --bigquery --spark -k "create_a_data_source_filesystem_gcs_spark" tests/integration/test_script_runner.py
+        # pytest --docs-tests --gcs --spark -k "create_a_data_source_filesystem_gcs_spark" tests/integration/test_script_runner.py
         name="create_a_data_source_filesystem_gcs_spark",
         user_flow_script="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_data_source/_gcs/_spark.py",
         backend_dependencies=[BackendDependencies.GCS, BackendDependencies.SPARK],
@@ -172,7 +172,7 @@ connect_to_filesystem_data_create_a_data_asset = [
     # GCS, directory asset/file asset
     IntegrationTestFixture(
         # To test, run:
-        # pytest --docs-tests --bigquery -k "create_a_data_asset_filesystem_gcs_file_asset" tests/integration/test_script_runner.py
+        # pytest --docs-tests --gcs -k "create_a_data_asset_filesystem_gcs_file_asset" tests/integration/test_script_runner.py
         name="create_a_data_asset_filesystem_gcs_file_asset",
         user_flow_script="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_data_asset/_gcs/_file_asset.py",
         data_context_dir="docs/docusaurus/docs/components/_testing/test_data_contexts/filesystem_datasource_gcs_pandas_no_assets/gx",
@@ -180,7 +180,7 @@ connect_to_filesystem_data_create_a_data_asset = [
     ),
     IntegrationTestFixture(
         # To test, run:
-        # pytest --docs-tests --bigquery --spark -k "create_a_data_asset_filesystem_gcs_directory_asset" tests/integration/test_script_runner.py
+        # pytest --docs-tests --gcs --spark -k "create_a_data_asset_filesystem_gcs_directory_asset" tests/integration/test_script_runner.py
         name="create_a_data_asset_filesystem_gcs_directory_asset",
         user_flow_script="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_data_asset/_gcs/_directory_asset.py",
         data_context_dir="docs/docusaurus/docs/components/_testing/test_data_contexts/filesystem_datasource_gcs_spark_no_assets/gx",
