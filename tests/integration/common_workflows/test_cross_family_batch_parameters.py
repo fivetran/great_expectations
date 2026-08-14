@@ -161,3 +161,49 @@ def test_digit_string_dict_warns_once_across_validation_definitions(
         warning for warning in caught if issubclass(warning.category, GxDeprecationWarning)
     ]
     assert len(deprecation_warnings) == 1
+
+
+@pytest.mark.filesystem
+def test_validation_definition_run_accepts_digit_string_batch_parameters(
+    context: AbstractDataContext,
+) -> None:
+    """`ValidationDefinition.run` is a documented entry path in its own right --
+    distinct from the checkpoint path exercised above and from the per-asset wiring
+    exercised in the file-family unit tests. The integer standardization and its
+    deprecation behavior are meant to be a property of the product, not of any one
+    code path, so this path needs its own coverage rather than relying on the
+    checkpoint tests to exercise it incidentally.
+
+    A digit-string batch parameter succeeds (rather than raising), emits exactly one
+    deprecation warning, and `result.meta["batch_parameters"]` preserves the user's
+    original strings verbatim -- normalization is a comparison-input concern only, and
+    must not leak into what gets recorded back to the user.
+    """
+    file_asset = context.data_sources.add_pandas_filesystem(
+        FILE_DATASOURCE_NAME,
+        base_directory=TAXI_DATA_DIR,  # type: ignore [arg-type]
+    ).add_csv_asset(name=FILE_ASSET_NAME)
+    file_batch_definition = file_asset.add_batch_definition_monthly(  # type: ignore[attr-defined] # FIXME CoP
+        "monthly files", re.compile(BATCHING_REGEX)
+    )
+    suite = context.suites.add(
+        ExpectationSuite(
+            "validation definition suite",
+            expectations=[gxe.ExpectTableRowCountToBeBetween(min_value=1)],
+        )
+    )
+    validation_definition = context.validation_definitions.add(
+        ValidationDefinition(name="file validation", data=file_batch_definition, suite=suite)
+    )
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("default")
+        result = validation_definition.run(batch_parameters=DIGIT_STRING_BATCH_PARAMETERS)
+
+    assert result.success
+    assert result.meta["batch_parameters"] == DIGIT_STRING_BATCH_PARAMETERS
+
+    deprecation_warnings = [
+        warning for warning in caught if issubclass(warning.category, GxDeprecationWarning)
+    ]
+    assert len(deprecation_warnings) == 1

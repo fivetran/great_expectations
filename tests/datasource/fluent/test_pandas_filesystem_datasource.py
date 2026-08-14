@@ -600,6 +600,54 @@ def test_integer_batch_parameter_keeps_zero_padded_string_identifiers_and_batch_
 
 
 @pytest.mark.unit
+def test_batch_definition_build_batch_request_forwards_normalization(
+    pandas_filesystem_datasource: PandasFilesystemDatasource,
+):
+    """`BatchDefinition.build_batch_request` is a verbatim forwarder to the asset
+    override -- it has no logic of its own, so a test that merely calls it and checks
+    for "no exception" would pass even if the forwarding stopped reaching the
+    normalization boundary. Asserting the *normalized* (int-valued) options is what
+    makes this test fail if that boundary is skipped: an unnormalized forward would
+    leave "month" as the digit-string "04" in `request.options`, not the int `4`.
+    """
+    asset = pandas_filesystem_datasource.add_csv_asset(name="csv_asset")
+    regex = r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
+    batch_def = asset.add_batch_definition_monthly(name="batch def", regex=regex)
+
+    with pytest.warns(GxDeprecationWarning):
+        request = batch_def.build_batch_request({"year": "2018", "month": "04"})
+
+    assert request.options == {"year": 2018, "month": 4}
+
+
+@pytest.mark.unit
+def test_batch_definition_get_batch_identifiers_list_forwards_normalization(
+    pandas_filesystem_datasource: PandasFilesystemDatasource,
+):
+    """`BatchDefinition.get_batch_identifiers_list` is also a verbatim forwarder --
+    through its own `build_batch_request`, in turn through the asset override. Integer
+    batch parameters alone would not prove forwarding reaches the boundary: the file
+    matching sites already tolerate int-vs-zero-padded-string candidates
+    unconditionally, so a raw, unnormalized `BatchRequest` built with int options would
+    select the same identifiers regardless of whether normalization ran. A digit-string
+    request is the assertion that goes red if forwarding stops reaching the boundary --
+    it only selects the equivalent batch, and only warns, if normalization actually
+    ran; an unnormalized bypass would either raise (pre-relaxation) or, absent that
+    check too, simply never emit the warning `pytest.warns` requires here.
+    """
+    asset = pandas_filesystem_datasource.add_csv_asset(name="csv_asset")
+    regex = r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
+    batch_def = asset.add_batch_definition_monthly(name="batch def", regex=regex)
+
+    with pytest.warns(GxDeprecationWarning):
+        identifiers_list = batch_def.get_batch_identifiers_list({"year": "2018", "month": "04"})
+
+    assert identifiers_list == [
+        {"path": "yellow_tripdata_sample_2018-04.csv", "year": "2018", "month": "04"}
+    ]
+
+
+@pytest.mark.unit
 @pytest.mark.parametrize("sort_ascending", [True, False])
 def test_string_batch_parameters_preserve_batch_ordering(
     pandas_filesystem_datasource: PandasFilesystemDatasource,
