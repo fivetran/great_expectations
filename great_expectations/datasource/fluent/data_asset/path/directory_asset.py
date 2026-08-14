@@ -17,6 +17,10 @@ from great_expectations.core.partitioners import (
 )
 from great_expectations.datasource.fluent import BatchRequest
 from great_expectations.datasource.fluent.batch_identifier_util import make_batch_identifier
+from great_expectations.datasource.fluent.batch_parameter_normalization import (
+    normalize_batch_parameters,
+    numeric_parameter_names_of,
+)
 from great_expectations.datasource.fluent.constants import _DATA_CONNECTOR_NAME
 from great_expectations.datasource.fluent.data_asset.path.dataframe_partitioners import (
     DataframePartitioner,
@@ -189,6 +193,11 @@ class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], ABC, Gen
         batch_slice: Optional[BatchSlice] = None,
         partitioner: Optional[ColumnPartitioner] = None,
     ) -> BatchRequest:
+        if options is not None:
+            dataframe_partitioner = self._get_dataframe_partitioner(partitioner)
+            numeric_param_names = numeric_parameter_names_of(dataframe_partitioner)
+            options = normalize_batch_parameters(options, numeric_param_names)
+
         if options is not None and not self._batch_parameters_are_valid(
             options=options,
             partitioner=partitioner,

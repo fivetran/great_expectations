@@ -4,6 +4,7 @@ import copy
 import logging
 import pathlib
 import re
+import warnings
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict, List, Tuple, cast
 
@@ -919,6 +920,93 @@ def test_get_batch_list_from_directory_merges_files(
     # The directory contains 12 files with 10,000 records each so the batch data
     # (spark dataframe) should contain 120,000 records:
     assert batch_data.dataframe.count() == 12 * 10000  # type: ignore[attr-defined] # FIXME CoP
+
+
+@pytest.mark.spark
+def test_directory_asset_integer_batch_parameters_select_expected_identifiers(
+    spark_filesystem_datasource: SparkFilesystemDatasource,
+):
+    """Integer batch parameters on a directory asset are carried through to the batch
+    identifiers unchanged -- the baseline this feature must not disturb."""
+    asset = spark_filesystem_datasource.add_directory_csv_asset(
+        name="directory_csv_asset",
+        data_directory="first_ten_trips_in_each_file",
+        header=True,
+        infer_schema=True,
+    )
+    partitioner = ColumnPartitionerDaily(column_name="pickup_datetime")
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        request = asset.build_batch_request(
+            {"year": 2018, "month": 1, "day": 11}, partitioner=partitioner
+        )
+    assert len(caught) == 0
+
+    identifiers = asset.get_batch_identifiers_list(request)
+    assert len(identifiers) == 1
+    assert identifiers[0]["year"] == 2018
+    assert identifiers[0]["month"] == 1
+    assert identifiers[0]["day"] == 11
+
+
+@pytest.mark.spark
+def test_directory_asset_digit_string_batch_parameters_select_same_identifiers_as_integers(
+    spark_filesystem_datasource: SparkFilesystemDatasource,
+):
+    """A digit-string batch parameter on a directory asset now selects the same
+    (numerically equivalent) batch as its integer form and emits a deprecation
+    warning, instead of silently producing identifiers no batch of real data would
+    ever match."""
+    asset = spark_filesystem_datasource.add_directory_csv_asset(
+        name="directory_csv_asset",
+        data_directory="first_ten_trips_in_each_file",
+        header=True,
+        infer_schema=True,
+    )
+    partitioner = ColumnPartitionerDaily(column_name="pickup_datetime")
+
+    int_request = asset.build_batch_request(
+        {"year": 2018, "month": 1, "day": 11}, partitioner=partitioner
+    )
+    expected_identifiers = asset.get_batch_identifiers_list(int_request)
+
+    with pytest.warns(GxDeprecationWarning):
+        digit_string_request = asset.build_batch_request(
+            {"year": "2018", "month": "01", "day": "11"}, partitioner=partitioner
+        )
+    digit_string_identifiers = asset.get_batch_identifiers_list(digit_string_request)
+
+    assert digit_string_identifiers == expected_identifiers
+    assert all(
+        isinstance(digit_string_identifiers[0][key], int) for key in ("year", "month", "day")
+    )
+
+
+@pytest.mark.spark
+def test_directory_asset_path_parameter_never_coerced_or_warned(
+    spark_filesystem_datasource: SparkFilesystemDatasource,
+):
+    """The injected `path` batch parameter is exempt from numeric normalization even
+    when it looks like a digit-string, and never triggers the deprecation warning on
+    its own account."""
+    asset = spark_filesystem_datasource.add_directory_csv_asset(
+        name="directory_csv_asset",
+        data_directory="first_ten_trips_in_each_file",
+        header=True,
+        infer_schema=True,
+    )
+    partitioner = ColumnPartitionerDaily(column_name="pickup_datetime")
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        request = asset.build_batch_request(
+            {"year": 2018, "month": 1, "day": 11, "path": "12345"}, partitioner=partitioner
+        )
+    assert len(caught) == 0
+
+    identifiers = asset.get_batch_identifiers_list(request)
+    assert identifiers[0]["path"] == "12345"
 
 
 @pytest.mark.spark
