@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, Dict, List, Tuple, cast
 
 import pytest
 
-import great_expectations.exceptions as ge_exceptions
 import great_expectations.expectations as gxe
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pyspark import functions as F
@@ -22,6 +21,7 @@ from great_expectations.core.partitioners import (
     FileNamePartitionerMonthly,
     FileNamePartitionerYearly,
 )
+from great_expectations.datasource.fluent import BatchRequest
 from great_expectations.datasource.fluent.data_asset.path.spark.csv_asset import (
     CSVAsset,
     DirectoryCSVAsset,
@@ -58,6 +58,7 @@ from great_expectations.datasource.fluent.spark_file_path_datasource import (
 from great_expectations.datasource.fluent.spark_filesystem_datasource import (
     SparkFilesystemDatasource,
 )
+from great_expectations.warnings import GxDeprecationWarning
 
 if TYPE_CHECKING:
     from great_expectations.alias_types import PathStr
@@ -738,14 +739,126 @@ def test_csv_asset_with_batching_regex_named_parameters(
 def test_csv_asset_with_non_string_batching_regex_named_parameters(
     spark_filesystem_datasource: SparkFilesystemDatasource,
 ):
+    """An integer batching_regex parameter selects a batch instead of being rejected;
+    a digit-string sibling in the same request keeps working with a deprecation
+    warning."""
     asset = spark_filesystem_datasource.add_csv_asset(
         name="csv_asset",
         header=True,
         infer_schema=True,
     )
-    with pytest.raises(ge_exceptions.InvalidBatchRequestError):
-        # year is an int which will raise an error
-        asset.build_batch_request({"year": 2018, "month": "04"})
+    regex = r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
+    partitioner = FileNamePartitionerMonthly(regex=re.compile(regex))
+
+    with pytest.warns(GxDeprecationWarning):
+        # year is an int and is accepted outright; month is a digit-string, which is
+        # accepted but deprecated.
+        request = asset.build_batch_request({"year": 2018, "month": "04"}, partitioner=partitioner)
+
+    identifiers = asset.get_batch_identifiers_list(request)
+    assert identifiers == [
+        {"path": "yellow_tripdata_sample_2018-04.csv", "year": "2018", "month": "04"}
+    ]
+
+
+def _batches_selected_without_normalization(
+    asset: PathDataAsset,
+    partitioner: FileNamePartitionerMonthly,
+    year: str,
+    month: str,
+) -> set[tuple[str, str]]:
+    """The (year, month) pairs selected by today's string contract.
+
+    Builds the `BatchRequest` directly, bypassing `build_batch_request`'s
+    normalization and type-check wiring, so this reflects only the underlying regex
+    matching -- independent of the behavior under test -- and can serve as a ground
+    truth for the equivalent integer/digit-string requests.
+    """
+    request = BatchRequest(
+        datasource_name=asset.datasource.name,
+        data_asset_name=asset.name,
+        options={"year": year, "month": month},
+        partitioner=partitioner,
+    )
+    return {
+        (identifiers["year"], identifiers["month"])
+        for identifiers in asset.get_batch_identifiers_list(request)
+    }
+
+
+@pytest.mark.spark
+@pytest.mark.parametrize(
+    "regex",
+    [
+        pytest.param(
+            r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv", id="fixed-width"
+        ),
+        pytest.param(
+            r"yellow_tripdata_sample_(?P<year>\d{1,4})-(?P<month>\d{1,2})\.csv",
+            id="variable-width",
+        ),
+    ],
+)
+def test_integer_batch_parameters_select_same_batches_as_zero_padded_strings(
+    spark_filesystem_datasource: SparkFilesystemDatasource,
+    regex: str,
+):
+    """Integer batch parameters select exactly the batches their zero-padded string
+    form selects today, including a single-digit month -- the trap a textual (rather
+    than numeric) normalization would fail."""
+    asset = spark_filesystem_datasource.add_csv_asset(
+        name="csv_asset", header=True, infer_schema=True
+    )
+    partitioner = FileNamePartitionerMonthly(regex=re.compile(regex))
+
+    expected = _batches_selected_without_normalization(asset, partitioner, year="2018", month="04")
+    assert expected == {("2018", "04")}
+
+    int_request = asset.build_batch_request({"year": 2018, "month": 4}, partitioner=partitioner)
+    int_selected = {
+        (identifiers["year"], identifiers["month"])
+        for identifiers in asset.get_batch_identifiers_list(int_request)
+    }
+
+    assert int_selected == expected
+
+
+@pytest.mark.spark
+@pytest.mark.parametrize(
+    "regex",
+    [
+        pytest.param(
+            r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv", id="fixed-width"
+        ),
+        pytest.param(
+            r"yellow_tripdata_sample_(?P<year>\d{1,4})-(?P<month>\d{1,2})\.csv",
+            id="variable-width",
+        ),
+    ],
+)
+def test_digit_string_batch_parameters_select_same_batches_as_integers_and_warn(
+    spark_filesystem_datasource: SparkFilesystemDatasource,
+    regex: str,
+):
+    """A digit-string batch parameter selects the same batches as its integer
+    equivalent and emits a deprecation warning instead of raising."""
+    asset = spark_filesystem_datasource.add_csv_asset(
+        name="csv_asset", header=True, infer_schema=True
+    )
+    partitioner = FileNamePartitionerMonthly(regex=re.compile(regex))
+
+    expected = _batches_selected_without_normalization(asset, partitioner, year="2018", month="04")
+
+    with pytest.warns(GxDeprecationWarning):
+        digit_string_request = asset.build_batch_request(
+            {"year": "2018", "month": "04"}, partitioner=partitioner
+        )
+    digit_string_selected = {
+        (identifiers["year"], identifiers["month"])
+        for identifiers in asset.get_batch_identifiers_list(digit_string_request)
+    }
+
+    assert digit_string_selected == expected
 
 
 @pytest.mark.spark
