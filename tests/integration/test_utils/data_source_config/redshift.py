@@ -50,11 +50,9 @@ class RedshiftDatasourceTestConfig(SqlDatasourceTestConfig):
         label="redshift",
         marker="redshift",
         provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
-        # Redshift's CI lane is a dedicated job, not a `marker-tests` matrix entry, and the
-        # token that job selects on is `gx-redshift`, not the `redshift` pytest marker itself
-        # (see `redshift` job in ci.yml, and the `gx-redshift` -> `'redshift'` marker-string
-        # translation in tasks.py's `_marker_statement`).
-        ci_lane=CiLaneRef(workflow_job="redshift", marker_token="gx-redshift"),
+        # Redshift's CI lane is a dedicated job rather than a `marker-tests` matrix entry, so
+        # the job is named explicitly here rather than being the shared matrix job.
+        ci_lane=CiLaneRef(workflow_job="redshift", marker_token="redshift"),
         uses_schema=True,
         dev_requirements_file="reqs/requirements-dev-redshift.txt",
         task_runner_marker="redshift",

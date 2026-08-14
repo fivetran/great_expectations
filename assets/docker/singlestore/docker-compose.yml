@@ -1,6 +1,6 @@
 services:
   singlestore_db:
-    image: ghcr.io/singlestore-labs/singlestoredb-dev:latest
+    image: ghcr.io/singlestore-labs/singlestoredb-dev:0.2.82
     environment:
       ROOT_PASSWORD: ${SINGLESTORE_ROOT_PASSWORD:-test_superuser}
     volumes:

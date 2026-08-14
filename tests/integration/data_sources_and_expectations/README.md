@@ -381,7 +381,7 @@ those files. Its failure messages, and their remedies:
 | `marker` not in `REQUIRED_MARKERS` | Add the marker to that set in `tests/conftest.py` (step 3, second bullet). |
 | Declared `dev_requirements_file` does not exist on disk | Create the file at the declared path, or fix the declared path. |
 | Declared `task_runner_marker` has no `MARKER_DEPENDENCY_MAP` entry, or that entry doesn't list `dev_requirements_file` | Add or fix the entry in `tasks.py` (step 3, third bullet). |
-| Declared `ci_lane.workflow_job` has no matching job, or `ci_lane.marker_token` does not appear as a whole token in that job | Add the job, or add the token to that job's marker matrix in `.github/workflows/ci.yml`. Token matching is whole-token, not substring — `redshift` does not match inside `gx-redshift` — so a token that is merely a prefix of one already present still fails. |
+| Declared `ci_lane.workflow_job` has no matching job, or `ci_lane.marker_token` does not appear as a whole token in that job | Add the job, or add the token to that job's marker matrix in `.github/workflows/ci.yml`. Token matching is whole-token, not substring, so a token that is merely a prefix of one already present still fails. |
 | Declared `container_service` has no compose file at `assets/docker/<service>/docker-compose.yml`, or the `MARKER_DEPENDENCY_MAP` entry doesn't list it among its services | Add the compose file, or add the service to the task-runner entry's `services`. |
 
 Verified against the real repository, all nine currently registered backends pass this check with

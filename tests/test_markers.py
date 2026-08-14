@@ -15,9 +15,9 @@ LOGGER: Final = logging.getLogger(__name__)
 PROJECT_ROOT: Final = pathlib.Path(__file__).parent.parent
 PYPROJECT_TOML: Final = PROJECT_ROOT / "pyproject.toml"
 # Markers that are used to launch CI but map to a different marker for tests.
-# eg, gx-redshift should run the redshift test so, while a marker for CI
+# eg, mssql should run the sql_server tests so, while a marker for CI,
 # there should be no tests with this marker.
-NO_TEST_MARKERS: Final = ["gx-redshift", "mssql"]
+NO_TEST_MARKERS: Final = ["mssql"]
 
 
 @pytest.fixture(scope="module")
