@@ -274,6 +274,10 @@ class SqlPartitionerYear(_PartitionerDatetime):
     def param_names(self) -> List[str]:
         return ["year"]
 
+    @property
+    def numeric_param_names(self) -> List[str]:
+        return self.param_names
+
     @override
     def partitioner_method_kwargs(self) -> Dict[str, Any]:
         return {"column_name": self.column_name}
@@ -288,6 +292,10 @@ class SqlPartitionerYearAndMonth(_PartitionerDatetime):
     @override
     def param_names(self) -> List[str]:
         return ["year", "month"]
+
+    @property
+    def numeric_param_names(self) -> List[str]:
+        return self.param_names
 
     @override
     def partitioner_method_kwargs(self) -> Dict[str, Any]:
@@ -306,6 +314,10 @@ class SqlPartitionerYearAndMonthAndDay(_PartitionerDatetime):
     def param_names(self) -> List[str]:
         return ["year", "month", "day"]
 
+    @property
+    def numeric_param_names(self) -> List[str]:
+        return self.param_names
+
     @override
     def partitioner_method_kwargs(self) -> Dict[str, Any]:
         return {"column_name": self.column_name}
@@ -321,6 +333,10 @@ class SqlPartitionerDatetimePart(_PartitionerDatetime):
     @override
     def param_names(self) -> List[str]:
         return self.datetime_parts
+
+    @property
+    def numeric_param_names(self) -> List[str]:
+        return self.param_names
 
     @override
     def partitioner_method_kwargs(self) -> Dict[str, Any]:
@@ -376,6 +392,10 @@ class SqlPartitionerDividedInteger(_PartitionerOneColumnOneParam):
     def param_names(self) -> List[str]:
         return ["quotient"]
 
+    @property
+    def numeric_param_names(self) -> List[str]:
+        return self.param_names
+
     @override
     def partitioner_method_kwargs(self) -> Dict[str, Any]:
         return {"column_name": self.column_name, "divisor": self.divisor}
@@ -399,6 +419,10 @@ class SqlPartitionerModInteger(_PartitionerOneColumnOneParam):
     def param_names(self) -> List[str]:
         return ["remainder"]
 
+    @property
+    def numeric_param_names(self) -> List[str]:
+        return self.param_names
+
     @override
     def partitioner_method_kwargs(self) -> Dict[str, Any]:
         return {"column_name": self.column_name, "mod": self.mod}
@@ -415,6 +439,10 @@ class SqlPartitionerModInteger(_PartitionerOneColumnOneParam):
 class SqlPartitionerColumnValue(_PartitionerOneColumnOneParam):
     column_name: str
     method_name: Literal["partition_on_column_value"] = "partition_on_column_value"
+
+    # Deliberately does not declare numeric_param_names: the parameter name is the
+    # column name itself, so a string column literally named "year" would produce a
+    # "year" key. Declaring nothing here keeps that value from ever being coerced.
 
     @property
     @override
@@ -489,6 +517,9 @@ class SqlitePartitionerConvertedDateTime(_PartitionerOneColumnOneParam):
     column_name: str
     sort_ascending: bool = True
     method_name: Literal["partition_on_converted_datetime"] = "partition_on_converted_datetime"
+
+    # Deliberately does not declare numeric_param_names: "datetime" carries a
+    # string-formatted datetime value, not a bare integer, so it must never be coerced.
 
     @property
     @override

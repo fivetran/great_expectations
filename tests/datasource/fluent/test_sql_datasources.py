@@ -11,8 +11,19 @@ from pytest import param
 
 from great_expectations.compatibility import sqlalchemy
 from great_expectations.datasource.fluent import GxDatasourceWarning, SQLDatasource
+from great_expectations.datasource.fluent.batch_parameter_normalization import (
+    numeric_parameter_names_of,
+)
 from great_expectations.datasource.fluent.sql_datasource import (
     DEFAULT_INITIAL_QUOTE_CHARACTERS,
+    SqlPartitionerColumnValue,
+    SqlPartitionerDatetimePart,
+    SqlPartitionerDividedInteger,
+    SqlPartitionerModInteger,
+    SqlPartitionerMultiColumnValue,
+    SqlPartitionerYear,
+    SqlPartitionerYearAndMonth,
+    SqlPartitionerYearAndMonthAndDay,
     TableAsset,
     to_lower_if_not_quoted,
 )
@@ -471,6 +482,50 @@ class TestTableAsset:
         ):
             serialized = table_asset.dict()
             assert serialized["table_name"] == serialized_name
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "partitioner",
+    [
+        param(SqlPartitionerYear(column_name="ts"), id="year"),
+        param(SqlPartitionerYearAndMonth(column_name="ts"), id="year-and-month"),
+        param(SqlPartitionerYearAndMonthAndDay(column_name="ts"), id="year-and-month-and-day"),
+        param(
+            SqlPartitionerDatetimePart(column_name="ts", datetime_parts=["year", "month"]),
+            id="datetime-part",
+        ),
+        param(SqlPartitionerDividedInteger(column_name="id", divisor=10), id="divided-integer"),
+        param(SqlPartitionerModInteger(column_name="id", mod=10), id="mod-integer"),
+    ],
+)
+def test_numeric_param_names_matches_param_names_for_numeric_sql_partitioners(partitioner):
+    """Numeric SQL partitioner kinds declare exactly their own parameter names as numeric.
+
+    This is what lets digit-string batch parameters (e.g. "2024") be coerced to int for
+    these kinds without a partitioner-specific special case.
+    """
+    assert list(partitioner.numeric_param_names) == list(partitioner.param_names)
+    assert numeric_parameter_names_of(partitioner) == frozenset(partitioner.param_names)
+
+
+@pytest.mark.unit
+def test_sql_column_value_partitioner_declares_no_numeric_param_names():
+    """A column-value partitioner declares nothing, so a column literally named "year" is
+    never coerced to int -- the exemption is closed by construction, not a special case.
+    """
+    partitioner = SqlPartitionerColumnValue(column_name="year")
+    assert numeric_parameter_names_of(partitioner) == frozenset()
+
+
+@pytest.mark.unit
+def test_sql_multi_column_value_partitioner_declares_no_numeric_param_names():
+    """Multi-column value partitioning is exempt for the same reason as the single-column
+    kind: the parameters are named after columns, so any of them may legitimately carry a
+    non-numeric value even when the column is named "year".
+    """
+    partitioner = SqlPartitionerMultiColumnValue(column_names=["year", "month"])
+    assert numeric_parameter_names_of(partitioner) == frozenset()
 
 
 if __name__ == "__main__":

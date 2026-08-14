@@ -11,7 +11,13 @@ from great_expectations.core.partitioners import (
     PartitionerConvertedDatetime,
 )
 from great_expectations.datasource.fluent import SqliteDatasource
+from great_expectations.datasource.fluent.batch_parameter_normalization import (
+    numeric_parameter_names_of,
+)
 from great_expectations.datasource.fluent.config_str import ConfigStr
+from great_expectations.datasource.fluent.sql_datasource import (
+    SqlitePartitionerConvertedDateTime,
+)
 from great_expectations.datasource.fluent.sqlite_datasource import SqliteDsn
 from tests.datasource.fluent.conftest import sqlachemy_execution_engine_mock_cls
 
@@ -228,3 +234,15 @@ def test_connection_updating_plain_connection_string():
     assert isinstance(datasource.connection_string, SqliteDsn), (
         f"Expected SqliteDsn for plain connection string, got {type(datasource.connection_string)}"
     )
+
+
+@pytest.mark.unit
+def test_converted_datetime_partitioner_declares_no_numeric_param_names():
+    """A converted-datetime partitioner declares nothing: its single parameter carries a
+    string-formatted datetime, not a bare integer, so it must never be coerced to int.
+    The exemption is closed by construction, not a special case.
+    """
+    partitioner = SqlitePartitionerConvertedDateTime(
+        column_name="ts", date_format_string="%Y-%m-%d"
+    )
+    assert numeric_parameter_names_of(partitioner) == frozenset()
