@@ -298,7 +298,7 @@ an outcome belongs to.
 ## Step 7 — Confirm persistence, offer write-out
 
 **In a file-backed project, the checkpoint and its validation definitions
-are already saved** — the explicit adds in steps 3 and 5 wrote them.
+are already saved** — the explicit adds in steps 3 and 4 wrote them.
 Confirm this concretely: name the checkpoint, name the validation
 definitions it groups, and say that a fresh session picks it up with
 `context.checkpoints.get("<name>")`.
@@ -364,7 +364,7 @@ existing_checkpoints = {c.name for c in context.checkpoints.all()}
 if CHECKPOINT_NAME in existing_checkpoints:
     checkpoint = context.checkpoints.get(CHECKPOINT_NAME)
 else:
-    checkpoint = context.checkpoints.add(                       # step 5: explicit add
+    checkpoint = context.checkpoints.add(                       # step 4: explicit add
         Checkpoint(
             name=CHECKPOINT_NAME,
             validation_definitions=[validation_definition],
