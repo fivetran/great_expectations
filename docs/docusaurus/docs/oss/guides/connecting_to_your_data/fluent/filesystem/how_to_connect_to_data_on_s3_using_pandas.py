@@ -42,7 +42,7 @@ assert data_asset
 
 assert datasource.get_asset_names() == {"my_taxi_data_asset"}
 
-batch_parameters = {"year": "2019", "month": "03"}
+batch_parameters = {"year": 2019, "month": 3}
 batch = batch_definition.get_batch(batch_parameters=batch_parameters)
 assert set(batch.columns()) == {
     "vendor_id",

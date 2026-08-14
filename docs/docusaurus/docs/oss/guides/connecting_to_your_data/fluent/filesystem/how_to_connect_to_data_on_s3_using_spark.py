@@ -49,7 +49,7 @@ batch_definition = data_asset.add_batch_definition_monthly(
 # </snippet>
 
 
-batch = batch_definition.get_batch(batch_parameters={"year": "2019", "month": "03"})
+batch = batch_definition.get_batch(batch_parameters={"year": 2019, "month": 3})
 assert set(batch.columns()) == {
     "vendor_id",
     "pickup_datetime",
