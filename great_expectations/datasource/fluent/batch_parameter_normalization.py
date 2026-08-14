@@ -14,8 +14,10 @@ from typing import (
     Final,
     FrozenSet,
     List,
+    NamedTuple,
     Optional,
     Pattern,
+    Set,
     Tuple,
 )
 
@@ -43,6 +45,27 @@ _STDLIB_ROOTS: Final[Tuple[str, ...]] = tuple(
         str(Path(sysconfig.get_paths()["platstdlib"]).resolve()),
     }
 )
+
+# Per-process record of (message, user call-site file, user call-site line) triples
+# that have already been warned on. Python's own per-module warning registry isn't a
+# reliable substitute for this: it is invalidated wholesale whenever anything in the
+# process (including code well outside our control, e.g. pandas mutating dtypes)
+# calls warnings.filterwarnings/simplefilter, which happens routinely during a real
+# checkpoint run. Keying on the user's own call site instead of the interpreter's
+# filter state gives a "once per place in the user's code" guarantee that survives
+# that mutation.
+_WARNED_CALL_SITES: Set[Tuple[str, Optional[str], Optional[int]]] = set()
+
+
+def _reset_warned_call_sites_for_tests() -> None:
+    """Clear the per-process call-site dedup registry.
+
+    Test-facing only: the registry is intentionally scoped to the process, so a test
+    suite that asserts on warning counts must reset it between tests to avoid one
+    test's emission suppressing another's identical (message, file, line) triple.
+    Not part of the public API.
+    """
+    _WARNED_CALL_SITES.clear()
 
 
 def is_digit_string(value: object) -> bool:
@@ -139,38 +162,68 @@ def numeric_parameter_names_of(partitioner: object) -> FrozenSet[str]:
         return frozenset()
 
 
+class _UserFrameLocation(NamedTuple):
+    """Result of walking the stack to find the first non-library frame.
+
+    `stacklevel` is usable directly by `warnings.warn`: stacklevel=2 identifies the
+    immediate caller of `_warn_digit_string_coercion`, stacklevel=3 the caller's
+    caller, and so on. `filename` and `lineno` are the resolved (realpath-normalized)
+    location of that same frame, used as part of the dedup key so repeat warnings
+    from the identical call site are recognized regardless of interpreter warning
+    filter state. When the walk falls back (no user frame found -- every frame above
+    is inside this package or the stdlib), `filename`/`lineno` are None: there is no
+    real user location to key on, so callers should treat that as its own bucket
+    rather than colliding with any real call site.
+    """
+
+    stacklevel: int
+    filename: Optional[str]
+    lineno: Optional[int]
+
+
 def _warn_digit_string_coercion(coerced_key_names: Collection[str]) -> None:
-    """Emit the single deprecation warning for a coercion, attributed to user code."""
+    """Emit the deprecation warning for a coercion, once per user call site.
+
+    Attributed to user code via stacklevel. Deduplicated per-process on
+    (message, call-site file, call-site line) rather than relying on Python's
+    built-in per-module warning registry, which is invalidated process-wide by any
+    unrelated `warnings.filterwarnings`/`simplefilter` call happening in between --
+    something real workloads trigger routinely (e.g. pandas mutates warning filters
+    while casting dtypes).
+    """
     names = ", ".join(sorted(coerced_key_names))
     message = (
         f"{BATCH_PARAMETER_DEPRECATION_MESSAGE_PREFIX}: {names}. "
         "Pass integer values instead; string support is planned for removal in 2.0."
     )
+    location = _stacklevel_to_user_code()
+    key = (message, location.filename, location.lineno)
+    if key in _WARNED_CALL_SITES:
+        return
+    _WARNED_CALL_SITES.add(key)
+
     warnings.warn(  # deprecated-v1.21.0
-        message, GxDeprecationWarning, stacklevel=_stacklevel_to_user_code()
+        message, GxDeprecationWarning, stacklevel=location.stacklevel
     )
 
 
-def _stacklevel_to_user_code() -> int:
-    """Walk the call stack to find the stacklevel of the first non-library frame.
+def _stacklevel_to_user_code() -> _UserFrameLocation:
+    """Walk the call stack to find the first non-library frame.
 
     "Library" means either this package or the stdlib (both realpath-normalized).
-    The returned value is a stacklevel usable directly by the `warnings.warn` call
-    in `_warn_digit_string_coercion`: stacklevel=2 identifies that function's
-    immediate caller, stacklevel=3 the caller's caller, and so on. Falls back to 2
-    (the immediate caller) when every frame above it is inside this package or the
-    stdlib, which can happen in tests that call the module directly through only
-    library code.
+    Falls back to stacklevel 2 (the immediate caller) with filename/lineno left None
+    when every frame above it is inside this package or the stdlib, which can happen
+    in tests that call the module directly through only library code.
     """
     frame: Optional[FrameType] = sys._getframe(2)  # caller of _warn_digit_string_coercion
     level = 2
     while frame is not None:
         filename = str(Path(frame.f_code.co_filename).resolve())
         if not _is_library_frame(filename):
-            return level
+            return _UserFrameLocation(stacklevel=level, filename=filename, lineno=frame.f_lineno)
         frame = frame.f_back
         level += 1
-    return 2
+    return _UserFrameLocation(stacklevel=2, filename=None, lineno=None)
 
 
 def _is_library_frame(realpath_filename: str) -> bool:

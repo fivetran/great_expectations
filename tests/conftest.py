@@ -60,6 +60,9 @@ from great_expectations.data_context.util import (
     file_relative_path,
 )
 from great_expectations.datasource.fluent import GxDatasourceWarning
+from great_expectations.datasource.fluent.batch_parameter_normalization import (
+    _reset_warned_call_sites_for_tests,
+)
 from great_expectations.execution_engine import SparkDFExecutionEngine
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
@@ -465,6 +468,22 @@ def preload_latest_gx_cache():
     # teardown
     logger.info("Clearing _VersionChecker._LATEST_GX_VERSION_CACHE ")
     _VersionChecker._LATEST_GX_VERSION_CACHE = None
+
+
+@pytest.fixture(autouse=True)
+def _reset_batch_parameter_deprecation_call_sites():
+    """Clear the batch-parameter-normalization deprecation dedup registry.
+
+    That registry is deliberately process-global (see
+    great_expectations/datasource/fluent/batch_parameter_normalization.py), so
+    without a per-test reset, a test that triggers the coercion warning would
+    silently suppress an identical warning in every later test sharing the same
+    (message, file, line) call site -- most visibly a parametrized test whose
+    parametrizations all warn from the same source line.
+    """
+    _reset_warned_call_sites_for_tests()
+    yield
+    _reset_warned_call_sites_for_tests()
 
 
 @pytest.fixture(scope="module")

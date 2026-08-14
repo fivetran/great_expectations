@@ -4,12 +4,14 @@ import functools
 import os
 import warnings
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import pytest
 
 from great_expectations.datasource.fluent.batch_parameter_normalization import (
+    _WARNED_CALL_SITES,
     BATCH_PARAMETER_DEPRECATION_MESSAGE_PREFIX,
+    _reset_warned_call_sites_for_tests,
     batch_parameter_values_match,
     is_digit_string,
     normalize_batch_parameters,
@@ -277,3 +279,89 @@ def test_numeric_parameter_names_of_fail_closed_for_bare_string_declaration() ->
         numeric_param_names = "year"
 
     assert numeric_parameter_names_of(_StringDeclaration()) == frozenset()
+
+
+def _call_normalize_from_this_module() -> Optional[Any]:
+    """A single, stable call site (one source line) used by the dedup tests below."""
+    return normalize_batch_parameters({"year": "2020"}, {"year"})
+
+
+@pytest.mark.unit
+def test_normalize_batch_parameters_same_call_site_warns_once() -> None:
+    """Repeated calls from the identical call site warn only the first time."""
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        _call_normalize_from_this_module()
+        _call_normalize_from_this_module()
+        _call_normalize_from_this_module()
+
+    assert len(caught) == 1
+
+
+@pytest.mark.unit
+def test_normalize_batch_parameters_different_call_site_warns_again() -> None:
+    """Dedup is per call site, not global-per-message: a second, distinct call site
+    emitting the identical message still warns."""
+
+    def _second_call_site() -> Optional[Any]:
+        return normalize_batch_parameters({"year": "2020"}, {"year"})
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        _call_normalize_from_this_module()
+        _second_call_site()
+
+    assert len(caught) == 2
+
+
+@pytest.mark.unit
+def test_normalize_batch_parameters_dedup_survives_intervening_filter_mutation() -> None:
+    """Regression test for the actual defect this dedup registry exists to fix.
+
+    Python's built-in per-module warning registry is invalidated wholesale by any
+    call to warnings.filterwarnings/simplefilter in between two occurrences of the
+    identical warning -- something real workloads trigger routinely (e.g. pandas
+    mutates warning filters while casting dtypes during a real batch load). Without
+    an interpreter-filter-state-independent dedup mechanism, the second occurrence
+    from the identical call site would warn again here.
+    """
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        _call_normalize_from_this_module()
+        # Any unrelated filter mutation invalidates Python's own per-module
+        # __warningregistry__ dedup; a GX-level registry keyed on call site must
+        # not be affected by it.
+        warnings.filterwarnings("always", category=UserWarning)
+        _call_normalize_from_this_module()
+
+    assert len(caught) == 1
+
+
+@pytest.mark.unit
+def test_normalize_batch_parameters_dedup_attribution_still_points_at_caller() -> None:
+    """Attribution is unchanged by the dedup mechanism: the caught warning's filename
+    is still the caller's module, not this helper's or the library's."""
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        _call_normalize_from_this_module()
+
+    assert len(caught) == 1
+    assert os.path.realpath(caught[0].filename) == os.path.realpath(__file__)
+
+
+@pytest.mark.unit
+def test_reset_warned_call_sites_clears_registry() -> None:
+    """The test-facing reset helper actually empties the dedup registry, so a
+    subsequent identical call warns again instead of being silently suppressed."""
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        _call_normalize_from_this_module()
+        assert len(caught) == 1
+        assert len(_WARNED_CALL_SITES) >= 1
+
+        _reset_warned_call_sites_for_tests()
+        assert len(_WARNED_CALL_SITES) == 0
+
+        _call_normalize_from_this_module()
+
+    assert len(caught) == 2
