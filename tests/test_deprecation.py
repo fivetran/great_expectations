@@ -25,6 +25,9 @@ def files_with_deprecation_warnings() -> List[str]:
         "great_expectations/**/*.py", recursive=True
     )
     files_to_exclude = [
+        # Declares the warning categories themselves and raises none of them, so the
+        # marker convention -- which pairs a marker with an emission -- does not apply.
+        "great_expectations/warnings.py",
         "great_expectations/compatibility/docstring_parser.py",
         "great_expectations/compatibility/pyspark.py",
         "great_expectations/compatibility/sqlalchemy_and_pandas.py",
@@ -54,7 +57,16 @@ def test_deprecation_warnings_are_accompanied_by_appropriate_comment(
             contents = f.read()
 
         matches: List[str] = regex_for_deprecation_comments.findall(contents)
-        warning_count: int = contents.count("DeprecationWarning")
+        # Count emissions, not every mention of the name. A deprecation category that
+        # lives in this package has to be imported before it can be raised, whereas the
+        # builtin never is; counting the import line as well would demand a second
+        # marker for a single deprecation.
+        emitting_lines: str = "\n".join(
+            line
+            for line in contents.splitlines()
+            if not line.lstrip().startswith(("import ", "from "))
+        )
+        warning_count: int = emitting_lines.count("DeprecationWarning")
         assert len(matches) == warning_count, (
             "Either a 'deprecated-v...' comment or "
             f"'DeprecationWarning' call is missing from {file}"
