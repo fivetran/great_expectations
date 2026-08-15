@@ -145,6 +145,23 @@ config = {
         "great_expectations": [
             "**/py.typed",
             "**/*.pyi",
+            # Machine-readable catalogs describing the package's built-in expectation and
+            # datasource types. Tooling reads these from the installed package, so they
+            # have to ship with it rather than exist only in the source tree.
+            # Scoped to the two schema trees rather than a blanket JSON glob, so an
+            # unrelated JSON file added elsewhere in the package does not silently
+            # become part of the distribution.
+            "expectations/core/schemas/*.json",
+            "datasource/fluent/schemas/**/*.json",
+            # Agent-facing guidance, read by a coding agent rather than imported by
+            # Python. Matched by file rather than by a directory glob, because a
+            # setuptools package_data pattern only ever selects files -- an empty
+            # directory in the pattern's path is never itself a match, and wheels
+            # cannot record an empty directory anyway. Scoped to the skills tree
+            # rather than a blanket markdown glob, so an unrelated markdown file
+            # added elsewhere in the package does not silently become part of the
+            # distribution.
+            ".agents/skills/**/*.md",
         ]
     },
     "name": "great_expectations",
