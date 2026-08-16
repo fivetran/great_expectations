@@ -1,5 +1,7 @@
 import glob
 import re
+import subprocess
+import sys
 from typing import List, Pattern, Tuple
 
 import pytest
@@ -109,3 +111,29 @@ def test_deprecation_warnings_have_been_removed_after_two_minor_versions(
         raise ValueError(
             f"Found {len(unneeded_deprecation_warnings)} warnings but threshold is {UNNEEDED_DEPRECATION_WARNINGS_THRESHOLD}; please adjust accordingly"  # noqa: E501 # FIXME CoP
         )
+
+
+@pytest.mark.unit
+def test_importing_gx_does_not_silence_warnings():
+    """
+    What does this test do and why?
+
+    Importing great_expectations used to call ``logging.captureWarnings(True)`` at
+    module scope in several modules. With no logging configured (a plain script),
+    that routes every warning into the ``py.warnings`` logger, which ends up with
+    a ``NullHandler`` -- so all warnings, including the library's own deprecations,
+    are silently dropped. Run in a fresh interpreter so a plain ``UserWarning``
+    must still reach stderr after ``import great_expectations``.
+    """
+    code = (
+        "import great_expectations  # noqa: F401\n"
+        "import warnings\n"
+        "warnings.warn('GE_WARNINGS_VISIBLE', UserWarning)\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "GE_WARNINGS_VISIBLE" in result.stderr

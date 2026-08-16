@@ -66,7 +66,6 @@ if TYPE_CHECKING:
     )
 
 logger = logging.getLogger(__name__)
-logging.captureWarnings(True)
 
 EXPECTATION_SHORT_DESCRIPTION = (
     "Expect the Kulback-Leibler (KL) divergence (relative entropy) of the specified column "
