@@ -69,7 +69,6 @@ from great_expectations.validator.validation_statistics import (
 )
 
 logger = logging.getLogger(__name__)
-logging.captureWarnings(True)
 
 
 if TYPE_CHECKING:

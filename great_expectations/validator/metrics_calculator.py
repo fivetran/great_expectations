@@ -20,7 +20,6 @@ if TYPE_CHECKING:
     from great_expectations.execution_engine import ExecutionEngine
 
 logger = logging.getLogger(__name__)
-logging.captureWarnings(True)
 
 
 _MetricsDict: TypeAlias = Dict[MetricConfigurationID, MetricValue]

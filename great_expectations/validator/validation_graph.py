@@ -53,7 +53,6 @@ __all__ = [
 ]
 
 logger = logging.getLogger(__name__)
-logging.captureWarnings(True)
 
 MAX_METRIC_COMPUTATION_RETRIES: int = 3
 
