@@ -38,6 +38,19 @@ present afterwards.
 Do not skip step 1, and do not stop before step 4. A configuration that was
 never read through is not a result worth reporting.
 
+## What this skill will not do without being asked
+
+<!-- consent-gate: install -->
+- **Install, upgrade, or remove a package, or otherwise modify the
+  interpreter, virtual environment, environment variables, or shell state.**
+  Not in response to an error, not preemptively while checking whether
+  something is present, and not by announcing an intention to install with a
+  chance to decline attached — none of those is the user asking. When
+  something is missing, name it and hand over the command; running it is a
+  separate act that starts only from the user's own instruction, later.
+- **Create a project directory on the user's disk.** Only after the user has
+  agreed to write the session out and named where.
+
 ## Step 1 — Preflight
 
 Follow `references/preflight.md` in full before configuring anything. It
@@ -47,6 +60,11 @@ problems that silently masquerade as "no project found".
 
 The outcome you carry forward is a `context` object and one fact: whether the
 session is file-backed or in memory. Both are fully supported paths.
+
+If anything here, or in step 3 below, turns up a missing driver or client
+library, report it and hand over the install command per the standing rule
+above. Do not install it yourself — not now, before anything has failed, and
+not later without the user's own go-ahead.
 
 ## Step 2 — Elicit what you need
 
@@ -170,6 +188,10 @@ So:
 Note also that the factory **tests the connection as part of the call**, so it
 can be slow or hang on an unreachable host. Run it inside the duration-tracked
 wrapper in `references/robustness.md` like any other data-touching call.
+
+That connection test is exactly where a missing driver or client library
+surfaces. Report it and hand over the install command — do not install it
+yourself to get the connection working, and do not offer to.
 
 ### The pattern
 
