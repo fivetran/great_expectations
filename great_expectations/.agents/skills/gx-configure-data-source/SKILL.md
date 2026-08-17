@@ -48,6 +48,7 @@ never read through is not a result worth reporting.
   chance to decline attached — none of those is the user asking. When
   something is missing, name it and hand over the command; running it is a
   separate act that starts only from the user's own instruction, later.
+<!-- consent-gate: project -->
 - **Create a project directory on the user's disk.** Only after the user has
   agreed to write the session out and named where.
 
@@ -326,6 +327,7 @@ Tell the user, concretely:
 - How to retrieve a batch again, including the `batch_parameters` the batch
   definition needs.
 
+<!-- consent-gate: project -->
 **If the session is in memory, offer to write it out** to a real project so
 the work survives — see `references/write-out.md` for the procedure and for
 what the user needs to know about dataframe assets, which carry configuration

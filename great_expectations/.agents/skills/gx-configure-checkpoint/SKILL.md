@@ -59,10 +59,13 @@ either — a checkpoint that was never run is not a verified result.
   chance to decline attached — none of those is the user asking. When
   something is missing, name it and hand over the command; running it is a
   separate act that starts only from the user's own instruction, later.
+<!-- consent-gate: project -->
 - **Create a project directory on the user's disk.** Only after the user has
   agreed to write the session out and named where.
+<!-- consent-gate: config-file -->
 - **Edit an existing project's `great_expectations.yml`.** Only after telling
   the user what the edit does and getting a yes.
+<!-- consent-gate: saved-file -->
 - **Write a file to the user's disk that the user did not ask for and
   locate.** Offer it in the conversation first.
 
@@ -204,6 +207,7 @@ wanted. `references/action-catalog.md` covers every attachable action: its
 fields, which four carry a public-API stability guarantee and which four
 don't, and how to word each one's credential requirements.
 
+<!-- consent-gate: config-file -->
 **Before attaching a Data Docs update action, check whether the project has a
 site to write to.** File-backed projects and in-memory sessions both carry a
 working default site; `references/action-catalog.md` covers both, and one
@@ -327,6 +331,7 @@ Confirm this concretely: name the checkpoint, name the validation
 definitions it groups, and say that a fresh session picks it up with
 `context.checkpoints.get("<name>")`.
 
+<!-- consent-gate: project -->
 **In an in-memory session, none of it survives the process.** Say this
 plainly, and **offer to write the session out** — data sources through
 checkpoints — to a real project, per `references/write-out.md`. That
@@ -346,6 +351,7 @@ see `references/run-and-schedule.md` for the exact template, why each of its
 choices is deliberate, and the one case (a dataframe-backed validation
 definition) where it doesn't apply as written.
 
+<!-- consent-gate: saved-file -->
 **Offer to save it to a file the user confirms; never write it unasked.**
 Present it in the conversation first. Wiring it into an actual schedule — a
 cron entry, an Airflow DAG, a CI job — is the user's orchestrator's job, not

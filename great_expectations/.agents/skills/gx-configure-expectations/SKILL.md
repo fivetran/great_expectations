@@ -46,6 +46,7 @@ not a result worth reporting.
   chance to decline attached — none of those is the user asking. When
   something is missing, name it and hand over the command; running it is a
   separate act that starts only from the user's own instruction, later.
+<!-- consent-gate: project -->
 - **Create a project directory on the user's disk.** Only after the user has
   agreed to write the session out and named where.
 
@@ -342,6 +343,7 @@ returns the result to you and writes nothing to the project. The suite is the
 durable artifact; the report you give the user is the record of this run. Say
 so rather than letting them assume the results are filed somewhere.
 
+<!-- consent-gate: project -->
 **In an in-memory session, nothing survives the process.** A second in-memory
 session sees no suites and no data sources at all. Say this plainly — it is a
 supported way to work, not a degraded one — and **offer to write the session
