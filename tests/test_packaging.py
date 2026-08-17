@@ -110,7 +110,7 @@ def test_requirements_files():
         | req_set_dict["requirements-dev-sql-server.txt"]
         | req_set_dict["requirements-dev-mysql.txt"]
         | req_set_dict["requirements-dev-postgresql.txt"]
-        | req_set_dict["requirements-dev-gx-redshift.txt"]
+        | req_set_dict["requirements-dev-redshift.txt"]
         | req_set_dict["requirements-dev-snowflake.txt"]
         | req_set_dict["requirements-dev-teradata.txt"]
         | req_set_dict["requirements-dev-clickhouse.txt"]
@@ -150,7 +150,7 @@ def test_requirements_files():
         | req_set_dict["requirements-dev-mysql.txt"]
         | req_set_dict["requirements-dev-pagerduty.txt"]
         | req_set_dict["requirements-dev-postgresql.txt"]
-        | req_set_dict["requirements-dev-gx-redshift.txt"]
+        | req_set_dict["requirements-dev-redshift.txt"]
         | req_set_dict["requirements-dev-snowflake.txt"]
         | req_set_dict["requirements-dev-teradata.txt"]
         | req_set_dict["requirements-dev-clickhouse.txt"]
@@ -257,3 +257,22 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         ("requirements.txt", "altair", (("<", "7.0.0"), (">=", "5.0.0"))),
         ("requirements.txt", "marshmallow", (("<", "4.0.0"), (">=", "3.7.1"))),
     }
+
+
+@pytest.mark.unit
+def test_deprecated_gx_redshift_extra_matches_redshift():
+    """The `gx-redshift` extra is a deprecated alias for `redshift`.
+
+    Its requirements file duplicates `requirements-dev-redshift.txt` rather than
+    referencing it, because the requirements parser in setup.py that builds the
+    extras does not resolve `--requirement` file references. This test is what
+    keeps the duplicate honest, so that installing the deprecated extra keeps
+    producing the same environment as the supported one.
+    """
+    req_files = collect_requirements_files()
+    req_set_dict = parse_requirements_files_to_strings(files=req_files)
+
+    assert (
+        req_set_dict["requirements-dev-gx-redshift.txt"]
+        == req_set_dict["requirements-dev-redshift.txt"]
+    )

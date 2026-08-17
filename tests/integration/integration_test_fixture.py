@@ -1,7 +1,12 @@
+import os
+import pathlib
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
 from tests.integration.backend_dependencies import BackendDependencies
+
+GCS_TEST_BUCKET_ENV_VAR = "GX_GCS_TEST_BUCKET"
+GCS_TEST_BUCKET_TEMPLATE = "${" + GCS_TEST_BUCKET_ENV_VAR + "}"
 
 
 @dataclass
@@ -30,3 +35,29 @@ class IntegrationTestFixture:
     data_dir: Optional[str] = None
     other_files: Optional[Tuple[Tuple[str, str]]] = None
     util_script: Optional[str] = None
+
+
+def substitute_gcs_test_bucket(config_path: pathlib.Path) -> None:
+    """Resolve the GCS bucket placeholder in a copied test Data Context config.
+
+    The GCS-backed `data_context_dir` configs name their bucket with a placeholder rather
+    than a literal, so the bucket can be changed without editing the fixtures. GX applies
+    config substitution to credential fields only, not to `bucket_or_name`, so the
+    placeholder is resolved here — on the copy the test runs against, never the checked-in
+    fixture.
+
+    Only this one placeholder is substituted. Other config templates are left for GX to
+    resolve, since exercising that path is the point of the fixtures that use them.
+    """
+    if not config_path.exists():
+        return
+    config = config_path.read_text()
+    if GCS_TEST_BUCKET_TEMPLATE not in config:
+        return
+    bucket = os.environ.get(GCS_TEST_BUCKET_ENV_VAR)
+    if not bucket:
+        raise RuntimeError(
+            f"{config_path.name} requires a GCS bucket, but the"
+            f" {GCS_TEST_BUCKET_ENV_VAR} environment variable is not set."
+        )
+    config_path.write_text(config.replace(GCS_TEST_BUCKET_TEMPLATE, bucket))

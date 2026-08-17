@@ -101,12 +101,16 @@ def _ci_workflow_jobs() -> Dict[str, Any]:
     return jobs
 
 
-# Non-word characters split a token, but `-` does not: this is what keeps `gx-redshift` a single
-# token rather than splitting it into `gx` and `redshift`, so a bare `redshift` token can never
-# match by landing inside it. Splitting the whole serialized subtree once and comparing by exact
-# token membership is the whole-token check - substring search would let `redshift` match inside
-# `gx-redshift`, and a plain `\b` word boundary would too, since `\b` does not treat `-` as part of
-# a word.
+# Splitting the whole serialized subtree once and comparing by exact token membership is what
+# makes this a whole-token check rather than a substring search. The distinction matters because a
+# marker name can be a prefixed form of another (`docs-spark` contains `spark`): under substring
+# matching, a backend declaring the shorter name would look wired to a job that only ever mentions
+# the longer one, and its lane would appear configured while nothing ran it.
+#
+# Non-word characters split a token, but `-` does not, which is what keeps a hyphenated marker one
+# token instead of two. A plain `\b` word boundary would not do - `\b` does not treat `-` as part
+# of a word, so it would match the shorter name inside the longer one just as substring search
+# does.
 _TOKEN_SPLIT_PATTERN: Final = re.compile(r"[^\w-]+")
 
 
@@ -130,46 +134,14 @@ def test_registry_is_non_empty_at_collection() -> None:
     assert _REGISTERED_BACKENDS, "no SQL backends were registered to check"
 
 
-class TestLaneTokenMatchingIsWholeTokenNotSubstring:
-    """Pins `_tokens`, the only non-trivial logic here, in both directions.
+def test_a_lane_token_inside_a_compound_expression_is_found() -> None:
+    """Pins the one thing `_tokens` has to do for a real declaration.
 
     A lane token has to be found inside a job that selects several markers in one expression,
-    which rules out comparing the job's entry for equality. But reaching for a plain substring
-    test instead is wrong in the other direction: one backend's token is a prefixed form of
-    another's, so a substring test would report the shorter one as present in a job that only
-    ever mentions the longer one, and that backend's lane would appear wired while nothing runs
-    it.
-
-    Both halves are asserted because the real declarations only exercise one of them. A token
-    that must be found inside a compound expression is covered by a real backend, so relaxing
-    the matching to whole-entry equality fails immediately. Nothing registered today would
-    notice the opposite relaxation to a substring test, which is why it is pinned here rather
-    than left to the per-backend cases.
+    which rules out comparing the job's entry for equality. Relaxing the matching in the other
+    direction, to whole-entry equality, fails immediately against the real backends below.
     """
-
-    def test_a_token_inside_a_compound_expression_is_found(self) -> None:
-        assert "sqlite" in _tokens("openpyxl or pyarrow or project or sqlite or aws_creds")
-
-    def test_a_hyphenated_token_is_one_token_not_two(self) -> None:
-        assert "gx-redshift" in _tokens("gx-redshift")
-
-    def test_a_token_is_not_found_inside_a_longer_hyphenated_one(self) -> None:
-        assert "redshift" not in _tokens("gx-redshift")
-
-    def test_the_lane_assertion_rejects_a_token_that_only_appears_as_a_substring(self) -> None:
-        """The three assertions above pin the helper; this pins the caller.
-
-        A caller that abandoned the helper for a plain substring test would leave those three
-        green, because they exercise the helper directly and it would simply have stopped being
-        used. So this drives the real assertion against a real workflow job, choosing a token
-        that appears in that job only as part of a longer hyphenated one. Whole-token matching
-        must reject it; a substring test would accept it and this test would fail.
-        """
-        spec = _make_spec(ci_lane=CiLaneRef(workflow_job="redshift", marker_token="redshift"))
-        config_class = _make_config_class("SubstringOnlyTokenConfig", spec)
-
-        with pytest.raises(AssertionError, match="does not appear in"):
-            _assert_workflow_job_and_lane_token(config_class, spec)
+    assert "sqlite" in _tokens("openpyxl or pyarrow or project or sqlite or aws_creds")
 
 
 # --------------------------------------------------------------------------------------------

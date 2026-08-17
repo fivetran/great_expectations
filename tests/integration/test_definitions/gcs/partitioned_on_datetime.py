@@ -1,9 +1,11 @@
+import os
+
 import great_expectations as gx
 
 context = gx.get_context()
 
 datasource_name = "my_gcs_datasource"
-bucket_or_name = "test_docs_data"
+bucket_or_name = os.environ["GX_GCS_TEST_BUCKET"]
 
 datasource = context.data_sources.add_pandas_gcs(
     name=datasource_name, bucket_or_name=bucket_or_name, gcs_options={}
