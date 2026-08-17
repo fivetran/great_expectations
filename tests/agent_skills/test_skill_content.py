@@ -951,6 +951,35 @@ def rewrite_frontmatter_field(skill_dir: pathlib.Path, field: str, value: str) -
     entry.write_text(rewritten, encoding="utf-8")
 
 
+def _first_entry_document_skill(gate: ConsentGate, skills_root: pathlib.Path) -> str:
+    """Return one skill whose entry document must carry ``gate``'s marker.
+
+    Used by the carriage mutation below: proving the check can fail needs only
+    one of a gate's entry documents broken, not all of them.
+    """
+    return _entry_document_skill_names(gate, skills_root)[0]
+
+
+def _strip_gate_marker(text: str, gate_id: str) -> str:
+    """Remove every marker for ``gate_id`` from ``text``, leaving others intact."""
+    marker = f"<!-- consent-gate: {gate_id} -->"
+    assert marker in text, f"fixture setup expected to find {marker!r} before removing it"
+    return text.replace(marker, "")
+
+
+def _scrub_token(text: str, token: str) -> str:
+    """Remove every whitespace-tolerant occurrence of ``token`` from ``text``.
+
+    A literal ``str.replace`` can miss an occurrence split by a markdown soft
+    wrap and leave the vacuity mutation green for the wrong reason -- this
+    mirrors the whitespace normalization ``_line_token_occurrences`` performs
+    when matching the real content, so the mutation and the check agree on
+    what counts as "still there".
+    """
+    pattern = re.compile(r"\s+".join(re.escape(part) for part in token.split()))
+    return pattern.sub(" ", text)
+
+
 # ---------------------------------------------------------------------------
 # The real bundled content conforms.
 # ---------------------------------------------------------------------------
@@ -1386,3 +1415,173 @@ def test_action_type_filter_is_scoped_to_the_owning_module():
 
     assert scoped == frozenset({"owned_action_type"})
     assert "foreign_action_type" not in scoped
+
+
+# ---------------------------------------------------------------------------
+# Consent gates: mutation proofs, one per check per gate, driven from
+# ``CONSENT_GATES`` -- a fifth register row gains all three proofs below
+# automatically, with no new test to remember to write for it.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("gate", CONSENT_GATES, ids=lambda gate: gate.id)
+def test_carriage_gate_missing_marker_is_reported(
+    violating_skills: pathlib.Path, gate: ConsentGate
+):
+    """One of the gate's entry documents loses its marker; the carriage check must
+    name both that document and that gate.
+    """
+    skill_name = _first_entry_document_skill(gate, violating_skills)
+    entry = violating_skills / skill_name / ENTRY_DOCUMENT
+    entry.write_text(
+        _strip_gate_marker(entry.read_text(encoding="utf-8"), gate.id), encoding="utf-8"
+    )
+
+    problems = carriage_gate_problems(violating_skills)
+
+    assert [
+        problem
+        for problem in problems
+        if str(entry) in problem and f"consent-gate: {gate.id} -->" in problem
+    ]
+
+
+@pytest.mark.parametrize("gate", CONSENT_GATES, ids=lambda gate: gate.id)
+def test_co_location_unmarked_trigger_token_is_reported(
+    violating_skills: pathlib.Path, gate: ConsentGate
+):
+    """A fresh, unmarked section carrying the gate's trigger token is appended to
+    the canonical skill's entry document; the co-location check must name that
+    section. Each gate gets its own section title so the failure is unambiguous
+    about which gate's proof produced it.
+    """
+    section_title = f"Mutation probe: {gate.id} trigger without a marker"
+    entry = violating_skills / CANONICAL_SKILL / ENTRY_DOCUMENT
+    addition = f"\n## {section_title}\n\n{gate.trigger_tokens[0]}\n"
+    entry.write_text(entry.read_text(encoding="utf-8") + addition, encoding="utf-8")
+
+    problems = consent_gate_co_location_problems(violating_skills)
+
+    assert [
+        problem
+        for problem in problems
+        if f"'## {section_title}'" in problem and f"the {gate.id!r} gate" in problem
+    ]
+
+
+@pytest.mark.parametrize("gate", CONSENT_GATES, ids=lambda gate: gate.id)
+def test_vacuity_gate_with_no_occurrences_is_reported(
+    violating_skills: pathlib.Path, gate: ConsentGate
+):
+    """Every occurrence of the gate's trigger tokens is scrubbed, whitespace-
+    tolerantly, from the whole copied tree; the vacuity check must name that
+    gate and no other.
+    """
+    for document in violating_skills.rglob("*.md"):
+        text = document.read_text(encoding="utf-8")
+        scrubbed = text
+        for token in gate.trigger_tokens:
+            scrubbed = _scrub_token(scrubbed, token)
+        if scrubbed != text:
+            document.write_text(scrubbed, encoding="utf-8")
+
+    remaining = [
+        document
+        for document in violating_skills.rglob("*.md")
+        if _line_token_occurrences(document.read_text(encoding="utf-8"), gate.trigger_tokens)
+    ]
+    assert not remaining, (
+        f"fixture setup did not remove every occurrence of the {gate.id!r} gate's"
+        f" trigger tokens; still present in {remaining}"
+    )
+
+    problems = consent_gate_vacuity_problems(violating_skills)
+
+    assert [
+        problem
+        for problem in problems
+        if gate.id in problem and repr(gate.trigger_tokens) in problem
+    ]
+
+
+# ---------------------------------------------------------------------------
+# The over-fire allowance machinery: its three failure modes, proven against
+# the real "project" allowance for the checkpoint skill's action catalog.
+# The allowances exist only for the "project" gate today, so these are not
+# parametrized over the register the way the checks above are.
+# ---------------------------------------------------------------------------
+
+_ALLOWANCE_ANCHOR_LINE: Final = (
+    'context = gx.get_context(mode="file",'
+    ' project_root_dir="<the project root established at preflight>")'
+)
+
+
+def _rewrite_allowance_anchor_line(
+    violating_skills: pathlib.Path, replacement: str
+) -> pathlib.Path:
+    action_catalog = (
+        violating_skills / ACTION_CATALOG_SKILL / REFERENCE_DIR / ACTION_CATALOG_REFERENCE
+    )
+    text = action_catalog.read_text(encoding="utf-8")
+    assert text.count(_ALLOWANCE_ANCHOR_LINE) == 1, f"anchor is not unique in {action_catalog}"
+    rewritten = text.replace(_ALLOWANCE_ANCHOR_LINE, replacement, 1)
+    action_catalog.write_text(rewritten, encoding="utf-8")
+    return action_catalog
+
+
+def test_allowance_substitution_is_reported(violating_skills: pathlib.Path):
+    """The excused line's own content changes while its trigger token, count, and
+    section stay exactly the same -- same shape, opposite meaning. Only the
+    anchor substring check catches this.
+    """
+    replacement = (
+        'context = gx.get_context(mode="file",'
+        ' project_root_dir="<a brand new directory the user has not seen>")'
+    )
+    _rewrite_allowance_anchor_line(violating_skills, replacement)
+
+    problems = consent_gate_co_location_problems(violating_skills)
+
+    assert [
+        problem
+        for problem in problems
+        if "no longer contains that text" in problem and "Enabling Data Docs" in problem
+    ]
+
+
+def test_allowance_excess_is_reported(violating_skills: pathlib.Path):
+    """A second, unmarked occurrence of the gate's trigger token lands in the same
+    excused section -- the allowance covers one occurrence, not two.
+    """
+    addition = (
+        f"{_ALLOWANCE_ANCHOR_LINE}\n"
+        'reloaded = gx.get_context(mode="file",'
+        ' project_root_dir="<a second, unexcused reload>")'
+    )
+    _rewrite_allowance_anchor_line(violating_skills, addition)
+
+    problems = consent_gate_co_location_problems(violating_skills)
+
+    assert [
+        problem
+        for problem in problems
+        if "unmarked occurrence(s)" in problem and "Enabling Data Docs" in problem
+    ]
+
+
+def test_allowance_stale_is_reported(violating_skills: pathlib.Path):
+    """The excused line's trigger token is removed entirely -- nothing in that
+    section needs excusing anymore, so the allowance itself goes unused and is
+    reported rather than passing quietly.
+    """
+    _rewrite_allowance_anchor_line(violating_skills, "context = _reloaded_context_from_preflight()")
+
+    problems = consent_gate_co_location_problems(violating_skills)
+
+    assert [
+        problem
+        for problem in problems
+        if "matched no unmarked trigger-token occurrence" in problem
+        and "Enabling Data Docs" in problem
+    ]
