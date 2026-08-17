@@ -199,7 +199,10 @@ Two exception shapes are common enough to call out by name:
   Read the group names off the installed distribution rather than recalling
   them, with
   `importlib.metadata.metadata("great_expectations").get_all("Provides-Extra")`.
-  Hand the command to the user; running it is their call, not yours.
+<!-- consent-gate: install -->
+- **Installing the dependency is a separate act.** Hand the command named
+  above to the user; running it starts only from their own instruction, not
+  from this step.
 - **A missing credential.** If a data operation fails because a referenced
   `${ENV_VAR}` isn't set, say exactly which variable is missing and how to
   provide it (set the environment variable, or add it to the project's

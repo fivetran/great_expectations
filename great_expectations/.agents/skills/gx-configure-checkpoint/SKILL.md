@@ -352,7 +352,8 @@ choices is deliberate, and the one case (a dataframe-backed validation
 definition) where it doesn't apply as written.
 
 <!-- consent-gate: saved-file -->
-**Offer to save it to a file the user confirms; never write it unasked.**
+**Offer to save it to a file at a path the user confirms; never write it
+unasked.**
 Present it in the conversation first. Wiring it into an actual schedule — a
 cron entry, an Airflow DAG, a CI job — is the user's orchestrator's job, not
 this skill's; say that plainly if asked, and hand over the snippet as the

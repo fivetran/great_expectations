@@ -222,8 +222,12 @@ expecting both shapes:
 
 Either way, follow `robustness.md`'s rule for reporting a failure — what
 failed, why as far as it is known, and one concrete next step — and stop
-there. Installing packages or provisioning credentials in the user's
-environment is their call, not yours.
+there.
+
+<!-- consent-gate: install -->
+Installing a package or provisioning a credential in the user's environment
+is a separate act that starts only from the user's own instruction. Hand
+over the command named below and stop there.
 
 ### Name the install the way the package declares it
 

@@ -243,6 +243,7 @@ log line, no change to the yml. Verified directly: calling
 null` returns normally, and the yml still reads `null` afterward. Checking
 only "did the call raise" will tell you it worked when it did nothing.
 
+<!-- consent-gate: config-file -->
 The state is recoverable. **This requires editing the user's
 `great_expectations.yml`, so ask before doing it — the consent to make that
 edit is not implied by the request to attach a Data Docs action.** State
