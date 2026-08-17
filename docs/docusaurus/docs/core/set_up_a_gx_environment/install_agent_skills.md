@@ -167,3 +167,40 @@ This skill takes you from "here is a Suite that already validated my data" to a 
 **What it leaves behind:** the Checkpoint and its Validation Definitions, saved in your project, plus the results of the one verification run, reported per Validation Definition and then per Expectation within it. You also get a small self-contained script that loads the project by an absolute path and re-runs the Checkpoint by name from outside any agent session — which is the point of the Checkpoint. Wiring that script into an actual cadence, such as a cron entry, an Airflow DAG, or a CI job, is your orchestrator's job rather than the skill's.
 
 That script is where the path ends: from there, your checks run on your schedule, with no agent in the loop.
+
+## Keep the skills up to date
+
+Installing copies the skills as they shipped in the version of GX you ran the command from. Upgrading GX does not reach back into your projects, so the copies already there stay as they are until you install again. After you upgrade, re-run the install command from the project root:
+
+```bash title="Terminal input"
+python -m great_expectations skills install
+```
+
+Skills installed by an earlier version are replaced and reported under `Updated`; skills already at the version you are running are reported under `Already up to date`. Both groups can appear in the same run: the re-run brings whatever is behind up to date and leaves the rest alone.
+
+`skills list` is what tells you a project has fallen behind. A destination installed by a different version than the package you are running has `-- this package is <version>` appended to its state line, and the listing ends with a notice naming the install command.
+
+Skills installed with `--symlink` follow the package on their own, but the version recorded at each destination stays the one that installed them, so `skills list` reports them as out of date until you re-run. Pass `--symlink` again when you do: a re-run without it replaces the links with copies.
+
+An upgrade does not replace a GX-installed copy that you have edited yourself. It is refused for the same reason as on a first install — see [What the install command will and will not overwrite](#what-the-install-command-will-and-will-not-overwrite) — and every other skill in the run updates around it.
+
+## Remove the skills
+
+There is no uninstall command. Removing the skills is the manual procedure below: delete the directories the install command created. Each skill's record of what GX installed lives inside that skill's own directory, and the install command writes nothing outside these paths, so there is no other state to clean up.
+
+Run this from your project root:
+
+```bash title="Terminal input"
+rm -rf .agents/skills/gx-configure-data-source \
+  .agents/skills/gx-configure-expectations \
+  .agents/skills/gx-configure-checkpoint \
+  .claude/skills/gx-configure-data-source \
+  .claude/skills/gx-configure-expectations \
+  .claude/skills/gx-configure-checkpoint
+```
+
+If you installed with `--target agents` or `--target claude`, only the three directories under that one location exist, and those are the ones to delete. If you installed with `--symlink`, deleting these directories removes the links only — the skills inside the installed package are untouched.
+
+The `.agents/skills` and `.claude/skills` directories are left in place afterwards, as are `.agents` and `.claude` themselves, holding nothing that GX installed. Removing them is your call rather than part of this procedure: they are shared with anything else your coding agents keep there.
+
+Running `skills list` afterwards reports `not installed` at every destination.
