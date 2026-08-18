@@ -8,9 +8,11 @@ from typing import Any, Optional
 
 import pytest
 
+from great_expectations.datasource.fluent import batch_parameter_normalization
 from great_expectations.datasource.fluent.batch_parameter_normalization import (
     _WARNED_CALL_SITES,
     BATCH_PARAMETER_DEPRECATION_MESSAGE_PREFIX,
+    _is_library_frame,
     _reset_warned_call_sites_for_tests,
     batch_parameter_values_match,
     is_digit_string,
@@ -365,3 +367,116 @@ def test_reset_warned_call_sites_clears_registry() -> None:
         _call_normalize_from_this_module()
 
     assert len(caught) == 2
+
+
+@pytest.mark.unit
+def test_installed_caller_under_site_packages_is_not_a_library_frame(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Code installed alongside this package is the caller, not the stdlib.
+
+    Reproduces the virtualenv layout, where site-packages is nested inside the
+    "platstdlib" root: a prefix test against the stdlib roots alone classifies every
+    installed distribution as library code, so the walk runs off the top of the
+    stack instead of stopping at the caller's own package.
+    """
+    stdlib_root = tmp_path / "lib" / "python3.99"
+    site_packages = stdlib_root / "site-packages"
+    gx_root = site_packages / "great_expectations"
+    monkeypatch.setattr(batch_parameter_normalization, "_STDLIB_ROOTS", (str(stdlib_root),))
+    monkeypatch.setattr(
+        batch_parameter_normalization, "_SITE_PACKAGES_ROOTS", (str(site_packages),)
+    )
+    monkeypatch.setattr(batch_parameter_normalization, "_GX_PACKAGE_ROOT", str(gx_root))
+
+    assert _is_library_frame(str(stdlib_root / "json" / "__init__.py")) is True
+    assert _is_library_frame(str(gx_root / "datasource" / "fluent" / "interfaces.py")) is True
+    assert _is_library_frame(str(site_packages / "user_package" / "pipeline.py")) is False
+
+
+@pytest.mark.unit
+def test_suppressed_first_occurrence_does_not_silence_the_call_site() -> None:
+    """A warning nobody could see must not spend the one warning a call site gets.
+
+    warnings.warn returns normally under a suppressing filter, so a call site
+    recorded before the emission would stay silent for the rest of the process --
+    including for the run where the user is actually listening.
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        _call_normalize_from_this_module()
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        _call_normalize_from_this_module()
+
+    assert len(caught) == 1
+
+
+@pytest.mark.unit
+def test_delivery_check_delegates_to_and_restores_showwarning() -> None:
+    """Checking for delivery must be transparent to whoever installed showwarning:
+    the installed hook still receives the warning, and is still installed after."""
+    delivered_to_sentinel: list[Any] = []
+
+    def _sentinel(*args: Any, **kwargs: Any) -> None:
+        delivered_to_sentinel.append(args)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("always")
+        warnings.showwarning = _sentinel
+        _call_normalize_from_this_module()
+
+        assert len(delivered_to_sentinel) == 1
+        assert warnings.showwarning is _sentinel
+
+
+@pytest.mark.unit
+def test_attribution_skips_frozen_bootstrap_frame() -> None:
+    """`python -m` puts a "<frozen runpy>" frame between the library and user code.
+
+    It names no file, so resolving it fabricates a path under the cwd that matches
+    no library root -- ending the walk on the bootstrap frame and attributing every
+    call site in the run to that one location. Simulated by spoofing the bootstrap
+    and library call sites via replaced code objects.
+    """
+    import great_expectations as gx
+
+    def _gx_authored_method() -> Any:
+        return normalize_batch_parameters({"year": "2020"}, {"year"})
+
+    _gx_authored_method.__code__ = _gx_authored_method.__code__.replace(
+        co_filename=str(Path(gx.__file__).resolve().parent / "_fake_module_for_test.py")
+    )
+
+    def _bootstrap(callable_: Any) -> Any:
+        return callable_()
+
+    _bootstrap.__code__ = _bootstrap.__code__.replace(co_filename="<frozen runpy>")
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        _bootstrap(_gx_authored_method)
+
+    assert len(caught) == 1
+    assert os.path.realpath(caught[0].filename) == os.path.realpath(__file__)
+
+
+@pytest.mark.unit
+def test_entry_point_pseudo_filename_is_keyed_verbatim() -> None:
+    """Code run via `python -c` reports co_filename "<string>", which is the user's
+    own entry point but still not a path: it must be keyed as given rather than
+    resolved into a cwd-relative path that names no real file."""
+
+    def _entry_point() -> Any:
+        return normalize_batch_parameters({"year": "2020"}, {"year"})
+
+    _entry_point.__code__ = _entry_point.__code__.replace(co_filename="<string>")
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        _entry_point()
+
+    assert len(caught) == 1
+    recorded_filenames = {filename for _message, filename, _lineno in _WARNED_CALL_SITES}
+    assert "<string>" in recorded_filenames

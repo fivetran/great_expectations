@@ -45,6 +45,16 @@ _STDLIB_ROOTS: Final[Tuple[str, ...]] = tuple(
         str(Path(sysconfig.get_paths()["platstdlib"]).resolve()),
     }
 )
+# Subtracted from the stdlib roots below. In a virtualenv site-packages is nested
+# inside platstdlib (<venv>/lib/pythonX.Y/site-packages), so a prefix test against
+# the stdlib roots alone classifies every installed distribution as library code --
+# including the caller's own package, which is exactly the frame we are looking for.
+_SITE_PACKAGES_ROOTS: Final[Tuple[str, ...]] = tuple(
+    {
+        str(Path(sysconfig.get_paths()["purelib"]).resolve()),
+        str(Path(sysconfig.get_paths()["platlib"]).resolve()),
+    }
+)
 
 # Per-process record of (message, user call-site file, user call-site line) triples
 # that have already been warned on. Python's own per-module warning registry isn't a
@@ -200,17 +210,48 @@ def _warn_digit_string_coercion(coerced_key_names: Collection[str]) -> None:
     key = (message, location.filename, location.lineno)
     if key in _WARNED_CALL_SITES:
         return
-    _WARNED_CALL_SITES.add(key)
 
-    warnings.warn(  # deprecated-v1.21.0
-        message, GxDeprecationWarning, stacklevel=location.stacklevel
-    )
+    # Record the call site only once the warning has actually reached someone.
+    # warnings.warn returns normally when a filter suppresses the warning, so
+    # recording beforehand would let a first occurrence that nobody could see spend
+    # the one warning this call site gets -- silencing it for the rest of the
+    # process precisely for the callers the deprecation exists to reach (a setup
+    # phase under -W ignore, a framework quieting warnings while it initializes).
+    # Delegating to whatever showwarning is installed keeps recorders (pytest's
+    # recwarn, catch_warnings(record=True)) counting as delivery, and an "error"
+    # filter propagates out of warn() with the site still unrecorded, so the next
+    # occurrence raises again rather than being swallowed.
+    delivered = False
+    original_showwarning = warnings.showwarning
+
+    def _mark_delivered(*args: Any, **kwargs: Any) -> None:
+        nonlocal delivered
+        delivered = True
+        original_showwarning(*args, **kwargs)
+
+    warnings.showwarning = _mark_delivered
+    try:
+        warnings.warn(  # deprecated-v1.21.0
+            message, GxDeprecationWarning, stacklevel=location.stacklevel
+        )
+    finally:
+        warnings.showwarning = original_showwarning
+
+    if delivered:
+        _WARNED_CALL_SITES.add(key)
 
 
 def _stacklevel_to_user_code() -> _UserFrameLocation:
     """Walk the call stack to find the first non-library frame.
 
     "Library" means either this package or the stdlib (both realpath-normalized).
+    Frames whose co_filename is a pseudo-filename -- the angle-bracket names the
+    interpreter gives to code with no file ("<frozen runpy>", "<string>", "<stdin>",
+    exec'd code) -- are not paths and are never resolved: doing so fabricates a path
+    under the cwd that matches no library root, which would end the walk on whichever
+    such frame it met first. Bootstrap frames are skipped; an entry-point frame is
+    the user's own code and is keyed on its name verbatim.
+
     Falls back to stacklevel 2 (the immediate caller) with filename/lineno left None
     when every frame above it is inside this package or the stdlib, which can happen
     in tests that call the module directly through only library code.
@@ -218,7 +259,18 @@ def _stacklevel_to_user_code() -> _UserFrameLocation:
     frame: Optional[FrameType] = sys._getframe(2)  # caller of _warn_digit_string_coercion
     level = 2
     while frame is not None:
-        filename = str(Path(frame.f_code.co_filename).resolve())
+        raw_filename = frame.f_code.co_filename
+        if raw_filename.startswith("<frozen "):
+            # Import/runpy bootstrap, e.g. "<frozen runpy>" under `python -m`.
+            frame = frame.f_back
+            level += 1
+            continue
+        if raw_filename.startswith("<"):
+            # "<string>", "<stdin>", exec'd code: the user's own entry point.
+            return _UserFrameLocation(
+                stacklevel=level, filename=raw_filename, lineno=frame.f_lineno
+            )
+        filename = str(Path(raw_filename).resolve())
         if not _is_library_frame(filename):
             return _UserFrameLocation(stacklevel=level, filename=filename, lineno=frame.f_lineno)
         frame = frame.f_back
@@ -227,7 +279,15 @@ def _stacklevel_to_user_code() -> _UserFrameLocation:
 
 
 def _is_library_frame(realpath_filename: str) -> bool:
-    roots = (_GX_PACKAGE_ROOT, *_STDLIB_ROOTS)
+    if _is_under_any(realpath_filename, _SITE_PACKAGES_ROOTS):
+        # Under site-packages this package is the only library: anything else
+        # installed alongside it is the caller -- their own package, or a framework
+        # wrapping us -- and is the closest thing to "the user's own code" there is.
+        return _is_under_any(realpath_filename, (_GX_PACKAGE_ROOT,))
+    return _is_under_any(realpath_filename, (_GX_PACKAGE_ROOT, *_STDLIB_ROOTS))
+
+
+def _is_under_any(realpath_filename: str, roots: Tuple[str, ...]) -> bool:
     return any(
         realpath_filename == root or realpath_filename.startswith(root + os.sep) for root in roots
     )
