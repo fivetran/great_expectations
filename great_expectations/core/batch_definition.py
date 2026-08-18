@@ -63,7 +63,14 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
     def build_batch_request(
         self, batch_parameters: Optional[BatchParameters] = None
     ) -> BatchRequest[PartitionerT]:
-        """Build a BatchRequest from the asset and batch parameters."""
+        """Build a BatchRequest from the asset and batch parameters.
+
+        Args:
+            batch_parameters: Additional parameters used to build the batch request.
+                Numeric batch parameters (e.g. year, month, day) take integer values;
+                digit-string values are still accepted but are deprecated and emit a
+                warning, with support for them removed in 2.0.
+        """
         return self.data_asset.build_batch_request(
             options=batch_parameters,
             partitioner=self.partitioner,
@@ -86,6 +93,9 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
 
         Args:
             batch_parameters: Additional parameters to be used in fetching the batch.
+                Numeric batch parameters (e.g. year, month, day) take integer values;
+                digit-string values are still accepted but are deprecated and emit a
+                warning, with support for them removed in 2.0.
 
         Returns:
             A Batch of data.
@@ -103,7 +113,9 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
 
         Args:
             batch_parameters: Additional parameters to be used in fetching the batch identifiers
-                list.
+                list. Numeric batch parameters (e.g. year, month, day) take integer values;
+                digit-string values are still accepted but are deprecated and emit a warning,
+                with support for them removed in 2.0.
 
         Returns:
             A list of batch identifiers.

@@ -84,17 +84,29 @@ class FileNamePartitionerYearly(pydantic.BaseModel):
     param_names: Tuple[Literal["year"]] = ("year",)
     sort_ascending: bool = True
 
+    @property
+    def numeric_param_names(self) -> List[str]:
+        return list(self.param_names)
+
 
 class FileNamePartitionerMonthly(pydantic.BaseModel):
     regex: re.Pattern
     param_names: Tuple[Literal["year"], Literal["month"]] = ("year", "month")
     sort_ascending: bool = True
 
+    @property
+    def numeric_param_names(self) -> List[str]:
+        return list(self.param_names)
+
 
 class FileNamePartitionerDaily(pydantic.BaseModel):
     regex: re.Pattern
     param_names: Tuple[Literal["year"], Literal["month"], Literal["day"]] = ("year", "month", "day")
     sort_ascending: bool = True
+
+    @property
+    def numeric_param_names(self) -> List[str]:
+        return list(self.param_names)
 
 
 class FileNamePartitionerPath(pydantic.BaseModel):

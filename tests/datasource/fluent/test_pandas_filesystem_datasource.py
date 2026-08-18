@@ -16,7 +16,7 @@ import great_expectations.exceptions as ge_exceptions
 import great_expectations.execution_engine.pandas_execution_engine
 from great_expectations.compatibility import pydantic
 from great_expectations.core.partitioners import FileNamePartitionerMonthly
-from great_expectations.datasource.fluent import PandasFilesystemDatasource
+from great_expectations.datasource.fluent import BatchRequest, PandasFilesystemDatasource
 from great_expectations.datasource.fluent.data_asset.path.pandas.generated_assets import (
     CSVAsset,
     JSONAsset,
@@ -28,6 +28,7 @@ from great_expectations.datasource.fluent.dynamic_pandas import PANDAS_VERSION
 from great_expectations.datasource.fluent.interfaces import TestConnectionError
 from great_expectations.datasource.fluent.sources import _get_field_details
 from great_expectations.exceptions.exceptions import NoAvailableBatchesError
+from great_expectations.warnings import GxDeprecationWarning
 
 if TYPE_CHECKING:
     from great_expectations.alias_types import PathStr
@@ -391,12 +392,280 @@ def test_csv_asset_with_batching_regex_named_parameters(
 def test_csv_asset_with_non_string_batching_regex_named_parameters(
     pandas_filesystem_datasource: PandasFilesystemDatasource,
 ):
+    """An integer batching_regex parameter selects a batch instead of being rejected;
+    a digit-string sibling in the same request keeps working with a deprecation
+    warning."""
     asset = pandas_filesystem_datasource.add_csv_asset(
         name="csv_asset",
     )
-    with pytest.raises(ge_exceptions.InvalidBatchRequestError):
-        # year is an int which will raise an error
-        asset.build_batch_request({"year": 2018, "month": "04"})
+    regex = r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
+    batch_def = asset.add_batch_definition_monthly(name="batch def", regex=regex)
+
+    with pytest.warns(GxDeprecationWarning):
+        # year is an int and is accepted outright; month is a digit-string, which is
+        # accepted but deprecated.
+        batch = batch_def.get_batch(batch_parameters={"year": 2018, "month": "04"})
+
+    assert batch.metadata == {
+        "path": "yellow_tripdata_sample_2018-04.csv",
+        "year": "2018",
+        "month": "04",
+    }
+
+
+@pytest.mark.unit
+def test_integer_rejected_for_regex_group_the_partitioner_does_not_declare_numeric(
+    pandas_filesystem_datasource: PandasFilesystemDatasource,
+):
+    """A regex group name alone does not make a parameter numeric -- only a group the
+    partitioner's own numeric declaration also names does. A group captured by the
+    regex but outside the partitioner's declared parameters is rejected as a
+    non-string/non-numeric value with a message naming it, not silently treated as
+    numeric."""
+    asset = pandas_filesystem_datasource.add_csv_asset(name="csv_asset")
+    # "revision" is captured by the regex but is not one of the monthly partitioner's
+    # declared (and therefore numeric) parameters.
+    regex = r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})-(?P<revision>\d+)\.csv"
+    partitioner = FileNamePartitionerMonthly(regex=re.compile(regex))
+
+    with pytest.raises(
+        ge_exceptions.InvalidBatchRequestError,
+        match="'revision' is not a string or an integer",
+    ):
+        asset.build_batch_request(
+            {"year": 2018, "month": "04", "revision": 1}, partitioner=partitioner
+        )
+
+
+@pytest.mark.unit
+def test_boolean_rejected_for_declared_numeric_parameter(
+    pandas_filesystem_datasource: PandasFilesystemDatasource,
+):
+    """A boolean is not an acceptable numeric parameter even though Python treats it
+    as an int (`isinstance(True, int)` is `True`) -- a bool value for a declared
+    numeric parameter is rejected, not silently admitted as 1."""
+    asset = pandas_filesystem_datasource.add_csv_asset(name="csv_asset")
+    regex = r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
+    partitioner = FileNamePartitionerMonthly(regex=re.compile(regex))
+
+    with pytest.raises(
+        ge_exceptions.InvalidBatchRequestError,
+        match="'month' is not a string or an integer",
+    ):
+        asset.build_batch_request({"year": 2018, "month": True}, partitioner=partitioner)
+
+
+@pytest.mark.unit
+def test_numeric_coercion_limited_to_params_both_declared_and_captured(
+    pandas_filesystem_datasource: PandasFilesystemDatasource,
+):
+    """A partitioner's declared numeric parameters are only coerced when the regex
+    also captures them by that name. "month" is declared numeric by the monthly
+    partitioner but the regex here has no named "month" group, so only "year" -- both
+    declared and captured -- is coerced; "month" is passed through untouched, matching
+    today's string contract, rather than being coerced on the strength of the
+    declaration alone."""
+    asset = pandas_filesystem_datasource.add_csv_asset(name="csv_asset")
+    regex = r"yellow_tripdata_sample_(?P<year>\d{4})-\d{1,2}\.csv"
+    partitioner = FileNamePartitionerMonthly(regex=re.compile(regex))
+
+    with pytest.warns(GxDeprecationWarning):
+        request = asset.build_batch_request(
+            {"year": "2018", "month": "04"}, partitioner=partitioner
+        )
+
+    assert request.options["year"] == 2018
+    assert request.options["month"] == "04"
+
+
+def _batches_selected_without_normalization(
+    asset: PathDataAsset,
+    partitioner: FileNamePartitionerMonthly,
+    year: str,
+    month: str,
+) -> set[tuple[str, str]]:
+    """The (year, month) pairs selected by today's string contract.
+
+    Builds the `BatchRequest` directly, bypassing `build_batch_request`'s
+    normalization and type-check wiring, so this reflects only the underlying regex
+    matching -- independent of the behavior under test -- and can serve as a ground
+    truth for the equivalent integer/digit-string requests.
+    """
+    request = BatchRequest(
+        datasource_name=asset.datasource.name,
+        data_asset_name=asset.name,
+        options={"year": year, "month": month},
+        partitioner=partitioner,
+    )
+    return {
+        (identifiers["year"], identifiers["month"])
+        for identifiers in asset.get_batch_identifiers_list(request)
+    }
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "regex",
+    [
+        pytest.param(
+            r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv", id="fixed-width"
+        ),
+        pytest.param(
+            r"yellow_tripdata_sample_(?P<year>\d{1,4})-(?P<month>\d{1,2})\.csv",
+            id="variable-width",
+        ),
+    ],
+)
+def test_integer_batch_parameters_select_same_batches_as_zero_padded_strings(
+    pandas_filesystem_datasource: PandasFilesystemDatasource,
+    regex: str,
+):
+    """Integer batch parameters select exactly the batches their zero-padded string
+    form selects today, including a single-digit month -- the trap a textual (rather
+    than numeric) normalization would fail."""
+    asset = pandas_filesystem_datasource.add_csv_asset(name="csv_asset")
+    partitioner = FileNamePartitionerMonthly(regex=re.compile(regex))
+
+    expected = _batches_selected_without_normalization(asset, partitioner, year="2018", month="04")
+    assert expected == {("2018", "04")}
+
+    int_request = asset.build_batch_request({"year": 2018, "month": 4}, partitioner=partitioner)
+    int_selected = {
+        (identifiers["year"], identifiers["month"])
+        for identifiers in asset.get_batch_identifiers_list(int_request)
+    }
+
+    assert int_selected == expected
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "regex",
+    [
+        pytest.param(
+            r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv", id="fixed-width"
+        ),
+        pytest.param(
+            r"yellow_tripdata_sample_(?P<year>\d{1,4})-(?P<month>\d{1,2})\.csv",
+            id="variable-width",
+        ),
+    ],
+)
+def test_digit_string_batch_parameters_select_same_batches_as_integers_and_warn(
+    pandas_filesystem_datasource: PandasFilesystemDatasource,
+    regex: str,
+):
+    """A digit-string batch parameter selects the same batches as its integer
+    equivalent and emits a deprecation warning instead of raising."""
+    asset = pandas_filesystem_datasource.add_csv_asset(name="csv_asset")
+    partitioner = FileNamePartitionerMonthly(regex=re.compile(regex))
+
+    expected = _batches_selected_without_normalization(asset, partitioner, year="2018", month="04")
+
+    with pytest.warns(GxDeprecationWarning):
+        digit_string_request = asset.build_batch_request(
+            {"year": "2018", "month": "04"}, partitioner=partitioner
+        )
+    digit_string_selected = {
+        (identifiers["year"], identifiers["month"])
+        for identifiers in asset.get_batch_identifiers_list(digit_string_request)
+    }
+
+    assert digit_string_selected == expected
+
+
+@pytest.mark.unit
+def test_integer_batch_parameter_keeps_zero_padded_string_identifiers_and_batch_id(
+    pandas_filesystem_datasource: PandasFilesystemDatasource,
+):
+    """Selecting a batch with integer batch parameters keeps the zero-padded string
+    captures in metadata and identifiers, and the batch ID equals the literal produced
+    by the equivalent (string-contract) request today."""
+    asset = pandas_filesystem_datasource.add_csv_asset(name="csv_asset")
+    regex = r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
+    batch_def = asset.add_batch_definition_monthly(name="batch def", regex=regex)
+
+    with pytest.warns(GxDeprecationWarning):
+        string_batch = batch_def.get_batch(batch_parameters={"year": "2018", "month": "04"})
+    int_batch = batch_def.get_batch(batch_parameters={"year": 2018, "month": 4})
+
+    assert int_batch.metadata == string_batch.metadata
+    assert int_batch.metadata == {
+        "path": "yellow_tripdata_sample_2018-04.csv",
+        "year": "2018",
+        "month": "04",
+    }
+    assert int_batch.id == string_batch.id
+    assert string_batch.id == "pandas_filesystem_datasource-csv_asset-year_2018-month_04"
+
+
+@pytest.mark.unit
+def test_batch_definition_build_batch_request_forwards_normalization(
+    pandas_filesystem_datasource: PandasFilesystemDatasource,
+):
+    """`BatchDefinition.build_batch_request` is a verbatim forwarder to the asset
+    override -- it has no logic of its own, so a test that merely calls it and checks
+    for "no exception" would pass even if the forwarding stopped reaching the
+    normalization boundary. Asserting the *normalized* (int-valued) options is what
+    makes this test fail if that boundary is skipped: an unnormalized forward would
+    leave "month" as the digit-string "04" in `request.options`, not the int `4`.
+    """
+    asset = pandas_filesystem_datasource.add_csv_asset(name="csv_asset")
+    regex = r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
+    batch_def = asset.add_batch_definition_monthly(name="batch def", regex=regex)
+
+    with pytest.warns(GxDeprecationWarning):
+        request = batch_def.build_batch_request({"year": "2018", "month": "04"})
+
+    assert request.options == {"year": 2018, "month": 4}
+
+
+@pytest.mark.unit
+def test_batch_definition_get_batch_identifiers_list_forwards_normalization(
+    pandas_filesystem_datasource: PandasFilesystemDatasource,
+):
+    """`BatchDefinition.get_batch_identifiers_list` is also a verbatim forwarder --
+    through its own `build_batch_request`, in turn through the asset override. Integer
+    batch parameters alone would not prove forwarding reaches the boundary: the file
+    matching sites already tolerate int-vs-zero-padded-string candidates
+    unconditionally, so a raw, unnormalized `BatchRequest` built with int options would
+    select the same identifiers regardless of whether normalization ran. A digit-string
+    request is the assertion that goes red if forwarding stops reaching the boundary --
+    it only selects the equivalent batch, and only warns, if normalization actually
+    ran; an unnormalized bypass would either raise (pre-relaxation) or, absent that
+    check too, simply never emit the warning `pytest.warns` requires here.
+    """
+    asset = pandas_filesystem_datasource.add_csv_asset(name="csv_asset")
+    regex = r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
+    batch_def = asset.add_batch_definition_monthly(name="batch def", regex=regex)
+
+    with pytest.warns(GxDeprecationWarning):
+        identifiers_list = batch_def.get_batch_identifiers_list({"year": "2018", "month": "04"})
+
+    assert identifiers_list == [
+        {"path": "yellow_tripdata_sample_2018-04.csv", "year": "2018", "month": "04"}
+    ]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("sort_ascending", [True, False])
+def test_string_batch_parameters_preserve_batch_ordering(
+    pandas_filesystem_datasource: PandasFilesystemDatasource,
+    sort_ascending: bool,
+):
+    """String batch parameters continue to produce identifier lists in the same
+    ascending/descending order they do today."""
+    asset = pandas_filesystem_datasource.add_csv_asset(name="csv_asset")
+    regex = r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
+    partitioner = FileNamePartitionerMonthly(regex=re.compile(regex), sort_ascending=sort_ascending)
+
+    with pytest.warns(GxDeprecationWarning):
+        request = asset.build_batch_request({"year": "2018"}, partitioner=partitioner)
+    identifiers_list = asset.get_batch_identifiers_list(request)
+    months = [identifiers["month"] for identifiers in identifiers_list]
+
+    assert months == sorted(months, reverse=not sort_ascending)
+    assert len(months) == 12
 
 
 @pytest.mark.unit

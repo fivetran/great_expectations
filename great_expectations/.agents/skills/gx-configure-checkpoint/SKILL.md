@@ -286,8 +286,8 @@ run fails because a driver or client library is missing, hand over the
 install command and stop — do not install it to get the run passing.
 `references/run-and-schedule.md` covers what `batch_parameters` actually
 does across multiple validation definitions, including a real trap when more
-than one of them is dataframe-backed, and the one combination of batch
-definition types that cannot share a single run today.
+than one of them is dataframe-backed, and why numeric window parameters are
+integers on every datasource family.
 
 **Pair each outcome to the validation definition it came from by identity,
 never by position:**
@@ -443,8 +443,9 @@ is the end state. Two things sit outside it:
 - `references/action-catalog.md` — every attachable post-run action, its
   fields, the public-API stability split, and enabling Data Docs.
 - `references/run-and-schedule.md` — `batch_parameters` semantics across
-  multiple validation definitions, the mixed-partitioner-type limitation,
-  the run snippet, and where scheduling guidance stops.
+  multiple validation definitions, integer window parameters and the
+  deprecation of digit strings, the run snippet, and where scheduling
+  guidance stops.
 - `references/robustness.md` — the time-budget wrapper, scope-reduction
   levers, and how to report a failure helpfully.
 - `references/write-out.md` — turning an in-memory session into a real

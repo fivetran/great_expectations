@@ -44,6 +44,7 @@ import sqlite3
 import subprocess
 import sys
 import textwrap
+import warnings
 from typing import TYPE_CHECKING, Any, Callable, Final, Iterator
 
 import pandas as pd
@@ -56,10 +57,8 @@ from great_expectations.core import ExpectationSuite, ValidationDefinition
 from great_expectations.data_context import EphemeralDataContext, FileDataContext
 from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.exceptions import ResourceFreshnessAggregateError
-from great_expectations.exceptions.exceptions import (
-    InvalidBatchRequestError,
-    NoAvailableBatchesError,
-)
+from great_expectations.exceptions.exceptions import NoAvailableBatchesError
+from great_expectations.warnings import GxDeprecationWarning
 from tests.agent_skills.test_skill_content import CONSENT_GATES, ConsentGate
 
 if TYPE_CHECKING:
@@ -1927,44 +1926,12 @@ def test_an_empty_window_fails_at_retrieval_before_any_probe_runs(
     with pytest.raises(NoAvailableBatchesError):
         sql_definition.get_batch(batch_parameters={"year": 1999, "month": 1})
     with pytest.raises(NoAvailableBatchesError):
-        file_definition.get_batch(batch_parameters={"year": "1999", "month": "01"})
+        file_definition.get_batch(batch_parameters={"year": 1999, "month": 1})
 
     # The same definitions do produce a batch for a window that exists, so the failures
     # above are about the window rather than about a broken configuration.
     assert sql_definition.get_batch(batch_parameters={"year": 2024, "month": 3}) is not None
-    assert file_definition.get_batch(batch_parameters={"year": "2024", "month": "02"}) is not None
-
-
-@pytest.mark.sqlite
-def test_batch_parameter_types_differ_between_file_and_sql_assets(
-    ephemeral_context: EphemeralDataContext, warehouse: SqliteDatasource, tmp_path: pathlib.Path
-):
-    """File-based definitions match on strings; SQL definitions partition on integers."""
-    files = tmp_path / "sales"
-    files.mkdir()
-    (files / "sales_2024-02.csv").write_text("customer,amount\nalice,1.0\n", encoding="utf-8")
-    file_definition = (
-        ephemeral_context.data_sources.add_or_update_pandas_filesystem(
-            name="sales_files", base_directory=files
-        )
-        .add_csv_asset(name="monthly_sales")
-        .add_batch_definition_monthly(
-            name="by_month", regex=r"sales_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
-        )
-    )
-    sql_definition = warehouse.add_table_asset(
-        name="orders", table_name="orders"
-    ).add_batch_definition_monthly(name="by_month", column="ordered_at")
-
-    with pytest.raises(InvalidBatchRequestError):
-        file_definition.get_batch(batch_parameters={"year": 2024, "month": 2})
-    assert file_definition.get_batch(batch_parameters={"year": "2024", "month": "02"}) is not None
-
-    assert sql_definition.get_batch(batch_parameters={"year": 2024, "month": 3}) is not None
-    # Strings against a SQL definition are not rejected -- they simply match nothing,
-    # which is why the two families cannot share one set of batch parameters.
-    with pytest.raises(NoAvailableBatchesError):
-        sql_definition.get_batch(batch_parameters={"year": "2024", "month": "03"})
+    assert file_definition.get_batch(batch_parameters={"year": 2024, "month": 2}) is not None
 
 
 @pytest.mark.sqlite
@@ -2663,13 +2630,47 @@ def test_null_data_docs_sites_silently_no_ops_and_recovers_only_with_the_documen
     assert reloaded.config.data_docs_sites, "the recovered site is not visible from a fresh load"
 
 
+def documented_deprecation_message(document: pathlib.Path) -> str:
+    """Return the sole block quote in ``document``, unwrapped to a single line.
+
+    Read out of the shipped guidance rather than re-typed here, so a test asserting the
+    runtime's wording is asserting the *same* string the skill shows a user. Re-typing
+    it would let the two drift apart in exactly the case this test exists to catch.
+
+    Requiring exactly one block quote is what makes "the sole block quote" a safe way to
+    name it: a second one added later fails here, loudly, rather than being silently
+    concatenated onto the first into a string that matches nothing.
+    """
+    quotes: list[str] = []
+    inside = False
+    for line in document.read_text(encoding="utf-8").splitlines():
+        if line.startswith(">"):
+            if not inside:
+                quotes.append("")
+                inside = True
+            quotes[-1] = f"{quotes[-1]} {line.lstrip('>').strip()}".strip()
+        else:
+            inside = False
+    assert len(quotes) == 1, (
+        f"{canonical_relative_path(document)} carries {len(quotes)} block quotes;"
+        " this helper names the deprecation message by being the only one"
+    )
+    return quotes[0]
+
+
 @pytest.mark.sqlite
-def test_mixed_temporal_source_batch_parameters_fail_in_the_documented_directions(
+def test_one_integer_window_drives_both_a_sql_and_a_file_based_validation_definition(
     ephemeral_context: EphemeralDataContext, warehouse: SqliteDatasource, tmp_path: pathlib.Path
 ):
-    """A checkpoint spanning a SQL and a file-based monthly partitioner cannot share one
-    ``batch_parameters`` dict -- both failure directions, pinned exactly as observed,
-    and not interchangeable with each other."""
+    """A checkpoint spanning a SQL and a file-based monthly partitioner runs from one
+    ``batch_parameters`` dict of integers -- the two families take the same numeric
+    window parameters, so neither has to be split into a checkpoint of its own.
+
+    Digit strings still select the same batch, so a user's existing snippet keeps
+    working, but they emit the deprecation warning ``run-and-schedule.md`` quotes.
+    The zero-padded filename is deliberate: the file side matches ``2024-03`` as text
+    while the parameter that selects it is the unpadded integer ``3``.
+    """
     sql_batch_definition = warehouse.add_table_asset(
         name="orders", table_name="orders"
     ).add_batch_definition_monthly(name="by_month", column="ordered_at")
@@ -2699,12 +2700,34 @@ def test_mixed_temporal_source_batch_parameters_fail_in_the_documented_direction
         Checkpoint(name="mixed_source_cp", validation_definitions=[sql_vd, file_vd], actions=[])
     )
 
-    # The dangerous direction: strings satisfy the file side but the SQL side reports
-    # what reads exactly like an empty window rather than a type mismatch.
-    with pytest.raises(NoAvailableBatchesError):
-        checkpoint.run(batch_parameters={"year": "2024", "month": "03"})
+    with warnings.catch_warnings(record=True) as integer_run_warnings:
+        warnings.simplefilter("always")
+        integer_result = checkpoint.run(batch_parameters={"year": 2024, "month": 3})
 
-    # The other direction is not interchangeable with the first: integers fail loudly
-    # and immediately on the file side instead.
-    with pytest.raises(InvalidBatchRequestError):
-        checkpoint.run(batch_parameters={"year": 2024, "month": 3})
+    assert integer_result.success is True
+    # Both sides really ran: a checkpoint whose file side silently contributed nothing
+    # would still report success, so the count is what makes this an integration claim.
+    assert len(integer_result.run_results) == 2
+    assert [
+        str(each.message)
+        for each in integer_run_warnings
+        if issubclass(each.category, GxDeprecationWarning)
+    ] == [], "integer batch parameters are the documented form and must not be deprecated"
+
+    with warnings.catch_warnings(record=True) as string_run_warnings:
+        warnings.simplefilter("always")
+        string_result = checkpoint.run(batch_parameters={"year": "2024", "month": "03"})
+
+    # Strings are deprecated, not broken -- they still select the same window on both
+    # sides, which is why the guidance converts them rather than telling users to stop.
+    assert string_result.success is True
+    assert len(string_result.run_results) == 2
+    deprecations = {
+        str(each.message)
+        for each in string_run_warnings
+        if issubclass(each.category, GxDeprecationWarning)
+    }
+    assert deprecations == {documented_deprecation_message(CHECKPOINT_RUN_AND_SCHEDULE)}, (
+        "the warning digit strings actually emit is not the one"
+        f" {canonical_relative_path(CHECKPOINT_RUN_AND_SCHEDULE)} quotes to the user"
+    )
