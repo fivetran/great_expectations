@@ -16,7 +16,7 @@ different parameters in a single `run()` call. For a checkpoint whose
 validation definitions all share the same partitioning shape (all monthly by
 the same convention, say), this is exactly what you want: one call, one
 window, every check run against it. It stops being harmless the moment the
-validation definitions don't share that shape — see both cases below.
+validation definitions don't share that shape — see the dataframe case below.
 
 `checkpoint.run()` also accepts `expectation_parameters`, for expectations
 built with runtime parameters rather than fixed values; this skill's flow
@@ -47,43 +47,38 @@ a user wants several dataframes checked by one named checkpoint, either keep
 each dataframe-backed validation definition in its own checkpoint, or route
 distinct dataframes through separate runs.
 
-## When two batch definitions want incompatible parameter types
+## Numeric window parameters are integers on every family
 
-**Today's Great Expectations release cannot drive one time-partitioned
-file-based batch definition and one time-partitioned SQL batch definition
-from the same checkpoint run.** The monthly partitioners on the two families
-disagree about what `batch_parameters` should contain — file-based
-partitioners require strings, SQL partitioners require integers — and
-`checkpoint.run()` has only one `batch_parameters` dict to give both. Whichever
-type you pick, one side either fails loudly or fails in a way that reads as
-missing data rather than a type mismatch. Verified directly, both directions:
+**One `batch_parameters` dict of integers drives a checkpoint that mixes a
+time-partitioned file-based batch definition and a time-partitioned SQL batch
+definition.** Both families take the same numeric window parameters, so no
+combination of temporal partitioners has to be split across separate runs —
+the `run()` call at the top of this document is the whole of it.
 
-- **Integers, aimed at a file-based monthly partitioner:**
-  `InvalidBatchRequestError: All batching_regex matching options must be
-  strings. The value of 'year' is not a string: 2024` — loud and immediate.
-- **Strings, aimed at a SQL monthly partitioner:** `NoAvailableBatchesError:
-  No available batches found.` — this is the dangerous direction. It reads
-  exactly like an empty time window (a normal, non-broken outcome elsewhere
-  in this skill family), not like a parameter type problem, and the data is
-  actually there under the same window with integer parameters.
+Emit integers whenever you generate a run snippet, including for file-based
+definitions whose partitioning regex is written against zero-padded text:
+`{"month": 3}` selects `sales_2024-03.csv`. You do not pad the parameter to
+match the filename, and `{"month": 3}` is not a different window from
+`{"month": "03"}`.
 
-If a user asks for this combination, **say so before you assemble it** —
-don't build a checkpoint whose validation definitions cross this line and let
-them discover the misleading failure themselves. Two working alternatives:
+Digit strings are still accepted and still select the same batch, but they now
+emit a `GxDeprecationWarning`:
 
-- **Separate checkpoints, one per source family.** A checkpoint of only
-  file-based validation definitions run with string parameters, and a second
-  checkpoint of only SQL validation definitions run with integer parameters.
-  Both stay fully automatable; wiring two run snippets instead of one is a
-  minor cost for correctness.
-- **A fixed, non-partitioned batch definition on one side.** If one source
-  doesn't actually need month-by-month slicing, a whole-table or
-  whole-dataframe batch definition sidesteps the type mismatch entirely by
-  not taking `batch_parameters` for the window at all.
+> String values for numeric batch parameters are deprecated: month, year.
+> Pass integer values instead; string support is planned for removal in 2.0.
 
-Per-validation-definition parameters aren't available as a third option —
-`checkpoint.run()`'s one `batch_parameters` dict is the whole surface here,
-for both families, whether or not their types happen to agree.
+That warning fires **once per call site, not once per run**, so a scheduled job
+passing strings surfaces it on its first execution and then looks clean while
+still accumulating the removal risk. Existing snippets and older documentation
+commonly use strings — when a user brings you one, convert it to integers
+rather than carrying the strings forward.
+
+Per-validation-definition parameters aren't available: `checkpoint.run()`'s one
+`batch_parameters` dict is the whole surface, applied to every validation
+definition in the checkpoint. That is a real constraint for the dataframe case
+above, where the value genuinely differs per validation definition. It is not
+one for time windows, where every validation definition wants the same window
+anyway.
 
 ## Reporting the run
 
