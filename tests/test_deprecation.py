@@ -46,6 +46,11 @@ def _deprecation_emission_count(source: str) -> int:
     emission a marker should be paired with. Matching on the call is also not
     sensitive to how the import happens to be formatted.
     """
+    if "DeprecationWarning" not in source:
+        # No emission can name a category the source never mentions. Without this the
+        # parse runs over every file in the package rather than the dozen that carry a
+        # deprecation, which costs enough to overrun the per-test timeout.
+        return 0
     count = 0
     for node in ast.walk(ast.parse(source)):
         if not isinstance(node, ast.Call):
