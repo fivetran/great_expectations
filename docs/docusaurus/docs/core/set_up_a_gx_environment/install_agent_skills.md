@@ -69,7 +69,7 @@ To link to the skills inside the installed package instead of copying them — s
 
 ### What the install command will and will not overwrite
 
-- **Re-running the install command is always safe.** A skill that is already installed at the version you are running is left byte-for-byte alone and is reported under `Already up to date`.
+- **Re-running the install command is always safe.** A skill that is already installed at the version you are running, in the same form — copied, or linked with `--symlink` — is left byte-for-byte alone and is reported under `Already up to date`. Re-running with the other choice of `--symlink` converts it, and reports it under `Updated`.
 - **A directory that GX did not install is never overwritten.** It is reported under `Failed`, left untouched, and the remaining skills still install. `--force` does not change this: if you want GX to install its skill at that path, move or delete the directory yourself first.
 - **A GX-installed copy that you have edited since is left untouched too, so no edits are lost.** It is reported under `Failed` with an explanation. Re-run the install with `--force` to replace it with the bundled skill — this discards your edits, so save a copy elsewhere first if you want to keep them.
 
