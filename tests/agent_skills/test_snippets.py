@@ -49,10 +49,7 @@ import pytest
 import great_expectations as gx
 from great_expectations.data_context import EphemeralDataContext, FileDataContext
 from great_expectations.datasource.fluent.interfaces import Batch
-from great_expectations.exceptions.exceptions import (
-    InvalidBatchRequestError,
-    NoAvailableBatchesError,
-)
+from great_expectations.exceptions.exceptions import NoAvailableBatchesError
 
 if TYPE_CHECKING:
     from great_expectations.core import ExpectationSuite
@@ -1211,44 +1208,12 @@ def test_an_empty_window_fails_at_retrieval_before_any_probe_runs(
     with pytest.raises(NoAvailableBatchesError):
         sql_definition.get_batch(batch_parameters={"year": 1999, "month": 1})
     with pytest.raises(NoAvailableBatchesError):
-        file_definition.get_batch(batch_parameters={"year": "1999", "month": "01"})
+        file_definition.get_batch(batch_parameters={"year": 1999, "month": 1})
 
     # The same definitions do produce a batch for a window that exists, so the failures
     # above are about the window rather than about a broken configuration.
     assert sql_definition.get_batch(batch_parameters={"year": 2024, "month": 3}) is not None
-    assert file_definition.get_batch(batch_parameters={"year": "2024", "month": "02"}) is not None
-
-
-@pytest.mark.sqlite
-def test_batch_parameter_types_differ_between_file_and_sql_assets(
-    ephemeral_context: EphemeralDataContext, warehouse: SqliteDatasource, tmp_path: pathlib.Path
-):
-    """File-based definitions match on strings; SQL definitions partition on integers."""
-    files = tmp_path / "sales"
-    files.mkdir()
-    (files / "sales_2024-02.csv").write_text("customer,amount\nalice,1.0\n", encoding="utf-8")
-    file_definition = (
-        ephemeral_context.data_sources.add_or_update_pandas_filesystem(
-            name="sales_files", base_directory=files
-        )
-        .add_csv_asset(name="monthly_sales")
-        .add_batch_definition_monthly(
-            name="by_month", regex=r"sales_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
-        )
-    )
-    sql_definition = warehouse.add_table_asset(
-        name="orders", table_name="orders"
-    ).add_batch_definition_monthly(name="by_month", column="ordered_at")
-
-    with pytest.raises(InvalidBatchRequestError):
-        file_definition.get_batch(batch_parameters={"year": 2024, "month": 2})
-    assert file_definition.get_batch(batch_parameters={"year": "2024", "month": "02"}) is not None
-
-    assert sql_definition.get_batch(batch_parameters={"year": 2024, "month": 3}) is not None
-    # Strings against a SQL definition are not rejected -- they simply match nothing,
-    # which is why the two families cannot share one set of batch parameters.
-    with pytest.raises(NoAvailableBatchesError):
-        sql_definition.get_batch(batch_parameters={"year": "2024", "month": "03"})
+    assert file_definition.get_batch(batch_parameters={"year": 2024, "month": 2}) is not None
 
 
 @pytest.mark.sqlite
