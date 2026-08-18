@@ -1,0 +1,1134 @@
+{
+    "documented_absent": [
+        "expect_column_values_to_be_dateutil_parseable",
+        "expect_column_values_to_be_decreasing",
+        "expect_column_values_to_be_increasing",
+        "expect_column_values_to_be_json_parseable",
+        "expect_column_values_to_match_json_schema"
+    ],
+    "expectations": {
+        "expect_column_distinct_values_to_be_in_set": {
+            "data_quality_issues": [
+                "Uniqueness"
+            ],
+            "schema_file": "ExpectColumnDistinctValuesToBeInSet.json",
+            "short_description": "Expect the set of distinct column values to be contained by a given set.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_distinct_values_to_contain_set": {
+            "data_quality_issues": [
+                "Uniqueness"
+            ],
+            "schema_file": "ExpectColumnDistinctValuesToContainSet.json",
+            "short_description": "Expect the set of distinct column values to contain a given set.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_distinct_values_to_equal_set": {
+            "data_quality_issues": [
+                "Uniqueness"
+            ],
+            "schema_file": "ExpectColumnDistinctValuesToEqualSet.json",
+            "short_description": "Expect the set of distinct column values to equal a given set.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_kl_divergence_to_be_less_than": {
+            "data_quality_issues": [
+                "Numeric"
+            ],
+            "schema_file": "ExpectColumnKLDivergenceToBeLessThan.json",
+            "short_description": "Expect the Kulback-Leibler (KL) divergence (relative entropy) of the specified column with respect to the partition object to be lower than the provided threshold.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Redshift"
+            ]
+        },
+        "expect_column_max_to_be_between": {
+            "data_quality_issues": [
+                "Numeric"
+            ],
+            "schema_file": "ExpectColumnMaxToBeBetween.json",
+            "short_description": "Expect the column maximum to be between a minimum value and a maximum value.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_mean_to_be_between": {
+            "data_quality_issues": [
+                "Numeric"
+            ],
+            "schema_file": "ExpectColumnMeanToBeBetween.json",
+            "short_description": "Expect the column mean to be between a minimum value and a maximum value (inclusive).",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_median_to_be_between": {
+            "data_quality_issues": [
+                "Numeric"
+            ],
+            "schema_file": "ExpectColumnMedianToBeBetween.json",
+            "short_description": "Expect the column median to be between a minimum value and a maximum value.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_min_to_be_between": {
+            "data_quality_issues": [
+                "Numeric"
+            ],
+            "schema_file": "ExpectColumnMinToBeBetween.json",
+            "short_description": "Expect the column minimum to be between a minimum value and a maximum value.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_most_common_value_to_be_in_set": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectColumnMostCommonValueToBeInSet.json",
+            "short_description": "Expect the most common value to be within the designated value set.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_pair_values_a_to_be_greater_than_b": {
+            "data_quality_issues": [
+                "Numeric"
+            ],
+            "schema_file": "ExpectColumnPairValuesAToBeGreaterThanB.json",
+            "short_description": "Expect the values in column A to be greater than column B.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_pair_values_to_be_equal": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectColumnPairValuesToBeEqual.json",
+            "short_description": "Expect the values in column A to be the same as column B.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_pair_values_to_be_in_set": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectColumnPairValuesToBeInSet.json",
+            "short_description": "Expect the paired values from columns A and B to belong to a set of valid pairs.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Redshift"
+            ]
+        },
+        "expect_column_proportion_of_non_null_values_to_be_between": {
+            "data_quality_issues": [
+                "Completeness"
+            ],
+            "schema_file": "ExpectColumnProportionOfNonNullValuesToBeBetween.json",
+            "short_description": "Expect the proportion of non-null values to be between a minimum value and a maximum value.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_proportion_of_unique_values_to_be_between": {
+            "data_quality_issues": [
+                "Uniqueness"
+            ],
+            "schema_file": "ExpectColumnProportionOfUniqueValuesToBeBetween.json",
+            "short_description": "Expect the proportion of unique values to be between a minimum value and a maximum value.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_quantile_values_to_be_between": {
+            "data_quality_issues": [
+                "Numeric"
+            ],
+            "schema_file": "ExpectColumnQuantileValuesToBeBetween.json",
+            "short_description": "Expect the specific provided column quantiles to be between a minimum value and a maximum value.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Redshift"
+            ]
+        },
+        "expect_column_stdev_to_be_between": {
+            "data_quality_issues": [
+                "Numeric"
+            ],
+            "schema_file": "ExpectColumnStdevToBeBetween.json",
+            "short_description": "Expect the column standard deviation to be between a minimum value and a maximum value.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_sum_to_be_between": {
+            "data_quality_issues": [
+                "Numeric"
+            ],
+            "schema_file": "ExpectColumnSumToBeBetween.json",
+            "short_description": "Expect the column sum to be between a minimum value and a maximum value.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_to_exist": {
+            "data_quality_issues": [
+                "Schema"
+            ],
+            "schema_file": "ExpectColumnToExist.json",
+            "short_description": "Checks for the existence of a specified column within a table.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_unique_value_count_to_be_between": {
+            "data_quality_issues": [
+                "Uniqueness"
+            ],
+            "schema_file": "ExpectColumnUniqueValueCountToBeBetween.json",
+            "short_description": "Expect the number of unique values to be between a minimum value and a maximum value.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_value_lengths_to_be_between": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectColumnValueLengthsToBeBetween.json",
+            "short_description": "Expect the column entries to be strings with length between a minimum value and a maximum value (inclusive).",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_value_lengths_to_equal": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectColumnValueLengthsToEqual.json",
+            "short_description": "Expect the column entries to be strings with length equal to the provided value.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_value_z_scores_to_be_less_than": {
+            "data_quality_issues": [
+                "Numeric"
+            ],
+            "schema_file": "ExpectColumnValueZScoresToBeLessThan.json",
+            "short_description": "Expect the Z-scores of a column's values to be less than a given threshold.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_values_to_be_between": {
+            "data_quality_issues": [
+                "Numeric"
+            ],
+            "schema_file": "ExpectColumnValuesToBeBetween.json",
+            "short_description": "Expect the column entries to be between a minimum value and a maximum value (inclusive).",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_values_to_be_in_set": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectColumnValuesToBeInSet.json",
+            "short_description": "Expect each column value to be in a given set.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_values_to_be_in_type_list": {
+            "data_quality_issues": [
+                "Schema"
+            ],
+            "schema_file": "ExpectColumnValuesToBeInTypeList.json",
+            "short_description": "Expect a column to contain values from a specified type list.",
+            "supported_data_sources": [
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "SQL Server",
+                "BigQuery",
+                "Redshift"
+            ]
+        },
+        "expect_column_values_to_be_null": {
+            "data_quality_issues": [
+                "Completeness"
+            ],
+            "schema_file": "ExpectColumnValuesToBeNull.json",
+            "short_description": "Expect the column values to be null.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_values_to_be_of_type": {
+            "data_quality_issues": [
+                "Schema"
+            ],
+            "schema_file": "ExpectColumnValuesToBeOfType.json",
+            "short_description": "Expect a column to contain values of a specified data type.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_values_to_be_unique": {
+            "data_quality_issues": [
+                "Uniqueness"
+            ],
+            "schema_file": "ExpectColumnValuesToBeUnique.json",
+            "short_description": "Expect each column value to be unique.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_values_to_match_like_pattern": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectColumnValuesToMatchLikePattern.json",
+            "short_description": "Expect the column entries to be strings that match a given like pattern expression.",
+            "supported_data_sources": [
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "Redshift",
+                "MySQL",
+                "SQL Server",
+                "Databricks (SQL)",
+                "BigQuery",
+                "Snowflake"
+            ]
+        },
+        "expect_column_values_to_match_like_pattern_list": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectColumnValuesToMatchLikePatternList.json",
+            "short_description": "Expect the column entries to be strings that match any of a provided list of like pattern expressions.",
+            "supported_data_sources": [
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "Redshift",
+                "MySQL",
+                "SQL Server",
+                "Databricks (SQL)",
+                "BigQuery",
+                "Snowflake"
+            ]
+        },
+        "expect_column_values_to_match_regex": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectColumnValuesToMatchRegex.json",
+            "short_description": "Expect the column entries to be strings that match a given regular expression.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "BigQuery",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_values_to_match_regex_list": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectColumnValuesToMatchRegexList.json",
+            "short_description": "Expect the column entries to be strings that can be matched to either any of or all of a list of regular expressions.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "BigQuery",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_values_to_match_strftime_format": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectColumnValuesToMatchStrftimeFormat.json",
+            "short_description": "Expect the column entries to be strings representing a date or time with a given format.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark"
+            ]
+        },
+        "expect_column_values_to_not_be_in_set": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectColumnValuesToNotBeInSet.json",
+            "short_description": "Expect column entries to not be in the set.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_values_to_not_be_null": {
+            "data_quality_issues": [
+                "Completeness"
+            ],
+            "schema_file": "ExpectColumnValuesToNotBeNull.json",
+            "short_description": "Expect the column values to not be null.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_values_to_not_match_like_pattern": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectColumnValuesToNotMatchLikePattern.json",
+            "short_description": "Expect the column entries to be strings that do NOT match a given like pattern expression.",
+            "supported_data_sources": [
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "Redshift",
+                "MySQL",
+                "SQL Server",
+                "Databricks (SQL)",
+                "Snowflake"
+            ]
+        },
+        "expect_column_values_to_not_match_like_pattern_list": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectColumnValuesToNotMatchLikePatternList.json",
+            "short_description": "Expect the column entries to be strings that do NOT match any of a provided list of like pattern expressions.",
+            "supported_data_sources": [
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "Redshift",
+                "MySQL",
+                "SQL Server",
+                "Databricks (SQL)",
+                "Snowflake"
+            ]
+        },
+        "expect_column_values_to_not_match_regex": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectColumnValuesToNotMatchRegex.json",
+            "short_description": "Expect the column entries to be strings that do NOT match a given regular expression.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_column_values_to_not_match_regex_list": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectColumnValuesToNotMatchRegexList.json",
+            "short_description": "Expect the column entries to be strings that do not match any of a list of regular expressions. Matches can be anywhere in the string.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "Redshift",
+                "MySQL",
+                "Databricks (SQL)",
+                "SQLite"
+            ]
+        },
+        "expect_compound_columns_to_be_unique": {
+            "data_quality_issues": [
+                "Uniqueness"
+            ],
+            "schema_file": "ExpectCompoundColumnsToBeUnique.json",
+            "short_description": "Expect the compound columns to be unique.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_multicolumn_sum_to_equal": {
+            "data_quality_issues": [
+                "Numeric"
+            ],
+            "schema_file": "ExpectMulticolumnSumToEqual.json",
+            "short_description": "Expect that the sum of row values in a specified column list is the same for each row, and equal to a specified sum total.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_query_results_to_match_comparison": {
+            "data_quality_issues": [
+                "Multi-source"
+            ],
+            "schema_file": "ExpectQueryResultsToMatchComparison.json",
+            "short_description": "This Expectation will check if the results of a query matches the results of a query against another Data Source.",
+            "supported_data_sources": [
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift",
+                "SQLite"
+            ]
+        },
+        "expect_select_column_values_to_be_unique_within_record": {
+            "data_quality_issues": [
+                "Uniqueness"
+            ],
+            "schema_file": "ExpectSelectColumnValuesToBeUniqueWithinRecord.json",
+            "short_description": "Expect the values for each record to be unique across the columns listed. Note that records can be duplicated.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_table_column_count_to_be_between": {
+            "data_quality_issues": [
+                "Schema"
+            ],
+            "schema_file": "ExpectTableColumnCountToBeBetween.json",
+            "short_description": "Expect the number of columns in a table to be between two values.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_table_column_count_to_equal": {
+            "data_quality_issues": [
+                "Schema"
+            ],
+            "schema_file": "ExpectTableColumnCountToEqual.json",
+            "short_description": "Expect the number of columns in a table to equal a value.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_table_columns_to_match_ordered_list": {
+            "data_quality_issues": [
+                "Schema"
+            ],
+            "schema_file": "ExpectTableColumnsToMatchOrderedList.json",
+            "short_description": "Expect the columns in a table to exactly match a specified list.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_table_columns_to_match_set": {
+            "data_quality_issues": [
+                "Schema"
+            ],
+            "schema_file": "ExpectTableColumnsToMatchSet.json",
+            "short_description": "Expect the columns in a table to match an unordered set.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_table_row_count_to_be_between": {
+            "data_quality_issues": [
+                "Volume"
+            ],
+            "schema_file": "ExpectTableRowCountToBeBetween.json",
+            "short_description": "Expect the number of rows to be between two values.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_table_row_count_to_equal": {
+            "data_quality_issues": [
+                "Volume"
+            ],
+            "schema_file": "ExpectTableRowCountToEqual.json",
+            "short_description": "Expect the number of rows to equal a value.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_table_row_count_to_equal_other_table": {
+            "data_quality_issues": [
+                "Volume"
+            ],
+            "schema_file": "ExpectTableRowCountToEqualOtherTable.json",
+            "short_description": "Expect the number of rows to equal the number in another table within the same database.",
+            "supported_data_sources": [
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "Redshift",
+                "MySQL",
+                "SQL Server",
+                "Databricks (SQL)",
+                "Snowflake"
+            ]
+        },
+        "unexpected_rows_expectation": {
+            "data_quality_issues": [
+                "SQL"
+            ],
+            "schema_file": "UnexpectedRowsExpectation.json",
+            "short_description": "This Expectation will fail validation if the query returns one or more rows. The WHERE clause defines the fail criteria.",
+            "supported_data_sources": [
+                "Spark",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "Redshift",
+                "MySQL",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "SQL Server"
+            ]
+        }
+    }
+}

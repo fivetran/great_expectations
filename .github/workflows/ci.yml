@@ -949,6 +949,9 @@ jobs:
       - name: Import Great Expectations
         run: python -c "import great_expectations as gx; print('Successfully imported GX Version:', gx.__version__)"
 
+      - name: Check installed agent skills and schema catalogs
+        run: python ci/checks/check_installed_agent_skills.py
+
   ci-required:
     # Single required status check for branch protection.
     # Passes when every upstream job either succeeded or was skipped
