@@ -661,6 +661,119 @@ def test_a_placeholder_directory_and_a_read_only_call_are_both_accepted(
 
 
 # ---------------------------------------------------------------------------
+# No shipped snippet passes a numeric batch parameter as a string. Both
+# families accept integers, and digit strings are deprecated with removal
+# planned for 2.0, so a snippet carrying one seeds a user's project with code
+# that warns today and breaks then.
+# ---------------------------------------------------------------------------
+
+#: The batch-parameter names that carry a numeric window. ``dataframe`` and other
+#: non-numeric parameters are untouched by the deprecation and are not checked.
+NUMERIC_BATCH_PARAMETER_NAMES: Final = ("year", "month", "day")
+
+
+def numeric_batch_parameter_bindings(block: CodeBlock) -> list[tuple[str, ast.expr]]:
+    """Every ``batch_parameters={...}`` entry in ``block`` keyed by a numeric window name.
+
+    Parsed rather than pattern-matched. The values these snippets pass are plain literals,
+    but a regex over the source cannot tell a dict key from the same characters inside a
+    partitioning regex -- and every snippet here that binds ``year`` and ``month`` also
+    carries a ``(?P<year>\\d{4})-(?P<month>\\d{2})`` literal a line or two above it. A check
+    whose whole job is to be trusted about types cannot be the one guessing which is which.
+    """
+    bindings: list[tuple[str, ast.expr]] = []
+    for node in ast.walk(ast.parse(block.source)):
+        if not isinstance(node, ast.keyword) or node.arg != "batch_parameters":
+            continue
+        if not isinstance(node.value, ast.Dict):
+            continue
+        for key, value in zip(node.value.keys, node.value.values, strict=True):
+            if not isinstance(key, ast.Constant):
+                continue
+            name = key.value
+            if isinstance(name, str) and name in NUMERIC_BATCH_PARAMETER_NAMES:
+                bindings.append((name, value))
+    return bindings
+
+
+def string_batch_parameter_problems(blocks: list[CodeBlock]) -> list[str]:
+    """Report every snippet binding a numeric window parameter to a string literal."""
+    problems: list[str] = []
+    for block in blocks:
+        for name, value in numeric_batch_parameter_bindings(block):
+            if isinstance(value, ast.Constant) and isinstance(value.value, str):
+                problems.append(
+                    f"{block.identifier}: batch_parameters passes {name}={value.value!r} as a"
+                    " string. Both datasource families take integers; digit strings are"
+                    " deprecated with removal planned for 2.0, so this snippet would seed a"
+                    " project with code that warns now and breaks then."
+                )
+    return problems
+
+
+def numeric_batch_parameter_bindings_exist() -> bool:
+    return any(numeric_batch_parameter_bindings(block) for block in ALL_PYTHON_BLOCKS)
+
+
+@pytest.mark.unit
+def test_no_snippet_passes_a_numeric_batch_parameter_as_a_string():
+    """Guidance is copied from the snippet, not from the prose around it.
+
+    The deprecation this guards is silent by design -- a digit string still returns the
+    right batch, so nothing about running one of these snippets tells a reader it is
+    building on something scheduled for removal. ``test_one_integer_window_drives_both_a
+    _sql_and_a_file_based_validation_definition`` proves the runtime behaviour this check
+    encodes; this one keeps every shipped snippet on the right side of it.
+    """
+    assert numeric_batch_parameter_bindings_exist(), (
+        "no snippet binds a numeric batch parameter any more, so this check passes"
+        " vacuously; find where the partitioned-batch examples moved to"
+    )
+
+    problems = string_batch_parameter_problems(ALL_PYTHON_BLOCKS)
+
+    assert not problems, "\n".join(problems)
+
+
+@pytest.mark.unit
+def test_a_snippet_passing_a_digit_string_batch_parameter_is_reported(tmp_path: pathlib.Path):
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        batch = batch_definition.get_batch(batch_parameters={"year": "2024", "month": "02"})
+        ```
+        """,
+    )
+
+    problems = string_batch_parameter_problems(python_blocks(document))
+
+    assert len(problems) == 2, problems
+    assert "year='2024'" in problems[0]
+    assert "month='02'" in problems[1]
+
+
+@pytest.mark.unit
+def test_integer_and_non_numeric_batch_parameters_are_both_accepted(tmp_path: pathlib.Path):
+    """The check has to stay silent on the shapes the skills actually ship."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        batch = batch_definition.get_batch(batch_parameters={"year": 2024, "month": 2})
+        result = checkpoint.run(batch_parameters={"dataframe": df})
+        ```
+        """,
+    )
+
+    assert string_batch_parameter_problems(python_blocks(document)) == []
+
+
+# ---------------------------------------------------------------------------
 # No shipped snippet performs any of the other register rows' gated actions
 # either. ``CONSENT_GATES`` is imported from ``test_skill_content`` rather
 # than copied here -- a second list of gated actions is how the two would

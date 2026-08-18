@@ -374,9 +374,9 @@ Take the factory names and arguments for the user's actual backend from
 ### A file-based source: monthly CSV files
 
 The date lives in the file name, so the monthly batch definition takes a
-`regex` with named groups. **Batch parameters for file-based definitions must
-be strings** — passing `2024` instead of `"2024"` raises
-`InvalidBatchRequestError`.
+`regex` with named groups. **Batch parameters are integers**, and they are not
+padded to match the file name: `{"month": 2}` selects `sales_2024-02.csv`, even
+though the regex reads that group as two zero-padded digits.
 
 ```python
 try:
@@ -392,16 +392,16 @@ batch_definition = asset.add_batch_definition_monthly(
     regex=r"sales_(?P<year>\d{4})-(?P<month>\d{2})\.csv",
 )
 
-batch = batch_definition.get_batch(batch_parameters={"year": "2024", "month": "02"})
+batch = batch_definition.get_batch(batch_parameters={"year": 2024, "month": 2})
 print(batch.head(n_rows=5))
 ```
 
 ### A SQL source: a table partitioned by month
 
 The date lives in a column, so the monthly batch definition takes `column`.
-**Batch parameters here are integers**, unlike the file-based case above. The
-credential-bearing part of the connection string is a `${VARIABLE_NAME}`
-reference, never a literal.
+Batch parameters are integers here too — the two families take the same window,
+so one set of parameters drives both. The credential-bearing part of the
+connection string is a `${VARIABLE_NAME}` reference, never a literal.
 
 ```python
 try:
