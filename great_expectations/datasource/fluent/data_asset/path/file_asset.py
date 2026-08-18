@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from abc import ABC
-from typing import TYPE_CHECKING, Generic, Optional, Union
+from typing import TYPE_CHECKING, AbstractSet, Generic, Optional, Union
 
 from great_expectations import exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
@@ -16,6 +16,10 @@ from great_expectations.core.partitioners import (
     FileNamePartitionerYearly,
 )
 from great_expectations.datasource.fluent import BatchRequest
+from great_expectations.datasource.fluent.batch_parameter_normalization import (
+    normalize_batch_parameters,
+    numeric_parameter_names_of,
+)
 from great_expectations.datasource.fluent.data_asset.path.path_data_asset import (
     PathDataAsset,
 )
@@ -210,6 +214,30 @@ class FileDataAsset(PathDataAsset[DatasourceT, FileNamePartitioner], ABC, Generi
         )
         return regex_parser.group_names()
 
+    @staticmethod
+    def _assert_batch_parameter_value_types(
+        options: BatchParameters,
+        group_names: list[str],
+        numeric_param_names: AbstractSet[str],
+    ) -> None:
+        """Raise unless every regex-matching option value is a string, or a non-bool int
+        for a numeric parameter."""  # FIXME CoP
+        for option, value in options.items():
+            if option not in group_names or not value:
+                continue
+            is_str_value = isinstance(value, str)
+            is_numeric_int_value = (
+                option in numeric_param_names
+                and isinstance(value, int)
+                and not isinstance(value, bool)
+            )
+            if not is_str_value and not is_numeric_int_value:
+                raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003 # FIXME CoP
+                    "All batching_regex matching options must be strings, or integers for "
+                    f"numeric parameters. The value of '{option}' is not a string or an "
+                    f"integer: {value}"
+                )
+
     @override
     def get_batch_parameters_keys(
         self,
@@ -238,7 +266,9 @@ class FileDataAsset(PathDataAsset[DatasourceT, FileNamePartitioner], ABC, Generi
         Args:
             options: A dict that can be used to filter the batch groups returned from the asset.
                 The dict structure depends on the asset type. The available keys for dict can be obtained by
-                calling get_batch_parameters_keys(...).
+                calling get_batch_parameters_keys(...). Numeric batch parameters (e.g. year, month, day)
+                take integer values; digit-string values are still accepted but are deprecated and emit
+                a warning, with support for them removed in 2.0.
             batch_slice: A python slice that can be used to limit the sorted batches by index.
                 e.g. `batch_slice = "[-5:]"` will request only the last 5 batches after the options filter is applied.
             partitioner: A Partitioner used to narrow the data returned from the asset.
@@ -252,17 +282,16 @@ class FileDataAsset(PathDataAsset[DatasourceT, FileNamePartitioner], ABC, Generi
             applies to every "Datasource" type and any "ExecutionEngine" that is capable of loading data from files on
             local and/or cloud/networked filesystems (currently, Pandas and Spark backends work with files).
         """  # noqa: E501 # FIXME CoP
+        group_names = self._get_group_names(partitioner=partitioner)
+        numeric_param_names = numeric_parameter_names_of(partitioner) & set(group_names)
+        options = normalize_batch_parameters(options, numeric_param_names)
+
         if options:
-            for option, value in options.items():
-                if (
-                    option in self._get_group_names(partitioner=partitioner)
-                    and value
-                    and not isinstance(value, str)
-                ):
-                    raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003 # FIXME CoP
-                        f"All batching_regex matching options must be strings. The value of '{option}' is "  # noqa: E501 # FIXME CoP
-                        f"not a string: {value}"
-                    )
+            self._assert_batch_parameter_value_types(
+                options=options,
+                group_names=group_names,
+                numeric_param_names=numeric_param_names,
+            )
 
         if options is not None and not self._batch_parameters_are_valid(
             options=options,

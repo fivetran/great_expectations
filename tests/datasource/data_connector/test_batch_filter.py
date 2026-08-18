@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from typing import List
+from typing import List, Union
 
 import pytest
 
+from great_expectations.core import IDDict
 from great_expectations.datasource.fluent.data_connector.batch_filter import (
     BatchFilter,
     build_batch_filter,
@@ -148,3 +149,37 @@ def test_batch_filter_parse_batch_slice(
     )
     assert batch_filter_obj.index == parsed_batch_slice
     assert original_list[parsed_batch_slice] == sliced_list
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "requested_value,captured_value,should_match",
+    [
+        pytest.param(4, "04", True, id="int filter value matches a zero-padded string capture"),
+        pytest.param(4, "4", True, id="int filter value matches an unpadded string capture"),
+        pytest.param(5, "04", False, id="a non-matching int does not match"),
+        pytest.param(
+            "04",
+            "4",
+            False,
+            id="string filter value stays an exact, non-numeric comparison",
+        ),
+    ],
+)
+def test_batch_filter_matcher_numeric_equivalence(
+    requested_value: Union[int, str], captured_value: str, should_match: bool
+):
+    # A batch identifier is always a string; an int filter value denotes the same
+    # partition as its zero-padded capture, while a string filter value never does.
+    batch_filter_obj = BatchFilter(batch_filter_parameters=IDDict({"month": requested_value}))
+    matcher = batch_filter_obj.best_effort_batch_definition_matcher()
+
+    assert matcher(batch_identifiers={"month": captured_value}) is should_match
+
+
+@pytest.mark.unit
+def test_batch_filter_matcher_key_absent_from_identifiers_fails():
+    batch_filter_obj = BatchFilter(batch_filter_parameters=IDDict({"month": 4}))
+    matcher = batch_filter_obj.best_effort_batch_definition_matcher()
+
+    assert not matcher(batch_identifiers={"year": "2020"})
