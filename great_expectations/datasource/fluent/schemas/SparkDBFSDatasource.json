@@ -1,6 +1,6 @@
 {
     "title": "SparkDBFSDatasource",
-    "description": "--Public API--Spark based Datasource for DataBricks File System (DBFS) based data assets.",
+    "description": "--Public API--Spark based Datasource for DataBricks File System (DBFS) based data assets.\n\n.. deprecated:: 1.16.0\n    DBFS is deprecated by Databricks. Use Unity Catalog volumes, external locations, or workspace files with SparkFilesystemDatasource instead.",
     "type": "object",
     "properties": {
         "type": {
