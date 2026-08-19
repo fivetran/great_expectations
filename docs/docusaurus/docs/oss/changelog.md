@@ -25,7 +25,6 @@ Before we completely remove the functionality in a new major release, there will
 * [FEATURE] Accept integers for numeric batch parameters on every datasource family ([#12065](https://github.com/great-expectations/great_expectations/pull/12065))
 * [FEATURE] Route validated expectations onward into checkpoint orchestration ([#12068](https://github.com/great-expectations/great_expectations/pull/12068))
 * [FEATURE] Make environment-affecting actions reachable-in-flow and mechanically gated ([#12073](https://github.com/great-expectations/great_expectations/pull/12073))
-* [FEATURE] Add a great-expectations user-agent suffix to S3 clients ([#11937](https://github.com/great-expectations/great_expectations/pull/11937)) (thanks @goanpeca)
 * [BUGFIX] Restore the install and test steps to py312-min-versions ([#12076](https://github.com/great-expectations/great_expectations/pull/12076))
 * [MAINTENANCE] Bump dompurify from 3.4.12 to 3.4.13 in /docs/docusaurus ([#12048](https://github.com/great-expectations/great_expectations/pull/12048))
 * [MAINTENANCE] Bump nanoid from 3.3.16 to 3.3.18 in /docs/docusaurus ([#12052](https://github.com/great-expectations/great_expectations/pull/12052))
@@ -43,6 +42,7 @@ Before we completely remove the functionality in a new major release, there will
 * [MAINTENANCE] Ship version-matched expectation and datasource catalogs ([#12055](https://github.com/great-expectations/great_expectations/pull/12055))
 * [MAINTENANCE] Sync SparkDBFSDatasource schema with its deprecation notice ([#12077](https://github.com/great-expectations/great_expectations/pull/12077))
 * [MAINTENANCE] Remove the "How to Edit This Suite" button from Data Docs ([#12078](https://github.com/great-expectations/great_expectations/pull/12078))
+* [CONTRIB] Add a great-expectations user-agent suffix to S3 clients ([#11937](https://github.com/great-expectations/great_expectations/pull/11937)) (thanks @goanpeca)
 * [CONTRIB] Promote multicolumn values equal expectation ([#12018](https://github.com/great-expectations/great_expectations/pull/12018)) (thanks @AtomicGlance)
 * [CONTRIB] Add ExpectColumnValuesToNotBeOutliers across Pandas, SQL, and Spark ([#12011](https://github.com/great-expectations/great_expectations/pull/12011)) (thanks @chavalasantosh)
 
