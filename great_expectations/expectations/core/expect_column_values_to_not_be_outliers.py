@@ -28,6 +28,8 @@ METHOD_DESCRIPTION = (
     '"std" uses the mean and sample standard deviation.'
 )
 MULTIPLIER_DESCRIPTION = "The threshold multiplier applied to the selected spread statistic."
+DEFAULT_METHOD = "iqr"
+DEFAULT_MULTIPLIER = 1.5
 DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.PANDAS.value,
@@ -54,11 +56,17 @@ class ExpectColumnValuesToNotBeOutliers(ColumnMapExpectation):
     greater than or equal to the configured multiplier times the column spread. Null values
     are excluded from both the aggregate statistics and row-level evaluation.
 
-    A column with no dispersion is a special case. When the threshold works out to zero -
-    because the spread is zero, or because the multiplier is - only values away from the
-    center are outliers, so a constant column reports none. When the batch cannot produce
-    the statistics at all - an empty column, or a single value under a sample standard
-    deviation - there is nothing to measure against and no value is reported an outlier.
+    Note that the "iqr" method applies this same symmetric rule around the median -
+    an outlier is a value where `|value - median| >= multiplier * IQR`. That is not
+    Tukey's fence, which tests each side separately against `Q1 - multiplier * IQR` and
+    `Q3 + multiplier * IQR`; on skewed data the two rules disagree.
+
+    A column with no dispersion is a special case. When the threshold works out to zero,
+    whether because the spread is zero or because the multiplier is zero, only values away
+    from the center are outliers, so a constant column reports none. When the batch cannot
+    produce the statistics at all, as for an empty column or for a single value under a
+    sample standard deviation, there is nothing to measure against and no value is
+    reported as an outlier.
 
     ExpectColumnValuesToNotBeOutliers is a Column Map Expectation.
 
@@ -183,11 +191,11 @@ class ExpectColumnValuesToNotBeOutliers(ColumnMapExpectation):
     """  # noqa: E501 # FIXME CoP
 
     method: Union[Literal["iqr", "std"], SuiteParameterDict] = pydantic.Field(
-        default="iqr",
+        default=DEFAULT_METHOD,
         description=METHOD_DESCRIPTION,
     )
     multiplier: Union[float, SuiteParameterDict] = pydantic.Field(
-        default=1.5,
+        default=DEFAULT_MULTIPLIER,
         ge=0,
         description=MULTIPLIER_DESCRIPTION,
     )
@@ -252,12 +260,26 @@ class ExpectColumnValuesToNotBeOutliers(ColumnMapExpectation):
     ) -> RendererConfiguration:
         add_param_args: AddParamArgs = (
             ("column", RendererValueType.STRING),
-            ("method", RendererValueType.STRING),
-            ("multiplier", RendererValueType.NUMBER),
             ("mostly", RendererValueType.NUMBER),
         )
         for name, param_type in add_param_args:
             renderer_configuration.add_param(name=name, param_type=param_type)
+
+        # The template always names the method and the multiplier, but a configuration
+        # that left either at its default does not carry it in kwargs - and add_param
+        # drops a param it cannot find a value for, which would render the placeholder
+        # itself. Supply the model defaults so the rendered sentence stays true.
+        defaulted_param_args: AddParamArgs = (
+            ("method", RendererValueType.STRING),
+            ("multiplier", RendererValueType.NUMBER),
+        )
+        defaults: dict = {"method": DEFAULT_METHOD, "multiplier": DEFAULT_MULTIPLIER}
+        for name, param_type in defaulted_param_args:
+            renderer_configuration.add_param(
+                name=name,
+                param_type=param_type,
+                value=renderer_configuration.kwargs.get(name, defaults[name]),
+            )
 
         template_str = (
             "values must not be statistical outliers using the $method method "

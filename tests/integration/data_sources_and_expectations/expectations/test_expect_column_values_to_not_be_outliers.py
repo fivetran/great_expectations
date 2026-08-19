@@ -65,6 +65,11 @@ DATA_WITH_VALUES_ON_IQR_BOUNDARY = pd.DataFrame({COLUMN: [0, 1, 2, 3, 4]})
 # from it - is zero.
 DATA_WITHOUT_SPREAD = pd.DataFrame({COLUMN: [1, *([7] * 8), 100]})
 SINGLE_ROW_DATA = pd.DataFrame({COLUMN: [5]})
+# Sized so the sample and population standard deviations straddle the threshold: the
+# sample figure is sqrt(80/4) = 4.472 and the population figure sqrt(80/5) = 4.0, so at a
+# multiplier of 1.9 the distance of 8 from the mean of 2 clears the first and not the
+# second.
+DATA_SENSITIVE_TO_SAMPLE_STANDARD_DEVIATION = pd.DataFrame({COLUMN: [0, 0, 0, 0, 10]})
 
 
 @pytest.mark.parametrize(
@@ -204,27 +209,18 @@ def test_values_equal_to_threshold_are_outliers(
     assert sorted(result.result["unexpected_list"]) == [0, 4]
 
 
-@pytest.mark.parametrize(
-    ("method", "multiplier"),
-    [
-        pytest.param("iqr", 1.5, id="zero_spread"),
-        pytest.param("iqr", 0.0, id="zero_multiplier"),
-    ],
-)
 @parameterize_batch_for_data_sources(
     data_source_configs=ALL_SUPPORTED_DATA_SOURCES,
     data=DATA_WITHOUT_SPREAD,
 )
-def test_a_zero_threshold_leaves_the_center_alone(
+def test_a_zero_spread_leaves_the_center_alone(
     batch_for_datasource: Batch,
-    method: Literal["iqr", "std"],
-    multiplier: float,
 ) -> None:
     """A threshold of zero must not report every row - including the center - an outlier."""
     expectation = gxe.ExpectColumnValuesToNotBeOutliers(
         column=COLUMN,
-        method=method,
-        multiplier=multiplier,
+        method="iqr",
+        multiplier=1.5,
     )
 
     result = batch_for_datasource.validate(
@@ -237,18 +233,66 @@ def test_a_zero_threshold_leaves_the_center_alone(
     assert sorted(result.result["unexpected_list"]) == [1, 100]
 
 
+@pytest.mark.parametrize(
+    "method",
+    [
+        pytest.param("iqr", id="iqr"),
+        pytest.param("std", id="standard_deviation"),
+    ],
+)
+@parameterize_batch_for_data_sources(
+    data_source_configs=ALL_SUPPORTED_DATA_SOURCES,
+    data=CLEAN_DATA,
+)
+def test_a_zero_multiplier_admits_only_the_center(
+    batch_for_datasource: Batch,
+    method: Literal["iqr", "std"],
+) -> None:
+    """A zero multiplier collapses a genuinely non-zero spread.
+
+    `CLEAN_DATA` has a real spread under both methods, so this exercises the multiplier
+    itself rather than retreading the zero-spread column. Twenty rows put the center
+    between two values under either method, so no row sits on it and every row is an
+    outlier.
+    """
+    expectation = gxe.ExpectColumnValuesToNotBeOutliers(
+        column=COLUMN,
+        method=method,
+        multiplier=0.0,
+    )
+
+    result = batch_for_datasource.validate(expectation)
+
+    assert not result.success
+    assert result.result["unexpected_count"] == 20
+
+
+@pytest.mark.parametrize(
+    ("method", "multiplier"),
+    [
+        pytest.param("iqr", 1.5, id="iqr"),
+        pytest.param("std", 3.0, id="standard_deviation"),
+    ],
+)
 @parameterize_batch_for_data_sources(
     data_source_configs=ALL_SUPPORTED_DATA_SOURCES,
     data=SINGLE_ROW_DATA,
 )
 def test_a_single_row_is_not_an_outlier_against_itself(
     batch_for_datasource: Batch,
+    method: Literal["iqr", "std"],
+    multiplier: float,
 ) -> None:
-    """A sample standard deviation is undefined for one value, so nothing can be measured."""
+    """One value reaches the two methods differently.
+
+    A sample standard deviation is undefined for one value, so there is no statistic at
+    all; the interquartile range is defined but zero, so the threshold collapses and the
+    lone value is its own center. Neither may report it an outlier.
+    """
     expectation = gxe.ExpectColumnValuesToNotBeOutliers(
         column=COLUMN,
-        method="std",
-        multiplier=3.0,
+        method=method,
+        multiplier=multiplier,
     )
 
     result = batch_for_datasource.validate(
@@ -289,3 +333,30 @@ def test_decimal_columns_are_evaluated(
 
     assert not result.success
     assert result.result["unexpected_count"] == 1
+    assert [float(value) for value in result.result["unexpected_list"]] == [100.0]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=ALL_SUPPORTED_DATA_SOURCES,
+    data=DATA_SENSITIVE_TO_SAMPLE_STANDARD_DEVIATION,
+)
+def test_the_standard_deviation_is_the_sample_statistic_on_every_engine(
+    batch_for_datasource: Batch,
+) -> None:
+    """Pin the divisor to n-1 across engines.
+
+    Engines reach this differently - pandas' default ddof, STDDEV_SAMP, SQL Server's
+    STDEV, and a hand-rolled two-pass on SQLite - and nothing else in this file would
+    notice one of them computing the population figure instead. On this data that
+    substitution flips the verdict.
+    """
+    expectation = gxe.ExpectColumnValuesToNotBeOutliers(
+        column=COLUMN,
+        method="std",
+        multiplier=1.9,
+    )
+
+    result = batch_for_datasource.validate(expectation)
+
+    assert result.success
+    assert result.result["unexpected_count"] == 0

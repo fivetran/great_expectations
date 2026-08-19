@@ -34,6 +34,17 @@ _THIRD_QUARTILE = 0.75
 _QUARTILES = (_FIRST_QUARTILE, _MEDIAN, _THIRD_QUARTILE)
 _MINIMUM_SAMPLE_SIZE_FOR_STANDARD_DEVIATION = 2
 
+# Dialects whose sample standard deviation is spelled STDDEV_SAMP. SQL Server (STDEV) and
+# SQLite (no native function at all) are handled separately.
+_STDDEV_SAMP_DIALECTS = (
+    GXSqlDialect.MYSQL,
+    GXSqlDialect.POSTGRESQL,
+    GXSqlDialect.REDSHIFT,
+    GXSqlDialect.SNOWFLAKE,
+    GXSqlDialect.DATABRICKS,
+    GXSqlDialect.BIGQUERY,
+)
+
 
 class OutlierStatistics(NamedTuple):
     """The center and spread a column is measured against when detecting outliers.
@@ -52,21 +63,32 @@ def validate_method(method: str) -> None:
 
 
 def _to_float(value: Any) -> Optional[float]:
-    """Normalize an engine-native statistic to a float, or None if it is unusable.
+    """Normalize an engine-native statistic to a finite float, or None if there is none.
 
     Engines return statistics in whatever type the column carries - notably Decimal for
     SQL numeric columns and for Spark DecimalType - and those do not mix with the Python
-    floats the threshold arithmetic uses. A NaN, and anything that will not convert at
-    all, is reported as absent rather than passed along to poison the comparison, where
-    it would silently make every row an outlier.
+    floats the threshold arithmetic uses.
+
+    None means the batch has no statistic to offer: an empty column, or a sample standard
+    deviation of fewer than two values. NaN and infinity are folded into that, because
+    arithmetic on either silently reverses the comparison - `abs(x - inf) < inf` is False
+    for every finite value, which would report every row an outlier and none of the
+    infinite ones.
+
+    A value that is not a number at all is a different situation, and raises: it means the
+    column is not numeric, and reporting it as "no statistic" would pass every row and
+    leave the Expectation permanently, silently green.
     """
     if value is None:
         return None
     try:
         converted = float(value)
-    except (TypeError, ValueError):
-        return None
-    return None if math.isnan(converted) else converted
+    except (TypeError, ValueError) as error:
+        raise TypeError(  # noqa: TRY003 # FIXME CoP
+            "Cannot detect outliers in a non-numerical column: the column statistic "
+            f"{value!r} could not be read as a number."
+        ) from error
+    return converted if math.isfinite(converted) else None
 
 
 def _spread_between(lower: Optional[float], upper: Optional[float]) -> Optional[float]:
@@ -106,10 +128,15 @@ def _get_window_linear_percentiles(
     row_number_label = "_gx_outlier_row_number"
     count_label = "_gx_outlier_count"
 
+    # Rank on the same numeric scale the interpolation reads, not on the raw column.
+    # The algorithm assumes the value at rank k is the k-th smallest *number*; ordering by
+    # the raw column instead would rank a text column lexically ("100" before "2") and
+    # then interpolate over numerically-cast values at those ranks.
+    numeric_column = sa.cast(column, sa.Float)
     ordered_values = (
         sa.select(
-            column.label(value_label),
-            sa.func.row_number().over(order_by=column.asc()).label(row_number_label),
+            numeric_column.label(value_label),
+            sa.func.row_number().over(order_by=numeric_column.asc()).label(row_number_label),
             sa.func.count(column).over().label(count_label),
         )
         .where(column.is_not(None))
@@ -117,7 +144,7 @@ def _get_window_linear_percentiles(
         .subquery()
     )
 
-    value = sa.cast(ordered_values.c[value_label], sa.Float)
+    value = ordered_values.c[value_label]
     row_number = ordered_values.c[row_number_label]
     row_count = ordered_values.c[count_label]
 
@@ -246,13 +273,20 @@ def _get_sql_mean_and_standard_deviation(
             execution_engine=execution_engine,
         )
 
-    numeric_column = sa.cast(column, sa.Float)
-    # Every remaining supported dialect ships a numerically stable sample standard
-    # deviation; SQL Server spells it STDEV, the rest STDDEV_SAMP.
+    # Spelled out rather than left to fall through, so an unsupported dialect reports the
+    # same actionable NotImplementedError the percentile path does instead of a raw DBAPI
+    # error from a function it does not have (ClickHouse spells it "stddevSamp").
     if dialect_name == GXSqlDialect.SQL_SERVER:
-        standard_deviation = sa.func.stdev(numeric_column)
+        standard_deviation_function = sa.func.stdev
+    elif dialect_name in _STDDEV_SAMP_DIALECTS:
+        standard_deviation_function = sa.func.stddev_samp
     else:
-        standard_deviation = sa.func.stddev_samp(numeric_column)
+        raise NotImplementedError(
+            f"Outlier detection is not implemented for SQL dialect {dialect_name!r}"
+        )
+
+    numeric_column = sa.cast(column, sa.Float)
+    standard_deviation = standard_deviation_function(numeric_column)
 
     row = execution_engine.execute_query(
         sa.select(sa.func.avg(numeric_column), standard_deviation).select_from(selectable)
