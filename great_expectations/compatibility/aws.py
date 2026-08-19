@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from importlib import metadata
 from typing import Any, Dict
 
 from great_expectations.compatibility.not_imported import NotImported
@@ -36,11 +35,14 @@ except ImportError:
     exceptions = BOTO_NOT_IMPORTED
 
 
-def _get_distribution_version() -> str:
-    try:
-        return metadata.version("great_expectations")
-    except metadata.PackageNotFoundError:
-        return "dev"
+def get_great_expectations_version() -> str:
+    """Return the Great Expectations version reported by the running package."""
+    # Imported inside the function: `great_expectations/__init__.py` pulls in this
+    # module while initializing, so a module-level import would couple this module
+    # to `__version__` being bound before that point.
+    from great_expectations import __version__
+
+    return __version__
 
 
 def get_s3_boto3_options(boto3_options: Dict[str, Any]) -> Dict[str, Any]:
@@ -50,8 +52,12 @@ def get_s3_boto3_options(boto3_options: Dict[str, Any]) -> Dict[str, Any]:
     Backblaze B2, Cloudflare R2, or MinIO). A caller-supplied ``config`` and
     ``endpoint_url`` are preserved; the suffix is appended to an existing agent
     string rather than replacing it.
+
+    Applying the suffix is idempotent: options that already carry it are
+    returned unchanged, so passing a result back through this function does not
+    repeat the suffix.
     """
-    suffix = f"great-expectations/{_get_distribution_version()}"
+    suffix = f"great-expectations/{get_great_expectations_version()}"
     options = dict(boto3_options)
 
     if isinstance(Config, NotImported):
@@ -62,7 +68,12 @@ def get_s3_boto3_options(boto3_options: Dict[str, Any]) -> Dict[str, Any]:
         return options
 
     existing = getattr(config, "user_agent_extra", None) if config is not None else None
-    user_agent_extra = f"{existing} {suffix}" if existing else suffix
+    agents = existing.split() if existing else []
+    if suffix in agents:
+        return options
+
+    agents.append(suffix)
+    user_agent_extra = " ".join(agents)
 
     if config is not None:
         options["config"] = config.merge(Config(user_agent_extra=user_agent_extra))
