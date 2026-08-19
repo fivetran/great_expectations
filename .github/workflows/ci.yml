@@ -163,6 +163,12 @@ jobs:
         github.event_name == 'workflow_dispatch'
       )
     runs-on: ubuntu-latest
+    # This matrix installs system packages and talks to external services, so a
+    # hang is a question of when, not if -- and without a timeout a hung job
+    # runs until the repository-wide default of 6 hours. Over the last 30
+    # successful runs the slowest leg was under 12 minutes, so 30 leaves ample
+    # headroom while failing a genuinely stuck job in minutes rather than hours.
+    timeout-minutes: 30
     strategy:
       matrix:
         doc-step:
