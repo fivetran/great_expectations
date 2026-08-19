@@ -8,6 +8,15 @@ so that changes e.g. to verbiage are restricted to this file.
 import warnings
 
 
+class GxDeprecationWarning(UserWarning):
+    """Deprecated GX behavior that keeps working until the stated removal release.
+
+    Subclasses UserWarning deliberately: a bare DeprecationWarning is suppressed by
+    Python's default warning filters whenever the calling code lives outside
+    __main__, which is true of essentially every real caller.
+    """
+
+
 def warn_pandas_less_than_2_0_and_sqlalchemy_greater_than_or_equal_2_0() -> None:
     """Warning to emit when using pandas less than v1.4.0 with sqlalchemy greater than or equal to 2.0.0."""  # noqa: E501 # FIXME CoP
     warnings.warn(

@@ -15,6 +15,21 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.20.0
+* [BUGFIX] Support standing up a FileDataContext on a read-only filesystem ([#12000](https://github.com/fivetran/great_expectations/pull/12000))
+* [BUGFIX] Narrow single-pass column_values.unique on SQLAlchemy (Redshift WLM) ([#11863](https://github.com/fivetran/great_expectations/pull/11863)) (thanks @leodrivera)
+* [BUGFIX] deduplicate sql metric aliases to prevent view schema collisions (#10926) ([#11905](https://github.com/fivetran/great_expectations/pull/11905)) (thanks @TemidayoA)
+* [BUGFIX] Report an unmet expectation when a column has no quantiles ([#12026](https://github.com/fivetran/great_expectations/pull/12026))
+* [BUGFIX] Exclude nulls and fix the rank offset in the SQLite quantile metric ([#12008](https://github.com/fivetran/great_expectations/pull/12008)) (thanks @SreeramaYeshwanthGowd)
+* [MAINTENANCE] Explain why a not-ready issue can't be self-claimed ([#11999](https://github.com/fivetran/great_expectations/pull/11999))
+* [MAINTENANCE] Bump postcss from 8.5.12 to 8.5.25 in /docs/docusaurus ([#12013](https://github.com/fivetran/great_expectations/pull/12013))
+* [MAINTENANCE] Bump brace-expansion from 1.1.16 to 1.1.18 in /docs/docusaurus ([#12014](https://github.com/fivetran/great_expectations/pull/12014))
+* [MAINTENANCE] Namespace ephemeral SQL test schemas under gx_ci_test_ and fix cleanup regex charsets ([#12015](https://github.com/fivetran/great_expectations/pull/12015))
+* [MAINTENANCE] Bump fast-uri from 3.1.4 to 3.1.5 in /docs/docusaurus ([#12019](https://github.com/fivetran/great_expectations/pull/12019))
+* [MAINTENANCE] Defer the schema listing in TableAsset.test_connection to the failure path ([#12020](https://github.com/fivetran/great_expectations/pull/12020))
+* [MAINTENANCE] BigQuery CI ([#12016](https://github.com/fivetran/great_expectations/pull/12016))
+* [CONTRIB] Promote ExpectColumnValuesToMatchStrftimeFormat to supported-core ([#12009](https://github.com/fivetran/great_expectations/pull/12009)) (thanks @nanjeshramesh)
+
 ### 1.19.1
 * [FEATURE] Self-hosted CLA status check ([#11985](https://github.com/fivetran/great_expectations/pull/11985))
 * [BUGFIX] Pin actions/checkout to v4.3.1 across workflows ([#11988](https://github.com/fivetran/great_expectations/pull/11988))

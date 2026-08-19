@@ -159,8 +159,8 @@ class BuildBatchRequestError(GreatExpectationsError):
 
 
 class NoAvailableBatchesError(GreatExpectationsError):
-    def __init__(self) -> None:
-        super().__init__("No available batches found.")
+    def __init__(self, message: Optional[str] = None) -> None:
+        super().__init__(message or "No available batches found.")
 
 
 class InvalidBatchIdError(GreatExpectationsError):

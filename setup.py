@@ -56,7 +56,6 @@ def get_extras_require():
     }
     sqla1x_only_keys = (
         "clickhouse",  # https://github.com/xzkostyan/clickhouse-sqlalchemy/blob/master/setup.py
-        "redshift",  # https://github.com/sqlalchemy-redshift/sqlalchemy-redshift/blob/main/setup.py
         "teradata",  # https://pypi.org/project/teradatasqlalchemy   https://support.teradata.com/knowledge?id=kb_article_view&sys_kb_id=a5a869149729251ced863fe3f153af27
     )
     sqla_keys = (
@@ -71,7 +70,8 @@ def get_extras_require():
         "vertica",  # https://github.com/bluelabsio/sqlalchemy-vertica-python/blob/master/setup.py
         "databricks",  # https://github.com/databricks/databricks-sql-python/blob/main/pyproject.toml
         "snowflake",  # https://github.com/snowflakedb/snowflake-sqlalchemy/blob/main/setup.cfg
-        "gx-redshift",  # https://github.com/great-expectations/sqlalchemy-redshift/blob/main/setup.py
+        "redshift",  # https://github.com/sqlalchemy-redshift/sqlalchemy-redshift/blob/main/setup.py
+        "gx-redshift",  # deprecated alias for "redshift"
     )
     ignore_keys = (
         "sqlalchemy",
@@ -145,6 +145,23 @@ config = {
         "great_expectations": [
             "**/py.typed",
             "**/*.pyi",
+            # Machine-readable catalogs describing the package's built-in expectation and
+            # datasource types. Tooling reads these from the installed package, so they
+            # have to ship with it rather than exist only in the source tree.
+            # Scoped to the two schema trees rather than a blanket JSON glob, so an
+            # unrelated JSON file added elsewhere in the package does not silently
+            # become part of the distribution.
+            "expectations/core/schemas/*.json",
+            "datasource/fluent/schemas/**/*.json",
+            # Agent-facing guidance, read by a coding agent rather than imported by
+            # Python. Matched by file rather than by a directory glob, because a
+            # setuptools package_data pattern only ever selects files -- an empty
+            # directory in the pattern's path is never itself a match, and wheels
+            # cannot record an empty directory anyway. Scoped to the skills tree
+            # rather than a blanket markdown glob, so an unrelated markdown file
+            # added elsewhere in the package does not silently become part of the
+            # distribution.
+            ".agents/skills/**/*.md",
         ]
     },
     "name": "great_expectations",

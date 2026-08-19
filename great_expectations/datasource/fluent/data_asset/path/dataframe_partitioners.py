@@ -50,6 +50,10 @@ class DataframePartitionerYearly(_PartitionerDatetime):
     def param_names(self) -> List[str]:
         return ["year"]
 
+    @property
+    def numeric_param_names(self) -> List[str]:
+        return self.param_names
+
     @override
     def partitioner_method_kwargs(self) -> Dict[str, str]:
         return {"column_name": self.column_name}
@@ -64,6 +68,10 @@ class DataframePartitionerMonthly(_PartitionerDatetime):
     @override
     def param_names(self) -> List[str]:
         return ["year", "month"]
+
+    @property
+    def numeric_param_names(self) -> List[str]:
+        return self.param_names
 
     @override
     def partitioner_method_kwargs(self) -> Dict[str, str]:
@@ -81,6 +89,10 @@ class DataframePartitionerDaily(_PartitionerDatetime):
     @override
     def param_names(self) -> List[str]:
         return ["year", "month", "day"]
+
+    @property
+    def numeric_param_names(self) -> List[str]:
+        return self.param_names
 
     @override
     def partitioner_method_kwargs(self) -> Dict[str, str]:

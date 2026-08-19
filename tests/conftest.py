@@ -60,6 +60,9 @@ from great_expectations.data_context.util import (
     file_relative_path,
 )
 from great_expectations.datasource.fluent import GxDatasourceWarning
+from great_expectations.datasource.fluent.batch_parameter_normalization import (
+    _reset_warned_call_sites_for_tests,
+)
 from great_expectations.execution_engine import SparkDFExecutionEngine
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
@@ -121,6 +124,7 @@ REQUIRED_MARKERS: Final[set[str]] = {
     "databricks",
     "docs",
     "filesystem",
+    "gcs_deps",
     "generic_sql",
     "integration",
     "mysql",
@@ -235,6 +239,11 @@ def pytest_addoption(parser):
         "--bigquery",
         action="store_true",
         help="If set, execute tests against bigquery",
+    )
+    parser.addoption(
+        "--gcs",
+        action="store_true",
+        help="If set, execute tests against Google Cloud Storage",
     )
     parser.addoption(
         "--aws",
@@ -442,25 +451,6 @@ def pytest_collection_modifyitems(config, items):
                 marker = pytest.mark.skip(reason=category.reason)
                 item.add_marker(marker)
 
-    # --- BEGIN temporary backend skip shim ---
-    # The CI infrastructure for these external warehouse backends is in transition,
-    # and their tests can no longer connect and fail unrelated to any code
-    # change. Unconditionally skip every test carrying one of these markers,
-    # regardless of the corresponding --<backend> flag, until the backends are
-    # either restored. Delete this block to restore them.
-    skipped_backend_marks = {
-        "bigquery",
-    }
-    for item in items:
-        present = skipped_backend_marks.intersection(item.keywords)
-        if present:
-            marker = pytest.mark.skip(
-                reason="gx->fivetran CI transition: "
-                f"{', '.join(sorted(present))} backend infrastructure unavailable.",
-            )
-            item.add_marker(marker)
-    # --- END temporary backend skip shim ---
-
 
 @pytest.fixture(scope="session", autouse=True)
 def preload_latest_gx_cache():
@@ -478,6 +468,22 @@ def preload_latest_gx_cache():
     # teardown
     logger.info("Clearing _VersionChecker._LATEST_GX_VERSION_CACHE ")
     _VersionChecker._LATEST_GX_VERSION_CACHE = None
+
+
+@pytest.fixture(autouse=True)
+def _reset_batch_parameter_deprecation_call_sites():
+    """Clear the batch-parameter-normalization deprecation dedup registry.
+
+    That registry is deliberately process-global (see
+    great_expectations/datasource/fluent/batch_parameter_normalization.py), so
+    without a per-test reset, a test that triggers the coercion warning would
+    silently suppress an identical warning in every later test sharing the same
+    (message, file, line) call site -- most visibly a parametrized test whose
+    parametrizations all warn from the same source line.
+    """
+    _reset_warned_call_sites_for_tests()
+    yield
+    _reset_warned_call_sites_for_tests()
 
 
 @pytest.fixture(scope="module")

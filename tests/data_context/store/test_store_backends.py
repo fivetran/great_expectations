@@ -1,3 +1,4 @@
+import errno
 import json
 import os
 import uuid
@@ -223,6 +224,70 @@ def test_tuple_filesystem_store_filepath_prefix_error(tmp_path_factory):
             filepath_prefix="invalid_prefix_ends_with\\",
         )
     assert "filepath_prefix may not end with" in e.value.message
+
+
+@pytest.mark.filesystem
+def test_TupleFilesystemStoreBackend_construction_tolerates_read_only_parent_directory(
+    tmp_path,
+):
+    """Constructing a store backend whose parent directory cannot be created because it sits
+    under a read-only directory must not raise: the directory is only needed at write time, and
+    TupleFilesystemStoreBackend._set/_move re-create their own leaf directory before writing, so
+    a genuine write against a read-only filesystem still fails clearly later.
+    """  # FIXME CoP
+    readonly_parent = tmp_path / "readonly_parent"
+    readonly_parent.mkdir()
+    base_directory = readonly_parent / "nested" / "leaf"
+
+    readonly_parent.chmod(0o555)
+    try:
+        # Some environments (root, or filesystems that ignore mode bits) do not enforce
+        # directory write permissions; skip cleanly rather than false-failing there.
+        probe = readonly_parent / "write_probe"
+        try:
+            probe.mkdir()
+        except OSError:
+            pass
+        else:
+            probe.rmdir()
+            pytest.skip("directory permissions are not enforced in this environment")
+
+        # suppress_store_backend_id avoids a second, later write (the store_backend_id file)
+        # that would also hit the read-only parent -- this test targets only the eager
+        # directory-creation guard exercised directly by __init__.
+        store_backend = TupleFilesystemStoreBackend(
+            base_directory=str(base_directory),
+            suppress_store_backend_id=True,
+        )
+
+        assert store_backend.full_base_directory == str(base_directory)
+        # The guard defers creation rather than forcing it -- the leaf directory was never made.
+        assert not base_directory.parent.exists()
+    finally:
+        readonly_parent.chmod(0o755)
+
+
+@pytest.mark.filesystem
+def test_TupleFilesystemStoreBackend_construction_reraises_non_read_only_oserror(tmp_path):
+    """A genuine non-read-only failure (e.g. out of disk space) during the eager parent-directory
+    creation must still raise at construction, exactly as before the read-only tolerance was
+    added.
+    """  # FIXME CoP
+    base_directory = tmp_path / "store"
+
+    def raise_enospc(*args, **kwargs):
+        raise OSError(errno.ENOSPC, "No space left on device")
+
+    with mock.patch(
+        "great_expectations.data_context.store.tuple_store_backend.os.makedirs",
+        side_effect=raise_enospc,
+    ):
+        with pytest.raises(OSError) as exc_info:  # FIXME CoP
+            TupleFilesystemStoreBackend(
+                base_directory=str(base_directory),
+                suppress_store_backend_id=True,
+            )
+    assert exc_info.value.errno == errno.ENOSPC
 
 
 @pytest.mark.filesystem

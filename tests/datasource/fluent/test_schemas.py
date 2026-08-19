@@ -155,6 +155,12 @@ def test_no_orphaned_schemas():
     orphans: list[pathlib.Path] = []
 
     for schema in _SCHEMAS_DIR.glob("**/*.json"):
+        # index.json at the schema tree root is a generated catalog derived from these
+        # per-type schemas, not a schema for a registered type itself, so it has no
+        # corresponding entry to match. Compare the full path, not just the stem, so a
+        # per-datasource schema that happened to be named `index.json` isn't exempted too.
+        if schema == _SCHEMAS_DIR / "index.json":
+            continue
         if schema.stem not in all_schemas:
             orphans.append(schema)
 

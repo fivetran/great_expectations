@@ -5,6 +5,8 @@ pytest -v --docs-tests -k "how_to_connect_to_data_on_gcs_using_pandas" tests/int
 ```
 """
 
+import os
+
 import great_expectations as gx
 
 context = gx.get_context()
@@ -16,7 +18,7 @@ bucket_or_name = "my_bucket"
 gcs_options = {}
 # </snippet>
 
-bucket_or_name = "test_docs_data"
+bucket_or_name = os.environ["GX_GCS_TEST_BUCKET"]
 
 # Python
 # <snippet name="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/filesystem/how_to_connect_to_data_on_gcs_using_pandas.py create_datasource">
@@ -42,10 +44,7 @@ assert datasource.get_asset_names() == {"my_taxi_data_asset"}
 my_batch_definition = data_asset.add_batch_definition_monthly(
     name="Monthly Taxi Data", regex=batching_regex
 )
-my_batch_request = my_batch_definition.build_batch_request(
-    {"year": "2019", "month": "03"}
-)
-batch = data_asset.get_batch(my_batch_request)
+batch = my_batch_definition.get_batch(batch_parameters={"year": "2019", "month": "03"})
 assert set(batch.columns()) == {
     "vendor_id",
     "pickup_datetime",

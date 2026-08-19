@@ -81,6 +81,6 @@ analytics_enabled: true
 fluent_datasources:
   my_filesystem_data_source:
     type: spark_gcs
-    bucket_or_name: test_docs_data
+    bucket_or_name: ${GX_GCS_TEST_BUCKET}
     gcs_options: {}
 data_context_id: 0c00c690-20a1-4774-a254-d480127d624b
