@@ -784,6 +784,29 @@
                 "Redshift"
             ]
         },
+        "expect_column_values_to_not_be_outliers": {
+            "data_quality_issues": [
+                "Numeric"
+            ],
+            "schema_file": "ExpectColumnValuesToNotBeOutliers.json",
+            "short_description": "Expect numeric column values to not be statistical outliers.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
         "expect_column_values_to_not_match_like_pattern": {
             "data_quality_issues": [
                 "Validity"

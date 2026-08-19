@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Type, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, Literal, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
@@ -53,6 +53,12 @@ class ExpectColumnValuesToNotBeOutliers(ColumnMapExpectation):
     A value is considered an outlier when its absolute distance from the column center is
     greater than or equal to the configured multiplier times the column spread. Null values
     are excluded from both the aggregate statistics and row-level evaluation.
+
+    A column with no dispersion is a special case. When the threshold works out to zero -
+    because the spread is zero, or because the multiplier is - only values away from the
+    center are outliers, so a constant column reports none. When the batch cannot produce
+    the statistics at all - an empty column, or a single value under a sample standard
+    deviation - there is nothing to measure against and no value is reported an outlier.
 
     ExpectColumnValuesToNotBeOutliers is a Column Map Expectation.
 
@@ -123,6 +129,27 @@ class ExpectColumnValuesToNotBeOutliers(ColumnMapExpectation):
                     multiplier=3.0,
                 )
 
+            Output:
+                {{
+                  "exception_info": {{
+                    "raised_exception": false,
+                    "exception_traceback": null,
+                    "exception_message": null
+                  }},
+                  "result": {{
+                    "element_count": 5,
+                    "unexpected_count": 0,
+                    "unexpected_percent": 0.0,
+                    "partial_unexpected_list": [],
+                    "missing_count": 0,
+                    "missing_percent": 0.0,
+                    "unexpected_percent_total": 0.0,
+                    "unexpected_percent_nonmissing": 0.0
+                  }},
+                  "meta": {{}},
+                  "success": true
+                }}
+
         Failing Case:
             Input:
                 ExpectColumnValuesToNotBeOutliers(
@@ -130,14 +157,38 @@ class ExpectColumnValuesToNotBeOutliers(ColumnMapExpectation):
                     method="iqr",
                     multiplier=1.5,
                 )
+
+            Output:
+                {{
+                  "exception_info": {{
+                    "raised_exception": false,
+                    "exception_traceback": null,
+                    "exception_message": null
+                  }},
+                  "result": {{
+                    "element_count": 5,
+                    "unexpected_count": 1,
+                    "unexpected_percent": 20.0,
+                    "partial_unexpected_list": [
+                      100
+                    ],
+                    "missing_count": 0,
+                    "missing_percent": 0.0,
+                    "unexpected_percent_total": 20.0,
+                    "unexpected_percent_nonmissing": 20.0
+                  }},
+                  "meta": {{}},
+                  "success": false
+                }}
     """  # noqa: E501 # FIXME CoP
 
-    method: Union[str, SuiteParameterDict] = pydantic.Field(
+    method: Union[Literal["iqr", "std"], SuiteParameterDict] = pydantic.Field(
         default="iqr",
         description=METHOD_DESCRIPTION,
     )
     multiplier: Union[float, SuiteParameterDict] = pydantic.Field(
         default=1.5,
+        ge=0,
         description=MULTIPLIER_DESCRIPTION,
     )
 
@@ -193,8 +244,8 @@ class ExpectColumnValuesToNotBeOutliers(ColumnMapExpectation):
                 }
             )
 
-    @override
     @classmethod
+    @override
     def _prescriptive_template(
         cls,
         renderer_configuration: RendererConfiguration,
