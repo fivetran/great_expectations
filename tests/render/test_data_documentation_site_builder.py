@@ -1,6 +1,5 @@
 import os
 import shutil
-from typing import Dict
 
 import pytest
 
@@ -16,73 +15,6 @@ from great_expectations.data_context.util import (
 
 # module level markers
 pytestmark = pytest.mark.filesystem
-
-
-def assert_how_to_buttons(
-    context,
-    index_page_locator_info: str,
-    index_links_dict: Dict,
-    show_how_to_buttons=True,
-):
-    """Helper function to assert presence or non-presence of how-to buttons and related content in various
-    Data Docs pages.
-    """  # noqa: E501 # FIXME CoP
-
-    # these are simple checks for presence of certain page elements
-    show_walkthrough_button = "Show Walkthrough"
-    walkthrough_modal = "Great Expectations Walkthrough"
-    cta_footer = "To continue exploring Great Expectations check out one of these tutorials..."
-    how_to_edit_suite_button = "How to Edit This Suite"
-    how_to_edit_suite_modal = "How to Edit This Expectation Suite"
-    action_card = "Actions"
-
-    how_to_page_elements_dict = {
-        "index_pages": [show_walkthrough_button, walkthrough_modal, cta_footer],
-        "expectation_suites": [
-            how_to_edit_suite_button,
-            how_to_edit_suite_modal,
-            show_walkthrough_button,
-            walkthrough_modal,
-        ],
-        "validation_results": [
-            how_to_edit_suite_button,
-            how_to_edit_suite_modal,
-            show_walkthrough_button,
-            walkthrough_modal,
-        ],
-        "profiling_results": [action_card, show_walkthrough_button, walkthrough_modal],
-    }
-
-    data_docs_site_dir = os.path.join(  # noqa: PTH118 # FIXME CoP
-        context._context_root_directory,
-        context._project_config.data_docs_sites["local_site"]["store_backend"]["base_directory"],
-    )
-
-    page_paths_dict = {
-        "index_pages": [index_page_locator_info[7:]],
-        "expectation_suites": [
-            os.path.join(data_docs_site_dir, link_dict["filepath"])  # noqa: PTH118 # FIXME CoP
-            for link_dict in index_links_dict.get("expectations_links", [])
-        ],
-        "validation_results": [
-            os.path.join(data_docs_site_dir, link_dict["filepath"])  # noqa: PTH118 # FIXME CoP
-            for link_dict in index_links_dict.get("validations_links", [])
-        ],
-        "profiling_results": [
-            os.path.join(data_docs_site_dir, link_dict["filepath"])  # noqa: PTH118 # FIXME CoP
-            for link_dict in index_links_dict.get("profiling_links", [])
-        ],
-    }
-
-    for page_type, page_paths in page_paths_dict.items():
-        for page_path in page_paths:
-            with open(page_path) as f:
-                page = f.read()
-                for how_to_element in how_to_page_elements_dict[page_type]:
-                    if show_how_to_buttons:
-                        assert how_to_element in page
-                    else:
-                        assert how_to_element not in page
 
 
 def test_site_builder_with_custom_site_section_builders_config(tmp_path_factory):
