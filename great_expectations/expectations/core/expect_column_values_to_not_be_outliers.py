@@ -24,8 +24,8 @@ if TYPE_CHECKING:
 
 EXPECTATION_SHORT_DESCRIPTION = "Expect numeric column values to not be statistical outliers."
 METHOD_DESCRIPTION = (
-    'The outlier detection method: "iqr" uses the median and interquartile range; '
-    '"std" uses the mean and sample standard deviation.'
+    'The outlier detection method: "iqr" uses the quartiles and the interquartile range, '
+    'as Tukey\'s fences do; "std" uses the mean and sample standard deviation.'
 )
 MULTIPLIER_DESCRIPTION = "The threshold multiplier applied to the selected spread statistic."
 DEFAULT_METHOD = "iqr"
@@ -52,21 +52,23 @@ SUPPORTED_DATA_SOURCES = [
 class ExpectColumnValuesToNotBeOutliers(ColumnMapExpectation):
     __doc__ = f"""{EXPECTATION_SHORT_DESCRIPTION}
 
-    A value is considered an outlier when its absolute distance from the column center is
-    greater than or equal to the configured multiplier times the column spread. Null values
-    are excluded from both the aggregate statistics and row-level evaluation.
+    The two methods draw the window of acceptable values differently. The "iqr" method
+    uses Tukey's fences: with `Q1` and `Q3` the first and third quartiles and
+    `IQR = Q3 - Q1`, a value is an outlier when it falls below `Q1 - multiplier * IQR` or
+    above `Q3 + multiplier * IQR`. Each side is tested against its own quartile, so on
+    skewed data the window reaches further out on the longer tail, and a value sitting
+    exactly on a fence is not an outlier. The "std" method measures symmetrically around
+    the mean instead: a value is an outlier when
+    `|value - mean| >= multiplier * standard_deviation`. Null values are excluded from
+    both the aggregate statistics and row-level evaluation.
 
-    Note that the "iqr" method applies this same symmetric rule around the median -
-    an outlier is a value where `|value - median| >= multiplier * IQR`. That is not
-    Tukey's fence, which tests each side separately against `Q1 - multiplier * IQR` and
-    `Q3 + multiplier * IQR`; on skewed data the two rules disagree.
-
-    A column with no dispersion is a special case. When the threshold works out to zero,
-    whether because the spread is zero or because the multiplier is zero, only values away
-    from the center are outliers, so a constant column reports none. When the batch cannot
-    produce the statistics at all, as for an empty column or for a single value under a
-    sample standard deviation, there is nothing to measure against and no value is
-    reported as an outlier.
+    A column with no dispersion is a special case. Under "iqr", a zero multiplier - or a
+    zero interquartile range - collapses the fences onto the quartiles themselves, leaving
+    the closed interval from `Q1` to `Q3`, so a constant column reports no outliers. Under
+    "std", a threshold of zero admits only values equal to the mean, so a constant column
+    again reports none. When the batch cannot produce the statistics at all, as for an
+    empty column or for a single value under a sample standard deviation, there is nothing
+    to measure against and no value is reported as an outlier.
 
     ExpectColumnValuesToNotBeOutliers is a Column Map Expectation.
 

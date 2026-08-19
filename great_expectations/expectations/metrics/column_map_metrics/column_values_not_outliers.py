@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, NamedTuple, Optional
 
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
@@ -35,21 +35,47 @@ if TYPE_CHECKING:
 _OUTLIER_STATISTICS_METRIC_NAME = "column.outlier_statistics"
 
 
-def _get_threshold(statistics: OutlierStatistics, multiplier: float) -> Optional[float]:
-    """Return the distance at which a value becomes an outlier, or None if unmeasurable.
+class _OutlierWindow(NamedTuple):
+    """The references a value is measured against, with the multiplier applied.
 
-    A column with no center, or with no spread to measure against - an empty column, or a
-    single value under a sample standard deviation - gives no basis for calling anything
-    an outlier, so it yields no threshold and every value is left alone.
+    `threshold` is how far the window reaches past each reference. The "iqr" method
+    extends the two quartiles outward by it to reach Tukey's fences; the "std" method
+    holds both references on the mean, so it is simply the distance from the mean at
+    which a value becomes an outlier.
     """
-    center, spread = statistics
-    if center is None or spread is None:
+
+    lower_reference: float
+    upper_reference: float
+    threshold: float
+
+
+def _get_outlier_window(
+    statistics: OutlierStatistics, multiplier: float
+) -> Optional[_OutlierWindow]:
+    """Return the window to measure against, or None when the column offers no basis.
+
+    A column with no references, or with no spread to measure against - an empty column,
+    or a single value under a sample standard deviation - gives no basis for calling
+    anything an outlier, so it yields no window and every value is left alone.
+    """
+    lower_reference, upper_reference, spread = statistics
+    if lower_reference is None or upper_reference is None or spread is None:
         return None
-    return multiplier * spread
+    return _OutlierWindow(
+        lower_reference=lower_reference,
+        upper_reference=upper_reference,
+        threshold=multiplier * spread,
+    )
 
 
 class ColumnValuesNotOutliers(ColumnMapMetricProvider):
-    """Determine whether column values fall within the configured outlier threshold."""
+    """Determine whether column values fall inside the configured method's window.
+
+    The "iqr" method takes Tukey's convention, where a value sitting exactly on a fence is
+    inside the window; the "std" method treats a value exactly at the threshold as an
+    outlier, which is why a zero threshold there needs its own case - a strict comparison
+    against it would otherwise admit nothing at all.
+    """
 
     condition_metric_name = "column_values.not_outliers"
     condition_value_keys = ("method", "multiplier")
@@ -66,12 +92,16 @@ class ColumnValuesNotOutliers(ColumnMapMetricProvider):
     ) -> pd.Series:
         validate_method(method)
         statistics: OutlierStatistics = _metrics[_OUTLIER_STATISTICS_METRIC_NAME]
-        threshold = _get_threshold(statistics, multiplier)
-        if threshold is None:
+        window = _get_outlier_window(statistics, multiplier)
+        if window is None:
             return column.notnull()
-        if threshold <= 0:
-            return column == statistics.center
-        return (column - statistics.center).abs() < threshold
+        if method == IQR_METHOD:
+            return (column >= window.lower_reference - window.threshold) & (
+                column <= window.upper_reference + window.threshold
+            )
+        if window.threshold <= 0:
+            return column == window.lower_reference
+        return (column - window.lower_reference).abs() < window.threshold
 
     @column_condition_partial(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(
@@ -84,12 +114,17 @@ class ColumnValuesNotOutliers(ColumnMapMetricProvider):
     ):
         validate_method(method)
         statistics: OutlierStatistics = _metrics[_OUTLIER_STATISTICS_METRIC_NAME]
-        threshold = _get_threshold(statistics, multiplier)
-        if threshold is None:
+        window = _get_outlier_window(statistics, multiplier)
+        if window is None:
             return sa.true()
-        if threshold <= 0:
-            return column == statistics.center
-        return sa.func.abs(column - statistics.center) < threshold
+        if method == IQR_METHOD:
+            return sa.and_(
+                column >= window.lower_reference - window.threshold,
+                column <= window.upper_reference + window.threshold,
+            )
+        if window.threshold <= 0:
+            return column == window.lower_reference
+        return sa.func.abs(column - window.lower_reference) < window.threshold
 
     @column_condition_partial(engine=SparkDFExecutionEngine)
     def _spark(
@@ -102,12 +137,16 @@ class ColumnValuesNotOutliers(ColumnMapMetricProvider):
     ):
         validate_method(method)
         statistics: OutlierStatistics = _metrics[_OUTLIER_STATISTICS_METRIC_NAME]
-        threshold = _get_threshold(statistics, multiplier)
-        if threshold is None:
+        window = _get_outlier_window(statistics, multiplier)
+        if window is None:
             return F.lit(True)
-        if threshold <= 0:
-            return column == F.lit(statistics.center)
-        return F.abs(column - F.lit(statistics.center)) < F.lit(threshold)
+        if method == IQR_METHOD:
+            return (column >= F.lit(window.lower_reference - window.threshold)) & (
+                column <= F.lit(window.upper_reference + window.threshold)
+            )
+        if window.threshold <= 0:
+            return column == F.lit(window.lower_reference)
+        return F.abs(column - F.lit(window.lower_reference)) < F.lit(window.threshold)
 
     @classmethod
     @override

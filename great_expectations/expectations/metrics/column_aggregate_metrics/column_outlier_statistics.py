@@ -29,21 +29,32 @@ STD_METHOD = "std"
 SUPPORTED_METHODS = (IQR_METHOD, STD_METHOD)
 
 _FIRST_QUARTILE = 0.25
-_MEDIAN = 0.5
 _THIRD_QUARTILE = 0.75
-_QUARTILES = (_FIRST_QUARTILE, _MEDIAN, _THIRD_QUARTILE)
+_QUARTILES = (_FIRST_QUARTILE, _THIRD_QUARTILE)
 _MINIMUM_SAMPLE_SIZE_FOR_STANDARD_DEVIATION = 2
 
 
 class OutlierStatistics(NamedTuple):
-    """The center and spread a column is measured against when detecting outliers.
+    """The references and spread a column's window of acceptable values is built from.
 
-    Either field is None when the batch cannot supply it: an empty column has no center,
+    The window runs from `lower_reference - multiplier * spread` to
+    `upper_reference + multiplier * spread`. The two methods differ in where the
+    references sit: "iqr" puts them on the first and third quartiles, so the window is
+    Tukey's fences and follows a skewed column out to whichever side is longer; "std"
+    puts both on the mean, so the window is symmetric.
+
+    Any field is None when the batch cannot supply it: an empty column has no references,
     and a sample standard deviation is undefined for fewer than two values.
     """
 
-    center: Optional[float]
+    lower_reference: Optional[float]
+    upper_reference: Optional[float]
     spread: Optional[float]
+
+    @classmethod
+    def symmetric(cls, center: Optional[float], spread: Optional[float]) -> OutlierStatistics:
+        """Build a window centered on a single statistic, with both references on it."""
+        return cls(lower_reference=center, upper_reference=center, spread=spread)
 
 
 def validate_method(method: str) -> None:
@@ -232,12 +243,12 @@ def _get_sqlite_mean_and_standard_deviation(
         sa.select(sa.func.count(column), sa.func.avg(numeric_column)).select_from(selectable)
     ).fetchone()
     if row is None or not row[0]:
-        return OutlierStatistics(center=None, spread=None)
+        return OutlierStatistics.symmetric(center=None, spread=None)
 
     count = int(row[0])
     mean = _to_float(row[1])
     if mean is None or count < _MINIMUM_SAMPLE_SIZE_FOR_STANDARD_DEVIATION:
-        return OutlierStatistics(center=mean, spread=None)
+        return OutlierStatistics.symmetric(center=mean, spread=None)
 
     deviation = numeric_column - mean
     row = execution_engine.execute_query(
@@ -245,7 +256,9 @@ def _get_sqlite_mean_and_standard_deviation(
             selectable
         )
     ).fetchone()
-    return OutlierStatistics(center=mean, spread=None if row is None else _to_float(row[0]))
+    return OutlierStatistics.symmetric(
+        center=mean, spread=None if row is None else _to_float(row[0])
+    )
 
 
 def _get_sql_mean_and_standard_deviation(
@@ -277,8 +290,8 @@ def _get_sql_mean_and_standard_deviation(
         sa.select(sa.func.avg(numeric_column), standard_deviation).select_from(selectable)
     ).fetchone()
     if row is None:
-        return OutlierStatistics(center=None, spread=None)
-    return OutlierStatistics(center=_to_float(row[0]), spread=_to_float(row[1]))
+        return OutlierStatistics.symmetric(center=None, spread=None)
+    return OutlierStatistics.symmetric(center=_to_float(row[0]), spread=_to_float(row[1]))
 
 
 def _spark_column_reference(column_name: str) -> str:
@@ -306,9 +319,9 @@ def _spark_exact_percentile(column_name: str, quantile: float):
 
 
 class ColumnOutlierStatistics(ColumnAggregateMetricProvider):
-    """Return the (center, spread) pair the configured outlier method measures against.
+    """Return the references and spread the configured outlier method measures against.
 
-    Both statistics come from a single pass over the column so that a validation does not
+    Every statistic comes from a single pass over the column so that a validation does not
     scan - and, on the dialects that need a sorted subquery, sort - the column twice.
     """
 
@@ -324,12 +337,15 @@ class ColumnOutlierStatistics(ColumnAggregateMetricProvider):
             # through `numpy.percentile` and rejects object-dtype columns outright. Both
             # interpolate linearly, so the numbers agree wherever scipy accepts the input.
             first_quartile = _to_float(column.quantile(_FIRST_QUARTILE))
-            median = _to_float(column.quantile(_MEDIAN))
             third_quartile = _to_float(column.quantile(_THIRD_QUARTILE))
             return OutlierStatistics(
-                center=median, spread=_spread_between(first_quartile, third_quartile)
+                lower_reference=first_quartile,
+                upper_reference=third_quartile,
+                spread=_spread_between(first_quartile, third_quartile),
             )
-        return OutlierStatistics(center=_to_float(column.mean()), spread=_to_float(column.std()))
+        return OutlierStatistics.symmetric(
+            center=_to_float(column.mean()), spread=_to_float(column.std())
+        )
 
     @metric_value(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(
@@ -355,14 +371,16 @@ class ColumnOutlierStatistics(ColumnAggregateMetricProvider):
                 execution_engine=execution_engine,
             )
 
-        first_quartile, median, third_quartile = _get_sql_percentiles(
+        first_quartile, third_quartile = _get_sql_percentiles(
             column=column,
             quantiles=_QUARTILES,
             selectable=selectable,
             execution_engine=execution_engine,
         )
         return OutlierStatistics(
-            center=median, spread=_spread_between(first_quartile, third_quartile)
+            lower_reference=first_quartile,
+            upper_reference=third_quartile,
+            spread=_spread_between(first_quartile, third_quartile),
         )
 
     @metric_value(engine=SparkDFExecutionEngine)
@@ -389,12 +407,14 @@ class ColumnOutlierStatistics(ColumnAggregateMetricProvider):
         # Every aggregate below ignores nulls, so no explicit null filter is needed.
         if method == STD_METHOD:
             row = df.agg(F.mean(column), F.stddev_samp(column)).collect()[0]
-            return OutlierStatistics(center=_to_float(row[0]), spread=_to_float(row[1]))
+            return OutlierStatistics.symmetric(center=_to_float(row[0]), spread=_to_float(row[1]))
 
         row = df.agg(
             *(_spark_exact_percentile(column_name, quantile) for quantile in _QUARTILES)
         ).collect()[0]
-        first_quartile, median, third_quartile = (_to_float(value) for value in row)
+        first_quartile, third_quartile = (_to_float(value) for value in row)
         return OutlierStatistics(
-            center=median, spread=_spread_between(first_quartile, third_quartile)
+            lower_reference=first_quartile,
+            upper_reference=third_quartile,
+            spread=_spread_between(first_quartile, third_quartile),
         )
