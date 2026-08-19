@@ -38,6 +38,20 @@ present afterwards.
 Do not skip step 1, and do not stop before step 4. A configuration that was
 never read through is not a result worth reporting.
 
+## What this skill will not do without being asked
+
+<!-- consent-gate: install -->
+- **Install, upgrade, or remove a package, or otherwise modify the
+  interpreter, virtual environment, environment variables, or shell state.**
+  Not in response to an error, not preemptively while checking whether
+  something is present, and not by announcing an intention to install with a
+  chance to decline attached — none of those is the user asking. When
+  something is missing, name it and hand over the command; running it is a
+  separate act that starts only from the user's own instruction, later.
+<!-- consent-gate: project -->
+- **Create a project directory on the user's disk.** Only after the user has
+  agreed to write the session out and named where.
+
 ## Step 1 — Preflight
 
 Follow `references/preflight.md` in full before configuring anything. It
@@ -47,6 +61,11 @@ problems that silently masquerade as "no project found".
 
 The outcome you carry forward is a `context` object and one fact: whether the
 session is file-backed or in memory. Both are fully supported paths.
+
+If anything here, or in step 3 below, turns up a missing driver or client
+library, report it and hand over the install command per the standing rule
+above. Do not install it yourself — not now, before anything has failed, and
+not later without the user's own go-ahead.
 
 ## Step 2 — Elicit what you need
 
@@ -170,6 +189,10 @@ So:
 Note also that the factory **tests the connection as part of the call**, so it
 can be slow or hang on an unreachable host. Run it inside the duration-tracked
 wrapper in `references/robustness.md` like any other data-touching call.
+
+That connection test is exactly where a missing driver or client library
+surfaces. Report it and hand over the install command — do not install it
+yourself to get the connection working, and do not offer to.
 
 ### The pattern
 
@@ -304,6 +327,7 @@ Tell the user, concretely:
 - How to retrieve a batch again, including the `batch_parameters` the batch
   definition needs.
 
+<!-- consent-gate: project -->
 **If the session is in memory, offer to write it out** to a real project so
 the work survives — see `references/write-out.md` for the procedure and for
 what the user needs to know about dataframe assets, which carry configuration
@@ -350,9 +374,9 @@ Take the factory names and arguments for the user's actual backend from
 ### A file-based source: monthly CSV files
 
 The date lives in the file name, so the monthly batch definition takes a
-`regex` with named groups. **Batch parameters for file-based definitions must
-be strings** — passing `2024` instead of `"2024"` raises
-`InvalidBatchRequestError`.
+`regex` with named groups. **Batch parameters are integers**, and they are not
+padded to match the file name: `{"month": 2}` selects `sales_2024-02.csv`, even
+though the regex reads that group as two zero-padded digits.
 
 ```python
 try:
@@ -368,16 +392,16 @@ batch_definition = asset.add_batch_definition_monthly(
     regex=r"sales_(?P<year>\d{4})-(?P<month>\d{2})\.csv",
 )
 
-batch = batch_definition.get_batch(batch_parameters={"year": "2024", "month": "02"})
+batch = batch_definition.get_batch(batch_parameters={"year": 2024, "month": 2})
 print(batch.head(n_rows=5))
 ```
 
 ### A SQL source: a table partitioned by month
 
 The date lives in a column, so the monthly batch definition takes `column`.
-**Batch parameters here are integers**, unlike the file-based case above. The
-credential-bearing part of the connection string is a `${VARIABLE_NAME}`
-reference, never a literal.
+Batch parameters are integers here too — the two families take the same window,
+so one set of parameters drives both. The credential-bearing part of the
+connection string is a `${VARIABLE_NAME}` reference, never a literal.
 
 ```python
 try:

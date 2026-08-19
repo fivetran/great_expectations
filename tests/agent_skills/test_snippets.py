@@ -35,6 +35,7 @@ rather than quietly leaving a block unexecuted.
 
 from __future__ import annotations
 
+import ast
 import dataclasses
 import json
 import pathlib
@@ -58,9 +59,9 @@ from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.exceptions import ResourceFreshnessAggregateError
 from great_expectations.exceptions.exceptions import NoAvailableBatchesError
 from great_expectations.warnings import GxDeprecationWarning
+from tests.agent_skills.test_skill_content import CONSENT_GATES, ConsentGate
 
 if TYPE_CHECKING:
-    from great_expectations.core import ExpectationSuite
     from great_expectations.core.expectation_validation_result import (
         ExpectationSuiteValidationResult,
         ExpectationValidationResult,
@@ -657,6 +658,797 @@ def test_a_placeholder_directory_and_a_read_only_call_are_both_accepted(
     )
 
     assert unconfirmed_directory_problems(python_blocks(document)) == []
+
+
+# ---------------------------------------------------------------------------
+# No shipped snippet passes a numeric batch parameter as a string. Both
+# families accept integers, and digit strings are deprecated with removal
+# planned for 2.0, so a snippet carrying one seeds a user's project with code
+# that warns today and breaks then.
+# ---------------------------------------------------------------------------
+
+#: The batch-parameter names that carry a numeric window. ``dataframe`` and other
+#: non-numeric parameters are untouched by the deprecation and are not checked.
+NUMERIC_BATCH_PARAMETER_NAMES: Final = ("year", "month", "day")
+
+
+def numeric_batch_parameter_bindings(block: CodeBlock) -> list[tuple[str, ast.expr]]:
+    """Every ``batch_parameters={...}`` entry in ``block`` keyed by a numeric window name.
+
+    Parsed rather than pattern-matched. The values these snippets pass are plain literals,
+    but a regex over the source cannot tell a dict key from the same characters inside a
+    partitioning regex -- and every snippet here that binds ``year`` and ``month`` also
+    carries a ``(?P<year>\\d{4})-(?P<month>\\d{2})`` literal a line or two above it. A check
+    whose whole job is to be trusted about types cannot be the one guessing which is which.
+    """
+    bindings: list[tuple[str, ast.expr]] = []
+    for node in ast.walk(ast.parse(block.source)):
+        if not isinstance(node, ast.keyword) or node.arg != "batch_parameters":
+            continue
+        if not isinstance(node.value, ast.Dict):
+            continue
+        for key, value in zip(node.value.keys, node.value.values, strict=True):
+            if not isinstance(key, ast.Constant):
+                continue
+            name = key.value
+            if isinstance(name, str) and name in NUMERIC_BATCH_PARAMETER_NAMES:
+                bindings.append((name, value))
+    return bindings
+
+
+def string_batch_parameter_problems(blocks: list[CodeBlock]) -> list[str]:
+    """Report every snippet binding a numeric window parameter to a string literal."""
+    problems: list[str] = []
+    for block in blocks:
+        for name, value in numeric_batch_parameter_bindings(block):
+            if isinstance(value, ast.Constant) and isinstance(value.value, str):
+                problems.append(
+                    f"{block.identifier}: batch_parameters passes {name}={value.value!r} as a"
+                    " string. Both datasource families take integers; digit strings are"
+                    " deprecated with removal planned for 2.0, so this snippet would seed a"
+                    " project with code that warns now and breaks then."
+                )
+    return problems
+
+
+def numeric_batch_parameter_bindings_exist() -> bool:
+    return any(numeric_batch_parameter_bindings(block) for block in ALL_PYTHON_BLOCKS)
+
+
+@pytest.mark.unit
+def test_no_snippet_passes_a_numeric_batch_parameter_as_a_string():
+    """Guidance is copied from the snippet, not from the prose around it.
+
+    The deprecation this guards is silent by design -- a digit string still returns the
+    right batch, so nothing about running one of these snippets tells a reader it is
+    building on something scheduled for removal. ``test_one_integer_window_drives_both_a
+    _sql_and_a_file_based_validation_definition`` proves the runtime behaviour this check
+    encodes; this one keeps every shipped snippet on the right side of it.
+    """
+    assert numeric_batch_parameter_bindings_exist(), (
+        "no snippet binds a numeric batch parameter any more, so this check passes"
+        " vacuously; find where the partitioned-batch examples moved to"
+    )
+
+    problems = string_batch_parameter_problems(ALL_PYTHON_BLOCKS)
+
+    assert not problems, "\n".join(problems)
+
+
+@pytest.mark.unit
+def test_a_snippet_passing_a_digit_string_batch_parameter_is_reported(tmp_path: pathlib.Path):
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        batch = batch_definition.get_batch(batch_parameters={"year": "2024", "month": "02"})
+        ```
+        """,
+    )
+
+    problems = string_batch_parameter_problems(python_blocks(document))
+
+    assert len(problems) == 2, problems
+    assert "year='2024'" in problems[0]
+    assert "month='02'" in problems[1]
+
+
+@pytest.mark.unit
+def test_integer_and_non_numeric_batch_parameters_are_both_accepted(tmp_path: pathlib.Path):
+    """The check has to stay silent on the shapes the skills actually ship."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        batch = batch_definition.get_batch(batch_parameters={"year": 2024, "month": 2})
+        result = checkpoint.run(batch_parameters={"dataframe": df})
+        ```
+        """,
+    )
+
+    assert string_batch_parameter_problems(python_blocks(document)) == []
+
+
+# ---------------------------------------------------------------------------
+# No shipped snippet performs any of the other register rows' gated actions
+# either. ``CONSENT_GATES`` is imported from ``test_skill_content`` rather
+# than copied here -- a second list of gated actions is how the two would
+# drift out of step with each other.
+# ---------------------------------------------------------------------------
+
+#: A bare package-manager invocation, or ``sys.executable -m pip``, in a
+#: snippet's own source -- the shape a snippet would pass to a shell or
+#: ``subprocess``. Matched as literal text, on the same
+#: over-firing-is-the-safe-direction basis the trigger-token sets already
+#: document.
+PACKAGE_MANAGER_CALL: Final = re.compile(
+    r"\b(?:pip|uv pip|conda)\s+(?:install|uninstall|upgrade)\b"
+    r"|\bsys\.executable\b.*-m.*pip"
+)
+
+#: A shell-out call -- ``subprocess.*`` or ``os.system`` -- matched
+#: regardless of its argument. The install gate cannot see through a
+#: shell-out to know whether it runs a package manager, so every shell-out
+#: is banned; this is a *different* fact from ``PACKAGE_MANAGER_CALL``, and
+#: the two are reported with different messages so the reported reason
+#: matches what actually matched (see ``install_gate_problems``).
+SHELL_OUT_CALL: Final = re.compile(
+    r"subprocess\.(?:run|call|check_call|check_output|Popen)\s*\("
+    r"|\bos\.system\s*\("
+)
+
+#: A write to the process environment. ``os.environ.get(...)`` (a read --
+#: ``preflight.md`` opens with one) does not match, nor does a comparison
+#: like ``os.environ["X"] == "y"`` -- the ``(?!=)`` keeps the subscript
+#: alternation from matching the first ``=`` of ``==``. ``del
+#: os.environ[...]`` is a mutation too, and is matched explicitly rather
+#: than falling out of the assignment alternation, which a ``del`` does not
+#: touch.
+ENVIRONMENT_MUTATION_CALL: Final = re.compile(
+    r"os\.environ\s*\[[^\]]*\]\s*=(?!=)"
+    r"|os\.environ\.(?:update|setdefault|pop)\s*\("
+    r"|os\.putenv\s*\("
+    r"|os\.unsetenv\s*\("
+    r"|del\s+os\.environ\s*\["
+)
+
+
+def install_gate_problems(blocks: list[CodeBlock]) -> list[str]:
+    """Report every snippet that installs a package, shells out to run one, or
+    mutates the process environment on the user's behalf.
+
+    The ``install`` gate hands each of these to the user; a snippet that does
+    one of them itself has taken the decision away rather than asked. The
+    package-manager and shell-out alternations are reported with distinct
+    messages so the reason given matches what actually matched: a
+    ``subprocess`` call that is not a package manager should not be told it
+    "calls a package manager".
+    """
+    problems: list[str] = []
+    for block in blocks:
+        if PACKAGE_MANAGER_CALL.search(block.source):
+            problems.append(
+                f"{block.identifier}: calls a package manager (a bare pip/uv/conda"
+                " invocation, or sys.executable -m pip). Installing, upgrading, or"
+                " removing a package is the user's call to make and run -- hand them"
+                " the command, do not run it for them."
+            )
+        if SHELL_OUT_CALL.search(block.source):
+            problems.append(
+                f"{block.identifier}: shells out (subprocess or os.system), which the"
+                " install gate cannot see through to confirm it is not a package"
+                " manager on the user's behalf -- hand the command to the user instead"
+                " of running it."
+            )
+        if ENVIRONMENT_MUTATION_CALL.search(block.source):
+            problems.append(
+                f"{block.identifier}: writes to the process environment (os.environ or"
+                " similar) rather than asking the user to set it themselves."
+            )
+    return problems
+
+
+def _is_placeholder_string(value: str) -> bool:
+    return value.startswith("<") and value.endswith(">")
+
+
+def _single_assignment_map(tree: ast.AST) -> dict[str, ast.expr]:
+    """Map each name assigned exactly once, via a simple ``name = <expr>``
+    statement, to that expression.
+
+    A name assigned more than once in the block is dropped from the map
+    rather than resolved to one of its several values -- reassignment,
+    loops and cross-block flow are out of scope, and a name this cannot
+    resolve just falls back to ``ast.Name`` in ``_write_target_is_snippet_chosen``,
+    which reads as not snippet-chosen (the existing conservative default).
+    """
+    assignments: dict[str, ast.expr] = {}
+    seen_more_than_once: set[str] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Assign) or len(node.targets) != 1:
+            continue
+        target = node.targets[0]
+        if not isinstance(target, ast.Name):
+            continue
+        if target.id in assignments or target.id in seen_more_than_once:
+            seen_more_than_once.add(target.id)
+            assignments.pop(target.id, None)
+        else:
+            assignments[target.id] = node.value
+    return assignments
+
+
+def _write_target_is_snippet_chosen(node: ast.AST, assignments: dict[str, ast.expr]) -> bool:
+    """True when a write call's path expression is one the snippet picked for
+    itself, rather than a ``<placeholder>`` or a path built from an
+    already-open project's own root -- the two shapes the shipped content
+    actually writes through today (see ``action-catalog.md``'s
+    ``yml_path = Path(context.root_directory) / "great_expectations.yml"``,
+    written through the intermediate variable ``yml_path``).
+
+    Limited to the shapes present in the shipped content: a bare string
+    literal, a call to anything named or attribute-accessed as ``Path``
+    (``Path("...")``, ``pathlib.Path("...")``, or any other ``x.Path("...")``
+    -- see the caveat on that below), a ``/`` join whose left side resolves
+    through the same rules, an f-string (always snippet-chosen -- see
+    below), and a bare name resolved against ``assignments`` -- the block's
+    own single-assignment variables, traced back to their right-hand side
+    and then through these same rules.
+
+    That name resolution only traces a name bound by exactly one
+    single-target ``ast.Assign`` node anywhere in the block, not at control
+    flow -- verified directly rather than assumed:
+
+    - a name reassigned at the top level (more than one ``Assign`` node
+      targeting it) is dropped from the map entirely and reads as not
+      snippet-chosen -- unresolved, as intended;
+    - but a name with exactly one ``Assign`` node that happens to sit inside
+      an ``if`` or ``for`` body *is* traced -- ``ast.walk`` finds that one
+      node regardless of nesting, so this case resolves and fires just like
+      a top-level assignment would;
+    - and augmented assignment (``p /= "a.txt"``) is not an ``ast.Assign``
+      at all, so it neither adds to the map nor counts toward the
+      more-than-once check -- a prior plain assignment to the same name is
+      still traced, resolving to that pre-augment value, not to the
+      augmented one.
+
+    Every binding form other than a single single-target ``ast.Assign`` is
+    unresolved and reads as not snippet-chosen -- not just reassignment and
+    destructuring unpacking (``p, q = ...``), but also an annotated
+    assignment (``p: Path = ...``, ``ast.AnnAssign``, the idiomatic-typed-Python
+    case and the one most likely to actually occur), a chained multi-target
+    assignment (``a = b = ...``, excluded by the single-target check), a
+    walrus binding (``(p := ...)``, ``ast.NamedExpr``), and a ``for`` (or
+    ``with``) loop's own target variable, which is never the target of an
+    ``ast.Assign`` at all. The fallback for everything this cannot resolve
+    -- an unresolved name, or any other node shape -- is ``return False``,
+    i.e. *not* snippet-chosen, *not* flagged. That is an under-firing default,
+    the same direction that let the shipped write go unseen before
+    ``write_calls_exist`` existed as a non-vacuity guard. It is tolerated
+    here only because the shipped corpus contains exactly one write and it
+    is the traced ``/``-join-through-an-assigned-variable shape above, not
+    because under-firing is generally the safe direction -- contrast the
+    ``JoinedStr`` branch below, which deliberately over-fires instead.
+
+    A further caveat this checker does not attempt to close: a write through
+    ``.write_bytes(...)`` is outside ``_write_calls`` entirely and this
+    function never sees it -- verified directly, 0 calls found for that
+    shape. A write through a file handle is not the same blind spot: when
+    the handle comes from ``open(path, "w")``, the ``open`` call itself is
+    the match (``_write_calls`` yields it, and it fires), so
+    ``f = open(p, "w"); f.write(...)`` and
+    ``with open(p, "w") as f: f.write(...)`` are both flagged -- on the
+    ``open``, not on ``f.write``. What escapes is only a handle obtained
+    some other way -- e.g. ``open(p, mode)`` where ``mode`` is a variable
+    rather than a string literal, which defeats ``_open_call_is_write_mode``
+    and so is never even seen as a write call. And the non-vacuity guard,
+    ``write_calls_exist``, only asserts that *some*
+    write call exists in the shipped content -- not that every write call is
+    correctly classified -- so a future write in a shape this function
+    cannot resolve would pass through silently rather than fail loudly.
+
+    The ``/``-join branch below also decides less than its name suggests:
+    it accepts *any* left side this function reads as not snippet-chosen,
+    not specifically one built from an already-open project's root. A join
+    like ``Path(self.own_dir) / "out.yml"`` is accepted identically to
+    ``Path(context.root_directory) / "..."`` -- this function has no way to
+    distinguish "resolved to a project root" from "resolved to something
+    else not literally chosen here." Acceptable under the conservative
+    default above, but worth naming precisely rather than implying a
+    root-specific check that does not exist.
+
+    The ``Path(...)`` branch has the mirror-image imprecision: it decides
+    *more* than its name suggests. It matches any call whose callee is
+    either the bare name ``Path`` or *any* attribute access ending in
+    ``.Path`` -- ``pathlib.Path(...)``, but identically ``some.other.Path(...)``
+    or ``cfg.Path(...)``, verified directly to fire the same as
+    ``pathlib.Path``. Over-firing is the safe direction here, and there is
+    no false positive on shipped content, but the branch does not actually
+    check that the callee resolves to ``pathlib.Path``.
+    """
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return not _is_placeholder_string(node.value)
+    if isinstance(node, ast.JoinedStr):
+        # An f-string can never equal a bare ``<placeholder>`` literal (the
+        # placeholder is copied verbatim, not interpolated), and this checker
+        # does not attempt to trace into its interpolated pieces to prove it
+        # derives from the project root either. Reported as snippet-chosen
+        # rather than silently accepted -- the write ban has to err toward
+        # seeing a write it cannot fully classify, not toward missing one.
+        return True
+    if isinstance(node, ast.Call) and (
+        (isinstance(node.func, ast.Name) and node.func.id == "Path")
+        or (isinstance(node.func, ast.Attribute) and node.func.attr == "Path")
+    ):
+        return bool(node.args) and _write_target_is_snippet_chosen(node.args[0], assignments)
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+        return _write_target_is_snippet_chosen(node.left, assignments)
+    if isinstance(node, ast.Name) and node.id in assignments:
+        return _write_target_is_snippet_chosen(assignments[node.id], assignments)
+    return False
+
+
+#: The ``open(...)`` mode characters that write to a file, as opposed to
+#: reading one.
+_WRITE_MODE_FLAGS: Final = ("w", "a", "x")
+
+
+def _write_text_call_problem(
+    identifier: str, call: ast.Call, assignments: dict[str, ast.expr]
+) -> str | None:
+    """``<expr>.write_text(...)``: flag it when ``<expr>`` is snippet-chosen."""
+    func = call.func
+    assert isinstance(func, ast.Attribute) and func.attr == "write_text"
+    if not _write_target_is_snippet_chosen(func.value, assignments):
+        return None
+    return (
+        f"{identifier}: .write_text(...) is called on a path the snippet chose for"
+        " itself, rather than one the user named or one built from an already-open"
+        " project's own root."
+    )
+
+
+def _open_call_is_write_mode(call: ast.Call) -> bool:
+    """True when an ``open(...)`` call's mode argument is a write mode."""
+    mode = call.args[1] if len(call.args) >= 2 else None
+    for keyword in call.keywords:
+        if keyword.arg == "mode":
+            mode = keyword.value
+    return (
+        isinstance(mode, ast.Constant)
+        and isinstance(mode.value, str)
+        and any(flag in mode.value for flag in _WRITE_MODE_FLAGS)
+    )
+
+
+def _open_call_problem(
+    identifier: str, call: ast.Call, assignments: dict[str, ast.expr]
+) -> str | None:
+    """``open(<path>, "w", ...)``: flag it when in a write mode and ``<path>`` is
+    snippet-chosen."""
+    if (
+        not _open_call_is_write_mode(call)
+        or not call.args
+        or not _write_target_is_snippet_chosen(call.args[0], assignments)
+    ):
+        return None
+    return (
+        f"{identifier}: open(...) writes to a path the snippet chose for itself,"
+        " rather than one the user named or one built from an already-open"
+        " project's own root."
+    )
+
+
+def _write_calls(tree: ast.AST) -> Iterator[ast.Call]:
+    """Every call in ``tree`` that writes a file: ``.write_text(...)`` and
+    ``open(...)`` opened in a write mode. Existence of a write call is a
+    separate question from whether its target is snippet-chosen, which is
+    what lets this back a non-vacuity guard as well as the problem search.
+    """
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        is_write_text_call = isinstance(func, ast.Attribute) and func.attr == "write_text"
+        is_write_mode_open_call = (
+            isinstance(func, ast.Name) and func.id == "open" and _open_call_is_write_mode(node)
+        )
+        if is_write_text_call or is_write_mode_open_call:
+            yield node
+
+
+def snippet_chosen_write_problems(blocks: list[CodeBlock]) -> list[str]:
+    """Report every snippet that writes a file to a path it picked for itself.
+
+    Covers both the ``config-file`` gate (editing an existing project's
+    ``great_expectations.yml``) and the ``saved-file`` gate (writing any
+    other file the user did not ask for and locate): both gate the identical
+    property, a write to a path the snippet chose rather than one the user
+    named or one built from a project already open, so one checker covers
+    both rows rather than two that would test the same thing under different
+    names.
+    """
+    problems: list[str] = []
+    for block in blocks:
+        try:
+            tree = ast.parse(block.source)
+        except SyntaxError:
+            continue  # reported by test_python_block_compiles, not here
+        assignments = _single_assignment_map(tree)
+        for call in _write_calls(tree):
+            func = call.func
+            problem = None
+            if isinstance(func, ast.Attribute) and func.attr == "write_text":
+                problem = _write_text_call_problem(block.identifier, call, assignments)
+            elif isinstance(func, ast.Name) and func.id == "open":
+                problem = _open_call_problem(block.identifier, call, assignments)
+            if problem is not None:
+                problems.append(problem)
+    return problems
+
+
+def write_calls_exist(blocks: list[CodeBlock]) -> bool:
+    """Whether any block in ``blocks`` performs a file write at all, regardless
+    of whether its target is snippet-chosen -- the non-vacuity guard for
+    ``snippet_chosen_write_problems``, modeled on ``project_creating_calls_exist``.
+    """
+    for block in blocks:
+        try:
+            tree = ast.parse(block.source)
+        except SyntaxError:
+            continue
+        if any(True for _ in _write_calls(tree)):
+            return True
+    return False
+
+
+#: Maps each register row to the check that bans shipped Python from
+#: performing the gate's own action. ``project`` reuses
+#: ``unconfirmed_directory_problems`` -- the check already proven above --
+#: rather than a second check over the same property, which would be a green
+#: name over a reimplementation, not coverage.
+CONSENT_GATE_SNIPPET_CHECKS: Final[dict[str, Callable[[list[CodeBlock]], list[str]]]] = {
+    "install": install_gate_problems,
+    "project": unconfirmed_directory_problems,
+    "config-file": snippet_chosen_write_problems,
+    "saved-file": snippet_chosen_write_problems,
+}
+
+
+@pytest.mark.unit
+def test_no_snippet_writes_to_a_path_it_chose_for_itself():
+    """A file write baked into a snippet is a write nobody agreed to.
+
+    Guarded the same way ``test_no_snippet_creates_a_project_at_a_directory_of_its_own_choosing``
+    is: without ``write_calls_exist``, a ban that has stopped seeing the shipped content's
+    one write call would pass with an empty problem list for the wrong reason.
+    """
+    assert write_calls_exist(ALL_PYTHON_BLOCKS), (
+        "no snippet calls .write_text(...) or open(...) in a write mode any more, so this"
+        " check passes vacuously; find where the write happened"
+    )
+
+    problems = snippet_chosen_write_problems(ALL_PYTHON_BLOCKS)
+
+    assert not problems, "\n".join(problems)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("gate", CONSENT_GATES, ids=lambda gate: gate.id)
+def test_no_snippet_performs_its_own_gates_action(gate: ConsentGate):
+    """No shipped snippet performs the action its own consent gate exists to
+    hand to the user, for every row in the register -- including ``project``,
+    whose proof is the pre-existing check registered above rather than a
+    fresh one written against the same property.
+    """
+    assert gate.id in CONSENT_GATE_SNIPPET_CHECKS, (
+        f"the {gate.id!r} gate has no registered snippet-ban check -- add one to"
+        " CONSENT_GATE_SNIPPET_CHECKS"
+    )
+
+    problems = CONSENT_GATE_SNIPPET_CHECKS[gate.id](ALL_PYTHON_BLOCKS)
+
+    assert not problems, "\n".join(problems)
+
+
+@pytest.mark.unit
+def test_a_snippet_calling_a_package_manager_is_reported(tmp_path: pathlib.Path):
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        import subprocess
+        import sys
+
+        subprocess.run([sys.executable, "-m", "pip", "install", "great_expectations[postgresql]"])
+        ```
+        """,
+    )
+
+    problems = install_gate_problems(python_blocks(document))
+
+    assert any("calls a package manager" in problem for problem in problems)
+
+
+@pytest.mark.unit
+def test_a_snippet_that_shells_out_without_naming_a_package_manager_is_reported_accurately(
+    tmp_path: pathlib.Path,
+):
+    """A subprocess call that is not a package manager must not be told it is
+    one -- the reported reason has to match the alternation that matched."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        import subprocess
+
+        subprocess.run(["great_expectations", "checkpoint", "run"])
+        ```
+        """,
+    )
+
+    problems = install_gate_problems(python_blocks(document))
+
+    assert problems and "shells out" in problems[0]
+    assert not any("calls a package manager" in problem for problem in problems)
+
+
+@pytest.mark.unit
+def test_a_snippet_mutating_the_environment_is_reported(tmp_path: pathlib.Path):
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        import os
+
+        os.environ["GX_HOME"] = "/tmp/somewhere"
+        ```
+        """,
+    )
+
+    problems = install_gate_problems(python_blocks(document))
+
+    assert problems and "writes to the process environment" in problems[0]
+
+
+@pytest.mark.unit
+def test_a_snippet_deleting_an_environment_variable_is_reported(tmp_path: pathlib.Path):
+    """``del os.environ[...]`` mutates the environment just as much as an
+    assignment does, and is not covered by the assignment alternation."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        import os
+
+        del os.environ["GX_HOME"]
+        ```
+        """,
+    )
+
+    problems = install_gate_problems(python_blocks(document))
+
+    assert problems and "writes to the process environment" in problems[0]
+
+
+@pytest.mark.unit
+def test_reading_the_environment_is_not_reported(tmp_path: pathlib.Path):
+    """The ``install`` gate bans a write, not the read every preflight snippet
+    opens with."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        import os
+
+        gx_home = os.environ.get("GX_HOME")
+        ```
+        """,
+    )
+
+    assert install_gate_problems(python_blocks(document)) == []
+
+
+@pytest.mark.unit
+def test_comparing_the_environment_is_not_reported(tmp_path: pathlib.Path):
+    """``os.environ["X"] == "y"`` shares its first ``=`` with an assignment;
+    the ban must tell the two apart rather than matching on that shared
+    character."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        import os
+
+        if os.environ["GX_HOME"] == "/tmp/somewhere":
+            pass
+        ```
+        """,
+    )
+
+    assert install_gate_problems(python_blocks(document)) == []
+
+
+@pytest.mark.unit
+def test_a_snippet_writing_to_a_path_it_chose_is_reported(tmp_path: pathlib.Path):
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        from pathlib import Path
+
+        Path("/tmp/report.txt").write_text("done")
+        ```
+        """,
+    )
+
+    problems = snippet_chosen_write_problems(python_blocks(document))
+
+    assert problems and "a path the snippet chose for itself" in problems[0]
+
+
+@pytest.mark.unit
+def test_a_write_text_call_through_an_intermediate_variable_is_reported(
+    tmp_path: pathlib.Path,
+):
+    """``p = Path("...")`` then ``p.write_text(...)`` -- before the variable
+    was traced back to its assignment this read as a bare ``ast.Name`` and
+    was silently skipped."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        from pathlib import Path
+
+        p = Path("/tmp/report.txt")
+        p.write_text("x")
+        ```
+        """,
+    )
+
+    problems = snippet_chosen_write_problems(python_blocks(document))
+
+    assert problems and "a path the snippet chose for itself" in problems[0]
+
+
+@pytest.mark.unit
+def test_an_open_call_through_an_intermediate_variable_is_reported(tmp_path: pathlib.Path):
+    """``p = "..."`` then ``open(p, "w")`` -- the same intermediate-variable
+    miss as ``.write_text(...)``, through ``open`` instead."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        p = "/tmp/report.txt"
+        open(p, "w")
+        ```
+        """,
+    )
+
+    problems = snippet_chosen_write_problems(python_blocks(document))
+
+    assert problems and "a path the snippet chose for itself" in problems[0]
+
+
+@pytest.mark.unit
+def test_a_write_to_an_f_string_path_is_reported(tmp_path: pathlib.Path):
+    """An f-string path is neither a ``<placeholder>`` literal nor a
+    project-root join, and was previously accepted by the unrecognized-shape
+    fallthrough. It is unambiguously snippet-chosen and must be reported."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        from pathlib import Path
+
+        name = "report"
+        Path(f"/tmp/{name}.txt").write_text("x")
+        ```
+        """,
+    )
+
+    problems = snippet_chosen_write_problems(python_blocks(document))
+
+    assert problems and "a path the snippet chose for itself" in problems[0]
+
+
+@pytest.mark.unit
+def test_a_write_through_a_confirmed_placeholder_is_accepted(tmp_path: pathlib.Path):
+    """The placeholder branch of ``_write_target_is_snippet_chosen`` is what
+    has to accept this -- both through an intermediate variable (the shape
+    the write-out procedure ships) and inline."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        from pathlib import Path
+
+        confirmed = Path("<confirmed_path>")
+        confirmed.write_text("done")
+
+        Path("<confirmed_path>").write_text("done")
+        ```
+        """,
+    )
+
+    assert snippet_chosen_write_problems(python_blocks(document)) == []
+
+
+@pytest.mark.unit
+def test_a_write_through_the_project_root_is_accepted(tmp_path: pathlib.Path):
+    """The ``/``-join branch of ``_write_target_is_snippet_chosen`` is what has
+    to accept this -- both through an intermediate variable (the shape
+    ``action-catalog.md`` ships) and inline."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        from pathlib import Path
+
+        yml_path = Path(context.root_directory) / "great_expectations.yml"
+        yml_path.write_text("data_docs_sites: {}")
+
+        (Path(context.root_directory) / "great_expectations.yml").write_text("data_docs_sites: {}")
+        ```
+        """,
+    )
+
+    assert snippet_chosen_write_problems(python_blocks(document)) == []
+
+
+@pytest.mark.unit
+def test_an_attribute_qualified_path_call_is_traced_like_a_bare_one(tmp_path: pathlib.Path):
+    """``pathlib.Path("...")`` -- imported and called by its module-qualified
+    name rather than via ``from pathlib import Path`` -- has to be traced
+    through the same rules as a bare ``Path(...)`` call. Before the
+    ``ast.Attribute`` arm existed, this read as an unhandled node shape and
+    fell through to ``return False``: silently accepted regardless of
+    content, even for a path this checker would flag if written as a bare
+    ``Path(...)`` call. This pins that it is flagged instead."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        import pathlib
+
+        pathlib.Path("/tmp/report.txt").write_text("data_docs_sites: {}")
+        ```
+        """,
+    )
+
+    problems = snippet_chosen_write_problems(python_blocks(document))
+
+    assert problems and "a path the snippet chose for itself" in problems[0]
 
 
 # ---------------------------------------------------------------------------

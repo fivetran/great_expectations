@@ -53,6 +53,7 @@ else:
     ...
 ```
 
+<!-- consent-gate: project -->
 **A discovered project is not optional to announce.** Always state
 `context_root` back to the user before doing anything else, so they know
 exactly which project they're about to modify — this also makes
@@ -75,6 +76,7 @@ error condition.
 
 ## Never scaffold a project yourself
 
+<!-- consent-gate: project -->
 Standing up a new file-backed project is the user's decision, not something
 to do on their behalf or without being asked. Two things follow from this:
 

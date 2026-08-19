@@ -910,6 +910,29 @@
                 "Redshift"
             ]
         },
+        "expect_multicolumn_values_to_be_equal": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectMulticolumnValuesToBeEqual.json",
+            "short_description": "Expect the values in each row of the specified columns to be equal.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
         "expect_query_results_to_match_comparison": {
             "data_quality_issues": [
                 "Multi-source"

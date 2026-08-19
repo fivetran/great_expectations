@@ -36,6 +36,20 @@ Steps 2 and 4 are the two places this flow fails silently rather than loudly.
 Do not reorder them, and do not skip step 5 — a suite that was never run is
 not a result worth reporting.
 
+## What this skill will not do without being asked
+
+<!-- consent-gate: install -->
+- **Install, upgrade, or remove a package, or otherwise modify the
+  interpreter, virtual environment, environment variables, or shell state.**
+  Not in response to an error, not preemptively while checking whether
+  something is present, and not by announcing an intention to install with a
+  chance to decline attached — none of those is the user asking. When
+  something is missing, name it and hand over the command; running it is a
+  separate act that starts only from the user's own instruction, later.
+<!-- consent-gate: project -->
+- **Create a project directory on the user's disk.** Only after the user has
+  agreed to write the session out and named where.
+
 ## Step 1 — Preflight
 
 Follow `references/preflight.md` in full before anything else. It establishes
@@ -97,6 +111,11 @@ session, probe it first with `batch.head(n_rows=5)` inside the wrapper in
 `references/robustness.md`, exactly as the data-source flow does. A broken
 batch definition discovered at validation time reports as a wall of metric
 errors instead of one clear configuration problem.
+
+If this probe, or validation in step 5, turns up a missing driver or client
+library, report it and hand over the install command per the standing rule
+above. Do not install it yourself — not now, before anything has failed, and
+not later without the user's own go-ahead.
 
 ## Step 3 — Match what the user described, and only that
 
@@ -203,6 +222,10 @@ wrapper in `references/robustness.md` — the same one the batch probe uses. A
 suite over a large table can run for a long time, and the rules there about
 checking in with the user rather than abandoning a query that keeps running on
 the platform apply unchanged.
+
+If the run fails because a driver or client library is missing, hand over the
+install command and stop there — do not install it to get the run passing,
+and do not announce that you're about to.
 
 ### Pair results with expectations by configuration, never by position
 
@@ -320,6 +343,7 @@ returns the result to you and writes nothing to the project. The suite is the
 durable artifact; the report you give the user is the record of this run. Say
 so rather than letting them assume the results are filed somewhere.
 
+<!-- consent-gate: project -->
 **In an in-memory session, nothing survives the process.** A second in-memory
 session sees no suites and no data sources at all. Say this plainly — it is a
 supported way to work, not a degraded one — and **offer to write the session
