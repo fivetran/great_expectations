@@ -34,17 +34,6 @@ _THIRD_QUARTILE = 0.75
 _QUARTILES = (_FIRST_QUARTILE, _MEDIAN, _THIRD_QUARTILE)
 _MINIMUM_SAMPLE_SIZE_FOR_STANDARD_DEVIATION = 2
 
-# Dialects whose sample standard deviation is spelled STDDEV_SAMP. SQL Server (STDEV) and
-# SQLite (no native function at all) are handled separately.
-_STDDEV_SAMP_DIALECTS = (
-    GXSqlDialect.MYSQL,
-    GXSqlDialect.POSTGRESQL,
-    GXSqlDialect.REDSHIFT,
-    GXSqlDialect.SNOWFLAKE,
-    GXSqlDialect.DATABRICKS,
-    GXSqlDialect.BIGQUERY,
-)
-
 
 class OutlierStatistics(NamedTuple):
     """The center and spread a column is measured against when detecting outliers.
@@ -273,20 +262,16 @@ def _get_sql_mean_and_standard_deviation(
             execution_engine=execution_engine,
         )
 
-    # Spelled out rather than left to fall through, so an unsupported dialect reports the
-    # same actionable NotImplementedError the percentile path does instead of a raw DBAPI
-    # error from a function it does not have (ClickHouse spells it "stddevSamp").
-    if dialect_name == GXSqlDialect.SQL_SERVER:
-        standard_deviation_function = sa.func.stdev
-    elif dialect_name in _STDDEV_SAMP_DIALECTS:
-        standard_deviation_function = sa.func.stddev_samp
-    else:
-        raise NotImplementedError(
-            f"Outlier detection is not implemented for SQL dialect {dialect_name!r}"
-        )
-
     numeric_column = sa.cast(column, sa.Float)
-    standard_deviation = standard_deviation_function(numeric_column)
+    # STDDEV_SAMP is standard SQL and every dialect that reaches here has it, including
+    # the ones outside SUPPORTED_DATA_SOURCES - ClickHouse and Trino both accept it, and
+    # both were checked. Only SQL Server renames it and only SQLite lacks it, so this is
+    # deliberately a fall-through rather than an allow-list: the percentile path needs one
+    # because PERCENTILE_CONT genuinely differs in syntax per dialect, and this does not.
+    if dialect_name == GXSqlDialect.SQL_SERVER:
+        standard_deviation = sa.func.stdev(numeric_column)
+    else:
+        standard_deviation = sa.func.stddev_samp(numeric_column)
 
     row = execution_engine.execute_query(
         sa.select(sa.func.avg(numeric_column), standard_deviation).select_from(selectable)
