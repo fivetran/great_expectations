@@ -27,7 +27,7 @@ python -m great_expectations skills install
 The command reports what it did at each destination:
 
 ```shell title="Terminal output"
-Great Expectations 1.20.0+35.g5b4e2e966 skills in /path/to/my_project
+Great Expectations 1.21.0 skills in /path/to/my_project
 
 Installed (6)
   .agents/skills/gx-configure-checkpoint
@@ -128,20 +128,20 @@ python -m great_expectations skills list
 ```
 
 ```shell title="Terminal output"
-Great Expectations 1.20.0+35.g5b4e2e966 bundles 3 agent skills.
+Great Expectations 1.21.0 bundles 3 agent skills.
 Installed state in /path/to/my_project:
 
 gx-configure-checkpoint
-  .agents/skills  installed by 1.20.0+35.g5b4e2e966 (copy)
-  .claude/skills  installed by 1.20.0+35.g5b4e2e966 (copy)
+  .agents/skills  installed by 1.21.0 (copy)
+  .claude/skills  installed by 1.21.0 (copy)
 
 gx-configure-data-source
-  .agents/skills  installed by 1.20.0+35.g5b4e2e966 (copy)
-  .claude/skills  installed by 1.20.0+35.g5b4e2e966 (copy)
+  .agents/skills  installed by 1.21.0 (copy)
+  .claude/skills  installed by 1.21.0 (copy)
 
 gx-configure-expectations
-  .agents/skills  installed by 1.20.0+35.g5b4e2e966 (copy)
-  .claude/skills  installed by 1.20.0+35.g5b4e2e966 (copy)
+  .agents/skills  installed by 1.21.0 (copy)
+  .claude/skills  installed by 1.21.0 (copy)
 ```
 
 The command only reports state; it never changes it, and it exits successfully even when skills are missing or out of date.
