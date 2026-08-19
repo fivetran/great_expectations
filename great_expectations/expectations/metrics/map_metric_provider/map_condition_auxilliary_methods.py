@@ -296,12 +296,22 @@ def _sqlalchemy_map_condition_unexpected_count_value(
     selectable = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 
     # The integral values are cast to SQL Numeric in order to avoid a bug in AWS Redshift (converted to integer later).  # noqa: E501 # FIXME CoP
+    # ClickHouse rejects a bare, unparameterized Numeric cast at the server (it compiles to a
+    # `Decimal` with no precision/scale, which this dialect's server refuses), so this dialect
+    # needs an explicitly-precisioned Numeric for the same two casts. 38 digits with zero decimal
+    # places is enough to hold a `SUM` of the 1/0 flags below regardless of table size, and every
+    # other dialect keeps the bare `sa.Numeric` this cast already relied on.
+    numeric_type = (
+        sa.Numeric(38, 0)
+        if execution_engine.dialect_name == GXSqlDialect.CLICKHOUSE
+        else sa.Numeric
+    )
     count_case_statement: List[sqlalchemy.Label] = sa.case(  # type: ignore[assignment] # FIXME CoP
         (
             unexpected_condition,
-            sa.sql.expression.cast(1, sa.Numeric),
+            sa.sql.expression.cast(1, numeric_type),
         ),
-        else_=sa.sql.expression.cast(0, sa.Numeric),
+        else_=sa.sql.expression.cast(0, numeric_type),
     ).label("condition")
 
     count_selectable: sqlalchemy.Select = sa.select(count_case_statement)  # type: ignore[call-overload] # FIXME CoP

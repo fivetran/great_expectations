@@ -5,6 +5,9 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, ClassVar, List, Type
 
 from great_expectations.core.id_dict import BatchSpec
+from great_expectations.datasource.fluent.batch_parameter_normalization import (
+    batch_parameter_values_match,
+)
 
 if TYPE_CHECKING:
     from great_expectations.core.batch import LegacyBatchDefinition
@@ -186,7 +189,7 @@ class DataConnector(ABC):
             for key, value in batch_request.options.items():
                 if value is not None and not (
                     (key in batch_definition.batch_identifiers)
-                    and (batch_definition.batch_identifiers[key] == batch_request.options[key])
+                    and batch_parameter_values_match(value, batch_definition.batch_identifiers[key])
                 ):
                     return False
 

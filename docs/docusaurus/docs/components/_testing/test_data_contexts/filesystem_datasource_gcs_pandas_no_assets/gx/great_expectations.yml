@@ -81,6 +81,6 @@ analytics_enabled: true
 fluent_datasources:
   my_filesystem_data_source:
     type: pandas_gcs
-    bucket_or_name: test_docs_data
+    bucket_or_name: ${GX_GCS_TEST_BUCKET}
     gcs_options: {}
 data_context_id: eafe985b-3eef-4514-889b-6f5d88e63f16
