@@ -1759,6 +1759,41 @@ def test_atomic_prescriptive_summary_expect_multicolumn_sum_to_equal(
 
 
 @pytest.mark.unit
+def test_atomic_prescriptive_summary_expect_multicolumn_values_to_be_equal(
+    get_prescriptive_rendered_content,
+):
+    update_dict = {
+        "type": "expect_multicolumn_values_to_be_equal",
+        "kwargs": {
+            "column_list": ["A", "B", "C"],
+            "ignore_row_if": "never",
+            "mostly": 0.8,
+        },
+    }
+    rendered_content = get_prescriptive_rendered_content(update_dict)
+
+    res = rendered_content.to_json_dict()
+    pprint(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column_list": {"schema": {"type": "array"}, "value": ["A", "B", "C"]},
+                "column_list_0": {"schema": {"type": "string"}, "value": "A"},
+                "column_list_1": {"schema": {"type": "string"}, "value": "B"},
+                "column_list_2": {"schema": {"type": "string"}, "value": "C"},
+                "ignore_row_if": {"schema": {"type": "string"}, "value": "never"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "Values across columns $column_list_0 $column_list_1 $column_list_2 must be equal, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
+
+
+@pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_multicolumn_values_to_be_unique(
     get_prescriptive_rendered_content,
 ):

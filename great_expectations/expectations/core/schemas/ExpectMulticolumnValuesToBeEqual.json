@@ -1,0 +1,469 @@
+{
+    "title": "Expect multicolumn values to be equal",
+    "description": "Expect the values in each row of the specified columns to be equal.\n\nExpectMulticolumnValuesToBeEqual is a     Multicolumn Map Expectation.\n\nMulticolumn Map Expectations are evaluated for a set of columns and ask a yes/no question about the row-wise relationship between those columns.\nBased on the result, they then calculate the percentage of rows that gave a positive answer.\nIf the percentage is high enough, the Expectation considers that data valid.\n\nValues are compared null-safely: two nulls are equal, and a null and a non-null are not.     The listed columns must hold mutually comparable types - strict SQL dialects reject a     comparison between, for example, a numeric column and a text column.\n\nArgs:\n    column_list (tuple or list): Set of columns to be checked.\n\nOther Parameters:\n    ignore_row_if (str):             \"all_values_are_missing\", \"any_value_is_missing\", \"never\"             If specified, sets the condition on which a given row is to be ignored. Default \"all_values_are_missing\".\n    mostly (None or a float between 0 and 1):             Successful if at least `mostly` fraction of values match the Expectation.             For more detail, see [mostly](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#mostly). Default 1.\n    result_format (str or None):             Which output mode to use: BOOLEAN_ONLY, BASIC, COMPLETE, or SUMMARY.             For more detail, see [result_format](https://docs.greatexpectations.io/docs/reference/expectations/result_format).\n    catch_exceptions (boolean or None):             If True, then catch exceptions and include them as part of the result object.             For more detail, see [catch_exceptions](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#catch_exceptions).\n    meta (dict or None):             A JSON-serializable dictionary (nesting allowed) that will be included in the output without modification.             For more detail, see [meta](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#meta).\n    severity (str or None):             The impact of this Expectation failing: critical, warning, or info. Defaults to critical if not set. Severity levels can be used to trigger different alerting patterns and actions.             For more detail, see [failure severity](https://docs.greatexpectations.io/docs/cloud/expectations/expectations_overview/#failure-severity).\n\nReturns:\n    An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)\n\n    Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.\n\nSupported Data Sources:\n    [Pandas](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [Spark](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [SQLite](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [PostgreSQL](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [Amazon Aurora PostgreSQL](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [Citus](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [AlloyDB](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [Neon](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [MySQL](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [SQL Server](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [BigQuery](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [Snowflake](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [Databricks (SQL)](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [Redshift](https://docs.greatexpectations.io/docs/application_integration_support/)\n\nData Quality Issues:\n    Validity\n\nExample Data:\n            test    test2   test3\n        0   A       A       A\n        1   B       B       C\n        2   null    null    null\n\nCode Examples:\n    Passing Case:\n        Input:\n            ExpectMulticolumnValuesToBeEqual(\n                column_list=[\"test\", \"test2\", \"test3\"],\n                mostly=0.5\n        )\n\n        Output:\n            {\n              \"exception_info\": {\n                \"raised_exception\": false,\n                \"exception_traceback\": null,\n                \"exception_message\": null\n              },\n              \"result\": {\n                \"element_count\": 3,\n                \"unexpected_count\": 1,\n                \"unexpected_percent\": 50.0,\n                \"partial_unexpected_list\": [\n                  {\n                    \"test\": \"B\",\n                    \"test2\": \"B\",\n                    \"test3\": \"C\"\n                  }\n                ],\n                \"missing_count\": 1,\n                \"missing_percent\": 33.33333333333333,\n                \"unexpected_percent_total\": 33.33333333333333,\n                \"unexpected_percent_nonmissing\": 50.0\n              },\n              \"meta\": {},\n              \"success\": true\n            }\n\n    Failing Case:\n        Input:\n            ExpectMulticolumnValuesToBeEqual(\n                column_list=[\"test\", \"test2\", \"test3\"]\n        )\n\n        Output:\n            {\n              \"exception_info\": {\n                \"raised_exception\": false,\n                \"exception_traceback\": null,\n                \"exception_message\": null\n              },\n              \"result\": {\n                \"element_count\": 3,\n                \"unexpected_count\": 1,\n                \"unexpected_percent\": 50.0,\n                \"partial_unexpected_list\": [\n                  {\n                    \"test\": \"B\",\n                    \"test2\": \"B\",\n                    \"test3\": \"C\"\n                  }\n                ],\n                \"missing_count\": 1,\n                \"missing_percent\": 33.33333333333333,\n                \"unexpected_percent_total\": 33.33333333333333,\n                \"unexpected_percent_nonmissing\": 50.0\n              },\n              \"meta\": {},\n              \"success\": false\n            }",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "Id",
+            "type": "string"
+        },
+        "meta": {
+            "title": "Meta",
+            "type": "object"
+        },
+        "notes": {
+            "title": "Notes",
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "result_format": {
+            "title": "Result Format",
+            "default": "BASIC",
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/ResultFormat"
+                },
+                {
+                    "type": "object"
+                }
+            ]
+        },
+        "description": {
+            "title": "Description",
+            "description": "A short description of your Expectation",
+            "type": "string"
+        },
+        "catch_exceptions": {
+            "title": "Catch Exceptions",
+            "default": true,
+            "type": "boolean"
+        },
+        "rendered_content": {
+            "title": "Rendered Content",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
+        "severity": {
+            "description": "Indicate the impact of this Expectation failing. Severity levels can be used to trigger different alerting patterns and actions.",
+            "default": "critical",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/FailureSeverity"
+                }
+            ]
+        },
+        "windows": {
+            "title": "Windows",
+            "description": "Definition(s) for evaluation of temporal windows",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Window"
+            }
+        },
+        "batch_id": {
+            "title": "Batch Id",
+            "type": "string"
+        },
+        "column_list": {
+            "title": "Column List",
+            "description": "Set of columns to be checked.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "mostly": {
+            "title": "Mostly",
+            "description": "Successful if at least `mostly` fraction of values match the Expectation.",
+            "default": 1,
+            "anyOf": [
+                {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0
+                },
+                {
+                    "type": "object"
+                }
+            ],
+            "multipleOf": 0.01
+        },
+        "row_condition": {
+            "title": "Row Condition",
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "$ref": "#/definitions/ComparisonCondition"
+                },
+                {
+                    "$ref": "#/definitions/NullityCondition"
+                },
+                {
+                    "$ref": "#/definitions/AndCondition"
+                },
+                {
+                    "$ref": "#/definitions/OrCondition"
+                },
+                {
+                    "$ref": "#/definitions/PassThroughCondition"
+                }
+            ]
+        },
+        "condition_parser": {
+            "title": "Condition Parser",
+            "enum": [
+                "great_expectations",
+                "great_expectations__experimental__",
+                "pandas",
+                "spark"
+            ],
+            "type": "string"
+        },
+        "ignore_row_if": {
+            "title": "Ignore Row If",
+            "description": "If specified, sets the condition on which a given row is to be ignored.",
+            "default": "all_values_are_missing",
+            "anyOf": [
+                {
+                    "enum": [
+                        "all_values_are_missing",
+                        "any_value_is_missing",
+                        "never"
+                    ],
+                    "type": "string"
+                },
+                {
+                    "type": "object"
+                }
+            ]
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "expectation_class": {
+                    "title": "Expectation Class",
+                    "type": "string",
+                    "const": "ExpectMulticolumnValuesToBeEqual"
+                },
+                "expectation_type": {
+                    "title": "Expectation Type",
+                    "type": "string",
+                    "const": "expect_multicolumn_values_to_be_equal"
+                },
+                "domain_type": {
+                    "title": "Domain Type",
+                    "type": "string",
+                    "const": "multicolumn",
+                    "description": "Multicolumn Map"
+                },
+                "data_quality_issues": {
+                    "title": "Data Quality Issues",
+                    "type": "array",
+                    "const": [
+                        "Validity"
+                    ]
+                },
+                "library_metadata": {
+                    "title": "Library Metadata",
+                    "type": "object",
+                    "const": {
+                        "maturity": "production",
+                        "tags": [
+                            "core expectation",
+                            "multi-column expectation"
+                        ],
+                        "contributors": [
+                            "@karthigaiselvanm",
+                            "@jayamnatraj",
+                            "@AtomicGlance"
+                        ],
+                        "requirements": [],
+                        "has_full_test_suite": true,
+                        "manually_reviewed_code": true
+                    }
+                },
+                "short_description": {
+                    "title": "Short Description",
+                    "type": "string",
+                    "const": "Expect the values in each row of the specified columns to be equal."
+                },
+                "supported_data_sources": {
+                    "title": "Supported Data Sources",
+                    "type": "array",
+                    "const": [
+                        "Pandas",
+                        "Spark",
+                        "SQLite",
+                        "PostgreSQL",
+                        "Amazon Aurora PostgreSQL",
+                        "Citus",
+                        "AlloyDB",
+                        "Neon",
+                        "MySQL",
+                        "SQL Server",
+                        "BigQuery",
+                        "Snowflake",
+                        "Databricks (SQL)",
+                        "Redshift"
+                    ]
+                }
+            }
+        }
+    },
+    "required": [
+        "column_list"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "ResultFormat": {
+            "title": "ResultFormat",
+            "description": "An enumeration.",
+            "enum": [
+                "BOOLEAN_ONLY",
+                "BASIC",
+                "COMPLETE",
+                "SUMMARY"
+            ],
+            "type": "string"
+        },
+        "FailureSeverity": {
+            "title": "FailureSeverity",
+            "description": "Severity levels for Expectation failures.",
+            "enum": [
+                "critical",
+                "warning",
+                "info"
+            ],
+            "type": "string"
+        },
+        "Offset": {
+            "title": "Offset",
+            "description": "A threshold in which a metric will be considered passable",
+            "type": "object",
+            "properties": {
+                "positive": {
+                    "title": "Positive",
+                    "type": "number"
+                },
+                "negative": {
+                    "title": "Negative",
+                    "type": "number"
+                }
+            },
+            "required": [
+                "positive",
+                "negative"
+            ],
+            "additionalProperties": false
+        },
+        "Window": {
+            "title": "Window",
+            "description": "A definition for a temporal window across <`range`> number of previous invocations",
+            "type": "object",
+            "properties": {
+                "constraint_fn": {
+                    "title": "Constraint Fn",
+                    "type": "string"
+                },
+                "parameter_name": {
+                    "title": "Parameter Name",
+                    "type": "string"
+                },
+                "range": {
+                    "title": "Range",
+                    "type": "integer"
+                },
+                "offset": {
+                    "$ref": "#/definitions/Offset"
+                },
+                "strict": {
+                    "title": "Strict",
+                    "default": false,
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "constraint_fn",
+                "parameter_name",
+                "range",
+                "offset"
+            ],
+            "additionalProperties": false
+        },
+        "Column": {
+            "title": "Column",
+            "description": "--Public API--\nSpecify the column in a condition statement.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ]
+        },
+        "Operator": {
+            "title": "Operator",
+            "description": "An enumeration.",
+            "enum": [
+                "==",
+                "!=",
+                "<",
+                "<=",
+                ">",
+                ">=",
+                "IN",
+                "NOT_IN"
+            ],
+            "type": "string"
+        },
+        "ComparisonCondition": {
+            "title": "ComparisonCondition",
+            "description": "--Public API--Condition representing the comparison of a column with a parameter.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "comparison",
+                    "enum": [
+                        "comparison"
+                    ],
+                    "type": "string"
+                },
+                "column": {
+                    "$ref": "#/definitions/Column"
+                },
+                "operator": {
+                    "$ref": "#/definitions/Operator"
+                },
+                "parameter": {
+                    "title": "Parameter"
+                }
+            },
+            "required": [
+                "column",
+                "operator",
+                "parameter"
+            ]
+        },
+        "NullityCondition": {
+            "title": "NullityCondition",
+            "description": "--Public API--Condition representing the whether or not a column is null.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "nullity",
+                    "enum": [
+                        "nullity"
+                    ],
+                    "type": "string"
+                },
+                "column": {
+                    "$ref": "#/definitions/Column"
+                },
+                "is_null": {
+                    "title": "Is Null",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "column",
+                "is_null"
+            ]
+        },
+        "Condition": {
+            "title": "Condition",
+            "description": "Base class for conditions.",
+            "type": "object",
+            "properties": {}
+        },
+        "AndCondition": {
+            "title": "AndCondition",
+            "description": "--Public API--Represents an AND condition composed of multiple conditions.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "and",
+                    "enum": [
+                        "and"
+                    ],
+                    "type": "string"
+                },
+                "conditions": {
+                    "title": "Conditions",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Condition"
+                    }
+                }
+            },
+            "required": [
+                "conditions"
+            ]
+        },
+        "OrCondition": {
+            "title": "OrCondition",
+            "description": "--Public API--Represents an OR condition composed of multiple conditions.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "or",
+                    "enum": [
+                        "or"
+                    ],
+                    "type": "string"
+                },
+                "conditions": {
+                    "title": "Conditions",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Condition"
+                    }
+                }
+            },
+            "required": [
+                "conditions"
+            ]
+        },
+        "PassThroughCondition": {
+            "title": "PassThroughCondition",
+            "description": "Condition that passes a filter string directly to the execution engine.\n\nThis is used for legacy pandas/spark condition_parser syntax where the\nrow_condition string is passed directly to DataFrame.query() or DataFrame.filter().",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "pass_through",
+                    "enum": [
+                        "pass_through"
+                    ],
+                    "type": "string"
+                },
+                "pass_through_filter": {
+                    "title": "Pass Through Filter",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "pass_through_filter"
+            ]
+        }
+    }
+}
