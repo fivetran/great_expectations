@@ -12,11 +12,11 @@ either way, so nothing in the ordinary import-and-run check catches it.
 This script is meant to run after `pip install .`, against the resulting installed
 package, and checks the properties a user actually depends on:
 
-* both bundled skills resolve the way an installed package resolves them -- through
+* the bundled skills resolve the way an installed package resolves them -- through
   the import system, not by checking that some files happen to exist;
 * both schema catalog indexes are present, and each schema tree ships more than just
   its index;
-* the `skills list` subcommand names both skills;
+* the `skills list` subcommand names every bundled skill;
 * installing from the running package produces content that matches its own
   ownership manifest;
 * every file the source tree bundles for a skill actually made it into the installed
@@ -48,7 +48,9 @@ from great_expectations.agent_skills.installer import (
 #: The skills this package currently bundles, named explicitly rather than merely
 #: counted -- a rename or a dropped skill is then reported by name instead of as an
 #: unexplained count mismatch.
-EXPECTED_SKILLS: Final = frozenset({"gx-configure-data-source", "gx-configure-expectations"})
+EXPECTED_SKILLS: Final = frozenset(
+    {"gx-configure-data-source", "gx-configure-expectations", "gx-configure-checkpoint"}
+)
 
 #: The schema trees the package ships alongside the skills, each carrying its own
 #: catalog index, relative to the installed package root.
@@ -61,7 +63,7 @@ INDEX_NAME: Final = "index.json"
 
 
 def check_bundled_skills_resolve() -> list[Path]:
-    """Both skills must be found the way an installed package is found: through the
+    """The bundled skills must be found the way an installed package is found: through the
     import system, not by checking that some files happen to exist.
 
     ``iter_bundled_skills`` is what every install and list run relies on to locate the
@@ -98,8 +100,8 @@ def check_schema_counts_nonzero(installed_root: Path) -> dict[str, int]:
     return counts
 
 
-def check_skills_list_names_both(project_root: Path) -> str:
-    """The ``skills list`` subcommand must name both skills, run the way a user runs it.
+def check_skills_list_names_all(project_root: Path) -> str:
+    """The ``skills list`` subcommand must name every bundled skill, run the way a user runs it.
 
     Invoked in-process through the same entry point ``python -m great_expectations``
     calls, rather than shelled out to, so the exact code path a user runs is exercised
@@ -187,7 +189,7 @@ def main() -> None:
 
         with tempfile.TemporaryDirectory(prefix="gx-installed-skills-guard-") as scratch:
             project_root = Path(scratch)
-            check_skills_list_names_both(project_root)
+            check_skills_list_names_all(project_root)
             check_installed_digests_match_manifest(project_root)
 
         check_every_bundled_file_shipped(source_skills_root, skills[0].parent)

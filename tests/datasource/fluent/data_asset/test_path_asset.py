@@ -16,6 +16,14 @@ from great_expectations.core.partitioners import (
     FileNamePartitionerYearly,
 )
 from great_expectations.datasource.fluent import Datasource
+from great_expectations.datasource.fluent.batch_parameter_normalization import (
+    numeric_parameter_names_of,
+)
+from great_expectations.datasource.fluent.data_asset.path.dataframe_partitioners import (
+    DataframePartitionerDaily,
+    DataframePartitionerMonthly,
+    DataframePartitionerYearly,
+)
 from great_expectations.datasource.fluent.data_asset.path.file_asset import (
     AmbiguousPathError,
     PathNotFoundError,
@@ -680,3 +688,47 @@ def test_add_batch_definition_yearly_success(
     # assert
     assert batch_definition == expected_batch_definition
     datasource.add_batch_definition.assert_called_once_with(expected_batch_definition)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "partitioner",
+    [
+        pytest.param(
+            FileNamePartitionerYearly(regex=re.compile(r"(?P<year>\d{4})\.csv")),
+            id="file-yearly",
+        ),
+        pytest.param(
+            FileNamePartitionerMonthly(regex=re.compile(r"(?P<year>\d{4})-(?P<month>\d{2})\.csv")),
+            id="file-monthly",
+        ),
+        pytest.param(
+            FileNamePartitionerDaily(
+                regex=re.compile(r"(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.csv")
+            ),
+            id="file-daily",
+        ),
+        pytest.param(DataframePartitionerYearly(column_name="ts"), id="dataframe-yearly"),
+        pytest.param(DataframePartitionerMonthly(column_name="ts"), id="dataframe-monthly"),
+        pytest.param(DataframePartitionerDaily(column_name="ts"), id="dataframe-daily"),
+    ],
+)
+def test_numeric_param_names_matches_param_names_for_numeric_partitioners(partitioner):
+    """Numeric partitioner kinds declare exactly their own parameter names as numeric.
+
+    This is what lets digit-string batch parameters (e.g. "2024") be coerced to int for
+    these kinds without a partitioner-specific special case.
+    """
+    assert list(partitioner.numeric_param_names) == list(partitioner.param_names)
+    assert numeric_parameter_names_of(partitioner) == frozenset(partitioner.param_names)
+
+
+@pytest.mark.unit
+def test_whole_path_partitioner_declares_no_numeric_param_names():
+    """A partitioner kind that declares nothing is exempt from numeric coercion by default.
+
+    A regex group literally named "year" on a whole-path partitioner is therefore never
+    coerced: the exemption is closed by construction, not by a special case.
+    """
+    partitioner = FileNamePartitionerPath(regex=re.compile(r".*"))
+    assert numeric_parameter_names_of(partitioner) == frozenset()
