@@ -18,6 +18,14 @@ from great_expectations.expectations.metrics.map_metric_provider.multicolumn_con
 
 
 class MulticolumnValuesEqual(MulticolumnMapMetricProvider):
+    """Row-wise equality across a set of columns, with null-safe comparison.
+
+    All three engines implement the same semantics: two nulls are equal, and a null and a
+    non-null are not. Each engine compares every column against the first one rather than
+    every pair, which is O(num_columns) instead of O(num_columns^2) and is sufficient
+    because equality is transitive.
+    """
+
     condition_metric_name = "multicolumn_values.equal"
     condition_domain_keys = (
         "batch_id",
@@ -31,7 +39,20 @@ class MulticolumnValuesEqual(MulticolumnMapMetricProvider):
 
     @multicolumn_condition_partial(engine=PandasExecutionEngine)
     def _pandas(cls, column_list, **kwargs):
-        return column_list.nunique(dropna=False, axis=1) <= 1
+        reference_column = column_list.iloc[:, 0]
+        reference_is_null = reference_column.isna()
+        # `DataFrame.nunique(axis=1)` would be the obvious spelling here, but it is a
+        # per-row Python loop, and it counts distinct objects - so a `NaN` in a float
+        # column and a `None` in an object column read as two different values, which
+        # would make an all-null row unequal on Pandas while SQL and Spark call it equal.
+        # Comparing each column to the reference is both vectorized and sentinel-agnostic.
+        # The reference is included in the comparison so that the reduction is never
+        # empty for a single-column domain; matching itself is trivially true.
+        conditions = [
+            (column == reference_column) | (column.isna() & reference_is_null)
+            for _, column in column_list.items()
+        ]
+        return reduce(lambda left, right: left & right, conditions)
 
     @multicolumn_condition_partial(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(cls, column_list, **kwargs):
@@ -47,7 +68,10 @@ class MulticolumnValuesEqual(MulticolumnMapMetricProvider):
             )
             for column in column_list[1:]
         ]
-        return sa.and_(*conditions)
+        # Seeded with `true()` so that a single-column domain yields a valid (trivially
+        # true) clause; a bare `and_()` renders as an empty string and emits a
+        # deprecation warning.
+        return sa.and_(sa.true(), *conditions)
 
     @multicolumn_condition_partial(engine=SparkDFExecutionEngine)
     def _spark(cls, column_list, **kwargs):
