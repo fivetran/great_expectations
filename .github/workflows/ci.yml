@@ -822,6 +822,12 @@ jobs:
           cache: "pip"
           cache-dependency-path: reqs/requirements-dev-test.txt
 
+      - name: Install dependencies
+        run: pip install . -c ci/constraints-test/py312-min-install.txt -r reqs/requirements-dev-test.txt
+
+      - name: Run the tests
+        run: invoke ci-tests -m unit --xdist --slowest=10  --timeout=2.0
+
   py313-min-versions:
     needs: [unit-tests, static-analysis, check-actor-permissions]
     env:

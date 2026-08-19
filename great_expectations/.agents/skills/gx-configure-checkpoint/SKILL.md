@@ -49,6 +49,26 @@ Steps 2 and 5, and the fetch-first rule below, are where this flow fails
 destructively rather than loudly if skipped or reordered. Do not skip step 6
 either — a checkpoint that was never run is not a verified result.
 
+## What this skill will not do without being asked
+
+<!-- consent-gate: install -->
+- **Install, upgrade, or remove a package, or otherwise modify the
+  interpreter, virtual environment, environment variables, or shell state.**
+  Not in response to an error, not preemptively while checking whether
+  something is present, and not by announcing an intention to install with a
+  chance to decline attached — none of those is the user asking. When
+  something is missing, name it and hand over the command; running it is a
+  separate act that starts only from the user's own instruction, later.
+<!-- consent-gate: project -->
+- **Create a project directory on the user's disk.** Only after the user has
+  agreed to write the session out and named where.
+<!-- consent-gate: config-file -->
+- **Edit an existing project's `great_expectations.yml`.** Only after telling
+  the user what the edit does and getting a yes.
+<!-- consent-gate: saved-file -->
+- **Write a file to the user's disk that the user did not ask for and
+  locate.** Offer it in the conversation first.
+
 ## Step 1 — Preflight
 
 Follow `references/preflight.md` in full before touching anything. It
@@ -90,6 +110,11 @@ def existing_suites_and_batch_definitions(context):
 This is a hard stop, not a suggestion — say plainly what's missing, name the
 skill that builds it, and end this flow. Do not carry on and do not
 improvise a workaround.
+
+If enumerating what exists, or running the checkpoint in step 6, turns up a
+missing driver or client library, report it and hand over the install command
+per the standing rule above. Do not install it yourself — not now, before
+anything has failed, and not later without the user's own go-ahead.
 
 If more than one suite or batch definition is available, name them and let
 the user choose which pairs to bind — guessing which check should run
@@ -182,6 +207,7 @@ wanted. `references/action-catalog.md` covers every attachable action: its
 fields, which four carry a public-API stability guarantee and which four
 don't, and how to word each one's credential requirements.
 
+<!-- consent-gate: config-file -->
 **Before attaching a Data Docs update action, check whether the project has a
 site to write to.** File-backed projects and in-memory sessions both carry a
 working default site; `references/action-catalog.md` covers both, and one
@@ -255,7 +281,9 @@ result = checkpoint.run(batch_parameters={"dataframe": df})
 
 Run this inside the duration-tracked wrapper in `references/robustness.md`,
 exactly as the data-source and expectations skills do — a checkpoint can
-touch as much data as every validation definition it groups, combined.
+touch as much data as every validation definition it groups, combined. If the
+run fails because a driver or client library is missing, hand over the
+install command and stop — do not install it to get the run passing.
 `references/run-and-schedule.md` covers what `batch_parameters` actually
 does across multiple validation definitions, including a real trap when more
 than one of them is dataframe-backed, and why numeric window parameters are
@@ -303,6 +331,7 @@ Confirm this concretely: name the checkpoint, name the validation
 definitions it groups, and say that a fresh session picks it up with
 `context.checkpoints.get("<name>")`.
 
+<!-- consent-gate: project -->
 **In an in-memory session, none of it survives the process.** Say this
 plainly, and **offer to write the session out** — data sources through
 checkpoints — to a real project, per `references/write-out.md`. That
@@ -322,7 +351,9 @@ see `references/run-and-schedule.md` for the exact template, why each of its
 choices is deliberate, and the one case (a dataframe-backed validation
 definition) where it doesn't apply as written.
 
-**Offer to save it to a file the user confirms; never write it unasked.**
+<!-- consent-gate: saved-file -->
+**Offer to save it to a file at a path the user confirms; never write it
+unasked.**
 Present it in the conversation first. Wiring it into an actual schedule — a
 cron entry, an Airflow DAG, a CI job — is the user's orchestrator's job, not
 this skill's; say that plainly if asked, and hand over the snippet as the

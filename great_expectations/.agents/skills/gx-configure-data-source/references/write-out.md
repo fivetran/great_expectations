@@ -12,6 +12,7 @@ unprompted interruption mid-task. Only do it when the user agrees.
 
 ## The gate: two things the user has to have said
 
+<!-- consent-gate: project -->
 This procedure creates a project on the user's disk.
 `gx.get_context(mode="file", project_root_dir=...)` **creates** the project at
 that path when one isn't already there. It does not refuse, does not prompt,
@@ -105,6 +106,7 @@ run once, unconditionally, without wiping a datasource that's already there.
 List it exactly once, before any asset step, even when the session created
 several assets on it:
 
+<!-- consent-gate: project -->
 ```python executable
 import great_expectations as gx
 

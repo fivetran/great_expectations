@@ -133,6 +133,7 @@ Three things about this shape are deliberate, each verified by actually
 running it as a subprocess from a working directory unrelated to the
 project:
 
+<!-- consent-gate: project -->
 - **`project_root_dir` is absolute, not relative.** A snippet invoked by a
   scheduler runs from whatever working directory the scheduler happens to
   use, which is very unlikely to be the project directory. A relative path
@@ -160,6 +161,7 @@ session that has the dataframe, not from this kind of standalone script.
 
 ### Offering the snippet
 
+<!-- consent-gate: saved-file -->
 Show the snippet in the conversation, filled in with the actual project root
 and checkpoint name. **Offer to save it to a file at a path the user
 confirms — never write it unasked.** This is the same offer-don't-do pattern
