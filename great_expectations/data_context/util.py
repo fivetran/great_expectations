@@ -4,7 +4,6 @@ import copy
 import inspect
 import logging
 import pathlib
-import re
 import warnings
 from typing import Any, Optional
 from urllib.parse import urlparse
@@ -212,22 +211,41 @@ class PasswordMasker:
 
     @classmethod
     def _obfuscate_azure_blobstore_connection_string(cls, url: str) -> str:
-        # Parse Azure Connection Strings
-        azure_conn_str_re = re.compile(
-            "(DefaultEndpointsProtocol=(http|https));(AccountName=([a-zA-Z0-9]+));(AccountKey=)(.+);(EndpointSuffix=([a-zA-Z\\.]+))"
-        )
-        try:
-            matched: re.Match[str] | None = azure_conn_str_re.match(url)
-            if not matched:
-                raise StoreConfigurationError(  # noqa: TRY003, TRY301 # FIXME CoP
-                    f"The URL for the Azure connection-string, was not configured properly. Please check and try again: {url} "  # noqa: E501 # FIXME CoP
+        # Azure connection strings are an unordered set of ``key=value`` pairs joined by ``;``
+        # (see https://learn.microsoft.com/azure/storage/common/storage-configure-connection-string).
+        # Parse them as such rather than matching a single hard-coded field order, and rebuild the
+        # string preserving the original order so only the ``AccountKey`` value is masked.
+        # Error messages here must never echo the raw input or any field value, since the input
+        # contains the very secret this method exists to hide.
+        pairs: list[tuple[str, str]] = []
+        for segment in url.split(";"):
+            if not segment:
+                # Tolerate a trailing or repeated ``;``.
+                continue
+            key, separator, value = segment.partition("=")
+            if not separator:
+                raise StoreConfigurationError(  # noqa: TRY003 # FIXME CoP
+                    "The Azure connection-string was not configured properly: expected "
+                    "';'-separated 'key=value' pairs. Please check and try again."
                 )
-            res = f"DefaultEndpointsProtocol={matched.group(2)};AccountName={matched.group(4)};AccountKey=***;EndpointSuffix={matched.group(8)}"  # noqa: E501 # FIXME CoP
-            return res
-        except Exception as e:
+            pairs.append((key, value))
+
+        fields = dict(pairs)
+        if fields.get("DefaultEndpointsProtocol") not in ("http", "https"):
             raise StoreConfigurationError(  # noqa: TRY003 # FIXME CoP
-                f"Something went wrong when trying to obfuscate URL for Azure connection-string. Please check your configuration: {e}"  # noqa: E501 # FIXME CoP
+                "The Azure connection-string was not configured properly: "
+                "'DefaultEndpointsProtocol' must be 'http' or 'https'. Please check and try again."
             )
+        if "AccountKey" not in fields:
+            raise StoreConfigurationError(  # noqa: TRY003 # FIXME CoP
+                "The Azure connection-string was not configured properly: "
+                "'AccountKey' is missing. Please check and try again."
+            )
+
+        return ";".join(
+            f"{key}={cls.MASKED_PASSWORD_STRING}" if key == "AccountKey" else f"{key}={value}"
+            for key, value in pairs
+        )
 
     @classmethod
     def _mask_db_url_no_sa(cls, url: str) -> str:
