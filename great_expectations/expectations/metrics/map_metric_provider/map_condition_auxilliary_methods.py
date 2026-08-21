@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -51,6 +52,37 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+
+
+def _quote_spark_string_literals(expression: str, metric_value_kwargs: Dict[str, Any]) -> str:
+    """Quote string literals lost by Spark's ``Column`` string representation.
+
+    Spark renders expressions such as ``column.isin(["a"])`` and
+    ``column.rlike("^a$")`` as ``IN (a)`` and ``RLIKE(..., ^a$)``.  That
+    representation is useful for debugging, but is not valid Spark SQL when
+    copied into the generated ``F.expr`` query.  The original expectation
+    values are still available in ``metric_value_kwargs``, so use them to
+    restore the SQL string quoting without changing the executable condition.
+    """
+
+    string_literals: list[str] = []
+    for key in ("value_set", "regex", "regex_list"):
+        value = metric_value_kwargs.get(key)
+        if isinstance(value, str):
+            string_literals.append(value)
+        elif isinstance(value, (list, tuple, set)):
+            string_literals.extend(item for item in value if isinstance(item, str))
+
+    for literal in sorted(set(string_literals), key=len, reverse=True):
+        if not literal or literal[0] in "'\"":
+            continue
+        quoted_literal = "'" + literal.replace("'", "''") + "'"
+        expression = re.sub(
+            rf"(?<!['\"\\w]){re.escape(literal)}(?!['\"\\w])",
+            quoted_literal,
+            expression,
+        )
+    return expression
 
 
 def _pandas_map_condition_unexpected_count(
@@ -864,6 +896,9 @@ def _spark_map_condition_query(
         ")"
     ):
         unexpected_condition_filtered = unexpected_condition_filtered[1:-1]
+    unexpected_condition_filtered = _quote_spark_string_literals(
+        unexpected_condition_filtered, metric_value_kwargs
+    )
     return f"df.filter(F.expr({unexpected_condition_filtered}))"
 
 

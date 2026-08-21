@@ -89,6 +89,31 @@ def test_spark_unexpected_index_column_names_with_nested_columns(spark_session) 
     assert "c" in ids, f"expected 'c' among unexpected ids, got {unexpected_index_list}"
 
 
+def test_spark_unexpected_index_query_quotes_string_literals(spark_session) -> None:
+    """Generated Spark queries should be executable when values are strings."""
+    context = gx.get_context(mode="ephemeral")
+    spark_df = _make_nested_spark_df(spark_session)
+
+    datasource = context.data_sources.add_spark(name="string_query_spark")
+    asset = datasource.add_dataframe_asset(name="string_query_asset")
+    batch_def = asset.add_batch_definition_whole_dataframe(name="string_query_bd")
+    batch = batch_def.get_batch(batch_parameters={"dataframe": spark_df})
+
+    result = batch.validate(
+        gxe.ExpectColumnValuesToBeInSet(
+            column="Data.evt.retry",
+            value_set=["0", "1"],
+        ),
+        result_format={
+            "result_format": "COMPLETE",
+            "return_unexpected_index_query": True,
+        },
+    )
+
+    query = result["result"]["unexpected_index_query"]
+    assert "IN ('0', '1')" in query
+
+
 def test_spark_unexpected_index_column_names_missing_nested_path_errors(
     spark_session,
 ) -> None:
