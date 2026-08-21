@@ -302,6 +302,41 @@ def test_sanitize_config_azure_blob_store():
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize(
+    "connection_string,expected",
+    [
+        pytest.param(
+            "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=iamname;AccountKey=i_am_account_key",
+            "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=iamname;AccountKey=***",
+            id="fields_reordered",
+        ),
+        pytest.param(
+            "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=i_am_account_key",
+            "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=***",
+            id="endpoint_suffix_omitted",
+        ),
+        pytest.param(
+            "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=i_am_account_key;EndpointSuffix=core.windows.net;",
+            "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=***;EndpointSuffix=core.windows.net",
+            id="trailing_semicolon",
+        ),
+    ],
+)
+def test_azure_connection_string_masked_regardless_of_field_order(connection_string, expected):
+    assert PasswordMasker.mask_db_url(connection_string) == expected
+
+
+@pytest.mark.unit
+def test_azure_connection_string_account_key_never_appears_in_raised_error():
+    """A masking failure must not put the secret it was masking into the traceback."""
+    account_key = "i_am_account_key"
+    malformed = f"DefaultEndpointsProtocol=nonsense;AccountName=iamname;AccountKey={account_key}"
+    with pytest.raises(StoreConfigurationError) as exc_info:
+        PasswordMasker.mask_db_url(malformed)
+    assert account_key not in str(exc_info.value)
+
+
+@pytest.mark.unit
 def test_sanitize_config_raises_exception_with_bad_input(
     basic_data_context_config,
 ):

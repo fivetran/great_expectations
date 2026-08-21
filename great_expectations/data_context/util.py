@@ -212,22 +212,37 @@ class PasswordMasker:
 
     @classmethod
     def _obfuscate_azure_blobstore_connection_string(cls, url: str) -> str:
-        # Parse Azure Connection Strings
-        azure_conn_str_re = re.compile(
-            "(DefaultEndpointsProtocol=(http|https));(AccountName=([a-zA-Z0-9]+));(AccountKey=)(.+);(EndpointSuffix=([a-zA-Z\\.]+))"
-        )
-        try:
-            matched: re.Match[str] | None = azure_conn_str_re.match(url)
-            if not matched:
-                raise StoreConfigurationError(  # noqa: TRY003, TRY301 # FIXME CoP
-                    f"The URL for the Azure connection-string, was not configured properly. Please check and try again: {url} "  # noqa: E501 # FIXME CoP
-                )
-            res = f"DefaultEndpointsProtocol={matched.group(2)};AccountName={matched.group(4)};AccountKey=***;EndpointSuffix={matched.group(8)}"  # noqa: E501 # FIXME CoP
-            return res
-        except Exception as e:
-            raise StoreConfigurationError(  # noqa: TRY003 # FIXME CoP
-                f"Something went wrong when trying to obfuscate URL for Azure connection-string. Please check your configuration: {e}"  # noqa: E501 # FIXME CoP
+        # Azure connection strings are an unordered set of `key=value` fields separated by `;`.
+        # Parse them as such (rather than matching a single fixed field order) so that masking
+        # succeeds regardless of field order and with the optional EndpointSuffix omitted.
+        # Field order is preserved in the output. No exception raised here may echo the raw url
+        # or the AccountKey value, since that would defeat the purpose of masking it.
+        fields = [
+            (key, value)
+            for key, sep, value in (segment.partition("=") for segment in url.split(";"))
+            if sep
+        ]
+        field_values = dict(fields)
+
+        if (
+            field_values.get("DefaultEndpointsProtocol") not in ("http", "https")
+            or not field_values.get("AccountKey")
+            or not re.fullmatch(r"[a-zA-Z0-9]+", field_values.get("AccountName", ""))
+            or (
+                "EndpointSuffix" in field_values
+                and not re.fullmatch(r"[a-zA-Z\.]+", field_values["EndpointSuffix"])
             )
+        ):
+            raise StoreConfigurationError(  # noqa: TRY003 # FIXME CoP
+                "The URL for the Azure connection-string was not configured properly. Please "
+                "check that DefaultEndpointsProtocol, AccountName, and AccountKey are present "
+                "and valid."
+            )
+
+        return ";".join(
+            f"{key}={cls.MASKED_PASSWORD_STRING}" if key == "AccountKey" else f"{key}={value}"
+            for key, value in fields
+        )
 
     @classmethod
     def _mask_db_url_no_sa(cls, url: str) -> str:
