@@ -48,7 +48,7 @@ setup and test mechanics.
 
 A [virtual environment](https://peps.python.org/pep-0405) allows you to install an independent set of Python packages to their own site directory, isolated from the base/system install of Python.
 
-Great Expectations requires a Python version from 3.10 to 3.13.
+Great Expectations requires a Python version from 3.10 to 3.14.
 
 #### Python
 

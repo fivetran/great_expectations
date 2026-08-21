@@ -1,4 +1,3 @@
-import os
 import re
 from pathlib import Path
 from typing import List
@@ -7,7 +6,7 @@ from setuptools import find_packages, setup
 
 import versioneer
 
-SUPPORTED_PYTHON = ">=3.10,<3.14"
+SUPPORTED_PYTHON = ">=3.10"
 
 
 def parse_requirements(file_path: Path) -> List[str]:
@@ -36,12 +35,7 @@ def parse_requirements(file_path: Path) -> List[str]:
 
 
 def get_python_requires() -> str:
-    """
-    If the GX_PYTHON_EXPERIMENTAL environment variable is set,
-    return a version with no upper-bound.
-    """
-    if os.getenv("GX_PYTHON_EXPERIMENTAL"):
-        return ">=3.10"
+    """Return the supported Python version range."""
     return SUPPORTED_PYTHON
 
 
@@ -191,6 +185,7 @@ config = {
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
     ],
 }
 

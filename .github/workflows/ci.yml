@@ -285,12 +285,10 @@ jobs:
   unit-tests:
     needs: [check-actor-permissions, detect-changes]
     if: needs.detect-changes.outputs.docs_only != 'true'
-    env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
     runs-on: ${{ matrix.os }}
 
@@ -465,14 +463,12 @@ jobs:
           invoke deps --gx-install -r test
 
       - name: Run the tests
-        run:
-          invoke ci-tests 'integration' --verbose
+        run: invoke ci-tests 'integration' --verbose
 
   marker-tests:
     needs: [unit-tests, static-analysis, check-actor-permissions]
     if: github.event.pull_request.draft == false
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
       # google
       GE_TEST_GCP_CREDENTIALS: ${{secrets.GE_TEST_GCP_CREDENTIALS}}
       GE_TEST_GCP_PROJECT: ${{secrets.GE_TEST_GCP_PROJECT}}
@@ -592,7 +588,6 @@ jobs:
     needs: [unit-tests, static-analysis, check-actor-permissions]
     if: github.event.pull_request.draft == false
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
       # Compose override, matched to the 4.1.x pip client installed below. No official
       # client<->server cross-version guarantee exists for Spark Connect, so the image
       # tag is kept in lockstep with the lane's pyspark constraint.
@@ -651,7 +646,6 @@ jobs:
     needs: [unit-tests, static-analysis, check-actor-permissions]
     if: github.event.pull_request.draft == false
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
       # snowflake
       SNOWFLAKE_ACCOUNT: ${{secrets.SNOWFLAKE_ACCOUNT}}
       SNOWFLAKE_USER: ${{secrets.SNOWFLAKE_USER}}
@@ -831,8 +825,6 @@ jobs:
 
   py313-min-versions:
     needs: [unit-tests, static-analysis, check-actor-permissions]
-    env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
@@ -927,11 +919,9 @@ jobs:
     needs: [static-analysis, check-actor-permissions]
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
         exclude:
           - python-version: ${{ github.event_name == 'pull_request_target' && '3.11' }}
           - python-version: ${{ github.event_name == 'pull_request_target' && '3.12' }}
