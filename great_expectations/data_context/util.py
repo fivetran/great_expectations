@@ -212,22 +212,43 @@ class PasswordMasker:
 
     @classmethod
     def _obfuscate_azure_blobstore_connection_string(cls, url: str) -> str:
-        # Parse Azure Connection Strings
-        azure_conn_str_re = re.compile(
-            "(DefaultEndpointsProtocol=(http|https));(AccountName=([a-zA-Z0-9]+));(AccountKey=)(.+);(EndpointSuffix=([a-zA-Z\\.]+))"
+        # Azure connection strings are an unordered set of `key=value` pairs separated by
+        # `;`, so parse them as a dict rather than matching a single fixed field order.
+        # This also lets a parse failure raise without echoing the raw (secret-bearing)
+        # input back into the exception message.
+        protocol_re = re.compile("^(http|https)$")
+        account_name_re = re.compile("^[a-zA-Z0-9]+$")
+        endpoint_suffix_re = re.compile("^[a-zA-Z.]+$")
+
+        fields: dict[str, str] = {}
+        for part in url.split(";"):
+            if not part:
+                continue
+            key, sep, value = part.partition("=")
+            if sep:
+                fields[key] = value
+
+        protocol = fields.get("DefaultEndpointsProtocol", "")
+        account_name = fields.get("AccountName", "")
+        account_key = fields.get("AccountKey", "")
+        endpoint_suffix = fields.get("EndpointSuffix")
+
+        valid = (
+            bool(protocol_re.match(protocol))
+            and bool(account_name_re.match(account_name))
+            and bool(account_key)
+            and (endpoint_suffix is None or bool(endpoint_suffix_re.match(endpoint_suffix)))
         )
-        try:
-            matched: re.Match[str] | None = azure_conn_str_re.match(url)
-            if not matched:
-                raise StoreConfigurationError(  # noqa: TRY003, TRY301 # FIXME CoP
-                    f"The URL for the Azure connection-string, was not configured properly. Please check and try again: {url} "  # noqa: E501 # FIXME CoP
-                )
-            res = f"DefaultEndpointsProtocol={matched.group(2)};AccountName={matched.group(4)};AccountKey=***;EndpointSuffix={matched.group(8)}"  # noqa: E501 # FIXME CoP
-            return res
-        except Exception as e:
+        if not valid:
             raise StoreConfigurationError(  # noqa: TRY003 # FIXME CoP
-                f"Something went wrong when trying to obfuscate URL for Azure connection-string. Please check your configuration: {e}"  # noqa: E501 # FIXME CoP
+                "The URL for the Azure connection-string was not configured properly. "
+                "Please check and try again."
             )
+
+        res = f"DefaultEndpointsProtocol={protocol};AccountName={account_name};AccountKey=***"
+        if endpoint_suffix is not None:
+            res += f";EndpointSuffix={endpoint_suffix}"
+        return res
 
     @classmethod
     def _mask_db_url_no_sa(cls, url: str) -> str:
