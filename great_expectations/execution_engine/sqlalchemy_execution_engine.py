@@ -385,10 +385,15 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                 def _add_sqlite_functions(connection):
                     logger.info(f"Adding custom sqlite functions to connection {connection}")
                     connection.create_function("sqrt", 1, math.sqrt)
+                    # not used for security: this is hash partitioning/sampling, not a
+                    # cryptographic digest. usedforsecurity=False lets this run on hosts
+                    # with FIPS-mode OpenSSL.
                     connection.create_function(
                         "md5",
                         2,
-                        lambda x, d: hashlib.md5(str(x).encode("utf-8")).hexdigest()[-1 * d :],
+                        lambda x, d: hashlib.md5(
+                            str(x).encode("utf-8"), usedforsecurity=False
+                        ).hexdigest()[-1 * d :],
                     )
 
                 # Add sqlite functions to any future connections.

@@ -166,7 +166,8 @@ class TaxiTestData:
                     hashlib.md5(
                         str(tuple(zip(element.keys(), element.values(), strict=False))).encode(
                             "utf-8"
-                        )
+                        ),
+                        usedforsecurity=False,
                     ).hexdigest(),
                 )
             ),
@@ -182,7 +183,8 @@ class TaxiTestData:
             hash_code = hashlib.md5(
                 str(
                     tuple(zip(dictionary_element.keys(), dictionary_element.values(), strict=False))
-                ).encode("utf-8")
+                ).encode("utf-8"),
+                usedforsecurity=False,
             ).hexdigest()
             if hash_code not in hash_codes:
                 unique_multi_column_values.append(dictionary_element)
@@ -221,7 +223,9 @@ class TaxiTestData:
 
         column_value: Any
         column_values = [
-            hashlib.md5(str(column_value).encode("utf-8")).hexdigest()[-1 * hash_digits :]
+            hashlib.md5(str(column_value).encode("utf-8"), usedforsecurity=False).hexdigest()[
+                -1 * hash_digits :
+            ]
             for column_value in column_values
         ]
 
