@@ -401,7 +401,13 @@ def _render_partition_query_for_date_parts(dialect_name: str, date_parts: List[D
         dialect=PARTITION_QUERY_DIALECT_MODULES_BY_NAME[dialect_name].dialect(),
         compile_kwargs={"literal_binds": True},
     )
-    return str(compiled).replace("\n", "").replace(" ", "").lower()
+    rendered = str(compiled).replace("\n", "").replace(" ", "").lower()
+    # SQLAlchemy's mssql dialect renders an empty string literal as N'' under SQLAlchemy 1.4
+    # and as '' under SQLAlchemy 2.0 (the national-string prefix on a string literal) when
+    # compiling the CONCAT construct here. That construct is not something this change touches,
+    # so the two forms are normalized to compare equal rather than pinning whichever one the
+    # installed SQLAlchemy version happens to render.
+    return rendered.replace("concat(n''", "concat(''")
 
 
 # Pinned exact renderings, one per (dialect, date-part count). Any change to a cast site, an
