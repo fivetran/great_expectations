@@ -678,6 +678,21 @@ class TestQueryRowCountSQLServerOrderByStripping:
         assert "ORDER BY" in actual_sql
 
 
+def _compile_batch_selectable(
+    batch_selectable: sa.Table, dialect: sa.engine.interfaces.Dialect
+) -> str:
+    """Compile the same selectable, in the same way, that the code under test compiles it.
+
+    ``sa.select(batch_selectable)`` with no columns pulled out renders differently across
+    SQLAlchemy major versions (e.g. an extra space after ``SELECT``), so that fragment is
+    derived here at runtime rather than hardcoded, leaving only this work's contribution --
+    the alias wrapping asserted alongside this helper's return value -- pinned as a literal.
+    """
+    return str(
+        sa.select(batch_selectable).compile(dialect=dialect, compile_kwargs={"literal_binds": True})
+    )
+
+
 class TestDerivedTableAliasDialectInvariance:
     """Characterization tests pinning the derived-table alias text each dialect receives.
 
@@ -705,9 +720,10 @@ class TestDerivedTableAliasDialectInvariance:
                 execution_engine=mock_sqlalchemy_execution_engine,
             )
         )
-        assert result == (
-            "SELECT * FROM (SELECT \nFROM my_table) AS subselect WHERE passenger_count > 7"
+        compiled = _compile_batch_selectable(
+            batch_selectable, mock_sqlalchemy_execution_engine.engine.dialect
         )
+        assert result == (f"SELECT * FROM ({compiled}) AS subselect WHERE passenger_count > 7")
 
     @pytest.mark.unit
     def test_alias_keyword_is_emitted_when_the_dialect_is_unknown(self) -> None:
@@ -736,9 +752,10 @@ class TestDerivedTableAliasDialectInvariance:
                 execution_engine=mock_sql_server_execution_engine,
             )
         )
-        assert result == (
-            "SELECT * FROM (SELECT \nFROM my_table) AS subselect WHERE passenger_count > 7"
+        compiled = _compile_batch_selectable(
+            batch_selectable, mock_sql_server_execution_engine.engine.dialect
         )
+        assert result == (f"SELECT * FROM ({compiled}) AS subselect WHERE passenger_count > 7")
 
     @pytest.mark.unit
     def test_single_nested_alias_oracle(
@@ -757,9 +774,10 @@ class TestDerivedTableAliasDialectInvariance:
                 execution_engine=mock_oracle_execution_engine,
             )
         )
-        assert result == (
-            "SELECT * FROM (SELECT \nFROM my_table) subselect WHERE passenger_count > 7"
+        compiled = _compile_batch_selectable(
+            batch_selectable, mock_oracle_execution_engine.engine.dialect
         )
+        assert result == (f"SELECT * FROM ({compiled}) subselect WHERE passenger_count > 7")
 
     @pytest.mark.unit
     def test_join_query_receives_no_alias_default_dialect(
@@ -778,7 +796,10 @@ class TestDerivedTableAliasDialectInvariance:
                 execution_engine=mock_sqlalchemy_execution_engine,
             )
         )
-        assert result == "SELECT * FROM (SELECT \nFROM my_table) JOIN other_table ON 1=1"
+        compiled = _compile_batch_selectable(
+            batch_selectable, mock_sqlalchemy_execution_engine.engine.dialect
+        )
+        assert result == f"SELECT * FROM ({compiled}) JOIN other_table ON 1=1"
 
     @pytest.mark.unit
     def test_join_query_receives_no_alias_oracle(
@@ -796,7 +817,10 @@ class TestDerivedTableAliasDialectInvariance:
                 execution_engine=mock_oracle_execution_engine,
             )
         )
-        assert result == "SELECT * FROM (SELECT \nFROM my_table) JOIN other_table ON 1=1"
+        compiled = _compile_batch_selectable(
+            batch_selectable, mock_oracle_execution_engine.engine.dialect
+        )
+        assert result == f"SELECT * FROM ({compiled}) JOIN other_table ON 1=1"
 
 
 class TestRowCountDerivedTableAliasDialectInvariance:
@@ -1008,9 +1032,10 @@ class TestQueryTemplateValuesDerivedTableAliasDialectInvariance:
                 runtime_configuration={},
             )
             actual_sql = mock_execute_query.call_args[0][0]
-        assert actual_sql == (
-            "SELECT * FROM (SELECT \nFROM my_table) AS subselect WHERE passenger_count > 7"
+        compiled = _compile_batch_selectable(
+            batch_selectable, mock_sqlalchemy_execution_engine.engine.dialect
         )
+        assert actual_sql == (f"SELECT * FROM ({compiled}) AS subselect WHERE passenger_count > 7")
 
     @pytest.mark.unit
     def test_single_nested_alias_sql_server(
@@ -1044,9 +1069,10 @@ class TestQueryTemplateValuesDerivedTableAliasDialectInvariance:
                 runtime_configuration={},
             )
             actual_sql = mock_execute_query.call_args[0][0]
-        assert actual_sql == (
-            "SELECT * FROM (SELECT \nFROM my_table) AS subselect WHERE passenger_count > 7"
+        compiled = _compile_batch_selectable(
+            batch_selectable, mock_sql_server_execution_engine.engine.dialect
         )
+        assert actual_sql == (f"SELECT * FROM ({compiled}) AS subselect WHERE passenger_count > 7")
 
     @pytest.mark.unit
     def test_single_nested_alias_oracle(
@@ -1085,9 +1111,10 @@ class TestQueryTemplateValuesDerivedTableAliasDialectInvariance:
                 runtime_configuration={},
             )
             actual_sql = mock_execute_query.call_args[0][0]
-        assert actual_sql == (
-            "SELECT * FROM (SELECT \nFROM my_table) subselect WHERE passenger_count > 7"
+        compiled = _compile_batch_selectable(
+            batch_selectable, mock_oracle_execution_engine.engine.dialect
         )
+        assert actual_sql == (f"SELECT * FROM ({compiled}) subselect WHERE passenger_count > 7")
 
 
 class TestLiteralBooleanReplacementDialectInvariance:
