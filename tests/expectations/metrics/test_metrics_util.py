@@ -1444,3 +1444,115 @@ def test_get_dialect_regex_expression_renders_oracle_native_predicate(
     assert result is not None
     rendered = str(result.compile(compile_kwargs={"literal_binds": True}))
     assert rendered == expected_sql
+
+
+# `get_dialect_regex_expression` has 6 calling modules / 9 call sites, which reduce to four
+# distinct *families* by call shape: the row-level condition family (a single call, one per
+# polarity), the aggregate-value family (a single call plus a Python-side `sa.not_()` for the
+# negative form), and the two list-form families (a call per regex in the list, combined with
+# `sa.or_`/`sa.and_`). Of these, the curated suite exercises only `column_values.match_regex`,
+# the positive half of the row-level family; the negative half is pinned above by
+# `test_get_dialect_regex_expression_renders_oracle_native_predicate[negative]`.
+# The three tests below reproduce the exact resolution shape of the remaining three families --
+# they are not re-tests of the helper in isolation, they replicate what each family's own
+# `_sqlalchemy` method does with the helper's return value -- and name the module each covers.
+
+
+@pytest.mark.unit
+def test_get_dialect_regex_expression_resolves_oracle_aggregate_family() -> None:
+    """Covers the aggregate family:
+    `great_expectations/expectations/metrics/column_aggregate_metrics/column_values_match_regex_values.py`
+    and
+    `great_expectations/expectations/metrics/column_aggregate_metrics/column_values_not_match_regex_values.py`.
+
+    Both call `get_dialect_regex_expression(column, regex, _dialect)` once and use the result
+    directly in a `sa.select(column).where(...)` query; the "not match" module additionally
+    wraps the result in `sa.not_()` before using it as the `where()` predicate. This reproduces
+    that exact resolution shape against an Oracle dialect and pins the resulting SQL, proving
+    the branch is reached (a `None` return would raise `NotImplementedError` in production
+    before a query is ever built).
+    """
+    stub = _DialectDetectionStub(dialect=_OracleSub)
+    column = sa.column("a")
+
+    regex_expression = get_dialect_regex_expression(column=column, regex="test", dialect=stub)
+    assert regex_expression is not None, (
+        "aggregate family: get_dialect_regex_expression returned None for Oracle -- "
+        "column_values_match_regex_values.py and column_values_not_match_regex_values.py "
+        "would raise NotImplementedError before building a query"
+    )
+
+    match_query = sa.select(column).where(regex_expression)
+    assert str(match_query.compile(compile_kwargs={"literal_binds": True})) == (
+        "SELECT a \nWHERE regexp_like(a, 'test')"
+    )
+
+    not_match_query = sa.select(column).where(sa.not_(regex_expression))
+    assert str(not_match_query.compile(compile_kwargs={"literal_binds": True})) == (
+        "SELECT a \nWHERE NOT regexp_like(a, 'test')"
+    )
+
+
+@pytest.mark.unit
+def test_get_dialect_regex_expression_resolves_oracle_regex_list_match_family() -> None:
+    """Covers the list-form match family:
+    `great_expectations/expectations/metrics/column_map_metrics/column_values_match_regex_list.py`.
+
+    That module calls `get_dialect_regex_expression` once per entry in `regex_list` and combines
+    the results with `sa.or_()` (`match_on="any"`) or `sa.and_()` (`match_on="all"`). This
+    reproduces that exact resolution shape against an Oracle dialect and pins both combined
+    forms, proving the branch is reached for every call in the list -- not just the first.
+    """
+    stub = _DialectDetectionStub(dialect=_OracleSub)
+    column = sa.column("a")
+    regex_list = ["foo", "bar"]
+
+    conditions = [
+        get_dialect_regex_expression(column=column, regex=regex, dialect=stub)
+        for regex in regex_list
+    ]
+    assert all(condition is not None for condition in conditions), (
+        "regex_list match family: get_dialect_regex_expression returned None for Oracle on at "
+        "least one entry -- column_values_match_regex_list.py would raise NotImplementedError "
+        "before combining conditions"
+    )
+
+    any_condition = sa.or_(*conditions)
+    assert str(any_condition.compile(compile_kwargs={"literal_binds": True})) == (
+        "regexp_like(a, 'foo') OR regexp_like(a, 'bar')"
+    )
+
+    all_condition = sa.and_(*conditions)
+    assert str(all_condition.compile(compile_kwargs={"literal_binds": True})) == (
+        "regexp_like(a, 'foo') AND regexp_like(a, 'bar')"
+    )
+
+
+@pytest.mark.unit
+def test_get_dialect_regex_expression_resolves_oracle_regex_list_not_match_family() -> None:
+    """Covers the list-form not-match family:
+    `great_expectations/expectations/metrics/column_map_metrics/column_values_not_match_regex_list.py`.
+
+    That module calls `get_dialect_regex_expression(..., positive=False)` once per entry in
+    `regex_list` and combines the results with `sa.and_()`. This reproduces that exact
+    resolution shape against an Oracle dialect and pins the combined SQL, proving the negative
+    branch is reached for every call in the list.
+    """
+    stub = _DialectDetectionStub(dialect=_OracleSub)
+    column = sa.column("a")
+    regex_list = ["foo", "bar"]
+
+    conditions = [
+        get_dialect_regex_expression(column=column, regex=regex, dialect=stub, positive=False)
+        for regex in regex_list
+    ]
+    assert all(condition is not None for condition in conditions), (
+        "regex_list not-match family: get_dialect_regex_expression returned None for Oracle on "
+        "at least one entry -- column_values_not_match_regex_list.py would raise "
+        "NotImplementedError before combining conditions"
+    )
+
+    compound_condition = sa.and_(*conditions)
+    assert str(compound_condition.compile(compile_kwargs={"literal_binds": True})) == (
+        "NOT regexp_like(a, 'foo') AND NOT regexp_like(a, 'bar')"
+    )

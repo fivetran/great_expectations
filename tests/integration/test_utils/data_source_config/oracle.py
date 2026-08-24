@@ -59,16 +59,6 @@ class OracleDatasourceTestConfig(SqlDatasourceTestConfig):
         container_service="oracle",
         tiers=frozenset({BackendTier.CURATED_SQL}),
         tier_case_exclusions={
-            # Core's dialect-regex helper (`get_dialect_regex_expression`) has no branch for
-            # Oracle and falls through to returning `None` for any unmatched dialect. Oracle
-            # exposes `REGEXP_LIKE`, but the helper never compiles a predicate for it, so no
-            # regex-based case can execute against this dialect.
-            "regex_match": (
-                "Oracle has no branch in core's dialect-regex helper "
-                "(get_dialect_regex_expression), which falls through to returning None for any "
-                "unmatched dialect; Oracle exposes REGEXP_LIKE, but the helper never compiles a "
-                "predicate for it, so no regex-based case can execute against this dialect."
-            ),
             # The query-metric providers re-embed the batch as a derived-table subquery using a
             # hardcoded `AS <alias>` construction. Oracle's grammar accepts `AS` before a column
             # alias but rejects it before a table/derived-table alias, so any query that
