@@ -1208,11 +1208,14 @@ class _FakeDatabricksDialect:
 
 
 class _OracleSub(sa.dialects.oracle.dialect):
-    """A concrete subclass of SQLAlchemy's bundled Oracle dialect, used to
-    show that ``get_dialect_regex_expression`` does not recognize Oracle
-    today: the chain has no Oracle branch, even though Oracle ships with
-    SQLAlchemy and would be detected the same way postgres, mysql, and
-    sqlite are.
+    """A concrete subclass of SQLAlchemy's bundled Oracle dialect.
+
+    The chain detects Oracle with ``issubclass`` against the bundled
+    dialect, the same idiom postgres, mysql, and sqlite use, because Oracle
+    ships with SQLAlchemy. A subclass is used here for the same reason the
+    postgres, mysql, and sqlite stubs are: it exercises the ``issubclass``
+    relation rather than object identity, and so is strictly more permissive
+    than what the execution engine passes, which is the bundled module.
     """
 
 
@@ -1409,14 +1412,27 @@ def test_get_dialect_regex_expression_pins_every_existing_branch(
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("positive", [True, False], ids=["positive", "negative"])
-def test_get_dialect_regex_expression_returns_none_for_oracle_today(positive: bool) -> None:
-    """`get_dialect_regex_expression`'s branch chain has no Oracle entry, so
-    an Oracle dialect falls all the way through to the terminal
-    `return None` -- even though Oracle ships with SQLAlchemy and would be
+@pytest.mark.parametrize(
+    "positive,expected_sql",
+    [
+        pytest.param(True, "regexp_like(a, 'test')", id="positive"),
+        # The negated form is `sa.not_()` applied to the positive one, so this
+        # also pins how that wrapping renders -- which is what one aggregate
+        # caller relies on, since it requests the positive form and negates in
+        # Python rather than asking for the negated form.
+        pytest.param(False, "NOT regexp_like(a, 'test')", id="negative"),
+    ],
+)
+def test_get_dialect_regex_expression_renders_oracle_native_predicate(
+    positive: bool, expected_sql: str
+) -> None:
+    """`get_dialect_regex_expression`'s branch chain now has an Oracle entry,
     detected the same `issubclass` way postgres, mysql, and sqlite already
-    are. This pins that current gap; it asserts nothing about whether Oracle
-    regex matching should or will be supported.
+    are, since Oracle ships with SQLAlchemy. It renders Oracle's native
+    `REGEXP_LIKE` condition, in the same `sa.func.regexp_like(...)` /
+    `sa.not_(...)` shape Trino and ClickHouse already use -- so the return
+    value survives both direct use as a predicate and the one caller that
+    wraps it in `sa.not_()` itself.
     """
     stub = _DialectDetectionStub(dialect=_OracleSub)
     column = sa.column("a")
@@ -1425,4 +1441,6 @@ def test_get_dialect_regex_expression_returns_none_for_oracle_today(positive: bo
         column=column, regex="test", dialect=stub, positive=positive
     )
 
-    assert result is None
+    assert result is not None
+    rendered = str(result.compile(compile_kwargs={"literal_binds": True}))
+    assert rendered == expected_sql
