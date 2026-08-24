@@ -501,6 +501,7 @@ EXPECTED_PARTITION_QUERY_SQL_BY_DIALECT_AND_DATE_PART_COUNT = {
 }
 
 
+@pytest.mark.unit
 @pytest.mark.parametrize(
     "dialect_name,date_part_count",
     sorted(EXPECTED_PARTITION_QUERY_SQL_BY_DIALECT_AND_DATE_PART_COUNT),
@@ -526,6 +527,7 @@ def test_partition_query_rendered_sql_is_pinned_across_dialects_and_date_part_co
     assert actual_query_str == expected_query_str
 
 
+@pytest.mark.unit
 @pytest.mark.parametrize("dialect_name", sorted(PARTITION_QUERY_DIALECT_MODULES_BY_NAME))
 def test_partition_query_single_date_part_never_carries_a_string_cast(dialect_name: str):
     """What does this test and why?
@@ -543,6 +545,7 @@ def test_partition_query_single_date_part_never_carries_a_string_cast(dialect_na
     assert "aschar" not in rendered
 
 
+@pytest.mark.unit
 @pytest.mark.parametrize("date_part_count", [2, 3])
 def test_partition_query_oracle_multi_date_part_string_cast_carries_a_length(
     date_part_count: int,
