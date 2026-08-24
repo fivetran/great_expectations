@@ -88,6 +88,17 @@ def strip_top_level_order_by(query: str) -> str:
     return query[:pos].rstrip()
 
 
+def render_derived_table_alias(subquery: str, alias: str, dialect_name: Optional[str]) -> str:
+    """Return a parenthesized subquery bound to a table alias, in the form the dialect accepts.
+
+    Oracle's grammar admits AS before a column alias but not before a table alias, so the
+    keyword is omitted there and emitted everywhere else.
+    """
+    if dialect_name == "oracle":
+        return f"({subquery}) {alias}"
+    return f"({subquery}) AS {alias}"
+
+
 class MissingElementError(TypeError):
     def __init__(self):
         super().__init__(
@@ -191,7 +202,14 @@ class QueryMetricProvider(MetricProvider):
             if "JOIN" in query.upper():
                 query = query.format(batch=f"({batch})", **parameters)
             else:
-                query = query.format(batch=f"({batch}) AS subselect", **parameters)
+                query = query.format(
+                    batch=render_derived_table_alias(
+                        subquery=str(batch),
+                        alias="subselect",
+                        dialect_name=getattr(execution_engine, "dialect_name", None),
+                    ),
+                    **parameters,
+                )
         else:
             query = query.format(batch=f"({batch_selectable})", **parameters)
 

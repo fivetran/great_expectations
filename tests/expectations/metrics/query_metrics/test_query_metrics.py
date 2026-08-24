@@ -13,6 +13,7 @@ from great_expectations.expectations.metrics.query_metric_provider import (
     QueryParameters,
     find_last_top_level_order_by,
     has_top_level_token,
+    render_derived_table_alias,
     strip_top_level_order_by,
 )
 from great_expectations.expectations.metrics.query_metrics import (
@@ -678,13 +679,15 @@ class TestQueryRowCountSQLServerOrderByStripping:
 
 
 class TestDerivedTableAliasDialectInvariance:
-    """Characterization tests pinning the derived-table alias text rendered today, before any
-    dialect-specific renderer exists.
+    """Characterization tests pinning the derived-table alias text each dialect receives.
 
-    Three sites build a derived-table alias by string formatting: the single-nested form here
-    (a query-metric re-embedding a compiled ``Select`` as ``(...) AS subselect``) and the
-    doubly-nested form in ``TestRowCountDerivedTableAliasDialectInvariance`` below (the row-count
-    statement's ``(...) AS substituted_batch_subquery`` wrapped around the same inner form). They
+    Three sites build a derived-table alias, all of them through
+    ``render_derived_table_alias``: the single-nested form here (a query-metric re-embedding a
+    compiled ``Select`` bound to ``subselect``) and the doubly-nested form in
+    ``TestRowCountDerivedTableAliasDialectInvariance`` below (the row-count statement's
+    ``substituted_batch_subquery`` wrapping around the same inner form). The keyword ``AS``
+    precedes the alias on every dialect whose grammar admits it there, and is omitted on the
+    one whose grammar does not. They
     are asserted separately because the two nesting depths surface as two distinct database
     errors on Oracle, from two different metrics of the same expectation.
     """
@@ -707,6 +710,20 @@ class TestDerivedTableAliasDialectInvariance:
         )
 
     @pytest.mark.unit
+    def test_alias_keyword_is_emitted_when_the_dialect_is_unknown(self) -> None:
+        """The renderer emits the keyword when the dialect name is unknown.
+
+        ``render_derived_table_alias`` omits ``AS`` only for the one grammar that rejects it
+        before a table alias. A ``None`` dialect name means the caller could not say which
+        grammar applies, so the form every other dialect receives is the safe answer -- an
+        unknown dialect must not inherit the exception.
+        """
+        assert (
+            render_derived_table_alias(subquery="SELECT 1", alias="subselect", dialect_name=None)
+            == "(SELECT 1) AS subselect"
+        )
+
+    @pytest.mark.unit
     def test_single_nested_alias_sql_server(
         self,
         mock_sql_server_execution_engine: MockSQLServerSqlAlchemyExecutionEngine,
@@ -724,16 +741,14 @@ class TestDerivedTableAliasDialectInvariance:
         )
 
     @pytest.mark.unit
-    def test_single_nested_alias_oracle_current_behavior(
+    def test_single_nested_alias_oracle(
         self,
         mock_oracle_execution_engine: MockOracleSqlAlchemyExecutionEngine,
         batch_selectable: sa.Table,
     ) -> None:
-        """Pins today's defect: Oracle receives the same ``AS``-bearing alias form as every
-        other dialect, even though Oracle's grammar rejects ``AS`` immediately before a table
-        alias. This is the single assertion in this module that a dialect-specific renderer is
-        expected to invert; every other assertion in this module must stay byte-identical
-        alongside it.
+        """Oracle's grammar admits ``AS`` before a column alias but not before a table alias, so
+        the derived-table alias renderer omits the keyword here. Every other assertion in this
+        module must stay byte-identical alongside this inversion.
         """
         result = (
             QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
@@ -743,7 +758,7 @@ class TestDerivedTableAliasDialectInvariance:
             )
         )
         assert result == (
-            "SELECT * FROM (SELECT \nFROM my_table) AS subselect WHERE passenger_count > 7"
+            "SELECT * FROM (SELECT \nFROM my_table) subselect WHERE passenger_count > 7"
         )
 
     @pytest.mark.unit
@@ -786,19 +801,19 @@ class TestDerivedTableAliasDialectInvariance:
 
 class TestRowCountDerivedTableAliasDialectInvariance:
     """Characterization tests pinning the row-count statement's doubly-nested derived-table
-    alias, and the column alias that sits alongside it in the same statement, before any
-    dialect-specific renderer exists.
+    alias, and the column alias that sits alongside it in the same statement.
 
-    The inner ``AS subselect`` form is supplied pre-compiled here (mirroring the existing
+    The inner form is supplied pre-compiled here (mirroring the existing
     ``TestQueryRowCountSQLServerOrderByStripping`` pattern in this module) so each test isolates
-    the outer wrapping this statement adds: the table alias ``AS substituted_batch_subquery`` and
-    the column alias ``AS unexpected_row_count``.
+    the outer wrapping this statement adds: the table alias ``substituted_batch_subquery``,
+    whose keyword is dialect-dependent, and the column alias ``AS unexpected_row_count``, which
+    every dialect here accepts and which no dialect-specific rendering touches.
 
     Each test asserts the full statement text and then, separately, a standalone assertion
     isolating the column alias (``SELECT COUNT(*) as unexpected_row_count FROM``). The two are
-    kept independent on purpose: a future renderer change is expected to rewrite this class's
-    Oracle-side full-statement literal, and the standalone assertion is what keeps a dropped or
-    renamed column alias from riding through that rewrite unnoticed.
+    kept independent on purpose: a change to the table alias rewrites this class's Oracle-side
+    full-statement literal, and the standalone assertion is what keeps a dropped or renamed
+    column alias from riding through that rewrite unnoticed.
     """
 
     @pytest.mark.unit
@@ -896,22 +911,24 @@ class TestRowCountDerivedTableAliasDialectInvariance:
     @mock.patch.object(
         QueryMetricProvider, "_get_substituted_batch_subquery_from_query_and_batch_selectable"
     )
-    def test_double_nested_alias_oracle_current_behavior(
+    def test_double_nested_alias_oracle(
         self,
         mock_get_sub,
         mock_text,
         mock_oracle_execution_engine: MockOracleSqlAlchemyExecutionEngine,
         batch_selectable: sa.Table,
     ) -> None:
-        """Pins today's defect at the second nesting depth: Oracle receives the same
-        ``AS``-bearing outer table alias as every other dialect, even though Oracle's grammar
-        rejects ``AS`` immediately before a table alias. This is the doubly-nested counterpart to
-        ``test_single_nested_alias_oracle_current_behavior`` above -- both are expected to invert
-        together, because the two nesting depths surface as two distinct database errors from two
-        different metrics. The column alias ``as unexpected_row_count`` in this same statement is
-        a separate, accepted construct; it is pinned independently below via a standalone
-        assertion, not only inside this method's full-statement literal, so a rewrite of that
-        literal cannot silently carry the column alias along with it.
+        """Pins the derived-table alias renderer's effect at the second nesting depth: Oracle's
+        outer table alias omits ``AS``, while the inner alias supplied via the mocked
+        ``_get_substituted_batch_subquery_from_query_and_batch_selectable`` return value is
+        unaffected -- that call is mocked here, so this test exercises only the outer wrapping
+        this statement adds. This is the doubly-nested counterpart to
+        ``test_single_nested_alias_oracle`` above -- both invert together, because the two
+        nesting depths surface as two distinct database errors from two different metrics. The
+        column alias ``as unexpected_row_count`` in this same statement is a separate, accepted
+        construct; it is pinned independently below via a standalone assertion, not only inside
+        this method's full-statement literal, so a rewrite of that literal cannot silently carry
+        the column alias along with it.
         """
         mock_get_sub.return_value = (
             "SELECT * FROM (my_table) AS subselect WHERE passenger_count > 7"
@@ -939,7 +956,7 @@ class TestRowCountDerivedTableAliasDialectInvariance:
         assert actual_sql == (
             "SELECT COUNT(*) as unexpected_row_count FROM "
             "(SELECT * FROM (my_table) AS subselect WHERE passenger_count > 7) "
-            "AS substituted_batch_subquery"
+            "substituted_batch_subquery"
         )
         # Standalone: the column alias, pinned independently of the table alias above, so a
         # future rewrite of this test's Oracle-side full-statement literal cannot silently drop
@@ -949,11 +966,11 @@ class TestRowCountDerivedTableAliasDialectInvariance:
 
 class TestQueryTemplateValuesDerivedTableAliasDialectInvariance:
     """Characterization tests pinning the third derived-table alias construction site, in
-    ``QueryTemplateValues._sqlalchemy``, before any dialect-specific renderer exists.
+    ``QueryTemplateValues._sqlalchemy``.
 
     The stock mock execution engine's ``get_compute_domain`` returns a ``sa.Table``, which
     takes the unaliased ``sa.Table`` branch in ``query_template_values.py`` rather than the
-    ``sa.sql.Select`` branch that builds ``(compiled_selectable) AS subselect``. Each test below
+    ``sa.sql.Select`` branch that binds the compiled selectable to ``subselect``. Each test below
     patches ``get_compute_domain`` on the engine instance to return a compiled ``Select``
     instead, so the aliased branch is actually exercised, and patches ``execute_query`` so no
     real database call is attempted. The exact text passed to ``sa.text`` is asserted.
@@ -1032,16 +1049,15 @@ class TestQueryTemplateValuesDerivedTableAliasDialectInvariance:
         )
 
     @pytest.mark.unit
-    def test_single_nested_alias_oracle_current_behavior(
+    def test_single_nested_alias_oracle(
         self,
         mock_oracle_execution_engine: MockOracleSqlAlchemyExecutionEngine,
         batch_selectable: sa.Table,
     ) -> None:
-        """Pins today's defect at this third construction site: Oracle receives the same
-        ``AS``-bearing alias form as every other dialect, even though Oracle's grammar rejects
-        ``AS`` immediately before a table alias. This is one of the assertions in this module
-        expected to invert together with its siblings in the other two alias-construction test
-        classes.
+        """Oracle's grammar admits ``AS`` before a column alias but not before a table alias, so
+        the derived-table alias renderer omits the keyword at this third construction site too.
+        This is one of the assertions in this module that inverts together with its siblings in
+        the other two alias-construction test classes.
         """
         mock_result = create_autospec(sa.engine.CursorResult)
         mock_result.fetchall.return_value = []
@@ -1070,7 +1086,7 @@ class TestQueryTemplateValuesDerivedTableAliasDialectInvariance:
             )
             actual_sql = mock_execute_query.call_args[0][0]
         assert actual_sql == (
-            "SELECT * FROM (SELECT \nFROM my_table) AS subselect WHERE passenger_count > 7"
+            "SELECT * FROM (SELECT \nFROM my_table) subselect WHERE passenger_count > 7"
         )
 
 
