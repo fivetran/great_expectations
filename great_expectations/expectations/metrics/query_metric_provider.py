@@ -213,7 +213,11 @@ class QueryMetricProvider(MetricProvider):
         else:
             query = query.format(batch=f"({batch_selectable})", **parameters)
 
-        if getattr(execution_engine, "dialect_name", None) == "mssql":  # fix for batch error
+        # SQL Server has no boolean literal, and Oracle rejects a bare `true` as a
+        # WHERE-clause predicate with ORA-00920 before it gained a SQL boolean type in 23ai.
+        # A user-authored query carrying that literal is rewritten to `1=1`, which every one
+        # of these grammars accepts.
+        if getattr(execution_engine, "dialect_name", None) in ("mssql", "oracle"):
             query = query.replace("WHERE true", "WHERE 1=1")
 
         return query

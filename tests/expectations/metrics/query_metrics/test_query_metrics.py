@@ -1091,14 +1091,13 @@ class TestQueryTemplateValuesDerivedTableAliasDialectInvariance:
 
 
 class TestLiteralBooleanReplacementDialectInvariance:
-    """Characterization tests pinning today's literal-boolean replacement behavior.
+    """Characterization tests pinning the literal-boolean replacement behavior.
 
-    ``query_metric_provider.py`` replaces the literal ``WHERE true`` with ``WHERE 1=1`` only when
-    the execution engine reports the ``mssql`` dialect. These tests pin that behavior on SQL
-    Server and pin its absence on Oracle and on a default dialect, so that whichever way a future
-    determination of what this guard protects goes, before-and-after evidence for both dialects
-    already exists. This class does not determine what the guard protects and does not extend it
-    to Oracle; it only pins what exists today.
+    ``query_metric_provider.py`` replaces the literal ``WHERE true`` with ``WHERE 1=1`` when the
+    execution engine reports the ``mssql`` or ``oracle`` dialect: SQL Server has no boolean
+    literal, and Oracle rejects a bare ``true`` as a ``WHERE``-clause predicate with ORA-00920
+    before it gained a SQL boolean type in 23ai. These tests pin that behavior on SQL Server and
+    on Oracle, and pin its absence on a default dialect.
     """
 
     @pytest.mark.unit
@@ -1117,7 +1116,7 @@ class TestLiteralBooleanReplacementDialectInvariance:
         assert result == "SELECT * FROM my_table WHERE 1=1"
 
     @pytest.mark.unit
-    def test_oracle_does_not_replace_literal_where_true(
+    def test_oracle_replaces_literal_where_true(
         self,
         mock_oracle_execution_engine: MockOracleSqlAlchemyExecutionEngine,
         batch_selectable: sa.Table,
@@ -1129,7 +1128,7 @@ class TestLiteralBooleanReplacementDialectInvariance:
                 execution_engine=mock_oracle_execution_engine,
             )
         )
-        assert result == "SELECT * FROM my_table WHERE true"
+        assert result == "SELECT * FROM my_table WHERE 1=1"
 
     @pytest.mark.unit
     def test_default_dialect_does_not_replace_literal_where_true(
