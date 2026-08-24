@@ -453,8 +453,8 @@ EXPECTED_PARTITION_QUERY_SQL_BY_DIALECT_AND_DATE_PART_COUNT = {
         "cast(extract(monthfromcolumn_name)assignedinteger)asmonthfromtable_name"
     ),
     ("oracle", 2): (
-        "selectdistinct(concat(concat('',cast(extract(yearfromcolumn_name)asvarchar2)),"
-        "cast(extract(monthfromcolumn_name)asvarchar2)))asconcat_distinct_values,"
+        "selectdistinct(concat(concat('',cast(extract(yearfromcolumn_name)asvarchar2(4000char))),"
+        "cast(extract(monthfromcolumn_name)asvarchar2(4000char))))asconcat_distinct_values,"
         "cast(extract(yearfromcolumn_name)asinteger)asyear,"
         "cast(extract(monthfromcolumn_name)asinteger)asmonthfromtable_name"
     ),
@@ -491,9 +491,9 @@ EXPECTED_PARTITION_QUERY_SQL_BY_DIALECT_AND_DATE_PART_COUNT = {
         "cast(extract(dayfromcolumn_name)assignedinteger)asdayfromtable_name"
     ),
     ("oracle", 3): (
-        "selectdistinct(concat(concat(concat('',cast(extract(yearfromcolumn_name)asvarchar2)),"
-        "cast(extract(monthfromcolumn_name)asvarchar2)),"
-        "cast(extract(dayfromcolumn_name)asvarchar2)))asconcat_distinct_values,"
+        "selectdistinct(concat(concat(concat('',cast(extract(yearfromcolumn_name)asvarchar2(4000char))),"
+        "cast(extract(monthfromcolumn_name)asvarchar2(4000char))),"
+        "cast(extract(dayfromcolumn_name)asvarchar2(4000char))))asconcat_distinct_values,"
         "cast(extract(yearfromcolumn_name)asinteger)asyear,"
         "cast(extract(monthfromcolumn_name)asinteger)asmonth,"
         "cast(extract(dayfromcolumn_name)asinteger)asdayfromtable_name"
@@ -544,23 +544,25 @@ def test_partition_query_single_date_part_never_carries_a_string_cast(dialect_na
 
 
 @pytest.mark.parametrize("date_part_count", [2, 3])
-def test_partition_query_oracle_multi_date_part_string_cast_is_currently_length_less(
+def test_partition_query_oracle_multi_date_part_string_cast_carries_a_length(
     date_part_count: int,
 ):
     """What does this test and why?
 
     Engineering fact this assertion pins: SQLAlchemy's Oracle dialect compiles a bare
-    ``sa.String`` type to ``VARCHAR2`` with no length. A ``CAST(... AS VARCHAR2)`` with no
-    length is rejected by Oracle's grammar once the query actually executes. This assertion
-    records that today's rendering carries that length-less type for every string-cast site in
-    the multi-date-part path; a fix that gives the cast an explicit length is expected to
-    invert it.
+    ``sa.String`` type to ``VARCHAR2`` with no length, and a ``CAST(... AS VARCHAR2)`` with no
+    length is rejected by Oracle's grammar once the query actually executes. Every string-cast
+    site in the multi-date-part path now supplies an explicit length, so every one of them
+    renders a lengthed ``VARCHAR2`` and none renders the length-less form. The assertion is
+    positive and exhaustive by count: a partial migration would leave some sites length-less
+    and change this count without necessarily changing whether the length-less form is present
+    at all.
     """
     rendered = _render_partition_query_for_date_parts(
         "oracle", PARTITION_QUERY_DATE_PARTS_BY_COUNT[date_part_count]
     )
-    assert rendered.count("asvarchar2)") == date_part_count
-    assert "asvarchar2(" not in rendered
+    assert rendered.count("asvarchar2(4000char)") == date_part_count
+    assert "asvarchar2)" not in rendered
 
 
 @pytest.mark.parametrize(
