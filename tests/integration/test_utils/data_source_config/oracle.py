@@ -69,18 +69,6 @@ class OracleDatasourceTestConfig(SqlDatasourceTestConfig):
                 "unmatched dialect; Oracle exposes REGEXP_LIKE, but the helper never compiles a "
                 "predicate for it, so no regex-based case can execute against this dialect."
             ),
-            # The query-metric providers re-embed the batch as a derived-table subquery using a
-            # hardcoded `AS <alias>` construction. Oracle's grammar accepts `AS` before a column
-            # alias but rejects it before a table/derived-table alias, so any query that
-            # re-embeds the batch fails with a database error before the expectation can
-            # evaluate.
-            "unexpected_rows_query": (
-                "The query-metric providers re-embed the batch as a derived-table subquery "
-                "using a hardcoded `AS <alias>` construction; Oracle's grammar accepts AS "
-                "before a column alias but rejects it before a table/derived-table alias, so "
-                "any query that re-embeds the batch fails with a database error (ORA-00933 or "
-                "ORA-00907, depending on nesting depth) before the expectation can evaluate."
-            ),
         },
     )
 
