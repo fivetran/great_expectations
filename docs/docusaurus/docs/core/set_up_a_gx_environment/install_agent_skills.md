@@ -14,42 +14,35 @@ The skills are plain text files that ship inside the `great_expectations` packag
 
 The three skills are three segments of one path: get GX reading your data, describe what you expect of that data, then bundle those checks into something you can run again without an agent involved. Each one ends where the next begins, and each one checks that its own starting point exists before it does anything — so you can work straight through, or come back weeks later and pick up where the last one left off.
 
-**The skills hand work back to you rather than take it.** Anything that reaches past the work you asked for and touches your machine starts from you:
-
-- A missing database driver is reported by name, along with the command that installs it — not installed for you.
-- A project directory is created only after you have agreed to write the session out and named where.
-- A change to your project's configuration that goes beyond what you asked for — repairing a disabled Data Docs site, for instance — is explained first and made only after you say yes.
-- A file you did not ask for and locate is offered in the conversation instead of written to your disk.
-
 ### Connect to your data: `gx-configure-data-source`
 
-This skill takes you from "here is my data" to a verified Batch Definition — a named, saved way of pulling a specific slice of your data, proven to work because the skill read through it. It builds three objects in order: a Data Source holding the connection (a directory, a connection string, or an in-memory handle), a Data Asset naming the collection of data within it (a table, a query, a family of files, a dataframe), and a Batch Definition selecting how much of that Asset a single operation reads — the whole thing, or one time window of it. Credentials go into the configuration as `${VARIABLE_NAME}` references, never as literal values.
+This skill takes you from "here is my data" to a Batch Definition — a named, saved way of pulling a specific slice of your data, with the connection verified in-session. It builds three objects in order: a Data Source holding the connection (a directory, a connection string, or an in-memory handle), a Data Asset naming the collection of data within it (a table, a query, a family of files, a dataframe), and a Batch Definition selecting how much of that Asset a single operation reads — the whole thing, or one time window of it. Credentials go into the configuration as `${VARIABLE_NAME}` references, never as literal values.
 
 **What it needs before it starts:** nothing but your data and a way to reach it. This is the first skill in the path. It works against either a GX project on disk or an in-memory session, and it tells you which one it is working on before it configures anything.
 
-**What it leaves behind:** the Data Source, Data Asset, and Batch Definition, as ordinary GX project artifacts built through the public Python API. Before reporting, the skill retrieves a batch and reads rows through it, because retrieving a batch on its own proves nothing — then tells you what it created, what it reused, and what the read returned. It stops there: it does not invent "smoke test" Expectations to demonstrate that the setup works. If the session is in memory, it offers to write the work out to a real project.
+**What it leaves behind:** the Data Source, Data Asset, and Batch Definition, as ordinary GX project artifacts built through the public Python API. Before reporting, the skill retrieves a batch and reads rows through it to verify the connection is usable — then tells you what it created, what it reused, and what the read returned.
 
-When you want to assert something about that data, this skill hands off the Batch Definition it just verified to the next one.
+When you want to assert something about that data, this skill hands off the Batch Definition it just verified to `gx-configure-data-source`.
 
 ### Describe what you expect: `gx-configure-expectations`
 
-This skill takes you from "here is what I want to be true about my data" to a saved Expectation Suite that has been run against a real batch, with every check reported individually. Two objects are involved: an Expectation is a single check with typed parameters — one column, one assertion, one set of bounds — and an Expectation Suite is the named, persisted collection of them. The skill matches what you describe in plain language against the Expectation catalog shipped inside the installed package, and builds only what you described. It does not profile your data looking for things worth asserting, and it does not append checks you did not ask for; if something you said is too vague to pin down, it asks you which bound you meant instead of picking one from the data.
+This skill takes you from "here is what I want to be true about my data" to a saved Expectation Suite that has been run against a real batch of data. Two objects are involved: an Expectation is a single check with typed parameters — one column, one assertion, one set of bounds — and an Expectation Suite is the named, persisted collection of them. The skill transforms data invariants you describe in plain language into fully configured Expectations, then validates them against the underlying data and reports the results. 
 
-**What it needs before it starts:** a working Batch Definition. If your project or session has none, the skill says so and points you at `gx-configure-data-source` rather than improvising data access some other way. If more than one exists, it names them and asks which slice of your data you meant.
+**What it needs before it starts:** a working Batch Definition. If your project or session has none, you'll be redirected to `gx-configure-data-source` first to connect to your data.
 
-**What it leaves behind:** the Suite, saved in your project, with each Expectation written through as it was added, and a report of the validation run — every Expectation shown as passed, failed with the observed numbers, or unable to run with the cause named. Validation results themselves are not filed anywhere by this skill: the Suite is the durable artifact, and the report you were given is the record of that run.
+**What it leaves behind:** the Suite, saved in your project, with each Expectation written through as it was added, and a report of the validation run — every Expectation shown as passed, failed with the observed numbers, or unable to run with the cause named. The exploratory validation results created in-session are not written into your project by default.
 
-Turning a validated Suite into a check that survives the session is where the last skill picks up — and if you stop here instead, this skill's own job is already finished.
+To repeatably validate your Expectations, this skill hands off the Batch Definition and ExpectationSuite to `gx-configure-checkpoint`.
 
 ### Make the checks re-runnable: `gx-configure-checkpoint`
 
-This skill takes you from "here is a Suite that already validated my data" to a persisted, re-runnable Checkpoint, verified by actually running it once. Two objects again: a Validation Definition binds one Batch Definition to one Expectation Suite — the specific slice of data, and the specific checks to run against it — and a Checkpoint is the named, persisted grouping of Validation Definitions plus the actions that fire after a run, executed as one operation. The skill asks what should happen after a run before assuming nothing should: a Slack or Teams message, an email, a Data Docs rebuild, or one of the less common actions.
+This skill takes you from "here is a Suite that already validated my data" to a persisted, re-runnable Checkpoint. Two objects again: a Validation Definition binds one Batch Definition to one Expectation Suite — the specific slice of data, and the specific checks to run against it — and a Checkpoint is the named, persisted grouping of Validation Definitions plus the actions that fire after a run, executed as one operation. 
 
 **What it needs before it starts:** at least one Expectation Suite and one working Batch Definition. If either is missing, the skill stops and names the skill that builds it.
 
 **What it leaves behind:** the Checkpoint and its Validation Definitions, saved in your project, plus the results of the one verification run, reported per Validation Definition and then per Expectation within it. You also get a small self-contained script that loads the project by an absolute path and re-runs the Checkpoint by name from outside any agent session — which is the point of the Checkpoint. Wiring that script into an actual cadence, such as a cron entry, an Airflow DAG, or a CI job, is your orchestrator's job rather than the skill's.
 
-That script is where the path ends: from there, your checks run on your schedule, with no agent in the loop.
+That script is where the path ends: from there, deploy your checks to run on your schedule, with no agent in the loop.
 
 ## Prerequisites
 
