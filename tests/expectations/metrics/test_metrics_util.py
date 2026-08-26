@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import contextlib
 import random
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Callable, Final, List, Union
 from unittest.mock import create_autospec, patch
 
 import pytest
+import sqlalchemy.dialects.mysql
+import sqlalchemy.dialects.oracle
 from _pytest import monkeypatch
 
 if TYPE_CHECKING:
@@ -23,12 +26,14 @@ from great_expectations.compatibility.sqlalchemy import (
 from great_expectations.data_context.util import file_relative_path
 from great_expectations.exceptions import MetricResolutionError
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
+from great_expectations.expectations.metrics import util as metrics_util
 from great_expectations.expectations.metrics.util import (
     CaseInsensitiveString,
     _build_column_metadata_result,
     column_reflection_fallback,
     get_dbms_compatible_metric_domain_kwargs,
     get_dialect_like_pattern_expression,
+    get_dialect_regex_expression,
     get_unexpected_indices_for_multiple_pandas_named_indices,
     get_unexpected_indices_for_single_pandas_named_index,
     sqlalchemy_select_to_sql_string,
@@ -1154,3 +1159,400 @@ class TestBuildColumnMetadataResultSQLServer:
         assert isinstance(result[0]["type"], CaseInsensitiveString)
         assert str(result[0]["type"]) == expected_str
         assert result[0]["type"] == expected_str.lower()
+
+
+class _DialectDetectionStub:
+    """A minimal stand-in for the ``dialect`` argument of
+    ``get_dialect_regex_expression``, exposing only the attributes explicitly
+    passed in.
+
+    Unlike ``unittest.mock.Mock()``, which auto-creates every attribute on
+    access, this object raises ``AttributeError`` for anything not set here.
+    That distinction matters for this chain: several branches are detected
+    with ``hasattr(dialect, "<Name>Dialect")``, so a ``Mock()`` would satisfy
+    the *first* such branch (redshift) for every dialect under test, making
+    every later ``hasattr`` branch permanently unreachable while the test
+    still passed.
+    """
+
+    def __init__(self, **attrs: object) -> None:
+        for name, value in attrs.items():
+            setattr(self, name, value)
+
+
+class _FakeSnowflakeDialect:
+    """Stand-in for ``snowflake.sqlalchemy.snowdialect.SnowflakeDialect``.
+
+    The real class lives in an optional vendor package. A fake is used here,
+    together with patching the module-level ``snowflake`` name the helper
+    reads, so the snowflake branch is exercised without that package
+    installed.
+    """
+
+
+class _FakeTeradataDialect:
+    """Stand-in for ``teradatasqlalchemy.dialect.TeradataDialect``, for the
+    same reason as ``_FakeSnowflakeDialect`` above.
+    """
+
+
+class _FakeDatabricksDialect:
+    """Stand-in for the databricks vendor package's ``DatabricksDialect``.
+
+    The helper's databricks detection (``_is_databricks_dialect``)
+    short-circuits to ``False`` whenever the module-level ``sqla_databricks``
+    name is falsy, so that name must be patched to something truthy even
+    though the branch itself is reached through ``hasattr``, not
+    ``issubclass``.
+    """
+
+
+class _OracleSub(sa.dialects.oracle.dialect):
+    """A concrete subclass of SQLAlchemy's bundled Oracle dialect.
+
+    The chain detects Oracle with ``issubclass`` against the bundled
+    dialect, the same idiom postgres, mysql, and sqlite use, because Oracle
+    ships with SQLAlchemy. A subclass is used here for the same reason the
+    postgres, mysql, and sqlite stubs are: it exercises the ``issubclass``
+    relation rather than object identity, and so is strictly more permissive
+    than what the execution engine passes, which is the bundled module.
+    """
+
+
+class _PGSub(sa.dialects.postgresql.dialect):
+    pass
+
+
+class _MySQLSub(sqlalchemy.dialects.mysql.base.MySQLDialect):
+    pass
+
+
+class _SQLiteSub(sa.dialects.sqlite.dialect):
+    pass
+
+
+class _SnowflakeSub(_FakeSnowflakeDialect):
+    pass
+
+
+class _TeradataSub(_FakeTeradataDialect):
+    pass
+
+
+# Attribute names the chain probes with `hasattr` directly on the top-level
+# dialect object (as opposed to on `.dialect`). Used below to prove that no
+# stub for one branch accidentally also satisfies another branch's
+# detection.
+_HASATTR_PROBED_DIALECT_NAMES: Final = (
+    "DatabricksDialect",
+    "RedshiftDialect",
+    "BigQueryDialect",
+    "TrinoDialect",
+    "ClickHouseDialect",
+    "DremioDialect",
+)
+
+# One entry per existing branch in `get_dialect_regex_expression`, in chain
+# order: (case_id, dialect stub, module-level patches needed to reach it
+# without installing an optional vendor package).
+_REGEX_DIALECT_CASES: Final = {
+    "postgresql": (
+        _DialectDetectionStub(dialect=_PGSub),
+        {},
+    ),
+    "databricks": (
+        _DialectDetectionStub(DatabricksDialect=object()),
+        {"sqla_databricks": SimpleNamespace(DatabricksDialect=_FakeDatabricksDialect)},
+    ),
+    "redshift": (
+        _DialectDetectionStub(RedshiftDialect=object()),
+        {},
+    ),
+    "mysql": (
+        _DialectDetectionStub(dialect=_MySQLSub),
+        {},
+    ),
+    "snowflake": (
+        _DialectDetectionStub(dialect=_SnowflakeSub),
+        {
+            "snowflake": SimpleNamespace(
+                sqlalchemy=SimpleNamespace(
+                    snowdialect=SimpleNamespace(SnowflakeDialect=_FakeSnowflakeDialect)
+                )
+            )
+        },
+    ),
+    "bigquery": (
+        _DialectDetectionStub(BigQueryDialect=object()),
+        {},
+    ),
+    "trino": (
+        _DialectDetectionStub(TrinoDialect=object()),
+        {},
+    ),
+    "clickhouse": (
+        _DialectDetectionStub(ClickHouseDialect=object()),
+        {},
+    ),
+    "dremio": (
+        _DialectDetectionStub(DremioDialect=object()),
+        {},
+    ),
+    "teradata": (
+        _DialectDetectionStub(dialect=_TeradataSub),
+        {
+            "teradatasqlalchemy": SimpleNamespace(
+                dialect=SimpleNamespace(TeradataDialect=_FakeTeradataDialect)
+            )
+        },
+    ),
+    "sqlite": (
+        _DialectDetectionStub(dialect=_SQLiteSub),
+        {},
+    ),
+}
+
+
+def _render_regex_expression(case_id: str, positive: bool) -> str | None:
+    stub, patches = _REGEX_DIALECT_CASES[case_id]
+    column = sa.column("a")
+    with contextlib.ExitStack() as stack:
+        for name, value in patches.items():
+            stack.enter_context(patch.object(metrics_util, name, value))
+        expr = get_dialect_regex_expression(
+            column=column, regex="test", dialect=stub, positive=positive
+        )
+    if expr is None:
+        return None
+    return str(expr.compile(compile_kwargs={"literal_binds": True}))
+
+
+@pytest.mark.unit
+def test_get_dialect_regex_expression_stubs_are_mutually_exclusive() -> None:
+    """Prove the eleven stubs above are pairwise non-overlapping, so a green
+    result below reflects eleven distinct branches firing rather than one
+    branch (e.g. the first `hasattr` branch, redshift) matching every case.
+
+    Every stub is built from `_DialectDetectionStub`, which -- unlike
+    `unittest.mock.Mock()` -- exposes exactly the attributes passed to it.
+    This test checks that construction invariant mechanically: a `.dialect`
+    stub exposes none of the names any `hasattr`-idiom branch probes, and a
+    `hasattr`-idiom stub exposes exactly one such name (its own) and no
+    `.dialect` attribute at all.
+    """
+    for case_id, (stub, _patches) in _REGEX_DIALECT_CASES.items():
+        exposed_hasattr_names = [
+            name for name in _HASATTR_PROBED_DIALECT_NAMES if hasattr(stub, name)
+        ]
+        if hasattr(stub, "dialect"):
+            assert exposed_hasattr_names == [], (
+                f"{case_id} stub uses the issubclass idiom but also exposes "
+                f"hasattr-probed name(s) {exposed_hasattr_names}, which would let it "
+                f"satisfy another branch's detection too"
+            )
+        else:
+            assert len(exposed_hasattr_names) == 1, (
+                f"{case_id} stub does not expose exactly one hasattr-probed name: "
+                f"{exposed_hasattr_names}"
+            )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "case_id,positive,expected_sql",
+    [
+        pytest.param("postgresql", True, "a ~ 'test'", id="postgresql-positive"),
+        pytest.param("postgresql", False, "a !~ 'test'", id="postgresql-negative"),
+        pytest.param("databricks", True, "regexp_like(a, 'test')", id="databricks-positive"),
+        pytest.param("databricks", False, "NOT regexp_like(a, 'test')", id="databricks-negative"),
+        pytest.param("redshift", True, "a ~ 'test'", id="redshift-positive"),
+        pytest.param("redshift", False, "a !~ 'test'", id="redshift-negative"),
+        pytest.param("mysql", True, "a REGEXP 'test'", id="mysql-positive"),
+        pytest.param("mysql", False, "a NOT REGEXP 'test'", id="mysql-negative"),
+        pytest.param("snowflake", True, "a REGEXP 'test'", id="snowflake-positive"),
+        pytest.param("snowflake", False, "a NOT REGEXP 'test'", id="snowflake-negative"),
+        pytest.param("bigquery", True, "REGEXP_CONTAINS(a, 'test')", id="bigquery-positive"),
+        pytest.param("bigquery", False, "NOT REGEXP_CONTAINS(a, 'test')", id="bigquery-negative"),
+        pytest.param("trino", True, "regexp_like(a, 'test')", id="trino-positive"),
+        pytest.param("trino", False, "NOT regexp_like(a, 'test')", id="trino-negative"),
+        pytest.param("clickhouse", True, "regexp_like(a, 'test')", id="clickhouse-positive"),
+        pytest.param("clickhouse", False, "NOT regexp_like(a, 'test')", id="clickhouse-negative"),
+        pytest.param("dremio", True, "REGEXP_MATCHES(a, 'test')", id="dremio-positive"),
+        pytest.param("dremio", False, "NOT REGEXP_MATCHES(a, 'test')", id="dremio-negative"),
+        pytest.param(
+            "teradata",
+            True,
+            "REGEXP_SIMILAR(a, 'test', 'i') = 1",
+            id="teradata-positive",
+        ),
+        pytest.param(
+            "teradata",
+            False,
+            "REGEXP_SIMILAR(a, 'test', 'i') = 0",
+            id="teradata-negative",
+        ),
+        pytest.param("sqlite", True, "a <regexp> 'test'", id="sqlite-positive"),
+        pytest.param("sqlite", False, "a <not regexp> 'test'", id="sqlite-negative"),
+    ],
+)
+def test_get_dialect_regex_expression_pins_every_existing_branch(
+    case_id: str, positive: bool, expected_sql: str
+) -> None:
+    """Pin the exact SQL `get_dialect_regex_expression` renders today for
+    every one of the eleven existing dialect branches, in both the positive
+    and negated form. This is a compile-only, database-free characterization
+    test: no engine, connection, or optional vendor package is required.
+    """
+    rendered = _render_regex_expression(case_id, positive)
+
+    assert rendered is not None, (
+        f"{case_id} ({'positive' if positive else 'negative'}) unexpectedly returned None"
+    )
+    assert rendered == expected_sql
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "positive,expected_sql",
+    [
+        pytest.param(True, "regexp_like(a, 'test')", id="positive"),
+        # The negated form is `sa.not_()` applied to the positive one, so this
+        # also pins how that wrapping renders -- which is what one aggregate
+        # caller relies on, since it requests the positive form and negates in
+        # Python rather than asking for the negated form.
+        pytest.param(False, "NOT regexp_like(a, 'test')", id="negative"),
+    ],
+)
+def test_get_dialect_regex_expression_renders_oracle_native_predicate(
+    positive: bool, expected_sql: str
+) -> None:
+    """`get_dialect_regex_expression`'s branch chain now has an Oracle entry,
+    detected the same `issubclass` way postgres, mysql, and sqlite already
+    are, since Oracle ships with SQLAlchemy. It renders Oracle's native
+    `REGEXP_LIKE` condition, in the same `sa.func.regexp_like(...)` /
+    `sa.not_(...)` shape Trino and ClickHouse already use -- so the return
+    value survives both direct use as a predicate and the one caller that
+    wraps it in `sa.not_()` itself.
+    """
+    stub = _DialectDetectionStub(dialect=_OracleSub)
+    column = sa.column("a")
+
+    result = get_dialect_regex_expression(
+        column=column, regex="test", dialect=stub, positive=positive
+    )
+
+    assert result is not None
+    rendered = str(result.compile(compile_kwargs={"literal_binds": True}))
+    assert rendered == expected_sql
+
+
+# `get_dialect_regex_expression` has 6 calling modules / 9 call sites, which reduce to four
+# distinct *families* by call shape: the row-level condition family (a single call, one per
+# polarity), the aggregate-value family (a single call plus a Python-side `sa.not_()` for the
+# negative form), and the two list-form families (a call per regex in the list, combined with
+# `sa.or_`/`sa.and_`). Of these, the curated suite exercises only `column_values.match_regex`,
+# the positive half of the row-level family; the negative half is pinned above by
+# `test_get_dialect_regex_expression_renders_oracle_native_predicate[negative]`.
+# The three tests below reproduce the exact resolution shape of the remaining three families --
+# they are not re-tests of the helper in isolation, they replicate what each family's own
+# `_sqlalchemy` method does with the helper's return value -- and name the module each covers.
+
+
+@pytest.mark.unit
+def test_get_dialect_regex_expression_resolves_oracle_aggregate_family() -> None:
+    """Covers the aggregate family:
+    `great_expectations/expectations/metrics/column_aggregate_metrics/column_values_match_regex_values.py`
+    and
+    `great_expectations/expectations/metrics/column_aggregate_metrics/column_values_not_match_regex_values.py`.
+
+    Both call `get_dialect_regex_expression(column, regex, _dialect)` once and use the result
+    directly in a `sa.select(column).where(...)` query; the "not match" module additionally
+    wraps the result in `sa.not_()` before using it as the `where()` predicate. This reproduces
+    that exact resolution shape against an Oracle dialect and pins the resulting SQL, proving
+    the branch is reached (a `None` return would raise `NotImplementedError` in production
+    before a query is ever built).
+    """
+    stub = _DialectDetectionStub(dialect=_OracleSub)
+    column = sa.column("a")
+
+    regex_expression = get_dialect_regex_expression(column=column, regex="test", dialect=stub)
+    assert regex_expression is not None, (
+        "aggregate family: get_dialect_regex_expression returned None for Oracle -- "
+        "column_values_match_regex_values.py and column_values_not_match_regex_values.py "
+        "would raise NotImplementedError before building a query"
+    )
+
+    match_query = sa.select(column).where(regex_expression)
+    assert str(match_query.compile(compile_kwargs={"literal_binds": True})) == (
+        "SELECT a \nWHERE regexp_like(a, 'test')"
+    )
+
+    not_match_query = sa.select(column).where(sa.not_(regex_expression))
+    assert str(not_match_query.compile(compile_kwargs={"literal_binds": True})) == (
+        "SELECT a \nWHERE NOT regexp_like(a, 'test')"
+    )
+
+
+@pytest.mark.unit
+def test_get_dialect_regex_expression_resolves_oracle_regex_list_match_family() -> None:
+    """Covers the list-form match family:
+    `great_expectations/expectations/metrics/column_map_metrics/column_values_match_regex_list.py`.
+
+    That module calls `get_dialect_regex_expression` once per entry in `regex_list` and combines
+    the results with `sa.or_()` (`match_on="any"`) or `sa.and_()` (`match_on="all"`). This
+    reproduces that exact resolution shape against an Oracle dialect and pins both combined
+    forms, proving the branch is reached for every call in the list -- not just the first.
+    """
+    stub = _DialectDetectionStub(dialect=_OracleSub)
+    column = sa.column("a")
+    regex_list = ["foo", "bar"]
+
+    conditions = [
+        get_dialect_regex_expression(column=column, regex=regex, dialect=stub)
+        for regex in regex_list
+    ]
+    assert all(condition is not None for condition in conditions), (
+        "regex_list match family: get_dialect_regex_expression returned None for Oracle on at "
+        "least one entry -- column_values_match_regex_list.py would raise NotImplementedError "
+        "before combining conditions"
+    )
+
+    any_condition = sa.or_(*conditions)
+    assert str(any_condition.compile(compile_kwargs={"literal_binds": True})) == (
+        "regexp_like(a, 'foo') OR regexp_like(a, 'bar')"
+    )
+
+    all_condition = sa.and_(*conditions)
+    assert str(all_condition.compile(compile_kwargs={"literal_binds": True})) == (
+        "regexp_like(a, 'foo') AND regexp_like(a, 'bar')"
+    )
+
+
+@pytest.mark.unit
+def test_get_dialect_regex_expression_resolves_oracle_regex_list_not_match_family() -> None:
+    """Covers the list-form not-match family:
+    `great_expectations/expectations/metrics/column_map_metrics/column_values_not_match_regex_list.py`.
+
+    That module calls `get_dialect_regex_expression(..., positive=False)` once per entry in
+    `regex_list` and combines the results with `sa.and_()`. This reproduces that exact
+    resolution shape against an Oracle dialect and pins the combined SQL, proving the negative
+    branch is reached for every call in the list.
+    """
+    stub = _DialectDetectionStub(dialect=_OracleSub)
+    column = sa.column("a")
+    regex_list = ["foo", "bar"]
+
+    conditions = [
+        get_dialect_regex_expression(column=column, regex=regex, dialect=stub, positive=False)
+        for regex in regex_list
+    ]
+    assert all(condition is not None for condition in conditions), (
+        "regex_list not-match family: get_dialect_regex_expression returned None for Oracle on "
+        "at least one entry -- column_values_not_match_regex_list.py would raise "
+        "NotImplementedError before combining conditions"
+    )
+
+    compound_condition = sa.and_(*conditions)
+    assert str(compound_condition.compile(compile_kwargs={"literal_binds": True})) == (
+        "NOT regexp_like(a, 'foo') AND NOT regexp_like(a, 'bar')"
+    )
