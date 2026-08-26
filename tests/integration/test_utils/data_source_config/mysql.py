@@ -10,6 +10,7 @@ from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.backend_spec import (
     BackendProvisioning,
+    BackendTier,
     CiLaneRef,
     SqlBackendSpec,
 )
@@ -27,6 +28,7 @@ class MySQLDatasourceTestConfig(SqlDatasourceTestConfig):
         provisioning=BackendProvisioning.LOCAL_CONTAINER,
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="mysql"),
         uses_schema=True,
+        tiers=frozenset({BackendTier.STANDARD_SQL}),
         # MySQL requires a length for VARCHAR.
         column_type_overrides={str: sqltypes.VARCHAR(255)},
         dev_requirements_file="reqs/requirements-dev-mysql.txt",
