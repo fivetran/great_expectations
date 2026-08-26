@@ -4,20 +4,13 @@ jinja2>=3
 jsonschema>=2.5.1
 marshmallow>=3.7.1,<4.0.0
 mistune>=0.8.4
-numpy>=1.22.4; python_version >= "3.10"
-numpy>=1.26.0; python_version >= "3.12"
-numpy>=2.1.0; python_version >= "3.13"
 packaging
-pandas>=1.3.0; python_version >= "3.10"
-pandas>=2.2.3; python_version >= "3.13"
-pandas>=1.3.0; python_version >= "3.12"
 # patch version updates `typing_extensions` to the needed version
 pydantic>=1.10.7
 pyparsing>=2.4,!=3.2.4
 python-dateutil>=2.8.1
 requests>=2.20
 ruamel.yaml>=0.16
-scipy>=1.6.0
 tqdm>=4.59.0
 typing-extensions>=4.1.0 # Leverage type annotations from recent Python releases
 tzlocal>=1.2

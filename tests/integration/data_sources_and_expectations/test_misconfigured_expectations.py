@@ -24,14 +24,19 @@ PANDAS_DATA_SOURCES: list[DataSourceTestConfig] = [
 SPARK_DATA_SOURCES: list[DataSourceTestConfig] = [
     ds for ds in ALL_DATA_SOURCES if ds.label.startswith("spark")
 ]
+DUCKDB_DATA_SOURCES: list[DataSourceTestConfig] = [
+    ds for ds in ALL_DATA_SOURCES if ds.label.startswith("duckdb")
+]
 
 
 @pytest.mark.unit
 def test_parameterization():
-    # Ensure that all data sources are covered
-    assert len(PANDAS_DATA_SOURCES) + len(SPARK_DATA_SOURCES) + len(SQL_DATA_SOURCES) == len(
-        ALL_DATA_SOURCES
-    )
+    # Ensure that all data sources are covered. DuckDB is its own family rather than part of
+    # the SQL one: it does not go through SQLAlchemy, so it is absent from SQL_DATA_SOURCES and
+    # would otherwise make this partition silently incomplete.
+    assert len(PANDAS_DATA_SOURCES) + len(SPARK_DATA_SOURCES) + len(DUCKDB_DATA_SOURCES) + len(
+        SQL_DATA_SOURCES
+    ) == len(ALL_DATA_SOURCES)
 
 
 class TestNumericExpectationAgainstStrDataMisconfiguration:

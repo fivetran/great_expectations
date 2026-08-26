@@ -16,14 +16,14 @@ after this one has not yet run its registration and is silently absent from both
 though it is declared and registered. This package's `__init__.py` imports every backend module
 before this one for exactly that reason; the regression test in
 `tests/test_sql_backend_registry.py` that guards the ordering is what turns a violation of it into
-a failing test instead of a silent gap. The pandas and Spark lists stay hand-written literals
-because those data sources have no equivalent declarative record to read membership from;
-deriving them would need a registry this module does not have anything to key off, so they remain
-exactly what they were before this module existed.
+a failing test instead of a silent gap. The pandas, Spark, and DuckDB lists stay hand-written
+literals because those data sources have no equivalent declarative record to read membership
+from; deriving them would need a registry this module does not have anything to key off, so they
+remain exactly what they were before this module existed.
 
-This module imports the pandas and Spark config modules directly to build the two literal,
-non-SQL lists - those configs carry no declaration to read membership from - and reads the
-registry to build the two derived, SQL lists. It sits to the right of every other
+This module imports the pandas, Spark, and DuckDB config modules directly to build the three
+literal, non-SQL lists - those configs carry no declaration to read membership from - and reads
+the registry to build the two derived, SQL lists. It sits to the right of every other
 module in this package's dependency direction (see `sql_config.py`'s module docstring), so
 nothing else in this package may import it.
 """
@@ -33,6 +33,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Final, List, cast
 
 from tests.integration.test_utils.data_source_config.backend_spec import BackendTier
+from tests.integration.test_utils.data_source_config.duckdb_filesystem_csv import (
+    DuckDBFilesystemCsvDatasourceTestConfig,
+)
 from tests.integration.test_utils.data_source_config.pandas_data_frame import (
     PandasDataFrameDatasourceTestConfig,
 )
@@ -56,6 +59,16 @@ SPARK_DATA_SOURCES: Final[List[DataSourceTestConfig]] = [
     SparkFilesystemCsvDatasourceTestConfig(),
 ]
 
+DUCKDB_DATA_SOURCES: Final[List[DataSourceTestConfig]] = [
+    DuckDBFilesystemCsvDatasourceTestConfig(),
+]
+"""DuckDB's file-backed data sources.
+
+Hand-written for the same reason the pandas and Spark lists are: `DuckDBExecutionEngine` is not
+a SQLAlchemy backend, so its config carries no `SqlBackendSpec` for the registry to derive tier
+membership from.
+"""
+
 SQL_DATA_SOURCES: Final[List[DataSourceTestConfig]] = [
     # `sql_backends_for_tier` is typed against the registry's minimal registration protocol, not
     # against `DataSourceTestConfig`, so that `registry.py` need not import the SQL config base
@@ -77,7 +90,7 @@ CURATED_SQL_DATA_SOURCES: Final[List[DataSourceTestConfig]] = [
 arguments, in label order. Empty until a backend declares that tier."""
 
 ALL_DATA_SOURCES: Final[List[DataSourceTestConfig]] = (
-    PANDAS_DATA_SOURCES + SPARK_DATA_SOURCES + SQL_DATA_SOURCES
+    PANDAS_DATA_SOURCES + SPARK_DATA_SOURCES + DUCKDB_DATA_SOURCES + SQL_DATA_SOURCES
 )
 
 

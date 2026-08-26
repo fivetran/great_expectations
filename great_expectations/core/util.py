@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING, Any, Callable, Mapping, MutableMapping, Option
 from urllib.parse import urlparse
 
 import dateutil.parser
-import numpy as np
 
 from great_expectations import exceptions as gx_exceptions
+from great_expectations.compatibility.numpy import np
 from great_expectations.compatibility.sqlalchemy import SQLALCHEMY_NOT_IMPORTED, LegacyRow, Row
 
 if TYPE_CHECKING:
@@ -37,8 +37,9 @@ if not Row:  # type: ignore[truthy-function] # FIXME CoP
 
 SCHEMAS = {
     "api_np": {
-        "NegativeInfinity": -np.inf,
-        "PositiveInfinity": np.inf,
+        # float("inf") is numerically identical to np.inf and avoids a hard numpy import here.
+        "NegativeInfinity": float("-inf"),
+        "PositiveInfinity": float("inf"),
     },
     "api_cast": {
         "NegativeInfinity": -float("inf"),

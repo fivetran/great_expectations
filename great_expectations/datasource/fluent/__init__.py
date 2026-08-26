@@ -97,6 +97,7 @@ from great_expectations.datasource.fluent.spark_google_cloud_storage_datasource 
 from great_expectations.datasource.fluent.spark_azure_blob_storage_datasource import (
     SparkAzureBlobStorageDatasource,
 )
+from great_expectations.datasource.fluent.duckdb_datasource import DuckDBDatasource
 from great_expectations.datasource.fluent.sql_datasource import SQLDatasource
 from great_expectations.datasource.fluent.sql_server_datasource import (
     SQLServerDatasource,

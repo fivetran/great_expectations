@@ -9,6 +9,7 @@ from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
     DataSourceTestConfig,
+    DuckDBFilesystemCsvDatasourceTestConfig,
     GenericSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
@@ -24,6 +25,7 @@ from tests.integration.test_utils.data_source_config import (
 ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
+    DuckDBFilesystemCsvDatasourceTestConfig(),
     SQLServerDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PandasDataFrameDatasourceTestConfig(),

@@ -3,10 +3,22 @@ of numpy that are supported by great expectations."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
-import numpy as np
 from packaging import version
+
+from great_expectations.compatibility.not_imported import NotImported
+
+NUMPY_NOT_IMPORTED = NotImported(
+    "numpy is not installed, please 'pip install numpy' or install great_expectations[numpy]"
+)
+
+try:
+    import numpy as np
+except ImportError:
+    np = NUMPY_NOT_IMPORTED  # type: ignore[assignment] # FIXME CoP
+
+IS_NUMPY_INSTALLED: Final[bool] = np is not NUMPY_NOT_IMPORTED
 
 if TYPE_CHECKING:
     # needed until numpy min version 1.20

@@ -7,6 +7,7 @@ from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     ExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
@@ -43,6 +44,10 @@ class ColumnValuesNull(ColumnMapMetricProvider):
     @column_condition_partial(engine=SparkDFExecutionEngine)
     def _spark(cls, column, **kwargs):
         return column.isNull()
+
+    @column_condition_partial(engine=DuckDBExecutionEngine)
+    def _duckdb(cls, column, **kwargs):
+        return f"{column} IS NULL"
 
 
 class ColumnValuesNullCount(MetricProvider):

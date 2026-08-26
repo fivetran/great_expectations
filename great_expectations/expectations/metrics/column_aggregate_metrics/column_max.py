@@ -3,6 +3,7 @@ from __future__ import annotations
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
@@ -29,3 +30,7 @@ class ColumnMax(ColumnAggregateMetricProvider):
     @column_aggregate_partial(engine=SparkDFExecutionEngine)
     def _spark(cls, column, **kwargs):
         return F.max(column)
+
+    @column_aggregate_partial(engine=DuckDBExecutionEngine)
+    def _duckdb(cls, column, **kwargs):
+        return f"MAX({column})"

@@ -7,6 +7,7 @@ import importlib
 import inspect
 import json
 import logging
+import math
 import os
 import pathlib
 import re
@@ -40,12 +41,12 @@ from typing import (
     overload,
 )
 
-import numpy as np
-import pandas as pd
 from dateutil.parser import parse
 from packaging import version
 
 from great_expectations.compatibility import pydantic, pyspark, sqlalchemy
+from great_expectations.compatibility.numpy import np
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.compatibility.sqlalchemy import LegacyRow, Row
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
@@ -1023,17 +1024,17 @@ def pandas_series_between(
 
 
 ToBool: TypeAlias = bool
-ToFloat: TypeAlias = Union[float, np.floating]
-ToInt: TypeAlias = Union[int, np.integer]
+ToFloat: TypeAlias = Union[float, "np.floating"]
+ToInt: TypeAlias = Union[int, "np.integer"]
 ToStr: TypeAlias = Union[
-    str, bytes, slice, uuid.UUID, datetime.date, datetime.datetime, np.datetime64
+    str, bytes, slice, uuid.UUID, datetime.date, datetime.datetime, "np.datetime64"
 ]
 
-ToList: TypeAlias = Union[list, set, tuple, "npt.NDArray", pd.Index, pd.Series]
+ToList: TypeAlias = Union[list, set, tuple, "npt.NDArray", "pd.Index", "pd.Series"]
 ToDict: TypeAlias = Union[
     dict,
     "CommentedMap",
-    pd.DataFrame,
+    "pd.DataFrame",
     SerializableDictDot,
     SerializableDotDict,
     pydantic.BaseModel,
@@ -1086,7 +1087,7 @@ def convert_to_json_serializable(
 ) -> None: ...
 
 
-def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
+def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIXME CoP
     data: JSONConvertable,
 ) -> JSONValues:
     """Converts an object to one that is JSON-serializable.
@@ -1118,7 +1119,8 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
         return data.to_json_dict()
 
     # Handling "float(nan)" separately is required by Python-3.6 and Pandas-0.23 versions.
-    if isinstance(data, float) and np.isnan(data):
+    # math.isnan (stdlib) is used instead of np.isnan so this check works without numpy installed.
+    if isinstance(data, float) and math.isnan(data):
         return None
 
     if isinstance(data, (str, int, float, bool)):
@@ -1146,22 +1148,22 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
 
         return new_list
 
-    if isinstance(data, (np.ndarray, pd.Index)):
+    if (np and isinstance(data, np.ndarray)) or (pd and isinstance(data, pd.Index)):
         # test_obj[key] = test_obj[key].tolist()
         # If we have an array or index, convert it first to a list--causing coercion to float--and then round  # noqa: E501 # FIXME CoP
         # to the number of digits for which the string representation will equal the float representation  # noqa: E501 # FIXME CoP
         return [convert_to_json_serializable(x) for x in data.tolist()]
 
-    if isinstance(data, np.int64):
+    if np and isinstance(data, np.int64):
         return int(data)
 
-    if isinstance(data, np.float64):
+    if np and isinstance(data, np.float64):
         return float(data)
 
     if isinstance(data, (datetime.datetime, datetime.date, datetime.time)):
         return data.isoformat()
 
-    if isinstance(data, (np.datetime64)):
+    if np and isinstance(data, np.datetime64):
         return np.datetime_as_string(data)
 
     if isinstance(data, uuid.UUID):
@@ -1182,15 +1184,16 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
 
     # Use built in base type from numpy, https://docs.scipy.org/doc/numpy-1.13.0/user/basics.types.html
     # https://github.com/numpy/numpy/pull/9505
-    if np.issubdtype(type(data), np.bool_):
-        return bool(data)
+    if np:
+        if np.issubdtype(type(data), np.bool_):
+            return bool(data)
 
-    if np.issubdtype(type(data), np.integer) or np.issubdtype(type(data), np.uint):
-        return int(data)  # type: ignore[arg-type] # could be None
+        if np.issubdtype(type(data), np.integer) or np.issubdtype(type(data), np.uint):
+            return int(data)  # type: ignore[arg-type] # could be None
 
-    if np.issubdtype(type(data), np.floating):
-        # Note: Use np.floating to avoid FutureWarning from numpy
-        return float(round(data, sys.float_info.dig))  # type: ignore[arg-type] # could be None
+        if np.issubdtype(type(data), np.floating):
+            # Note: Use np.floating to avoid FutureWarning from numpy
+            return float(round(data, sys.float_info.dig))  # type: ignore[arg-type] # could be None
 
     # Note: This clause has to come after checking for np.ndarray or we get:
     #      `ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()`  # noqa: E501 # FIXME CoP
@@ -1198,31 +1201,32 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
         # No problem to encode json
         return data
 
-    try:
-        if not isinstance(data, list) and pd.isna(data):  # FIXME CoP
-            # pd.isna is functionally vectorized, but we only want to apply this to single objects
-            # Hence, why we test for `not isinstance(list)`
-            return None
-    except TypeError:
-        pass
-    except ValueError:
-        pass
+    if pd:
+        try:
+            if not isinstance(data, list) and pd.isna(data):  # FIXME CoP
+                # pd.isna is functionally vectorized, but we only want to apply this to single objects  # noqa: E501 # FIXME CoP
+                # Hence, why we test for `not isinstance(list)`
+                return None
+        except TypeError:
+            pass
+        except ValueError:
+            pass
 
-    if isinstance(data, pd.Series):
-        # Converting a series is tricky since the index may not be a string, but all json
-        # keys must be strings. So, we use a very ugly serialization strategy
-        index_name = data.index.name or "index"
-        value_name = data.name or "value"
-        return [
-            {
-                index_name: convert_to_json_serializable(idx),  # type: ignore[call-overload,dict-item] # FIXME CoP
-                value_name: convert_to_json_serializable(val),  # type: ignore[dict-item] # FIXME CoP
-            }
-            for idx, val in data.items()
-        ]
+        if isinstance(data, pd.Series):
+            # Converting a series is tricky since the index may not be a string, but all json
+            # keys must be strings. So, we use a very ugly serialization strategy
+            index_name = data.index.name or "index"
+            value_name = data.name or "value"
+            return [
+                {
+                    index_name: convert_to_json_serializable(idx),  # type: ignore[call-overload,dict-item] # FIXME CoP
+                    value_name: convert_to_json_serializable(val),  # type: ignore[dict-item] # FIXME CoP
+                }
+                for idx, val in data.items()
+            ]
 
-    if isinstance(data, pd.DataFrame):
-        return convert_to_json_serializable(data.to_dict(orient="records"))
+        if isinstance(data, pd.DataFrame):
+            return convert_to_json_serializable(data.to_dict(orient="records"))
 
     if pyspark.DataFrame and isinstance(data, pyspark.DataFrame):  # type: ignore[truthy-function] # FIXME CoP
         # using StackOverflow suggestion for converting pyspark df into dictionary
@@ -1298,7 +1302,7 @@ def ensure_json_serializable(data: Any) -> None:  # noqa: C901, PLR0911, PLR0912
             ensure_json_serializable(val)
         return
 
-    if isinstance(data, (np.ndarray, pd.Index)):
+    if (np and isinstance(data, np.ndarray)) or (pd and isinstance(data, pd.Index)):
         # test_obj[key] = test_obj[key].tolist()
         # If we have an array or index, convert it first to a list--causing coercion to float--and then round  # noqa: E501 # FIXME CoP
         # to the number of digits for which the string representation will equal the float representation  # noqa: E501 # FIXME CoP
@@ -1313,15 +1317,16 @@ def ensure_json_serializable(data: Any) -> None:  # noqa: C901, PLR0911, PLR0912
 
     # Use built in base type from numpy, https://docs.scipy.org/doc/numpy-1.13.0/user/basics.types.html
     # https://github.com/numpy/numpy/pull/9505
-    if np.issubdtype(type(data), np.bool_):
-        return
+    if np:
+        if np.issubdtype(type(data), np.bool_):
+            return
 
-    if np.issubdtype(type(data), np.integer) or np.issubdtype(type(data), np.uint):
-        return
+        if np.issubdtype(type(data), np.integer) or np.issubdtype(type(data), np.uint):
+            return
 
-    if np.issubdtype(type(data), np.floating):
-        # Note: Use np.floating to avoid FutureWarning from numpy
-        return
+        if np.issubdtype(type(data), np.floating):
+            # Note: Use np.floating to avoid FutureWarning from numpy
+            return
 
     # Note: This clause has to come after checking for np.ndarray or we get:
     #      `ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()`  # noqa: E501 # FIXME CoP
@@ -1329,29 +1334,30 @@ def ensure_json_serializable(data: Any) -> None:  # noqa: C901, PLR0911, PLR0912
         # No problem to encode json
         return
 
-    try:
-        if not isinstance(data, list) and pd.isna(data):
-            # pd.isna is functionally vectorized, but we only want to apply this to single objects
-            # Hence, why we test for `not isinstance(list))`
-            return
-    except TypeError:
-        pass
-    except ValueError:
-        pass
+    if pd:
+        try:
+            if not isinstance(data, list) and pd.isna(data):
+                # pd.isna is functionally vectorized, but we only want to apply this to single objects  # noqa: E501 # FIXME CoP
+                # Hence, why we test for `not isinstance(list))`
+                return
+        except TypeError:
+            pass
+        except ValueError:
+            pass
 
-    if isinstance(data, pd.Series):
-        # Converting a series is tricky since the index may not be a string, but all json
-        # keys must be strings. So, we use a very ugly serialization strategy
-        index_name = data.index.name or "index"
-        value_name = data.name or "value"
-        _ = [
-            {
-                index_name: ensure_json_serializable(idx),  # type: ignore[func-returns-value] # FIXME CoP
-                value_name: ensure_json_serializable(val),  # type: ignore[func-returns-value] # FIXME CoP
-            }
-            for idx, val in data.items()
-        ]
-        return
+        if isinstance(data, pd.Series):
+            # Converting a series is tricky since the index may not be a string, but all json
+            # keys must be strings. So, we use a very ugly serialization strategy
+            index_name = data.index.name or "index"
+            value_name = data.name or "value"
+            _ = [
+                {
+                    index_name: ensure_json_serializable(idx),  # type: ignore[func-returns-value] # FIXME CoP
+                    value_name: ensure_json_serializable(val),  # type: ignore[func-returns-value] # FIXME CoP
+                }
+                for idx, val in data.items()
+            ]
+            return
 
     if pyspark.DataFrame and isinstance(data, pyspark.DataFrame):  # type: ignore[truthy-function] # ensure pyspark is installed
         # using StackOverflow suggestion for converting pyspark df into dictionary
@@ -1360,7 +1366,7 @@ def ensure_json_serializable(data: Any) -> None:  # noqa: C901, PLR0911, PLR0912
             dict(zip(data.schema.names, zip(*data.collect(), strict=False), strict=False))
         )
 
-    if isinstance(data, pd.DataFrame):
+    if pd and isinstance(data, pd.DataFrame):
         return ensure_json_serializable(data.to_dict(orient="records"))
 
     if isinstance(data, decimal.Decimal):

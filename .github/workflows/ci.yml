@@ -507,6 +507,7 @@ jobs:
           - big
           - bigquery
           - databricks
+          - duckdb
           - filesystem
           - gcs_deps
           - sql_server

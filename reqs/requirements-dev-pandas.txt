@@ -1,0 +1,3 @@
+pandas>=1.3.0; python_version >= "3.10"
+pandas>=2.2.3; python_version >= "3.13"
+pandas>=1.3.0; python_version >= "3.12"

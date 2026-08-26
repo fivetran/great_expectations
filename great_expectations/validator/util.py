@@ -3,12 +3,12 @@ from __future__ import annotations
 
 import datetime
 import decimal
+import math
 import sys
 from typing import Any
 
-import numpy as np
-import pandas as pd
-
+from great_expectations.compatibility.numpy import np
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.exceptions import InvalidExpectationConfigurationError
 from great_expectations.types import SerializableDictDot, SerializableDotDict
 
@@ -42,13 +42,17 @@ def _recursively_convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 #
     # Validate that all aruguments are of approved types, coerce if it's easy, else exception
     # print(type(test_obj), test_obj)
     # Note: Not 100% sure I've resolved this correctly...
-    try:
-        if not isinstance(test_obj, list) and np.isnan(test_obj):
-            # np.isnan is functionally vectorized, but we only want to apply this to single objects
-            # Hence, why we test for `not isinstance(list)`
-            return None
-    except (TypeError, ValueError):
-        pass
+    if not isinstance(test_obj, list):
+        # math.isnan (stdlib) is used instead of np.isnan so this works without numpy installed;
+        # np.isnan is functionally vectorized, but we only want to apply this to single objects.
+        try:
+            is_nan = (
+                np.isnan(test_obj) if np else (isinstance(test_obj, float) and math.isnan(test_obj))
+            )
+            if is_nan:
+                return None
+        except (TypeError, ValueError):
+            pass
 
     if isinstance(test_obj, (str, int, float, bool)):
         # No problem to encode json
@@ -71,7 +75,7 @@ def _recursively_convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 #
 
         return new_list
 
-    elif isinstance(test_obj, (np.ndarray, pd.Index)):
+    elif (np and isinstance(test_obj, np.ndarray)) or (pd and isinstance(test_obj, pd.Index)):
         # test_obj[key] = test_obj[key].tolist()
         # If we have an array or index, convert it first to a list--causing coercion to float--and then round  # noqa: E501 # FIXME CoP
         # to the number of digits for which the string representation will equal the float representation  # noqa: E501 # FIXME CoP
@@ -88,17 +92,19 @@ def _recursively_convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 #
 
     # Use built in base type from numpy, https://docs.scipy.org/doc/numpy-1.13.0/user/basics.types.html
     # https://github.com/numpy/numpy/pull/9505
-    elif np.issubdtype(type(test_obj), np.bool_):
+    elif np and np.issubdtype(type(test_obj), np.bool_):
         return bool(test_obj)
 
-    elif np.issubdtype(type(test_obj), np.integer) or np.issubdtype(type(test_obj), np.uint):
+    elif np and (
+        np.issubdtype(type(test_obj), np.integer) or np.issubdtype(type(test_obj), np.uint)
+    ):
         return int(test_obj)
 
-    elif np.issubdtype(type(test_obj), np.floating):
+    elif np and np.issubdtype(type(test_obj), np.floating):
         # Note: Use np.floating to avoid FutureWarning from numpy
         return float(round(test_obj, sys.float_info.dig))
 
-    elif isinstance(test_obj, pd.Series):
+    elif pd and isinstance(test_obj, pd.Series):
         # Converting a series is tricky since the index may not be a string, but all json
         # keys must be strings. So, we use a very ugly serialization strategy
         index_name = test_obj.index.name or "index"
@@ -111,7 +117,7 @@ def _recursively_convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 #
             for idx, val in test_obj.items()
         ]
 
-    elif isinstance(test_obj, pd.DataFrame):
+    elif pd and isinstance(test_obj, pd.DataFrame):
         return _recursively_convert_to_json_serializable(test_obj.to_dict(orient="records"))
 
     # elif np.issubdtype(type(test_obj), np.complexfloating):

@@ -2,16 +2,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
 
-import pandas as pd
-
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
+from great_expectations.execution_engine.duckdb_sql_utils import quote_ident
 from great_expectations.expectations.metrics.column_aggregate_metric_provider import (
     ColumnAggregateMetricProvider,
 )
@@ -128,6 +129,47 @@ class ColumnValueCounts(ColumnAggregateMetricProvider):
             query.select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
         ).fetchall()
         # Numpy does not always infer the correct DataTypes for SqlAlchemy Row, so we cannot use vectorized approach.  # noqa: E501 # FIXME CoP
+        series = pd.Series(
+            data=[row[1] for row in results],
+            index=pd.Index(data=[row[0] for row in results], name="value"),
+            name="count",
+        )
+        return series
+
+    @metric_value(engine=DuckDBExecutionEngine)
+    def _duckdb(
+        cls,
+        execution_engine: DuckDBExecutionEngine,
+        metric_domain_kwargs: Dict[str, str],
+        metric_value_kwargs: Dict[str, Optional[str]],
+        **kwargs,
+    ) -> pd.Series:
+        sort: str = metric_value_kwargs.get("sort") or cls.default_kwarg_values["sort"]
+        collate: Optional[str] = metric_value_kwargs.get(
+            "collate", cls.default_kwarg_values["collate"]
+        )
+
+        if sort not in ["value", "count", "none"]:
+            raise ValueError("sort must be either 'value', 'count', or 'none'")  # noqa: TRY003 # FIXME CoP
+        if collate is not None:
+            raise ValueError("collate parameter is not supported for DuckDBExecutionEngine")  # noqa: TRY003 # FIXME CoP
+
+        accessor_domain_kwargs: Dict[str, str]
+        relation, _, accessor_domain_kwargs = execution_engine.get_compute_domain(
+            metric_domain_kwargs, MetricDomainTypes.COLUMN
+        )
+        column: str = accessor_domain_kwargs["column"]
+        col = quote_ident(column)
+
+        counted = relation.filter(f"{col} IS NOT NULL").aggregate(
+            f"{col} AS value, COUNT(*) AS count", group_expr=col
+        )
+        if sort == "value":
+            counted = counted.order("value")
+        elif sort == "count":
+            counted = counted.order("count DESC")
+
+        results = counted.fetchall()
         series = pd.Series(
             data=[row[1] for row in results],
             index=pd.Index(data=[row[0] for row in results], name="value"),

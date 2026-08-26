@@ -6,6 +6,7 @@ from functools import reduce
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
@@ -85,3 +86,15 @@ metric for wide tables using SQLAlchemy leads to long WHERE clauses for the unde
 
         row_wise_cond = ~reduce(lambda a, b: a | b, conditions)
         return row_wise_cond
+
+    @multicolumn_condition_partial(engine=DuckDBExecutionEngine)
+    def _duckdb(cls, column_list, **kwargs):
+        num_columns = len(column_list)
+        pair_conditions = [
+            f"(({column_list[idx_src]} = {column_list[idx_dest]}) OR "
+            f"({column_list[idx_src]} IS NULL AND {column_list[idx_dest]} IS NULL))"
+            for idx_src in range(num_columns - 1)
+            for idx_dest in range(idx_src + 1, num_columns)
+        ]
+        conditions = " OR ".join(pair_conditions)
+        return f"NOT ({conditions})"

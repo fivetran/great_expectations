@@ -1,18 +1,19 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Set, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Set, Tuple, Union
 
-import numpy as np
-import pandas as pd
+if TYPE_CHECKING:
+    import numpy as np
+    import pandas as pd
 
 MetricValue = Union[
     Any,  # Encompasses deferred-query/execution plans ("SQLAlchemy" and "Spark") conditions and aggregation functions.  # noqa: E501 # FIXME CoP
     List[Any],
     Set[Any],
     Tuple[Any, ...],
-    pd.DataFrame,
-    pd.Series,
-    np.ndarray,
+    "pd.DataFrame",
+    "pd.Series",
+    "np.ndarray",
     int,
     str,
     float,

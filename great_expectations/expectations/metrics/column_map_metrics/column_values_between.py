@@ -3,18 +3,20 @@ from __future__ import annotations
 import datetime
 from typing import Optional, Union
 
-import pandas as pd
 from dateutil.parser import parse
 
 from great_expectations.compatibility import pyspark
 from great_expectations.compatibility.not_imported import is_version_greater_or_equal
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
+from great_expectations.execution_engine.duckdb_sql_utils import sql_literal
 from great_expectations.expectations.metrics.map_metric_provider import (
     ColumnMapMetricProvider,
     column_condition_partial,
@@ -320,3 +322,37 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
                 return (column >= F.lit(min_value)) & (column < F.lit(max_value))
 
             return (column >= F.lit(min_value)) & (column <= F.lit(max_value))
+
+    @column_condition_partial(engine=DuckDBExecutionEngine)
+    def _duckdb(  # FIXME CoP
+        cls,
+        column,
+        min_value=None,
+        max_value=None,
+        strict_min=None,
+        strict_max=None,
+        **kwargs,
+    ):
+        if min_value is not None and max_value is not None and min_value > max_value:
+            raise ValueError("min_value cannot be greater than max_value")  # noqa: TRY003 # FIXME CoP
+        if min_value is None and max_value is None:
+            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
+
+        metrics = kwargs.get("_metrics", {})
+        column_type = _column_type_from_metrics(metrics, kwargs.get("_column_name"))
+        _raise_if_invalid_column_type(column_type)
+
+        if min_value is None:
+            op = "<" if strict_max else "<="
+            return f"{column} {op} {sql_literal(max_value)}"
+
+        if max_value is None:
+            op = ">" if strict_min else ">="
+            return f"{column} {op} {sql_literal(min_value)}"
+
+        min_op = ">" if strict_min else ">="
+        max_op = "<" if strict_max else "<="
+        return (
+            f"({column} {min_op} {sql_literal(min_value)}) "
+            f"AND ({column} {max_op} {sql_literal(max_value)})"
+        )

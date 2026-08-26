@@ -9,11 +9,13 @@ from great_expectations.compatibility.typing_extensions import override
 from tests.integration.test_utils.data_source_config import (
     ALL_DATA_SOURCES,
     CURATED_SQL_DATA_SOURCES,
+    DUCKDB_DATA_SOURCES,
     PANDAS_DATA_SOURCES,
     SPARK_DATA_SOURCES,
     SQL_DATA_SOURCES,
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
+    DuckDBFilesystemCsvDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
@@ -914,15 +916,18 @@ class TestRegisteredBackendsKeepTheInheritedHash:
 
 
 class TestStandardDataSourceListsMatchPreChangeMembership:
-    """Regression pin for the four standard data-source lists now defined once in `tiers.py`.
+    """Regression pin for the standard data-source lists now defined once in `tiers.py`.
 
     Every literal below is transcribed from the two metrics conftest modules exactly as they
     existed before those lists gained a single shared definition, not derived from the module
     under test — so a mistake in the derivation shows up as a mismatch here rather than agreeing
-    with itself. `PANDAS_DATA_SOURCES` is deliberately not alphabetical: the filesystem CSV
-    config is listed before the DataFrame config, and that order is preserved on purpose.
+    with itself. `DUCKDB_DATA_SOURCES` is the one exception: it postdates those conftest modules,
+    so its literal is transcribed from the list's own declaration and pins membership going
+    forward rather than reproducing a prior state. `PANDAS_DATA_SOURCES` is deliberately not
+    alphabetical: the filesystem CSV config is listed before the DataFrame config, and that order
+    is preserved on purpose.
 
-    The four constants imported above are captured at module-import time, before any test in this
+    The constants imported above are captured at module-import time, before any test in this
     module runs. That matters because this module's `_snapshot_registry` fixture clears the
     registry around every test: asserting against those already-built module-level objects, or
     reading `PANDAS_DATA_SOURCES` and `SPARK_DATA_SOURCES` (which never touch the registry) is
@@ -950,11 +955,17 @@ class TestStandardDataSourceListsMatchPreChangeMembership:
             SqliteDatasourceTestConfig(),
         ] == SQL_DATA_SOURCES
 
+    def test_duckdb_data_sources_match_declared_membership_and_order(self) -> None:
+        assert [
+            DuckDBFilesystemCsvDatasourceTestConfig(),
+        ] == DUCKDB_DATA_SOURCES
+
     def test_all_data_sources_match_pre_change_membership_and_order(self) -> None:
         assert [
             PandasFilesystemCsvDatasourceTestConfig(),
             PandasDataFrameDatasourceTestConfig(),
             SparkFilesystemCsvDatasourceTestConfig(),
+            DuckDBFilesystemCsvDatasourceTestConfig(),
             BigQueryDatasourceTestConfig(),
             DatabricksDatasourceTestConfig(),
             PostgreSQLDatasourceTestConfig(),

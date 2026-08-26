@@ -3,10 +3,9 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Type, Union
 
-import numpy as np
-import pandas as pd
-
 from great_expectations.compatibility import pydantic, pyspark
+from great_expectations.compatibility.numpy import np
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # noqa: TC001 # FIXME CoP

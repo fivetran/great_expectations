@@ -4,6 +4,7 @@ from great_expectations.compatibility import pyspark
 from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
@@ -73,3 +74,11 @@ class MulticolumnSumEqual(MulticolumnMapMetricProvider):
             )
             row_wise_cond = F.expr(expression) == F.lit(sum_total)
         return row_wise_cond
+
+    @multicolumn_condition_partial(engine=DuckDBExecutionEngine)
+    def _duckdb(cls, column_list, **kwargs):
+        sum_total = kwargs.get("sum_total")
+        # No COALESCE: a NULL operand makes the SQL sum NULL, and `NULL = sum_total` is not
+        # true, matching pandas' `skipna=False` (a row with any null fails the expectation).
+        expression = " + ".join(column_list)
+        return f"({expression}) = {sum_total}"

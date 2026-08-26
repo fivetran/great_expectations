@@ -19,11 +19,13 @@ from great_expectations.core.metric_function_types import (
     MetricPartialFunctionTypes,
 )
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     ExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
+from great_expectations.execution_engine.duckdb_sql_utils import quote_ident
 from great_expectations.expectations.metrics.metric_provider import (
     metric_partial,
 )
@@ -37,7 +39,7 @@ if TYPE_CHECKING:
     from great_expectations.compatibility import sqlalchemy
 
 
-def column_function_partial(  # noqa: C901, PLR0915 # FIXME CoP
+def column_function_partial(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     engine: Type[ExecutionEngine],
     partial_fn_type: Optional[MetricPartialFunctionTypes] = None,
     **kwargs,
@@ -201,6 +203,8 @@ def column_function_partial(  # noqa: C901, PLR0915 # FIXME CoP
             )
 
         def wrapper(metric_fn: Callable):
+            assert partial_fn_type is not None  # mypy has trouble type narrowing with closures
+
             @metric_partial(
                 engine=engine,
                 partial_fn_type=partial_fn_type,
@@ -250,6 +254,60 @@ def column_function_partial(  # noqa: C901, PLR0915 # FIXME CoP
                     **metric_value_kwargs,
                     _metrics=metrics,
                     _compute_domain_kwargs=compute_domain_kwargs,
+                )
+                return column_function, compute_domain_kwargs, accessor_domain_kwargs
+
+            return inner_func
+
+        return wrapper
+
+    elif issubclass(engine, DuckDBExecutionEngine):
+        if partial_fn_type is None:
+            partial_fn_type = MetricPartialFunctionTypes.MAP_FN
+
+        partial_fn_type = MetricPartialFunctionTypes(partial_fn_type)
+        if partial_fn_type not in [MetricPartialFunctionTypes.MAP_FN]:
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                f"""DuckDBExecutionEngine only supports "{MetricPartialFunctionTypes.MAP_FN.value}" for \
+"column_function_partial" "partial_fn_type" property."""  # noqa: E501 # FIXME CoP
+            )
+
+        def wrapper(metric_fn: Callable):
+            @metric_partial(
+                engine=engine,
+                partial_fn_type=partial_fn_type,
+                domain_type=domain_type,
+                **kwargs,
+            )
+            @wraps(metric_fn)
+            def inner_func(  # noqa: PLR0913 # FIXME CoP
+                cls,
+                execution_engine: DuckDBExecutionEngine,
+                metric_domain_kwargs: dict,
+                metric_value_kwargs: dict,
+                metrics: Dict[str, Any],
+                runtime_configuration: dict,
+            ):
+                metric_domain_kwargs = get_dbms_compatible_metric_domain_kwargs(
+                    metric_domain_kwargs=metric_domain_kwargs,
+                    batch_columns_list=metrics["table.columns"],
+                )
+
+                (
+                    _,
+                    compute_domain_kwargs,
+                    accessor_domain_kwargs,
+                ) = execution_engine.get_compute_domain(
+                    domain_kwargs=metric_domain_kwargs, domain_type=domain_type
+                )
+
+                column_name: str = accessor_domain_kwargs["column"]
+
+                column_function = metric_fn(
+                    cls,
+                    quote_ident(column_name),
+                    **metric_value_kwargs,
+                    _metrics=metrics,
                 )
                 return column_function, compute_domain_kwargs, accessor_domain_kwargs
 

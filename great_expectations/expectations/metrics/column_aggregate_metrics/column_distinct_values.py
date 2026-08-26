@@ -4,11 +4,11 @@ import datetime
 import re
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
-import numpy as np
-import pandas as pd
 from dateutil.parser import parse
 
 from great_expectations.compatibility.not_imported import is_version_greater_or_equal
+from great_expectations.compatibility.numpy import np
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.compatibility.pyspark import (
     functions as F,
 )
@@ -19,11 +19,13 @@ from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     ExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
+from great_expectations.execution_engine.duckdb_sql_utils import quote_ident
 from great_expectations.expectations.metrics.column_aggregate_metric_provider import (
     ColumnAggregateMetricProvider,
     column_aggregate_partial,
@@ -46,7 +48,7 @@ _ISO_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
 # Type alias for scalar values that can appear in columns or value sets
-ScalarValue = Union[str, int, float, bool, datetime.date, datetime.datetime, np.datetime64, None]
+ScalarValue = Union[str, int, float, bool, datetime.date, datetime.datetime, "np.datetime64", None]
 
 
 def _coerce_scalar_to_datetime64(v: ScalarValue) -> ScalarValue:
@@ -201,6 +203,23 @@ class ColumnDistinctValues(ColumnAggregateMetricProvider):
         ]
         return set(distinct_values)
 
+    @metric_value(engine=DuckDBExecutionEngine)
+    def _duckdb(
+        cls,
+        execution_engine: DuckDBExecutionEngine,
+        metric_domain_kwargs: Dict[str, str],
+        **kwargs,
+    ) -> Set[Any]:
+        (
+            relation,
+            _,
+            accessor_domain_kwargs,
+        ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        column_name: str = accessor_domain_kwargs["column"]
+        col = quote_ident(column_name)
+        rows = relation.filter(f"{col} IS NOT NULL").project(col).distinct().fetchall()
+        return {row[0] for row in rows}
+
 
 class ColumnDistinctValuesCount(ColumnAggregateMetricProvider):
     metric_name = "column.distinct_values.count"
@@ -235,6 +254,19 @@ class ColumnDistinctValuesCount(ColumnAggregateMetricProvider):
         """  # noqa: E501 # FIXME CoP
         return F.countDistinct(column)
 
+    @column_aggregate_partial(engine=DuckDBExecutionEngine)
+    def _duckdb(
+        cls,
+        column: str,
+        **kwargs,
+    ) -> str:
+        """
+        Past implementations of column.distinct_values.count depended on column.value_counts and column.distinct_values.
+        This was causing performance issues due to the complex query used in column.value_counts and subsequent
+        in-memory operations.
+        """  # noqa: E501 # FIXME CoP
+        return f"COUNT(DISTINCT {column})"
+
 
 class ColumnDistinctValuesCountUnderThreshold(ColumnAggregateMetricProvider):
     metric_name = "column.distinct_values.count.under_threshold"
@@ -255,6 +287,15 @@ class ColumnDistinctValuesCountUnderThreshold(ColumnAggregateMetricProvider):
 
     @metric_value(engine=SparkDFExecutionEngine)
     def _spark(
+        cls,
+        metric_value_kwargs: Dict[str, int],
+        metrics: Dict[str, int],
+        **kwargs,
+    ) -> bool:
+        return metrics["column.distinct_values.count"] < metric_value_kwargs["threshold"]
+
+    @metric_value(engine=DuckDBExecutionEngine)
+    def _duckdb(
         cls,
         metric_value_kwargs: Dict[str, int],
         metrics: Dict[str, int],

@@ -7,6 +7,7 @@ from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.core.metric_function_types import MetricPartialFunctionTypes
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
@@ -66,3 +67,18 @@ class TableRowCount(TableMetricProvider):
         runtime_configuration: dict,
     ):
         return F.count(F.lit(1)), metric_domain_kwargs, {}
+
+    @metric_partial(
+        engine=DuckDBExecutionEngine,
+        partial_fn_type=MetricPartialFunctionTypes.AGGREGATE_FN,
+        domain_type=MetricDomainTypes.TABLE,
+    )
+    def _duckdb(
+        cls,
+        execution_engine: DuckDBExecutionEngine,
+        metric_domain_kwargs: dict,
+        metric_value_kwargs: dict,
+        metrics: Dict[str, Any],
+        runtime_configuration: dict,
+    ):
+        return "COUNT(*)", metric_domain_kwargs, {}

@@ -7,6 +7,7 @@ from great_expectations.compatibility import pyspark, sqlalchemy
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.exceptions import GreatExpectationsError
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
@@ -91,6 +92,23 @@ class ColumnTypes(TableMetricProvider):
             df.schema, include_nested=metric_value_kwargs["include_nested"]
         )
         return spark_column_metadata
+
+    @metric_value(engine=DuckDBExecutionEngine)
+    def _duckdb(
+        cls,
+        execution_engine: DuckDBExecutionEngine,
+        metric_domain_kwargs: dict,
+        metric_value_kwargs: dict,
+        metrics: Dict[str, Any],
+        runtime_configuration: dict,
+    ):
+        relation, _, _ = execution_engine.get_compute_domain(
+            metric_domain_kwargs, domain_type=MetricDomainTypes.TABLE
+        )
+        return [
+            {"name": name, "type": str(dtype)}
+            for name, dtype in zip(relation.columns, relation.types, strict=False)
+        ]
 
 
 def _get_sqlalchemy_column_metadata(

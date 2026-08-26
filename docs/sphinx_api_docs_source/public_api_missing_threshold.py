@@ -299,6 +299,18 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
         name="get_batch_parameters_keys",
     ),
     PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/duckdb_datasource.py"),
+        name="build_batch_request",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/duckdb_datasource.py"),
+        name="get_batch",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/duckdb_datasource.py"),
+        name="get_batch_parameters_keys",
+    ),
+    PrintableDefinition(
         file=pathlib.Path("great_expectations/datasource/fluent/pandas_datasource.py"),
         name="build_batch_request",
     ),
@@ -340,6 +352,18 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     ),
     PrintableDefinition(
         file=pathlib.Path("great_expectations/execution_engine/execution_engine.py"),
+        name="get_compute_domain",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/execution_engine/duckdb_execution_engine.py"
+        ),
+        name="close",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/execution_engine/duckdb_execution_engine.py"
+        ),
         name="get_compute_domain",
     ),
     PrintableDefinition(

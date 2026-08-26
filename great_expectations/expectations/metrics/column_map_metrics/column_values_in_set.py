@@ -2,14 +2,15 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-import numpy as np
-
+from great_expectations.compatibility.numpy import np
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
+from great_expectations.execution_engine.duckdb_sql_utils import sql_literal_list
 from great_expectations.expectations.metrics.map_metric_provider import (
     ColumnMapMetricProvider,
     column_condition_partial,
@@ -86,3 +87,12 @@ class ColumnValuesInSet(ColumnMapMetricProvider):
             return F.lit(True)
 
         return column.isin(value_set)
+
+    @column_condition_partial(engine=DuckDBExecutionEngine)
+    def _duckdb(cls, column, value_set, **kwargs):
+        if value_set is None:
+            # vacuously true
+            return "TRUE"
+        if len(value_set) == 0:
+            return "FALSE"
+        return f"{column} IN {sql_literal_list(value_set)}"

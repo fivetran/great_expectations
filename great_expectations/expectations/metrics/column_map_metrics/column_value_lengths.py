@@ -9,6 +9,7 @@ from great_expectations.core.metric_function_types import (
     MetricPartialFunctionTypeSuffixes,
 )
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     ExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
@@ -52,6 +53,13 @@ class ColumnValuesValueLengthEquals(ColumnMapMetricProvider):
             f"column_values.value_length.{MetricPartialFunctionTypeSuffixes.MAP.value}"
         )
         return column_lengths == value
+
+    @column_condition_partial(engine=DuckDBExecutionEngine)
+    def _duckdb(cls, column, value, _metrics, **kwargs):
+        column_lengths, _, _ = _metrics.get(
+            f"column_values.value_length.{MetricPartialFunctionTypeSuffixes.MAP.value}"
+        )
+        return f"{column_lengths} = {value}"
 
     @classmethod
     @override
@@ -105,6 +113,10 @@ class ColumnValuesValueLength(ColumnMapMetricProvider):
     @column_function_partial(engine=SparkDFExecutionEngine)
     def _spark_function(cls, column, **kwargs):
         return F.length(column)
+
+    @column_function_partial(engine=DuckDBExecutionEngine)
+    def _duckdb_function(cls, column, **kwargs):
+        return f"LENGTH({column})"
 
     @column_condition_partial(engine=PandasExecutionEngine)
     def _pandas(  # noqa: C901 # FIXME CoP
@@ -255,6 +267,46 @@ class ColumnValuesValueLength(ColumnMapMetricProvider):
 
         elif min_value is not None and max_value is None:
             return column_lengths > min_value if strict_min else column_lengths >= min_value
+
+    @column_condition_partial(engine=DuckDBExecutionEngine)
+    def _duckdb(
+        cls,
+        column,
+        _metrics,
+        min_value=None,
+        max_value=None,
+        strict_min=None,
+        strict_max=None,
+        **kwargs,
+    ):
+        column_lengths, _, _ = _metrics.get(
+            f"column_values.value_length.{MetricPartialFunctionTypeSuffixes.MAP.value}"
+        )
+
+        if min_value is None and max_value is None:
+            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
+
+        try:
+            if min_value is not None and not float(min_value).is_integer():
+                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301 # FIXME CoP
+
+            if max_value is not None and not float(max_value).is_integer():
+                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301 # FIXME CoP
+
+        except ValueError:
+            raise ValueError("min_value and max_value must be integers")  # noqa: TRY003 # FIXME CoP
+
+        min_op = ">" if strict_min else ">="
+        max_op = "<" if strict_max else "<="
+
+        if min_value is not None and max_value is not None:
+            return f"({column_lengths} {min_op} {min_value}) AND ({column_lengths} {max_op} {max_value})"  # noqa: E501 # FIXME CoP
+
+        elif min_value is None and max_value is not None:
+            return f"{column_lengths} {max_op} {max_value}"
+
+        elif min_value is not None and max_value is None:
+            return f"{column_lengths} {min_op} {min_value}"
 
     @classmethod
     @override

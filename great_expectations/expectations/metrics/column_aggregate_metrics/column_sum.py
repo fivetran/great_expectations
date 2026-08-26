@@ -5,6 +5,7 @@ from great_expectations.compatibility.not_imported import is_version_greater_or_
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
@@ -28,6 +29,10 @@ class ColumnSum(ColumnAggregateMetricProvider):
     @column_aggregate_partial(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(cls, column, **kwargs):
         return sa.func.sum(column)
+
+    @column_aggregate_partial(engine=DuckDBExecutionEngine)
+    def _duckdb(cls, column, **kwargs):
+        return f"SUM({column})"
 
     @column_aggregate_partial(engine=SparkDFExecutionEngine)
     def _spark(cls, column, _table=None, _column_name=None, **kwargs):

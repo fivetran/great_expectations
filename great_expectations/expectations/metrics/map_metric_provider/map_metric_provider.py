@@ -15,6 +15,7 @@ from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     ExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
@@ -35,6 +36,16 @@ from great_expectations.expectations.metrics.map_metric_provider.column_pair_map
     _spark_column_pair_map_condition_values,
     _sqlalchemy_column_pair_map_condition_filtered_row_count,
     _sqlalchemy_column_pair_map_condition_values,
+)
+from great_expectations.expectations.metrics.map_metric_provider.duckdb_map_condition_auxiliary_methods import (  # noqa: E501 # FIXME CoP
+    _duckdb_column_map_condition_value_counts,
+    _duckdb_column_map_condition_values,
+    _duckdb_column_pair_map_condition_values,
+    _duckdb_map_condition_filtered_row_count,
+    _duckdb_map_condition_index,
+    _duckdb_map_condition_query,
+    _duckdb_map_condition_unexpected_count_aggregate_fn,
+    _duckdb_multicolumn_map_condition_values,
 )
 from great_expectations.expectations.metrics.map_metric_provider.is_sqlalchemy_metric_selectable import (  # noqa: E501 # FIXME CoP
     _is_sqlalchemy_metric_selectable,
@@ -399,6 +410,109 @@ class MapMetricProvider(MetricProvider):
                             execution_engine=engine,
                             metric_class=cls,
                             metric_provider=_sqlalchemy_multicolumn_map_condition_filtered_row_count,
+                            metric_fn_type=MetricFunctionTypes.VALUE,
+                        )
+                elif issubclass(engine, DuckDBExecutionEngine):
+                    # NOTE: unexpected_rows/unexpected_index_list/unexpected_index_query are not
+                    # yet implemented for any domain; requesting them (e.g. via COMPLETE
+                    # result_format or include_unexpected_rows) raises a clean MetricProviderError
+                    # rather than silently returning wrong data. unexpected_values and
+                    # unexpected_value_counts are COLUMN-domain only, since they report individual
+                    # column values, which MULTICOLUMN/COLUMN_PAIR conditions don't have a single
+                    # column to report.
+                    register_metric(
+                        metric_name=f"{metric_name}.{metric_fn_type.metric_suffix}",
+                        metric_domain_keys=metric_domain_keys,
+                        metric_value_keys=metric_value_keys,
+                        execution_engine=engine,
+                        metric_class=cls,
+                        metric_provider=condition_provider,
+                        metric_fn_type=metric_fn_type,
+                    )
+                    if metric_fn_type == MetricPartialFunctionTypes.MAP_CONDITION_FN:
+                        register_metric(
+                            metric_name=f"{metric_name}.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}.{MetricPartialFunctionTypes.AGGREGATE_FN.metric_suffix}",
+                            metric_domain_keys=metric_domain_keys,
+                            metric_value_keys=metric_value_keys,
+                            execution_engine=engine,
+                            metric_class=cls,
+                            metric_provider=_duckdb_map_condition_unexpected_count_aggregate_fn,
+                            metric_fn_type=MetricPartialFunctionTypes.AGGREGATE_FN,
+                        )
+                        register_metric(
+                            metric_name=f"{metric_name}.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}",
+                            metric_domain_keys=metric_domain_keys,
+                            metric_value_keys=metric_value_keys,
+                            execution_engine=engine,
+                            metric_class=cls,
+                            metric_provider=None,
+                            metric_fn_type=MetricFunctionTypes.VALUE,
+                        )
+                        register_metric(
+                            metric_name=f"{metric_name}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_LIST.value}",
+                            metric_domain_keys=metric_domain_keys,
+                            metric_value_keys=(*metric_value_keys, "result_format"),
+                            execution_engine=engine,
+                            metric_class=cls,
+                            metric_provider=_duckdb_map_condition_index,
+                            metric_fn_type=MetricFunctionTypes.VALUE,
+                        )
+                        register_metric(
+                            metric_name=f"{metric_name}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_QUERY.value}",
+                            metric_domain_keys=metric_domain_keys,
+                            metric_value_keys=(*metric_value_keys, "result_format"),
+                            execution_engine=engine,
+                            metric_class=cls,
+                            metric_provider=_duckdb_map_condition_query,
+                            metric_fn_type=MetricFunctionTypes.VALUE,
+                        )
+                    if (
+                        metric_fn_type == MetricPartialFunctionTypes.MAP_CONDITION_FN
+                        and domain_type == MetricDomainTypes.COLUMN
+                    ):
+                        register_metric(
+                            metric_name=f"{metric_name}.{SummarizationMetricNameSuffixes.UNEXPECTED_VALUES.value}",
+                            metric_domain_keys=metric_domain_keys,
+                            metric_value_keys=(*metric_value_keys, "result_format"),
+                            execution_engine=engine,
+                            metric_class=cls,
+                            metric_provider=_duckdb_column_map_condition_values,
+                            metric_fn_type=MetricFunctionTypes.VALUE,
+                        )
+                        register_metric(
+                            metric_name=f"{metric_name}.{SummarizationMetricNameSuffixes.UNEXPECTED_VALUE_COUNTS.value}",
+                            metric_domain_keys=metric_domain_keys,
+                            metric_value_keys=(*metric_value_keys, "result_format"),
+                            execution_engine=engine,
+                            metric_class=cls,
+                            metric_provider=_duckdb_column_map_condition_value_counts,
+                            metric_fn_type=MetricFunctionTypes.VALUE,
+                        )
+                    if (
+                        metric_fn_type == MetricPartialFunctionTypes.MAP_CONDITION_FN
+                        and domain_type
+                        in [MetricDomainTypes.MULTICOLUMN, MetricDomainTypes.COLUMN_PAIR]
+                    ):
+                        register_metric(
+                            metric_name=f"{metric_name}.{SummarizationMetricNameSuffixes.FILTERED_ROW_COUNT.value}",
+                            metric_domain_keys=metric_domain_keys,
+                            metric_value_keys=(*metric_value_keys, "result_format"),
+                            execution_engine=engine,
+                            metric_class=cls,
+                            metric_provider=_duckdb_map_condition_filtered_row_count,
+                            metric_fn_type=MetricFunctionTypes.VALUE,
+                        )
+                        register_metric(
+                            metric_name=f"{metric_name}.{SummarizationMetricNameSuffixes.UNEXPECTED_VALUES.value}",
+                            metric_domain_keys=metric_domain_keys,
+                            metric_value_keys=(*metric_value_keys, "result_format"),
+                            execution_engine=engine,
+                            metric_class=cls,
+                            metric_provider=(
+                                _duckdb_column_pair_map_condition_values
+                                if domain_type == MetricDomainTypes.COLUMN_PAIR
+                                else _duckdb_multicolumn_map_condition_values
+                            ),
                             metric_fn_type=MetricFunctionTypes.VALUE,
                         )
                 elif issubclass(engine, SparkDFExecutionEngine):

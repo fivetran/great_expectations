@@ -4,6 +4,7 @@
     "BigQueryDatasource.json": "add_or_update_bigquery",
     "CitusDatasource.json": "add_or_update_citus",
     "DatabricksSQLDatasource.json": "add_or_update_databricks_sql",
+    "DuckDBDatasource.json": "add_or_update_duckdb",
     "FabricDatasource.json": "add_or_update_fabric",
     "FabricPowerBIDatasource.json": "add_or_update_fabric_powerbi",
     "NeonDatasource.json": "add_or_update_neon",

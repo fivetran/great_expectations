@@ -23,10 +23,10 @@ from typing import (
     Union,
 )
 
-import pandas as pd
 from marshmallow import ValidationError
 
 from great_expectations import __version__ as ge_version
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.expectation_suite import (
     ExpectationSuite,

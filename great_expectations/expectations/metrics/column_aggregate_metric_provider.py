@@ -10,6 +10,10 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.core.metric_function_types import MetricPartialFunctionTypes
 from great_expectations.execution_engine import ExecutionEngine, PandasExecutionEngine
+from great_expectations.execution_engine.duckdb_execution_engine import (
+    DuckDBExecutionEngine,
+)
+from great_expectations.execution_engine.duckdb_sql_utils import quote_ident
 from great_expectations.execution_engine.sparkdf_execution_engine import (
     SparkDFExecutionEngine,
 )
@@ -236,6 +240,59 @@ def column_aggregate_partial(engine: Type[ExecutionEngine], **kwargs: Any) -> Ca
                     column=column,
                     **metric_value_kwargs,
                     _table=data,
+                    _column_name=column_name,
+                    _metrics=metrics,
+                )
+                return metric_aggregate, compute_domain_kwargs, accessor_domain_kwargs
+
+            return inner_func  # type: ignore[return-value]
+
+        return wrapper
+
+    elif issubclass(engine, DuckDBExecutionEngine):
+
+        def wrapper(metric_fn: _F) -> _F:
+            @metric_partial(
+                engine=engine,
+                partial_fn_type=partial_fn_type,
+                domain_type=domain_type,
+            )
+            @wraps(metric_fn)
+            def inner_func(  # noqa: PLR0913 # FIXME CoP
+                cls,
+                execution_engine: DuckDBExecutionEngine,
+                metric_domain_kwargs: dict,
+                metric_value_kwargs: dict,
+                metrics: Dict[str, Any],
+                runtime_configuration: dict,
+            ):
+                filter_column_isnull = kwargs.get(
+                    "filter_column_isnull", getattr(cls, "filter_column_isnull", False)
+                )
+                if filter_column_isnull:
+                    raise ValueError(  # noqa: TRY003 # FIXME CoP
+                        "filter_column_isnull is not yet supported for DuckDBExecutionEngine"
+                    )
+
+                metric_domain_kwargs = get_dbms_compatible_metric_domain_kwargs(
+                    metric_domain_kwargs=metric_domain_kwargs,
+                    batch_columns_list=metrics["table.columns"],
+                )
+
+                (
+                    _,
+                    compute_domain_kwargs,
+                    accessor_domain_kwargs,
+                ) = execution_engine.get_compute_domain(
+                    metric_domain_kwargs, domain_type=domain_type
+                )
+
+                column_name: str = accessor_domain_kwargs["column"]
+
+                metric_aggregate = metric_fn(
+                    cls,
+                    column=quote_ident(column_name),
+                    **metric_value_kwargs,
                     _column_name=column_name,
                     _metrics=metrics,
                 )

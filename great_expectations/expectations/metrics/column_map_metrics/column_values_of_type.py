@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import numpy as np
-import pandas as pd
-
+from great_expectations.compatibility.numpy import np
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.execution_engine import PandasExecutionEngine
 from great_expectations.expectations.metrics.map_metric_provider import (
     ColumnMapMetricProvider,

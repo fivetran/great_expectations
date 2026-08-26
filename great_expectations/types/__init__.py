@@ -3,9 +3,8 @@ import logging
 from enum import Enum
 from typing import ClassVar, Dict, Optional, Set
 
-import pandas as pd
-
 from great_expectations.compatibility import pydantic, pyspark
+from great_expectations.compatibility.pandas import pandas as pd
 
 from ..alias_types import JSONValues
 from .base import SerializableDotDict
@@ -252,7 +251,7 @@ def safe_deep_copy(data, memo=None):
     """
     This method makes a copy of a dictionary, applying deep copy to attribute values, except for non-pickleable objects.
     """  # noqa: E501 # FIXME CoP
-    if isinstance(data, (pd.Series, pd.DataFrame)) or (
+    if (pd and isinstance(data, (pd.Series, pd.DataFrame))) or (
         pyspark.pyspark and isinstance(data, pyspark.DataFrame)
     ):
         return data

@@ -4,6 +4,7 @@ from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.pyspark import types
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
@@ -48,3 +49,8 @@ class ColumnMean(ColumnAggregateMetricProvider):
                 f"Expected numeric column type for function mean(). Recieved type: {column_data_type}"  # noqa: E501 # FIXME CoP
             )
         return F.mean(column)
+
+    @column_aggregate_partial(engine=DuckDBExecutionEngine)
+    def _duckdb(cls, column, **kwargs):
+        """DuckDB Mean Implementation"""
+        return f"AVG(1.0 * {column})"

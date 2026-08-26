@@ -10,6 +10,7 @@ from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     ExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
@@ -57,6 +58,11 @@ class ColumnStandardDeviation(ColumnAggregateMetricProvider):
     def _spark(cls, column, **kwargs):
         """Spark Standard Deviation implementation"""
         return F.stddev_samp(column)
+
+    @column_aggregate_partial(engine=DuckDBExecutionEngine)
+    def _duckdb(cls, column, **kwargs):
+        """DuckDB Standard Deviation implementation"""
+        return f"STDDEV_SAMP({column})"
 
     @classmethod
     @override

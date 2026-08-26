@@ -4,11 +4,11 @@ import logging
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 import altair as alt
-import numpy as np
-import pandas as pd
-from scipy import stats
 
 from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.numpy import np
+from great_expectations.compatibility.pandas import pandas as pd
+from great_expectations.compatibility.scipy import stats
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )

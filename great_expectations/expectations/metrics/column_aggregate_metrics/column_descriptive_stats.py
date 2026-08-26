@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Optional
 
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     ExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
@@ -53,6 +54,19 @@ class ColumnDescriptiveStats(ColumnAggregateMetricProvider):
 
     @metric_value(engine=SparkDFExecutionEngine)
     def _spark(
+        cls,
+        metrics: dict[str, int],
+        **kwargs,
+    ) -> DescriptiveStats:
+        return DescriptiveStats(
+            min=metrics["column.min"],
+            max=metrics["column.max"],
+            mean=metrics["column.mean"],
+            standard_deviation=metrics["column.standard_deviation"],
+        )
+
+    @metric_value(engine=DuckDBExecutionEngine)
+    def _duckdb(
         cls,
         metrics: dict[str, int],
         **kwargs,

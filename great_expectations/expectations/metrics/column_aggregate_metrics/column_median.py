@@ -2,17 +2,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
-import numpy as np
-
+from great_expectations.compatibility.numpy import np
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     ExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
+from great_expectations.execution_engine.duckdb_sql_utils import quote_ident
 from great_expectations.expectations.metrics.column_aggregate_metric_provider import (
     ColumnAggregateMetricProvider,
     column_aggregate_value,
@@ -120,6 +121,26 @@ class ColumnMedian(ColumnAggregateMetricProvider):
         table_row_count = metrics["table.row_count"]
         result = df.approxQuantile(column, [0.5, 0.5 + (1 / (2 + (2 * table_row_count)))], 0)
         return np.mean(result)
+
+    @metric_value(engine=DuckDBExecutionEngine)
+    def _duckdb(
+        cls,
+        execution_engine: DuckDBExecutionEngine,
+        metric_domain_kwargs: dict,
+        metric_value_kwargs: dict,
+        metrics: Dict[str, Any],
+        runtime_configuration: dict,
+    ):
+        """DuckDB Median Implementation"""
+        (
+            relation,
+            _compute_domain_kwargs,
+            accessor_domain_kwargs,
+        ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        column_name = accessor_domain_kwargs["column"]
+        col = quote_ident(column_name)
+        row = relation.aggregate(f"MEDIAN({col})").fetchone()
+        return row[0] if row else None
 
     @classmethod
     @override

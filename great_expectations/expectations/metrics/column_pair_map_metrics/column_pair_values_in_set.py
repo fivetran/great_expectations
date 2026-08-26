@@ -2,16 +2,17 @@ from __future__ import annotations
 
 from functools import reduce
 
-import numpy as np
-import pandas as pd
-
+from great_expectations.compatibility.numpy import np
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
+from great_expectations.execution_engine.duckdb_sql_utils import sql_literal
 from great_expectations.expectations.metrics.map_metric_provider import (
     ColumnPairMapMetricProvider,
     column_pair_condition_partial,
@@ -90,3 +91,18 @@ class ColumnPairValuesInSet(ColumnPairMapMetricProvider):
         row_wise_cond = reduce(lambda a, b: a | b, conditions)
 
         return row_wise_cond
+
+    # noinspection PyPep8Naming
+    @column_pair_condition_partial(engine=DuckDBExecutionEngine)
+    def _duckdb(cls, column_A, column_B, **kwargs):
+        value_pairs_set = kwargs.get("value_pairs_set")
+
+        if value_pairs_set is None:
+            # vacuously true, matching the other engines' "always true" behavior here
+            return "TRUE"
+
+        conditions = " OR ".join(
+            f"({column_A} = {sql_literal(x)} AND {column_B} = {sql_literal(y)})"
+            for x, y in value_pairs_set
+        )
+        return conditions if conditions else "FALSE"

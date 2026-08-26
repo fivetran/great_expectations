@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import logging
 
-import pandas as pd
-
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.execution_engine import (
     PandasExecutionEngine,

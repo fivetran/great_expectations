@@ -19,11 +19,11 @@ from typing import (
     overload,
 )
 
-import pandas as pd
 from packaging.version import Version
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility import aws, azure, google
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.compatibility.sqlalchemy_and_pandas import (
     execute_pandas_reader_fn,
 )
@@ -78,7 +78,7 @@ logger = logging.getLogger(__name__)
 
 HASH_THRESHOLD = 1e9
 
-DataFrameFactoryFn: TypeAlias = Callable[..., pd.DataFrame]
+DataFrameFactoryFn: TypeAlias = Callable[..., "pd.DataFrame"]
 
 
 class PandasExecutionEngine(ExecutionEngine[str]):

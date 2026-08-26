@@ -8,10 +8,12 @@ from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
+from great_expectations.execution_engine.duckdb_sql_utils import sql_literal
 from great_expectations.expectations.metrics.map_metric_provider import (
     ColumnMapMetricProvider,
     column_condition_partial,
@@ -53,6 +55,10 @@ class ColumnValuesNotMatchRegex(ColumnMapMetricProvider):
     def _spark(cls, column, regex, **kwargs):
         return ~column.rlike(regex)
 
+    @column_condition_partial(engine=DuckDBExecutionEngine)
+    def _duckdb(cls, column, regex, **kwargs):
+        return f"NOT regexp_matches({column}, {sql_literal(regex)})"
+
 
 class ColumnValuesNotMatchRegexCount(MetricProvider):
     metric_name = "column_values.not_match_regex.count"
@@ -73,6 +79,12 @@ class ColumnValuesNotMatchRegexCount(MetricProvider):
 
     @metric_value(engine=SparkDFExecutionEngine)
     def _spark(*, metrics, **kwargs):
+        return metrics[
+            f"column_values.match_regex.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}"
+        ]
+
+    @metric_value(engine=DuckDBExecutionEngine)
+    def _duckdb(*, metrics, **kwargs):
         return metrics[
             f"column_values.match_regex.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}"
         ]

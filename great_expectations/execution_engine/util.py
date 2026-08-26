@@ -4,8 +4,7 @@ from __future__ import annotations
 import logging
 from typing import Any, List
 
-import numpy as np
-
+from great_expectations.compatibility.numpy import np
 from great_expectations.validator.metric_configuration import MetricConfiguration
 
 logger = logging.getLogger(__name__)

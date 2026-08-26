@@ -13,10 +13,12 @@ from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.constants import MAX_DISTINCT_VALUES
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
+from great_expectations.execution_engine.duckdb_sql_utils import quote_ident, sql_literal_list
 from great_expectations.expectations.metrics.column_aggregate_metric_provider import (
     ColumnAggregateMetricProvider,
     column_aggregate_value,
@@ -132,6 +134,35 @@ class ColumnDistinctValuesMissingFromColumnCount(ColumnAggregateMetricProvider):
 
         return len(value_set) - found_count
 
+    @metric_value(engine=DuckDBExecutionEngine)
+    def _duckdb(
+        cls,
+        execution_engine: DuckDBExecutionEngine,
+        metric_domain_kwargs: Dict[str, str],
+        metric_value_kwargs: Dict[str, Any],
+        **kwargs,
+    ) -> int:
+        """Count values in the expected set that are missing from the column."""
+        value_set = metric_value_kwargs.get("value_set", [])
+        if not value_set:
+            return 0
+
+        (
+            relation,
+            _,
+            accessor_domain_kwargs,
+        ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        column_name: str = accessor_domain_kwargs["column"]
+        col = quote_ident(column_name)
+
+        row = (
+            relation.filter(f"{col} IS NOT NULL AND {col} IN {sql_literal_list(value_set)}")
+            .aggregate(f"COUNT(DISTINCT {col})")
+            .fetchone()
+        )
+        found_count = (row[0] if row else 0) or 0
+        return len(value_set) - found_count
+
 
 class ColumnDistinctValuesMissingFromColumn(ColumnAggregateMetricProvider):
     """Metric that returns values in the expected set that are missing from the column.
@@ -192,6 +223,32 @@ class ColumnDistinctValuesMissingFromColumn(ColumnAggregateMetricProvider):
         column_values_set = {row[0] for row in column_values_result}
 
         # Find missing values
+        missing = [v for v in value_set if v not in column_values_set]
+        return missing[:limit]
+
+    @metric_value(engine=DuckDBExecutionEngine)
+    def _duckdb(
+        cls,
+        execution_engine: DuckDBExecutionEngine,
+        metric_domain_kwargs: Dict[str, str],
+        metric_value_kwargs: Dict[str, Any],
+        **kwargs,
+    ) -> List[Any]:
+        """Return values in the expected set that are missing from the column."""
+        value_set = metric_value_kwargs.get("value_set", [])
+        limit = metric_value_kwargs.get("limit") or MAX_DISTINCT_VALUES
+
+        (
+            relation,
+            _,
+            accessor_domain_kwargs,
+        ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        column_name: str = accessor_domain_kwargs["column"]
+        col = quote_ident(column_name)
+
+        rows = relation.filter(f"{col} IS NOT NULL").project(col).distinct().fetchall()
+        column_values_set = {row[0] for row in rows}
+
         missing = [v for v in value_set if v not in column_values_set]
         return missing[:limit]
 

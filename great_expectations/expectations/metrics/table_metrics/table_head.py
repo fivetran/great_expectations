@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import pandas as pd
-
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.sqlalchemy_and_pandas import (
     pandas_read_sql,
 )
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
@@ -122,3 +122,24 @@ class TableHead(TableMetricProvider):
         df = pd.DataFrame(data=rows)  # type: ignore[assignment] # FIXME CoP
 
         return df  # type: ignore[return-value] # FIXME CoP
+
+    @metric_value(engine=DuckDBExecutionEngine)
+    def _duckdb(
+        cls,
+        execution_engine: DuckDBExecutionEngine,
+        metric_domain_kwargs: dict,
+        metric_value_kwargs: dict,
+        metrics: dict[str, Any],
+        runtime_configuration: dict,
+    ) -> pd.DataFrame:
+        relation, _, _ = execution_engine.get_compute_domain(
+            metric_domain_kwargs, domain_type=MetricDomainTypes.TABLE
+        )
+        if metric_value_kwargs.get("fetch_all", cls.default_kwarg_values["fetch_all"]):
+            return relation.df()
+        n_rows: int = (
+            metric_value_kwargs.get("n_rows")  # type: ignore[assignment] # FIXME expected 'int', got 'Any | None'
+            if metric_value_kwargs.get("n_rows") is not None
+            else cls.default_kwarg_values["n_rows"]
+        )
+        return relation.limit(n_rows).df()

@@ -3,11 +3,11 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Type, Union
 
-import numpy as np
-import pandas as pd
 from packaging import version
 
 from great_expectations.compatibility import pydantic, pyspark
+from great_expectations.compatibility.numpy import np
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # noqa: TC001, RUF100 # FIXME CoP
@@ -471,6 +471,49 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
         )
         return {"success": success, "result": {"observed_value": observed_value}}
 
+    # DuckDB has one type system (no per-dialect naming to dispatch on, unlike
+    # `compare_column_type_list`'s SQLAlchemy dialects), so a small alias table
+    # mapping its native type names to the common spellings this expectation's
+    # `type_list` values use elsewhere (numpy/pandas/spark/plain-English) is
+    # sufficient without needing dialect-aware resolution.
+    _DUCKDB_TYPE_ALIASES: ClassVar[Dict[str, set]] = {
+        "TINYINT": {"tinyint", "int8"},
+        "SMALLINT": {"smallint", "int16", "short"},
+        "INTEGER": {"integer", "int", "int32", "integertype"},
+        "BIGINT": {"bigint", "integer", "int", "int64", "long", "integertype"},
+        "HUGEINT": {"hugeint", "int128"},
+        "UTINYINT": {"utinyint", "uint8"},
+        "USMALLINT": {"usmallint", "uint16"},
+        "UINTEGER": {"uinteger", "uint32"},
+        "UBIGINT": {"ubigint", "uint64"},
+        "FLOAT": {"float", "float32", "real"},
+        "DOUBLE": {"double", "float64"},
+        "VARCHAR": {"varchar", "string", "str", "text"},
+        "BOOLEAN": {"boolean", "bool"},
+        "DATE": {"date"},
+        "TIMESTAMP": {"timestamp", "datetime"},
+        "DECIMAL": {"decimal", "numeric"},
+    }
+
+    def _validate_duckdb(self, actual_column_type, expected_types_list):
+        if expected_types_list is None:
+            return {"success": True, "result": {"observed_value": actual_column_type}}
+
+        aliases = self._DUCKDB_TYPE_ALIASES.get(
+            str(actual_column_type).upper(), {str(actual_column_type).lower()}
+        )
+        matched_type = next(
+            (
+                expected_type
+                for expected_type in expected_types_list
+                if expected_type.strip().lower() == str(actual_column_type).lower()
+                or expected_type.strip().lower() in aliases
+            ),
+            None,
+        )
+        observed_value = matched_type if matched_type is not None else actual_column_type
+        return {"success": matched_type is not None, "result": {"observed_value": observed_value}}
+
     def _validate_spark(
         self,
         actual_column_type,
@@ -581,6 +624,7 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
         execution_engine: Optional[ExecutionEngine] = None,
     ):
         from great_expectations.execution_engine import (
+            DuckDBExecutionEngine,
             PandasExecutionEngine,
             SparkDFExecutionEngine,
             SqlAlchemyExecutionEngine,
@@ -618,6 +662,11 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
             )
         elif isinstance(execution_engine, SparkDFExecutionEngine):
             return self._validate_spark(
+                actual_column_type=actual_column_type,
+                expected_types_list=expected_types_list,
+            )
+        elif isinstance(execution_engine, DuckDBExecutionEngine):
+            return self._validate_duckdb(
                 actual_column_type=actual_column_type,
                 expected_types_list=expected_types_list,
             )

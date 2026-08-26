@@ -1050,6 +1050,7 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         # tests/integration/test_definitions/gcs/README.md.
         extra_pytest_args=("--spark", "--docs-tests"),
     ),
+    "duckdb": TestDependencies(("reqs/requirements-dev-duckdb.txt",)),
     "gcs_deps": TestDependencies(("reqs/requirements-dev-gcs.txt",)),
     "sql_server": TestDependencies(
         ("reqs/requirements-dev-sql-server.txt",),

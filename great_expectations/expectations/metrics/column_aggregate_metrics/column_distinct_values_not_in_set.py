@@ -13,10 +13,12 @@ from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.constants import MAX_DISTINCT_VALUES
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
+from great_expectations.execution_engine.duckdb_sql_utils import quote_ident, sql_literal_list
 from great_expectations.expectations.metrics.column_aggregate_metric_provider import (
     ColumnAggregateMetricProvider,
     column_aggregate_value,
@@ -135,6 +137,32 @@ class ColumnDistinctValuesNotInSetCount(ColumnAggregateMetricProvider):
 
         result = filtered_df.select(F.countDistinct(F.col(column_name))).collect()[0][0]
         return result or 0
+
+    @metric_value(engine=DuckDBExecutionEngine)
+    def _duckdb(
+        cls,
+        execution_engine: DuckDBExecutionEngine,
+        metric_domain_kwargs: Dict[str, str],
+        metric_value_kwargs: Dict[str, Any],
+        **kwargs,
+    ) -> int:
+        """Count distinct values in column that are NOT in the expected set."""
+        value_set = metric_value_kwargs.get("value_set", [])
+
+        (
+            relation,
+            _,
+            accessor_domain_kwargs,
+        ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        column_name: str = accessor_domain_kwargs["column"]
+        col = quote_ident(column_name)
+
+        filtered = relation.filter(f"{col} IS NOT NULL")
+        if value_set:
+            filtered = filtered.filter(f"{col} NOT IN {sql_literal_list(value_set)}")
+
+        row = filtered.aggregate(f"COUNT(DISTINCT {col})").fetchone()
+        return (row[0] if row else 0) or 0
 
 
 class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
@@ -260,3 +288,30 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
             for row in filtered_df.select(F.col(column_name)).distinct().limit(limit).collect()
         ]
         return results
+
+    @metric_value(engine=DuckDBExecutionEngine)
+    def _duckdb(
+        cls,
+        execution_engine: DuckDBExecutionEngine,
+        metric_domain_kwargs: Dict[str, str],
+        metric_value_kwargs: Dict[str, Any],
+        **kwargs,
+    ) -> List[Any]:
+        """Return sample of distinct values in column that are NOT in the expected set."""
+        value_set = metric_value_kwargs.get("value_set", [])
+        limit = metric_value_kwargs.get("limit") or MAX_DISTINCT_VALUES
+
+        (
+            relation,
+            _,
+            accessor_domain_kwargs,
+        ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        column_name: str = accessor_domain_kwargs["column"]
+        col = quote_ident(column_name)
+
+        filtered = relation.filter(f"{col} IS NOT NULL")
+        if value_set:
+            filtered = filtered.filter(f"{col} NOT IN {sql_literal_list(value_set)}")
+
+        rows = filtered.project(col).distinct().limit(limit).fetchall()
+        return [row[0] for row in rows]

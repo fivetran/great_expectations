@@ -23,13 +23,12 @@ from typing import (
     Union,
 )
 
-import pandas as pd
-
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import (
     public_api,
 )
 from great_expectations.compatibility import pydantic, sqlalchemy
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.batch import LegacyBatchDefinition

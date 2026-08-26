@@ -10,6 +10,7 @@ from great_expectations.core.metric_function_types import (
     MetricPartialFunctionTypeSuffixes,
 )
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     ExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
@@ -191,6 +192,26 @@ class CompoundColumnsUnique(MulticolumnMapMetricProvider):
             F.count(F.lit(1)).over(pyspark.Window.partitionBy(F.struct(*column_names))) <= 1
         )
         return row_wise_cond
+
+    @multicolumn_condition_partial(engine=DuckDBExecutionEngine)
+    def _duckdb(cls, column_list, _relation, **kwargs):
+        """
+        DuckDB forbids window functions in a WHERE clause or inside an aggregate's CASE
+        expression (both of which "unexpected_condition" strings are used in), so a
+        `COUNT(*) OVER (PARTITION BY ...)` group count -- the natural way to express this --
+        isn't usable here. A correlated scalar subquery against the domain's own SQL
+        (`_relation.sql_query()`) counts each row's duplicates instead; the subquery's columns
+        are aliased to distinct names so they don't shadow the outer row's column references.
+        """
+        inner_columns = [f"_c{i}" for i in range(len(column_list))]
+        match_conditions = " AND ".join(
+            f"_t.{inner} IS NOT DISTINCT FROM {outer}"
+            for inner, outer in zip(inner_columns, column_list, strict=True)
+        )
+        return (
+            f"(SELECT COUNT(*) FROM ({_relation.sql_query()}) AS _t({', '.join(inner_columns)}) "
+            f"WHERE {match_conditions}) < 2"
+        )
 
     @classmethod
     @override

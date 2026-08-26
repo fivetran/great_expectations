@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     ExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
@@ -54,6 +55,18 @@ class ColumnMostCommonValue(ColumnAggregateMetricProvider):
         column_value_counts = metrics["column.value_counts"]
         return list(column_value_counts[column_value_counts == column_value_counts.max()].index)
 
+    @metric_value(engine=DuckDBExecutionEngine)
+    def _duckdb(
+        cls,
+        execution_engine: DuckDBExecutionEngine,
+        metric_domain_kwargs: dict,
+        metric_value_kwargs: dict,
+        metrics: Dict[str, Any],
+        runtime_configuration: dict,
+    ):
+        column_value_counts = metrics["column.value_counts"]
+        return list(column_value_counts[column_value_counts == column_value_counts.max()].index)
+
     @classmethod
     @override
     def _get_evaluation_dependencies(
@@ -72,7 +85,10 @@ class ColumnMostCommonValue(ColumnAggregateMetricProvider):
             runtime_configuration=runtime_configuration,
         )
 
-        if isinstance(execution_engine, (SparkDFExecutionEngine, SqlAlchemyExecutionEngine)):
+        if isinstance(
+            execution_engine,
+            (SparkDFExecutionEngine, SqlAlchemyExecutionEngine, DuckDBExecutionEngine),
+        ):
             dependencies["column.value_counts"] = MetricConfiguration(
                 metric_name="column.value_counts",
                 metric_domain_kwargs=metric.metric_domain_kwargs,

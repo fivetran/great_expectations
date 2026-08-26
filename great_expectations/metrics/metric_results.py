@@ -1,7 +1,5 @@
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, Union
 
-import pandas as pd
-
 from great_expectations.compatibility.pydantic import BaseModel, GenericModel
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.validator.metric_configuration import (
@@ -9,6 +7,7 @@ from great_expectations.validator.metric_configuration import (
 )
 
 if TYPE_CHECKING:
+    from great_expectations.compatibility.pandas import pandas as pd
     from great_expectations.compatibility.pyspark import pyspark
     from great_expectations.compatibility.sqlalchemy import BinaryExpression
 
@@ -40,11 +39,16 @@ class ConditionValuesValueError(ValueError):
         )
 
 
-class ConditionValues(MetricResult[Union[pd.Series, "pyspark.sql.Column", "BinaryExpression"]]):
+class ConditionValues(MetricResult[Union["pd.Series", "pyspark.sql.Column", "BinaryExpression"]]):
     @classmethod
     def validate_value_type(cls, value):
-        if isinstance(value, pd.Series):
-            return value
+        try:
+            from great_expectations.compatibility.pandas import pandas as pd
+
+            if pd and isinstance(value, pd.Series):
+                return value
+        except (ImportError, AttributeError):
+            pass
 
         try:
             from great_expectations.compatibility.pyspark import pyspark

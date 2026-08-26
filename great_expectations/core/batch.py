@@ -15,9 +15,8 @@ from typing import (
     overload,
 )
 
-import pandas as pd
-
 from great_expectations.compatibility import pyspark
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.id_dict import BatchKwargs, BatchSpec, IDDict, IDDictID
 from great_expectations.exceptions import InvalidBatchIdError
@@ -1347,9 +1346,9 @@ if TYPE_CHECKING:
     AnyBatch: TypeAlias = Union[Batch, FluentBatch]
 
 if pyspark.DataFrame:  # type: ignore[truthy-function] # False if NotImported
-    BatchDataUnion: TypeAlias = Union[BatchData, pd.DataFrame, pyspark.DataFrame]
+    BatchDataUnion: TypeAlias = Union[BatchData, "pd.DataFrame", pyspark.DataFrame]
 
-    BatchDataType: TypeAlias = Union[Type[BatchData], Type[pd.DataFrame], Type[pyspark.DataFrame]]
+    BatchDataType: TypeAlias = Union[Type[BatchData], Type["pd.DataFrame"], Type[pyspark.DataFrame]]
 else:
-    BatchDataType = Union[Type[BatchData], Type[pd.DataFrame]]  # type: ignore[misc] # Cannot assign multiple types
-    BatchDataUnion = Union[BatchData, pd.DataFrame]  # type: ignore[misc] # Cannot assign multiple types
+    BatchDataType = Union[Type[BatchData], Type["pd.DataFrame"]]  # type: ignore[misc] # Cannot assign multiple types
+    BatchDataUnion = Union[BatchData, "pd.DataFrame"]  # type: ignore[misc] # Cannot assign multiple types

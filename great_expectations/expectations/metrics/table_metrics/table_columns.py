@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     ExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
@@ -52,6 +53,18 @@ class TableColumns(TableMetricProvider):
     def _spark(
         cls,
         execution_engine: SparkDFExecutionEngine,
+        metric_domain_kwargs: dict,
+        metric_value_kwargs: dict,
+        metrics: Dict[str, Any],
+        runtime_configuration: dict,
+    ):
+        column_metadata = metrics["table.column_types"]
+        return [col["name"] for col in column_metadata]
+
+    @metric_value(engine=DuckDBExecutionEngine)
+    def _duckdb(
+        cls,
+        execution_engine: DuckDBExecutionEngine,
         metric_domain_kwargs: dict,
         metric_value_kwargs: dict,
         metrics: Dict[str, Any],

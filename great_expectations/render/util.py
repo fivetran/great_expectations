@@ -8,8 +8,7 @@ import locale
 import re
 from typing import Any, Sequence, TypeVar
 
-import pandas as pd
-
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.data_context.types.resource_identifiers import (
     ValidationResultIdentifier,
 )

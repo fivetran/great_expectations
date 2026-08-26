@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime
 import functools
 import logging
+import math
 import re
 import warnings
 from abc import ABC, abstractmethod
@@ -27,13 +28,13 @@ from typing import (
     Union,
 )
 
-import pandas as pd
 from dateutil.parser import parse
 from typing_extensions import ParamSpec, TypeGuard, dataclass_transform
 
 from great_expectations import __version__ as ge_version
 from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.compatibility.pydantic import Field, ModelMetaclass, StrictStr
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.expectation_validation_result import (
@@ -1833,8 +1834,15 @@ class BatchExpectation(Expectation, ABC):
         max_value: Optional[Any] = success_kwargs.get("max_value")
         strict_max: Optional[bool] = success_kwargs.get("strict_max")
 
-        if not isinstance(metric_value, datetime.datetime) and pd.isnull(metric_value):
-            return {"success": False, "result": {"observed_value": None}}
+        if not isinstance(metric_value, datetime.datetime):
+            # pd.NaT can only occur when pandas is installed, since nothing else can construct it.
+            is_null_like = (
+                pd.isnull(metric_value)
+                if pd
+                else isinstance(metric_value, float) and math.isnan(metric_value)
+            )
+            if is_null_like:
+                return {"success": False, "result": {"observed_value": None}}
 
         if isinstance(metric_value, datetime.datetime):
             if isinstance(min_value, str):
@@ -3036,7 +3044,7 @@ def _format_map_output(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
 
     if result_format["include_unexpected_rows"]:
         if unexpected_rows is not None:
-            if isinstance(unexpected_rows, pd.DataFrame):
+            if pd and isinstance(unexpected_rows, pd.DataFrame):
                 unexpected_rows = unexpected_rows.head(result_format["partial_unexpected_count"])
             elif isinstance(unexpected_rows, list):
                 unexpected_rows = unexpected_rows[: result_format["partial_unexpected_count"]]
@@ -3166,7 +3174,7 @@ def parse_value_to_observed_type(observed_value: Any, value: Any) -> Any:
     # Handle datetime and date types (Timestamp > datetime > date)
     try:
         parsed = parse(value)
-        if isinstance(observed_value, pd.Timestamp):
+        if pd and isinstance(observed_value, pd.Timestamp):
             return pd.Timestamp(parsed)
         elif isinstance(observed_value, datetime.datetime):
             return parsed

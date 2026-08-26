@@ -7,6 +7,7 @@ from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
 from great_expectations.execution_engine import (
+    DuckDBExecutionEngine,
     ExecutionEngine,
     PandasExecutionEngine,
     SparkDFExecutionEngine,
@@ -44,6 +45,10 @@ class ColumnValuesNonNull(ColumnMapMetricProvider):
     def _spark(cls, column, **kwargs):
         return column.isNotNull()
 
+    @column_condition_partial(engine=DuckDBExecutionEngine)
+    def _duckdb(cls, column, **kwargs):
+        return f"{column} IS NOT NULL"
+
 
 class ColumnValuesNonNullCount(MetricProvider):
     """A convenience class to provide an alias for easier access to the null count in a column."""
@@ -64,6 +69,12 @@ class ColumnValuesNonNullCount(MetricProvider):
 
     @metric_value(engine=SparkDFExecutionEngine)
     def _spark(*, metrics, **kwargs):
+        return metrics[
+            f"column_values.null.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}"
+        ]
+
+    @metric_value(engine=DuckDBExecutionEngine)
+    def _duckdb(*, metrics, **kwargs):
         return metrics[
             f"column_values.null.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}"
         ]

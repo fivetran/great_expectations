@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Dict, Literal, Optional
 
-import numpy as np
-
+from great_expectations.compatibility.numpy import np
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.execution_engine import (
     ExecutionEngine,

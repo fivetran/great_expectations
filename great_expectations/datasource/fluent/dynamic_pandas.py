@@ -29,10 +29,10 @@ from typing import (
     Union,
 )
 
-import pandas as pd
 from packaging.version import Version
 
 from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.compatibility.pydantic import AnyUrl, Field, FilePath
 
 # from great_expectations.compatibility.pydantic.typing import resolve_annotations
@@ -75,9 +75,11 @@ DtypeBackend = Literal["pyarrow", "numpy_nullable"]
 
 logger = logging.getLogger(__name__)
 
-PANDAS_VERSION: float = float(f"{Version(pd.__version__).major}.{Version(pd.__version__).minor}")
+PANDAS_VERSION: float = (
+    float(f"{Version(pd.__version__).major}.{Version(pd.__version__).minor}") if pd else 0.0
+)
 
-DataFrameFactoryFn: TypeAlias = Callable[..., pd.DataFrame]
+DataFrameFactoryFn: TypeAlias = Callable[..., "pd.DataFrame"]
 
 # sentinel values
 UNSUPPORTED_TYPE: Final = object()
@@ -249,6 +251,12 @@ _TYPE_REF_LOCALS: Final[Dict[str, Type | Any]] = {
 def _extract_io_methods(
     blacklist: Optional[Sequence[str]] = None,
 ) -> List[Tuple[str, DataFrameFactoryFn]]:
+    if not pd:
+        # pandas is an optional dependency; inspect.getmembers(pd, ...) would call
+        # getattr(pd, "__bases__") on some Python versions, and NotImported.__getattr__
+        # raises ModuleNotFoundError (not AttributeError) for any missing attribute,
+        # which inspect doesn't expect and won't swallow.
+        return []
     # suppress pandas future warnings that may be emitted by collecting
     # pandas io methods
     # Once the context manager exits, the warning filter is removed.

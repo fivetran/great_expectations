@@ -29,14 +29,14 @@ from typing import (
     cast,
 )
 
-import numpy as np
-import pandas as pd
 from dateutil.parser import parse
 from typing_extensions import ParamSpec
 
 import great_expectations as gx
 import great_expectations.compatibility.bigquery as BigQueryDialect
 from great_expectations.compatibility import aws, pyspark, snowflake, sqlalchemy, trino
+from great_expectations.compatibility.numpy import np
+from great_expectations.compatibility.pandas import pandas as pd
 from great_expectations.compatibility.pandas_compatibility import (
     execute_pandas_to_datetime,
 )
@@ -655,7 +655,7 @@ def _get_test_validator_with_data_spark(  # noqa: C901, PLR0912, PLR0915 # FIXME
             for col in schema:
                 type_ = schema[col]
                 # Ints cannot be None...but None can be valid in Spark (as Null)
-                vals: List[Union[str, int, float, None, Decimal]] = []
+                vals: List[Union[str, int, float, Decimal, None]] = []
                 if type_ in ["IntegerType", "LongType"]:
                     for val in data[col]:
                         if val is None:
