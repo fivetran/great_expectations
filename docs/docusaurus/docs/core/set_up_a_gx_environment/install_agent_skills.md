@@ -44,13 +44,14 @@ This skill takes you from "here is a Suite that already validated my data" to a 
 
 That script is where the path ends: from there, deploy your checks to run on your schedule, with no agent in the loop.
 
-## Prerequisites
+
+## Install the skills
+
+**Prerequisites**
 
 - <PrereqPythonInstalled/>.
 - <PrereqGxInstalled/>, version 1.21.0 or newer. Earlier versions do not bundle the skills.
 - One of the supported coding agents: Claude Code, Codex, or Cursor.
-
-## Install the skills
 
 Run the install command from the root of the project you want the skills available in:
 
