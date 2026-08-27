@@ -239,9 +239,19 @@ class PasswordMasker:
                 "and valid."
             )
 
+        # Only re-emit the fields this method actually validated above; anything else the
+        # connection string happens to carry (e.g. an embedded SAS token) is dropped rather
+        # than echoed back unmasked.
+        recognized_fields = {
+            "DefaultEndpointsProtocol",
+            "AccountName",
+            "AccountKey",
+            "EndpointSuffix",
+        }
         return ";".join(
             f"{key}={cls.MASKED_PASSWORD_STRING}" if key == "AccountKey" else f"{key}={value}"
             for key, value in fields
+            if key in recognized_fields
         )
 
     @classmethod

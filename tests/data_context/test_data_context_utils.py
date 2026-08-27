@@ -320,6 +320,11 @@ def test_sanitize_config_azure_blob_store():
             "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=***;EndpointSuffix=core.windows.net",
             id="trailing_semicolon",
         ),
+        pytest.param(
+            "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=i_am_account_key;SharedAccessSignature=i_am_a_sas_token",
+            "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=***",
+            id="unrecognized_field_dropped",
+        ),
     ],
 )
 def test_azure_connection_string_masked_regardless_of_field_order(connection_string, expected):
@@ -334,6 +339,27 @@ def test_azure_connection_string_account_key_never_appears_in_raised_error():
     with pytest.raises(StoreConfigurationError) as exc_info:
         PasswordMasker.mask_db_url(malformed)
     assert account_key not in str(exc_info.value)
+
+
+@pytest.mark.unit
+def test_azure_connection_string_raises_for_invalid_account_name():
+    """AccountName must be alphanumeric; a hyphen should be rejected."""
+    connection_string = (
+        "DefaultEndpointsProtocol=https;AccountName=iam-name;AccountKey=i_am_account_key"
+    )
+    with pytest.raises(StoreConfigurationError):
+        PasswordMasker.mask_db_url(connection_string)
+
+
+@pytest.mark.unit
+def test_azure_connection_string_raises_for_invalid_endpoint_suffix():
+    """EndpointSuffix must match [a-zA-Z.]+; digits/symbols should be rejected."""
+    connection_string = (
+        "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=i_am_account_key;"
+        "EndpointSuffix=core.windows.net123"
+    )
+    with pytest.raises(StoreConfigurationError):
+        PasswordMasker.mask_db_url(connection_string)
 
 
 @pytest.mark.unit
