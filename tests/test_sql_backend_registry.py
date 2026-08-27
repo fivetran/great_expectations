@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib
 import subprocess
 import sys
 import tempfile
@@ -605,6 +606,105 @@ class TestSqlDatasourceTestConfigSatisfiesRegistrationProtocol:
             register_sql_backend(_DeclaredConfig)
 
             assert _DeclaredConfig in iter_sql_backends()
+
+
+_THROWAWAY_CORE_SPEC = DataSourceSpec(
+    label="mssql",
+    public_name="SQL Server",
+    marker="sql_server",
+    provisioning=BackendProvisioning.LOCAL_FILE,
+)
+
+
+class _CoreDeclaredConfig(DataSourceTestConfig):
+    """Throwaway config that derives its identity from a plain core record rather than from a SQL
+    sub-record, mirroring `_HandWrittenControlConfig`'s label and marker exactly.
+
+    Deliberately not a SQL config: the declaration slot and the identity derived from it live on
+    the shared config base, so a data source with no dialect facts at all states its identity the
+    same way a SQL backend does.
+    """
+
+    BACKEND_SPEC = _THROWAWAY_CORE_SPEC
+
+    @override
+    def create_batch_setup(
+        self,
+        request: pytest.FixtureRequest,
+        data: pd.DataFrame,
+        extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
+        engine_manager: Optional[SessionSQLEngineManager] = None,
+    ) -> BatchTestSetup:
+        raise NotImplementedError("not exercised by these tests")
+
+
+class TestSharedConfigBaseDerivesIdentityFromACoreRecord:
+    """Each claim is its own test so that a defect breaking one of them is reported as that one.
+
+    Bundled into a single method, the first failing assertion would hide every claim after it,
+    and a derived claim that is never evaluated cannot be told apart from one that holds.
+    """
+
+    def test_derives_the_label_of_a_hand_written_control(self) -> None:
+        assert _CoreDeclaredConfig().label == _HandWrittenControlConfig().label == "mssql"
+
+    def test_derives_the_mark_of_a_hand_written_control(self) -> None:
+        declared_mark = _CoreDeclaredConfig().pytest_mark
+        assert declared_mark == _HandWrittenControlConfig().pytest_mark == pytest.mark.sql_server
+
+    def test_reports_the_same_test_id_as_a_hand_written_control(self) -> None:
+        assert _CoreDeclaredConfig().test_id == _HandWrittenControlConfig().test_id
+
+    def test_hashes_to_the_same_value_as_a_hand_written_control(self) -> None:
+        assert hash(_CoreDeclaredConfig()) == hash(_HandWrittenControlConfig())
+
+    def test_compares_equal_to_a_hand_written_control(self) -> None:
+        assert _CoreDeclaredConfig() == _HandWrittenControlConfig()
+
+    def test_the_declaration_takes_no_part_in_construction_equality_or_hashing(self) -> None:
+        """The slot is a class attribute, not a dataclass field.
+
+        The dataclass machinery recognizes it as one only by resolving the name `ClassVar` in the
+        defining module's namespace at runtime. Were that name unavailable there - imported for
+        type checking alone, say - the annotation would read as an ordinary field instead, and
+        the declaration would silently join every config's constructor, equality and hash. That
+        failure is invisible at the declaration site, so it is checked here.
+        """
+        assert "BACKEND_SPEC" not in {f.name for f in fields(DataSourceTestConfig)}
+        assert "BACKEND_SPEC" not in {f.name for f in fields(_CoreDeclaredConfig)}
+        assert "BACKEND_SPEC" not in {f.name for f in fields(_DeclaredConfig)}
+
+
+class TestTheDeclarationSlotIsDeclaredExactlyOnce:
+    def test_only_the_shared_config_base_annotates_the_declaration(self) -> None:
+        """Two declaration slots must never coexist.
+
+        A subclass that re-annotates an inherited class variable with a narrower type is not
+        narrowing it - class variables are invariant - it is a second declaration of the same
+        fact, and a reader then has two places to look for it. The type checker does not object
+        to one, which is why this test exists rather than a type annotation being relied on to
+        catch it. Every narrowing therefore happens in an accessor, guarded by an invariant
+        registration enforces, and the slot itself is annotated once.
+
+        The registration protocol is expected alongside the base: it states the shape a config
+        class must have in order to be enrolled, which is a requirement placed on a declaration
+        rather than a second place to make one.
+        """
+        package_name = DataSourceTestConfig.__module__.rsplit(".", 1)[0]
+        importlib.import_module(package_name)
+
+        annotating: set[str] = set()
+        for module_name, module in list(sys.modules.items()):
+            if module_name != package_name and not module_name.startswith(f"{package_name}."):
+                continue
+            for obj in vars(module).values():
+                if not isinstance(obj, type) or not obj.__module__.startswith(package_name):
+                    continue
+                if "BACKEND_SPEC" in vars(obj).get("__annotations__", {}):
+                    annotating.add(obj.__qualname__)
+
+        assert annotating == {"DataSourceTestConfig", "_DeclaresBackendSpec"}
 
 
 class TestLocallyVerifiableBackendsRegisterInLabelOrder:

@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 import os
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ClassVar, Mapping, Optional
+from typing import TYPE_CHECKING, Mapping, Optional
 
 from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.compatibility.typing_extensions import override
@@ -47,7 +47,7 @@ class GenericSQLDatasourceTestConfig(SqlDatasourceTestConfig):
     raw `dict` value and raises on every instance.
     """
 
-    BACKEND_SPEC: ClassVar[SqlBackendSpec] = SqlBackendSpec(
+    BACKEND_SPEC = SqlBackendSpec(
         label="generic_sql",
         public_name="Generic SQL",
         marker="generic_sql",
