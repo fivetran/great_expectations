@@ -11,6 +11,7 @@ from dateutil.parser import parse
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.render import (
     RenderedBootstrapTableContent,
+    RenderedComponentContent,
     RenderedDocumentContent,
     RenderedHeaderContent,
     RenderedSectionContent,
@@ -368,7 +369,7 @@ class SiteIndexPageRenderer(Renderer):
         cta_object = index_links_dict.pop("cta_object", None)
 
         try:
-            content_blocks = []
+            content_blocks: list[RenderedComponentContent] = []
             # site name header
             site_name_header_block = RenderedHeaderContent(
                 content_block_type="header",

@@ -954,7 +954,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
             )
 
             exception_traceback_collapse = CollapseContent(
-                collapse_toggle_link="Show exception traceback...",  # type: ignore[arg-type] # FIXME CoP
+                collapse_toggle_link="Show exception traceback...",
                 collapse=[
                     RenderedStringTemplateContent(
                         content_block_type="string_template",
@@ -1070,7 +1070,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         unexpected_table_content_block = RenderedTableContent(
             content_block_type="table",
             table=table_rows,
-            header_row=header_row,  # type: ignore[arg-type] # FIXME CoP
+            header_row=header_row,
             styling={"body": {"classes": ["table-bordered", "table-sm", "mt-3"]}},
         )
         if result_dict.get("unexpected_index_query"):
@@ -1079,7 +1079,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
             if not isinstance(query, str):
                 query = str(query)
             query_info = CollapseContent(
-                collapse_toggle_link="To retrieve all unexpected values...",  # type: ignore[arg-type] # FIXME CoP
+                collapse_toggle_link="To retrieve all unexpected values...",
                 collapse=[
                     RenderedStringTemplateContent(
                         content_block_type="string_template",
