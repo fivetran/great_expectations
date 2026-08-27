@@ -265,6 +265,11 @@ def type_check(  # noqa: C901, PLR0912
     mypy_cache = pathlib.Path(".mypy_cache")
 
     if ci:
+        # The configuration guard runs inside the type-check entry point, before mypy
+        # dispatches, so it takes effect on the pull request that introduces it and every
+        # one after, and can't be skipped by reordering steps in a workflow file.
+        ctx.run("python scripts/mypy_config_guard.py", echo=True, pty=True)
+
         mypy_cache.mkdir(exist_ok=True)
         print(f"  mypy cache {mypy_cache.absolute()}")
 
