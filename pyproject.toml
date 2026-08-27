@@ -156,7 +156,6 @@ disable_error_code = [
 
 [[tool.mypy.overrides]]
 module = [
-    "altair.*",
     "boto3.*",
     "botocore.*",
     "clickhouse_sqlalchemy.*",
@@ -164,18 +163,13 @@ module = [
     "google.*",
     "great_expectations.compatibility.pydantic.*",
     "IPython.*",
-    "mistune.*",
-    "moto.*",
-    "pact.*",
     "pyarrow.*",
-    "pyfakefs.*",
     "pyodbc",
     "pypd.*",
     "pytest_timeout.*",
     "ruamel.*",
     "scipy.*",
     "sempy.*",
-    "shapely.*",
     "snowflake.*",
     "sqlalchemy_bigquery.*",
     "sqlalchemy_dremio.*",
