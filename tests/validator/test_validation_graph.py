@@ -1,6 +1,6 @@
 import sys
 import uuid
-from typing import TYPE_CHECKING, Dict, Iterable, Optional, Set, Tuple, Union, cast
+from typing import TYPE_CHECKING, Dict, Iterable, Optional, Set, Union, cast
 from unittest import mock
 
 import pytest
@@ -13,7 +13,10 @@ from great_expectations.expectations.expectation_configuration import (
 )
 from great_expectations.validator.computed_metric import MetricValue
 from great_expectations.validator.exception_info import ExceptionInfo
-from great_expectations.validator.metric_configuration import MetricConfiguration
+from great_expectations.validator.metric_configuration import (
+    MetricConfiguration,
+    MetricConfigurationID,
+)
 from great_expectations.validator.validation_graph import (
     MAX_METRIC_COMPUTATION_RETRIES,
     ExpectationValidationGraph,
@@ -34,9 +37,9 @@ def pandas_execution_engine_fake(
         @staticmethod
         def resolve_metrics(
             metrics_to_resolve: Iterable[MetricConfiguration],
-            metrics: Optional[Dict[Tuple[str, str, str], MetricConfiguration]] = None,
+            metrics: Optional[Dict[MetricConfigurationID, MetricConfiguration]] = None,
             runtime_configuration: Optional[dict] = None,
-        ) -> Dict[Tuple[str, str, str], MetricValue]:
+        ) -> Dict[MetricConfigurationID, MetricValue]:
             """
             This stub method implementation insures that specified "MetricConfiguration", designed to fail, will cause
             appropriate exception to be raised, while its dependencies resolve to actual values ("my_value" is used here
@@ -296,7 +299,7 @@ def test_ExpectationValidationGraph_get_exception_info(
 def test_parse_validation_graph(
     expect_column_value_z_scores_to_be_less_than_expectation_validation_graph: ValidationGraph,
 ):
-    available_metrics: Dict[Tuple[str, str, str], MetricValue]
+    available_metrics: Dict[MetricConfigurationID, MetricValue]
 
     # Parse input "ValidationGraph" object and confirm the numbers of ready and still needed metrics.  # noqa: E501 # FIXME CoP
     available_metrics = {}
@@ -309,7 +312,7 @@ def test_parse_validation_graph(
     assert len(ready_metrics) == 2 and len(needed_metrics) == 9
 
     # Show that including "nonexistent" metric in dictionary of resolved metrics does not increase ready_metrics count.  # noqa: E501 # FIXME CoP
-    available_metrics = {("nonexistent", "nonexistent", "nonexistent"): "NONE"}
+    available_metrics = {MetricConfigurationID("nonexistent", "nonexistent", "nonexistent"): "NONE"}
     (
         ready_metrics,
         needed_metrics,
@@ -381,9 +384,9 @@ def test_resolve_validation_graph_with_bad_config_catch_exceptions_true(
         runtime_configuration=runtime_configuration,
     )
 
-    resolved_metrics: Dict[Tuple[str, str, str], MetricValue]
+    resolved_metrics: Dict[MetricConfigurationID, MetricValue]
     aborted_metrics_info: Dict[
-        Tuple[str, str, str],
+        MetricConfigurationID,
         Dict[str, Union[MetricConfiguration, Set[ExceptionInfo], int]],
     ]
     _resolved_metrics, aborted_metrics_info = graph.resolve(
@@ -470,9 +473,9 @@ def test_progress_bar_config(
             )
 
         graph = ValidationGraph(execution_engine=execution_engine)
-        resolved_metrics: Dict[Tuple[str, str, str], MetricValue]
+        resolved_metrics: Dict[MetricConfigurationID, MetricValue]
         aborted_metrics_info: Dict[
-            Tuple[str, str, str],
+            MetricConfigurationID,
             Dict[str, Union[MetricConfiguration, Set[ExceptionInfo], int]],
         ]
         # noinspection PyUnusedLocal
