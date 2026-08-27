@@ -265,6 +265,11 @@ def type_check(  # noqa: C901, PLR0912
     mypy_cache = pathlib.Path(".mypy_cache")
 
     if ci:
+        # The configuration guard runs inside the type-check entry point, before mypy
+        # dispatches, so it takes effect on the pull request that introduces it and every
+        # one after, and can't be skipped by reordering steps in a workflow file.
+        ctx.run("python scripts/mypy_config_guard.py", echo=True, pty=True)
+
         mypy_cache.mkdir(exist_ok=True)
         print(f"  mypy cache {mypy_cache.absolute()}")
 
@@ -1027,11 +1032,12 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         ),
         services=("mssql", "trino"),
         extra_pytest_args=(
-            # TEMPORARY (CI transition): the S3, Azure Blob, BigQuery, Redshift, and
-            # Snowflake backends are unavailable while their CI infrastructure is torn down.
+            # TEMPORARY (CI transition): the Azure Blob, BigQuery, Redshift, and Snowflake
+            # backends are unavailable while their CI infrastructure is torn down.
             # Requesting any of them makes test collection eagerly connect to a dead backend
             # and abort the whole session, so only the available backends are requested here.
             # Restore the remaining cloud/warehouse flags once the infra is back.
+            "--aws",
             "--gcs",
             "--trino",
             "--docs-tests",

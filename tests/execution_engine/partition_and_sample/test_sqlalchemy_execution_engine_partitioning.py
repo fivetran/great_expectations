@@ -7,6 +7,12 @@ from unittest import mock
 
 import pandas as pd
 import pytest
+import sqlalchemy
+import sqlalchemy.dialects.mssql as mssql_dialect
+import sqlalchemy.dialects.mysql as mysql_dialect
+import sqlalchemy.dialects.oracle as oracle_dialect
+import sqlalchemy.dialects.postgresql as postgresql_dialect
+import sqlalchemy.dialects.sqlite as sqlite_dialect
 from dateutil.parser import parse
 
 from great_expectations.core.batch_spec import SqlAlchemyDatasourceBatchSpec
@@ -357,6 +363,215 @@ def test_get_partition_query_for_data_for_batch_identifiers_for_partition_on_dat
         .lower()
     )
     assert actual_query_str == expected_query_str.replace("\n", "").replace(" ", "").lower()
+
+
+# The partitioner's own `dialect` argument only changes which branch it builds (e.g. the
+# SQLite-only concatenation form); the SQLAlchemy compile-time dialect below is what actually
+# renders each dialect's SQL text, including its cast target types. Both are set to the same
+# target per case so each rendering below reflects how that dialect is exercised at runtime.
+PARTITION_QUERY_DIALECT_MODULES_BY_NAME = {
+    "sqlite": sqlite_dialect,
+    "postgresql": postgresql_dialect,
+    "mssql": mssql_dialect,
+    "mysql": mysql_dialect,
+    "oracle": oracle_dialect,
+}
+
+PARTITION_QUERY_DATE_PARTS_BY_COUNT = {
+    1: [DatePart.YEAR],
+    2: [DatePart.YEAR, DatePart.MONTH],
+    3: [DatePart.YEAR, DatePart.MONTH, DatePart.DAY],
+}
+
+
+def _render_partition_query_for_date_parts(dialect_name: str, date_parts: List[DatePart]) -> str:
+    """Compile the multi-date-part partition query for one dialect, database-free.
+
+    Compiling (rather than executing) against a bare SQLAlchemy dialect object requires neither
+    a driver nor a live service, so this is safe to run in any environment.
+    """
+    data_partitioner = SqlAlchemyDataPartitioner(dialect=dialect_name)
+    selectable = sqlalchemy.text("table_name")
+    query = data_partitioner.get_partition_query_for_data_for_batch_identifiers_for_partition_on_date_parts(  # noqa: E501 # FIXME CoP
+        selectable=selectable,
+        column_name="column_name",
+        date_parts=date_parts,
+    )
+    compiled = query.compile(
+        dialect=PARTITION_QUERY_DIALECT_MODULES_BY_NAME[dialect_name].dialect(),
+        compile_kwargs={"literal_binds": True},
+    )
+    rendered = str(compiled).replace("\n", "").replace(" ", "").lower()
+    # SQLAlchemy's mssql dialect renders an empty string literal as N'' under SQLAlchemy 1.4
+    # and as '' under SQLAlchemy 2.0 (the national-string prefix on a string literal) when
+    # compiling the CONCAT construct here. That construct is not something this change touches,
+    # so the two forms are normalized to compare equal rather than pinning whichever one the
+    # installed SQLAlchemy version happens to render.
+    return rendered.replace("concat(n''", "concat(''")
+
+
+# Pinned exact renderings, one per (dialect, date-part count). Any change to a cast site, an
+# extraction call, or the concatenation shape shows up here as a text mismatch, not merely a
+# type check.
+EXPECTED_PARTITION_QUERY_SQL_BY_DIALECT_AND_DATE_PART_COUNT = {
+    ("sqlite", 1): (
+        "selectdistinct(cast(strftime('%y',column_name)asinteger))asconcat_distinct_values,"
+        "cast(cast(strftime('%y',column_name)asinteger)asinteger)asyearfromtable_name"
+    ),
+    ("postgresql", 1): (
+        "selectdistinct(extract(yearfromcolumn_name))asconcat_distinct_values,"
+        "cast(extract(yearfromcolumn_name)asinteger)asyearfromtable_name"
+    ),
+    ("mssql", 1): (
+        "selectdistinct(datepart(year,column_name))asconcat_distinct_values,"
+        "cast(datepart(year,column_name)asinteger)asyearfromtable_name"
+    ),
+    ("mysql", 1): (
+        "selectdistinct(extract(yearfromcolumn_name))asconcat_distinct_values,"
+        "cast(extract(yearfromcolumn_name)assignedinteger)asyearfromtable_name"
+    ),
+    ("oracle", 1): (
+        "selectdistinct(extract(yearfromcolumn_name))asconcat_distinct_values,"
+        "cast(extract(yearfromcolumn_name)asinteger)asyearfromtable_name"
+    ),
+    ("sqlite", 2): (
+        "selectdistinct(cast(cast(strftime('%y',column_name)asinteger)asvarchar)"
+        "||cast(cast(strftime('%m',column_name)asinteger)asvarchar))asconcat_distinct_values,"
+        "cast(cast(strftime('%y',column_name)asinteger)asinteger)asyear,"
+        "cast(cast(strftime('%m',column_name)asinteger)asinteger)asmonthfromtable_name"
+    ),
+    ("postgresql", 2): (
+        "selectdistinct(concat(concat('',cast(extract(yearfromcolumn_name)asvarchar)),"
+        "cast(extract(monthfromcolumn_name)asvarchar)))asconcat_distinct_values,"
+        "cast(extract(yearfromcolumn_name)asinteger)asyear,"
+        "cast(extract(monthfromcolumn_name)asinteger)asmonthfromtable_name"
+    ),
+    ("mssql", 2): (
+        "selectdistinct(concat(concat('',cast(datepart(year,column_name)asvarchar(max))),"
+        "cast(datepart(month,column_name)asvarchar(max))))asconcat_distinct_values,"
+        "cast(datepart(year,column_name)asinteger)asyear,"
+        "cast(datepart(month,column_name)asinteger)asmonthfromtable_name"
+    ),
+    ("mysql", 2): (
+        "selectdistinct(concat(concat('',cast(extract(yearfromcolumn_name)aschar)),"
+        "cast(extract(monthfromcolumn_name)aschar)))asconcat_distinct_values,"
+        "cast(extract(yearfromcolumn_name)assignedinteger)asyear,"
+        "cast(extract(monthfromcolumn_name)assignedinteger)asmonthfromtable_name"
+    ),
+    ("oracle", 2): (
+        "selectdistinct(concat(concat('',cast(extract(yearfromcolumn_name)asvarchar2(4000char))),"
+        "cast(extract(monthfromcolumn_name)asvarchar2(4000char))))asconcat_distinct_values,"
+        "cast(extract(yearfromcolumn_name)asinteger)asyear,"
+        "cast(extract(monthfromcolumn_name)asinteger)asmonthfromtable_name"
+    ),
+    ("sqlite", 3): (
+        "selectdistinct(cast(cast(strftime('%y',column_name)asinteger)asvarchar)"
+        "||cast(cast(strftime('%m',column_name)asinteger)asvarchar)"
+        "||cast(cast(strftime('%d',column_name)asinteger)asvarchar))asconcat_distinct_values,"
+        "cast(cast(strftime('%y',column_name)asinteger)asinteger)asyear,"
+        "cast(cast(strftime('%m',column_name)asinteger)asinteger)asmonth,"
+        "cast(cast(strftime('%d',column_name)asinteger)asinteger)asdayfromtable_name"
+    ),
+    ("postgresql", 3): (
+        "selectdistinct(concat(concat(concat('',cast(extract(yearfromcolumn_name)asvarchar)),"
+        "cast(extract(monthfromcolumn_name)asvarchar)),cast(extract(dayfromcolumn_name)asvarchar)"
+        "))asconcat_distinct_values,"
+        "cast(extract(yearfromcolumn_name)asinteger)asyear,"
+        "cast(extract(monthfromcolumn_name)asinteger)asmonth,"
+        "cast(extract(dayfromcolumn_name)asinteger)asdayfromtable_name"
+    ),
+    ("mssql", 3): (
+        "selectdistinct(concat(concat(concat('',cast(datepart(year,column_name)asvarchar(max))),"
+        "cast(datepart(month,column_name)asvarchar(max))),"
+        "cast(datepart(day,column_name)asvarchar(max))))asconcat_distinct_values,"
+        "cast(datepart(year,column_name)asinteger)asyear,"
+        "cast(datepart(month,column_name)asinteger)asmonth,"
+        "cast(datepart(day,column_name)asinteger)asdayfromtable_name"
+    ),
+    ("mysql", 3): (
+        "selectdistinct(concat(concat(concat('',cast(extract(yearfromcolumn_name)aschar)),"
+        "cast(extract(monthfromcolumn_name)aschar)),cast(extract(dayfromcolumn_name)aschar)"
+        "))asconcat_distinct_values,"
+        "cast(extract(yearfromcolumn_name)assignedinteger)asyear,"
+        "cast(extract(monthfromcolumn_name)assignedinteger)asmonth,"
+        "cast(extract(dayfromcolumn_name)assignedinteger)asdayfromtable_name"
+    ),
+    ("oracle", 3): (
+        "selectdistinct(concat(concat(concat('',cast(extract(yearfromcolumn_name)asvarchar2(4000char))),"
+        "cast(extract(monthfromcolumn_name)asvarchar2(4000char))),"
+        "cast(extract(dayfromcolumn_name)asvarchar2(4000char))))asconcat_distinct_values,"
+        "cast(extract(yearfromcolumn_name)asinteger)asyear,"
+        "cast(extract(monthfromcolumn_name)asinteger)asmonth,"
+        "cast(extract(dayfromcolumn_name)asinteger)asdayfromtable_name"
+    ),
+}
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "dialect_name,date_part_count",
+    sorted(EXPECTED_PARTITION_QUERY_SQL_BY_DIALECT_AND_DATE_PART_COUNT),
+)
+def test_partition_query_rendered_sql_is_pinned_across_dialects_and_date_part_counts(
+    dialect_name: str, date_part_count: int
+):
+    """What does this test and why?
+
+    get_partition_query_for_data_for_batch_identifiers_for_partition_on_date_parts renders
+    dialect-specific SQL text that is otherwise only exercised end to end against a live
+    database. Pinning its exact compiled text for SQLite, Postgres, SQL Server, MySQL, and
+    Oracle, at one, two, and three date parts, is what lets a later change to any dialect
+    branch, cast site, or concatenation shape be caught here rather than only downstream
+    against a real service.
+    """
+    actual_query_str = _render_partition_query_for_date_parts(
+        dialect_name, PARTITION_QUERY_DATE_PARTS_BY_COUNT[date_part_count]
+    )
+    expected_query_str = EXPECTED_PARTITION_QUERY_SQL_BY_DIALECT_AND_DATE_PART_COUNT[
+        (dialect_name, date_part_count)
+    ]
+    assert actual_query_str == expected_query_str
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("dialect_name", sorted(PARTITION_QUERY_DIALECT_MODULES_BY_NAME))
+def test_partition_query_single_date_part_never_carries_a_string_cast(dialect_name: str):
+    """What does this test and why?
+
+    The single-date-part path builds no concatenation, so it casts nothing to a string type at
+    all -- only the extracted date part is cast, and that cast is to an integer. This is what
+    makes the single-part path's exemption from the multi-part string-cast defect below an
+    observation about the rendered SQL, rather than an assumption about the code that produced
+    it.
+    """
+    rendered = _render_partition_query_for_date_parts(
+        dialect_name, PARTITION_QUERY_DATE_PARTS_BY_COUNT[1]
+    )
+    assert "asvarchar" not in rendered
+    assert "aschar" not in rendered
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("date_part_count", [2, 3])
+def test_partition_query_oracle_multi_date_part_string_cast_carries_a_length(
+    date_part_count: int,
+):
+    """What does this test and why?
+
+    Engineering fact this assertion pins: SQLAlchemy's Oracle dialect compiles a bare
+    ``sa.String`` type to ``VARCHAR2`` with no length, and a ``CAST(... AS VARCHAR2)`` with no
+    length is rejected by Oracle's grammar once the query actually executes. Every string-cast
+    site in the multi-date-part path now supplies an explicit length, so every one of them
+    renders a lengthed ``VARCHAR2`` and none renders the length-less form. The assertion is
+    positive and exhaustive by count: a partial migration would leave some sites length-less
+    and change this count without necessarily changing whether the length-less form is present
+    at all.
+    """
+    rendered = _render_partition_query_for_date_parts(
+        "oracle", PARTITION_QUERY_DATE_PARTS_BY_COUNT[date_part_count]
+    )
+    assert rendered.count("asvarchar2(4000char)") == date_part_count
+    assert "asvarchar2)" not in rendered
 
 
 @pytest.mark.parametrize(

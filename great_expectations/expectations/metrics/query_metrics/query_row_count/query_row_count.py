@@ -13,6 +13,7 @@ from great_expectations.execution_engine import (
 from great_expectations.expectations.metrics.metric_provider import metric_value
 from great_expectations.expectations.metrics.query_metric_provider import (
     QueryMetricProvider,
+    render_derived_table_alias,
     strip_top_level_order_by,
 )
 
@@ -48,10 +49,12 @@ class QueryRowCount(QueryMetricProvider):
             substituted_batch_subquery = strip_top_level_order_by(substituted_batch_subquery)
 
         count_column_name = "unexpected_row_count"
-        row_count_query = (
-            f"SELECT COUNT(*) as {count_column_name} FROM "
-            f"({substituted_batch_subquery}) AS substituted_batch_subquery"
+        aliased_subquery = render_derived_table_alias(
+            subquery=substituted_batch_subquery,
+            alias="substituted_batch_subquery",
+            dialect_name=execution_engine.dialect_name,
         )
+        row_count_query = f"SELECT COUNT(*) as {count_column_name} FROM {aliased_subquery}"
         result: Union[Sequence[sa.Row[Any]], Any] = execution_engine.execute_query(
             sa.text(row_count_query)
         ).fetchone()

@@ -14,6 +14,7 @@ from great_expectations.execution_engine import (
 from great_expectations.expectations.metrics.metric_provider import metric_value
 from great_expectations.expectations.metrics.query_metric_provider import (
     QueryMetricProvider,
+    render_derived_table_alias,
 )
 from great_expectations.util import get_sqlalchemy_subquery_type
 
@@ -79,7 +80,11 @@ class QueryTemplateValues(QueryMetricProvider):
             query = cls.get_query(
                 query,
                 template_dict,
-                f"({compiled_selectable}) AS subselect",
+                render_derived_table_alias(
+                    subquery=str(compiled_selectable),
+                    alias="subselect",
+                    dialect_name=getattr(execution_engine, "dialect_name", None),
+                ),
             )
 
         else:

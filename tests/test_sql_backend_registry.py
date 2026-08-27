@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import fields
-from typing import TYPE_CHECKING, Iterator, List, Mapping, Optional, Tuple
+from typing import TYPE_CHECKING, Iterator, List, Mapping, Optional, Sequence, Tuple
 
 import pytest
 
@@ -14,13 +14,16 @@ from tests.integration.test_utils.data_source_config import (
     SQL_DATA_SOURCES,
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
+    MySQLDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
+    RedshiftDatasourceTestConfig,
     SingleStoreDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
     SqliteDatasourceTestConfig,
+    SQLServerDatasourceTestConfig,
     data_sources_for_tier_case,
 )
 from tests.integration.test_utils.data_source_config.backend_spec import (
@@ -913,14 +916,24 @@ class TestRegisteredBackendsKeepTheInheritedHash:
             hash(config_class())  # a regenerated hash raises TypeError here
 
 
-class TestStandardDataSourceListsMatchPreChangeMembership:
+class TestStandardDataSourceListsMatchDeclaredMembership:
     """Regression pin for the four standard data-source lists now defined once in `tiers.py`.
 
-    Every literal below is transcribed from the two metrics conftest modules exactly as they
-    existed before those lists gained a single shared definition, not derived from the module
-    under test — so a mistake in the derivation shows up as a mismatch here rather than agreeing
-    with itself. `PANDAS_DATA_SOURCES` is deliberately not alphabetical: the filesystem CSV
-    config is listed before the DataFrame config, and that order is preserved on purpose.
+    Every literal below is written out here rather than derived from the module under test — so a
+    mistake in the derivation shows up as a mismatch here rather than agreeing with itself. The
+    pandas and Spark literals are transcribed from the two metrics conftest modules exactly as
+    they existed before those lists gained a single shared definition, and `PANDAS_DATA_SOURCES`
+    is deliberately not alphabetical: the filesystem CSV config is listed before the DataFrame
+    config, and that order is preserved on purpose.
+
+    The two SQL literals began as the same transcription and have since widened, once, by
+    declaration. MySQL, Microsoft SQL Server and Redshift appeared in the hand-written lists that
+    `test_canonical_expectations.py` still keeps but declared no tier, so the derived lists — the
+    pair the metrics tree consumes — omitted all three, and roughly 165 metrics parameterizations
+    never ran against them while the same backends ran the full expectation suite. Declaring
+    `BackendTier.STANDARD_SQL` on those three configs is what puts them in the literals below;
+    `TestDerivedSqlListsMatchTheHandWrittenCanonicalLists` is what stops the two definitions
+    parting again.
 
     The four constants imported above are captured at module-import time, before any test in this
     module runs. That matters because this module's `_snapshot_registry` fixture clears the
@@ -930,37 +943,116 @@ class TestStandardDataSourceListsMatchPreChangeMembership:
     observe the isolation seam's emptied registry and pass vacuously.
     """
 
-    def test_pandas_data_sources_match_pre_change_membership_and_order(self) -> None:
+    def test_pandas_data_sources_match_declared_membership_and_order(self) -> None:
         assert [
             PandasFilesystemCsvDatasourceTestConfig(),
             PandasDataFrameDatasourceTestConfig(),
         ] == PANDAS_DATA_SOURCES
 
-    def test_spark_data_sources_match_pre_change_membership_and_order(self) -> None:
+    def test_spark_data_sources_match_declared_membership_and_order(self) -> None:
         assert [
             SparkFilesystemCsvDatasourceTestConfig(),
         ] == SPARK_DATA_SOURCES
 
-    def test_sql_data_sources_match_pre_change_membership_and_order(self) -> None:
+    def test_sql_data_sources_match_declared_membership_and_order(self) -> None:
         assert [
             BigQueryDatasourceTestConfig(),
             DatabricksDatasourceTestConfig(),
+            SQLServerDatasourceTestConfig(),
+            MySQLDatasourceTestConfig(),
             PostgreSQLDatasourceTestConfig(),
+            RedshiftDatasourceTestConfig(),
             SnowflakeDatasourceTestConfig(),
             SqliteDatasourceTestConfig(),
         ] == SQL_DATA_SOURCES
 
-    def test_all_data_sources_match_pre_change_membership_and_order(self) -> None:
+    def test_all_data_sources_match_declared_membership_and_order(self) -> None:
         assert [
             PandasFilesystemCsvDatasourceTestConfig(),
             PandasDataFrameDatasourceTestConfig(),
             SparkFilesystemCsvDatasourceTestConfig(),
             BigQueryDatasourceTestConfig(),
             DatabricksDatasourceTestConfig(),
+            SQLServerDatasourceTestConfig(),
+            MySQLDatasourceTestConfig(),
             PostgreSQLDatasourceTestConfig(),
+            RedshiftDatasourceTestConfig(),
             SnowflakeDatasourceTestConfig(),
             SqliteDatasourceTestConfig(),
         ] == ALL_DATA_SOURCES
+
+
+class TestDerivedSqlListsMatchTheHandWrittenCanonicalLists:
+    """The derived lists and the hand-written ones name the same backends.
+
+    `SQL_DATA_SOURCES` and `ALL_DATA_SOURCES` are each defined twice under the same names: in
+    `tiers.py`, derived from tier declarations, and in
+    `tests/integration/data_sources_and_expectations/test_canonical_expectations.py`, written by
+    hand. The expectation modules import the hand-written pair and the metrics tree imports the
+    derived pair, so a backend can sit in one and be absent from the other, and nothing compared
+    them. Three did: MySQL, Microsoft SQL Server and Redshift ran every expectation module through
+    the hand-written lists while declaring no tier, which left them out of every list-driven
+    metrics parameterization with no error, no skip and no warning. The comparison below is what
+    was missing. It fails in both directions, so neither a config added to the hand-written lists
+    without a declaration nor a declaration with no corresponding hand-written entry can repeat
+    it.
+
+    `GenericSQLDatasourceTestConfig` is exempt, and is the one entry no derivation can reproduce:
+    it takes a caller-supplied connection string, has no fixed identity to register under, and its
+    own docstring says it "must never appear in the set that gates CI". A plain equality between
+    the two lists would therefore fail for a correct reason, so the assertion is against the
+    hand-written list minus that one config — and the third test pins the exemption at exactly
+    that config, so it cannot quietly widen to cover a second one.
+
+    Membership, not order: the hand-written module promises no particular ordering, while the
+    derived lists' own order is pinned above against a literal naming every entry.
+    """
+
+    @staticmethod
+    def _escape_hatch_name() -> str:
+        from tests.integration.test_utils.data_source_config.generic_sql import (
+            GenericSQLDatasourceTestConfig,
+        )
+
+        return GenericSQLDatasourceTestConfig.__name__
+
+    @staticmethod
+    def _class_names(configs: Sequence[DataSourceTestConfig]) -> List[str]:
+        return sorted(type(config).__name__ for config in configs)
+
+    @classmethod
+    def _hand_written_names(cls, configs: Sequence[DataSourceTestConfig]) -> List[str]:
+        return [name for name in cls._class_names(configs) if name != cls._escape_hatch_name()]
+
+    def test_sql_data_sources_hold_the_same_backends_under_either_import(self) -> None:
+        from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
+            SQL_DATA_SOURCES as HAND_WRITTEN_SQL,
+        )
+
+        assert self._class_names(SQL_DATA_SOURCES) == self._hand_written_names(HAND_WRITTEN_SQL)
+
+    def test_all_data_sources_hold_the_same_backends_under_either_import(self) -> None:
+        from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
+            ALL_DATA_SOURCES as HAND_WRITTEN_ALL,
+        )
+
+        assert self._class_names(ALL_DATA_SOURCES) == self._hand_written_names(HAND_WRITTEN_ALL)
+
+    def test_the_escape_hatch_is_the_only_entry_the_derivation_cannot_reproduce(self) -> None:
+        """Pins the exemption at one named config.
+
+        Without this, a second unregistered config added to the hand-written lists would leave the
+        two tests above passing, because the exemption they apply would have widened to cover it.
+        """
+        from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
+            ALL_DATA_SOURCES as HAND_WRITTEN_ALL,
+        )
+
+        unreproducible = set(self._class_names(HAND_WRITTEN_ALL)) - set(
+            self._class_names(ALL_DATA_SOURCES)
+        )
+
+        assert unreproducible == {self._escape_hatch_name()}
 
 
 class TestCuratedSqlDataSourcesEqualsClickHouseOracleSingleStoreAndTrino:
