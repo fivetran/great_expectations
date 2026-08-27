@@ -1,11 +1,14 @@
 import pytest
+
 from great_expectations.expectations.metrics.column_map_metrics.column_values_match_regex import (
     ColumnValuesMatchRegex,
 )
 
+
 class DummyMSSQLDialect:
     class dialect:
         name = "mssql"
+
 
 def test_regex_unsupported_dialect_raises_not_implemented_error_with_message():
     fake_dialect = DummyMSSQLDialect()
