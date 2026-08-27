@@ -338,7 +338,11 @@ class TestRegisterSqlBackendContainerProvisioning:
     def test_local_container_without_container_service_raises(self) -> None:
         config_class = _make_config_class(
             "NoService",
-            _make_spec(provisioning=BackendProvisioning.LOCAL_CONTAINER, container_service=None),
+            _make_spec(
+                provisioning=BackendProvisioning.LOCAL_CONTAINER,
+                container_service=None,
+                tiers=frozenset({BackendTier.CURATED_SQL}),
+            ),
         )
 
         with pytest.raises(ValueError) as excinfo:
@@ -1509,7 +1513,12 @@ class TestRecordRegisteredWithoutAConfigClass:
 
     def test_a_record_with_no_config_class_is_absent_from_the_tier_accessor(self) -> None:
         register_data_source(
-            _make_core_spec(label="declaration-only", tiers=frozenset({BackendTier.CURATED_SQL}))
+            _make_core_spec(
+                label="declaration-only",
+                tiers=frozenset({BackendTier.CURATED_SQL}),
+                marker="declaration_only",
+                ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="declaration_only"),
+            )
         )
 
         assert sql_backends_for_tier(BackendTier.CURATED_SQL) == ()

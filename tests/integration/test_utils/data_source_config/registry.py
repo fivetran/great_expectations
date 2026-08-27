@@ -14,6 +14,21 @@ no harness config registers through `register_data_source`, while one with a con
 the class decorator. The accessors that hand back config classes skip the entries that have none,
 so a consumer parameterizing over configs is never handed a record it cannot instantiate.
 
+Validation is split by what it is a property of. Some rules are well-formedness of one record on
+its own terms and hold for every record. Others are *scaled to what the record claims*: a record
+claiming no tier is saying "this data source ships, but no tier's suite proves it", which is an
+honest declaration that needs no marker and no lane, while a tier claim asserts that a suite runs
+somewhere and so makes the elements that locate that suite required. Applying the strict rules to
+every record would make the honest declaration unexpressible; applying none of them would let a
+support table advertise coverage that never runs.
+
+**Limitation carried forward.** A record's per-case exclusion keys carry no tier attribution: the
+mapping names cases, not the tier whose suite publishes them, and the ceiling below counts the
+whole mapping. That is exact only while a single tier publishes case keys, which is the situation
+today. As soon as a second tier publishes its own key namespace, a record could sit out two cases
+in each tier and still pass a ceiling meant to bound how much of one suite it skips — so the count
+must become per-tier before a second publishing tier arrives, not after.
+
 This module imports only the two declaration modules, `data_source_spec` and `backend_spec`. It
 does not import the SQL config base, `sql.py`, or any backend module — those sit to this module's
 right in the dependency direction (`data_source_spec` -> `backend_spec` -> `registry` ->
@@ -37,14 +52,15 @@ from typing import (
     TypeVar,
 )
 
+from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
 from tests.integration.test_utils.data_source_config.data_source_spec import (
     BackendProvisioning,
     BackendTier,
     ExecutionEngineKind,
+    MarkerScope,
 )
 
 if TYPE_CHECKING:
-    from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
     from tests.integration.test_utils.data_source_config.data_source_spec import DataSourceSpec
 
 # The ceiling on tier_case_exclusions per backend. See _validate_tier_case_exclusion_ceiling: a
@@ -89,118 +105,182 @@ _by_label: Dict[str, RegisteredDataSource] = {}
 _by_marker: Dict[str, RegisteredDataSource] = {}
 
 
-def _registrant_name(registered: RegisteredDataSource) -> str:
-    """Name a registered entry in an error message.
+def _name_for(config_class: Optional[type], spec: DataSourceSpec) -> str:
+    """Name a declaration in an error message.
 
-    A config-bound entry is named by its class, which is the name a maintainer sees at the
-    decoration site. An entry with no config has no such name, so its record's label is used
-    instead — the error still has to identify which declaration it collided with.
+    A config-bound declaration is named by its class, which is the name a maintainer sees at the
+    decoration site. A declaration with no config has no such name, so its label and public name
+    are used instead — the error still has to identify which declaration it is about. Both are
+    given because either one alone can be the duplicated value in a collision message, so naming
+    only that one would print two halves that read identically. Two records sharing a label *and*
+    a public name still read alike; the remaining signal in that case is that the collision is a
+    duplicated declaration rather than two declarations that disagree.
     """
-    if registered.config_class is not None:
-        return registered.config_class.__name__
-    return f"the record labelled {registered.spec.label!r}"
+    if config_class is not None:
+        return config_class.__name__
+    return f"the record labelled {spec.label!r} ({spec.public_name!r})"
 
 
-def _validate_identity(config_class: type, spec: SqlBackendSpec) -> str:
-    """Reject a malformed identity, and return the validated marker.
+def _registrant_name(registered: RegisteredDataSource) -> str:
+    """Name an already-registered entry in an error message."""
+    return _name_for(registered.config_class, registered.spec)
 
-    The marker is returned rather than re-read at the call site because the check that one is
-    present lives here: returning it carries that fact forward to the registry index instead of
-    making every caller restate the check.
+
+def _validate_identity(name: str, spec: DataSourceSpec) -> None:
+    """Reject a record that is malformed on its own terms.
+
+    Every rule here is a property of one record read in isolation, so every one of them holds for
+    every record regardless of what it claims. Each optional field is checked only where it is
+    stated: these rules reject a field that names nothing, never the absence of a field.
     """
     if not spec.label:
         raise ValueError(
-            f"{config_class.__name__} declares an empty SQL backend label; it must be a "
+            f"{name} declares an empty data source label; it must be a "
             f"non-empty string, since it appears in the parameterized test id used to select "
-            f"this backend's cases"
+            f"this data source's cases"
         )
-    if not spec.marker:
+    if not spec.public_name:
         raise ValueError(
-            f"{config_class.__name__} declares an empty SQL backend marker; it must be a "
-            f"non-empty string naming the pytest mark used to select this backend's tests"
+            f"{name} declares an empty public data source name; it must be a non-empty string, "
+            f"since it is the name a generated document prints for this data source. There is no "
+            f"fallback: deriving it from the label would invent a second spelling of a name the "
+            f"shipped vocabulary already fixes"
+        )
+    if spec.marker is not None and not spec.marker:
+        raise ValueError(
+            f"{name} declares an empty data source marker; a declared marker must be a "
+            f"non-empty string naming the pytest mark used to select this data source's tests. "
+            f"Declaring no marker at all is how a record says that no marker selects it"
+        )
+    if spec.marker_scope is not None and spec.marker is None:
+        raise ValueError(
+            f"{name} declares a marker scope ({spec.marker_scope.value!r}) but no marker; a "
+            f"scope states whether a marker names this data source alone or a class of data "
+            f"sources, and there is no marker here for it to describe"
         )
     lane = spec.ci_lane
     # A lane is optional on the record, so these checks apply to a stated lane only: they reject a
-    # lane that names nothing, not the absence of one.
+    # lane that names nothing, not the absence of one. A record claiming a tier is separately
+    # required to state a lane at all; see _validate_tier_claims.
     if lane is not None:
         if not lane.workflow_job:
             raise ValueError(
-                f"{config_class.__name__} declares an empty CI lane workflow job; it must be a "
-                f"non-empty string naming the workflow job that runs this backend's lane. A lane "
-                f"naming no job cannot be located in the workflow file, so its wiring cannot be "
-                f"checked at all"
+                f"{name} declares an empty CI lane workflow job; it must be a "
+                f"non-empty string naming the workflow job that runs this data source's lane. A "
+                f"lane naming no job cannot be located in the workflow file, so its wiring cannot "
+                f"be checked at all"
             )
         if not lane.marker_token:
             raise ValueError(
-                f"{config_class.__name__} declares an empty CI lane marker token; it must be a "
-                f"non-empty string identifying which CI lane runs this backend's marker-selected "
-                f"tests"
+                f"{name} declares an empty CI lane marker token; it must be a "
+                f"non-empty string identifying which CI lane runs this data source's "
+                f"marker-selected tests"
             )
-    return spec.marker
 
 
-def _validate_insert_parameter_limit(config_class: type, spec: SqlBackendSpec) -> None:
+def _validate_tier_claims(name: str, spec: DataSourceSpec) -> None:
+    """Reject a tier claim that nothing attests to.
+
+    These obligations are scaled to the claim rather than imposed on every record. Membership in
+    no tier is a valid declaration meaning "this data source ships, but no tier's suite proves
+    it", and such a record owes no marker, no lane and no container service. A tier claim says the
+    opposite — that a suite runs somewhere — so at the moment it is made, the elements that make
+    that suite locatable become required. A tier claim no lane attests to is how a support table
+    starts advertising coverage that never runs.
+    """
+    if not spec.tiers:
+        return
+    claimed = ", ".join(sorted(tier.value for tier in spec.tiers))
+    if spec.marker is None:
+        raise ValueError(
+            f"{name} claims tier membership ({claimed}) but declares no data source marker; a "
+            f"tier claim asserts that a suite runs somewhere, and with no marker no suite can "
+            f"select this data source's tests. Declare a marker, or claim no tier"
+        )
+    if spec.ci_lane is None:
+        raise ValueError(
+            f"{name} claims tier membership ({claimed}) but declares no CI lane; a tier claim "
+            f"asserts that a suite runs somewhere, and a claim no lane attests to is how a "
+            f"support table starts advertising coverage that never runs. Declare the lane that "
+            f"runs it, or claim no tier"
+        )
+    if spec.provisioning is BackendProvisioning.LOCAL_CONTAINER and spec.container_service is None:
+        raise ValueError(
+            f"{name} claims tier membership ({claimed}) with LOCAL_CONTAINER provisioning but "
+            f"names no container_service; a tier claim asserts that a suite runs somewhere, and "
+            f"the suite for a locally containerized data source cannot run unless the record "
+            f"names the compose service that starts it"
+        )
+
+
+def _validate_insert_parameter_limit(name: str, spec: SqlBackendSpec) -> None:
     if spec.insert_parameter_limit is not None and spec.insert_parameter_limit <= 0:
         raise ValueError(
-            f"{config_class.__name__} declares a non-positive insert_parameter_limit "
+            f"{name} declares a non-positive insert_parameter_limit "
             f"({spec.insert_parameter_limit!r}); it must be a positive integer, or omitted "
             f"entirely when the backend has no chunking limit"
         )
 
 
-def _validate_container_provisioning(config_class: type, spec: SqlBackendSpec) -> None:
-    has_container_service = spec.container_service is not None
-    is_local_container = spec.provisioning is BackendProvisioning.LOCAL_CONTAINER
+def _validate_container_provisioning(name: str, spec: DataSourceSpec) -> None:
+    """Reject a container service that nothing would ever start.
 
-    if is_local_container and not has_container_service:
+    This was once a biconditional, and it is now deliberately relaxed in one direction only.
+    Naming a service without local-container provisioning stays an error: nothing in the harness
+    would start that service, so the declaration describes something that never runs.
+
+    The other direction — local-container provisioning naming no service — is legal for a record
+    claiming no tier, and that is the honest declaration for a data source distributed as a
+    container image this repository has no compose file for: running it locally is how you would
+    reach it, and this repository does not. A record claiming a tier keeps the original
+    obligation, enforced in _validate_tier_claims, because there the suite has to actually run.
+    """
+    if (
+        spec.container_service is not None
+        and spec.provisioning is not BackendProvisioning.LOCAL_CONTAINER
+    ):
         raise ValueError(
-            f"{config_class.__name__} declares LOCAL_CONTAINER provisioning without a "
-            f"container_service; a locally containerized backend must name the compose service "
-            f"that starts it"
-        )
-    if has_container_service and not is_local_container:
-        raise ValueError(
-            f"{config_class.__name__} declares a container_service "
+            f"{name} declares a container_service "
             f"({spec.container_service!r}) without LOCAL_CONTAINER provisioning; a container "
-            f"service is only meaningful for a backend the harness starts locally"
+            f"service is only meaningful for a data source the harness starts locally"
         )
 
 
-def _validate_table_schema_items(config_class: type, spec: SqlBackendSpec) -> None:
+def _validate_table_schema_items(name: str, spec: SqlBackendSpec) -> None:
     # Checked for callability only, never invoked: calling it would require the backend's dialect
     # package, and registration must never assume that package is installed (this module is
     # imported in lanes that install no SQL dialect at all).
     if spec.table_schema_items is not None and not callable(spec.table_schema_items):
         raise ValueError(
-            f"{config_class.__name__} declares table_schema_items "
+            f"{name} declares table_schema_items "
             f"({spec.table_schema_items!r}) that is not callable; it must be a zero-argument "
             f"factory, or omitted entirely"
         )
 
 
-def _validate_tier_case_exclusion_reasons(config_class: type, spec: SqlBackendSpec) -> None:
+def _validate_tier_case_exclusion_reasons(name: str, spec: DataSourceSpec) -> None:
     for key, reason in spec.tier_case_exclusions.items():
         if not key:
             raise ValueError(
-                f"{config_class.__name__} declares a tier case exclusion with an empty case key; "
+                f"{name} declares a tier case exclusion with an empty case key; "
                 f"every excluded case must be named"
             )
         if not reason or not reason.strip():
             raise ValueError(
-                f"{config_class.__name__} declares a tier case exclusion for case {key!r} with no "
+                f"{name} declares a tier case exclusion for case {key!r} with no "
                 f"reason (or a whitespace-only one); an unexplained exclusion is exactly the "
                 f"silent narrowing this mechanism exists to prevent, so every exclusion must "
                 f"record why it exists"
             )
 
 
-def _validate_tier_case_exclusion_ceiling(config_class: type, spec: SqlBackendSpec) -> None:
+def _validate_tier_case_exclusion_ceiling(name: str, spec: DataSourceSpec) -> None:
     count = len(spec.tier_case_exclusions)
     if count <= _MAX_TIER_CASE_EXCLUSIONS:
         return
     keys = sorted(spec.tier_case_exclusions)
     raise ValueError(
-        f"{config_class.__name__} declares {count} tier case exclusions {keys!r}, exceeding the "
+        f"{name} declares {count} tier case exclusions {keys!r}, exceeding the "
         f"ceiling of {_MAX_TIER_CASE_EXCLUSIONS}. The count is taken over the whole mapping "
         f"regardless of what each individual reason records — an exclusion for observed "
         f"non-determinism subtracts exactly as much coverage as one for a dialect gap. A reason "
@@ -210,44 +290,102 @@ def _validate_tier_case_exclusion_ceiling(config_class: type, spec: SqlBackendSp
     )
 
 
-def _validate_tier_case_exclusions(config_class: type, spec: SqlBackendSpec) -> None:
-    _validate_tier_case_exclusion_reasons(config_class, spec)
-    _validate_tier_case_exclusion_ceiling(config_class, spec)
+def _validate_tier_case_exclusions(name: str, spec: DataSourceSpec) -> None:
+    _validate_tier_case_exclusion_reasons(name, spec)
+    _validate_tier_case_exclusion_ceiling(name, spec)
 
 
-def _validate_spec(config_class: type, spec: SqlBackendSpec) -> str:
-    """Reject a malformed declaration, and return the validated marker."""
-    marker = _validate_identity(config_class, spec)
-    _validate_insert_parameter_limit(config_class, spec)
-    _validate_container_provisioning(config_class, spec)
-    _validate_table_schema_items(config_class, spec)
-    _validate_tier_case_exclusions(config_class, spec)
-    return marker
+def _validate_spec(name: str, spec: DataSourceSpec) -> None:
+    """Reject a malformed declaration.
 
-
-def register_sql_backend(config_class: type[_C]) -> type[_C]:
-    """Enrol a SQL config class. Raises `ValueError` at decoration time on a duplicate label,
-    duplicate marker, or any invariant violation in its declared spec.
+    The dialect checks fire for a SQL sub-record and for nothing else. Testing the record's type
+    rather than probing for attributes is what keeps the two groups legible: a future third
+    sub-record adds one branch here rather than a scattering of attribute probes.
     """
-    spec = config_class.BACKEND_SPEC
-    marker = _validate_spec(config_class, spec)
+    _validate_identity(name, spec)
+    _validate_container_provisioning(name, spec)
+    _validate_tier_claims(name, spec)
+    _validate_tier_case_exclusions(name, spec)
+    if isinstance(spec, SqlBackendSpec):
+        _validate_insert_parameter_limit(name, spec)
+        _validate_table_schema_items(name, spec)
+
+
+def _dedicated_marker(spec: DataSourceSpec) -> Optional[str]:
+    """The marker this record claims as its own, or ``None`` if it claims none.
+
+    A record that declares its marker *shared* is asserting that the marker names a dependency
+    class rather than this data source alone, and a dependency class can legitimately contain more
+    than one data source — so a shared marker is neither checked for collision nor indexed, and
+    cannot collide with anything later.
+
+    An *undeclared* scope counts as dedicated. A marker names one data source unless a record says
+    otherwise, so the relaxation is keyed on an explicit shared declaration; reading an undeclared
+    scope as shared would silently drop the collision check for every record that declares no
+    scope, which today is all of them.
+    """
+    if spec.marker is None or spec.marker_scope is MarkerScope.SHARED:
+        return None
+    return spec.marker
+
+
+def _register(spec: DataSourceSpec, config_class: Optional[Type[_DeclaresBackendSpec]]) -> None:
+    """Validate one declaration and enrol it, or raise naming the declaration and the value.
+
+    Both entry points route through here, so a record registered without a config class is held to
+    exactly the same rules as one registered with one, and is indexed the same way. A registration
+    path that validated less would make the rules a property of how a record was registered rather
+    than of the record.
+    """
+    name = _name_for(config_class, spec)
+    _validate_spec(name, spec)
 
     duplicate_label = _by_label.get(spec.label)
     if duplicate_label is not None:
         raise ValueError(
-            f"duplicate SQL backend label {spec.label!r} declared by "
-            f"{_registrant_name(duplicate_label)} and {config_class.__name__}"
+            f"duplicate data source label {spec.label!r} declared by "
+            f"{_registrant_name(duplicate_label)} and {name}"
         )
-    duplicate_marker = _by_marker.get(marker)
-    if duplicate_marker is not None:
-        raise ValueError(
-            f"duplicate SQL backend marker {marker!r} declared by "
-            f"{_registrant_name(duplicate_marker)} and {config_class.__name__}"
-        )
+    marker = _dedicated_marker(spec)
+    if marker is not None:
+        duplicate_marker = _by_marker.get(marker)
+        if duplicate_marker is not None:
+            raise ValueError(
+                f"duplicate dedicated data source marker {marker!r} declared by "
+                f"{_registrant_name(duplicate_marker)} and {name}; a record declaring its marker "
+                f"dedicated asserts the marker names it and nothing else. Where a marker really "
+                f"does name a class of data sources, declare it shared on both records"
+            )
 
     registered = RegisteredDataSource(spec=spec, config_class=config_class)
     _by_label[spec.label] = registered
-    _by_marker[marker] = registered
+    if marker is not None:
+        _by_marker[marker] = registered
+
+
+def register_sql_backend(config_class: type[_C]) -> type[_C]:
+    """Enrol a SQL config class. Raises `ValueError` at decoration time on a duplicate label, a
+    colliding dedicated marker, or any invariant violation in its declared record.
+    """
+    spec = config_class.BACKEND_SPEC
+    if not isinstance(spec, SqlBackendSpec):
+        # A ValueError rather than a TypeError, deliberately: this is a malformed declaration like
+        # every other rejection here, not a caller passing the wrong argument to a function. One
+        # exception type for every way a registration can be rejected is what lets a caller catch
+        # registration failure without enumerating the ways a declaration can be wrong.
+        raise ValueError(  # noqa: TRY004
+            f"{config_class.__name__} declares a record of type {type(spec).__name__}, which is "
+            f"not a SQL sub-record; every SQL consumer reads dialect facts off this declaration, "
+            f"and a record that carries none cannot answer them. Register a data source with no "
+            f"dialect facts through the plain record registration instead"
+        )
+    if spec.marker is None:
+        raise ValueError(
+            f"{config_class.__name__} declares a record with no data source marker; a config is "
+            f"parameterized into a suite by its mark, so its marker has to resolve. Declare a "
+            f"marker, or register the record on its own without a config class"
+        )
+    _register(spec, config_class)
     return config_class
 
 
@@ -257,8 +395,11 @@ def register_data_source(spec: DataSourceSpec) -> DataSourceSpec:
     This is the entry point for a data source this repository declares but does not exercise. It
     returns the record so a declaration module can bind the registered object to a name in one
     statement, exactly as the class decorator returns the class it enrolled.
+
+    Raises `ValueError` on the same terms as the class decorator, minus the two rules that are
+    properties of having a config at all.
     """
-    _by_label[spec.label] = RegisteredDataSource(spec=spec, config_class=None)
+    _register(spec, None)
     return spec
 
 
