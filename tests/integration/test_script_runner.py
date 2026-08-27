@@ -534,6 +534,19 @@ def _check_for_skipped_tests(  # noqa: C901, PLR0912 # FIXME CoP
     ]
     if integration_test_fixture.name in TESTS_TO_SKIP_DURING_CI_TRANSITION:
         pytest.skip("CI TRANSITION")
+    # deployment_patterns_redshift reads a pre-existing `taxi_data` table rather than
+    # loading its own, and that table has never been created in the Redshift test
+    # database, so the fixture fails with
+    #   (psycopg2.errors.UndefinedTable) relation "taxi_data" does not exist
+    # This is a missing-data problem, not a missing-backend one: Redshift itself is
+    # reachable, and the two partition_data_on_*_redshift fixtures pass against it
+    # because they load their own data first. Remove this gate once the table is
+    # provisioned.
+    TESTS_TO_SKIP_UNTIL_REDSHIFT_DATA_EXISTS = [
+        "deployment_patterns_redshift",
+    ]
+    if integration_test_fixture.name in TESTS_TO_SKIP_UNTIL_REDSHIFT_DATA_EXISTS:
+        pytest.skip("Redshift taxi_data table not provisioned")
     dependencies = integration_test_fixture.backend_dependencies
     if not dependencies:
         return

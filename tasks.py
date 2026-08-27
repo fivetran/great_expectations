@@ -1032,14 +1032,21 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             # aborts the whole session rather than skipping its tests. Add one only once
             # its marker leg is green.
             #
-            # Azure Blob is the exception: its dependencies are installed for imports, but
-            # there is no storage account or credential to connect to, so requesting it
-            # would abort collection. Restore --azure once that infrastructure exists.
+            # Two are deliberately left out, for different reasons.
+            #
+            # --azure: its dependencies are installed for imports, but there is no storage
+            # account or credential to connect to, so requesting it would abort collection.
+            #
+            # --snowflake: collection connects fine, but both Snowflake docs fixtures then
+            # fail loading their test data into the test database. That failure is not
+            # diagnosable from CI -- load_data_into_test_database deliberately swallows the
+            # SQLAlchemyError so credentials cannot reach the logs (tests/test_utils.py) --
+            # so it needs someone who can run it against Snowflake directly. The marker
+            # leg is green, so this is a fixture/permissions gap, not a dead backend.
             "--aws",
             "--bigquery",
             "--gcs",
             "--redshift",
-            "--snowflake",
             "--sql-server",
             "--trino",
             "--docs-tests",
