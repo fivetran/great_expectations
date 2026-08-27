@@ -24,6 +24,7 @@ from typing import (
 import pytest
 
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.expectations.metadata_types import SupportedDataSources
 from tests.integration.test_utils.data_source_config import (
     ALL_DATA_SOURCES,
     CURATED_SQL_DATA_SOURCES,
@@ -2749,3 +2750,177 @@ class TestTierClaimsScaleTheObligationsProvenInBothDirections:
         )
 
         assert [spec.label for spec in iter_data_source_specs()] == ["throwaway-core"]
+
+
+# --- Core-vocabulary alignment -------------------------------------------------------------
+#
+# `SupportedDataSources` is the vocabulary Core Expectations declare their support against, and it
+# ships inside the package. This registry names the same data sources for its own purposes. The
+# check below exists so the two cannot come to name one data source two different ways.
+#
+# Read from the module-scope snapshot for the same reason as its neighbours: the autouse
+# `_snapshot_registry` fixture clears the registry around every test, so a body reading the live
+# registry would see an empty one and pass vacuously.
+_PUBLIC_NAME_BY_LABEL: Mapping[str, str] = {
+    spec.label: spec.public_name for spec in _REGISTERED_DATA_SOURCE_SPECS
+}
+
+# Data sources this repository has a record for and the shipped vocabulary has no member for. Held
+# as an explicit literal, not derived, because it is what keeps the one-directional check below
+# from being a silent ratchet: if a member is added upstream for one of these, the literal stops
+# matching and the failure prompts the record to adopt the member's exact value.
+_PUBLIC_NAMES_WITH_NO_CORE_MEMBER: Tuple[str, ...] = (
+    "Amazon S3",
+    "Azure Blob Storage",
+    "ClickHouse",
+    "Google Cloud Storage",
+    "Microsoft Fabric",
+    "Oracle",
+    "SingleStore",
+    "Trino",
+)
+
+_CORE_VOCABULARY_MODULE = "great_expectations/expectations/metadata_types.py"
+
+
+@dataclass(frozen=True)
+class _FabricatedMember:
+    """A stand-in for a `SupportedDataSources` member, used only to prove the checks can fail.
+
+    The two helpers below take the vocabulary as an argument precisely so a failure can be
+    demonstrated without touching `SupportedDataSources` itself, which ships in the package.
+    """
+
+    value: str
+
+
+def _labels_carrying(public_name: str, public_name_by_label: Mapping[str, str]) -> Tuple[str, ...]:
+    """Every record whose public name is exactly `public_name`, in label order.
+
+    A tuple rather than a single label: variants of one publicly named data source deliberately
+    share a public name (the two pandas records both say `Pandas`), so a member legitimately
+    resolves to more than one record. Returning all of them keeps "at least one" honest without
+    hiding how many there are.
+    """
+    return tuple(
+        label for label, name in sorted(public_name_by_label.items()) if name == public_name
+    )
+
+
+def _members_reaching_no_record(
+    members: Sequence[Any], public_name_by_label: Mapping[str, str]
+) -> Tuple[str, ...]:
+    """The values of `members` that no record carries as its public name, in declaration order."""
+    return tuple(
+        member.value
+        for member in members
+        if not _labels_carrying(member.value, public_name_by_label)
+    )
+
+
+def _public_names_reaching_no_member(
+    members: Sequence[Any], public_name_by_label: Mapping[str, str]
+) -> Tuple[str, ...]:
+    """The record public names that no member of `members` names, sorted and de-duplicated."""
+    member_values = {member.value for member in members}
+    return tuple(
+        sorted({name for name in public_name_by_label.values() if name not in member_values})
+    )
+
+
+def _unreachable_member_message(missing: Sequence[str]) -> str:
+    return (
+        f"{_CORE_VOCABULARY_MODULE} declares SupportedDataSources members that no registered "
+        f"record carries as its public_name: {list(missing)}. Core Expectations claim support for "
+        "these data sources, so the registry cannot be silent about them. Remedy, either: set the "
+        "public_name of the record for that data source to the member's exact value, or — if this "
+        "repository genuinely has no record for it — register one. A member must never be dropped "
+        f"from {_CORE_VOCABULARY_MODULE} to make this pass; that file is a shipped public surface."
+    )
+
+
+def _absent_set_drift_message(actual: Sequence[str], expected: Sequence[str]) -> str:
+    newly_named = sorted(set(expected) - set(actual))
+    newly_absent = sorted(set(actual) - set(expected))
+    return (
+        "The set of registered public names with no SupportedDataSources member has drifted from "
+        f"_PUBLIC_NAMES_WITH_NO_CORE_MEMBER in {Path(__file__).name}. No longer absent — a "
+        f"member now names them, or the record was renamed: {newly_named}. Newly absent: "
+        f"{newly_absent}. Remedy, either: update the record's "
+        f"public_name to the exact value of the member in {_CORE_VOCABULARY_MODULE} that now names "
+        "it, or update the _PUBLIC_NAMES_WITH_NO_CORE_MEMBER literal to record the new gap."
+    )
+
+
+class TestCoreVocabularyAlignment:
+    """The registry's public names and the shipped `SupportedDataSources` vocabulary agree.
+
+    The check is one-directional on purpose: every *member* must reach a record, but a record need
+    not have a member. The reverse direction would fail immediately for eight data sources this
+    work declares — the three object stores, Microsoft Fabric, Trino, ClickHouse, Oracle and
+    SingleStore — and closing that gap is not this work's to close: `SupportedDataSources` is a
+    public metadata surface in the shipped package, so adding a member to it is a product decision
+    about what Core Expectations advertise, with user-visible consequences. A test harness does not
+    get to force one.
+
+    What stops the one direction from being a silent ratchet is the second assertion below: the
+    eight names with no member are pinned as a literal, so a member added upstream for any of them
+    fails here and prompts the record to adopt that member's exact value.
+    """
+
+    def test_every_core_vocabulary_member_resolves_to_at_least_one_registered_record(self) -> None:
+        missing = _members_reaching_no_record(tuple(SupportedDataSources), _PUBLIC_NAME_BY_LABEL)
+        assert missing == (), _unreachable_member_message(missing)
+
+    def test_a_member_naming_variants_of_one_data_source_resolves_to_every_variant(self) -> None:
+        """`Pandas` is carried by two records by design; "at least one" must not hide the second."""
+        assert _labels_carrying(SupportedDataSources.PANDAS.value, _PUBLIC_NAME_BY_LABEL) == (
+            "pandas-data-frame",
+            "pandas-filesystem-csv",
+        )
+
+    def test_the_registered_names_with_no_core_member_equal_the_reviewed_literal(self) -> None:
+        actual = _public_names_reaching_no_member(
+            tuple(SupportedDataSources), _PUBLIC_NAME_BY_LABEL
+        )
+        assert actual == _PUBLIC_NAMES_WITH_NO_CORE_MEMBER, _absent_set_drift_message(
+            actual, _PUBLIC_NAMES_WITH_NO_CORE_MEMBER
+        )
+
+    def test_a_fabricated_member_naming_no_record_is_reported_with_both_remedies(self) -> None:
+        """The forward half is able to fail.
+
+        A member the registry has no record for is what an upstream addition looks like from here.
+        `SupportedDataSources` itself is never touched: the fabricated member is passed in, which
+        is the whole reason the two helpers take the vocabulary as an argument.
+        """
+        fabricated = (_FabricatedMember("Nowhere DB"),)
+
+        missing = _members_reaching_no_record(fabricated, _PUBLIC_NAME_BY_LABEL)
+
+        assert missing == ("Nowhere DB",)
+        message = _unreachable_member_message(missing)
+        assert "Nowhere DB" in message
+        assert "set the public_name of the record" in message
+        assert "register one" in message
+
+    def test_a_member_added_for_a_known_absent_name_breaks_the_literal_with_both_remedies(
+        self,
+    ) -> None:
+        """The known-absent half is able to fail.
+
+        Simulates upstream adding a `SupportedDataSources` member for Trino — one of the eight —
+        by passing an extended vocabulary in. Trino must then leave the known-absent set, so the
+        literal no longer matches and the message says how to reconcile it.
+        """
+        extended = tuple(SupportedDataSources) + (_FabricatedMember("Trino"),)
+
+        actual = _public_names_reaching_no_member(extended, _PUBLIC_NAME_BY_LABEL)
+
+        assert actual != _PUBLIC_NAMES_WITH_NO_CORE_MEMBER
+        assert "Trino" not in actual
+        message = _absent_set_drift_message(actual, _PUBLIC_NAMES_WITH_NO_CORE_MEMBER)
+        assert "No longer absent" in message
+        assert "['Trino']" in message
+        assert "update the record's public_name" in message
+        assert "update the _PUBLIC_NAMES_WITH_NO_CORE_MEMBER literal" in message
