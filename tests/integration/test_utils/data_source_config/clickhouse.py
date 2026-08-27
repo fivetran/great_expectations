@@ -19,6 +19,7 @@ from tests.integration.test_utils.data_source_config.data_source_spec import (
     BackendProvisioning,
     BackendTier,
     CiLaneRef,
+    ExecutionEngineKind,
 )
 from tests.integration.test_utils.data_source_config.registry import register_sql_backend
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
@@ -81,8 +82,11 @@ _COLUMN_TYPE_OVERRIDES = (
 class ClickHouseDatasourceTestConfig(SqlDatasourceTestConfig):
     BACKEND_SPEC = SqlBackendSpec(
         label="clickhouse",
+        public_name="ClickHouse",
         marker="clickhouse",
         provisioning=BackendProvisioning.LOCAL_CONTAINER,
+        execution_engine=ExecutionEngineKind.SQL,
+        fluent_types=frozenset({"sql"}),
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="clickhouse"),
         # ClickHouse has no `CREATE SCHEMA`; the database is carried in the connection string,
         # as MySQL's is.

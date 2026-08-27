@@ -14,6 +14,7 @@ from tests.integration.test_utils.data_source_config.data_source_spec import (
     BackendProvisioning,
     BackendTier,
     CiLaneRef,
+    ExecutionEngineKind,
 )
 from tests.integration.test_utils.data_source_config.registry import register_sql_backend
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
@@ -24,8 +25,11 @@ from tests.integration.test_utils.data_source_config.sql_config import SqlDataso
 class PostgreSQLDatasourceTestConfig(SqlDatasourceTestConfig):
     BACKEND_SPEC = SqlBackendSpec(
         label="postgresql",
+        public_name="PostgreSQL",
         marker="postgresql",
         provisioning=BackendProvisioning.LOCAL_CONTAINER,
+        execution_engine=ExecutionEngineKind.SQL,
+        fluent_types=frozenset({"postgres"}),
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="postgresql"),
         uses_schema=True,
         tiers=frozenset({BackendTier.STANDARD_SQL}),

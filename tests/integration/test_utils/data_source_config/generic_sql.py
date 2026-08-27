@@ -14,6 +14,7 @@ from tests.integration.test_utils.data_source_config.backend_spec import (
 from tests.integration.test_utils.data_source_config.data_source_spec import (
     BackendProvisioning,
     CiLaneRef,
+    ExecutionEngineKind,
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
@@ -48,8 +49,11 @@ class GenericSQLDatasourceTestConfig(SqlDatasourceTestConfig):
 
     BACKEND_SPEC: ClassVar[SqlBackendSpec] = SqlBackendSpec(
         label="generic_sql",
+        public_name="Generic SQL",
         marker="generic_sql",
         provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        execution_engine=ExecutionEngineKind.SQL,
+        fluent_types=frozenset({"sql"}),
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="generic_sql"),
         uses_schema=False,
         # The caller-supplied connection string may point at a dialect that requires a length

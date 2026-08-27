@@ -204,15 +204,20 @@ def _assert_task_runner_entry_exists_and_lists_requirements_file(
 def _assert_workflow_job_and_lane_token(
     config_class: Type[_DeclaresBackendSpec], spec: SqlBackendSpec
 ) -> None:
-    job = _ci_workflow_jobs().get(spec.ci_lane.workflow_job)
+    lane = spec.ci_lane
+    assert lane is not None, (
+        f"{config_class.__name__} declares no CI lane, so there is no workflow job to check its "
+        f"wiring against. A registered backend with no lane is one nothing runs"
+    )
+    job = _ci_workflow_jobs().get(lane.workflow_job)
     assert job is not None, (
-        f"{config_class.__name__} declares CI workflow job {spec.ci_lane.workflow_job!r} but "
+        f"{config_class.__name__} declares CI workflow job {lane.workflow_job!r} but "
         f"{CI_WORKFLOW.resolve()} has no such job under 'jobs'"
     )
     tokens = _tokens(str(job))
-    assert spec.ci_lane.marker_token in tokens, (
-        f"{config_class.__name__} declares CI lane token {spec.ci_lane.marker_token!r} in "
-        f"workflow job {spec.ci_lane.workflow_job!r}, but that token does not appear in "
+    assert lane.marker_token in tokens, (
+        f"{config_class.__name__} declares CI lane token {lane.marker_token!r} in "
+        f"workflow job {lane.workflow_job!r}, but that token does not appear in "
         f"{CI_WORKFLOW.resolve()}; tokens found: {list(tokens)}"
     )
 
@@ -294,6 +299,7 @@ def test_container_service_is_wired(config_class: Type[_DeclaresBackendSpec]) ->
 def _make_spec(**overrides: object) -> SqlBackendSpec:
     defaults: Dict[str, Any] = dict(
         label="ghost-backend",
+        public_name="Ghost Backend",
         marker="ghost_backend",
         provisioning=BackendProvisioning.LOCAL_FILE,
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="ghost_backend"),

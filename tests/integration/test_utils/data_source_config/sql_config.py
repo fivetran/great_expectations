@@ -34,7 +34,9 @@ class SqlDatasourceTestConfig(DataSourceTestConfig):
     A concrete subclass declares its identity once, as a class variable:
 
         class PostgreSQLDatasourceTestConfig(SqlDatasourceTestConfig):
-            BACKEND_SPEC = SqlBackendSpec(label="postgresql", marker="postgresql", ...)
+            BACKEND_SPEC = SqlBackendSpec(
+                label="postgresql", public_name="PostgreSQL", marker="postgresql", ...
+            )
 
     `label` and `pytest_mark` are then derived from that declaration rather than hand-written,
     so the declaration is the single place a backend's identity is stated.

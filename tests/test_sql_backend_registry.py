@@ -66,6 +66,7 @@ pytestmark = pytest.mark.project
 def _make_spec(**overrides: object) -> SqlBackendSpec:
     defaults: dict[str, object] = dict(
         label="throwaway",
+        public_name="Throwaway",
         marker="throwaway",
         provisioning=BackendProvisioning.LOCAL_FILE,
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="throwaway"),
@@ -513,6 +514,7 @@ class _HandWrittenControlConfig(DataSourceTestConfig):
 
 _THROWAWAY_DECLARED_SPEC = SqlBackendSpec(
     label="mssql",
+    public_name="SQL Server",
     marker="sql_server",
     provisioning=BackendProvisioning.LOCAL_FILE,
     ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="sql_server"),
@@ -554,6 +556,7 @@ class TestSqlDatasourceTestConfigOverrideSeam:
     def test_instance_level_backend_spec_overrides_the_class_declaration(self) -> None:
         override_spec = SqlBackendSpec(
             label="ad-hoc",
+            public_name="Ad-hoc SQL",
             marker="generic_sql",
             provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
             ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="generic_sql"),

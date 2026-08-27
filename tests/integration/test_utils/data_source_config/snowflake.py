@@ -17,6 +17,7 @@ from tests.integration.test_utils.data_source_config.data_source_spec import (
     BackendProvisioning,
     BackendTier,
     CiLaneRef,
+    ExecutionEngineKind,
 )
 from tests.integration.test_utils.data_source_config.registry import register_sql_backend
 from tests.integration.test_utils.data_source_config.sql import (
@@ -33,8 +34,11 @@ if TYPE_CHECKING:
 class SnowflakeDatasourceTestConfig(SqlDatasourceTestConfig):
     BACKEND_SPEC = SqlBackendSpec(
         label="snowflake",
+        public_name="Snowflake",
         marker="snowflake",
         provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        execution_engine=ExecutionEngineKind.SQL,
+        fluent_types=frozenset({"snowflake"}),
         # Snowflake's CI lane is a dedicated job (`marker-tests-snowflake`), not a
         # `marker-tests` matrix entry: it is sharded across `pytest-split` groups rather than
         # selected as one matrix cell among many markers.

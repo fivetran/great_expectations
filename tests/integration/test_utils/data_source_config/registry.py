@@ -49,7 +49,13 @@ _by_label: Dict[str, Type[_DeclaresBackendSpec]] = {}
 _by_marker: Dict[str, Type[_DeclaresBackendSpec]] = {}
 
 
-def _validate_identity(config_class: type, spec: SqlBackendSpec) -> None:
+def _validate_identity(config_class: type, spec: SqlBackendSpec) -> str:
+    """Reject a malformed identity, and return the validated marker.
+
+    The marker is returned rather than re-read at the call site because the check that one is
+    present lives here: returning it carries that fact forward to the registry index instead of
+    making every caller restate the check.
+    """
     if not spec.label:
         raise ValueError(
             f"{config_class.__name__} declares an empty SQL backend label; it must be a "
@@ -61,18 +67,24 @@ def _validate_identity(config_class: type, spec: SqlBackendSpec) -> None:
             f"{config_class.__name__} declares an empty SQL backend marker; it must be a "
             f"non-empty string naming the pytest mark used to select this backend's tests"
         )
-    if not spec.ci_lane.workflow_job:
-        raise ValueError(
-            f"{config_class.__name__} declares an empty CI lane workflow job; it must be a "
-            f"non-empty string naming the workflow job that runs this backend's lane. A lane "
-            f"naming no job cannot be located in the workflow file, so its wiring cannot be "
-            f"checked at all"
-        )
-    if not spec.ci_lane.marker_token:
-        raise ValueError(
-            f"{config_class.__name__} declares an empty CI lane marker token; it must be a "
-            f"non-empty string identifying which CI lane runs this backend's marker-selected tests"
-        )
+    lane = spec.ci_lane
+    # A lane is optional on the record, so these checks apply to a stated lane only: they reject a
+    # lane that names nothing, not the absence of one.
+    if lane is not None:
+        if not lane.workflow_job:
+            raise ValueError(
+                f"{config_class.__name__} declares an empty CI lane workflow job; it must be a "
+                f"non-empty string naming the workflow job that runs this backend's lane. A lane "
+                f"naming no job cannot be located in the workflow file, so its wiring cannot be "
+                f"checked at all"
+            )
+        if not lane.marker_token:
+            raise ValueError(
+                f"{config_class.__name__} declares an empty CI lane marker token; it must be a "
+                f"non-empty string identifying which CI lane runs this backend's marker-selected "
+                f"tests"
+            )
+    return spec.marker
 
 
 def _validate_insert_parameter_limit(config_class: type, spec: SqlBackendSpec) -> None:
@@ -151,12 +163,14 @@ def _validate_tier_case_exclusions(config_class: type, spec: SqlBackendSpec) -> 
     _validate_tier_case_exclusion_ceiling(config_class, spec)
 
 
-def _validate_spec(config_class: type, spec: SqlBackendSpec) -> None:
-    _validate_identity(config_class, spec)
+def _validate_spec(config_class: type, spec: SqlBackendSpec) -> str:
+    """Reject a malformed declaration, and return the validated marker."""
+    marker = _validate_identity(config_class, spec)
     _validate_insert_parameter_limit(config_class, spec)
     _validate_container_provisioning(config_class, spec)
     _validate_table_schema_items(config_class, spec)
     _validate_tier_case_exclusions(config_class, spec)
+    return marker
 
 
 def register_sql_backend(config_class: type[_C]) -> type[_C]:
@@ -164,7 +178,7 @@ def register_sql_backend(config_class: type[_C]) -> type[_C]:
     duplicate marker, or any invariant violation in its declared spec.
     """
     spec = config_class.BACKEND_SPEC
-    _validate_spec(config_class, spec)
+    marker = _validate_spec(config_class, spec)
 
     duplicate_label = _by_label.get(spec.label)
     if duplicate_label is not None:
@@ -172,15 +186,15 @@ def register_sql_backend(config_class: type[_C]) -> type[_C]:
             f"duplicate SQL backend label {spec.label!r} declared by "
             f"{duplicate_label.__name__} and {config_class.__name__}"
         )
-    duplicate_marker = _by_marker.get(spec.marker)
+    duplicate_marker = _by_marker.get(marker)
     if duplicate_marker is not None:
         raise ValueError(
-            f"duplicate SQL backend marker {spec.marker!r} declared by "
+            f"duplicate SQL backend marker {marker!r} declared by "
             f"{duplicate_marker.__name__} and {config_class.__name__}"
         )
 
     _by_label[spec.label] = config_class
-    _by_marker[spec.marker] = config_class
+    _by_marker[marker] = config_class
     return config_class
 
 

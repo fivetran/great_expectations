@@ -10,6 +10,7 @@ from tests.integration.test_utils.data_source_config.data_source_spec import (
     BackendProvisioning,
     BackendTier,
     CiLaneRef,
+    ExecutionEngineKind,
 )
 from tests.integration.test_utils.data_source_config.registry import register_sql_backend
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
@@ -29,8 +30,11 @@ if TYPE_CHECKING:
 class BigQueryDatasourceTestConfig(SqlDatasourceTestConfig):
     BACKEND_SPEC = SqlBackendSpec(
         label="big-query",
+        public_name="BigQuery",
         marker="bigquery",
         provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        execution_engine=ExecutionEngineKind.SQL,
+        fluent_types=frozenset({"bigquery"}),
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="bigquery"),
         # BigQuery calls its schemas "datasets", so a per-test schema means a per-test
         # dataset. Datasets are project-level objects, which makes them a poor unit of

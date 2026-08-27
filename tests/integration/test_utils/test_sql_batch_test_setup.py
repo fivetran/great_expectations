@@ -54,6 +54,7 @@ pytestmark = pytest.mark.sqlite
 
 _BASE_SPEC = SqlBackendSpec(
     label="throwaway-table-schema-items",
+    public_name="SQLite",
     marker="sqlite",
     provisioning=BackendProvisioning.LOCAL_FILE,
     ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="sqlite"),

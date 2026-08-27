@@ -14,6 +14,7 @@ from tests.integration.test_utils.data_source_config.data_source_spec import (
     BackendProvisioning,
     BackendTier,
     CiLaneRef,
+    ExecutionEngineKind,
 )
 from tests.integration.test_utils.data_source_config.registry import register_sql_backend
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
@@ -24,8 +25,11 @@ from tests.integration.test_utils.data_source_config.sql_config import SqlDataso
 class SqliteDatasourceTestConfig(SqlDatasourceTestConfig):
     BACKEND_SPEC = SqlBackendSpec(
         label="sqlite",
+        public_name="SQLite",
         marker="sqlite",
         provisioning=BackendProvisioning.LOCAL_FILE,
+        execution_engine=ExecutionEngineKind.SQL,
+        fluent_types=frozenset({"sqlite"}),
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="sqlite"),
         uses_schema=False,
         tiers=frozenset({BackendTier.STANDARD_SQL}),

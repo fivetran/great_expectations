@@ -15,6 +15,7 @@ from tests.integration.test_utils.data_source_config.data_source_spec import (
     BackendProvisioning,
     BackendTier,
     CiLaneRef,
+    ExecutionEngineKind,
 )
 from tests.integration.test_utils.data_source_config.registry import register_sql_backend
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
@@ -25,8 +26,11 @@ from tests.integration.test_utils.data_source_config.sql_config import SqlDataso
 class OracleDatasourceTestConfig(SqlDatasourceTestConfig):
     BACKEND_SPEC = SqlBackendSpec(
         label="oracle",
+        public_name="Oracle",
         marker="oracle",
         provisioning=BackendProvisioning.LOCAL_CONTAINER,
+        execution_engine=ExecutionEngineKind.SQL,
+        fluent_types=frozenset({"sql"}),
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="oracle"),
         # A schema in Oracle is a user, not a namespace the shared setup can create with a bare
         # `CREATE SCHEMA` statement: this dialect rejects that DDL with
