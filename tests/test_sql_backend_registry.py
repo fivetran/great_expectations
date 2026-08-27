@@ -1281,7 +1281,7 @@ _REGISTERED_CURATED_SQL = tuple(sql_backends_for_tier(BackendTier.CURATED_SQL))
 _REGISTERED_SQL_BACKENDS: Tuple[type, ...] = tuple(iter_sql_backends())
 
 
-class TestRegisteredConfigsEqualTheThirteenInLabelOrder:
+class TestRegisteredConfigsEqualTheFourteenInLabelOrder:
     """Pins the registry itself: every registered config class, named individually, in label order.
 
     Not every entry is a SQL backend: a config the harness drives registers here whether or not its
@@ -1290,7 +1290,7 @@ class TestRegisteredConfigsEqualTheThirteenInLabelOrder:
 
     This is an *equality* assertion against an *ordered* literal naming every registered class -
     not a subset check, not a membership check, not a count. That shape is what makes registering
-    a fourteenth config without extending this literal fail immediately: "register the config" and
+    a fifteenth config without extending this literal fail immediately: "register the config" and
     "extend this literal" become one change with a single, same-change failure signal, rather than
     a widening nobody notices until something downstream quietly starts seeing one more backend
     than it expected. A subset or count check would let a new registration pass silently here,
@@ -1305,7 +1305,7 @@ class TestRegisteredConfigsEqualTheThirteenInLabelOrder:
     Be precise about which half of that each mechanism carries. A backend module that fails to
     import takes the whole package down with it, so every test here dies at collection - the
     import statement is what proves importability, not this assertion. What this assertion adds
-    is that all thirteen modules actually *registered*: importing a module and registering from it
+    is that all fourteen modules actually *registered*: importing a module and registering from it
     are separate events, and only the second is observable here. Weakening this to a subset or
     count check would discard exactly that, letting a backend that imported but never enrolled
     itself pass unnoticed.
@@ -1318,7 +1318,7 @@ class TestRegisteredConfigsEqualTheThirteenInLabelOrder:
     registered without a matching update here.
     """
 
-    def test_registered_configs_equal_the_thirteen_in_label_order(self) -> None:
+    def test_registered_configs_equal_the_fourteen_in_label_order(self) -> None:
         from tests.integration.test_utils.data_source_config.clickhouse import (
             ClickHouseDatasourceTestConfig,
         )
@@ -1346,6 +1346,7 @@ class TestRegisteredConfigsEqualTheThirteenInLabelOrder:
             MySQLDatasourceTestConfig,  # mysql
             OracleDatasourceTestConfig,  # oracle
             PandasDataFrameDatasourceTestConfig,  # pandas-data-frame
+            PandasFilesystemCsvDatasourceTestConfig,  # pandas-filesystem-csv
             PostgreSQLDatasourceTestConfig,  # postgresql
             RedshiftDatasourceTestConfig,  # redshift
             SingleStoreDatasourceTestConfig,  # singlestore
