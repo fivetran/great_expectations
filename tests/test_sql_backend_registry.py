@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+import ast
 import importlib
 import subprocess
 import sys
 import tempfile
-from dataclasses import FrozenInstanceError, fields, replace
+from dataclasses import FrozenInstanceError, dataclass, field, fields, replace
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
+    Any,
+    Dict,
     FrozenSet,
     Iterator,
     List,
@@ -15,6 +18,7 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    Type,
 )
 
 import pytest
@@ -359,7 +363,17 @@ class TestRegisterSqlBackendContainerProvisioning:
         with pytest.raises(ValueError) as excinfo:
             register_sql_backend(config_class)
 
-        assert "NoService" in str(excinfo.value)
+        message = str(excinfo.value)
+        assert "NoService" in message
+        # Naming the class is not enough: this record is malformed in exactly one way, but every
+        # rejection in this module names the class that was rejected, so an assertion on the name
+        # alone would pass for any of them — including one raised for a reason this test is not
+        # about. The branch under test is `_validate_tier_claims`'s container obligation, which is
+        # scaled to the tier claim; the neighbouring `_validate_container_provisioning` rejects the
+        # opposite arrangement and says "without LOCAL_CONTAINER provisioning" instead. Asserting
+        # the phrase that only the claim-scaled branch produces is what pins which one fired.
+        assert "names no container_service" in message
+        assert "claims tier membership" in message
 
     def test_container_service_without_local_container_raises(self) -> None:
         config_class = _make_config_class(
@@ -1073,9 +1087,15 @@ class TestStandardDataSourceListsMatchDeclaredMembership:
     Every literal below is written out here rather than derived from the module under test — so a
     mistake in the derivation shows up as a mismatch here rather than agreeing with itself. The
     pandas and Spark literals are transcribed from the two metrics conftest modules exactly as
-    they existed before those lists gained a single shared definition, and `PANDAS_DATA_SOURCES`
-    is deliberately not alphabetical: the filesystem CSV config is listed before the DataFrame
-    config, and that order is preserved on purpose.
+    they existed before those lists gained a single shared definition, except for
+    `PANDAS_DATA_SOURCES`'s order. That list was hand-written non-alphabetically — the filesystem
+    CSV config ahead of the DataFrame config — and that order was preserved on purpose for as long
+    as the list was a literal. It is now **label order**, DataFrame ahead of filesystem CSV,
+    because the list is derived from the registry and the registry orders every accessor by record
+    label. Membership is unchanged; only the order moved, and it moved because the hand-written
+    literal it replaced is gone, not because anything about either data source changed. Nothing
+    reads either list positionally — both are pytest parameterization sources — so the visible
+    consequence is the order test ids are generated in.
 
     The two SQL literals began as the same transcription and have since widened, once, by
     declaration. MySQL, Microsoft SQL Server and Redshift appeared in the hand-written lists that
@@ -1096,8 +1116,8 @@ class TestStandardDataSourceListsMatchDeclaredMembership:
 
     def test_pandas_data_sources_match_declared_membership_and_order(self) -> None:
         assert [
-            PandasFilesystemCsvDatasourceTestConfig(),
             PandasDataFrameDatasourceTestConfig(),
+            PandasFilesystemCsvDatasourceTestConfig(),
         ] == PANDAS_DATA_SOURCES
 
     def test_spark_data_sources_match_declared_membership_and_order(self) -> None:
@@ -1119,8 +1139,8 @@ class TestStandardDataSourceListsMatchDeclaredMembership:
 
     def test_all_data_sources_match_declared_membership_and_order(self) -> None:
         assert [
-            PandasFilesystemCsvDatasourceTestConfig(),
             PandasDataFrameDatasourceTestConfig(),
+            PandasFilesystemCsvDatasourceTestConfig(),
             SparkFilesystemCsvDatasourceTestConfig(),
             BigQueryDatasourceTestConfig(),
             DatabricksDatasourceTestConfig(),
@@ -1282,6 +1302,14 @@ class TestMetricsConftestsReexportTheSharedDefinition:
 _REGISTERED_STANDARD_SQL = tuple(sql_backends_for_tier(BackendTier.STANDARD_SQL))
 _REGISTERED_CURATED_SQL = tuple(sql_backends_for_tier(BackendTier.CURATED_SQL))
 
+# The same capture, for the same reason, over the two engine-keyed lists. `tiers.py` builds
+# `PANDAS_DATA_SOURCES` and `SPARK_DATA_SOURCES` once at its own import time, exactly as it builds
+# the two tier-keyed lists, so a config module imported after `tiers` is silently absent from the
+# built list while `data_source_configs_for_engine`, called here afterwards, reports it correctly.
+# Nothing compared the two for the engine-keyed pair until now.
+_REGISTERED_PANDAS_CONFIGS = tuple(data_source_configs_for_engine(ExecutionEngineKind.PANDAS))
+_REGISTERED_SPARK_CONFIGS = tuple(data_source_configs_for_engine(ExecutionEngineKind.SPARK))
+
 # Also captured here, at this module's own import time and for the same reason as the two tuples
 # above: this module's `_snapshot_registry` autouse fixture clears the registry around every test,
 # so a test body calling `iter_sql_backends()` directly would iterate nothing and pass vacuously.
@@ -1385,6 +1413,25 @@ class TestDerivedSqlListsReachEveryRegisteredBackend:
         assert [type(config) for config in CURATED_SQL_DATA_SOURCES] == list(
             _REGISTERED_CURATED_SQL
         )
+
+
+class TestDerivedEngineListsReachEveryRegisteredConfig:
+    """The same guard as its SQL neighbour above, over the two engine-keyed lists.
+
+    Those two lists were literals until this work derived them, so nothing had ever had to check
+    them against the registry. They are built the same way and at the same moment as the two
+    tier-keyed lists — once, at `tiers.py`'s import time — so they are exposed to exactly the same
+    import-order accident: a pandas or Spark config module imported after `tiers` registers too
+    late to appear in the already-built list, while the accessor called here reports it correctly
+    from then on. Keying on an execution engine rather than on a tier changes nothing about that
+    exposure, so the guard has to cover all four lists rather than the two it started with.
+    """
+
+    def test_pandas_data_sources_includes_every_registered_pandas_config(self) -> None:
+        assert [type(config) for config in PANDAS_DATA_SOURCES] == list(_REGISTERED_PANDAS_CONFIGS)
+
+    def test_spark_data_sources_includes_every_registered_spark_config(self) -> None:
+        assert [type(config) for config in SPARK_DATA_SOURCES] == list(_REGISTERED_SPARK_CONFIGS)
 
 
 class TestRegisteredBackendDeclarationsSurviveAnAbsentDialectPackage:
@@ -2025,3 +2072,680 @@ class TestDeclarationOnlyRecordsJoinTheRegistryWithoutConfigs:
 
         assert note is not None
         assert "service principal" in note.lower()
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _the_real_registry_survives_this_module() -> Iterator[None]:
+    """Every test here registers throwaway records; none of them may reach the real registry.
+
+    The function-scoped `_snapshot_registry` fixture is what is supposed to guarantee that, and
+    every test in this module trusts it. Nothing checked it end to end: a seam that restored the
+    wrong thing, or restored nothing on one path, would leave the process's registry altered for
+    every later test module in the same session — the wiring drift check among them — with no
+    signal here at all. This teardown runs after the last function-scoped seam in this module has
+    exited, and compares the registry against the snapshot taken at import time, before any test
+    ran.
+    """
+    yield
+
+    assert iter_data_sources() == _REGISTERED_DATA_SOURCE_ENTRIES, (
+        "this module left the real registry altered; a throwaway registration escaped the "
+        "isolation seam"
+    )
+
+
+class TestRegisteredRecordsEqualTheTwentyThreeInLabelOrder:
+    """The second half of the registered-set pin: every registered *record*, in label order.
+
+    Its neighbour `TestRegisteredConfigsEqualTheFifteenInLabelOrder` pins the registered *config
+    classes*, and keeps its exact shape and teeth. That set is strictly narrower than the registry:
+    a record registered without a config class reaches no config accessor at all, so eight of the
+    twenty-three declarations this repository makes are invisible to that pin. They are not
+    invisible to the consumers that matter — the wiring drift check and the generated compatibility
+    reference both walk records, not configs — so a record dropped, relabelled, or never registered
+    would change what those produce while the config pin stayed green.
+
+    Both pins are ordered whole-set equalities, and neither may be weakened into a subset, a
+    membership check, or a count. That shape is the entire point: adding a data source has to fail
+    in the same change that adds it. `test_the_record_accessor_is_wider_than_the_config_accessor_by
+    _exactly_eight` is a count and is not a substitute — a count passes for any twenty-three labels,
+    including twenty-two correct ones and a typo.
+
+    Labels rather than record objects, deliberately: the record objects' every field is pinned
+    elsewhere — the eight declaration-only records by whole-record equality against a reviewed
+    literal, the config-bound ones through their configs — while what is pinned here is exactly
+    which data sources are enrolled and in what order.
+    """
+
+    def test_registered_record_labels_equal_the_twenty_three_in_label_order(self) -> None:
+        assert tuple(spec.label for spec in _REGISTERED_DATA_SOURCE_SPECS) == (
+            "alloydb",
+            "amazon-s3",
+            "aurora",
+            "azure-blob-storage",
+            "big-query",
+            "citus",
+            "clickhouse",
+            "databricks",
+            "fabric",
+            "google-cloud-storage",
+            "mssql",
+            "mysql",
+            "neon",
+            "oracle",
+            "pandas-data-frame",
+            "pandas-filesystem-csv",
+            "postgresql",
+            "redshift",
+            "singlestore",
+            "snowflake",
+            "spark-filesystem-csv",
+            "sqlite",
+            "trino",
+        )
+
+
+def _resolves_to(config_class: type, method_name: str) -> str:
+    """The name of the class whose body actually supplies `method_name` for `config_class`."""
+    for ancestor in config_class.__mro__:
+        if method_name in vars(ancestor):
+            return ancestor.__name__
+    raise AssertionError(f"{config_class.__name__} resolves no {method_name}")
+
+
+# Captured from the tree as it stood before this work — `origin/develop` at
+# b94159e0d5899192dca365e47289671ab94ecafc — by resolving `__eq__` and `__hash__` through each
+# registered config's MRO there. Every entry is a literal, not a derivation: a pin that recomputed
+# the expected value from the same objects it checks would agree with itself no matter what those
+# objects became.
+_BASELINE_EQ_AND_HASH_RESOLUTION: Mapping[str, Tuple[str, str]] = {
+    "BigQueryDatasourceTestConfig": ("DataSourceTestConfig", "DataSourceTestConfig"),
+    "ClickHouseDatasourceTestConfig": ("DataSourceTestConfig", "DataSourceTestConfig"),
+    "DatabricksDatasourceTestConfig": ("DataSourceTestConfig", "DataSourceTestConfig"),
+    "MySQLDatasourceTestConfig": ("DataSourceTestConfig", "DataSourceTestConfig"),
+    "OracleDatasourceTestConfig": ("DataSourceTestConfig", "DataSourceTestConfig"),
+    "PandasDataFrameDatasourceTestConfig": ("DataSourceTestConfig", "DataSourceTestConfig"),
+    "PandasFilesystemCsvDatasourceTestConfig": (
+        "PandasFilesystemCsvDatasourceTestConfig",
+        "PandasFilesystemCsvDatasourceTestConfig",
+    ),
+    "PostgreSQLDatasourceTestConfig": ("DataSourceTestConfig", "DataSourceTestConfig"),
+    "RedshiftDatasourceTestConfig": ("DataSourceTestConfig", "DataSourceTestConfig"),
+    "SQLServerDatasourceTestConfig": ("DataSourceTestConfig", "DataSourceTestConfig"),
+    "SingleStoreDatasourceTestConfig": ("DataSourceTestConfig", "DataSourceTestConfig"),
+    "SnowflakeDatasourceTestConfig": ("DataSourceTestConfig", "DataSourceTestConfig"),
+    "SparkFilesystemCsvDatasourceTestConfig": (
+        "SparkFilesystemCsvDatasourceTestConfig",
+        "SparkFilesystemCsvDatasourceTestConfig",
+    ),
+    "SqliteDatasourceTestConfig": ("DataSourceTestConfig", "DataSourceTestConfig"),
+    "TrinoDatasourceTestConfig": ("DataSourceTestConfig", "DataSourceTestConfig"),
+}
+
+
+class TestEveryRegisteredConfigResolvesTheSameEqualityAndHashAsBeforeThisWork:
+    """A **no-change** assertion, and the distinction from its neighbour is the whole point.
+
+    `TestRegisteredBackendsKeepTheInheritedHash` asserts the *stronger* form: that a config's
+    `__eq__` and `__hash__` **are** the shared base's. That is the right rule where it is applied —
+    over `SqlDatasourceTestConfig`'s descendants, none of which carries a field the base's
+    hand-written, mapping-safe implementations do not already handle — and it is sitting right
+    here, which makes reusing it over every registered config look like the obvious move.
+
+    Applied to every registered config it would mandate a wrong-data defect. The pandas and Spark
+    filesystem-CSV configs each re-declare themselves as a frozen dataclass to add their read and
+    write option mappings, which regenerates equality and hash on the subclass. Their generated
+    equality compares every field, the option mappings included — which is the behavior those two
+    configs exist to have. The inherited implementation compares the test label and the pytest mark
+    and nothing else, so under it two instances differing only in read options compare **equal**;
+    the session-scoped batch-setup cache keys on config equality, so the second would silently
+    reuse the first's setup and read its CSVs with the wrong options. A live suite constructs
+    exactly that pair (`tests/integration/data_sources_and_expectations/
+    test_expectation_conditions.py` builds a date-parsing-configured filesystem config alongside a
+    default one).
+
+    So the assertion this makes is not "resolves to the base's" but "resolves to what it resolved to
+    before this work", against a literal captured from the baseline. That is what proves the
+    retrofit was additive — it added a class attribute and deleted two hand-written properties, and
+    touched no `@dataclass` decoration — and it fails if a future change re-decorates any config in
+    either direction: opting one of the two filesystem configs out of generated equality reddens it
+    just as surely as regenerating equality on one of the inherited thirteen would.
+
+    No hash *value* is pinned, only the resolution and (elsewhere, against a control) the behavior.
+    `test_id` is a `str` and `PYTHONHASHSEED` is randomized, so a hash value is not reproducible
+    from one process to the next and a pin on one would be a flake, not a guard.
+    """
+
+    def test_every_registered_config_resolves_the_baseline_implementations(self) -> None:
+        assert _REGISTERED_SQL_BACKENDS, "no registered configs were found to check"
+
+        resolved = {
+            config_class.__name__: (
+                _resolves_to(config_class, "__eq__"),
+                _resolves_to(config_class, "__hash__"),
+            )
+            for config_class in _REGISTERED_SQL_BACKENDS
+        }
+
+        assert resolved == dict(_BASELINE_EQ_AND_HASH_RESOLUTION)
+
+
+class _PandasDataFrameControlConfig(DataSourceTestConfig):
+    """The in-memory pandas config as it was written before it declared a record: `label` and
+    `pytest_mark` hand-coded, and — like the config it controls for — no re-declaration as a
+    dataclass, so it inherits the shared base's mapping-safe equality and hash.
+    """
+
+    @property
+    @override
+    def label(self) -> str:
+        return "pandas-data-frame"
+
+    @property
+    @override
+    def pytest_mark(self) -> pytest.MarkDecorator:
+        return pytest.mark.unit
+
+    @override
+    def create_batch_setup(
+        self,
+        request: pytest.FixtureRequest,
+        data: pd.DataFrame,
+        extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
+        engine_manager: Optional[SessionSQLEngineManager] = None,
+    ) -> BatchTestSetup:
+        raise NotImplementedError("not exercised by these tests")
+
+
+@dataclass(frozen=True)
+class _PandasFilesystemCsvControlConfig(DataSourceTestConfig):
+    """The pandas filesystem-CSV config as it was written before it declared a record.
+
+    The re-declaration as a frozen dataclass carrying the two option mappings is not incidental to
+    this control — it is the thing being controlled for. It regenerates equality and hash exactly
+    as the real config's does, so the control shares the real config's equality semantics *and* its
+    recorded latent hashing defect rather than papering over either.
+    """
+
+    read_options: Dict[str, Any] = field(default_factory=dict)
+    write_options: Dict[str, Any] = field(default_factory=dict)
+
+    @property
+    @override
+    def label(self) -> str:
+        return "pandas-filesystem-csv"
+
+    @property
+    @override
+    def pytest_mark(self) -> pytest.MarkDecorator:
+        return pytest.mark.filesystem
+
+    @override
+    def create_batch_setup(
+        self,
+        request: pytest.FixtureRequest,
+        data: pd.DataFrame,
+        extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
+        engine_manager: Optional[SessionSQLEngineManager] = None,
+    ) -> BatchTestSetup:
+        raise NotImplementedError("not exercised by these tests")
+
+
+@dataclass(frozen=True)
+class _SparkFilesystemCsvControlConfig(DataSourceTestConfig):
+    """The Spark filesystem-CSV config as it was written before it declared a record, re-declared
+    as a frozen dataclass carrying the two option mappings for the same reason as the pandas one.
+    """
+
+    read_options: Dict[str, Any] = field(default_factory=dict)
+    write_options: Dict[str, Any] = field(default_factory=dict)
+
+    @property
+    @override
+    def label(self) -> str:
+        return "spark-filesystem-csv"
+
+    @property
+    @override
+    def pytest_mark(self) -> pytest.MarkDecorator:
+        return pytest.mark.spark
+
+    @override
+    def create_batch_setup(
+        self,
+        request: pytest.FixtureRequest,
+        data: pd.DataFrame,
+        extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
+        engine_manager: Optional[SessionSQLEngineManager] = None,
+    ) -> BatchTestSetup:
+        raise NotImplementedError("not exercised by these tests")
+
+
+# What each retrofitted config's record is expected to declare, written out here rather than read
+# back off the config. Reading the declaration back would compare the record to itself; every field
+# below is a reviewed value, so a change to any one of them — the public name a generated document
+# prints, the execution engine that decides which derived list the config joins, the fluent types
+# the wiring check resolves, the marker scope that decides whether the marker is checked for
+# collision, or either half of the CI lane — fails here.
+_RetrofitControl = Tuple[Type[DataSourceTestConfig], Type[DataSourceTestConfig], DataSourceSpec]
+
+_RETROFITTED_CONTROLS: Mapping[str, _RetrofitControl] = {
+    "pandas-data-frame": (
+        PandasDataFrameDatasourceTestConfig,
+        _PandasDataFrameControlConfig,
+        DataSourceSpec(
+            label="pandas-data-frame",
+            public_name="Pandas",
+            provisioning=BackendProvisioning.IN_PROCESS,
+            execution_engine=ExecutionEngineKind.PANDAS,
+            fluent_types=frozenset({"pandas"}),
+            marker="unit",
+            marker_scope=MarkerScope.SHARED,
+            ci_lane=CiLaneRef(workflow_job="unit-tests", marker_token="unit"),
+        ),
+    ),
+    "pandas-filesystem-csv": (
+        PandasFilesystemCsvDatasourceTestConfig,
+        _PandasFilesystemCsvControlConfig,
+        DataSourceSpec(
+            label="pandas-filesystem-csv",
+            public_name="Pandas",
+            provisioning=BackendProvisioning.LOCAL_FILE,
+            execution_engine=ExecutionEngineKind.PANDAS,
+            fluent_types=frozenset({"pandas_filesystem"}),
+            marker="filesystem",
+            marker_scope=MarkerScope.SHARED,
+            ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="filesystem"),
+        ),
+    ),
+    "spark-filesystem-csv": (
+        SparkFilesystemCsvDatasourceTestConfig,
+        _SparkFilesystemCsvControlConfig,
+        DataSourceSpec(
+            label="spark-filesystem-csv",
+            public_name="Spark",
+            provisioning=BackendProvisioning.LOCAL_FILE,
+            execution_engine=ExecutionEngineKind.SPARK,
+            fluent_types=frozenset({"spark_filesystem"}),
+            marker="spark",
+            marker_scope=MarkerScope.SHARED,
+            ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="spark"),
+            dev_requirements_file="reqs/requirements-dev-spark.txt",
+            task_runner_marker="spark",
+        ),
+    ),
+}
+
+_OPTION_CARRYING_LABELS = ("pandas-filesystem-csv", "spark-filesystem-csv")
+
+
+class TestRetrofittedConfigsMatchAHandWrittenControl:
+    """The three non-SQL configs, each against a control declaring an equivalent record.
+
+    This is the pattern the SQL half of this module already uses — `_HandWrittenControlConfig`
+    against `_DeclaredConfig` — applied to the three configs the retrofit rewrote. It lives here
+    rather than beside each config because the control-config pattern and the isolation seam both
+    live in this module.
+
+    Without it, the three records' declared fields are pinned by nothing at all: change any of
+    `public_name`, `execution_engine`, `fluent_types`, `marker_scope`, or either half of a CI lane
+    on any of the three, and every other test in the repository stays green.
+    """
+
+    @pytest.mark.parametrize("label", sorted(_RETROFITTED_CONTROLS))
+    def test_declares_exactly_the_reviewed_record(self, label: str) -> None:
+        config_class, _, expected_spec = _RETROFITTED_CONTROLS[label]
+
+        assert expected_spec == config_class.BACKEND_SPEC
+
+    @pytest.mark.parametrize("label", sorted(_RETROFITTED_CONTROLS))
+    def test_reports_the_controls_label_mark_and_test_id(self, label: str) -> None:
+        config_class, control_class, _ = _RETROFITTED_CONTROLS[label]
+        config = config_class()
+        control = control_class()
+
+        assert config.label == control.label == label
+        assert config.pytest_mark == control.pytest_mark
+        assert config.test_id == control.test_id
+
+    def test_the_data_frame_config_compares_and_hashes_exactly_as_its_control(self) -> None:
+        """The one of the three that is not re-declared, so it inherits the base's implementations.
+
+        Cross-class equality is meaningful here precisely because both sides resolve the same
+        inherited `__eq__`, which compares label and mark rather than class identity — and the
+        hashes agree for the same reason.
+        """
+        config = PandasDataFrameDatasourceTestConfig()
+        control = _PandasDataFrameControlConfig()
+
+        assert config == control
+        assert hash(config) == hash(control)
+
+    @pytest.mark.parametrize("label", _OPTION_CARRYING_LABELS)
+    def test_the_option_carrying_configs_compare_on_their_options_like_their_controls(
+        self, label: str
+    ) -> None:
+        """Generated equality, on both the config and its control, discriminates the options.
+
+        Cross-class equality is *not* asserted for these two, and its absence is the correct
+        behavior rather than a gap: generated equality returns `NotImplemented` for an instance of
+        another class, so a config and its control are unequal no matter how equivalent their
+        records are. What a control can attest to here is the semantics — that two instances of the
+        same class differing only in read options compare unequal — and it attests to it by
+        exhibiting the same semantics from a class written the way the config was written before
+        this work.
+        """
+        config_class, control_class, _ = _RETROFITTED_CONTROLS[label]
+
+        for cls in (config_class, control_class):
+            assert cls() == cls()
+            assert cls(read_options={"parse_dates": ["d"]}) != cls()  # type: ignore[call-arg]
+            assert cls(read_options={"parse_dates": ["d"]}) == cls(  # type: ignore[call-arg]
+                read_options={"parse_dates": ["d"]}
+            )
+
+    @pytest.mark.parametrize("label", _OPTION_CARRYING_LABELS)
+    def test_the_option_carrying_configs_are_unhashable_exactly_as_their_controls_are(
+        self, label: str
+    ) -> None:
+        """The recorded latent defect, pinned as behavior rather than fixed.
+
+        Re-declaring these two as frozen dataclasses regenerates `__hash__`, and the generated one
+        hashes `extra_column_types` — a `dict` — raising `TypeError` on every instance. Nothing in
+        the repository hashes either config today, so the defect is latent, and it predates this
+        work: the control, written the way the config was written before the retrofit, raises the
+        same way. **The obvious remedy — opting out of generated equality so the mapping-safe
+        inherited implementations are used — is a wrong-data defect here**, because it would also
+        widen equality to ignore the option mappings and collapse two differently-configured
+        instances into one batch-setup cache entry. This assertion exists so that a maintainer who
+        rediscovers the unhashability finds it recorded as known, alongside the reason its obvious
+        fix is not applied.
+        """
+        config_class, control_class, _ = _RETROFITTED_CONTROLS[label]
+
+        for cls in (config_class, control_class):
+            with pytest.raises(TypeError, match="unhashable type"):
+                hash(cls())
+
+
+class TestEveryRegisteringModuleIsImportedBeforeTheDerivedLists:
+    """The import-order guarantee, extended past the modules a derived list can observe.
+
+    `TestDerivedSqlListsReachEveryRegisteredBackend` and its engine-keyed sibling catch an
+    ordering violation by its consequence: a config registered after `tiers.py` is missing from a
+    list that `tiers.py` already built. That works only for a module whose registrations reach a
+    derived list. `declaration_only.py` registers eight records that carry no config class, so they
+    reach no derived list at all — move its import below `tiers`'s and every one of those
+    assertions stays green while the eight records finish registering later than the package's own
+    documented ordering promises.
+
+    That promise is what the package `__init__` states in prose and enforces with an `isort: split`
+    that only holds while a new import lands *above* the split. This reads the ordering out of the
+    `__init__` itself, so it holds for a module whose registrations are invisible downstream, and
+    for one added tomorrow.
+    """
+
+    @staticmethod
+    def _package_dir() -> Path:
+        return Path(data_source_spec_module.__file__).parent
+
+    @classmethod
+    def _registering_module_names(cls) -> FrozenSet[str]:
+        """Every module in the package that enrols something when it is imported.
+
+        Found by reading the sources rather than by listing them here: a list would have to be
+        extended by hand by the same change that adds a module, which is the maintenance-by-hand
+        this whole effort exists to remove. `registry` itself is excluded because it *defines*
+        these names rather than calling them.
+        """
+        registering = set()
+        for source_path in cls._package_dir().glob("*.py"):
+            if source_path.stem in {"__init__", "registry"}:
+                continue
+            source = source_path.read_text()
+            if any(
+                token in source
+                for token in (
+                    "@register_sql_backend",
+                    "@register_data_source_config",
+                    "register_data_source(",
+                )
+            ):
+                registering.add(source_path.stem)
+        return frozenset(registering)
+
+    @classmethod
+    def _relative_import_order(cls) -> List[str]:
+        tree = ast.parse((cls._package_dir() / "__init__.py").read_text())
+        return [
+            node.module
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom) and node.level == 1 and node.module is not None
+        ]
+
+    def test_the_declaration_only_module_is_imported_before_tiers(self) -> None:
+        order = self._relative_import_order()
+
+        assert order.index("declaration_only") < order.index("tiers")
+
+    def test_every_registering_module_is_imported_before_tiers(self) -> None:
+        registering = self._registering_module_names()
+        assert "declaration_only" in registering, (
+            "the declaration-only module no longer registers anything; this guard is looking at "
+            "the wrong module"
+        )
+        assert len(registering) >= 15, (
+            f"only {len(registering)} registering modules were found; the source scan that finds "
+            f"them has probably stopped matching"
+        )
+
+        order = self._relative_import_order()
+        tiers_position = order.index("tiers")
+        late = sorted(
+            name for name in registering if name not in order or order.index(name) > tiers_position
+        )
+
+        assert late == [], (
+            f"{late} register data sources but are imported at or after `tiers`, which builds "
+            f"every derived list at its own import time and cannot see a registration made later"
+        )
+
+
+class TestEveryRegisteredRecordSurvivesAnAbsentDialectPackage:
+    """The dialect-absent guard, widened from the registered configs to every registered record.
+
+    Its narrower neighbour reads every field of every *config-bound* record and constructs every
+    config with no argument. Eight registered records carry no config class, so that guard never
+    reads them — and a record is exactly the kind of object that can hide a lazy dereference of a
+    package this lane does not install, because a field can be a property, a factory, or a value
+    built at module scope behind an import guard.
+
+    Same lane, same claim: this module runs with no SQL dialect driver and no Spark distribution
+    installed, so every record's every field being readable here is the invariant that a record
+    module imports and answers questions without its own data source's driver present.
+    """
+
+    def test_every_field_of_every_registered_record_reads_without_a_driver(self) -> None:
+        assert _REGISTERED_DATA_SOURCE_ENTRIES, "no records were registered to check"
+
+        for entry in _REGISTERED_DATA_SOURCE_ENTRIES:
+            for declared_field in fields(entry.spec):
+                getattr(entry.spec, declared_field.name)  # must not raise
+
+    def test_every_registered_config_constructs_with_no_argument(self) -> None:
+        constructed = [
+            entry.config_class()
+            for entry in _REGISTERED_DATA_SOURCE_ENTRIES
+            if entry.config_class is not None
+        ]
+
+        assert len(constructed) == len(_REGISTERED_SQL_BACKENDS)
+
+
+class TestMarkerScopeRelaxationsProvenWithThrowawayRecords:
+    """The shared-marker and absent-marker relaxations, proven where they can actually be observed.
+
+    Every case below builds throwaway records inside the isolation seam, and that is a requirement
+    rather than a convenience. **No two records this work registers share a marker at all**, so an
+    assertion taken over the real registry would pass identically whether the relaxation works or
+    whether `_dedicated_marker` returned every marker unconditionally — it would be a test of the
+    registered set's happening to have no collisions, not of the rule. The relaxation exists so
+    that a later criteria suite can parameterize over data sources sharing a dependency-class
+    marker (`aws_deps`, `spark`, `filesystem`) without this record schema being reopened, and that
+    future is exactly what a real-registry assertion cannot reach.
+
+    The last case below pins the direction the rule reads an *undeclared* scope in, and it is
+    load-bearing in the opposite way to the rest: reading undeclared as shared would make the
+    duplicate-marker rule vacuous for every record registered today, since not one of the twelve
+    SQL records declares a scope — and every other test in this module would still pass.
+    """
+
+    def test_two_records_sharing_one_marker_both_declared_shared_register_cleanly(self) -> None:
+        register_data_source(
+            _make_core_spec(label="first", marker="shared_dep", marker_scope=MarkerScope.SHARED)
+        )
+        register_data_source(
+            _make_core_spec(label="second", marker="shared_dep", marker_scope=MarkerScope.SHARED)
+        )
+
+        assert sorted(spec.label for spec in iter_data_source_specs()) == ["first", "second"]
+
+    def test_two_records_sharing_one_marker_both_declared_dedicated_are_rejected_naming_both(
+        self,
+    ) -> None:
+        register_data_source(
+            _make_core_spec(
+                label="first", marker="dedicated_dep", marker_scope=MarkerScope.DEDICATED
+            )
+        )
+
+        with pytest.raises(ValueError) as excinfo:
+            register_data_source(
+                _make_core_spec(
+                    label="second", marker="dedicated_dep", marker_scope=MarkerScope.DEDICATED
+                )
+            )
+
+        message = str(excinfo.value)
+        assert "dedicated_dep" in message
+        assert "'first'" in message
+        assert "'second'" in message
+
+    def test_one_dedicated_and_one_shared_record_sharing_a_marker_register_cleanly(self) -> None:
+        """Both orders, because the rule indexes only the dedicated claimant.
+
+        Registering the dedicated one first and the shared one second exercises the branch that
+        declines to *look* the marker up; the reverse order exercises the branch that declines to
+        *store* it. A single order would leave one of the two unproven.
+        """
+        register_data_source(
+            _make_core_spec(label="ded-first", marker="mixed_a", marker_scope=MarkerScope.DEDICATED)
+        )
+        register_data_source(
+            _make_core_spec(label="shr-second", marker="mixed_a", marker_scope=MarkerScope.SHARED)
+        )
+        register_data_source(
+            _make_core_spec(label="shr-first", marker="mixed_b", marker_scope=MarkerScope.SHARED)
+        )
+        register_data_source(
+            _make_core_spec(
+                label="ded-second", marker="mixed_b", marker_scope=MarkerScope.DEDICATED
+            )
+        )
+
+        assert sorted(spec.label for spec in iter_data_source_specs()) == [
+            "ded-first",
+            "ded-second",
+            "shr-first",
+            "shr-second",
+        ]
+
+    def test_two_records_declaring_no_marker_at_all_register_cleanly(self) -> None:
+        """Absence is not a duplicated value. Two records with no marker are not two records
+        sharing one."""
+        register_data_source(_make_core_spec(label="first", marker=None))
+        register_data_source(_make_core_spec(label="second", marker=None))
+
+        assert sorted(spec.label for spec in iter_data_source_specs()) == ["first", "second"]
+
+    def test_an_undeclared_scope_is_read_as_dedicated_and_still_collides(self) -> None:
+        register_data_source(_make_core_spec(label="first", marker="undeclared_scope"))
+
+        with pytest.raises(ValueError) as excinfo:
+            register_data_source(_make_core_spec(label="second", marker="undeclared_scope"))
+
+        assert "undeclared_scope" in str(excinfo.value)
+
+
+class TestTierClaimsScaleTheObligationsProvenInBothDirections:
+    """Each obligation a tier claim creates, proven to fire under the claim and not without it.
+
+    Only the rejection half was ever exercised permanently, and a rejection alone does not
+    distinguish "this obligation is scaled to the claim" from "this obligation applies to every
+    record". The second half of each pair — the identical record with no tier claimed, registering
+    cleanly — is what makes the claim-scaling itself the thing under test. Membership in no tier is
+    a valid, honest declaration meaning "this data source ships, but no tier's suite proves it",
+    and a record making it owes no marker, no lane and no container service; if any of these three
+    obligations leaked into the unclaimed case, that declaration would become unexpressible and the
+    eight declaration-only records could not be registered at all.
+
+    Throwaway records again, and for the same reason as the marker relaxations: every registered
+    record either claims a tier and satisfies all three obligations or claims none, so the real
+    registry cannot tell a working scaling rule from an unconditional one.
+    """
+
+    _CLAIM = frozenset({BackendTier.STANDARD_SQL})
+
+    def test_a_tier_claim_with_no_marker_is_rejected(self) -> None:
+        with pytest.raises(ValueError, match="declares no data source marker"):
+            register_data_source(_make_core_spec(marker=None, tiers=self._CLAIM))
+
+    def test_the_same_record_claiming_no_tier_registers_cleanly(self) -> None:
+        register_data_source(_make_core_spec(marker=None))
+
+        assert [spec.label for spec in iter_data_source_specs()] == ["throwaway-core"]
+
+    def test_a_tier_claim_with_no_ci_lane_is_rejected(self) -> None:
+        with pytest.raises(ValueError, match="declares no CI lane"):
+            register_data_source(
+                _make_core_spec(marker="throwaway", ci_lane=None, tiers=self._CLAIM)
+            )
+
+    def test_the_same_record_with_a_marker_and_no_lane_claiming_no_tier_registers_cleanly(
+        self,
+    ) -> None:
+        register_data_source(_make_core_spec(marker="throwaway", ci_lane=None))
+
+        assert [spec.label for spec in iter_data_source_specs()] == ["throwaway-core"]
+
+    def test_a_tier_claim_with_local_container_provisioning_and_no_service_is_rejected(
+        self,
+    ) -> None:
+        with pytest.raises(ValueError, match="names no container_service"):
+            register_data_source(
+                _make_core_spec(
+                    marker="throwaway",
+                    ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="throwaway"),
+                    provisioning=BackendProvisioning.LOCAL_CONTAINER,
+                    container_service=None,
+                    tiers=self._CLAIM,
+                )
+            )
+
+    def test_the_same_containerized_record_claiming_no_tier_registers_cleanly(self) -> None:
+        """Citus's shape exactly: a data source distributed as a container image this repository
+        has no compose file for. Running it locally is how you would reach it, and this repository
+        does not, so it claims no tier and names no service."""
+        register_data_source(
+            _make_core_spec(
+                marker="throwaway",
+                ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="throwaway"),
+                provisioning=BackendProvisioning.LOCAL_CONTAINER,
+                container_service=None,
+            )
+        )
+
+        assert [spec.label for spec in iter_data_source_specs()] == ["throwaway-core"]
