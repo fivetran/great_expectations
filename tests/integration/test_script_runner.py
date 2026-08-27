@@ -30,7 +30,7 @@ from great_expectations.data_context.util import file_relative_path
 from tests.integration.backend_dependencies import BackendDependencies
 from tests.integration.integration_test_fixture import (
     IntegrationTestFixture,
-    substitute_gcs_test_bucket,
+    substitute_test_buckets,
 )
 from tests.integration.test_definitions.abs.integration_tests import (
     abs_integration_tests,
@@ -428,7 +428,7 @@ def _execute_integration_test(  # noqa: C901, PLR0915 # FIXME CoP
                 context_source_dir,
                 test_context_dir,
             )
-            substitute_gcs_test_bucket(test_context_dir / FileDataContext.GX_YML)
+            substitute_test_buckets(test_context_dir / FileDataContext.GX_YML)
 
         # Test Data
         data_dir = integration_test_fixture.data_dir
@@ -548,17 +548,10 @@ def _check_for_skipped_tests(  # noqa: C901, PLR0912 # FIXME CoP
     dependencies = integration_test_fixture.backend_dependencies
     if not dependencies:
         return
-    # TEMPORARY: Tests backed by S3 and Azure Blob are unconditionally skipped during the
-    # CI transition -- neither has a bucket or a live credential to run against. Remove
-    # this block once that infrastructure is restored.
-    elif any(
-        dependency
-        in (
-            BackendDependencies.AWS,
-            BackendDependencies.AZURE,
-        )
-        for dependency in dependencies
-    ):
+    # TEMPORARY: Tests backed by Azure Blob are unconditionally skipped during the CI
+    # transition -- there is no storage account or live credential to run against yet.
+    # Remove this block once that infrastructure is restored.
+    elif BackendDependencies.AZURE in dependencies:
         pytest.skip("CI TRANSITION")
     elif BackendDependencies.POSTGRESQL in dependencies and (
         not pytest_args.postgresql or pytest_args.no_sqlalchemy

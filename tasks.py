@@ -1027,11 +1027,12 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         ),
         services=("mssql", "trino"),
         extra_pytest_args=(
-            # TEMPORARY (CI transition): the S3, Azure Blob, BigQuery, Redshift, and
-            # Snowflake backends are unavailable while their CI infrastructure is torn down.
+            # TEMPORARY (CI transition): the Azure Blob, BigQuery, Redshift, and Snowflake
+            # backends are unavailable while their CI infrastructure is torn down.
             # Requesting any of them makes test collection eagerly connect to a dead backend
             # and abort the whole session, so only the available backends are requested here.
             # Restore the remaining cloud/warehouse flags once the infra is back.
+            "--aws",
             "--gcs",
             "--trino",
             "--docs-tests",
