@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING, Mapping, Optional
 
 from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.typing_extensions import override
-from tests.integration.test_utils.data_source_config.backend_spec import (
+from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
+from tests.integration.test_utils.data_source_config.data_source_spec import (
     BackendProvisioning,
     BackendTier,
     CiLaneRef,
-    SqlBackendSpec,
 )
 from tests.integration.test_utils.data_source_config.registry import register_sql_backend
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup

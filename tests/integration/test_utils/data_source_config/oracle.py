@@ -9,13 +9,13 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.sql_session_manager import SessionSQLEngineManager
-from tests.integration.test_utils.data_source_config.backend_spec import (
+from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
+from tests.integration.test_utils.data_source_config.base import BatchTestSetup
+from tests.integration.test_utils.data_source_config.data_source_spec import (
     BackendProvisioning,
     BackendTier,
     CiLaneRef,
-    SqlBackendSpec,
 )
-from tests.integration.test_utils.data_source_config.base import BatchTestSetup
 from tests.integration.test_utils.data_source_config.registry import register_sql_backend
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig

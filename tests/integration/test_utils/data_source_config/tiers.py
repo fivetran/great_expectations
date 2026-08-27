@@ -32,7 +32,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final, List, cast
 
-from tests.integration.test_utils.data_source_config.backend_spec import BackendTier
+from tests.integration.test_utils.data_source_config.data_source_spec import BackendTier
 from tests.integration.test_utils.data_source_config.pandas_data_frame import (
     PandasDataFrameDatasourceTestConfig,
 )

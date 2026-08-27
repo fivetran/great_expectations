@@ -29,10 +29,10 @@ from tasks import MARKER_DEPENDENCY_MAP
 
 from great_expectations.core.yaml_handler import YAMLHandler
 from tests.conftest import REQUIRED_MARKERS
-from tests.integration.test_utils.data_source_config.backend_spec import (
+from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
+from tests.integration.test_utils.data_source_config.data_source_spec import (
     BackendProvisioning,
     CiLaneRef,
-    SqlBackendSpec,
 )
 from tests.integration.test_utils.data_source_config.registry import (
     isolated_registry,

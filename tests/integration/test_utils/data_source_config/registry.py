@@ -6,22 +6,25 @@ into the set the harness treats as "the SQL backends that exist" — the set com
 derived suite membership, and CI wiring checks all walk. That split is what lets a test build a
 throwaway spec, or even a throwaway registered class, without polluting the set that gates CI.
 
-This module imports only `backend_spec`. It does not import the SQL config base, `sql.py`, or any
-backend module — those sit to this module's right in the dependency direction
-(`backend_spec` -> `registry` -> `sql_config` -> `sql` -> backend modules -> `tiers`), and a
-module is only ever allowed to import from modules to its own left.
+This module imports only the two declaration modules, `data_source_spec` and `backend_spec`. It
+does not import the SQL config base, `sql.py`, or any backend module — those sit to this module's
+right in the dependency direction (`data_source_spec` -> `backend_spec` -> `registry` ->
+`sql_config` -> `sql` -> backend modules -> `tiers`), and a module is only ever allowed to import
+from modules to its own left.
 """
 
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import ClassVar, Dict, Iterator, Protocol, Tuple, Type, TypeVar
+from typing import TYPE_CHECKING, ClassVar, Dict, Iterator, Protocol, Tuple, Type, TypeVar
 
-from tests.integration.test_utils.data_source_config.backend_spec import (
+from tests.integration.test_utils.data_source_config.data_source_spec import (
     BackendProvisioning,
     BackendTier,
-    SqlBackendSpec,
 )
+
+if TYPE_CHECKING:
+    from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
 
 # The ceiling on tier_case_exclusions per backend. See _validate_tier_case_exclusion_ceiling: a
 # reason makes one exclusion answerable, but only a count makes the whole set answerable, so the

@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import fields
+import subprocess
+import sys
+import tempfile
+from dataclasses import FrozenInstanceError, fields
+from pathlib import Path
 from typing import TYPE_CHECKING, Iterator, List, Mapping, Optional, Sequence, Tuple
 
 import pytest
@@ -26,15 +30,19 @@ from tests.integration.test_utils.data_source_config import (
     SQLServerDatasourceTestConfig,
     data_sources_for_tier_case,
 )
-from tests.integration.test_utils.data_source_config.backend_spec import (
-    BackendProvisioning,
-    BackendTier,
-    CiLaneRef,
-    SqlBackendSpec,
+from tests.integration.test_utils.data_source_config import (
+    data_source_spec as data_source_spec_module,
 )
+from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
+)
+from tests.integration.test_utils.data_source_config.data_source_spec import (
+    BackendProvisioning,
+    BackendTier,
+    CiLaneRef,
+    DataSourceSpec,
 )
 from tests.integration.test_utils.data_source_config.registry import (
     isolated_registry,
@@ -1272,3 +1280,169 @@ class TestRegisteredBackendDeclarationsSurviveAnAbsentDialectPackage:
             # Checked for shape only. Calling it is exactly the operation that would require the
             # driver this lane does not install, so it is never invoked here.
             assert spec.table_schema_items is None or callable(spec.table_schema_items)
+
+
+class TestDataSourceSpecMarkerResolution:
+    """A record resolves its declared marker, and refuses to invent one it was not given.
+
+    The refusal is the load-bearing half. Returning a placeholder mark for a record that declares
+    no marker would let that record be parameterized into a suite, where the placeholder selects
+    nothing and the run reports as passing - coverage that does not exist, reported as coverage
+    that does. Raising turns that into a failure at the point the mistake was made.
+    """
+
+    def test_declared_marker_resolves_to_the_matching_mark_decorator(self) -> None:
+        spec = DataSourceSpec(
+            label="throwaway",
+            public_name="Throwaway",
+            provisioning=BackendProvisioning.IN_PROCESS,
+            marker="sqlite",
+        )
+
+        assert spec.pytest_mark == pytest.mark.sqlite
+
+    def test_absent_marker_raises_rather_than_returning_a_placeholder(self) -> None:
+        spec = DataSourceSpec(
+            label="throwaway",
+            public_name="Throwaway",
+            provisioning=BackendProvisioning.IN_PROCESS,
+        )
+
+        with pytest.raises(ValueError, match="throwaway"):
+            _ = spec.pytest_mark
+
+
+class TestDataSourceSpecConstruction:
+    """Keyword-only and frozen, so a required field on a sub-record may follow defaulted fields."""
+
+    def test_positional_construction_is_rejected(self) -> None:
+        with pytest.raises(TypeError):
+            DataSourceSpec(  # type: ignore[misc]
+                "throwaway",
+                "Throwaway",
+                BackendProvisioning.IN_PROCESS,
+            )
+
+    def test_a_constructed_record_cannot_be_mutated(self) -> None:
+        spec = DataSourceSpec(
+            label="throwaway",
+            public_name="Throwaway",
+            provisioning=BackendProvisioning.IN_PROCESS,
+        )
+
+        with pytest.raises(FrozenInstanceError):
+            spec.label = "other"  # type: ignore[misc]
+
+    def test_only_the_first_three_fields_are_required(self) -> None:
+        spec = DataSourceSpec(
+            label="throwaway",
+            public_name="Throwaway",
+            provisioning=BackendProvisioning.IN_PROCESS,
+        )
+
+        assert spec.execution_engine is None
+        assert spec.fluent_types == frozenset()
+        assert spec.provisioning_note is None
+        assert spec.marker is None
+        assert spec.marker_scope is None
+        assert spec.tiers == frozenset()
+        assert spec.tier_case_exclusions == {}
+        assert spec.ci_lane is None
+        assert spec.dev_requirements_file is None
+        assert spec.task_runner_marker is None
+        assert spec.container_service is None
+
+
+_ISOLATION_PROBE = """
+import importlib.util
+import sys
+
+import pytest  # an allowed dependency of the record module, imported before the blocker
+
+BLOCKED = {
+    "tests",
+    "great_expectations",
+    "sqlalchemy",
+    "pyspark",
+    "py4j",
+    "psycopg2",
+    "pymysql",
+    "pyodbc",
+    "snowflake",
+    "databricks",
+    "trino",
+    "oracledb",
+    "cx_Oracle",
+    "clickhouse_connect",
+    "clickhouse_sqlalchemy",
+    "singlestoredb",
+    "redshift_connector",
+    "google",
+}
+
+
+class _Blocker:
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname.split(".")[0] in BLOCKED:
+            raise ImportError("blocked for this check: " + fullname)
+        return None
+
+
+sys.meta_path.insert(0, _Blocker())
+
+# Loaded straight off the filesystem, with no package context at all. Importing it through its
+# package would run the package __init__ and pull in every data source module, which is exactly
+# what this check has to avoid: the claim is that this one module stands alone.
+loader_spec = importlib.util.spec_from_file_location("_data_source_spec_isolated", sys.argv[1])
+module = importlib.util.module_from_spec(loader_spec)
+# dataclasses resolves a class's own module out of sys.modules while processing it, so the
+# module has to be registered there before it executes, exactly as a normal import would.
+sys.modules[loader_spec.name] = module
+loader_spec.loader.exec_module(module)
+
+record = module.DataSourceSpec(
+    label="throwaway",
+    public_name="Throwaway",
+    provisioning=module.BackendProvisioning.IN_PROCESS,
+    marker="sqlite",
+)
+assert record.pytest_mark == pytest.mark.sqlite
+
+unmarked = module.DataSourceSpec(
+    label="unmarked",
+    public_name="Unmarked",
+    provisioning=module.BackendProvisioning.IN_PROCESS,
+)
+try:
+    unmarked.pytest_mark
+except ValueError:
+    pass
+else:
+    raise AssertionError("a record with no marker resolved a mark")
+
+print("ok")
+"""
+
+
+class TestDataSourceSpecStandsAlone:
+    """The record module is leftmost in the dependency direction, proved mechanically.
+
+    Inspecting the import block would only show what the module names today. This runs the module
+    in a process where the harness package, SQLAlchemy, every dialect driver and Spark all raise
+    on import, and loads the file with no package context, so any dependency on them - now or
+    later - fails the check rather than passing unnoticed.
+    """
+
+    def test_the_record_module_loads_with_no_harness_no_dialect_and_no_spark(self) -> None:
+        module_path = Path(str(data_source_spec_module.__file__))
+
+        completed = subprocess.run(
+            [sys.executable, "-c", _ISOLATION_PROBE, str(module_path)],
+            check=False,
+            capture_output=True,
+            text=True,
+            cwd=tempfile.gettempdir(),  # away from the repo, so no path entry can shadow the block
+        )
+
+        assert completed.returncode == 0, completed.stderr
+        assert completed.stdout.strip() == "ok"

@@ -8,10 +8,12 @@ from typing import TYPE_CHECKING, ClassVar, Mapping, Optional
 from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.compatibility.typing_extensions import override
 from tests.integration.test_utils.data_source_config.backend_spec import (
-    BackendProvisioning,
-    CiLaneRef,
     SqlBackendSpec,
     TransactionMode,
+)
+from tests.integration.test_utils.data_source_config.data_source_spec import (
+    BackendProvisioning,
+    CiLaneRef,
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig

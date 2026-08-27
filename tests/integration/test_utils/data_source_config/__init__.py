@@ -1,7 +1,4 @@
 from .backend_spec import (
-    BackendProvisioning,
-    BackendTier,
-    CiLaneRef,
     SqlBackendSpec,
     TableSchemaItemFactory,
     TransactionMode,
@@ -9,6 +6,14 @@ from .backend_spec import (
 from .base import DataSourceTestConfig
 from .big_query import BigQueryDatasourceTestConfig
 from .clickhouse import ClickHouseDatasourceTestConfig
+from .data_source_spec import (
+    BackendProvisioning,
+    BackendTier,
+    CiLaneRef,
+    DataSourceSpec,
+    ExecutionEngineKind,
+    MarkerScope,
+)
 from .databricks import DatabricksDatasourceTestConfig
 from .generic_sql import GenericSQLDatasourceTestConfig
 from .mysql import MySQLDatasourceTestConfig

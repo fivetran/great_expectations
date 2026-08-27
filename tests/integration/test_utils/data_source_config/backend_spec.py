@@ -1,9 +1,10 @@
 """Declarative facts about a SQL backend used by the integration test harness.
 
 This module holds only data: the types a SQL backend declares to describe itself, with no
-dependency on the harness that consumes them. It imports nothing from this package's other
-modules, so a throwaway record can be constructed here without importing a backend, and so this
-module sits to the left of everything that consumes it in the dependency graph.
+dependency on the harness that consumes them. Its one intra-package import is the module holding
+the vocabulary every data source shares, which is itself dependency-free, so a throwaway record
+can be constructed here without importing a backend and this module stays to the left of
+everything that consumes it in the dependency graph.
 """
 
 from __future__ import annotations
@@ -18,6 +19,11 @@ if TYPE_CHECKING:
     import sqlalchemy as sa
 
     from great_expectations.compatibility.sqlalchemy import TypeEngine
+    from tests.integration.test_utils.data_source_config.data_source_spec import (
+        BackendProvisioning,
+        BackendTier,
+        CiLaneRef,
+    )
 
 
 class TransactionMode(Enum):
@@ -28,40 +34,6 @@ class TransactionMode(Enum):
 
     AUTOCOMMIT = "autocommit"
     """The backend has no standard transactions; the harness skips explicit commits."""
-
-
-class BackendProvisioning(Enum):
-    """Where a test run gets an instance of this backend."""
-
-    LOCAL_CONTAINER = "local_container"
-    """Started from a compose file for the duration of the test run."""
-
-    LOCAL_FILE = "local_file"
-    """No server at all; the backend is a local file (e.g. SQLite)."""
-
-    EXTERNAL_CREDENTIALS = "external_credentials"
-    """Hosted; reached with credentials read from the environment."""
-
-
-class BackendTier(Enum):
-    """Named suites a backend can participate in."""
-
-    STANDARD_SQL = "standard_sql"
-    """The shared standard SQL data-source list."""
-
-    CURATED_SQL = "curated_sql"
-    """The smaller curated suite."""
-
-
-@dataclass(frozen=True)
-class CiLaneRef:
-    """Where a backend's tests run in the CI workflow."""
-
-    workflow_job: str
-    """A key under ``jobs:`` in the CI workflow file."""
-
-    marker_token: str
-    """The marker token that job selects tests on."""
 
 
 # Produces the dialect-required positional schema items for ONE table. Called once per table so

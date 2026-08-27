@@ -28,10 +28,12 @@ from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import sql as sql_module
 from tests.integration.test_utils.data_source_config.backend_spec import (
-    BackendProvisioning,
-    CiLaneRef,
     SqlBackendSpec,
     TransactionMode,
+)
+from tests.integration.test_utils.data_source_config.data_source_spec import (
+    BackendProvisioning,
+    CiLaneRef,
 )
 from tests.integration.test_utils.data_source_config.generic_sql import (
     GenericSQLBatchTestSetup,
