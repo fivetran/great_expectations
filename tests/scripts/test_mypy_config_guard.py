@@ -25,6 +25,7 @@ from scripts.mypy_config_guard import (
     ComparisonResult,
     GuardConfigError,
     RelaxationSurface,
+    _format_drift_message,
     _format_regression_message,
     _print_result,
     compare,
@@ -757,6 +758,47 @@ def test_combined_regression_and_drift_output_withholds_the_bypass_flag() -> Non
     assert "stale_pattern/" in drift_section
     assert "mypy_relaxation_inventory.json" in drift_section
     assert "--emit-inventory" not in combined_output
+
+
+# --- the drift message names the inventory and instructs how to reconcile it --------------
+
+
+def test_drift_message_names_inventory_and_instructs_reconciliation() -> None:
+    """The drift message must both name the inventory file and tell a contributor how to
+    reconcile it: prune stale entries and record newly-applied strictness.
+
+    A newly-added check root produces a drift finding whose own text already contains the
+    word "recorded" (``_set_diff_findings``'s wording for that direction: "present in the
+    configuration but not yet recorded in the accepted relaxation inventory"). The
+    instruction assertions below are scoped to the text *after* the findings block - never to
+    the whole message - so this test cannot pass on that finding text alone; it must see the
+    actual reconciliation instruction.
+    """
+    config = _surface_from_toml(
+        """
+        [tool.mypy]
+        files = ["great_expectations", "docs", "tests", "freshly_added_root"]
+        follow_imports = "normal"
+        enable_error_code = ["ignore-without-code"]
+        disable_error_code = []
+        exclude = ["legacy_module/"]
+        """
+    )
+    result = compare(config, _inventory_surface())
+    assert result.regressions == ()
+    assert len(result.inventory_drift) == 1, result.inventory_drift
+    assert "freshly_added_root" in result.inventory_drift[0]
+    assert "recorded" in result.inventory_drift[0]  # the trap: this alone must not satisfy us
+
+    inventory_path = Path("scripts/mypy_relaxation_inventory.json")
+    message = _format_drift_message(
+        result.inventory_drift, inventory_path, include_regeneration_hint=False
+    )
+    header, _, instruction = message.partition("\n\n")
+
+    assert "mypy_relaxation_inventory.json" in header
+    assert "prune entries the configuration no longer relaxes" in instruction
+    assert "Record any strictness the configuration now applies" in instruction
 
 
 # --- unparseable input fails closed, never silently passes --------------------------------

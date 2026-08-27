@@ -457,19 +457,29 @@ def _format_regression_message(findings: Sequence[str]) -> str:
     return "\n".join(lines)
 
 
+def _render_inventory_path(inventory_path: Path) -> str:
+    """Render an inventory path for display: repo-relative when it is inside the repo this
+    script lives in, else the path as given (unresolved), so a caller pointing outside the
+    tree still sees something unambiguous instead of a crash."""
+    try:
+        return str(inventory_path.resolve().relative_to(_REPO_ROOT))
+    except ValueError:
+        return str(inventory_path)
+
+
 def _format_drift_message(
     findings: Sequence[str], inventory_path: Path, *, include_regeneration_hint: bool
 ) -> str:
     lines = [
-        f"The relaxation inventory ({inventory_path}) no longer matches the configuration "
-        "it is meant to describe:",
+        f"The relaxation inventory ({_render_inventory_path(inventory_path)}) no longer "
+        "matches the configuration it is meant to describe:",
     ]
     lines.extend(f"  - {finding}" for finding in findings)
     lines.append("")
     lines.append(
         "Reconcile the inventory with the configuration: prune entries the configuration no "
-        "longer relaxes, and record checking the configuration now performs that the "
-        "inventory has not caught up with."
+        "longer relaxes. Record any strictness the configuration now applies that the "
+        "inventory has not yet caught up with."
     )
     if include_regeneration_hint:
         lines.append(
