@@ -62,6 +62,7 @@ from tests.integration.test_utils.data_source_config.data_source_spec import (
     MarkerScope,
 )
 from tests.integration.test_utils.data_source_config.registry import (
+    _OUTSIDE_SHARED_PARAMETERIZATION,
     RegisteredDataSource,
     data_source_configs_for_engine,
     isolated_registry,
@@ -96,6 +97,14 @@ def _make_spec(**overrides: object) -> SqlBackendSpec:
     )
     defaults.update(overrides)
     return SqlBackendSpec(**defaults)  # type: ignore[arg-type]
+
+
+# The shared canonical expectation parameterization criterion, as a throwaway record declares it.
+# A throwaway record that carries a config class and names an execution engine is subject to the
+# mandatory-declaration rule exactly as a real one is, so the records below that do both declare
+# the criterion rather than being exempted; the rule itself is proven further down, with records
+# built to violate it.
+_CANONICAL_CLAIM = frozenset({BackendTier.STANDARD_SQL})
 
 
 def _make_config_class(name: str, spec: SqlBackendSpec) -> type:
@@ -835,17 +844,47 @@ class TestGenericSqlEscapeHatchIsDeclaredButUnregistered:
         assert GenericSQLDatasourceTestConfig not in iter_sql_backends()
         assert "generic_sql" not in {backend.BACKEND_SPEC.label for backend in iter_sql_backends()}
 
-    def test_registering_it_would_still_succeed_if_it_were_ever_registered(self) -> None:
-        # Proves the absence above is a deliberate omission, not a side effect of the spec
-        # failing registration's own validation.
+    def test_its_declared_record_still_passes_registration_validation(self) -> None:
+        """Proves the absence above is a deliberate omission, not a side effect of the record
+        failing registration's own validation.
+
+        This registers the *record*, not the config class, and that distinction is the whole
+        content of the test now. The record is well-formed and enrols cleanly. What it does not
+        do — and deliberately cannot — is declare the shared canonical expectation
+        parameterization criterion, because it has no fixed identity to declare anything with; so
+        registering it *with* its config class is now rejected, which the next test pins. Neither
+        outcome reaches the real registry, because the escape hatch carries no registration
+        decorator at all.
+        """
         from tests.integration.test_utils.data_source_config.generic_sql import (
             GenericSQLDatasourceTestConfig,
         )
 
         with isolated_registry():
+            register_data_source(GenericSQLDatasourceTestConfig.BACKEND_SPEC)
+
+            assert [spec.label for spec in iter_data_source_specs()] == ["generic_sql"]
+
+    def test_registering_it_with_its_config_class_is_rejected_for_the_criterion(self) -> None:
+        """The one way the escape hatch could reach the mandatory-declaration rule, and the
+        reason it never does.
+
+        It names an execution engine and declares no criterion, and it is deliberately absent
+        from the non-participants literal — an exemption there would be an exemption for a
+        registration that never happens. The rule is unreachable for it in the real registry
+        because `generic_sql.py` carries no registration decorator; this test is the only place
+        the registration is ever attempted.
+        """
+        from tests.integration.test_utils.data_source_config.generic_sql import (
+            GenericSQLDatasourceTestConfig,
+        )
+
+        with isolated_registry(), pytest.raises(ValueError) as excinfo:
             register_sql_backend(GenericSQLDatasourceTestConfig)
 
-            assert GenericSQLDatasourceTestConfig in iter_sql_backends()
+        assert "does not declare the shared canonical expectation parameterization" in str(
+            excinfo.value
+        )
 
 
 class TestGenericSqlEscapeHatchAutocommitSeam:
@@ -1820,6 +1859,7 @@ class TestRecordAccessorsReadLiveState:
                 label="registered-later",
                 marker="registered_later",
                 execution_engine=ExecutionEngineKind.SQL,
+                tiers=_CANONICAL_CLAIM,
             ),
         )
         register_sql_backend(config_class)
@@ -1839,7 +1879,10 @@ class TestConfigsForEngine:
         sql_config = _make_config_class(
             "SqlDriven",
             _make_spec(
-                label="sql-driven", marker="sql_driven", execution_engine=ExecutionEngineKind.SQL
+                label="sql-driven",
+                marker="sql_driven",
+                execution_engine=ExecutionEngineKind.SQL,
+                tiers=_CANONICAL_CLAIM,
             ),
         )
         pandas_config = _make_config_class(
@@ -1848,6 +1891,7 @@ class TestConfigsForEngine:
                 label="pandas-driven",
                 marker="pandas_driven",
                 execution_engine=ExecutionEngineKind.PANDAS,
+                tiers=_CANONICAL_CLAIM,
             ),
         )
 
@@ -1870,13 +1914,19 @@ class TestConfigsForEngine:
         zebra = _make_config_class(
             "Zebra",
             _make_spec(
-                label="zebra", marker="zebra_marker", execution_engine=ExecutionEngineKind.SQL
+                label="zebra",
+                marker="zebra_marker",
+                execution_engine=ExecutionEngineKind.SQL,
+                tiers=_CANONICAL_CLAIM,
             ),
         )
         apple = _make_config_class(
             "Apple",
             _make_spec(
-                label="apple", marker="apple_marker", execution_engine=ExecutionEngineKind.SQL
+                label="apple",
+                marker="apple_marker",
+                execution_engine=ExecutionEngineKind.SQL,
+                tiers=_CANONICAL_CLAIM,
             ),
         )
 
@@ -1915,7 +1965,12 @@ class TestIsolatedRegistryClearsRecordStorageBeforeYielding:
         register_sql_backend(
             _make_config_class(
                 "Outer",
-                _make_spec(label="outer", marker="outer", execution_engine=ExecutionEngineKind.SQL),
+                _make_spec(
+                    label="outer",
+                    marker="outer",
+                    execution_engine=ExecutionEngineKind.SQL,
+                    tiers=_CANONICAL_CLAIM,
+                ),
             )
         )
         outside = iter_sql_backends()
@@ -2780,6 +2835,202 @@ class TestTierClaimsScaleTheObligationsProvenInBothDirections:
         )
 
         assert [spec.label for spec in iter_data_source_specs()] == ["throwaway-core"]
+
+
+# --- The shared canonical expectation parameterization is mandatory -------------------------
+#
+# Registration rejects a record that has a config class and a declared execution engine and does
+# not declare the shared canonical expectation parameterization criterion, unless its label is in
+# `_OUTSIDE_SHARED_PARAMETERIZATION` with the reason it sits out. The two helpers below are the
+# literal's liveness checks, written as pure functions over an exemption mapping and a record
+# snapshot so that each can be handed a deliberately broken literal and shown to fail — a check
+# that has only ever been run against a literal that satisfies it is a check nobody has seen work.
+#
+# The generic-SQL escape hatch never reaches any of this, because it is never registered:
+# `generic_sql.py` declares a `public_name` and a `BACKEND_SPEC` but carries no registration
+# decorator, so it is not a record. It belongs to both hand-written shared lists, so a reader who
+# knows that and does not know it is unregistered will read its absence from the exemption literal
+# as a bug. It is not one — see
+# `TestGenericSqlEscapeHatchIsDeclaredButUnregistered` above, which attempts the registration that
+# never happens and pins that the rule would reject it.
+
+
+def _exemptions_naming_no_registered_record(
+    exemptions: Mapping[str, str], specs: Sequence[DataSourceSpec]
+) -> Tuple[str, ...]:
+    """Exempted labels no registered record answers to.
+
+    A stale entry naming a data source this repository no longer declares exempts nothing, and
+    reads to the next maintainer as evidence that the data source still exists.
+    """
+    labels = {spec.label for spec in specs}
+    return tuple(sorted(label for label in exemptions if label not in labels))
+
+
+def _exemptions_naming_a_declaring_record(
+    exemptions: Mapping[str, str], specs: Sequence[DataSourceSpec]
+) -> Tuple[str, ...]:
+    """Exempted labels whose record does declare the criterion after all.
+
+    An exemption for a record that has since joined the shared parameterization is an exemption
+    that has outlived its reason. Left in place it costs nothing today and silently re-authorizes
+    the opt-out the day someone drops the declaration.
+    """
+    return tuple(
+        sorted(
+            spec.label
+            for spec in specs
+            if spec.label in exemptions and BackendTier.STANDARD_SQL in spec.tiers
+        )
+    )
+
+
+class TestSharedParameterizationDeclarationIsMandatoryProvenWithThrowawayRecords:
+    """The mandatory-declaration rule, proven where it can actually be observed.
+
+    Every case below builds throwaway records inside the isolation seam, and that is a
+    requirement rather than a convenience. **After the three non-SQL retrofits, every registered
+    config either declares the criterion or is in the exemption literal**, so an assertion taken
+    over the real registry would pass identically whether the rule fires or whether the validator
+    returned unconditionally — it would be a test of the registered set's happening to comply, not
+    of the rule. The near-miss case is what makes the exemption itself the thing under test: the
+    same record, differing only in whether its label is exempt, is rejected in one case and
+    admitted in the other.
+    """
+
+    _EXEMPT_LABEL = "clickhouse"
+
+    def test_a_config_bound_record_with_an_engine_and_no_criterion_is_rejected(self) -> None:
+        with pytest.raises(ValueError) as excinfo:
+            register_sql_backend(
+                _make_config_class(
+                    "Silent",
+                    _make_spec(
+                        label="silent-opt-out",
+                        marker="silent_opt_out",
+                        execution_engine=ExecutionEngineKind.SQL,
+                    ),
+                )
+            )
+
+        message = str(excinfo.value)
+        # The branch, not a substring another rejection could satisfy: the phrase below appears in
+        # this rejection and no other, and the label and criterion pin which record and which
+        # criterion the rejection is about.
+        assert "does not declare the shared canonical expectation parameterization" in message
+        assert "'silent-opt-out'" in message
+        assert "'standard_sql'" in message
+
+    def test_the_same_record_registers_cleanly_once_it_declares_the_criterion(self) -> None:
+        register_sql_backend(
+            _make_config_class(
+                "Declaring",
+                _make_spec(
+                    label="silent-opt-out",
+                    marker="silent_opt_out",
+                    execution_engine=ExecutionEngineKind.SQL,
+                    tiers=_CANONICAL_CLAIM,
+                ),
+            )
+        )
+
+        assert [spec.label for spec in iter_data_source_specs()] == ["silent-opt-out"]
+
+    def test_the_same_record_registers_cleanly_when_its_label_is_exempt(self) -> None:
+        """The near-miss: identical in every respect to the rejected record except its label,
+        which the exemption literal names. This is what proves the exemption is what admits it —
+        a record admitted for any other reason would be admitted under the rejected label too."""
+        assert self._EXEMPT_LABEL in _OUTSIDE_SHARED_PARAMETERIZATION
+
+        register_sql_backend(
+            _make_config_class(
+                "Exempt",
+                _make_spec(
+                    label=self._EXEMPT_LABEL,
+                    marker="silent_opt_out",
+                    execution_engine=ExecutionEngineKind.SQL,
+                ),
+            )
+        )
+
+        assert [spec.label for spec in iter_data_source_specs()] == [self._EXEMPT_LABEL]
+
+    def test_a_record_with_no_config_class_is_not_subject_to_the_rule(self) -> None:
+        """A declaration-only record has no config to instantiate and runs in no suite. Dragging
+        it into the shared parameterization would be advertising coverage that cannot exist."""
+        register_data_source(
+            _make_core_spec(label="declaration-only", execution_engine=ExecutionEngineKind.SQL)
+        )
+
+        assert [spec.label for spec in iter_data_source_specs()] == ["declaration-only"]
+
+    def test_a_config_declaring_no_execution_engine_is_not_subject_to_the_rule(self) -> None:
+        """A config naming no engine is a record the derived engine lists cannot place either.
+        The rule leaves it to the well-formedness checks rather than inventing a rule for it."""
+        register_sql_backend(
+            _make_config_class(
+                "EngineLess",
+                _make_spec(label="engine-less", marker="engine_less"),
+            )
+        )
+
+        assert [spec.label for spec in iter_data_source_specs()] == ["engine-less"]
+
+
+class TestTheExemptionLiteralIsKeptLive:
+    """The two checks that stop the exemption literal becoming a place exemptions accumulate.
+
+    Both are read from the module-scope record snapshot rather than the live registry: the autouse
+    `_snapshot_registry` fixture clears the registry around every test, so a body reading the live
+    accessors would check an empty set and pass vacuously.
+
+    Each check is demonstrated able to fail immediately below the assertion it backs, by handing
+    the same function a literal extended with exactly the entry it is meant to catch.
+    """
+
+    def test_the_literal_names_exactly_the_four_curated_backends_with_a_reason_each(self) -> None:
+        assert sorted(_OUTSIDE_SHARED_PARAMETERIZATION) == [
+            "clickhouse",
+            "oracle",
+            "singlestore",
+            "trino",
+        ]
+        assert all(reason.strip() for reason in _OUTSIDE_SHARED_PARAMETERIZATION.values())
+
+    def test_every_exempted_label_resolves_to_a_registered_record(self) -> None:
+        assert (
+            _exemptions_naming_no_registered_record(
+                _OUTSIDE_SHARED_PARAMETERIZATION, _REGISTERED_DATA_SOURCE_SPECS
+            )
+            == ()
+        )
+
+    def test_that_check_fails_on_a_literal_naming_an_unregistered_label(self) -> None:
+        stale = {**_OUTSIDE_SHARED_PARAMETERIZATION, "retired_backend": "removed years ago"}
+
+        assert _exemptions_naming_no_registered_record(stale, _REGISTERED_DATA_SOURCE_SPECS) == (
+            "retired_backend",
+        )
+
+    def test_no_exempted_label_declares_the_criterion(self) -> None:
+        assert (
+            _exemptions_naming_a_declaring_record(
+                _OUTSIDE_SHARED_PARAMETERIZATION, _REGISTERED_DATA_SOURCE_SPECS
+            )
+            == ()
+        )
+
+    def test_that_check_fails_on_a_literal_naming_a_record_that_declares_the_criterion(
+        self,
+    ) -> None:
+        declaring = {
+            **_OUTSIDE_SHARED_PARAMETERIZATION,
+            "postgresql": "exemption outlived its reason",
+        }
+
+        assert _exemptions_naming_a_declaring_record(declaring, _REGISTERED_DATA_SOURCE_SPECS) == (
+            "postgresql",
+        )
 
 
 # --- Core-vocabulary alignment -------------------------------------------------------------

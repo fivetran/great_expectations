@@ -46,7 +46,9 @@ from typing import (
     TYPE_CHECKING,
     ClassVar,
     Dict,
+    Final,
     Iterator,
+    Mapping,
     Optional,
     Protocol,
     Tuple,
@@ -69,6 +71,43 @@ if TYPE_CHECKING:
 # reason makes one exclusion answerable, but only a count makes the whole set answerable, so the
 # count is enforced here rather than left to per-exclusion review.
 _MAX_TIER_CASE_EXCLUSIONS = 2
+
+# The criterion every config-bound record with a declared execution engine has to declare: the
+# shared canonical expectation parameterization, the suite the ~46 expectation modules run.
+_SHARED_PARAMETERIZATION_TIER: Final = BackendTier.STANDARD_SQL
+
+# The deliberate non-participants, each with the reason it sits out. This is an explicit literal
+# rather than a derived set on purpose: participation in the shared parameterization is the
+# default, and opting out is a decision someone has to write down. Three SQL backends came to be
+# missing from that suite precisely because opting out took no writing anything down.
+#
+# Two liveness checks in the guard suite keep this from becoming a place exemptions accumulate
+# after their reason expires: one fails if an entry names a label no registered record has, and one
+# fails if an entry names a record that does declare the criterion.
+#
+# `GenericSQLDatasourceTestConfig`, the generic-SQL escape hatch, is deliberately absent from this
+# literal and never needs an entry, because it is never registered — it carries no registration
+# decorator at all, so no registration of it ever reaches the rule below. It is a member of both
+# hand-written shared lists, so a reader who knows only that will read its absence here as an
+# oversight; it is not one.
+_OUTSIDE_SHARED_PARAMETERIZATION: Final[Mapping[str, str]] = {
+    "clickhouse": (
+        "curated tier: its dialect behavior is proven by the curated backend suite, and the "
+        "shared parameterization deliberately omits it"
+    ),
+    "oracle": (
+        "curated tier: its dialect behavior is proven by the curated backend suite, and the "
+        "shared parameterization deliberately omits it"
+    ),
+    "singlestore": (
+        "curated tier: its dialect behavior is proven by the curated backend suite, and the "
+        "shared parameterization deliberately omits it"
+    ),
+    "trino": (
+        "curated tier: its dialect behavior is proven by the curated backend suite, and the "
+        "shared parameterization deliberately omits it"
+    ),
+}
 
 
 class _DeclaresDataSourceSpec(Protocol):
@@ -323,6 +362,41 @@ def _validate_tier_case_exclusions(name: str, spec: DataSourceSpec) -> None:
     _validate_tier_case_exclusion_ceiling(name, spec)
 
 
+def _validate_shared_parameterization_declaration(
+    name: str, spec: DataSourceSpec, config_class: Optional[Type[_DeclaresDataSourceSpec]]
+) -> None:
+    """Reject a record that silently opts out of the shared canonical expectation parameterization.
+
+    The rule is keyed on *having a config class and declaring an execution engine*, because those
+    two together are what make a record something the shared parameterization could run. A
+    declaration-only record has no config to instantiate and runs in no suite, so dragging it into
+    the shared parameterization would be inventing coverage; a config that names no execution
+    engine is a record the derived engine lists cannot place either, and is left to the
+    well-formedness rules above rather than given a rule of its own here.
+
+    Opting out stays possible, but only in writing: the record's label has to appear in
+    `_OUTSIDE_SHARED_PARAMETERIZATION` with the reason it sits out. That is the whole point — three
+    SQL backends came to be missing from the shared suite because opting out required nothing.
+    """
+    if config_class is None or spec.execution_engine is None:
+        return
+    if _SHARED_PARAMETERIZATION_TIER in spec.tiers:
+        return
+    if spec.label in _OUTSIDE_SHARED_PARAMETERIZATION:
+        return
+    raise ValueError(
+        f"{name} declares a config class and execution engine "
+        f"({spec.execution_engine.value!r}) but does not declare the shared canonical expectation "
+        f"parameterization criterion ({_SHARED_PARAMETERIZATION_TIER.value!r}), and its label "
+        f"({spec.label!r}) is not among the deliberate non-participants "
+        f"({sorted(_OUTSIDE_SHARED_PARAMETERIZATION)!r}). A config the harness drives against a "
+        f"named engine runs that suite unless someone decided otherwise, and that decision has to "
+        f"be written down with its reason — silent omission is how three SQL backends came to be "
+        f"missing from the suite. Declare the criterion, or add this label to the "
+        f"non-participants with the reason it sits out"
+    )
+
+
 def _validate_spec(name: str, spec: DataSourceSpec) -> None:
     """Reject a malformed declaration.
 
@@ -367,6 +441,7 @@ def _register(spec: DataSourceSpec, config_class: Optional[Type[_DeclaresDataSou
     """
     name = _name_for(config_class, spec)
     _validate_spec(name, spec)
+    _validate_shared_parameterization_declaration(name, spec, config_class)
 
     duplicate_label = _by_label.get(spec.label)
     if duplicate_label is not None:
