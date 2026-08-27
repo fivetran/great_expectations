@@ -10,8 +10,10 @@ without polluting the set that gates CI.
 A registered entry pairs a record with an *optional* config class. Requiring a config would mean
 the only data sources that can be described are the ones this repository happens to exercise,
 which is exactly what makes "what data sources exist" unanswerable from code; a data source with
-no harness config registers through `register_data_source`, while one with a config keeps using
-the class decorator. The accessors that hand back config classes skip the entries that have none,
+no harness config registers through `register_data_source`, while one with a config registers
+through a class decorator - `register_data_source_config` for any config, or
+`register_sql_backend`, which is that decorator plus the one rule that is a property of being a
+SQL config. The accessors that hand back config classes skip the entries that have none,
 so a consumer parameterizing over configs is never handed a record it cannot instantiate.
 
 Validation is split by what it is a property of. Some rules are well-formedness of one record on
@@ -69,18 +71,44 @@ if TYPE_CHECKING:
 _MAX_TIER_CASE_EXCLUSIONS = 2
 
 
-class _DeclaresBackendSpec(Protocol):
+class _DeclaresDataSourceSpec(Protocol):
     """Structural shape a config class must have to be enrolled.
 
     Registration only needs one class attribute. Describing that as a `Protocol` here, rather than
-    importing the concrete SQL config base, is what lets this module stay to the left of that base
-    in the dependency direction while still type-checking the decorator's argument.
+    importing the concrete config base, is what lets this module stay to the left of that base in
+    the dependency direction while still type-checking the decorator's argument.
+
+    The slot is typed at *core* width, because a config class need not be a SQL one: this is the
+    width the registry stores, the width every accessor hands back, and the width every read in
+    this module and its consumers is written against.
+    """
+
+    BACKEND_SPEC: ClassVar[DataSourceSpec]
+
+
+class _DeclaresBackendSpec(_DeclaresDataSourceSpec, Protocol):
+    """The same shape, narrowed to a SQL sub-record, for the SQL-specific entry point.
+
+    This exists for a type-checker reason, not a design one, and it is worth stating plainly
+    because the obvious simplification does not work. A concrete config assigns its declaration as
+    `BACKEND_SPEC = SqlBackendSpec(...)`, and the checker infers *that* class's own symbol at the
+    narrow type even though the shared config base declares the slot at core width. A Protocol
+    **variable** member is invariant, so a class whose symbol is inferred narrow does not satisfy a
+    protocol demanding the wider type — every SQL config would stop satisfying a single core-width
+    protocol, at the registration site, for a reason that has nothing to do with the registration.
+
+    Declaring the narrow protocol as a *subclass* of the core-width one resolves that without a
+    cast and without re-annotating anything in any config module: a class satisfying the narrow
+    protocol is nominally a subtype of the core-width one, so `register_sql_backend` can accept
+    what it accepts today, keep full dialect type information on what it reads, and still hand the
+    class to storage typed at core width.
     """
 
     BACKEND_SPEC: ClassVar[SqlBackendSpec]
 
 
 _C = TypeVar("_C", bound=_DeclaresBackendSpec)
+_ConfigT = TypeVar("_ConfigT", bound=_DeclaresDataSourceSpec)
 
 
 @dataclass(frozen=True)
@@ -96,7 +124,7 @@ class RegisteredDataSource:
     spec: DataSourceSpec
     """What the data source declares about itself."""
 
-    config_class: Optional[Type[_DeclaresBackendSpec]] = None
+    config_class: Optional[Type[_DeclaresDataSourceSpec]] = None
     """The config class the harness drives, or ``None`` for a declaration this repository does not
     exercise."""
 
@@ -329,7 +357,7 @@ def _dedicated_marker(spec: DataSourceSpec) -> Optional[str]:
     return spec.marker
 
 
-def _register(spec: DataSourceSpec, config_class: Optional[Type[_DeclaresBackendSpec]]) -> None:
+def _register(spec: DataSourceSpec, config_class: Optional[Type[_DeclaresDataSourceSpec]]) -> None:
     """Validate one declaration and enrol it, or raise naming the declaration and the value.
 
     Both entry points route through here, so a record registered without a config class is held to
@@ -379,6 +407,19 @@ def register_sql_backend(config_class: type[_C]) -> type[_C]:
             f"and a record that carries none cannot answer them. Register a data source with no "
             f"dialect facts through the plain record registration instead"
         )
+    return register_data_source_config(config_class)
+
+
+def register_data_source_config(config_class: type[_ConfigT]) -> type[_ConfigT]:
+    """Enrol a config class and the record it declares. Raises `ValueError` at decoration time on a
+    duplicate label, a colliding dedicated marker, or any invariant violation in that record.
+
+    This is the entry point for any config the harness drives, SQL or not. `register_sql_backend`
+    is this function plus the one rule that is a property of being a SQL config — that the declared
+    record carries dialect facts — so both paths share every other rule, and the set of rules a
+    config is held to is a property of the config rather than of which decorator enrolled it.
+    """
+    spec = config_class.BACKEND_SPEC
     if spec.marker is None:
         raise ValueError(
             f"{config_class.__name__} declares a record with no data source marker; a config is "
@@ -413,7 +454,7 @@ def iter_data_source_specs() -> Tuple[DataSourceSpec, ...]:
     return tuple(registered.spec for registered in iter_data_sources())
 
 
-def iter_sql_backends() -> Tuple[Type[_DeclaresBackendSpec], ...]:
+def iter_sql_backends() -> Tuple[Type[_DeclaresDataSourceSpec], ...]:
     """Registered config classes, ordered by spec label.
 
     Entries registered without a config class are skipped rather than represented by a
@@ -426,7 +467,7 @@ def iter_sql_backends() -> Tuple[Type[_DeclaresBackendSpec], ...]:
     )
 
 
-def sql_backends_for_tier(tier: BackendTier) -> Tuple[Type[_DeclaresBackendSpec], ...]:
+def sql_backends_for_tier(tier: BackendTier) -> Tuple[Type[_DeclaresDataSourceSpec], ...]:
     """Registered config classes declaring membership in `tier`, ordered by spec label."""
     return tuple(
         config_class
@@ -437,7 +478,7 @@ def sql_backends_for_tier(tier: BackendTier) -> Tuple[Type[_DeclaresBackendSpec]
 
 def data_source_configs_for_engine(
     engine: ExecutionEngineKind,
-) -> Tuple[Type[_DeclaresBackendSpec], ...]:
+) -> Tuple[Type[_DeclaresDataSourceSpec], ...]:
     """Registered config classes declaring `engine`, ordered by spec label.
 
     A record that names no engine is returned for no engine at all. Guessing one would state

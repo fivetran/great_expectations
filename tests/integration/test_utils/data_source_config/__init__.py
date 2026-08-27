@@ -30,6 +30,7 @@ from .registry import (
     iter_data_sources,
     iter_sql_backends,
     register_data_source,
+    register_data_source_config,
     register_sql_backend,
     sql_backends_for_tier,
 )

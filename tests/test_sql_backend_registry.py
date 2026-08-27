@@ -687,9 +687,14 @@ class TestTheDeclarationSlotIsDeclaredExactlyOnce:
         catch it. Every narrowing therefore happens in an accessor, guarded by an invariant
         registration enforces, and the slot itself is annotated once.
 
-        The registration protocol is expected alongside the base: it states the shape a config
-        class must have in order to be enrolled, which is a requirement placed on a declaration
-        rather than a second place to make one.
+        The two registration protocols are expected alongside the base: each states a shape a
+        config class must have in order to be enrolled, which is a requirement placed on a
+        declaration rather than a second place to make one. `_DeclaresDataSourceSpec` states the
+        core-width shape the registry stores and every accessor hands back;
+        `_DeclaresBackendSpec` narrows it for the SQL-specific entry point, and that narrowing
+        exists because a protocol variable member is invariant, so a config whose own symbol is
+        inferred at the sub-record type would otherwise stop satisfying a core-width protocol at
+        its registration site.
         """
         package_name = DataSourceTestConfig.__module__.rsplit(".", 1)[0]
         importlib.import_module(package_name)
@@ -704,7 +709,11 @@ class TestTheDeclarationSlotIsDeclaredExactlyOnce:
                 if "BACKEND_SPEC" in vars(obj).get("__annotations__", {}):
                     annotating.add(obj.__qualname__)
 
-        assert annotating == {"DataSourceTestConfig", "_DeclaresBackendSpec"}
+        assert annotating == {
+            "DataSourceTestConfig",
+            "_DeclaresBackendSpec",
+            "_DeclaresDataSourceSpec",
+        }
 
 
 class TestLocallyVerifiableBackendsRegisterInLabelOrder:
@@ -1272,12 +1281,16 @@ _REGISTERED_CURATED_SQL = tuple(sql_backends_for_tier(BackendTier.CURATED_SQL))
 _REGISTERED_SQL_BACKENDS: Tuple[type, ...] = tuple(iter_sql_backends())
 
 
-class TestRegisteredSqlBackendsEqualTheTwelveInLabelOrder:
-    """Pins the registry itself: every registered SQL backend, named individually, in label order.
+class TestRegisteredConfigsEqualTheThirteenInLabelOrder:
+    """Pins the registry itself: every registered config class, named individually, in label order.
+
+    Not every entry is a SQL backend: a config the harness drives registers here whether or not its
+    declaration carries dialect facts, which is why the set this pins is "every registered config"
+    rather than "every registered SQL backend".
 
     This is an *equality* assertion against an *ordered* literal naming every registered class -
     not a subset check, not a membership check, not a count. That shape is what makes registering
-    a twelfth backend without extending this literal fail immediately: "register the config" and
+    a fourteenth config without extending this literal fail immediately: "register the config" and
     "extend this literal" become one change with a single, same-change failure signal, rather than
     a widening nobody notices until something downstream quietly starts seeing one more backend
     than it expected. A subset or count check would let a new registration pass silently here,
@@ -1292,7 +1305,7 @@ class TestRegisteredSqlBackendsEqualTheTwelveInLabelOrder:
     Be precise about which half of that each mechanism carries. A backend module that fails to
     import takes the whole package down with it, so every test here dies at collection - the
     import statement is what proves importability, not this assertion. What this assertion adds
-    is that all twelve modules actually *registered*: importing a module and registering from it
+    is that all thirteen modules actually *registered*: importing a module and registering from it
     are separate events, and only the second is observable here. Weakening this to a subset or
     count check would discard exactly that, letting a backend that imported but never enrolled
     itself pass unnoticed.
@@ -1300,12 +1313,12 @@ class TestRegisteredSqlBackendsEqualTheTwelveInLabelOrder:
     Distinct from its neighbours: two test classes earlier in this module prove label ordering for
     two named subsets of backends (the ones verifiable without external credentials, and the ones
     gated on them), and another test elsewhere in this module pins the curated tier's one member.
-    This one pins the full registered set - every backend that exists, not a subset of them - which
-    is why it, and not either of those, is the assertion that fails when a new backend is
+    This one pins the full registered set - every config that exists, not a subset of them - which
+    is why it, and not either of those, is the assertion that fails when a new config is
     registered without a matching update here.
     """
 
-    def test_registered_backends_equal_the_twelve_in_label_order(self) -> None:
+    def test_registered_configs_equal_the_thirteen_in_label_order(self) -> None:
         from tests.integration.test_utils.data_source_config.clickhouse import (
             ClickHouseDatasourceTestConfig,
         )
@@ -1332,6 +1345,7 @@ class TestRegisteredSqlBackendsEqualTheTwelveInLabelOrder:
             SQLServerDatasourceTestConfig,  # mssql
             MySQLDatasourceTestConfig,  # mysql
             OracleDatasourceTestConfig,  # oracle
+            PandasDataFrameDatasourceTestConfig,  # pandas-data-frame
             PostgreSQLDatasourceTestConfig,  # postgresql
             RedshiftDatasourceTestConfig,  # redshift
             SingleStoreDatasourceTestConfig,  # singlestore
@@ -1396,14 +1410,18 @@ class TestRegisteredBackendDeclarationsSurviveAnAbsentDialectPackage:
 
         for config_class in _REGISTERED_SQL_BACKENDS:
             config = config_class()  # no arguments
-            spec = config.backend_spec
+            # Read through the shared accessor, not the SQL-only `backend_spec`: a registered
+            # config need not be a SQL one, and the claim being made here - that no declared field
+            # is unsafe to touch with no driver installed - is a property of every record.
+            spec = config.data_source_spec
 
             for declared_field in fields(spec):
                 getattr(spec, declared_field.name)  # every field; must not raise
 
-            # Checked for shape only. Calling it is exactly the operation that would require the
-            # driver this lane does not install, so it is never invoked here.
-            assert spec.table_schema_items is None or callable(spec.table_schema_items)
+            if isinstance(spec, SqlBackendSpec):
+                # Checked for shape only. Calling it is exactly the operation that would require
+                # the driver this lane does not install, so it is never invoked here.
+                assert spec.table_schema_items is None or callable(spec.table_schema_items)
 
 
 class TestDataSourceSpecMarkerResolution:
