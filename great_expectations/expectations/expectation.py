@@ -734,6 +734,24 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
     ) -> List[RenderedStringTemplateContent]:
+        """Render a prescriptive description of this expectation. Subclasses may override.
+
+        A renderer method's declared signature is its dispatch contract, not merely a
+        convenience for the common caller: the content-block dispatcher that invokes this
+        method (and its sibling diagnostic/observed-value renderers) calls the same method
+        with different argument sets depending on what kind of object is being rendered and
+        which code path reaches it. `configuration` and `result` are genuinely absent on
+        some dispatch paths -- passed as `None` or omitted outright -- for example when the
+        object being rendered is a validation result whose own `expectation_config` is
+        unset, or a bare expectation configuration with no associated validation result. An
+        override must not assume a parameter typed `Optional[...] = None` is present just
+        because most callers happen to supply it; it should either narrow explicitly at
+        entry or accept that some inputs are out of scope. The dispatcher catches exceptions
+        raised by the primary renderer call and reroutes them to a fallback renderer, but
+        that fallback itself runs unguarded on several dispatch paths, so an unhandled
+        absent-parameter read is not automatically contained -- it can still reach the
+        caller.
+        """
         renderer_configuration: RendererConfiguration = RendererConfiguration(
             configuration=configuration,
             result=result,
@@ -1207,6 +1225,12 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
     ) -> str:
+        """Render this expectation's observed value. Subclasses may override.
+
+        Same dispatch-contract convention as `_prescriptive_renderer` above: `result` (and
+        `configuration`) can arrive `None` or omitted depending on the dispatch path, and an
+        override must handle that explicitly rather than assume presence.
+        """
         return cls._get_observed_value_from_evr(result=result)
 
     @classmethod
