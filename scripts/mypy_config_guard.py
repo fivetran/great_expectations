@@ -76,10 +76,10 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping, Sequence
 
-try:
+if sys.version_info >= (3, 11):
     import tomllib
-except ModuleNotFoundError:  # Python 3.10 and earlier
-    import tomli as tomllib  # type: ignore[no-redef]
+else:  # Python 3.10 and earlier
+    import tomli as tomllib
 
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -195,7 +195,7 @@ def _canonical_value(value: object) -> str:
 
 def _sorted_recursively(value: object) -> object:
     if isinstance(value, list):
-        items = [_sorted_recursively(item) for item in value]
+        items: list[Any] = [_sorted_recursively(item) for item in value]
         try:
             return sorted(items)
         except TypeError:
