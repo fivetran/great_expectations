@@ -43,10 +43,16 @@ from tests.integration.test_utils.data_source_config.data_source_spec import (
     BackendTier,
     CiLaneRef,
     DataSourceSpec,
+    ExecutionEngineKind,
 )
 from tests.integration.test_utils.data_source_config.registry import (
+    RegisteredDataSource,
+    data_source_configs_for_engine,
     isolated_registry,
+    iter_data_source_specs,
+    iter_data_sources,
     iter_sql_backends,
+    register_data_source,
     register_sql_backend,
     sql_backends_for_tier,
 )
@@ -78,6 +84,17 @@ def _make_spec(**overrides: object) -> SqlBackendSpec:
 
 def _make_config_class(name: str, spec: SqlBackendSpec) -> type:
     return type(name, (), {"BACKEND_SPEC": spec})
+
+
+def _make_core_spec(**overrides: object) -> DataSourceSpec:
+    """A throwaway core record: no dialect facts, so it can never carry a config class."""
+    defaults: dict[str, object] = dict(
+        label="throwaway-core",
+        public_name="Throwaway Core",
+        provisioning=BackendProvisioning.IN_PROCESS,
+    )
+    defaults.update(overrides)
+    return DataSourceSpec(**defaults)  # type: ignore[arg-type]
 
 
 @pytest.fixture(autouse=True)
@@ -1449,3 +1466,249 @@ class TestDataSourceSpecStandsAlone:
 
         assert completed.returncode == 0, completed.stderr
         assert completed.stdout.strip() == "ok"
+
+
+class TestRecordRegisteredWithoutAConfigClass:
+    """A data source this repository declares but does not exercise still joins the registry.
+
+    Requiring a config class in order to be registered would mean the only data sources that can
+    be described are the ones the harness happens to run, which is precisely the gap that makes
+    "what data sources exist" unanswerable from code. Storing the record alongside an *optional*
+    config class is what lets a declaration-only data source be enumerable without inventing a
+    config that no suite would ever drive.
+
+    The mirror-image half matters just as much: such a record must stay out of every accessor
+    that returns config classes. A consumer that parameterizes over configs would otherwise be
+    handed a record it cannot instantiate, and the failure would surface far from the
+    declaration that caused it.
+    """
+
+    def test_a_record_with_no_config_class_is_returned_by_the_record_accessor(self) -> None:
+        spec = _make_core_spec(label="declaration-only")
+
+        register_data_source(spec)
+
+        assert iter_data_sources() == (RegisteredDataSource(spec=spec, config_class=None),)
+
+    def test_a_record_with_no_config_class_is_returned_by_the_spec_accessor(self) -> None:
+        spec = _make_core_spec(label="declaration-only")
+
+        register_data_source(spec)
+
+        assert iter_data_source_specs() == (spec,)
+
+    def test_registration_returns_the_record_so_a_module_can_bind_it(self) -> None:
+        spec = _make_core_spec(label="declaration-only")
+
+        assert register_data_source(spec) is spec
+
+    def test_a_record_with_no_config_class_is_absent_from_the_config_accessor(self) -> None:
+        register_data_source(_make_core_spec(label="declaration-only"))
+
+        assert iter_sql_backends() == ()
+
+    def test_a_record_with_no_config_class_is_absent_from_the_tier_accessor(self) -> None:
+        register_data_source(
+            _make_core_spec(label="declaration-only", tiers=frozenset({BackendTier.CURATED_SQL}))
+        )
+
+        assert sql_backends_for_tier(BackendTier.CURATED_SQL) == ()
+
+    def test_a_record_with_no_config_class_is_absent_from_the_engine_accessor(self) -> None:
+        register_data_source(
+            _make_core_spec(label="declaration-only", execution_engine=ExecutionEngineKind.SQL)
+        )
+
+        assert data_source_configs_for_engine(ExecutionEngineKind.SQL) == ()
+
+
+class TestConfigBoundRegistrationIsStoredWithItsConfigClass:
+    """A config-bound registration stores both halves, so one enumeration answers both questions.
+
+    Keeping the record and its config class in one entry is what lets the config accessors be
+    derived from the record set rather than maintained beside it. Two parallel stores would let
+    the same data source be present in one and absent from the other.
+    """
+
+    def test_the_stored_entry_carries_both_the_record_and_the_class(self) -> None:
+        spec = _make_spec(label="config-bound", marker="config_bound")
+        config_class = _make_config_class("ConfigBound", spec)
+
+        register_sql_backend(config_class)
+
+        assert iter_data_sources() == (RegisteredDataSource(spec=spec, config_class=config_class),)
+
+    def test_the_stored_entry_reaches_the_spec_accessor(self) -> None:
+        spec = _make_spec(label="config-bound", marker="config_bound")
+
+        register_sql_backend(_make_config_class("ConfigBound", spec))
+
+        assert iter_data_source_specs() == (spec,)
+
+
+class TestRecordAccessorsOrderByLabel:
+    """Enumeration order is a property of the declarations, not of import order.
+
+    A registry ordered by registration order would reorder itself whenever the import sorter
+    moved a module, which turns an ordered pin into a test that fails for reasons unrelated to
+    what it pins.
+    """
+
+    def test_iter_data_sources_orders_by_label_not_registration_order(self) -> None:
+        zebra = _make_core_spec(label="zebra")
+        apple = _make_core_spec(label="apple")
+
+        register_data_source(zebra)
+        register_data_source(apple)
+
+        assert tuple(entry.spec for entry in iter_data_sources()) == (apple, zebra)
+
+    def test_iter_data_source_specs_orders_by_label_not_registration_order(self) -> None:
+        zebra = _make_core_spec(label="zebra")
+        apple = _make_core_spec(label="apple")
+
+        register_data_source(zebra)
+        register_data_source(apple)
+
+        assert iter_data_source_specs() == (apple, zebra)
+
+
+class TestRecordAccessorsReadLiveState:
+    """Every accessor reads the registry at call time.
+
+    An accessor that captured its answer at import time would be correct only for consumers
+    imported after every data source module, and silently short for every other one — the same
+    import-order accident the derived lists already have to guard against.
+    """
+
+    def test_iter_data_sources_reflects_a_registration_made_after_an_earlier_call(self) -> None:
+        assert iter_data_sources() == ()
+
+        register_data_source(_make_core_spec(label="registered-later"))
+
+        assert tuple(entry.spec.label for entry in iter_data_sources()) == ("registered-later",)
+
+    def test_iter_data_source_specs_reflects_a_registration_made_after_an_earlier_call(
+        self,
+    ) -> None:
+        assert iter_data_source_specs() == ()
+
+        register_data_source(_make_core_spec(label="registered-later"))
+
+        assert tuple(spec.label for spec in iter_data_source_specs()) == ("registered-later",)
+
+    def test_engine_accessor_reflects_a_registration_made_after_an_earlier_call(self) -> None:
+        assert data_source_configs_for_engine(ExecutionEngineKind.SQL) == ()
+
+        config_class = _make_config_class(
+            "LaterSql",
+            _make_spec(
+                label="registered-later",
+                marker="registered_later",
+                execution_engine=ExecutionEngineKind.SQL,
+            ),
+        )
+        register_sql_backend(config_class)
+
+        assert data_source_configs_for_engine(ExecutionEngineKind.SQL) == (config_class,)
+
+
+class TestConfigsForEngine:
+    """Selecting configs by the engine that drives them.
+
+    An engine-scoped consumer needs the configs one engine executes, and deriving that from the
+    declaration is what keeps it from becoming a second hand-written list that drifts from the
+    first.
+    """
+
+    def test_only_configs_declaring_that_engine_are_returned(self) -> None:
+        sql_config = _make_config_class(
+            "SqlDriven",
+            _make_spec(
+                label="sql-driven", marker="sql_driven", execution_engine=ExecutionEngineKind.SQL
+            ),
+        )
+        pandas_config = _make_config_class(
+            "PandasDriven",
+            _make_spec(
+                label="pandas-driven",
+                marker="pandas_driven",
+                execution_engine=ExecutionEngineKind.PANDAS,
+            ),
+        )
+
+        register_sql_backend(sql_config)
+        register_sql_backend(pandas_config)
+
+        assert data_source_configs_for_engine(ExecutionEngineKind.SQL) == (sql_config,)
+        assert data_source_configs_for_engine(ExecutionEngineKind.PANDAS) == (pandas_config,)
+
+    def test_a_config_declaring_no_engine_is_returned_for_no_engine(self) -> None:
+        register_sql_backend(
+            _make_config_class("EngineLess", _make_spec(label="engine-less", marker="engine_less"))
+        )
+
+        assert data_source_configs_for_engine(ExecutionEngineKind.SQL) == ()
+        assert data_source_configs_for_engine(ExecutionEngineKind.PANDAS) == ()
+        assert data_source_configs_for_engine(ExecutionEngineKind.SPARK) == ()
+
+    def test_results_are_ordered_by_label_not_registration_order(self) -> None:
+        zebra = _make_config_class(
+            "Zebra",
+            _make_spec(
+                label="zebra", marker="zebra_marker", execution_engine=ExecutionEngineKind.SQL
+            ),
+        )
+        apple = _make_config_class(
+            "Apple",
+            _make_spec(
+                label="apple", marker="apple_marker", execution_engine=ExecutionEngineKind.SQL
+            ),
+        )
+
+        register_sql_backend(zebra)
+        register_sql_backend(apple)
+
+        assert data_source_configs_for_engine(ExecutionEngineKind.SQL) == (apple, zebra)
+
+
+class TestIsolatedRegistryClearsRecordStorageBeforeYielding:
+    """The seam clears the record storage on entry, not only on exit.
+
+    A seam that merely restored afterwards would leave the body looking at a live view of
+    whatever the surrounding process had already registered. Every assertion below is a
+    *whole-registry equality* taken inside the seam, which is the only shape that distinguishes
+    the two: it holds exactly when entering the seam emptied the storage, and fails as soon as a
+    single record registered outside it remains visible within.
+    """
+
+    def test_a_record_registered_outside_the_seam_is_invisible_inside_it(self) -> None:
+        register_data_source(_make_core_spec(label="outer"))
+        outside = iter_data_sources()
+        assert outside != ()
+
+        with isolated_registry():
+            assert iter_data_sources() == ()
+            assert iter_data_source_specs() == ()
+
+            register_data_source(_make_core_spec(label="inner"))
+
+            assert tuple(entry.spec.label for entry in iter_data_sources()) == ("inner",)
+
+        assert iter_data_sources() == outside
+
+    def test_a_config_registered_outside_the_seam_is_invisible_inside_it(self) -> None:
+        register_sql_backend(
+            _make_config_class(
+                "Outer",
+                _make_spec(label="outer", marker="outer", execution_engine=ExecutionEngineKind.SQL),
+            )
+        )
+        outside = iter_sql_backends()
+        assert outside != ()
+
+        with isolated_registry():
+            assert iter_sql_backends() == ()
+            assert data_source_configs_for_engine(ExecutionEngineKind.SQL) == ()
+
+        assert iter_sql_backends() == outside

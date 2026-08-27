@@ -23,8 +23,13 @@ from .pandas_filesystem_csv import PandasFilesystemCsvDatasourceTestConfig
 from .postgres import PostgreSQLDatasourceTestConfig
 from .redshift import RedshiftDatasourceTestConfig
 from .registry import (
+    RegisteredDataSource,
+    data_source_configs_for_engine,
     isolated_registry,
+    iter_data_source_specs,
+    iter_data_sources,
     iter_sql_backends,
+    register_data_source,
     register_sql_backend,
     sql_backends_for_tier,
 )
