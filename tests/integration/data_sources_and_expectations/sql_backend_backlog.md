@@ -146,3 +146,28 @@ plainly:
 SingleStore is the backend this document's own effort registered with the harness; this gap is a
 fresh instance next to that work, not one inherited from before it, and it is recorded here rather
 than fixed because `reqs/` and `setup.py` are outside what this effort's boundary covers.
+
+**The generic SQL escape hatch left the shared data-source lists, and generic-SQL coverage over the
+expectation modules now needs a lane rather than a list entry.** `GenericSQLDatasourceTestConfig`
+used to sit in the hand-written `ALL_DATA_SOURCES` and `SQL_DATA_SOURCES` in
+`test_canonical_expectations.py`. Those two lists are now the derived pair in
+`tests/integration/test_utils/data_source_config/tiers.py`, and the config's own docstring is what
+keeps it out of them: it says the config "must never appear in the set that gates CI", and the
+derived lists are exactly that set. It takes a caller-supplied connection string and has no fixed
+identity to register under, so there is no record to derive an entry from either.
+
+Removing it changed what executes in no lane, and that was measured rather than argued: across
+`tests/integration/data_sources_and_expectations`, the selected-test count for every marker a
+workflow selects is unchanged, and the `generic_sql` marker — declared in `pyproject.toml`, required
+in `tests/conftest.py::REQUIRED_MARKERS`, and named by the config's own `CiLaneRef` — appears in no
+file under `.github/workflows/` and in no `MARKER_DEPENDENCY_MAP` lane. The parameterizations it
+produced were collected by a bare run of the directory and selected by nothing that runs.
+
+A maintainer who wants generic-SQL coverage over the expectation modules should therefore **add a
+lane that selects the `generic_sql` marker** — a workflow job, or a task-runner entry supplying the
+connection string the config needs — rather than re-adding an instance to a derived list, which
+would put a never-run case back into every list-driven parameterization including the metrics tree,
+and would reinstate the violation of the config's own documented rule. The two lists a
+generic-SQL entry may still legitimately appear in are the module-local ones and
+`DATA_SOURCES_THAT_SUPPORT_DATE_COMPARISONS` in
+[`data_source_lists.py`](./data_source_lists.py), none of which is derived or CI-gating.

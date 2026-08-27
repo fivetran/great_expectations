@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
+    ClassVar,
     Dict,
     FrozenSet,
     Iterator,
@@ -25,6 +26,11 @@ import pytest
 
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.expectations.metadata_types import SupportedDataSources
+from tests.integration.data_sources_and_expectations.data_source_lists import (
+    DATA_SOURCES_THAT_SUPPORT_DATE_COMPARISONS,
+    JUST_PANDAS_DATA_SOURCES,
+    NON_SQL_DATA_SOURCES,
+)
 from tests.integration.test_utils.data_source_config import (
     ALL_DATA_SOURCES,
     CURATED_SQL_DATA_SOURCES,
@@ -1139,12 +1145,15 @@ class TestStandardDataSourceListsMatchDeclaredMembership:
 
     The two SQL literals began as the same transcription and have since widened, once, by
     declaration. MySQL, Microsoft SQL Server and Redshift appeared in the hand-written lists that
-    `test_canonical_expectations.py` still keeps but declared no tier, so the derived lists — the
-    pair the metrics tree consumes — omitted all three, and roughly 165 metrics parameterizations
-    never ran against them while the same backends ran the full expectation suite. Declaring
-    `BackendTier.STANDARD_SQL` on those three configs is what puts them in the literals below;
-    `TestDerivedSqlListsMatchTheHandWrittenCanonicalLists` is what stops the two definitions
-    parting again.
+    `test_canonical_expectations.py` held until it was retired but declared no tier, so the derived
+    lists — the pair the metrics tree consumes — omitted all three, and roughly 165 metrics
+    parameterizations never ran against them while the same backends ran the full expectation
+    suite. Declaring `BackendTier.STANDARD_SQL` on those three configs is what puts them in the
+    literals below. What now stops that kind of divergence recurring is the mandatory
+    shared-parameterization criterion, which makes a config joining the shared parameterization
+    without declaring it a registration-time error rather than a silent omission, together with
+    `TestRelocatedDataSourceListsMatchTheirCapturedMembership` below, which pins each relocated
+    list against the membership captured from the retired module before anything moved.
 
     The four constants imported above are captured at module-import time, before any test in this
     module runs. That matters because this module's `_snapshot_registry` fixture clears the
@@ -1202,77 +1211,152 @@ class TestStandardDataSourceListsMatchDeclaredMembership:
         ] == ALL_DATA_SOURCES
 
 
-class TestDerivedSqlListsMatchTheHandWrittenCanonicalLists:
-    """The derived lists and the hand-written ones name the same backends.
+class TestRelocatedDataSourceListsMatchTheirCapturedMembership:
+    """The pin that replaces the derived-vs-hand-written equality, now that only one list is left.
 
-    `SQL_DATA_SOURCES` and `ALL_DATA_SOURCES` are each defined twice under the same names: in
-    `tiers.py`, derived from tier declarations, and in
-    `tests/integration/data_sources_and_expectations/test_canonical_expectations.py`, written by
-    hand. The expectation modules import the hand-written pair and the metrics tree imports the
-    derived pair, so a backend can sit in one and be absent from the other, and nothing compared
-    them. Three did: MySQL, Microsoft SQL Server and Redshift ran every expectation module through
-    the hand-written lists while declaring no tier, which left them out of every list-driven
-    metrics parameterization with no error, no skip and no warning. The comparison below is what
-    was missing. It fails in both directions, so neither a config added to the hand-written lists
-    without a declaration nor a declaration with no corresponding hand-written entry can repeat
-    it.
+    `SQL_DATA_SOURCES` and `ALL_DATA_SOURCES` used to be defined twice under the same name — derived
+    from tier declarations in `tiers.py`, and written by hand in the retired
+    `test_canonical_expectations.py` — and the class that stood here compared the two. Three
+    backends had already drifted between them: MySQL, Microsoft SQL Server and Redshift ran every
+    expectation module through the hand-written lists while declaring no tier, so they were absent
+    from every list-driven metrics parameterization with no error, no skip and no warning.
 
-    `GenericSQLDatasourceTestConfig` is exempt, and is the one entry no derivation can reproduce:
-    it takes a caller-supplied connection string, has no fixed identity to register under, and its
-    own docstring says it "must never appear in the set that gates CI". A plain equality between
-    the two lists would therefore fail for a correct reason, so the assertion is against the
-    hand-written list minus that one config — and the third test pins the exemption at exactly
-    that config, so it cannot quietly widen to cover a second one.
+    That comparison had two terms only while the duplicate existed. The duplicate is now deleted and
+    its consumers import the derived pair, so the equality has nothing left to compare and asserting
+    it would be vacuous. **What carries its invariant forward is two other things, both of which
+    exist independently of this class**: the mandatory shared-parameterization criterion, which
+    makes a config joining the parameterization without declaring it a registration-time error
+    rather than a silent divergence, and the membership pins below, which fix every relocated list
+    against the membership *captured from the retired module before anything moved* — not against
+    the code that now produces it, which would agree with itself.
 
-    Membership, not order: the hand-written module promises no particular ordering, while the
-    derived lists' own order is pinned above against a literal naming every entry.
+    The literals below are that capture, transcribed by label. `generic_sql` is spelled with an
+    underscore where every other label is hyphenated; that is the tree's own inconsistency and the
+    assertions match it literally.
+    """
+
+    RECORDED_ALL_DATA_SOURCES: ClassVar[FrozenSet[str]] = frozenset(
+        {
+            "big-query",
+            "databricks",
+            "mssql",
+            "mysql",
+            "pandas-data-frame",
+            "pandas-filesystem-csv",
+            "postgresql",
+            "redshift",
+            "generic_sql",
+            "snowflake",
+            "spark-filesystem-csv",
+            "sqlite",
+        }
+    )
+    """The twelve labels the retired module's `ALL_DATA_SOURCES` held, captured before the move."""
+
+    RECORDED_SQL_DATA_SOURCES: ClassVar[FrozenSet[str]] = frozenset(
+        {
+            "big-query",
+            "databricks",
+            "mssql",
+            "mysql",
+            "postgresql",
+            "redshift",
+            "generic_sql",
+            "snowflake",
+            "sqlite",
+        }
+    )
+    """The nine labels the retired module's `SQL_DATA_SOURCES` held, captured before the move."""
+
+    RECORDED_NON_SQL_DATA_SOURCES: ClassVar[FrozenSet[str]] = frozenset(
+        {"pandas-data-frame", "pandas-filesystem-csv", "spark-filesystem-csv"}
+    )
+
+    RECORDED_DATE_COMPARISON_DATA_SOURCES: ClassVar[FrozenSet[str]] = frozenset(
+        {
+            "big-query",
+            "databricks",
+            "mssql",
+            "mysql",
+            "pandas-data-frame",
+            "postgresql",
+            "redshift",
+            "generic_sql",
+            "snowflake",
+            "spark-filesystem-csv",
+        }
+    )
+
+    RECORDED_JUST_PANDAS_DATA_SOURCES: ClassVar[FrozenSet[str]] = frozenset({"pandas-data-frame"})
+
+    ESCAPE_HATCH_LABEL: ClassVar[str] = "generic_sql"
+    """The one entry that left the two shared lists, named as the literal the capture records.
+
+    It is written out rather than read from `GenericSQLDatasourceTestConfig`, so that renaming the
+    config's label fails this assertion instead of silently redefining what left.
     """
 
     @staticmethod
-    def _escape_hatch_name() -> str:
-        from tests.integration.test_utils.data_source_config.generic_sql import (
-            GenericSQLDatasourceTestConfig,
-        )
+    def _labels(configs: Sequence[DataSourceTestConfig]) -> FrozenSet[str]:
+        return frozenset(type(config).BACKEND_SPEC.label for config in configs)
 
-        return GenericSQLDatasourceTestConfig.__name__
+    def test_all_data_sources_lost_exactly_the_escape_hatch(self) -> None:
+        """Asserted as a set difference in both directions, never as a new count.
 
-    @staticmethod
-    def _class_names(configs: Sequence[DataSourceTestConfig]) -> List[str]:
-        return sorted(type(config).__name__ for config in configs)
-
-    @classmethod
-    def _hand_written_names(cls, configs: Sequence[DataSourceTestConfig]) -> List[str]:
-        return [name for name in cls._class_names(configs) if name != cls._escape_hatch_name()]
-
-    def test_sql_data_sources_hold_the_same_backends_under_either_import(self) -> None:
-        from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
-            SQL_DATA_SOURCES as HAND_WRITTEN_SQL,
-        )
-
-        assert self._class_names(SQL_DATA_SOURCES) == self._hand_written_names(HAND_WRITTEN_SQL)
-
-    def test_all_data_sources_hold_the_same_backends_under_either_import(self) -> None:
-        from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
-            ALL_DATA_SOURCES as HAND_WRITTEN_ALL,
-        )
-
-        assert self._class_names(ALL_DATA_SOURCES) == self._hand_written_names(HAND_WRITTEN_ALL)
-
-    def test_the_escape_hatch_is_the_only_entry_the_derivation_cannot_reproduce(self) -> None:
-        """Pins the exemption at one named config.
-
-        Without this, a second unregistered config added to the hand-written lists would leave the
-        two tests above passing, because the exemption they apply would have widened to cover it.
+        Twelve to eleven by exactly one entry. Pinning `len(...) == 11` instead would pass just as
+        happily if a second backend vanished and a third appeared, which is the failure this
+        assertion exists to catch.
         """
-        from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
-            ALL_DATA_SOURCES as HAND_WRITTEN_ALL,
+        derived = self._labels(ALL_DATA_SOURCES)
+
+        assert self.RECORDED_ALL_DATA_SOURCES - derived == {self.ESCAPE_HATCH_LABEL}
+        assert derived - self.RECORDED_ALL_DATA_SOURCES == frozenset()
+
+    def test_sql_data_sources_lost_exactly_the_escape_hatch(self) -> None:
+        """Nine to eight by exactly the same one entry, asserted the same way."""
+        derived = self._labels(SQL_DATA_SOURCES)
+
+        assert self.RECORDED_SQL_DATA_SOURCES - derived == {self.ESCAPE_HATCH_LABEL}
+        assert derived - self.RECORDED_SQL_DATA_SOURCES == frozenset()
+
+    def test_non_sql_data_sources_match_the_captured_membership(self) -> None:
+        """The one relocated list that is derived — from the execution engine, which reproduces it.
+
+        The assertion is against the captured labels, not against
+        `PANDAS_DATA_SOURCES + SPARK_DATA_SOURCES`, which is the expression that now builds it.
+        """
+        assert self._labels(NON_SQL_DATA_SOURCES) == self.RECORDED_NON_SQL_DATA_SOURCES
+
+    def test_date_comparison_data_sources_match_the_captured_membership(self) -> None:
+        """Relocated and still declared, escape hatch included.
+
+        The entry left the two *derived* lists because those are the set that gates CI. This list is
+        neither derived nor CI-gating, so it keeps all ten it was captured with.
+        """
+        assert (
+            self._labels(DATA_SOURCES_THAT_SUPPORT_DATE_COMPARISONS)
+            == self.RECORDED_DATE_COMPARISON_DATA_SOURCES
         )
 
-        unreproducible = set(self._class_names(HAND_WRITTEN_ALL)) - set(
-            self._class_names(ALL_DATA_SOURCES)
+    def test_just_pandas_data_sources_match_the_captured_membership(self) -> None:
+        assert self._labels(JUST_PANDAS_DATA_SOURCES) == self.RECORDED_JUST_PANDAS_DATA_SOURCES
+
+    def test_no_module_still_exports_the_retired_duplicate_lists(self) -> None:
+        """The collision is gone because the module is gone, and this says so by looking.
+
+        A rename would have left two differently-populated lists under two names and removed only
+        the invitation to compare them. Deletion is what this task chose, and a module reappearing
+        under that path — with either list in it — reopens the divergence the pins above cannot see,
+        because they only ever read the derived pair.
+        """
+        retired = (
+            Path(__file__).parent
+            / "integration"
+            / "data_sources_and_expectations"
+            / "test_canonical_expectations.py"
         )
 
-        assert unreproducible == {self._escape_hatch_name()}
+        assert not retired.exists(), f"the retired module reappeared at {retired}"
 
 
 class TestCuratedSqlDataSourcesEqualsClickHouseOracleSingleStoreAndTrino:
