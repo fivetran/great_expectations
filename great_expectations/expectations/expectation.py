@@ -188,14 +188,12 @@ def render_suite_parameter_string(render_func: Callable[P, T]) -> Callable[P, T]
                             app_params["eval_param"] = key
                             app_params["eval_param_value"] = val
                             rendered_content = RenderedStringTemplateContent(
-                                **{  # type: ignore[arg-type] # FIXME CoP
-                                    "content_block_type": "string_template",
-                                    "string_template": {
-                                        "template": app_template_str,
-                                        "params": app_params,
-                                        "styling": styling,
-                                    },
-                                }
+                                content_block_type="string_template",
+                                string_template={
+                                    "template": app_template_str,
+                                    "params": app_params,
+                                    "styling": styling,
+                                },
                             )
                             rendered_string_template.append(rendered_content)
             else:
@@ -743,24 +741,22 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         )
         return [
             RenderedStringTemplateContent(
-                **{  # type: ignore[arg-type] # FIXME CoP
-                    "content_block_type": "string_template",
-                    "styling": {"parent": {"classes": ["alert", "alert-warning"]}},
-                    "string_template": {
-                        "template": "$expectation_type(**$kwargs)",
-                        "params": {
-                            "expectation_type": renderer_configuration.expectation_type,
-                            "kwargs": renderer_configuration.kwargs,
-                        },
-                        "styling": {
-                            "params": {
-                                "expectation_type": {
-                                    "classes": ["badge", "badge-warning"],
-                                }
-                            }
-                        },
+                content_block_type="string_template",
+                styling={"parent": {"classes": ["alert", "alert-warning"]}},
+                string_template={
+                    "template": "$expectation_type(**$kwargs)",
+                    "params": {
+                        "expectation_type": renderer_configuration.expectation_type,
+                        "kwargs": renderer_configuration.kwargs,
                     },
-                }
+                    "styling": {
+                        "params": {
+                            "expectation_type": {
+                                "classes": ["badge", "badge-warning"],
+                            }
+                        }
+                    },
+                },
             )
         ]
 
@@ -841,67 +837,61 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
                 raised_exception = v["raised_exception"]
         if raised_exception:
             return RenderedStringTemplateContent(
-                **{  # type: ignore[arg-type] # FIXME CoP
-                    "content_block_type": "string_template",
-                    "string_template": {
-                        "template": "$icon",
-                        "params": {"icon": "", "markdown_status_icon": "❗"},
-                        "styling": {
-                            "params": {
-                                "icon": {
-                                    "classes": [
-                                        "fas",
-                                        "fa-exclamation-triangle",
-                                        "text-warning",
-                                    ],
-                                    "tag": "i",
-                                }
+                content_block_type="string_template",
+                string_template={
+                    "template": "$icon",
+                    "params": {"icon": "", "markdown_status_icon": "❗"},
+                    "styling": {
+                        "params": {
+                            "icon": {
+                                "classes": [
+                                    "fas",
+                                    "fa-exclamation-triangle",
+                                    "text-warning",
+                                ],
+                                "tag": "i",
                             }
-                        },
+                        }
                     },
-                }
+                },
             )
 
         if result.success:
             return RenderedStringTemplateContent(
-                **{  # type: ignore[arg-type] # FIXME CoP
-                    "content_block_type": "string_template",
-                    "string_template": {
-                        "template": "$icon",
-                        "params": {"icon": "", "markdown_status_icon": "✅"},
-                        "styling": {
-                            "params": {
-                                "icon": {
-                                    "classes": [
-                                        "fas",
-                                        "fa-check-circle",
-                                        "text-success",
-                                    ],
-                                    "tag": "i",
-                                }
+                content_block_type="string_template",
+                string_template={
+                    "template": "$icon",
+                    "params": {"icon": "", "markdown_status_icon": "✅"},
+                    "styling": {
+                        "params": {
+                            "icon": {
+                                "classes": [
+                                    "fas",
+                                    "fa-check-circle",
+                                    "text-success",
+                                ],
+                                "tag": "i",
                             }
-                        },
+                        }
                     },
-                    "styling": {"parent": {"classes": ["hide-succeeded-validation-target-child"]}},
-                }
+                },
+                styling={"parent": {"classes": ["hide-succeeded-validation-target-child"]}},
             )
         else:
             return RenderedStringTemplateContent(
-                **{  # type: ignore[arg-type] # FIXME CoP
-                    "content_block_type": "string_template",
-                    "string_template": {
-                        "template": "$icon",
-                        "params": {"icon": "", "markdown_status_icon": "❌"},
-                        "styling": {
-                            "params": {
-                                "icon": {
-                                    "tag": "i",
-                                    "classes": ["fas", "fa-times", "text-danger"],
-                                }
+                content_block_type="string_template",
+                string_template={
+                    "template": "$icon",
+                    "params": {"icon": "", "markdown_status_icon": "❌"},
+                    "styling": {
+                        "params": {
+                            "icon": {
+                                "tag": "i",
+                                "classes": ["fas", "fa-times", "text-danger"],
                             }
-                        },
+                        }
                     },
-                }
+                },
             )
 
     @classmethod
@@ -945,41 +935,35 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
                 expectation_type = None
 
             exception_message = RenderedStringTemplateContent(
-                **{  # type: ignore[arg-type] # FIXME CoP
-                    "content_block_type": "string_template",
-                    "string_template": {
-                        "template": exception_message_template_str,
+                content_block_type="string_template",
+                string_template={
+                    "template": exception_message_template_str,
+                    "params": {
+                        "expectation_type": expectation_type,
+                        "exception_message": exception["exception_message"],
+                    },
+                    "tag": "strong",
+                    "styling": {
+                        "classes": ["text-danger"],
                         "params": {
-                            "expectation_type": expectation_type,
-                            "exception_message": exception["exception_message"],
-                        },
-                        "tag": "strong",
-                        "styling": {
-                            "classes": ["text-danger"],
-                            "params": {
-                                "exception_message": {"tag": "code"},
-                                "expectation_type": {"classes": ["badge", "badge-danger", "mb-2"]},
-                            },
+                            "exception_message": {"tag": "code"},
+                            "expectation_type": {"classes": ["badge", "badge-danger", "mb-2"]},
                         },
                     },
-                }
+                },
             )
 
             exception_traceback_collapse = CollapseContent(
-                **{  # type: ignore[arg-type] # FIXME CoP
-                    "collapse_toggle_link": "Show exception traceback...",
-                    "collapse": [
-                        RenderedStringTemplateContent(
-                            **{  # type: ignore[arg-type] # FIXME CoP
-                                "content_block_type": "string_template",
-                                "string_template": {
-                                    "template": exception["exception_traceback"],
-                                    "tag": "code",
-                                },
-                            }
-                        )
-                    ],
-                }
+                collapse_toggle_link="Show exception traceback...",  # type: ignore[arg-type] # FIXME CoP
+                collapse=[
+                    RenderedStringTemplateContent(
+                        content_block_type="string_template",
+                        string_template={
+                            "template": exception["exception_traceback"],
+                            "tag": "code",
+                        },
+                    )
+                ],
             )
 
             return [exception_message, exception_traceback_collapse]
@@ -1000,19 +984,17 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
 
             return [
                 RenderedStringTemplateContent(
-                    **{  # type: ignore[arg-type] # FIXME CoP
-                        "content_block_type": "string_template",
-                        "string_template": {
-                            "template": template_str,
-                            "params": {
-                                "unexpected_count": unexpected_count,
-                                "unexpected_percent": unexpected_percent,
-                                "element_count": element_count,
-                            },
-                            "tag": "strong",
-                            "styling": {"classes": ["text-danger"]},
+                    content_block_type="string_template",
+                    string_template={
+                        "template": template_str,
+                        "params": {
+                            "unexpected_count": unexpected_count,
+                            "unexpected_percent": unexpected_percent,
+                            "element_count": element_count,
                         },
-                    }
+                        "tag": "strong",
+                        "styling": {"classes": ["text-danger"]},
+                    },
                 )
             ]
 
@@ -1086,12 +1068,10 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
                         sampled_values_set.add(string_unexpected_value)
 
         unexpected_table_content_block = RenderedTableContent(
-            **{  # type: ignore[arg-type] # FIXME CoP
-                "content_block_type": "table",
-                "table": table_rows,
-                "header_row": header_row,
-                "styling": {"body": {"classes": ["table-bordered", "table-sm", "mt-3"]}},
-            }
+            content_block_type="table",
+            table=table_rows,
+            header_row=header_row,  # type: ignore[arg-type] # FIXME CoP
+            styling={"body": {"classes": ["table-bordered", "table-sm", "mt-3"]}},
         )
         if result_dict.get("unexpected_index_query"):
             query = result_dict.get("unexpected_index_query")
@@ -1099,20 +1079,16 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
             if not isinstance(query, str):
                 query = str(query)
             query_info = CollapseContent(
-                **{  # type: ignore[arg-type] # FIXME CoP
-                    "collapse_toggle_link": "To retrieve all unexpected values...",
-                    "collapse": [
-                        RenderedStringTemplateContent(
-                            **{  # type: ignore[arg-type] # FIXME CoP
-                                "content_block_type": "string_template",
-                                "string_template": {
-                                    "template": query,
-                                    "tag": "code",
-                                },
-                            }
-                        )
-                    ],
-                }
+                collapse_toggle_link="To retrieve all unexpected values...",  # type: ignore[arg-type] # FIXME CoP
+                collapse=[
+                    RenderedStringTemplateContent(
+                        content_block_type="string_template",
+                        string_template={
+                            "template": query,
+                            "tag": "code",
+                        },
+                    )
+                ],
             )
             return [unexpected_table_content_block, query_info]
         return [unexpected_table_content_block]
