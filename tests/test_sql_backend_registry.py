@@ -4,9 +4,18 @@ import importlib
 import subprocess
 import sys
 import tempfile
-from dataclasses import FrozenInstanceError, fields
+from dataclasses import FrozenInstanceError, fields, replace
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterator, List, Mapping, Optional, Sequence, Tuple
+from typing import (
+    TYPE_CHECKING,
+    FrozenSet,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
 import pytest
 
@@ -45,6 +54,7 @@ from tests.integration.test_utils.data_source_config.data_source_spec import (
     CiLaneRef,
     DataSourceSpec,
     ExecutionEngineKind,
+    MarkerScope,
 )
 from tests.integration.test_utils.data_source_config.registry import (
     RegisteredDataSource,
@@ -1841,3 +1851,177 @@ class TestIsolatedRegistryClearsRecordStorageBeforeYielding:
             assert data_source_configs_for_engine(ExecutionEngineKind.SQL) == ()
 
         assert iter_sql_backends() == outside
+
+
+# Captured at this module's import time for the same reason as the tuples above: the autouse
+# `_snapshot_registry` fixture clears the registry around every test, so a test body reading the
+# live registry directly would see an empty one and pass vacuously. This one is the *record* view,
+# which is strictly wider than the config view above: it includes the declarations this repository
+# makes but does not exercise.
+_REGISTERED_DATA_SOURCE_SPECS: Tuple[DataSourceSpec, ...] = iter_data_source_specs()
+
+_REGISTERED_DATA_SOURCE_ENTRIES: Tuple[RegisteredDataSource, ...] = iter_data_sources()
+
+# A declaration-only record is exactly an entry carrying no config class. Deriving the two views
+# from the same snapshot, rather than subtracting one accessor's output from another's, is what
+# makes them complementary by construction: an entry cannot be missing from both.
+_DECLARATION_ONLY_SPECS: Mapping[str, DataSourceSpec] = {
+    entry.spec.label: entry.spec
+    for entry in _REGISTERED_DATA_SOURCE_ENTRIES
+    if entry.config_class is None
+}
+
+_CONFIG_BOUND_LABELS: FrozenSet[str] = frozenset(
+    entry.spec.label for entry in _REGISTERED_DATA_SOURCE_ENTRIES if entry.config_class is not None
+)
+
+_EXPECTED_DECLARATION_ONLY_SPECS: Mapping[str, DataSourceSpec] = {
+    "alloydb": DataSourceSpec(
+        label="alloydb",
+        public_name="AlloyDB",
+        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        fluent_types=frozenset({"alloy"}),
+    ),
+    "amazon-s3": DataSourceSpec(
+        label="amazon-s3",
+        public_name="Amazon S3",
+        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        fluent_types=frozenset({"pandas_s3", "spark_s3"}),
+        marker="aws_deps",
+        marker_scope=MarkerScope.SHARED,
+        ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="aws_deps"),
+        task_runner_marker="aws_deps",
+    ),
+    "aurora": DataSourceSpec(
+        label="aurora",
+        public_name="Amazon Aurora PostgreSQL",
+        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        fluent_types=frozenset({"aurora"}),
+    ),
+    "azure-blob-storage": DataSourceSpec(
+        label="azure-blob-storage",
+        public_name="Azure Blob Storage",
+        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        fluent_types=frozenset({"pandas_abs", "spark_abs"}),
+    ),
+    "citus": DataSourceSpec(
+        label="citus",
+        public_name="Citus",
+        provisioning=BackendProvisioning.LOCAL_CONTAINER,
+        fluent_types=frozenset({"citus"}),
+    ),
+    "fabric": DataSourceSpec(
+        label="fabric",
+        public_name="Microsoft Fabric",
+        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        fluent_types=frozenset({"fabric"}),
+    ),
+    "google-cloud-storage": DataSourceSpec(
+        label="google-cloud-storage",
+        public_name="Google Cloud Storage",
+        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        fluent_types=frozenset({"pandas_gcs", "spark_gcs"}),
+        marker="gcs_deps",
+        marker_scope=MarkerScope.SHARED,
+        ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="gcs_deps"),
+        dev_requirements_file="reqs/requirements-dev-gcs.txt",
+        task_runner_marker="gcs_deps",
+    ),
+    "neon": DataSourceSpec(
+        label="neon",
+        public_name="Neon",
+        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        fluent_types=frozenset({"neon"}),
+    ),
+}
+
+
+class TestDeclarationOnlyRecordsJoinTheRegistryWithoutConfigs:
+    """The eight data sources this repository declares but does not exercise.
+
+    Two halves, and both are load-bearing. They must reach the *record* accessors, or the
+    declaration is unreachable and nothing downstream can read it; and they must reach *no*
+    config accessor, or a consumer parameterizing over configs is handed a record it cannot
+    instantiate. A test asserting only the first half would pass just as well for a broken
+    registration that also leaked into the config view.
+    """
+
+    def test_the_record_accessor_holds_the_eight_declaration_only_labels(self) -> None:
+        assert sorted(_DECLARATION_ONLY_SPECS) == [
+            "alloydb",
+            "amazon-s3",
+            "aurora",
+            "azure-blob-storage",
+            "citus",
+            "fabric",
+            "google-cloud-storage",
+            "neon",
+        ]
+
+    def test_no_declaration_only_label_reaches_the_config_accessor(self) -> None:
+        """Read from the module-scope snapshot, not from a live call.
+
+        The autouse isolation fixture clears the registry around every test in this module, so a
+        body calling the accessor here would compare against an empty registry and pass no matter
+        what was registered - which is exactly the vacuity this assertion exists to rule out.
+        """
+        assert _CONFIG_BOUND_LABELS.isdisjoint(_EXPECTED_DECLARATION_ONLY_SPECS)
+
+    def test_the_record_accessor_is_wider_than_the_config_accessor_by_exactly_eight(self) -> None:
+        assert (len(_REGISTERED_DATA_SOURCE_SPECS), len(_REGISTERED_SQL_BACKENDS)) == (23, 15)
+
+    @pytest.mark.parametrize("label", sorted(_EXPECTED_DECLARATION_ONLY_SPECS))
+    def test_every_declared_field_matches_the_reviewed_declaration(self, label: str) -> None:
+        """One equality per record over every field but the free-text note.
+
+        Comparing whole records rather than field-by-field is what makes this pin every field,
+        including the ones a later edit might add: a record that gains an undeclared field fails
+        here rather than drifting unpinned. The provisioning note is excluded and asserted
+        separately, because pinning free prose to the character would fail on a rewording that
+        changes nothing about what the record claims.
+        """
+        registered = _DECLARATION_ONLY_SPECS[label]
+
+        assert (
+            replace(registered, provisioning_note=None) == (_EXPECTED_DECLARATION_ONLY_SPECS[label])
+        )
+
+    def test_no_declaration_only_record_claims_a_tier(self) -> None:
+        """No suite in this repository runs against any of the eight, so none may claim one.
+
+        This is the assertion that keeps a declared CI lane from being read as a support claim:
+        Amazon S3 and Google Cloud Storage declare real lanes, and a lane means a job installs a
+        data source's dependencies and runs something - not that a tier's suite passes here.
+        """
+        assert {
+            label: spec.tiers for label, spec in _DECLARATION_ONLY_SPECS.items()
+        } == dict.fromkeys(_EXPECTED_DECLARATION_ONLY_SPECS, frozenset())
+
+    def test_citus_records_its_costed_onboarding_surfaces_in_its_provisioning_note(self) -> None:
+        """Local-container provisioning with no container service is Citus's honest shape, and
+        the note is where the cost of changing that is written down. Without it the declaration
+        reads as an oversight rather than as a measured decision.
+        """
+        note = _DECLARATION_ONLY_SPECS["citus"].provisioning_note
+
+        assert note is not None
+        assert _DECLARATION_ONLY_SPECS["citus"].container_service is None
+        for surface in (
+            "marker",
+            "REQUIRED_MARKERS",
+            "requirements file",
+            "MARKER_DEPENDENCY_MAP",
+            "compose",
+            "CI lane",
+            "harness config",
+        ):
+            assert surface in note, f"the Citus provisioning note does not name {surface!r}"
+
+    def test_fabric_records_the_service_principal_requirement_in_its_note(self) -> None:
+        """A later effort scoping a Fabric lane starts from the actual authentication
+        requirement rather than rediscovering it against a class that rejects every other mode.
+        """
+        note = _DECLARATION_ONLY_SPECS["fabric"].provisioning_note
+
+        assert note is not None
+        assert "service principal" in note.lower()

@@ -15,6 +15,16 @@ from .data_source_spec import (
     MarkerScope,
 )
 from .databricks import DatabricksDatasourceTestConfig
+from .declaration_only import (
+    ALLOYDB,
+    AMAZON_S3,
+    AURORA,
+    AZURE_BLOB_STORAGE,
+    CITUS,
+    GOOGLE_CLOUD_STORAGE,
+    MICROSOFT_FABRIC,
+    NEON,
+)
 from .generic_sql import GenericSQLDatasourceTestConfig
 from .mysql import MySQLDatasourceTestConfig
 from .oracle import OracleDatasourceTestConfig
