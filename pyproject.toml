@@ -5,8 +5,7 @@ build-backend = "setuptools.build_meta"
 [tool.mypy]
 python_version = "3.10"
 plugins = [
-    "pydantic.mypy",
-    "sqlalchemy.ext.mypy.plugin"
+    "pydantic.mypy"
 ]
 files = [
     "great_expectations",
@@ -181,7 +180,6 @@ module = [
     "sqlalchemy_bigquery.*",
     "sqlalchemy_dremio.*",
     "sqlalchemy_redshift.*",
-    "sqlalchemy.*",  # remove once we are using sqlalchemy 2 in type-checking step
     "teradatasqlalchemy.*",
     "trino.*",
 ]
