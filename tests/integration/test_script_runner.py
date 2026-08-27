@@ -11,12 +11,14 @@ import logging
 import os
 import pathlib
 import shutil
+import subprocess
+import sys
+import traceback
 from typing import List
 
 import pandas
 import pytest
 import sqlalchemy
-from assets.scripts.build_gallery import execute_shell_command
 from docs.docusaurus.docs.components.examples_under_test import (
     docs_tests,
 )
@@ -396,6 +398,49 @@ def test_integration_tests(
     )
 
 
+def _execute_shell_command(command: str) -> int:
+    """Run a command through a shell, with the current working directory on PATH.
+
+    :param command: shell command -- as if typed in a terminal window
+    :return: exit status -- 0 if successful; any other value indicates an error
+    """
+    cwd: str = os.getcwd()  # noqa: PTH109
+
+    path_env_var: str = os.pathsep.join([os.environ.get("PATH", os.defpath), cwd])
+    env: dict = dict(os.environ, PATH=path_env_var)
+
+    status_code: int = 0
+    try:
+        res: subprocess.CompletedProcess = subprocess.run(
+            args=["bash", "-c", command],
+            stdin=None,
+            input=None,
+            capture_output=True,
+            shell=False,
+            cwd=cwd,
+            timeout=None,
+            check=True,
+            encoding=None,
+            errors=None,
+            text=True,
+            env=env,
+        )
+        sh_out: str = res.stdout.strip()
+        logger.info(sh_out)
+    except subprocess.CalledProcessError as cpe:
+        status_code = cpe.returncode
+        sys.stderr.write(cpe.output)
+        sys.stderr.flush()
+        exception_message: str = "A Sub-Process call Exception occurred.\n"
+        exception_traceback: str = traceback.format_exc()
+        exception_message += (
+            f'{type(cpe).__name__}: "{cpe!s}".  Traceback: "{exception_traceback}".'
+        )
+        logger.error(exception_message)  # noqa: TRY400
+
+    return status_code
+
+
 def _execute_integration_test(  # noqa: C901, PLR0915 # FIXME CoP
     integration_test_fixture: IntegrationTestFixture,
     tmp_path: pathlib.Path,
@@ -416,7 +461,7 @@ def _execute_integration_test(  # noqa: C901, PLR0915 # FIXME CoP
             dist.metadata["name"].lower() for dist in importlib.metadata.distributions()
         ]
         if "great-expectations" not in installed_packages:
-            execute_shell_command("pip install .")
+            _execute_shell_command("pip install .")
         os.chdir(tmp_path)
 
         # Build test state
