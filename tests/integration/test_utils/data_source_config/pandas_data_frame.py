@@ -14,6 +14,7 @@ from tests.integration.test_utils.data_source_config.base import (
 )
 from tests.integration.test_utils.data_source_config.data_source_spec import (
     BackendProvisioning,
+    BackendTier,
     CiLaneRef,
     DataSourceSpec,
     ExecutionEngineKind,
@@ -37,6 +38,11 @@ class PandasDataFrameDatasourceTestConfig(DataSourceTestConfig):
         # collision as though it named this data source alone.
         marker_scope=MarkerScope.SHARED,
         ci_lane=CiLaneRef(workflow_job="unit-tests", marker_token="unit"),
+        # The shared canonical expectation parameterization runs against this config in the
+        # `unit` lane today, through every one of its expectation modules. Declaring the tier
+        # states that existing result; it switches nothing on. The marker and CI lane the claim
+        # obliges are already declared above.
+        tiers=frozenset({BackendTier.STANDARD_SQL}),
         # No dev_requirements_file and no task_runner_marker: the task runner's dependency map has
         # no key for `unit`, because running these tests installs nothing beyond the base
         # development requirements and starts no service.

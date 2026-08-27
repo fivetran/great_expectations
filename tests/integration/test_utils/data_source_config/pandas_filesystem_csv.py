@@ -16,6 +16,7 @@ from tests.integration.test_utils.data_source_config.base import (
 )
 from tests.integration.test_utils.data_source_config.data_source_spec import (
     BackendProvisioning,
+    BackendTier,
     CiLaneRef,
     DataSourceSpec,
     ExecutionEngineKind,
@@ -43,6 +44,11 @@ class PandasFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
         # it named this data source by itself.
         marker_scope=MarkerScope.SHARED,
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="filesystem"),
+        # The shared canonical expectation parameterization runs against this config in the
+        # `filesystem` lane today, through every one of its expectation modules. Declaring the
+        # tier states that existing result; it switches nothing on. The marker and CI lane the
+        # claim obliges are already declared above.
+        tiers=frozenset({BackendTier.STANDARD_SQL}),
         # No dev_requirements_file and no task_runner_marker: the task runner's dependency map has
         # no key for `filesystem`, because running these tests installs nothing beyond the base
         # development requirements and starts no service.

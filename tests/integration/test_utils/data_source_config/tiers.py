@@ -15,10 +15,13 @@ The lists are derived on two different keys, and the difference is not an incons
 difference between the two kinds of thing being asked.
 
 - A **tier** is a claim about coverage. `BackendTier.STANDARD_SQL` and `BackendTier.CURATED_SQL`
-  say "a suite runs against this backend and proves this much", which is something a maintainer
-  decides and a backend can join or leave without anything about the backend itself changing. The
-  two SQL lists key on that claim, because they exist to answer "what does this tier's suite run
-  against".
+  say "a suite runs against this data source and proves this much", which is something a
+  maintainer decides and a data source can join or leave without anything about the data source
+  itself changing. `ALL_DATA_SOURCES` and the two curated-and-standard lists key on that claim,
+  because they exist to answer "what does this tier's suite run against". The shared canonical
+  expectation parameterization is not a SQL suite — it runs pandas, Spark and SQL data sources
+  alike — so the three non-SQL configs declare its criterion too, and `ALL_DATA_SOURCES` is that
+  one claim read directly rather than three engine-keyed lists added together.
 - An **execution engine** is a fact about the data source. `ExecutionEngineKind.PANDAS` and
   `ExecutionEngineKind.SPARK` say what actually executes the tests; no maintainer decision moves a
   Spark data source onto pandas. The pandas and Spark lists key on that fact, because they exist to
@@ -26,7 +29,9 @@ difference between the two kinds of thing being asked.
 
 Keying either list on the other's question would state something untrue: a tier claim would make
 an engine look optional, and an engine would make a coverage claim look like a property of the
-data source.
+data source. `SQL_DATA_SOURCES` is the one list that needs both keys and says so — the criterion,
+intersected with the SQL engine — because "the SQL data sources this suite runs against" really is
+a coverage claim and an engine fact together.
 
 Stating membership in one place is not the same as this module seeing it, though: the lists below
 are built once, when this module is first imported, from whatever the registry holds at that
@@ -57,12 +62,12 @@ from tests.integration.test_utils.data_source_config.registry import (
 if TYPE_CHECKING:
     from tests.integration.test_utils.data_source_config.base import DataSourceTestConfig
 
-# Both engine-keyed lists below, and both tier-keyed lists after them, take the same `cast`:
+# Both engine-keyed lists below, and the tier-keyed lists after them, take the same `cast`:
 # the registry accessors are typed against its minimal registration protocol, not against
 # `DataSourceTestConfig`, so that `registry.py` need not import the config base (see this
 # package's dependency direction, stated in `sql_config.py`). Every class the registry hands back
 # is a `DataSourceTestConfig`, because only a config class can be enrolled with one; the cast
-# states that fact at the four places it matters instead of widening the registry's return type.
+# states that fact at the places it matters instead of widening the registry's return type.
 #
 # `data_source_configs_for_engine` walks config-bound entries only, so the records registered
 # without a config class — the data sources this repository declares but does not exercise — are
@@ -82,23 +87,59 @@ SPARK_DATA_SOURCES: Final[List[DataSourceTestConfig]] = [
 """Every registered config declaring `ExecutionEngineKind.SPARK`, instantiated with no arguments,
 in label order."""
 
-SQL_DATA_SOURCES: Final[List[DataSourceTestConfig]] = [
-    cast("DataSourceTestConfig", config_class())
-    for config_class in sql_backends_for_tier(BackendTier.STANDARD_SQL)
-]
-"""Every registered backend declaring `BackendTier.STANDARD_SQL` membership, instantiated with no
-arguments, in label order."""
+_SHARED_PARAMETERIZATION_CONFIGS: Final = sql_backends_for_tier(BackendTier.STANDARD_SQL)
+"""Every registered config declaring the shared-parameterization criterion, in label order.
+
+Read once here and used twice below, so that the combined list and its SQL half are two views of
+one declaration rather than two independent derivations that could part.
+
+`sql_backends_for_tier` walks every config-bound registration, not only the SQL ones — the
+accessor's name records the tier vocabulary it was written against, not a filter it applies — so a
+pandas or Spark config declaring this criterion is returned by it exactly as a SQL backend is.
+"""
 
 CURATED_SQL_DATA_SOURCES: Final[List[DataSourceTestConfig]] = [
     cast("DataSourceTestConfig", config_class())
     for config_class in sql_backends_for_tier(BackendTier.CURATED_SQL)
 ]
 """Every registered backend declaring `BackendTier.CURATED_SQL` membership, instantiated with no
-arguments, in label order. Empty until a backend declares that tier; four do today."""
+arguments, in label order. Four backends declare that tier today."""
 
-ALL_DATA_SOURCES: Final[List[DataSourceTestConfig]] = (
-    PANDAS_DATA_SOURCES + SPARK_DATA_SOURCES + SQL_DATA_SOURCES
-)
+ALL_DATA_SOURCES: Final[List[DataSourceTestConfig]] = [
+    cast("DataSourceTestConfig", config_class())
+    for config_class in _SHARED_PARAMETERIZATION_CONFIGS
+]
+"""Every registered config declaring the shared-parameterization criterion, instantiated with no
+arguments, in label order.
+
+This is one declared claim read once, not three derivations added together. It was
+`PANDAS_DATA_SOURCES + SPARK_DATA_SOURCES + SQL_DATA_SOURCES`, which made membership an accident
+of which engine lists happened to exist: a data source joined this list by being pandas, or being
+Spark, or claiming a SQL tier, and no single statement anywhere said which data sources the shared
+canonical expectation parameterization runs against. Now one does — the criterion on each record —
+and a data source joins or leaves this list by changing that declaration and nothing else.
+
+The membership is the same set the concatenation produced. The order is not: a concatenation
+grouped the engines, while a tier read is in label order like every other accessor here, so the
+non-SQL entries sit among the SQL ones. Nothing reads this list positionally — it is a pytest
+parameterization source — so the difference is visible only in the order test ids are generated
+in.
+"""
+
+SQL_DATA_SOURCES: Final[List[DataSourceTestConfig]] = [
+    cast("DataSourceTestConfig", config_class())
+    for config_class in _SHARED_PARAMETERIZATION_CONFIGS
+    if config_class.BACKEND_SPEC.execution_engine is ExecutionEngineKind.SQL
+]
+"""The shared-parameterization criterion intersected with the SQL execution engine, instantiated
+with no arguments, in label order.
+
+A compound derivation, and deliberately so: this list has always meant "the SQL data sources the
+shared parameterization runs against", and that is two facts about a record, not one. It was
+expressible as a single tier read only while the criterion itself named a SQL engine and so
+excluded every non-SQL data source by its name alone. Now that the criterion names the suite it
+gates, the SQL restriction has to be stated where it is meant, as the engine fact it is.
+"""
 
 
 def data_sources_for_tier_case(tier: BackendTier, case_key: str) -> List[DataSourceTestConfig]:

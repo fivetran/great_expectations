@@ -18,6 +18,7 @@ from tests.integration.test_utils.data_source_config.base import (
 )
 from tests.integration.test_utils.data_source_config.data_source_spec import (
     BackendProvisioning,
+    BackendTier,
     CiLaneRef,
     DataSourceSpec,
     ExecutionEngineKind,
@@ -55,6 +56,11 @@ class SparkFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
         # source by itself.
         marker_scope=MarkerScope.SHARED,
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="spark"),
+        # The shared canonical expectation parameterization runs against this config in the
+        # `spark` lane today, through every one of its expectation modules. Declaring the tier
+        # states that existing result; it switches nothing on. The marker and CI lane the claim
+        # obliges are already declared above.
+        tiers=frozenset({BackendTier.STANDARD_SQL}),
         dev_requirements_file="reqs/requirements-dev-spark.txt",
         task_runner_marker="spark",
     )

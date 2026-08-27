@@ -1139,17 +1139,26 @@ class TestStandardDataSourceListsMatchDeclaredMembership:
         ] == SQL_DATA_SOURCES
 
     def test_all_data_sources_match_declared_membership_and_order(self) -> None:
+        """The eleven the shared parameterization runs against, in label order.
+
+        Membership is exactly what it was when this list was `PANDAS + SPARK + SQL`; only the
+        order moved, because the list is now a single read of the shared-parameterization tier
+        rather than three derivations concatenated, and every registry accessor orders by record
+        label. The three non-SQL entries therefore sit among the SQL ones rather than ahead of
+        them. Nothing reads this list positionally — it is a pytest parameterization source — so
+        the visible consequence is the order test ids are generated in.
+        """
         assert [
-            PandasDataFrameDatasourceTestConfig(),
-            PandasFilesystemCsvDatasourceTestConfig(),
-            SparkFilesystemCsvDatasourceTestConfig(),
             BigQueryDatasourceTestConfig(),
             DatabricksDatasourceTestConfig(),
             SQLServerDatasourceTestConfig(),
             MySQLDatasourceTestConfig(),
+            PandasDataFrameDatasourceTestConfig(),
+            PandasFilesystemCsvDatasourceTestConfig(),
             PostgreSQLDatasourceTestConfig(),
             RedshiftDatasourceTestConfig(),
             SnowflakeDatasourceTestConfig(),
+            SparkFilesystemCsvDatasourceTestConfig(),
             SqliteDatasourceTestConfig(),
         ] == ALL_DATA_SOURCES
 
@@ -1300,6 +1309,10 @@ class TestMetricsConftestsReexportTheSharedDefinition:
 # into a failing test instead of a silent gap: the repo's own import-sorter routinely places a new
 # backend module's import after `tiers`'s for any module name that sorts alphabetically later, and
 # nothing else in this suite would catch the result.
+# `sql_backends_for_tier` walks every config-bound registration, not only the SQL ones, so this
+# tuple is the shared-parameterization tier's whole membership — the eight SQL backends and the
+# three non-SQL configs that now declare the same criterion. `ALL_DATA_SOURCES` is pinned against
+# it directly; `SQL_DATA_SOURCES` against its SQL-engine subset.
 _REGISTERED_STANDARD_SQL = tuple(sql_backends_for_tier(BackendTier.STANDARD_SQL))
 _REGISTERED_CURATED_SQL = tuple(sql_backends_for_tier(BackendTier.CURATED_SQL))
 
@@ -1407,8 +1420,22 @@ class TestDerivedSqlListsReachEveryRegisteredBackend:
     are equally exposed to the same import-order accident.
     """
 
+    def test_all_data_sources_includes_every_registered_criterion_declaring_config(self) -> None:
+        """`ALL_DATA_SOURCES` is the tier read itself, so it must reach every declaring config."""
+        assert [type(config) for config in ALL_DATA_SOURCES] == list(_REGISTERED_STANDARD_SQL)
+
     def test_standard_sql_data_sources_includes_every_registered_standard_backend(self) -> None:
-        assert [type(config) for config in SQL_DATA_SOURCES] == list(_REGISTERED_STANDARD_SQL)
+        """`SQL_DATA_SOURCES` is that same tier read intersected with the SQL execution engine.
+
+        The expected value is computed here from the captured tuple rather than re-read from the
+        registry, for the reason the module comment above gives: inside this module's isolation
+        seam a live registry read would see an emptied registry and pass vacuously.
+        """
+        assert [type(config) for config in SQL_DATA_SOURCES] == [
+            config_class
+            for config_class in _REGISTERED_STANDARD_SQL
+            if config_class.BACKEND_SPEC.execution_engine is ExecutionEngineKind.SQL
+        ]
 
     def test_curated_sql_data_sources_includes_every_registered_curated_backend(self) -> None:
         assert [type(config) for config in CURATED_SQL_DATA_SOURCES] == list(
@@ -2346,6 +2373,7 @@ _RETROFITTED_CONTROLS: Mapping[str, _RetrofitControl] = {
             marker="unit",
             marker_scope=MarkerScope.SHARED,
             ci_lane=CiLaneRef(workflow_job="unit-tests", marker_token="unit"),
+            tiers=frozenset({BackendTier.STANDARD_SQL}),
         ),
     ),
     "pandas-filesystem-csv": (
@@ -2360,6 +2388,7 @@ _RETROFITTED_CONTROLS: Mapping[str, _RetrofitControl] = {
             marker="filesystem",
             marker_scope=MarkerScope.SHARED,
             ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="filesystem"),
+            tiers=frozenset({BackendTier.STANDARD_SQL}),
         ),
     ),
     "spark-filesystem-csv": (
@@ -2374,6 +2403,7 @@ _RETROFITTED_CONTROLS: Mapping[str, _RetrofitControl] = {
             marker="spark",
             marker_scope=MarkerScope.SHARED,
             ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="spark"),
+            tiers=frozenset({BackendTier.STANDARD_SQL}),
             dev_requirements_file="reqs/requirements-dev-spark.txt",
             task_runner_marker="spark",
         ),
