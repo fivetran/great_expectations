@@ -18,6 +18,7 @@ from tests.integration.test_utils.data_source_config import (
     PostgreSQLDatasourceTestConfig,
     RedshiftDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
+    SQLServerDatasourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.base import DataSourceTestConfig
 from tests.integration.test_utils.data_source_config.sqlite import SqliteDatasourceTestConfig
@@ -250,3 +251,26 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     unexpected_rows_str = str(unexpected_rows_data)
     assert "123" in unexpected_rows_str
     assert "a1b2" in unexpected_rows_str
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[SQLServerDatasourceTestConfig()],
+    data=DATA,
+)
+def test_unsupported_dialect_states_the_reason(batch_for_datasource: Batch) -> None:
+    """A dialect with no regex support must say so in the result, not fail silently.
+
+    SQL Server has no regex predicate to compile to, so the metric raises. The reason
+    reaches the user only through exception_info; a bare raise leaves it empty, which is
+    indistinguishable from a regex that matched nothing or a column that does not exist.
+    """
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToMatchRegex(column=BASIC_STRINGS, regex="^[a-z]{3}$")
+    )
+
+    assert result.success is False
+    messages = [info["exception_message"] for info in result.exception_info.values()]
+    assert messages, "expected the result to record an exception"
+    assert all("Regex is not supported for dialect mssql" in message for message in messages), (
+        f"exception_message does not state the cause: {messages!r}"
+    )
