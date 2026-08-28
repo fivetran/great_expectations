@@ -12,6 +12,7 @@ from great_expectations.util import (
     convert_ndarray_float_to_datetime_tuple,
     convert_ndarray_to_datetime_dtype_best_effort,
     deep_filter_properties_iterable,
+    ensure_sql_text_ends_on_new_line,
     filter_properties_dict,
     hyphen,
     is_ndarray_datetime_dtype,
@@ -563,3 +564,32 @@ def test_convert_ndarray_float_to_datetime_tuple(
 def test_hyphen():
     txt: str = "validation_result"
     assert hyphen(txt=txt) == "validation-result"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "query",
+    [
+        pytest.param("SELECT a FROM t -- trailing comment", id="trailing_line_comment"),
+        pytest.param("SELECT a FROM t", id="no_comment"),
+        pytest.param("SELECT a FROM t  ", id="trailing_whitespace"),
+        pytest.param("", id="empty"),
+    ],
+)
+def test_ensure_sql_text_ends_on_new_line_appends_a_newline(query: str):
+    terminated = ensure_sql_text_ends_on_new_line(query)
+    assert terminated == query + "\n"
+    assert terminated.startswith(query)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "query",
+    [
+        pytest.param("SELECT a FROM t -- trailing comment\n", id="line_comment"),
+        pytest.param("SELECT a FROM t\n", id="no_comment"),
+        pytest.param("SELECT a FROM t\r\n", id="windows_line_ending"),
+    ],
+)
+def test_ensure_sql_text_ends_on_new_line_leaves_terminated_text_alone(query: str):
+    assert ensure_sql_text_ends_on_new_line(query) == query

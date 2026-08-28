@@ -10,7 +10,10 @@ from great_expectations.compatibility.sqlalchemy import (
 )
 from great_expectations.core.batch import BatchData
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
-from great_expectations.util import generate_temporary_table_name
+from great_expectations.util import (
+    ensure_sql_text_ends_on_new_line,
+    generate_temporary_table_name,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -379,7 +382,7 @@ class SqlAlchemyBatchData(BatchData):
             sqlalchemy.Table: SqlAlchemy Table that is Selectable or a TextClause.
         """  # noqa: E501 # FIXME CoP
         if not create_temp_table:
-            return sa.text(query)
+            return sa.text(ensure_sql_text_ends_on_new_line(query))
         _, temp_table_name = self._create_temporary_table(
             dialect=dialect,
             query=query,

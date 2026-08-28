@@ -98,6 +98,7 @@ from great_expectations.expectations.row_conditions import (
     deserialize_row_condition,
 )
 from great_expectations.util import (
+    ensure_sql_text_ends_on_new_line,
     filter_properties_dict,
     get_sqlalchemy_selectable,
     get_sqlalchemy_url,
@@ -1328,7 +1329,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             and "partitioner_method" not in batch_spec
             and partition_clause is sa.true()
         ):
-            return sa.text(batch_spec["query"])
+            return sa.text(ensure_sql_text_ends_on_new_line(batch_spec["query"]))
 
         selectable: sqlalchemy.Selectable = self._subselectable(batch_spec)
         sampling_method: Optional[str] = batch_spec.get("sampling_method")
@@ -1371,7 +1372,11 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                 raise ValueError(f"SQL query should be a str but got {query}")  # noqa: TRY003 # FIXME CoP
             # Query is a valid SELECT query that begins with r"\w+select\w"
             selectable = sa.select(
-                sa.text(query.lstrip()[6:].strip().rstrip(";").rstrip())
+                sa.text(
+                    ensure_sql_text_ends_on_new_line(
+                        query.lstrip()[6:].strip().rstrip(";").rstrip()
+                    )
+                )
             ).subquery()
 
         return selectable

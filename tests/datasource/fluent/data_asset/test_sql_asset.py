@@ -12,6 +12,7 @@ from great_expectations.core.partitioners import (
 )
 from great_expectations.datasource.fluent import SQLDatasource
 from great_expectations.datasource.fluent.sql_datasource import (
+    QueryAsset,
     SqlAddBatchDefinitionError,
     TableAsset,
     _SQLAsset,
@@ -350,3 +351,19 @@ def test_validate_batch_definition(
 # Tests I considered adding for test_validate_batch_definition but have not.
 # 1. Engine dies on connect
 # 2. Connection dies on execute
+
+
+@pytest.mark.unit
+def test_query_asset_as_selectable_wraps_a_trailing_line_comment_on_a_fresh_line():
+    """`as_selectable` renders the asset as a subselect for use in a FROM clause. Appending the
+    wrapping syntax to text that ends in a line comment would comment the wrapping out.
+
+    See https://github.com/fivetran/great_expectations/issues/12122.
+    """
+    asset = QueryAsset(name="query_asset", query="SELECT col_a FROM t -- only what we need")
+
+    rendered = str(sqlalchemy.sql.select(sqlalchemy.text("*")).select_from(asset.as_selectable()))
+
+    assert not any(
+        "--" in line and line.index("--") < line.rfind(")") for line in rendered.splitlines()
+    )

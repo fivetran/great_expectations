@@ -921,6 +921,22 @@ def get_sqlalchemy_selectable(
     return selectable
 
 
+def ensure_sql_text_ends_on_new_line(query: str) -> str:
+    """Return ``query`` guaranteed to end on a fresh line.
+
+    Great Expectations embeds a user's raw SQL text in wrapping syntax, ``(<query>) AS anon_1``,
+    that SQLAlchemy compiles onto a single line, reproducing the text as an opaque blob. When the
+    text ends in a line comment (``-- ...``, or ``#...`` on MySQL), the appended closing paren and
+    alias land inside that comment, the statement is never terminated, and the database rejects it.
+
+    SQLAlchemy cannot know that a dialect-specific comment is still open at the end of a text
+    fragment, so the newline has to come from our side. Ending the text on a fresh line puts
+    whatever is appended past the comment on every dialect, and needs no SQL parsing. Text that
+    already ends in a newline is returned unchanged.
+    """
+    return query if query.endswith("\n") else query + "\n"
+
+
 def get_sqlalchemy_subquery_type():
     """
     Beginning from SQLAlchemy 1.4, `sqlalchemy.sql.Alias` has been deprecated in favor of `sqlalchemy.sql.Subquery`.
