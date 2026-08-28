@@ -60,24 +60,24 @@ from tests.integration.test_utils.data_source_config.base import (
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendProvisioning,
-    BackendTier,
     CiLaneRef,
+    DataSourceProvisioning,
     DataSourceSpec,
     ExecutionEngineKind,
     MarkerScope,
+    SupportTier,
 )
 from tests.integration.test_utils.data_source_config.registry import (
     _OUTSIDE_SHARED_PARAMETERIZATION,
     RegisteredDataSource,
     data_source_configs_for_engine,
+    data_source_configs_for_tier,
     isolated_registry,
+    iter_data_source_configs,
     iter_data_source_specs,
     iter_data_sources,
-    iter_sql_backends,
     register_data_source,
-    register_sql_backend,
-    sql_backends_for_tier,
+    register_sql_config,
 )
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
@@ -97,7 +97,7 @@ def _make_spec(**overrides: object) -> SqlBackendSpec:
         label="throwaway",
         public_name="Throwaway",
         marker="throwaway",
-        provisioning=BackendProvisioning.LOCAL_FILE,
+        provisioning=DataSourceProvisioning.LOCAL_FILE,
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="throwaway"),
         uses_schema=False,
     )
@@ -110,11 +110,11 @@ def _make_spec(**overrides: object) -> SqlBackendSpec:
 # mandatory-declaration rule exactly as a real one is, so the records below that do both declare
 # the criterion rather than being exempted; the rule itself is proven further down, with records
 # built to violate it.
-_CANONICAL_CLAIM = frozenset({BackendTier.STANDARD_SQL})
+_CANONICAL_CLAIM = frozenset({SupportTier.CANONICAL_EXPECTATIONS})
 
 
 def _make_config_class(name: str, spec: SqlBackendSpec) -> type:
-    return type(name, (), {"BACKEND_SPEC": spec})
+    return type(name, (), {"DATA_SOURCE_SPEC": spec})
 
 
 def _make_core_spec(**overrides: object) -> DataSourceSpec:
@@ -122,7 +122,7 @@ def _make_core_spec(**overrides: object) -> DataSourceSpec:
     defaults: dict[str, object] = dict(
         label="throwaway-core",
         public_name="Throwaway Core",
-        provisioning=BackendProvisioning.IN_PROCESS,
+        provisioning=DataSourceProvisioning.IN_PROCESS,
     )
     defaults.update(overrides)
     return DataSourceSpec(**defaults)  # type: ignore[arg-type]
@@ -147,7 +147,7 @@ class TestSqlBackendSpecMarkRoundTrip:
         assert spec.pytest_mark == pytest.mark.mysql
 
     def test_pytest_mark_round_trips_a_different_marker_name(self) -> None:
-        spec = _make_spec(marker="singlestore", tiers=frozenset({BackendTier.CURATED_SQL}))
+        spec = _make_spec(marker="singlestore", tiers=frozenset({SupportTier.CURATED_SQL}))
 
         assert spec.pytest_mark == pytest.mark.singlestore
 
@@ -162,7 +162,7 @@ class TestSqlBackendSpecTableSchemaItemsDefault:
 class TestIsolatedSnapshotEmptyRegistryCase:
     def test_registry_is_empty_within_a_fresh_isolated_snapshot(self) -> None:
         with isolated_registry():
-            assert iter_sql_backends() == ()
+            assert iter_data_source_configs() == ()
 
 
 class TestIsolatedSnapshotRestoresRealRegistry:
@@ -171,47 +171,49 @@ class TestIsolatedSnapshotRestoresRealRegistry:
         # proves both halves of the seam: that entering it clears down to empty, and that exiting
         # it restores exactly what was there beforehand — regardless of what the real registry
         # elsewhere happens to hold.
-        register_sql_backend(_make_config_class("Baseline", _make_spec(label="baseline")))
-        before = iter_sql_backends()
+        register_sql_config(_make_config_class("Baseline", _make_spec(label="baseline")))
+        before = iter_data_source_configs()
         assert before != ()
 
         with isolated_registry():
-            assert iter_sql_backends() == ()
-            register_sql_backend(_make_config_class("Throwaway", _make_spec()))
-            assert iter_sql_backends() != before
+            assert iter_data_source_configs() == ()
+            register_sql_config(_make_config_class("Throwaway", _make_spec()))
+            assert iter_data_source_configs() != before
 
-        assert iter_sql_backends() == before
+        assert iter_data_source_configs() == before
 
 
-class TestRegisterSqlBackendOrdering:
-    def test_iter_sql_backends_orders_registrations_by_label_not_registration_order(self) -> None:
+class TestRegisterSqlConfigOrdering:
+    def test_iter_data_source_configs_orders_registrations_by_label_not_registration_order(
+        self,
+    ) -> None:
         zebra = _make_config_class("Zebra", _make_spec(label="zebra", marker="zebra_marker"))
         apple = _make_config_class("Apple", _make_spec(label="apple", marker="apple_marker"))
 
-        register_sql_backend(zebra)
-        register_sql_backend(apple)
+        register_sql_config(zebra)
+        register_sql_config(apple)
 
-        assert iter_sql_backends() == (apple, zebra)
+        assert iter_data_source_configs() == (apple, zebra)
 
 
-class TestSqlBackendsForTier:
+class TestDataSourceConfigsForTier:
     def test_returns_only_backends_declaring_the_tier_ordered_by_label(self) -> None:
         member = _make_config_class(
             "Member",
             _make_spec(
                 label="member",
                 marker="member_marker",
-                tiers=frozenset({BackendTier.CURATED_SQL}),
+                tiers=frozenset({SupportTier.CURATED_SQL}),
             ),
         )
         non_member = _make_config_class(
             "NonMember", _make_spec(label="non-member", marker="non_member_marker")
         )
 
-        register_sql_backend(member)
-        register_sql_backend(non_member)
+        register_sql_config(member)
+        register_sql_config(non_member)
 
-        assert sql_backends_for_tier(BackendTier.CURATED_SQL) == (member,)
+        assert data_source_configs_for_tier(SupportTier.CURATED_SQL) == (member,)
 
 
 class TestDataSourcesForTierCase:
@@ -224,13 +226,13 @@ class TestDataSourcesForTierCase:
         self,
     ) -> None:
         # Registered zebra before apple - non-alphabetical - so a result in label order can only
-        # come from `sql_backends_for_tier`'s own label sort, never from registration order.
+        # come from `data_source_configs_for_tier`'s own label sort, never from registration order.
         zebra = _make_config_class(
             "Zebra",
             _make_spec(
                 label="zebra",
                 marker="zebra_marker",
-                tiers=frozenset({BackendTier.CURATED_SQL}),
+                tiers=frozenset({SupportTier.CURATED_SQL}),
                 tier_case_exclusions={"flaky_case": "observed non-determinism, see issue #1"},
             ),
         )
@@ -239,32 +241,34 @@ class TestDataSourcesForTierCase:
             _make_spec(
                 label="apple",
                 marker="apple_marker",
-                tiers=frozenset({BackendTier.CURATED_SQL}),
+                tiers=frozenset({SupportTier.CURATED_SQL}),
             ),
         )
-        register_sql_backend(zebra)
-        register_sql_backend(apple)
+        register_sql_config(zebra)
+        register_sql_config(apple)
 
-        excluded_case = data_sources_for_tier_case(BackendTier.CURATED_SQL, "flaky_case")
+        excluded_case = data_sources_for_tier_case(SupportTier.CURATED_SQL, "flaky_case")
         assert [type(config) for config in excluded_case] == [apple]
 
-        other_case = data_sources_for_tier_case(BackendTier.CURATED_SQL, "unrelated_case")
+        other_case = data_sources_for_tier_case(SupportTier.CURATED_SQL, "unrelated_case")
         assert [type(config) for config in other_case] == [apple, zebra]
 
     def test_with_no_exclusions_declared_matches_the_tiers_call_time_membership(self) -> None:
         """The behavior-preservation oracle for this accessor, stated call-time-to-call-time
         rather than against `CURATED_SQL_DATA_SOURCES`.
 
-        `sql_backends_for_tier` reads the registry fresh on every call. `CURATED_SQL_DATA_SOURCES`
-        is a list built once, when the defining module is first imported, from whatever the
+        `data_source_configs_for_tier` reads the registry fresh on every call.
+        `CURATED_SQL_DATA_SOURCES` is a list built once, when the defining module is first
+        imported, from whatever the
         registry held at that moment. This module's autouse fixture clears the registry around
         every test, so inside a test body a call-time read and that import-time snapshot are
         answering two different questions: comparing them here would pass vacuously today (both
         happen to be empty, since nothing yet declares the curated tier at import time) and would
         fail for a reason that has nothing to do with this accessor the first time a real backend
         joins that tier here without also being re-imported. Comparing `data_sources_for_tier_case`
-        to `sql_backends_for_tier` instead keeps both sides of the comparison call-time, so the
-        assertion is meaningful inside this isolated registry and stays correct regardless of what
+        to `data_source_configs_for_tier` instead keeps both sides of the comparison call-time,
+        so the assertion is meaningful inside this isolated registry and stays correct regardless
+        of what
         the real, outside-the-seam registry holds at any given moment. The published-key,
         `CURATED_SQL_DATA_SOURCES`-referencing form of this same oracle belongs in the curated
         suite's own module, which runs against the real, unmodified registry rather than this
@@ -273,22 +277,22 @@ class TestDataSourcesForTierCase:
         zebra = _make_config_class(
             "Zebra",
             _make_spec(
-                label="zebra", marker="zebra_marker", tiers=frozenset({BackendTier.CURATED_SQL})
+                label="zebra", marker="zebra_marker", tiers=frozenset({SupportTier.CURATED_SQL})
             ),
         )
         apple = _make_config_class(
             "Apple",
             _make_spec(
-                label="apple", marker="apple_marker", tiers=frozenset({BackendTier.CURATED_SQL})
+                label="apple", marker="apple_marker", tiers=frozenset({SupportTier.CURATED_SQL})
             ),
         )
-        register_sql_backend(zebra)
-        register_sql_backend(apple)
+        register_sql_config(zebra)
+        register_sql_config(apple)
 
-        result = data_sources_for_tier_case(BackendTier.CURATED_SQL, "arbitrary_case")
+        result = data_sources_for_tier_case(SupportTier.CURATED_SQL, "arbitrary_case")
 
         assert [type(config) for config in result] == list(
-            sql_backends_for_tier(BackendTier.CURATED_SQL)
+            data_source_configs_for_tier(SupportTier.CURATED_SQL)
         )
 
     def test_filters_the_tier_it_is_asked_for_rather_than_a_fixed_one(self) -> None:
@@ -302,7 +306,7 @@ class TestDataSourcesForTierCase:
             _make_spec(
                 label="curated-only",
                 marker="curated_only_marker",
-                tiers=frozenset({BackendTier.CURATED_SQL}),
+                tiers=frozenset({SupportTier.CURATED_SQL}),
             ),
         )
         standard = _make_config_class(
@@ -310,39 +314,41 @@ class TestDataSourcesForTierCase:
             _make_spec(
                 label="standard-only",
                 marker="standard_only_marker",
-                tiers=frozenset({BackendTier.STANDARD_SQL}),
+                tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
                 tier_case_exclusions={"skipped_case": "not meaningful for this dialect"},
             ),
         )
-        register_sql_backend(curated)
-        register_sql_backend(standard)
+        register_sql_config(curated)
+        register_sql_config(standard)
 
         # Each tier sees only its own member, so a hard-coded tier would return the wrong one.
         assert [
             type(config)
-            for config in data_sources_for_tier_case(BackendTier.STANDARD_SQL, "unrelated_case")
+            for config in data_sources_for_tier_case(
+                SupportTier.CANONICAL_EXPECTATIONS, "unrelated_case"
+            )
         ] == [standard]
         assert [
             type(config)
-            for config in data_sources_for_tier_case(BackendTier.CURATED_SQL, "unrelated_case")
+            for config in data_sources_for_tier_case(SupportTier.CURATED_SQL, "unrelated_case")
         ] == [curated]
 
         # And the exclusion applies within the tier that declared it, not across tiers.
-        assert data_sources_for_tier_case(BackendTier.STANDARD_SQL, "skipped_case") == []
+        assert data_sources_for_tier_case(SupportTier.CANONICAL_EXPECTATIONS, "skipped_case") == []
         assert [
             type(config)
-            for config in data_sources_for_tier_case(BackendTier.CURATED_SQL, "skipped_case")
+            for config in data_sources_for_tier_case(SupportTier.CURATED_SQL, "skipped_case")
         ] == [curated]
 
 
-class TestRegisterSqlBackendDuplicateLabel:
+class TestRegisterSqlConfigDuplicateLabel:
     def test_duplicate_label_raises_naming_both_classes(self) -> None:
         first = _make_config_class("First", _make_spec(label="dup-label", marker="first_marker"))
         second = _make_config_class("Second", _make_spec(label="dup-label", marker="second_marker"))
-        register_sql_backend(first)
+        register_sql_config(first)
 
         with pytest.raises(ValueError) as excinfo:
-            register_sql_backend(second)
+            register_sql_config(second)
 
         message = str(excinfo.value)
         assert "First" in message
@@ -350,14 +356,14 @@ class TestRegisterSqlBackendDuplicateLabel:
         assert "dup-label" in message
 
 
-class TestRegisterSqlBackendDuplicateMarker:
+class TestRegisterSqlConfigDuplicateMarker:
     def test_duplicate_marker_raises_naming_both_classes(self) -> None:
         first = _make_config_class("First", _make_spec(label="first-label", marker="dup_marker"))
         second = _make_config_class("Second", _make_spec(label="second-label", marker="dup_marker"))
-        register_sql_backend(first)
+        register_sql_config(first)
 
         with pytest.raises(ValueError) as excinfo:
-            register_sql_backend(second)
+            register_sql_config(second)
 
         message = str(excinfo.value)
         assert "First" in message
@@ -365,19 +371,19 @@ class TestRegisterSqlBackendDuplicateMarker:
         assert "dup_marker" in message
 
 
-class TestRegisterSqlBackendContainerProvisioning:
+class TestRegisterSqlConfigContainerProvisioning:
     def test_local_container_without_container_service_raises(self) -> None:
         config_class = _make_config_class(
             "NoService",
             _make_spec(
-                provisioning=BackendProvisioning.LOCAL_CONTAINER,
+                provisioning=DataSourceProvisioning.LOCAL_CONTAINER,
                 container_service=None,
-                tiers=frozenset({BackendTier.CURATED_SQL}),
+                tiers=frozenset({SupportTier.CURATED_SQL}),
             ),
         )
 
         with pytest.raises(ValueError) as excinfo:
-            register_sql_backend(config_class)
+            register_sql_config(config_class)
 
         message = str(excinfo.value)
         assert "NoService" in message
@@ -394,27 +400,29 @@ class TestRegisterSqlBackendContainerProvisioning:
     def test_container_service_without_local_container_raises(self) -> None:
         config_class = _make_config_class(
             "StrayService",
-            _make_spec(provisioning=BackendProvisioning.LOCAL_FILE, container_service="throwaway"),
+            _make_spec(
+                provisioning=DataSourceProvisioning.LOCAL_FILE, container_service="throwaway"
+            ),
         )
 
         with pytest.raises(ValueError) as excinfo:
-            register_sql_backend(config_class)
+            register_sql_config(config_class)
 
         assert "StrayService" in str(excinfo.value)
 
 
-class TestRegisterSqlBackendEmptyFields:
+class TestRegisterSqlConfigEmptyFields:
     def test_empty_label_raises(self) -> None:
         config_class = _make_config_class("BlankLabel", _make_spec(label=""))
 
         with pytest.raises(ValueError, match="BlankLabel"):
-            register_sql_backend(config_class)
+            register_sql_config(config_class)
 
     def test_empty_marker_raises(self) -> None:
         config_class = _make_config_class("BlankMarker", _make_spec(marker=""))
 
         with pytest.raises(ValueError, match="BlankMarker"):
-            register_sql_backend(config_class)
+            register_sql_config(config_class)
 
     def test_empty_ci_lane_workflow_job_raises(self) -> None:
         config_class = _make_config_class(
@@ -423,7 +431,7 @@ class TestRegisterSqlBackendEmptyFields:
         )
 
         with pytest.raises(ValueError, match="BlankWorkflowJob"):
-            register_sql_backend(config_class)
+            register_sql_config(config_class)
 
     def test_empty_ci_lane_marker_token_raises(self) -> None:
         config_class = _make_config_class(
@@ -432,29 +440,29 @@ class TestRegisterSqlBackendEmptyFields:
         )
 
         with pytest.raises(ValueError, match="BlankCiLane"):
-            register_sql_backend(config_class)
+            register_sql_config(config_class)
 
     def test_non_positive_insert_parameter_limit_raises(self) -> None:
         config_class = _make_config_class("ZeroLimit", _make_spec(insert_parameter_limit=0))
 
         with pytest.raises(ValueError, match="ZeroLimit"):
-            register_sql_backend(config_class)
+            register_sql_config(config_class)
 
     def test_negative_insert_parameter_limit_raises(self) -> None:
         config_class = _make_config_class("NegativeLimit", _make_spec(insert_parameter_limit=-1))
 
         with pytest.raises(ValueError, match="NegativeLimit"):
-            register_sql_backend(config_class)
+            register_sql_config(config_class)
 
 
-class TestRegisterSqlBackendTierCaseExclusionReasons:
+class TestRegisterSqlConfigTierCaseExclusionReasons:
     def test_empty_case_key_raises(self) -> None:
         config_class = _make_config_class(
             "BlankKey", _make_spec(tier_case_exclusions={"": "a reason"})
         )
 
         with pytest.raises(ValueError, match="BlankKey"):
-            register_sql_backend(config_class)
+            register_sql_config(config_class)
 
     def test_empty_reason_raises_naming_class_and_case_key(self) -> None:
         config_class = _make_config_class(
@@ -462,7 +470,7 @@ class TestRegisterSqlBackendTierCaseExclusionReasons:
         )
 
         with pytest.raises(ValueError) as excinfo:
-            register_sql_backend(config_class)
+            register_sql_config(config_class)
 
         message = str(excinfo.value)
         assert "BlankReason" in message
@@ -474,14 +482,14 @@ class TestRegisterSqlBackendTierCaseExclusionReasons:
         )
 
         with pytest.raises(ValueError) as excinfo:
-            register_sql_backend(config_class)
+            register_sql_config(config_class)
 
         message = str(excinfo.value)
         assert "WhitespaceReason" in message
         assert "some_case" in message
 
 
-class TestRegisterSqlBackendTierCaseExclusionCeiling:
+class TestRegisterSqlConfigTierCaseExclusionCeiling:
     def test_exactly_two_exclusions_registers_cleanly(self) -> None:
         config_class = _make_config_class(
             "TwoExclusions",
@@ -493,9 +501,9 @@ class TestRegisterSqlBackendTierCaseExclusionCeiling:
             ),
         )
 
-        register_sql_backend(config_class)
+        register_sql_config(config_class)
 
-        assert config_class in iter_sql_backends()
+        assert config_class in iter_data_source_configs()
 
     def test_three_exclusions_raises_naming_class_count_and_all_keys(self) -> None:
         config_class = _make_config_class(
@@ -510,7 +518,7 @@ class TestRegisterSqlBackendTierCaseExclusionCeiling:
         )
 
         with pytest.raises(ValueError) as excinfo:
-            register_sql_backend(config_class)
+            register_sql_config(config_class)
 
         message = str(excinfo.value)
         assert "ThreeExclusions" in message
@@ -520,7 +528,7 @@ class TestRegisterSqlBackendTierCaseExclusionCeiling:
         assert "case_three" in message
 
 
-class TestRegisterSqlBackendTableSchemaItems:
+class TestRegisterSqlConfigTableSchemaItems:
     def test_non_callable_table_schema_items_raises(self) -> None:
         config_class = _make_config_class(
             "NotCallable",
@@ -528,7 +536,7 @@ class TestRegisterSqlBackendTableSchemaItems:
         )
 
         with pytest.raises(ValueError, match="NotCallable"):
-            register_sql_backend(config_class)
+            register_sql_config(config_class)
 
     def test_callable_table_schema_items_is_validated_without_being_invoked(self) -> None:
         calls: List[None] = []
@@ -539,7 +547,7 @@ class TestRegisterSqlBackendTableSchemaItems:
 
         config_class = _make_config_class("Callable", _make_spec(table_schema_items=factory))
 
-        register_sql_backend(config_class)
+        register_sql_config(config_class)
 
         assert calls == []
 
@@ -578,7 +586,7 @@ _THROWAWAY_DECLARED_SPEC = SqlBackendSpec(
     label="mssql",
     public_name="SQL Server",
     marker="sql_server",
-    provisioning=BackendProvisioning.LOCAL_FILE,
+    provisioning=DataSourceProvisioning.LOCAL_FILE,
     ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="sql_server"),
     uses_schema=True,
 )
@@ -588,7 +596,7 @@ class _DeclaredConfig(SqlDatasourceTestConfig):
     """Throwaway config that derives its identity from a declared `SqlBackendSpec`, mirroring
     `_HandWrittenControlConfig`'s label and marker exactly."""
 
-    BACKEND_SPEC = _THROWAWAY_DECLARED_SPEC
+    DATA_SOURCE_SPEC = _THROWAWAY_DECLARED_SPEC
 
     @override
     def create_batch_setup(
@@ -620,7 +628,7 @@ class TestSqlDatasourceTestConfigOverrideSeam:
             label="ad-hoc",
             public_name="Ad-hoc SQL",
             marker="generic_sql",
-            provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+            provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
             ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="generic_sql"),
             uses_schema=False,
         )
@@ -633,26 +641,26 @@ class TestSqlDatasourceTestConfigOverrideSeam:
         assert overridden_instance.label == "ad-hoc"
         assert overridden_instance.pytest_mark == pytest.mark.generic_sql
         # The class-level declaration itself is untouched by the per-instance override.
-        assert _DeclaredConfig.BACKEND_SPEC is _THROWAWAY_DECLARED_SPEC
+        assert _DeclaredConfig.DATA_SOURCE_SPEC is _THROWAWAY_DECLARED_SPEC
 
 
 class TestSqlDatasourceTestConfigSatisfiesRegistrationProtocol:
     def test_a_declared_config_class_registers_successfully(self) -> None:
-        # `register_sql_backend` is typed to accept only a class exposing
-        # `BACKEND_SPEC: ClassVar[SqlBackendSpec]`. This call site is the first proof, under
+        # `register_sql_config` is typed to accept only a class exposing
+        # `DATA_SOURCE_SPEC: ClassVar[SqlBackendSpec]`. This call site is the first proof, under
         # mypy, that a real config class built on the declaration-derived base satisfies that
         # shape structurally rather than by explicit inheritance.
         with isolated_registry():
-            register_sql_backend(_DeclaredConfig)
+            register_sql_config(_DeclaredConfig)
 
-            assert _DeclaredConfig in iter_sql_backends()
+            assert _DeclaredConfig in iter_data_source_configs()
 
 
 _THROWAWAY_CORE_SPEC = DataSourceSpec(
     label="mssql",
     public_name="SQL Server",
     marker="sql_server",
-    provisioning=BackendProvisioning.LOCAL_FILE,
+    provisioning=DataSourceProvisioning.LOCAL_FILE,
 )
 
 
@@ -665,7 +673,7 @@ class _CoreDeclaredConfig(DataSourceTestConfig):
     same way a SQL backend does.
     """
 
-    BACKEND_SPEC = _THROWAWAY_CORE_SPEC
+    DATA_SOURCE_SPEC = _THROWAWAY_CORE_SPEC
 
     @override
     def create_batch_setup(
@@ -711,9 +719,9 @@ class TestSharedConfigBaseDerivesIdentityFromACoreRecord:
         the declaration would silently join every config's constructor, equality and hash. That
         failure is invisible at the declaration site, so it is checked here.
         """
-        assert "BACKEND_SPEC" not in {f.name for f in fields(DataSourceTestConfig)}
-        assert "BACKEND_SPEC" not in {f.name for f in fields(_CoreDeclaredConfig)}
-        assert "BACKEND_SPEC" not in {f.name for f in fields(_DeclaredConfig)}
+        assert "DATA_SOURCE_SPEC" not in {f.name for f in fields(DataSourceTestConfig)}
+        assert "DATA_SOURCE_SPEC" not in {f.name for f in fields(_CoreDeclaredConfig)}
+        assert "DATA_SOURCE_SPEC" not in {f.name for f in fields(_DeclaredConfig)}
 
 
 class TestTheDeclarationSlotIsDeclaredExactlyOnce:
@@ -731,7 +739,7 @@ class TestTheDeclarationSlotIsDeclaredExactlyOnce:
         config class must have in order to be enrolled, which is a requirement placed on a
         declaration rather than a second place to make one. `_DeclaresDataSourceSpec` states the
         core-width shape the registry stores and every accessor hands back;
-        `_DeclaresBackendSpec` narrows it for the SQL-specific entry point, and that narrowing
+        `_DeclaresSqlBackendSpec` narrows it for the SQL-specific entry point, and that narrowing
         exists because a protocol variable member is invariant, so a config whose own symbol is
         inferred at the sub-record type would otherwise stop satisfying a core-width protocol at
         its registration site.
@@ -746,12 +754,12 @@ class TestTheDeclarationSlotIsDeclaredExactlyOnce:
             for obj in vars(module).values():
                 if not isinstance(obj, type) or not obj.__module__.startswith(package_name):
                     continue
-                if "BACKEND_SPEC" in vars(obj).get("__annotations__", {}):
+                if "DATA_SOURCE_SPEC" in vars(obj).get("__annotations__", {}):
                     annotating.add(obj.__qualname__)
 
         assert annotating == {
             "DataSourceTestConfig",
-            "_DeclaresBackendSpec",
+            "_DeclaresSqlBackendSpec",
             "_DeclaresDataSourceSpec",
         }
 
@@ -760,7 +768,7 @@ class TestLocallyVerifiableBackendsRegisterInLabelOrder:
     def test_postgres_mysql_sql_server_and_sqlite_appear_in_label_order(self) -> None:
         # Re-register the four real, locally verifiable backend configs inside this module's
         # isolation seam. Each class is already enrolled once, for real, at import time via its
-        # own `@register_sql_backend` decorator; re-registering it here (against the seam's
+        # own `@register_sql_config` decorator; re-registering it here (against the seam's
         # cleared, isolated dicts, not the real registry) proves the same fact the real import
         # already established, without depending on import order relative to the eight other
         # backend modules that will be added in later tasks.
@@ -783,13 +791,13 @@ class TestLocallyVerifiableBackendsRegisterInLabelOrder:
             SQLServerDatasourceTestConfig,
             SqliteDatasourceTestConfig,
         ):
-            register_sql_backend(config_class)
+            register_sql_config(config_class)
 
         # This is the seam-local ordering subset, not the registered-set pin further down this
         # module. The two literals look alike - same classes, same trailing label comments - but
         # they answer different questions, and only the other one has to grow when a backend is
         # added. Edit by line, not by matching on these lines.
-        assert iter_sql_backends() == (
+        assert iter_data_source_configs() == (
             SQLServerDatasourceTestConfig,  # mssql
             MySQLDatasourceTestConfig,  # mysql
             PostgreSQLDatasourceTestConfig,  # postgresql
@@ -826,9 +834,9 @@ class TestCredentialGatedBackendsRegisterInLabelOrder:
             RedshiftDatasourceTestConfig,
             DatabricksDatasourceTestConfig,
         ):
-            register_sql_backend(config_class)
+            register_sql_config(config_class)
 
-        assert iter_sql_backends() == (
+        assert iter_data_source_configs() == (
             BigQueryDatasourceTestConfig,  # big-query
             DatabricksDatasourceTestConfig,  # databricks
             RedshiftDatasourceTestConfig,  # redshift
@@ -847,8 +855,10 @@ class TestGenericSqlEscapeHatchIsDeclaredButUnregistered:
             GenericSQLDatasourceTestConfig,
         )
 
-        assert GenericSQLDatasourceTestConfig not in iter_sql_backends()
-        assert "generic_sql" not in {backend.BACKEND_SPEC.label for backend in iter_sql_backends()}
+        assert GenericSQLDatasourceTestConfig not in iter_data_source_configs()
+        assert "generic_sql" not in {
+            backend.DATA_SOURCE_SPEC.label for backend in iter_data_source_configs()
+        }
 
     def test_its_declared_record_still_passes_registration_validation(self) -> None:
         """Proves the absence above is a deliberate omission, not a side effect of the record
@@ -867,7 +877,7 @@ class TestGenericSqlEscapeHatchIsDeclaredButUnregistered:
         )
 
         with isolated_registry():
-            register_data_source(GenericSQLDatasourceTestConfig.BACKEND_SPEC)
+            register_data_source(GenericSQLDatasourceTestConfig.DATA_SOURCE_SPEC)
 
             assert [spec.label for spec in iter_data_source_specs()] == ["generic_sql"]
 
@@ -886,7 +896,7 @@ class TestGenericSqlEscapeHatchIsDeclaredButUnregistered:
         )
 
         with isolated_registry(), pytest.raises(ValueError) as excinfo:
-            register_sql_backend(GenericSQLDatasourceTestConfig)
+            register_sql_config(GenericSQLDatasourceTestConfig)
 
         assert "does not declare the shared canonical expectation parameterization" in str(
             excinfo.value
@@ -923,7 +933,7 @@ class TestGenericSqlEscapeHatchAutocommitSeam:
         GenericSQLDatasourceTestConfig(autocommit=True)
 
         assert (
-            GenericSQLDatasourceTestConfig.BACKEND_SPEC.transaction_mode
+            GenericSQLDatasourceTestConfig.DATA_SOURCE_SPEC.transaction_mode
             == TransactionMode.EXPLICIT_COMMIT
         )
 
@@ -1148,8 +1158,8 @@ class TestStandardDataSourceListsMatchDeclaredMembership:
     `test_canonical_expectations.py` held until it was retired but declared no tier, so the derived
     lists — the pair the metrics tree consumes — omitted all three, and roughly 165 metrics
     parameterizations never ran against them while the same backends ran the full expectation
-    suite. Declaring `BackendTier.STANDARD_SQL` on those three configs is what puts them in the
-    literals below. What now stops that kind of divergence recurring is the mandatory
+    suite. Declaring `SupportTier.CANONICAL_EXPECTATIONS` on those three configs is what puts
+    them in the literals below. What now stops that kind of divergence recurring is the mandatory
     shared-parameterization criterion, which makes a config joining the shared parameterization
     without declaring it a registration-time error rather than a silent omission, together with
     `TestRelocatedDataSourceListsMatchTheirCapturedMembership` below, which pins each relocated
@@ -1298,7 +1308,7 @@ class TestRelocatedDataSourceListsMatchTheirCapturedMembership:
 
     @staticmethod
     def _labels(configs: Sequence[DataSourceTestConfig]) -> FrozenSet[str]:
-        return frozenset(type(config).BACKEND_SPEC.label for config in configs)
+        return frozenset(type(config).DATA_SOURCE_SPEC.label for config in configs)
 
     def test_all_data_sources_lost_exactly_the_escape_hatch(self) -> None:
         """Asserted as a set difference in both directions, never as a new count.
@@ -1424,20 +1434,22 @@ class TestMetricsConftestsReexportTheSharedDefinition:
 # backend module and only then imports `tiers`, and before any test in this module runs (in
 # particular, before this module's own `_snapshot_registry` autouse fixture ever clears the
 # registry). `tiers.py` builds `SQL_DATA_SOURCES` and `CURATED_SQL_DATA_SOURCES` once, at *its*
-# import time, from whatever the registry holds at that moment. If some backend module were
-# imported after `tiers` instead of before it, that backend would finish registering only once
-# this module's own top-level import statement reaches it — later than `tiers` already built its
-# lists — so it would be absent from both lists even though `sql_backends_for_tier` called here,
-# afterward, reports it correctly. Comparing the two below is what turns that ordering accident
-# into a failing test instead of a silent gap: the repo's own import-sorter routinely places a new
-# backend module's import after `tiers`'s for any module name that sorts alphabetically later, and
-# nothing else in this suite would catch the result.
-# `sql_backends_for_tier` walks every config-bound registration, not only the SQL ones, so this
-# tuple is the shared-parameterization tier's whole membership — the eight SQL backends and the
+# import time, from whatever the registry holds at that moment. If some backend module were imported
+# after `tiers` instead of before it, that backend would finish registering only once this module's
+# own top-level import statement reaches it — later than `tiers` already built its lists — so it
+# would be absent from both lists even though `data_source_configs_for_tier` called here, afterward,
+# reports it correctly. Comparing the two below is what turns that ordering accident into a failing
+# test instead of a silent gap: the repo's own import-sorter routinely places a new backend module's
+# import after `tiers`'s for any module name that sorts alphabetically later, and nothing else in
+# this suite would catch the result.
+# `data_source_configs_for_tier` walks every config-bound registration, not only the SQL ones, so
+# this tuple is the shared-parameterization tier's whole membership — the eight SQL backends and the
 # three non-SQL configs that now declare the same criterion. `ALL_DATA_SOURCES` is pinned against
 # it directly; `SQL_DATA_SOURCES` against its SQL-engine subset.
-_REGISTERED_STANDARD_SQL = tuple(sql_backends_for_tier(BackendTier.STANDARD_SQL))
-_REGISTERED_CURATED_SQL = tuple(sql_backends_for_tier(BackendTier.CURATED_SQL))
+_REGISTERED_CANONICAL_EXPECTATIONS = tuple(
+    data_source_configs_for_tier(SupportTier.CANONICAL_EXPECTATIONS)
+)
+_REGISTERED_CURATED_SQL = tuple(data_source_configs_for_tier(SupportTier.CURATED_SQL))
 
 # The same capture, for the same reason, over the two engine-keyed lists. `tiers.py` builds
 # `PANDAS_DATA_SOURCES` and `SPARK_DATA_SOURCES` once at its own import time, exactly as it builds
@@ -1449,11 +1461,12 @@ _REGISTERED_SPARK_CONFIGS = tuple(data_source_configs_for_engine(ExecutionEngine
 
 # Also captured here, at this module's own import time and for the same reason as the two tuples
 # above: this module's `_snapshot_registry` autouse fixture clears the registry around every test,
-# so a test body calling `iter_sql_backends()` directly would iterate nothing and pass vacuously.
-# Unlike the two tuples above, this one is not sensitive to import order relative to `tiers.py` -
-# it is the whole registered set, not a tier-filtered derivation of it - but it still has to be
+# so a test body calling `iter_data_source_configs()` directly would iterate nothing and pass
+# vacuously. Unlike the two tuples above, this one is not sensitive to import order relative to
+# `tiers.py` - it is the whole registered set, not a tier-filtered derivation of it - but it
+# still has to be
 # read before any test runs, hence the same module-scope placement.
-_REGISTERED_SQL_BACKENDS: Tuple[type, ...] = tuple(iter_sql_backends())
+_REGISTERED_CONFIGS: Tuple[type, ...] = tuple(iter_data_source_configs())
 
 
 class TestRegisteredConfigsEqualTheFifteenInLabelOrder:
@@ -1529,25 +1542,27 @@ class TestRegisteredConfigsEqualTheFifteenInLabelOrder:
             SparkFilesystemCsvDatasourceTestConfig,  # spark-filesystem-csv
             SqliteDatasourceTestConfig,  # sqlite
             TrinoDatasourceTestConfig,  # trino
-        ) == _REGISTERED_SQL_BACKENDS
+        ) == _REGISTERED_CONFIGS
 
 
-class TestDerivedSqlListsReachEveryRegisteredBackend:
-    """Guards `tiers.py`'s derived lists against a backend that is declared and registered but
-    never reaches `SQL_DATA_SOURCES` or `CURATED_SQL_DATA_SOURCES`, because its own module was
-    imported after `tiers`'s in this package's `__init__.py`. Both derived lists are built once,
-    at `tiers.py`'s own import time; a backend that registers later is invisible to the
+class TestDerivedTierListsReachEveryRegisteredConfig:
+    """Guards `tiers.py`'s tier-keyed lists against a config that is declared and registered but
+    never reaches `ALL_DATA_SOURCES`, `SQL_DATA_SOURCES` or `CURATED_SQL_DATA_SOURCES`, because
+    its own module was imported after `tiers`'s in this package's `__init__.py`. Those lists are
+    built once, at `tiers.py`'s own import time; a config that registers later is invisible to the
     already-built list even though the registry itself reports it correctly from then on, since
-    `iter_sql_backends`/`sql_backends_for_tier` re-read the live registry on every call. This
-    covers both SQL tiers, not just the standard one, since both lists are built the same way and
+    `iter_data_source_configs`/`data_source_configs_for_tier` re-read the live registry on every
+    call. This covers every tier-keyed list, not one of them, since all are built the same way and
     are equally exposed to the same import-order accident.
     """
 
     def test_all_data_sources_includes_every_registered_criterion_declaring_config(self) -> None:
         """`ALL_DATA_SOURCES` is the tier read itself, so it must reach every declaring config."""
-        assert [type(config) for config in ALL_DATA_SOURCES] == list(_REGISTERED_STANDARD_SQL)
+        assert [type(config) for config in ALL_DATA_SOURCES] == list(
+            _REGISTERED_CANONICAL_EXPECTATIONS
+        )
 
-    def test_standard_sql_data_sources_includes_every_registered_standard_backend(self) -> None:
+    def test_sql_data_sources_includes_every_registered_sql_config(self) -> None:
         """`SQL_DATA_SOURCES` is that same tier read intersected with the SQL execution engine.
 
         The expected value is computed here from the captured tuple rather than re-read from the
@@ -1556,18 +1571,18 @@ class TestDerivedSqlListsReachEveryRegisteredBackend:
         """
         assert [type(config) for config in SQL_DATA_SOURCES] == [
             config_class
-            for config_class in _REGISTERED_STANDARD_SQL
-            if config_class.BACKEND_SPEC.execution_engine is ExecutionEngineKind.SQL
+            for config_class in _REGISTERED_CANONICAL_EXPECTATIONS
+            if config_class.DATA_SOURCE_SPEC.execution_engine is ExecutionEngineKind.SQL
         ]
 
-    def test_curated_sql_data_sources_includes_every_registered_curated_backend(self) -> None:
+    def test_curated_sql_data_sources_includes_every_registered_curated_config(self) -> None:
         assert [type(config) for config in CURATED_SQL_DATA_SOURCES] == list(
             _REGISTERED_CURATED_SQL
         )
 
 
 class TestDerivedEngineListsReachEveryRegisteredConfig:
-    """The same guard as its SQL neighbour above, over the two engine-keyed lists.
+    """The same guard as its tier-keyed neighbour above, over the two engine-keyed lists.
 
     Those two lists were literals until this work derived them, so nothing had ever had to check
     them against the registry. They are built the same way and at the same moment as the two
@@ -1616,9 +1631,9 @@ class TestRegisteredBackendDeclarationsSurviveAnAbsentDialectPackage:
     """
 
     def test_no_argument_construction_and_full_field_read_raise_nothing(self) -> None:
-        assert _REGISTERED_SQL_BACKENDS, "no SQL backends were registered to check"
+        assert _REGISTERED_CONFIGS, "no SQL backends were registered to check"
 
-        for config_class in _REGISTERED_SQL_BACKENDS:
+        for config_class in _REGISTERED_CONFIGS:
             config = config_class()  # no arguments
             # Read through the shared accessor, not the SQL-only `backend_spec`: a registered
             # config need not be a SQL one, and the claim being made here - that no declared field
@@ -1647,7 +1662,7 @@ class TestDataSourceSpecMarkerResolution:
         spec = DataSourceSpec(
             label="throwaway",
             public_name="Throwaway",
-            provisioning=BackendProvisioning.IN_PROCESS,
+            provisioning=DataSourceProvisioning.IN_PROCESS,
             marker="sqlite",
         )
 
@@ -1657,7 +1672,7 @@ class TestDataSourceSpecMarkerResolution:
         spec = DataSourceSpec(
             label="throwaway",
             public_name="Throwaway",
-            provisioning=BackendProvisioning.IN_PROCESS,
+            provisioning=DataSourceProvisioning.IN_PROCESS,
         )
 
         with pytest.raises(ValueError, match="throwaway"):
@@ -1672,14 +1687,14 @@ class TestDataSourceSpecConstruction:
             DataSourceSpec(  # type: ignore[misc]
                 "throwaway",
                 "Throwaway",
-                BackendProvisioning.IN_PROCESS,
+                DataSourceProvisioning.IN_PROCESS,
             )
 
     def test_a_constructed_record_cannot_be_mutated(self) -> None:
         spec = DataSourceSpec(
             label="throwaway",
             public_name="Throwaway",
-            provisioning=BackendProvisioning.IN_PROCESS,
+            provisioning=DataSourceProvisioning.IN_PROCESS,
         )
 
         with pytest.raises(FrozenInstanceError):
@@ -1689,7 +1704,7 @@ class TestDataSourceSpecConstruction:
         spec = DataSourceSpec(
             label="throwaway",
             public_name="Throwaway",
-            provisioning=BackendProvisioning.IN_PROCESS,
+            provisioning=DataSourceProvisioning.IN_PROCESS,
         )
 
         assert spec.execution_engine is None
@@ -1755,7 +1770,7 @@ loader_spec.loader.exec_module(module)
 record = module.DataSourceSpec(
     label="throwaway",
     public_name="Throwaway",
-    provisioning=module.BackendProvisioning.IN_PROCESS,
+    provisioning=module.DataSourceProvisioning.IN_PROCESS,
     marker="sqlite",
 )
 assert record.pytest_mark == pytest.mark.sqlite
@@ -1763,7 +1778,7 @@ assert record.pytest_mark == pytest.mark.sqlite
 unmarked = module.DataSourceSpec(
     label="unmarked",
     public_name="Unmarked",
-    provisioning=module.BackendProvisioning.IN_PROCESS,
+    provisioning=module.DataSourceProvisioning.IN_PROCESS,
 )
 try:
     unmarked.pytest_mark
@@ -1837,19 +1852,19 @@ class TestRecordRegisteredWithoutAConfigClass:
     def test_a_record_with_no_config_class_is_absent_from_the_config_accessor(self) -> None:
         register_data_source(_make_core_spec(label="declaration-only"))
 
-        assert iter_sql_backends() == ()
+        assert iter_data_source_configs() == ()
 
     def test_a_record_with_no_config_class_is_absent_from_the_tier_accessor(self) -> None:
         register_data_source(
             _make_core_spec(
                 label="declaration-only",
-                tiers=frozenset({BackendTier.CURATED_SQL}),
+                tiers=frozenset({SupportTier.CURATED_SQL}),
                 marker="declaration_only",
                 ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="declaration_only"),
             )
         )
 
-        assert sql_backends_for_tier(BackendTier.CURATED_SQL) == ()
+        assert data_source_configs_for_tier(SupportTier.CURATED_SQL) == ()
 
     def test_a_record_with_no_config_class_is_absent_from_the_engine_accessor(self) -> None:
         register_data_source(
@@ -1871,14 +1886,14 @@ class TestConfigBoundRegistrationIsStoredWithItsConfigClass:
         spec = _make_spec(label="config-bound", marker="config_bound")
         config_class = _make_config_class("ConfigBound", spec)
 
-        register_sql_backend(config_class)
+        register_sql_config(config_class)
 
         assert iter_data_sources() == (RegisteredDataSource(spec=spec, config_class=config_class),)
 
     def test_the_stored_entry_reaches_the_spec_accessor(self) -> None:
         spec = _make_spec(label="config-bound", marker="config_bound")
 
-        register_sql_backend(_make_config_class("ConfigBound", spec))
+        register_sql_config(_make_config_class("ConfigBound", spec))
 
         assert iter_data_source_specs() == (spec,)
 
@@ -1946,7 +1961,7 @@ class TestRecordAccessorsReadLiveState:
                 tiers=_CANONICAL_CLAIM,
             ),
         )
-        register_sql_backend(config_class)
+        register_sql_config(config_class)
 
         assert data_source_configs_for_engine(ExecutionEngineKind.SQL) == (config_class,)
 
@@ -1979,14 +1994,14 @@ class TestConfigsForEngine:
             ),
         )
 
-        register_sql_backend(sql_config)
-        register_sql_backend(pandas_config)
+        register_sql_config(sql_config)
+        register_sql_config(pandas_config)
 
         assert data_source_configs_for_engine(ExecutionEngineKind.SQL) == (sql_config,)
         assert data_source_configs_for_engine(ExecutionEngineKind.PANDAS) == (pandas_config,)
 
     def test_a_config_declaring_no_engine_is_returned_for_no_engine(self) -> None:
-        register_sql_backend(
+        register_sql_config(
             _make_config_class("EngineLess", _make_spec(label="engine-less", marker="engine_less"))
         )
 
@@ -2014,8 +2029,8 @@ class TestConfigsForEngine:
             ),
         )
 
-        register_sql_backend(zebra)
-        register_sql_backend(apple)
+        register_sql_config(zebra)
+        register_sql_config(apple)
 
         assert data_source_configs_for_engine(ExecutionEngineKind.SQL) == (apple, zebra)
 
@@ -2046,7 +2061,7 @@ class TestIsolatedRegistryClearsRecordStorageBeforeYielding:
         assert iter_data_sources() == outside
 
     def test_a_config_registered_outside_the_seam_is_invisible_inside_it(self) -> None:
-        register_sql_backend(
+        register_sql_config(
             _make_config_class(
                 "Outer",
                 _make_spec(
@@ -2057,14 +2072,14 @@ class TestIsolatedRegistryClearsRecordStorageBeforeYielding:
                 ),
             )
         )
-        outside = iter_sql_backends()
+        outside = iter_data_source_configs()
         assert outside != ()
 
         with isolated_registry():
-            assert iter_sql_backends() == ()
+            assert iter_data_source_configs() == ()
             assert data_source_configs_for_engine(ExecutionEngineKind.SQL) == ()
 
-        assert iter_sql_backends() == outside
+        assert iter_data_source_configs() == outside
 
 
 # Captured at this module's import time for the same reason as the tuples above: the autouse
@@ -2093,13 +2108,13 @@ _EXPECTED_DECLARATION_ONLY_SPECS: Mapping[str, DataSourceSpec] = {
     "alloydb": DataSourceSpec(
         label="alloydb",
         public_name="AlloyDB",
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         fluent_types=frozenset({"alloy"}),
     ),
     "amazon-s3": DataSourceSpec(
         label="amazon-s3",
         public_name="Amazon S3",
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         fluent_types=frozenset({"pandas_s3", "spark_s3"}),
         marker="aws_deps",
         marker_scope=MarkerScope.SHARED,
@@ -2109,31 +2124,31 @@ _EXPECTED_DECLARATION_ONLY_SPECS: Mapping[str, DataSourceSpec] = {
     "aurora": DataSourceSpec(
         label="aurora",
         public_name="Amazon Aurora PostgreSQL",
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         fluent_types=frozenset({"aurora"}),
     ),
     "azure-blob-storage": DataSourceSpec(
         label="azure-blob-storage",
         public_name="Azure Blob Storage",
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         fluent_types=frozenset({"pandas_abs", "spark_abs"}),
     ),
     "citus": DataSourceSpec(
         label="citus",
         public_name="Citus",
-        provisioning=BackendProvisioning.LOCAL_CONTAINER,
+        provisioning=DataSourceProvisioning.LOCAL_CONTAINER,
         fluent_types=frozenset({"citus"}),
     ),
     "fabric": DataSourceSpec(
         label="fabric",
         public_name="Microsoft Fabric",
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         fluent_types=frozenset({"fabric"}),
     ),
     "google-cloud-storage": DataSourceSpec(
         label="google-cloud-storage",
         public_name="Google Cloud Storage",
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         fluent_types=frozenset({"pandas_gcs", "spark_gcs"}),
         marker="gcs_deps",
         marker_scope=MarkerScope.SHARED,
@@ -2144,7 +2159,7 @@ _EXPECTED_DECLARATION_ONLY_SPECS: Mapping[str, DataSourceSpec] = {
     "neon": DataSourceSpec(
         label="neon",
         public_name="Neon",
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         fluent_types=frozenset({"neon"}),
     ),
 }
@@ -2182,7 +2197,7 @@ class TestDeclarationOnlyRecordsJoinTheRegistryWithoutConfigs:
         assert _CONFIG_BOUND_LABELS.isdisjoint(_EXPECTED_DECLARATION_ONLY_SPECS)
 
     def test_the_record_accessor_is_wider_than_the_config_accessor_by_exactly_eight(self) -> None:
-        assert (len(_REGISTERED_DATA_SOURCE_SPECS), len(_REGISTERED_SQL_BACKENDS)) == (23, 15)
+        assert (len(_REGISTERED_DATA_SOURCE_SPECS), len(_REGISTERED_CONFIGS)) == (23, 15)
 
     @pytest.mark.parametrize("label", sorted(_EXPECTED_DECLARATION_ONLY_SPECS))
     def test_every_declared_field_matches_the_reviewed_declaration(self, label: str) -> None:
@@ -2384,14 +2399,14 @@ class TestEveryRegisteredConfigResolvesTheSameEqualityAndHashAsBeforeThisWork:
     """
 
     def test_every_registered_config_resolves_the_baseline_implementations(self) -> None:
-        assert _REGISTERED_SQL_BACKENDS, "no registered configs were found to check"
+        assert _REGISTERED_CONFIGS, "no registered configs were found to check"
 
         resolved = {
             config_class.__name__: (
                 _resolves_to(config_class, "__eq__"),
                 _resolves_to(config_class, "__hash__"),
             )
-            for config_class in _REGISTERED_SQL_BACKENDS
+            for config_class in _REGISTERED_CONFIGS
         }
 
         assert resolved == dict(_BASELINE_EQ_AND_HASH_RESOLUTION)
@@ -2506,13 +2521,13 @@ _RETROFITTED_CONTROLS: Mapping[str, _RetrofitControl] = {
         DataSourceSpec(
             label="pandas-data-frame",
             public_name="Pandas",
-            provisioning=BackendProvisioning.IN_PROCESS,
+            provisioning=DataSourceProvisioning.IN_PROCESS,
             execution_engine=ExecutionEngineKind.PANDAS,
             fluent_types=frozenset({"pandas"}),
             marker="unit",
             marker_scope=MarkerScope.SHARED,
             ci_lane=CiLaneRef(workflow_job="unit-tests", marker_token="unit"),
-            tiers=frozenset({BackendTier.STANDARD_SQL}),
+            tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
         ),
     ),
     "pandas-filesystem-csv": (
@@ -2521,13 +2536,13 @@ _RETROFITTED_CONTROLS: Mapping[str, _RetrofitControl] = {
         DataSourceSpec(
             label="pandas-filesystem-csv",
             public_name="Pandas",
-            provisioning=BackendProvisioning.LOCAL_FILE,
+            provisioning=DataSourceProvisioning.LOCAL_FILE,
             execution_engine=ExecutionEngineKind.PANDAS,
             fluent_types=frozenset({"pandas_filesystem"}),
             marker="filesystem",
             marker_scope=MarkerScope.SHARED,
             ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="filesystem"),
-            tiers=frozenset({BackendTier.STANDARD_SQL}),
+            tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
         ),
     ),
     "spark-filesystem-csv": (
@@ -2536,13 +2551,13 @@ _RETROFITTED_CONTROLS: Mapping[str, _RetrofitControl] = {
         DataSourceSpec(
             label="spark-filesystem-csv",
             public_name="Spark",
-            provisioning=BackendProvisioning.LOCAL_FILE,
+            provisioning=DataSourceProvisioning.LOCAL_FILE,
             execution_engine=ExecutionEngineKind.SPARK,
             fluent_types=frozenset({"spark_filesystem"}),
             marker="spark",
             marker_scope=MarkerScope.SHARED,
             ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="spark"),
-            tiers=frozenset({BackendTier.STANDARD_SQL}),
+            tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
             dev_requirements_file="reqs/requirements-dev-spark.txt",
             task_runner_marker="spark",
         ),
@@ -2569,7 +2584,7 @@ class TestRetrofittedConfigsMatchAHandWrittenControl:
     def test_declares_exactly_the_reviewed_record(self, label: str) -> None:
         config_class, _, expected_spec = _RETROFITTED_CONTROLS[label]
 
-        assert expected_spec == config_class.BACKEND_SPEC
+        assert expected_spec == config_class.DATA_SOURCE_SPEC
 
     @pytest.mark.parametrize("label", sorted(_RETROFITTED_CONTROLS))
     def test_reports_the_controls_label_mark_and_test_id(self, label: str) -> None:
@@ -2644,7 +2659,7 @@ class TestRetrofittedConfigsMatchAHandWrittenControl:
 class TestEveryRegisteringModuleIsImportedBeforeTheDerivedLists:
     """The import-order guarantee, extended past the modules a derived list can observe.
 
-    `TestDerivedSqlListsReachEveryRegisteredBackend` and its engine-keyed sibling catch an
+    `TestDerivedTierListsReachEveryRegisteredConfig` and its engine-keyed sibling catch an
     ordering violation by its consequence: a config registered after `tiers.py` is missing from a
     list that `tiers.py` already built. That works only for a module whose registrations reach a
     derived list. `declaration_only.py` registers eight records that carry no config class, so they
@@ -2679,7 +2694,7 @@ class TestEveryRegisteringModuleIsImportedBeforeTheDerivedLists:
             if any(
                 token in source
                 for token in (
-                    "@register_sql_backend",
+                    "@register_sql_config",
                     "@register_data_source_config",
                     "register_data_source(",
                 )
@@ -2752,7 +2767,7 @@ class TestEveryRegisteredRecordSurvivesAnAbsentDialectPackage:
             if entry.config_class is not None
         ]
 
-        assert len(constructed) == len(_REGISTERED_SQL_BACKENDS)
+        assert len(constructed) == len(_REGISTERED_CONFIGS)
 
 
 class TestMarkerScopeRelaxationsProvenWithThrowawayRecords:
@@ -2867,7 +2882,7 @@ class TestTierClaimsScaleTheObligationsProvenInBothDirections:
     registry cannot tell a working scaling rule from an unconditional one.
     """
 
-    _CLAIM = frozenset({BackendTier.STANDARD_SQL})
+    _CLAIM = frozenset({SupportTier.CANONICAL_EXPECTATIONS})
 
     def test_a_tier_claim_with_no_marker_is_rejected(self) -> None:
         with pytest.raises(ValueError, match="declares no data source marker"):
@@ -2899,7 +2914,7 @@ class TestTierClaimsScaleTheObligationsProvenInBothDirections:
                 _make_core_spec(
                     marker="throwaway",
                     ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="throwaway"),
-                    provisioning=BackendProvisioning.LOCAL_CONTAINER,
+                    provisioning=DataSourceProvisioning.LOCAL_CONTAINER,
                     container_service=None,
                     tiers=self._CLAIM,
                 )
@@ -2913,7 +2928,7 @@ class TestTierClaimsScaleTheObligationsProvenInBothDirections:
             _make_core_spec(
                 marker="throwaway",
                 ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="throwaway"),
-                provisioning=BackendProvisioning.LOCAL_CONTAINER,
+                provisioning=DataSourceProvisioning.LOCAL_CONTAINER,
                 container_service=None,
             )
         )
@@ -2931,7 +2946,7 @@ class TestTierClaimsScaleTheObligationsProvenInBothDirections:
 # that has only ever been run against a literal that satisfies it is a check nobody has seen work.
 #
 # The generic-SQL escape hatch never reaches any of this, because it is never registered:
-# `generic_sql.py` declares a `public_name` and a `BACKEND_SPEC` but carries no registration
+# `generic_sql.py` declares a `public_name` and a `DATA_SOURCE_SPEC` but carries no registration
 # decorator, so it is not a record. It belongs to both hand-written shared lists, so a reader who
 # knows that and does not know it is unregistered will read its absence from the exemption literal
 # as a bug. It is not one — see
@@ -2964,7 +2979,7 @@ def _exemptions_naming_a_declaring_record(
         sorted(
             spec.label
             for spec in specs
-            if spec.label in exemptions and BackendTier.STANDARD_SQL in spec.tiers
+            if spec.label in exemptions and SupportTier.CANONICAL_EXPECTATIONS in spec.tiers
         )
     )
 
@@ -2986,7 +3001,7 @@ class TestSharedParameterizationDeclarationIsMandatoryProvenWithThrowawayRecords
 
     def test_a_config_bound_record_with_an_engine_and_no_criterion_is_rejected(self) -> None:
         with pytest.raises(ValueError) as excinfo:
-            register_sql_backend(
+            register_sql_config(
                 _make_config_class(
                     "Silent",
                     _make_spec(
@@ -3003,10 +3018,10 @@ class TestSharedParameterizationDeclarationIsMandatoryProvenWithThrowawayRecords
         # criterion the rejection is about.
         assert "does not declare the shared canonical expectation parameterization" in message
         assert "'silent-opt-out'" in message
-        assert "'standard_sql'" in message
+        assert "'canonical_expectations'" in message
 
     def test_the_same_record_registers_cleanly_once_it_declares_the_criterion(self) -> None:
-        register_sql_backend(
+        register_sql_config(
             _make_config_class(
                 "Declaring",
                 _make_spec(
@@ -3026,7 +3041,7 @@ class TestSharedParameterizationDeclarationIsMandatoryProvenWithThrowawayRecords
         a record admitted for any other reason would be admitted under the rejected label too."""
         assert self._EXEMPT_LABEL in _OUTSIDE_SHARED_PARAMETERIZATION
 
-        register_sql_backend(
+        register_sql_config(
             _make_config_class(
                 "Exempt",
                 _make_spec(
@@ -3051,7 +3066,7 @@ class TestSharedParameterizationDeclarationIsMandatoryProvenWithThrowawayRecords
     def test_a_config_declaring_no_execution_engine_is_not_subject_to_the_rule(self) -> None:
         """A config naming no engine is a record the derived engine lists cannot place either.
         The rule leaves it to the well-formedness checks rather than inventing a rule for it."""
-        register_sql_backend(
+        register_sql_config(
             _make_config_class(
                 "EngineLess",
                 _make_spec(label="engine-less", marker="engine_less"),

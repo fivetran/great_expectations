@@ -106,19 +106,19 @@ this way and is the worked example throughout.
 
 ### 1. Declare the record
 
-A concrete config subclasses `SqlDatasourceTestConfig` and states its `BACKEND_SPEC` as a class
+A concrete config subclasses `SqlDatasourceTestConfig` and states its `DATA_SOURCE_SPEC` as a class
 variable, once:
 
 ```python
-@register_sql_backend
+@register_sql_config
 class SingleStoreDatasourceTestConfig(SqlDatasourceTestConfig):
-    BACKEND_SPEC = SqlBackendSpec(
+    DATA_SOURCE_SPEC = SqlBackendSpec(
         label="singlestore",
         marker="singlestore",
-        provisioning=BackendProvisioning.LOCAL_CONTAINER,
+        provisioning=DataSourceProvisioning.LOCAL_CONTAINER,
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="singlestore"),
         uses_schema=False,
-        tiers=frozenset({BackendTier.CURATED_SQL}),
+        tiers=frozenset({SupportTier.CURATED_SQL}),
         column_type_overrides={str: sqltypes.VARCHAR(255)},
         dev_requirements_file="reqs/requirements-dev-singlestore.txt",
         task_runner_marker="singlestore",
@@ -228,20 +228,20 @@ constructed items because the construct binds to the first table it is attached 
 
 ### 2. Choose tiers
 
-`tiers` is a `FrozenSet[BackendTier]`. Membership in `BackendTier.STANDARD_SQL` puts a backend in
+`tiers` is a `FrozenSet[SupportTier]`. Membership in `SupportTier.CANONICAL_EXPECTATIONS` puts a backend in
 the shared standard SQL data-source list (`SQL_DATA_SOURCES`); membership in
-`BackendTier.CURATED_SQL` puts it in the smaller curated suite
+`SupportTier.CURATED_SQL` puts it in the smaller curated suite
 (`tests/integration/data_sources_and_expectations/test_curated_backend_suite.py`), which every
 curated-tier backend inherits without editing that module. Always write the declaration form,
 never a bare set literal:
 
 ```python
-tiers=frozenset({BackendTier.CURATED_SQL})
+tiers=frozenset({SupportTier.CURATED_SQL})
 ```
 
-`{BackendTier.CURATED_SQL}` alone is a `set`, and mypy rejects a `set` against the `FrozenSet`
+`{SupportTier.CURATED_SQL}` alone is a `set`, and mypy rejects a `set` against the `FrozenSet`
 field — `tests/` is inside mypy's checked files, so that is a hard failure, not a lint note. A
-backend joining both tiers writes `frozenset({BackendTier.STANDARD_SQL, BackendTier.CURATED_SQL})`;
+backend joining both tiers writes `frozenset({SupportTier.CANONICAL_EXPECTATIONS, SupportTier.CURATED_SQL})`;
 one joining neither omits the field.
 
 **Excluding one case.** If a curated-tier backend joins the tier but one specific case in the
@@ -280,7 +280,7 @@ here, not just the number.
 
 Two caveats on "not per tier": today `tier_case_exclusions` carries no tier attribution at all —
 a key is just a case key, and the ceiling counts however many are declared, full stop. This is
-exact only because `BackendTier.CURATED_SQL` is currently the only tier that publishes case keys
+exact only because `SupportTier.CURATED_SQL` is currently the only tier that publishes case keys
 a backend can exclude by name. If a second tier ever grows its own per-case exclusion mechanism,
 the ceiling as implemented today would count across both tiers combined rather than per tier, and
 that would need to be revisited before it could be trusted going forward.
@@ -320,9 +320,9 @@ the declaration. Using SingleStore's actual entries as the reference:
 
 ### 4. Register the config
 
-`@register_sql_backend`, from
+`@register_sql_config`, from
 `tests/integration/test_utils/data_source_config/registry.py`, decorates the config class and
-enrolls its `BACKEND_SPEC` into the process-global registry the harness treats as "the SQL
+enrolls its `DATA_SOURCE_SPEC` into the process-global registry the harness treats as "the SQL
 backends that exist" — the set the derived tier lists, the completeness checks, and the wiring
 drift check all walk. Add the new module's import to
 `tests/integration/test_utils/data_source_config/__init__.py`, alongside the other backend
@@ -344,7 +344,7 @@ class.
 | Empty `ci_lane.marker_token` | Name the marker token that job selects on. |
 | `insert_parameter_limit` is zero or negative | Use a positive integer, or omit the field entirely for no chunking limit. |
 | `LOCAL_CONTAINER` provisioning declared without `container_service` | Name the compose service that starts this backend. |
-| `container_service` declared without `LOCAL_CONTAINER` provisioning | Remove the field, or set `provisioning=BackendProvisioning.LOCAL_CONTAINER` if the backend really is locally containerized. |
+| `container_service` declared without `LOCAL_CONTAINER` provisioning | Remove the field, or set `provisioning=DataSourceProvisioning.LOCAL_CONTAINER` if the backend really is locally containerized. |
 | `table_schema_items` declared but not callable | Pass a zero-argument factory function, or omit the field. (Registration checks only that it is callable — it is never invoked at registration time, since calling it would require the backend's driver package, which registration must not assume is installed.) |
 | A `tier_case_exclusions` entry has an empty case key | Name the case being excluded. |
 | A `tier_case_exclusions` entry has an empty or whitespace-only reason | Record why the case is excluded — an unexplained exclusion is exactly the silent narrowing the mechanism exists to prevent. |
@@ -352,7 +352,7 @@ class.
 | Duplicate `label` (or `marker`) already registered by another config class | Rename the field; both class names appear in the message. |
 
 Today the registry is populated by nothing more than the package's own modules importing
-themselves and running their own `@register_sql_backend` decorators — a deterministic set of
+themselves and running their own `@register_sql_config` decorators — a deterministic set of
 class-level side effects, confined to two dictionaries, with no environment read anywhere in the
 process. That is a deliberate replacement for an earlier mechanism in the shared SQL setup module
 that read an environment variable and mutated the SQLAlchemy dialect enumeration as a side effect
@@ -408,7 +408,7 @@ brings this one up; the task runner will also start a marker's services for you 
 The registry test module (`tests/test_sql_backend_registry.py`) is the fastest way to check the
 registration-time invariants above without touching a database — it registers throwaway backends
 inside an isolation seam that snapshots and restores the real registry, so nothing it does
-leaks between test runs or affects `iter_sql_backends()` for any other test:
+leaks between test runs or affects `iter_data_source_configs()` for any other test:
 
 ```
 pytest tests/test_sql_backend_registry.py -m project -q
@@ -418,7 +418,7 @@ pytest tests/test_sql_backend_registry.py -m project -q
 
 `GenericSQLDatasourceTestConfig` (`tests/integration/test_utils/data_source_config/generic_sql.py`)
 is the escape hatch for testing against a SQL backend that has no dedicated config: it is never
-decorated with `@register_sql_backend` and never appears in the registry, so it never gates CI
+decorated with `@register_sql_config` and never appears in the registry, so it never gates CI
 membership. Its connection string is supplied at construction time, or, if left unset, read from
 the `GX_TEST_GENERIC_SQL_CONNECTION_STRING` environment variable when its batch setup is
 constructed.
@@ -428,7 +428,7 @@ read when the batch setup is constructed, and the field is folded into the confi
 declaration when the config is constructed:
 
 1. **The `autocommit: bool` field on the config itself.** When `True`, `__post_init__` folds it
-   into a per-instance `backend_spec_override` — a copy of `BACKEND_SPEC` with
+   into a per-instance `backend_spec_override` — a copy of `DATA_SOURCE_SPEC` with
    `transaction_mode=TransactionMode.AUTOCOMMIT` and, deliberately, a label suffixed
    `_autocommit`. The label change matters: the session-scoped batch-setup cache is keyed on
    config equality, which compares `label`, not this field, so two instances differing only in

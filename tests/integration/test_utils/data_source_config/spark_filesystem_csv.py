@@ -17,12 +17,12 @@ from tests.integration.test_utils.data_source_config.base import (
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendProvisioning,
-    BackendTier,
     CiLaneRef,
+    DataSourceProvisioning,
     DataSourceSpec,
     ExecutionEngineKind,
     MarkerScope,
+    SupportTier,
 )
 from tests.integration.test_utils.data_source_config.registry import register_data_source_config
 
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 @register_data_source_config
 @dataclass(frozen=True)
 class SparkFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
-    BACKEND_SPEC = DataSourceSpec(
+    DATA_SOURCE_SPEC = DataSourceSpec(
         label="spark-filesystem-csv",
         # The name the shipped supported-data-source vocabulary already fixes for this data
         # source; spelling a second one here is exactly the drift this record exists to remove.
@@ -46,7 +46,7 @@ class SparkFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
         # server at all. It builds an in-process Spark session and reads CSV files off the local
         # filesystem, so a test run obtains its instance the same way SQLite does. Recorded here
         # because a later reader will find the compose file and wonder why it is not named.
-        provisioning=BackendProvisioning.LOCAL_FILE,
+        provisioning=DataSourceProvisioning.LOCAL_FILE,
         execution_engine=ExecutionEngineKind.SPARK,
         fluent_types=frozenset({"spark_filesystem"}),
         marker="spark",
@@ -60,7 +60,7 @@ class SparkFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
         # `spark` lane today, through every one of its expectation modules. Declaring the tier
         # states that existing result; it switches nothing on. The marker and CI lane the claim
         # obliges are already declared above.
-        tiers=frozenset({BackendTier.STANDARD_SQL}),
+        tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
         dev_requirements_file="reqs/requirements-dev-spark.txt",
         task_runner_marker="spark",
     )

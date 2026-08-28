@@ -27,8 +27,8 @@ would fail it, while naming none is the accurate description of a data source no
 from __future__ import annotations
 
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendProvisioning,
     CiLaneRef,
+    DataSourceProvisioning,
     DataSourceSpec,
     MarkerScope,
 )
@@ -48,7 +48,7 @@ AMAZON_S3 = register_data_source(
     DataSourceSpec(
         label="amazon-s3",
         public_name="Amazon S3",
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         fluent_types=frozenset({"pandas_s3", "spark_s3"}),
         # Shared, not dedicated: `aws_deps` names a dependency class - the tests that need the AWS
         # client libraries - rather than this data source alone, so it can legitimately be claimed
@@ -68,7 +68,7 @@ GOOGLE_CLOUD_STORAGE = register_data_source(
     DataSourceSpec(
         label="google-cloud-storage",
         public_name="Google Cloud Storage",
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         fluent_types=frozenset({"pandas_gcs", "spark_gcs"}),
         # Shared for the same reason as `aws_deps` above: `gcs_deps` names the tests that need the
         # Google Cloud Storage client libraries, not this data source alone.
@@ -86,7 +86,7 @@ AZURE_BLOB_STORAGE = register_data_source(
     DataSourceSpec(
         label="azure-blob-storage",
         public_name="Azure Blob Storage",
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         fluent_types=frozenset({"pandas_abs", "spark_abs"}),
         # No marker, no lane, no task-runner entry, and that is the accurate statement rather than
         # an omission: the declared marker list in `pyproject.toml` has no Azure Blob Storage
@@ -112,7 +112,7 @@ ALLOYDB = register_data_source(
         public_name="AlloyDB",
         # Reaching the real service means reaching a managed Google Cloud database with
         # credentials; nothing in this repository can start one locally.
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         fluent_types=frozenset({"alloy"}),
     )
 )
@@ -124,7 +124,7 @@ AURORA = register_data_source(
         # vocabulary spells this "Amazon Aurora PostgreSQL", and shortening it here would be the
         # second spelling this field exists to prevent.
         public_name="Amazon Aurora PostgreSQL",
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         fluent_types=frozenset({"aurora"}),
     )
 )
@@ -139,7 +139,7 @@ CITUS = register_data_source(
         # so a local container is genuinely how a test run would obtain one - and this repository
         # has no compose file for it. Declaring EXTERNAL_CREDENTIALS instead would misdescribe how
         # it is reached; naming a compose service would name something that does not exist.
-        provisioning=BackendProvisioning.LOCAL_CONTAINER,
+        provisioning=DataSourceProvisioning.LOCAL_CONTAINER,
         fluent_types=frozenset({"citus"}),
         provisioning_note=(
             "Distributed as a container image, but this repository has no compose file for it and "
@@ -156,7 +156,7 @@ NEON = register_data_source(
         label="neon",
         # Verbatim from `SupportedDataSources.NEON`.
         public_name="Neon",
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         fluent_types=frozenset({"neon"}),
     )
 )
@@ -168,7 +168,7 @@ MICROSOFT_FABRIC = register_data_source(
         # member for Microsoft Fabric. That gap is recorded rather than closed, because the
         # vocabulary lives in the shipped package and this work changes nothing there.
         public_name="Microsoft Fabric",
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         fluent_types=frozenset({"fabric"}),
         provisioning_note=(
             "Reaching the real service requires Entra ID service principal credentials - tenant "

@@ -2,7 +2,7 @@
 
 Before this module existed, two conftest modules each hand-maintained their own copy of these
 lists, and the copies had already drifted: one defined a combined list the other did not. A
-backend added to one copy and forgotten in the other would silently under-test without any
+data source added to one copy and forgotten in the other would silently under-test without any
 signal, since nothing checked the two against each other.
 
 Every list here is now derived from data-source declarations rather than hand-maintained: a data
@@ -14,8 +14,9 @@ the declaration — instead of a second, hand-maintained copy these lists could 
 The lists are derived on two different keys, and the difference is not an inconsistency: it is the
 difference between the two kinds of thing being asked.
 
-- A **tier** is a claim about coverage. `BackendTier.STANDARD_SQL` and `BackendTier.CURATED_SQL`
-  say "a suite runs against this data source and proves this much", which is something a
+- A **tier** is a claim about coverage. `SupportTier.CANONICAL_EXPECTATIONS` and
+  `SupportTier.CURATED_SQL` say "a suite runs against this data source and proves this much",
+  which is something a
   maintainer decides and a data source can join or leave without anything about the data source
   itself changing. `ALL_DATA_SOURCES` and the two curated-and-standard lists key on that claim,
   because they exist to answer "what does this tier's suite run against". The shared canonical
@@ -51,12 +52,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Final, List, cast
 
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendTier,
     ExecutionEngineKind,
+    SupportTier,
 )
 from tests.integration.test_utils.data_source_config.registry import (
     data_source_configs_for_engine,
-    sql_backends_for_tier,
+    data_source_configs_for_tier,
 )
 
 if TYPE_CHECKING:
@@ -87,23 +88,24 @@ SPARK_DATA_SOURCES: Final[List[DataSourceTestConfig]] = [
 """Every registered config declaring `ExecutionEngineKind.SPARK`, instantiated with no arguments,
 in label order."""
 
-_SHARED_PARAMETERIZATION_CONFIGS: Final = sql_backends_for_tier(BackendTier.STANDARD_SQL)
+_SHARED_PARAMETERIZATION_CONFIGS: Final = data_source_configs_for_tier(
+    SupportTier.CANONICAL_EXPECTATIONS
+)
 """Every registered config declaring the shared-parameterization criterion, in label order.
 
 Read once here and used twice below, so that the combined list and its SQL half are two views of
 one declaration rather than two independent derivations that could part.
 
-`sql_backends_for_tier` walks every config-bound registration, not only the SQL ones — the
-accessor's name records the tier vocabulary it was written against, not a filter it applies — so a
-pandas or Spark config declaring this criterion is returned by it exactly as a SQL backend is.
+`data_source_configs_for_tier` walks every config-bound registration, whatever engine it names, so
+a pandas or Spark config declaring this criterion is returned by it exactly as a SQL backend is.
 """
 
 CURATED_SQL_DATA_SOURCES: Final[List[DataSourceTestConfig]] = [
     cast("DataSourceTestConfig", config_class())
-    for config_class in sql_backends_for_tier(BackendTier.CURATED_SQL)
+    for config_class in data_source_configs_for_tier(SupportTier.CURATED_SQL)
 ]
-"""Every registered backend declaring `BackendTier.CURATED_SQL` membership, instantiated with no
-arguments, in label order. Four backends declare that tier today."""
+"""Every registered config declaring `SupportTier.CURATED_SQL` membership, instantiated with no
+arguments, in label order. Four SQL backends declare that tier today."""
 
 ALL_DATA_SOURCES: Final[List[DataSourceTestConfig]] = [
     cast("DataSourceTestConfig", config_class())
@@ -129,7 +131,7 @@ in.
 SQL_DATA_SOURCES: Final[List[DataSourceTestConfig]] = [
     cast("DataSourceTestConfig", config_class())
     for config_class in _SHARED_PARAMETERIZATION_CONFIGS
-    if config_class.BACKEND_SPEC.execution_engine is ExecutionEngineKind.SQL
+    if config_class.DATA_SOURCE_SPEC.execution_engine is ExecutionEngineKind.SQL
 ]
 """The shared-parameterization criterion intersected with the SQL execution engine, instantiated
 with no arguments, in label order.
@@ -142,10 +144,10 @@ gates, the SQL restriction has to be stated where it is meant, as the engine fac
 """
 
 
-def data_sources_for_tier_case(tier: BackendTier, case_key: str) -> List[DataSourceTestConfig]:
+def data_sources_for_tier_case(tier: SupportTier, case_key: str) -> List[DataSourceTestConfig]:
     """The tier's members, minus any declaring a `tier_case_exclusions` entry for `case_key`.
 
-    A backend joins a tier as a whole; `tier_case_exclusions` (declared on `SqlBackendSpec`, see
+    A data source joins a tier as a whole; `tier_case_exclusions` (declared on `SqlBackendSpec`, see
     `backend_spec.py`) is the one way a member can sit out a single named case within that tier's
     suite instead of the whole tier. This accessor is the only place that mapping takes effect —
     registration validates it, but nothing else filters tier membership by case — which keeps
@@ -156,8 +158,9 @@ def data_sources_for_tier_case(tier: BackendTier, case_key: str) -> List[DataSou
     have to be undone the moment a second tier needs the same mechanism.
 
     Unlike the module-level lists above, this reads the registry fresh on every call (through
-    `sql_backends_for_tier`, itself call-time) rather than once at import — the exclusion mapping
-    it filters on can only be known per call, from the tier's live membership, not baked into a
+    `data_source_configs_for_tier`, itself call-time) rather than once at import — the exclusion
+    mapping it filters on can only be known per call, from the tier's live membership, not baked
+    into a
     list built before any caller has said which case it means.
 
     Returns instances, in the tier's label order, with an empty exclusion mapping on every member
@@ -165,6 +168,6 @@ def data_sources_for_tier_case(tier: BackendTier, case_key: str) -> List[DataSou
     """
     return [
         cast("DataSourceTestConfig", config_class())
-        for config_class in sql_backends_for_tier(tier)
-        if case_key not in config_class.BACKEND_SPEC.tier_case_exclusions
+        for config_class in data_source_configs_for_tier(tier)
+        if case_key not in config_class.DATA_SOURCE_SPEC.tier_case_exclusions
     ]

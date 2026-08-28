@@ -14,23 +14,23 @@ from tests.integration.test_utils.data_source_config.backend_spec import (
 )
 from tests.integration.test_utils.data_source_config.base import BatchTestSetup
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendProvisioning,
-    BackendTier,
     CiLaneRef,
+    DataSourceProvisioning,
     ExecutionEngineKind,
+    SupportTier,
 )
-from tests.integration.test_utils.data_source_config.registry import register_sql_backend
+from tests.integration.test_utils.data_source_config.registry import register_sql_config
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
 
-@register_sql_backend
+@register_sql_config
 class TrinoDatasourceTestConfig(SqlDatasourceTestConfig):
-    BACKEND_SPEC = SqlBackendSpec(
+    DATA_SOURCE_SPEC = SqlBackendSpec(
         label="trino",
         public_name="Trino",
         marker="trino",
-        provisioning=BackendProvisioning.LOCAL_CONTAINER,
+        provisioning=DataSourceProvisioning.LOCAL_CONTAINER,
         execution_engine=ExecutionEngineKind.SQL,
         fluent_types=frozenset({"sql"}),
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="trino"),
@@ -40,7 +40,7 @@ class TrinoDatasourceTestConfig(SqlDatasourceTestConfig):
         # scale zero, silently rounding fractional values to integers. A precision-carrying
         # FLOAT compiles to double precision and round-trips exactly.
         column_type_overrides={float: sqltypes.FLOAT(precision=53)},
-        tiers=frozenset({BackendTier.CURATED_SQL}),
+        tiers=frozenset({SupportTier.CURATED_SQL}),
         dev_requirements_file="reqs/requirements-dev-trino.txt",
         task_runner_marker="trino",
         container_service="trino",

@@ -41,10 +41,10 @@ from tasks import MARKER_DEPENDENCY_MAP
 from great_expectations.core.yaml_handler import YAMLHandler
 from tests.conftest import REQUIRED_MARKERS
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendProvisioning,
-    BackendTier,
     CiLaneRef,
+    DataSourceProvisioning,
     DataSourceSpec,
+    SupportTier,
 )
 from tests.integration.test_utils.data_source_config.registry import (
     isolated_registry,
@@ -299,7 +299,7 @@ def _assert_container_service_wired(name: str, spec: DataSourceSpec) -> None:
     no tier - Citus is distributed as a container image and this repository has no compose file for
     it - so the service, not the provisioning member alone, is the coordinate this fires on.
     """
-    if spec.provisioning is not BackendProvisioning.LOCAL_CONTAINER:
+    if spec.provisioning is not DataSourceProvisioning.LOCAL_CONTAINER:
         return
     service = spec.container_service
     if service is None:
@@ -395,7 +395,7 @@ def test_workflow_job_and_lane_token_are_wired(spec: DataSourceSpec) -> None:
 
 @pytest.mark.parametrize("spec", _REGISTERED_RECORDS, ids=_record_label)
 def test_container_service_is_wired(spec: DataSourceSpec) -> None:
-    if spec.provisioning is not BackendProvisioning.LOCAL_CONTAINER:
+    if spec.provisioning is not DataSourceProvisioning.LOCAL_CONTAINER:
         pytest.skip(f"{_registered_name(spec)} does not use local-container provisioning")
     if spec.container_service is None:
         pytest.skip(f"{_registered_name(spec)} names no container_service")
@@ -426,7 +426,7 @@ def _make_spec(**overrides: object) -> DataSourceSpec:
         label="ghost-backend",
         public_name="Ghost Backend",
         marker="ghost_backend",
-        provisioning=BackendProvisioning.LOCAL_FILE,
+        provisioning=DataSourceProvisioning.LOCAL_FILE,
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="ghost_backend"),
     )
     defaults.update(overrides)
@@ -561,7 +561,7 @@ class TestWiringDriftFailurePaths:
             spec = _make_spec(
                 label="ghost-container",
                 marker="ghost_container",
-                provisioning=BackendProvisioning.LOCAL_CONTAINER,
+                provisioning=DataSourceProvisioning.LOCAL_CONTAINER,
                 container_service="not-a-real-container-service",
             )
             register_data_source(spec)
@@ -589,7 +589,7 @@ class TestWiringDriftFailurePaths:
             label="ghost-tier-no-lane",
             marker="ghost_tier_no_lane",
             ci_lane=None,
-            tiers=frozenset({BackendTier.CURATED_SQL}),
+            tiers=frozenset({SupportTier.CURATED_SQL}),
         )
 
         with pytest.raises(AssertionError) as excinfo:
@@ -605,7 +605,7 @@ class TestWiringDriftFailurePaths:
         spec = _make_spec(
             label="ghost-tier-no-marker",
             marker=None,
-            tiers=frozenset({BackendTier.STANDARD_SQL}),
+            tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
         )
 
         with pytest.raises(AssertionError) as excinfo:
@@ -613,7 +613,7 @@ class TestWiringDriftFailurePaths:
 
         message = str(excinfo.value)
         assert "ghost-tier-no-marker" in message
-        assert "standard_sql" in message
+        assert "canonical_expectations" in message
         assert str(PYPROJECT_TOML.resolve()) in message
 
     @pytest.mark.parametrize(
@@ -626,7 +626,7 @@ class TestWiringDriftFailurePaths:
                     label="ghost-declares-nothing",
                     marker=None,
                     ci_lane=None,
-                    provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+                    provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
                 ),
                 id="declares-nothing",
             ),
@@ -638,7 +638,7 @@ class TestWiringDriftFailurePaths:
                     label="ghost-container-no-service",
                     marker=None,
                     ci_lane=None,
-                    provisioning=BackendProvisioning.LOCAL_CONTAINER,
+                    provisioning=DataSourceProvisioning.LOCAL_CONTAINER,
                 ),
                 id="local-container-with-no-service",
             ),
@@ -650,7 +650,7 @@ class TestWiringDriftFailurePaths:
                     label="ghost-task-runner-only",
                     marker=None,
                     ci_lane=None,
-                    provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+                    provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
                     task_runner_marker="spark",
                 ),
                 id="task-runner-key-with-no-requirements-file",

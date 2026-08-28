@@ -11,28 +11,28 @@ from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
 from tests.integration.test_utils.data_source_config.base import BatchTestSetup
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendProvisioning,
-    BackendTier,
     CiLaneRef,
+    DataSourceProvisioning,
     ExecutionEngineKind,
+    SupportTier,
 )
-from tests.integration.test_utils.data_source_config.registry import register_sql_backend
+from tests.integration.test_utils.data_source_config.registry import register_sql_config
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
 
-@register_sql_backend
+@register_sql_config
 class PostgreSQLDatasourceTestConfig(SqlDatasourceTestConfig):
-    BACKEND_SPEC = SqlBackendSpec(
+    DATA_SOURCE_SPEC = SqlBackendSpec(
         label="postgresql",
         public_name="PostgreSQL",
         marker="postgresql",
-        provisioning=BackendProvisioning.LOCAL_CONTAINER,
+        provisioning=DataSourceProvisioning.LOCAL_CONTAINER,
         execution_engine=ExecutionEngineKind.SQL,
         fluent_types=frozenset({"postgres"}),
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="postgresql"),
         uses_schema=True,
-        tiers=frozenset({BackendTier.STANDARD_SQL}),
+        tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
         dev_requirements_file="reqs/requirements-dev-postgresql.txt",
         task_runner_marker="postgresql",
         container_service="postgresql",

@@ -15,12 +15,12 @@ from tests.integration.test_utils.data_source_config.base import (
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendProvisioning,
-    BackendTier,
     CiLaneRef,
+    DataSourceProvisioning,
     DataSourceSpec,
     ExecutionEngineKind,
     MarkerScope,
+    SupportTier,
 )
 from tests.integration.test_utils.data_source_config.registry import register_data_source_config
 
@@ -28,13 +28,13 @@ from tests.integration.test_utils.data_source_config.registry import register_da
 @register_data_source_config
 @dataclass(frozen=True)
 class PandasFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
-    BACKEND_SPEC = DataSourceSpec(
+    DATA_SOURCE_SPEC = DataSourceSpec(
         label="pandas-filesystem-csv",
         # The same public name the in-memory pandas record carries: both describe pandas to a
         # user, and the public name names the data source rather than the harness variant that
         # exercises it.
         public_name="Pandas",
-        provisioning=BackendProvisioning.LOCAL_FILE,
+        provisioning=DataSourceProvisioning.LOCAL_FILE,
         execution_engine=ExecutionEngineKind.PANDAS,
         fluent_types=frozenset({"pandas_filesystem"}),
         marker="filesystem",
@@ -48,7 +48,7 @@ class PandasFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
         # `filesystem` lane today, through every one of its expectation modules. Declaring the
         # tier states that existing result; it switches nothing on. The marker and CI lane the
         # claim obliges are already declared above.
-        tiers=frozenset({BackendTier.STANDARD_SQL}),
+        tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
         # No dev_requirements_file and no task_runner_marker: the task runner's dependency map has
         # no key for `filesystem`, because running these tests installs nothing beyond the base
         # development requirements and starts no service.

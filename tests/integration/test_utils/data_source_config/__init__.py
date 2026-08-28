@@ -7,12 +7,12 @@ from .base import DataSourceTestConfig
 from .big_query import BigQueryDatasourceTestConfig
 from .clickhouse import ClickHouseDatasourceTestConfig
 from .data_source_spec import (
-    BackendProvisioning,
-    BackendTier,
     CiLaneRef,
+    DataSourceProvisioning,
     DataSourceSpec,
     ExecutionEngineKind,
     MarkerScope,
+    SupportTier,
 )
 from .databricks import DatabricksDatasourceTestConfig
 from .declaration_only import (
@@ -35,14 +35,14 @@ from .redshift import RedshiftDatasourceTestConfig
 from .registry import (
     RegisteredDataSource,
     data_source_configs_for_engine,
+    data_source_configs_for_tier,
     isolated_registry,
+    iter_data_source_configs,
     iter_data_source_specs,
     iter_data_sources,
-    iter_sql_backends,
     register_data_source,
     register_data_source_config,
-    register_sql_backend,
-    sql_backends_for_tier,
+    register_sql_config,
 )
 from .singlestore import SingleStoreDatasourceTestConfig
 from .snowflake import SnowflakeDatasourceTestConfig

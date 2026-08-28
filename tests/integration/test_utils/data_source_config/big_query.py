@@ -7,12 +7,12 @@ from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.typing_extensions import override
 from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendProvisioning,
-    BackendTier,
     CiLaneRef,
+    DataSourceProvisioning,
     ExecutionEngineKind,
+    SupportTier,
 )
-from tests.integration.test_utils.data_source_config.registry import register_sql_backend
+from tests.integration.test_utils.data_source_config.registry import register_sql_config
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
@@ -26,13 +26,13 @@ if TYPE_CHECKING:
     from tests.integration.test_utils.data_source_config.base import BatchTestSetup
 
 
-@register_sql_backend
+@register_sql_config
 class BigQueryDatasourceTestConfig(SqlDatasourceTestConfig):
-    BACKEND_SPEC = SqlBackendSpec(
+    DATA_SOURCE_SPEC = SqlBackendSpec(
         label="big-query",
         public_name="BigQuery",
         marker="bigquery",
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         execution_engine=ExecutionEngineKind.SQL,
         fluent_types=frozenset({"bigquery"}),
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="bigquery"),
@@ -52,7 +52,7 @@ class BigQueryDatasourceTestConfig(SqlDatasourceTestConfig):
         # while this is False raises, so that need surfaces as a clear error rather
         # than silently doing the wrong thing.
         uses_schema=False,
-        tiers=frozenset({BackendTier.STANDARD_SQL}),
+        tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
         dev_requirements_file="reqs/requirements-dev-bigquery.txt",
         task_runner_marker="bigquery",
     )

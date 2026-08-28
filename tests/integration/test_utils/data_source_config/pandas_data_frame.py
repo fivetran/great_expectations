@@ -13,22 +13,22 @@ from tests.integration.test_utils.data_source_config.base import (
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendProvisioning,
-    BackendTier,
     CiLaneRef,
+    DataSourceProvisioning,
     DataSourceSpec,
     ExecutionEngineKind,
     MarkerScope,
+    SupportTier,
 )
 from tests.integration.test_utils.data_source_config.registry import register_data_source_config
 
 
 @register_data_source_config
 class PandasDataFrameDatasourceTestConfig(DataSourceTestConfig):
-    BACKEND_SPEC = DataSourceSpec(
+    DATA_SOURCE_SPEC = DataSourceSpec(
         label="pandas-data-frame",
         public_name="Pandas",
-        provisioning=BackendProvisioning.IN_PROCESS,
+        provisioning=DataSourceProvisioning.IN_PROCESS,
         execution_engine=ExecutionEngineKind.PANDAS,
         fluent_types=frozenset({"pandas"}),
         marker="unit",
@@ -42,7 +42,7 @@ class PandasDataFrameDatasourceTestConfig(DataSourceTestConfig):
         # `unit` lane today, through every one of its expectation modules. Declaring the tier
         # states that existing result; it switches nothing on. The marker and CI lane the claim
         # obliges are already declared above.
-        tiers=frozenset({BackendTier.STANDARD_SQL}),
+        tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
         # No dev_requirements_file and no task_runner_marker: the task runner's dependency map has
         # no key for `unit`, because running these tests installs nothing beyond the base
         # development requirements and starts no service.

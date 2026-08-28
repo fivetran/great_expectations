@@ -15,12 +15,12 @@ from tests.integration.sql_session_manager import ConnectionDetails, SessionSQLE
 from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
 from tests.integration.test_utils.data_source_config.base import BatchTestSetup
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendProvisioning,
-    BackendTier,
     CiLaneRef,
+    DataSourceProvisioning,
     ExecutionEngineKind,
+    SupportTier,
 )
-from tests.integration.test_utils.data_source_config.registry import register_sql_backend
+from tests.integration.test_utils.data_source_config.registry import register_sql_config
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 from tests.test_utils import (
@@ -37,18 +37,18 @@ from tests.test_utils import (
 logger = logging.getLogger(__name__)
 
 
-@register_sql_backend
+@register_sql_config
 class SQLServerDatasourceTestConfig(SqlDatasourceTestConfig):
-    BACKEND_SPEC = SqlBackendSpec(
+    DATA_SOURCE_SPEC = SqlBackendSpec(
         label="mssql",
         public_name="SQL Server",
         marker="sql_server",
-        provisioning=BackendProvisioning.LOCAL_CONTAINER,
+        provisioning=DataSourceProvisioning.LOCAL_CONTAINER,
         execution_engine=ExecutionEngineKind.SQL,
         fluent_types=frozenset({"sql_server"}),
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="sql_server"),
         uses_schema=True,
-        tiers=frozenset({BackendTier.STANDARD_SQL}),
+        tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
         dev_requirements_file="reqs/requirements-dev-sql-server.txt",
         task_runner_marker="sql_server",
         container_service="mssql",

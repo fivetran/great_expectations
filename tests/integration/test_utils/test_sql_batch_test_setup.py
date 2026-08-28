@@ -1,6 +1,6 @@
 """Extension-point behavior tests for the shared SQL batch-setup layer.
 
-Every declaration below is a throwaway, never decorated with `register_sql_backend`, so none of it
+Every declaration below is a throwaway, never decorated with `register_sql_config`, so none of it
 joins the registry that the derived data-source lists and completeness checks walk. The schema
 items these declarations contribute are plain SQLAlchemy constructs with no dialect package
 involved, so the whole module runs against a file-backed SQLite database and needs no server.
@@ -32,8 +32,8 @@ from tests.integration.test_utils.data_source_config.backend_spec import (
     TransactionMode,
 )
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendProvisioning,
     CiLaneRef,
+    DataSourceProvisioning,
 )
 from tests.integration.test_utils.data_source_config.generic_sql import (
     GenericSQLBatchTestSetup,
@@ -56,7 +56,7 @@ _BASE_SPEC = SqlBackendSpec(
     label="throwaway-table-schema-items",
     public_name="SQLite",
     marker="sqlite",
-    provisioning=BackendProvisioning.LOCAL_FILE,
+    provisioning=DataSourceProvisioning.LOCAL_FILE,
     ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="sqlite"),
     uses_schema=False,
 )
@@ -68,7 +68,7 @@ only unique enough to keep this module's own throwaway configs distinguishable f
 class _ThrowawayDatasourceTestConfig(SqlDatasourceTestConfig):
     """A file-backed declaration used only to drive the tests in this module."""
 
-    BACKEND_SPEC: ClassVar[SqlBackendSpec] = _BASE_SPEC
+    DATA_SOURCE_SPEC: ClassVar[SqlBackendSpec] = _BASE_SPEC
 
     @override
     def create_batch_setup(
@@ -421,7 +421,7 @@ class _CountingBatchTestSetup(_ThrowawayBatchTestSetup):
 
 
 class _CacheRegressionDatasourceTestConfig(_ThrowawayDatasourceTestConfig):
-    BACKEND_SPEC: ClassVar[SqlBackendSpec] = _CACHE_REGRESSION_SPEC
+    DATA_SOURCE_SPEC: ClassVar[SqlBackendSpec] = _CACHE_REGRESSION_SPEC
 
     @override
     def create_batch_setup(

@@ -12,8 +12,8 @@ from tests.integration.test_utils.data_source_config.backend_spec import (
     TransactionMode,
 )
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendProvisioning,
     CiLaneRef,
+    DataSourceProvisioning,
     ExecutionEngineKind,
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
@@ -37,7 +37,7 @@ class GenericSQLDatasourceTestConfig(SqlDatasourceTestConfig):
     string is not baked in — it must be supplied at construction time. This makes the config
     reusable across any SQLAlchemy-compatible database, but it also means this config has no
     fixed identity to enrol in the SQL backend registry: it is deliberately never decorated with
-    `@register_sql_backend`, and must never appear in the set that gates CI.
+    `@register_sql_config`, and must never appear in the set that gates CI.
 
     `eq=False` is required here for the same reason `sql_config.py`'s class docstring gives for
     the base class itself: this class adds fields, which requires re-decorating with
@@ -47,11 +47,11 @@ class GenericSQLDatasourceTestConfig(SqlDatasourceTestConfig):
     raw `dict` value and raises on every instance.
     """
 
-    BACKEND_SPEC = SqlBackendSpec(
+    DATA_SOURCE_SPEC = SqlBackendSpec(
         label="generic_sql",
         public_name="Generic SQL",
         marker="generic_sql",
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         execution_engine=ExecutionEngineKind.SQL,
         fluent_types=frozenset({"sql"}),
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="generic_sql"),
@@ -64,7 +64,7 @@ class GenericSQLDatasourceTestConfig(SqlDatasourceTestConfig):
     connection_string: str = ""
 
     autocommit: bool = False
-    """Per-instance transaction mode, since this config has no fixed identity for `BACKEND_SPEC`
+    """Per-instance transaction mode, since this config has no fixed identity for `DATA_SOURCE_SPEC`
     to state it once. `__post_init__` below derives a `backend_spec_override` from it, using the
     per-instance seam `SqlDatasourceTestConfig` defines for exactly this: a declaration that
     varies per call rather than per class. Leave unset for the default explicit-commit mode.
@@ -81,9 +81,9 @@ class GenericSQLDatasourceTestConfig(SqlDatasourceTestConfig):
                 self,
                 "backend_spec_override",
                 dataclasses.replace(
-                    self.BACKEND_SPEC,
+                    self.DATA_SOURCE_SPEC,
                     transaction_mode=TransactionMode.AUTOCOMMIT,
-                    label=f"{self.BACKEND_SPEC.label}_autocommit",
+                    label=f"{self.DATA_SOURCE_SPEC.label}_autocommit",
                 ),
             )
 

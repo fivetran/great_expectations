@@ -11,12 +11,12 @@ from tests.integration.test_utils.data_source_config.backend_spec import (
     TransactionMode,
 )
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendProvisioning,
-    BackendTier,
     CiLaneRef,
+    DataSourceProvisioning,
     ExecutionEngineKind,
+    SupportTier,
 )
-from tests.integration.test_utils.data_source_config.registry import register_sql_backend
+from tests.integration.test_utils.data_source_config.registry import register_sql_config
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
@@ -30,13 +30,13 @@ if TYPE_CHECKING:
     from tests.integration.test_utils.data_source_config.base import BatchTestSetup
 
 
-@register_sql_backend
+@register_sql_config
 class DatabricksDatasourceTestConfig(SqlDatasourceTestConfig):
-    BACKEND_SPEC = SqlBackendSpec(
+    DATA_SOURCE_SPEC = SqlBackendSpec(
         label="databricks",
         public_name="Databricks (SQL)",
         marker="databricks",
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         execution_engine=ExecutionEngineKind.SQL,
         fluent_types=frozenset({"databricks_sql"}),
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="databricks"),
@@ -45,7 +45,7 @@ class DatabricksDatasourceTestConfig(SqlDatasourceTestConfig):
         # databricks requires a length for VARCHAR
         column_type_overrides={str: sqltypes.VARCHAR(255)},
         insert_parameter_limit=250,
-        tiers=frozenset({BackendTier.STANDARD_SQL}),
+        tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
         dev_requirements_file="reqs/requirements-dev-databricks.txt",
         task_runner_marker="databricks",
     )

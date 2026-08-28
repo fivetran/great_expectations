@@ -43,7 +43,7 @@ class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
     column_types: Optional[Mapping[str, _ColumnTypes]] = None
     extra_column_types: Mapping[str, Mapping[str, _ColumnTypes]] = field(default_factory=dict)
 
-    BACKEND_SPEC: ClassVar[DataSourceSpec]
+    DATA_SOURCE_SPEC: ClassVar[DataSourceSpec]
     """The declaration a concrete config states once, describing what its data source is.
 
     Every data source states it the same way, whether or not it is a SQL backend, so the identity
@@ -76,7 +76,7 @@ class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
         themselves as dataclasses. A property costs an overriding subclass one method and costs
         every other subclass nothing.
         """
-        return self.BACKEND_SPEC
+        return self.DATA_SOURCE_SPEC
 
     @property
     def label(self) -> str:

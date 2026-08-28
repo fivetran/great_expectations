@@ -12,7 +12,7 @@ the only data sources that can be described are the ones this repository happens
 which is exactly what makes "what data sources exist" unanswerable from code; a data source with
 no harness config registers through `register_data_source`, while one with a config registers
 through a class decorator - `register_data_source_config` for any config, or
-`register_sql_backend`, which is that decorator plus the one rule that is a property of being a
+`register_sql_config`, which is that decorator plus the one rule that is a property of being a
 SQL config. The accessors that hand back config classes skip the entries that have none,
 so a consumer parameterizing over configs is never handed a record it cannot instantiate.
 
@@ -58,10 +58,10 @@ from typing import (
 
 from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendProvisioning,
-    BackendTier,
+    DataSourceProvisioning,
     ExecutionEngineKind,
     MarkerScope,
+    SupportTier,
 )
 
 if TYPE_CHECKING:
@@ -74,7 +74,7 @@ _MAX_TIER_CASE_EXCLUSIONS = 2
 
 # The criterion every config-bound record with a declared execution engine has to declare: the
 # shared canonical expectation parameterization, the suite the ~46 expectation modules run.
-_SHARED_PARAMETERIZATION_TIER: Final = BackendTier.STANDARD_SQL
+_SHARED_PARAMETERIZATION_TIER: Final = SupportTier.CANONICAL_EXPECTATIONS
 
 # The deliberate non-participants, each with the reason it sits out. This is an explicit literal
 # rather than a derived set on purpose: participation in the shared parameterization is the
@@ -87,8 +87,9 @@ _SHARED_PARAMETERIZATION_TIER: Final = BackendTier.STANDARD_SQL
 #
 # `GenericSQLDatasourceTestConfig`, the generic-SQL escape hatch, is deliberately absent from this
 # literal and never needs an entry, because it is never registered — it carries no registration
-# decorator at all, so no registration of it ever reaches the rule below. It is a member of both
-# hand-written shared lists, so a reader who knows only that will read its absence here as an
+# decorator at all, so no registration of it ever reaches the rule below. It is nonetheless a SQL
+# config that the harness drives, and it was carried by the shared data-source lists back when
+# those were hand-written, so a reader who knows only that will read its absence here as an
 # oversight; it is not one.
 _OUTSIDE_SHARED_PARAMETERIZATION: Final[Mapping[str, str]] = {
     "clickhouse": (
@@ -122,31 +123,31 @@ class _DeclaresDataSourceSpec(Protocol):
     this module and its consumers is written against.
     """
 
-    BACKEND_SPEC: ClassVar[DataSourceSpec]
+    DATA_SOURCE_SPEC: ClassVar[DataSourceSpec]
 
 
-class _DeclaresBackendSpec(_DeclaresDataSourceSpec, Protocol):
+class _DeclaresSqlBackendSpec(_DeclaresDataSourceSpec, Protocol):
     """The same shape, narrowed to a SQL sub-record, for the SQL-specific entry point.
 
-    This exists for a type-checker reason, not a design one, and it is worth stating plainly
-    because the obvious simplification does not work. A concrete config assigns its declaration as
-    `BACKEND_SPEC = SqlBackendSpec(...)`, and the checker infers *that* class's own symbol at the
-    narrow type even though the shared config base declares the slot at core width. A Protocol
+    This exists for a type-checker reason, not a design one, and it is worth stating plainly because
+    the obvious simplification does not work. A concrete config assigns its declaration as
+    `DATA_SOURCE_SPEC = SqlBackendSpec(...)`, and the checker infers *that* class's own symbol at
+    the narrow type even though the shared config base declares the slot at core width. A Protocol
     **variable** member is invariant, so a class whose symbol is inferred narrow does not satisfy a
     protocol demanding the wider type — every SQL config would stop satisfying a single core-width
     protocol, at the registration site, for a reason that has nothing to do with the registration.
 
     Declaring the narrow protocol as a *subclass* of the core-width one resolves that without a
     cast and without re-annotating anything in any config module: a class satisfying the narrow
-    protocol is nominally a subtype of the core-width one, so `register_sql_backend` can accept
+    protocol is nominally a subtype of the core-width one, so `register_sql_config` can accept
     what it accepts today, keep full dialect type information on what it reads, and still hand the
     class to storage typed at core width.
     """
 
-    BACKEND_SPEC: ClassVar[SqlBackendSpec]
+    DATA_SOURCE_SPEC: ClassVar[SqlBackendSpec]
 
 
-_C = TypeVar("_C", bound=_DeclaresBackendSpec)
+_C = TypeVar("_C", bound=_DeclaresSqlBackendSpec)
 _ConfigT = TypeVar("_ConfigT", bound=_DeclaresDataSourceSpec)
 
 
@@ -271,7 +272,10 @@ def _validate_tier_claims(name: str, spec: DataSourceSpec) -> None:
             f"support table starts advertising coverage that never runs. Declare the lane that "
             f"runs it, or claim no tier"
         )
-    if spec.provisioning is BackendProvisioning.LOCAL_CONTAINER and spec.container_service is None:
+    if (
+        spec.provisioning is DataSourceProvisioning.LOCAL_CONTAINER
+        and spec.container_service is None
+    ):
         raise ValueError(
             f"{name} claims tier membership ({claimed}) with LOCAL_CONTAINER provisioning but "
             f"names no container_service; a tier claim asserts that a suite runs somewhere, and "
@@ -304,7 +308,7 @@ def _validate_container_provisioning(name: str, spec: DataSourceSpec) -> None:
     """
     if (
         spec.container_service is not None
-        and spec.provisioning is not BackendProvisioning.LOCAL_CONTAINER
+        and spec.provisioning is not DataSourceProvisioning.LOCAL_CONTAINER
     ):
         raise ValueError(
             f"{name} declares a container_service "
@@ -466,11 +470,11 @@ def _register(spec: DataSourceSpec, config_class: Optional[Type[_DeclaresDataSou
         _by_marker[marker] = registered
 
 
-def register_sql_backend(config_class: type[_C]) -> type[_C]:
+def register_sql_config(config_class: type[_C]) -> type[_C]:
     """Enrol a SQL config class. Raises `ValueError` at decoration time on a duplicate label, a
     colliding dedicated marker, or any invariant violation in its declared record.
     """
-    spec = config_class.BACKEND_SPEC
+    spec = config_class.DATA_SOURCE_SPEC
     if not isinstance(spec, SqlBackendSpec):
         # A ValueError rather than a TypeError, deliberately: this is a malformed declaration like
         # every other rejection here, not a caller passing the wrong argument to a function. One
@@ -489,12 +493,12 @@ def register_data_source_config(config_class: type[_ConfigT]) -> type[_ConfigT]:
     """Enrol a config class and the record it declares. Raises `ValueError` at decoration time on a
     duplicate label, a colliding dedicated marker, or any invariant violation in that record.
 
-    This is the entry point for any config the harness drives, SQL or not. `register_sql_backend`
+    This is the entry point for any config the harness drives, SQL or not. `register_sql_config`
     is this function plus the one rule that is a property of being a SQL config — that the declared
     record carries dialect facts — so both paths share every other rule, and the set of rules a
     config is held to is a property of the config rather than of which decorator enrolled it.
     """
-    spec = config_class.BACKEND_SPEC
+    spec = config_class.DATA_SOURCE_SPEC
     if spec.marker is None:
         raise ValueError(
             f"{config_class.__name__} declares a record with no data source marker; a config is "
@@ -529,7 +533,7 @@ def iter_data_source_specs() -> Tuple[DataSourceSpec, ...]:
     return tuple(registered.spec for registered in iter_data_sources())
 
 
-def iter_sql_backends() -> Tuple[Type[_DeclaresDataSourceSpec], ...]:
+def iter_data_source_configs() -> Tuple[Type[_DeclaresDataSourceSpec], ...]:
     """Registered config classes, ordered by spec label.
 
     Entries registered without a config class are skipped rather than represented by a
@@ -542,12 +546,12 @@ def iter_sql_backends() -> Tuple[Type[_DeclaresDataSourceSpec], ...]:
     )
 
 
-def sql_backends_for_tier(tier: BackendTier) -> Tuple[Type[_DeclaresDataSourceSpec], ...]:
+def data_source_configs_for_tier(tier: SupportTier) -> Tuple[Type[_DeclaresDataSourceSpec], ...]:
     """Registered config classes declaring membership in `tier`, ordered by spec label."""
     return tuple(
         config_class
-        for config_class in iter_sql_backends()
-        if tier in config_class.BACKEND_SPEC.tiers
+        for config_class in iter_data_source_configs()
+        if tier in config_class.DATA_SOURCE_SPEC.tiers
     )
 
 
@@ -562,8 +566,8 @@ def data_source_configs_for_engine(
     """
     return tuple(
         config_class
-        for config_class in iter_sql_backends()
-        if config_class.BACKEND_SPEC.execution_engine is engine
+        for config_class in iter_data_source_configs()
+        if config_class.DATA_SOURCE_SPEC.execution_engine is engine
     )
 
 
@@ -574,12 +578,12 @@ def isolated_registry() -> Iterator[None]:
 
     The registry is process-global module state, so a test that registers a throwaway record —
     including every duplicate-rejection test, which needs one successful registration before the
-    conflicting one — must not leave that backend behind for later tests or for the real registry
+    conflicting one — must not leave that record behind for later tests or for the real registry
     consumers (the wiring drift check and the registered-set pin) to trip over. Clearing before
     yielding, rather than only restoring after, is what makes the empty registry inside the seam
     genuinely isolated rather than merely a live view onto whatever the real registry happens to
     hold at the time — which in turn is what lets a test assert whole-registry equality exactly,
-    without that assertion depending on how many real backends happen to be registered elsewhere.
+    without that assertion depending on how many real records happen to be registered elsewhere.
 
     Both stores are covered, records and marker index alike: a seam that emptied one and left the
     other live would let a throwaway registration inside it collide with a marker declared

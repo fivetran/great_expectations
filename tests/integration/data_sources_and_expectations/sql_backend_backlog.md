@@ -20,7 +20,7 @@ step 4 describe, plus one further signal:
 - **compose directory** — `assets/docker/<backend>/`, for a backend that would run as a local
   container.
 - **harness declaration** — a `SqlDatasourceTestConfig` subclass under
-  `tests/integration/test_utils/data_source_config/`, decorated with `@register_sql_backend`.
+  `tests/integration/test_utils/data_source_config/`, decorated with `@register_sql_config`.
 - **`GXSqlDialect` member** — whether `great_expectations/execution_engine/sqlalchemy_dialect.py`
   already has an enum member for this dialect. This one is not a harness onboarding surface; it
   signals how much dialect-specific behavior the core execution engine already carries, independent
@@ -44,7 +44,7 @@ of them — that check only walks backends that are already registered.
   (BigQuery, Databricks, Redshift, Snowflake). Athena has no `assets/docker/athena/` directory, and
   its task-runner entry declaring no `services` is consistent with that — there is nothing local to
   start. Onboarding Athena would plausibly declare
-  `provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS`, the same way those four backends do, but
+  `provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS`, the same way those four backends do, but
   that is inference from the existing pattern, not something verified against an actual connection.
 
 ## Dremio
@@ -107,7 +107,7 @@ Nothing about any of these six backends demands a change to `SqlBackendSpec` its
 declaration's existing extension points (`uses_schema`, `column_type_overrides`,
 `transaction_mode`, `insert_parameter_limit`, `table_schema_items`) are dialect facts, not
 provisioning facts, and provisioning is already a three-way choice
-(`BackendProvisioning.LOCAL_CONTAINER`, `LOCAL_FILE`, `EXTERNAL_CREDENTIALS`). Whichever of these
+(`DataSourceProvisioning.LOCAL_CONTAINER`, `LOCAL_FILE`, `EXTERNAL_CREDENTIALS`). Whichever of these
 six backends is onboarded next should fit the existing shape; nothing here identifies a fourth
 provisioning kind or a missing declaration field.
 

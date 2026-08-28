@@ -11,28 +11,28 @@ from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
 from tests.integration.test_utils.data_source_config.base import BatchTestSetup
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendProvisioning,
-    BackendTier,
     CiLaneRef,
+    DataSourceProvisioning,
     ExecutionEngineKind,
+    SupportTier,
 )
-from tests.integration.test_utils.data_source_config.registry import register_sql_backend
+from tests.integration.test_utils.data_source_config.registry import register_sql_config
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
 
-@register_sql_backend
+@register_sql_config
 class SqliteDatasourceTestConfig(SqlDatasourceTestConfig):
-    BACKEND_SPEC = SqlBackendSpec(
+    DATA_SOURCE_SPEC = SqlBackendSpec(
         label="sqlite",
         public_name="SQLite",
         marker="sqlite",
-        provisioning=BackendProvisioning.LOCAL_FILE,
+        provisioning=DataSourceProvisioning.LOCAL_FILE,
         execution_engine=ExecutionEngineKind.SQL,
         fluent_types=frozenset({"sqlite"}),
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="sqlite"),
         uses_schema=False,
-        tiers=frozenset({BackendTier.STANDARD_SQL}),
+        tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
         # SQLite has neither a dev-requirements file nor a task-runner entry.
     )
 

@@ -11,28 +11,28 @@ from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
 from tests.integration.test_utils.data_source_config.base import BatchTestSetup
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendProvisioning,
-    BackendTier,
     CiLaneRef,
+    DataSourceProvisioning,
     ExecutionEngineKind,
+    SupportTier,
 )
-from tests.integration.test_utils.data_source_config.registry import register_sql_backend
+from tests.integration.test_utils.data_source_config.registry import register_sql_config
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
 
-@register_sql_backend
+@register_sql_config
 class MySQLDatasourceTestConfig(SqlDatasourceTestConfig):
-    BACKEND_SPEC = SqlBackendSpec(
+    DATA_SOURCE_SPEC = SqlBackendSpec(
         label="mysql",
         public_name="MySQL",
         marker="mysql",
-        provisioning=BackendProvisioning.LOCAL_CONTAINER,
+        provisioning=DataSourceProvisioning.LOCAL_CONTAINER,
         execution_engine=ExecutionEngineKind.SQL,
         fluent_types=frozenset({"sql"}),
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="mysql"),
         uses_schema=True,
-        tiers=frozenset({BackendTier.STANDARD_SQL}),
+        tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
         # MySQL requires a length for VARCHAR.
         column_type_overrides={str: sqltypes.VARCHAR(255)},
         dev_requirements_file="reqs/requirements-dev-mysql.txt",

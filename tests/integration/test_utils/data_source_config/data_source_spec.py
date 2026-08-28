@@ -29,7 +29,7 @@ from typing import FrozenSet, Mapping, Optional
 import pytest
 
 
-class BackendProvisioning(Enum):
+class DataSourceProvisioning(Enum):
     """Where a test run gets an instance of this data source."""
 
     LOCAL_CONTAINER = "local_container"
@@ -45,14 +45,24 @@ class BackendProvisioning(Enum):
     """No backend service of any kind; the data source runs inside the test process."""
 
 
-class BackendTier(Enum):
+class SupportTier(Enum):
     """Named suites a data source can participate in."""
 
-    STANDARD_SQL = "standard_sql"
-    """The shared standard SQL data-source list."""
+    CANONICAL_EXPECTATIONS = "canonical_expectations"
+    """The shared canonical expectation parameterization.
+
+    Membership means this data source runs the expectation modules' shared parameterization. It
+    is a statement about a suite, not about an engine: pandas, Spark and SQL data sources all
+    declare it. It was named for a SQL engine before, which described the same suite while
+    implying that only SQL backends could join it.
+    """
 
     CURATED_SQL = "curated_sql"
-    """The smaller curated suite."""
+    """The smaller curated SQL backend suite.
+
+    Keeps saying SQL, because the suite it gates exists to prove dialect behavior and so has no
+    meaning for a data source that speaks no dialect.
+    """
 
 
 class MarkerScope(Enum):
@@ -112,7 +122,7 @@ class DataSourceSpec:
     """
 
     # what it is
-    provisioning: BackendProvisioning
+    provisioning: DataSourceProvisioning
     """Where a test run obtains an instance of this data source."""
 
     execution_engine: Optional[ExecutionEngineKind] = None
@@ -143,12 +153,12 @@ class DataSourceSpec:
     """Whether ``marker`` names this data source alone or a class of data sources."""
 
     # what it claims
-    tiers: FrozenSet[BackendTier] = frozenset()
+    tiers: FrozenSet[SupportTier] = frozenset()
     """The named test tiers this data source participates in, e.g.
-    ``tiers=frozenset({BackendTier.CURATED_SQL})``.
+    ``tiers=frozenset({SupportTier.CURATED_SQL})``.
 
     Always write a ``frozenset(...)`` literal, never a bare set literal: a bare
-    ``{BackendTier.CURATED_SQL}`` is a ``set``, which mypy rejects against this ``FrozenSet``
+    ``{SupportTier.CURATED_SQL}`` is a ``set``, which mypy rejects against this ``FrozenSet``
     field, and ``tests/`` is inside mypy's ``files``, so that is a hard failure rather than a
     lint note. Membership in no tier is a valid declaration meaning "this data source ships, but
     no tier's suite proves it".

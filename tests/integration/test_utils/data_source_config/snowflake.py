@@ -14,12 +14,12 @@ from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
 )
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    BackendProvisioning,
-    BackendTier,
     CiLaneRef,
+    DataSourceProvisioning,
     ExecutionEngineKind,
+    SupportTier,
 )
-from tests.integration.test_utils.data_source_config.registry import register_sql_backend
+from tests.integration.test_utils.data_source_config.registry import register_sql_config
 from tests.integration.test_utils.data_source_config.sql import (
     ConnectionDetails,
     SQLBatchTestSetup,
@@ -30,13 +30,13 @@ if TYPE_CHECKING:
     from great_expectations.types.connect_args import ConnectArgs
 
 
-@register_sql_backend
+@register_sql_config
 class SnowflakeDatasourceTestConfig(SqlDatasourceTestConfig):
-    BACKEND_SPEC = SqlBackendSpec(
+    DATA_SOURCE_SPEC = SqlBackendSpec(
         label="snowflake",
         public_name="Snowflake",
         marker="snowflake",
-        provisioning=BackendProvisioning.EXTERNAL_CREDENTIALS,
+        provisioning=DataSourceProvisioning.EXTERNAL_CREDENTIALS,
         execution_engine=ExecutionEngineKind.SQL,
         fluent_types=frozenset({"snowflake"}),
         # Snowflake's CI lane is a dedicated job (`marker-tests-snowflake`), not a
@@ -44,7 +44,7 @@ class SnowflakeDatasourceTestConfig(SqlDatasourceTestConfig):
         # selected as one matrix cell among many markers.
         ci_lane=CiLaneRef(workflow_job="marker-tests-snowflake", marker_token="snowflake"),
         uses_schema=True,
-        tiers=frozenset({BackendTier.STANDARD_SQL}),
+        tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
         dev_requirements_file="reqs/requirements-dev-snowflake.txt",
         task_runner_marker="snowflake",
     )
