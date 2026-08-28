@@ -582,11 +582,6 @@ def _check_for_skipped_tests(  # noqa: C901, PLR0912 # FIXME CoP
     dependencies = integration_test_fixture.backend_dependencies
     if not dependencies:
         return
-    # TEMPORARY: Tests backed by Azure Blob are unconditionally skipped during the CI
-    # transition -- there is no storage account or live credential to run against yet.
-    # Remove this block once that infrastructure is restored.
-    elif BackendDependencies.AZURE in dependencies:
-        pytest.skip("CI TRANSITION")
     elif BackendDependencies.POSTGRESQL in dependencies and (
         not pytest_args.postgresql or pytest_args.no_sqlalchemy
     ):

@@ -1037,10 +1037,15 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             # aborts the whole session rather than skipping its tests. Add one only once
             # its marker leg is green.
             #
-            # Two are deliberately left out, for different reasons.
+            # --azure has no marker leg to be green: nothing carries an azure marker, and
+            # the docs fixtures are the only tests that reach Blob Storage at all. Its
+            # collection check is also weaker than the others -- build_test_backends_list
+            # only asserts that one of AZURE_CREDENTIAL / AZURE_ACCESS_KEY /
+            # AZURE_CONNECTION_STRING is non-empty, and opens no connection -- so a
+            # credential that is present but wrong (an expired SAS, say) surfaces as a
+            # fixture failure here rather than as a collection error.
             #
-            # --azure: its dependencies are installed for imports, but there is no storage
-            # account or credential to connect to, so requesting it would abort collection.
+            # One is deliberately left out.
             #
             # --snowflake: collection connects fine, but both Snowflake docs fixtures then
             # fail loading their test data into the test database. That failure is not
@@ -1049,6 +1054,7 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             # so it needs someone who can run it against Snowflake directly. The marker
             # leg is green, so this is a fixture/permissions gap, not a dead backend.
             "--aws",
+            "--azure",
             "--bigquery",
             "--gcs",
             "--redshift",

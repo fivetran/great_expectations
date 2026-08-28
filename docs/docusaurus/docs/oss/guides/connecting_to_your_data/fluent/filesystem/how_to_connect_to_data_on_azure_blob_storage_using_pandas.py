@@ -11,8 +11,6 @@ import great_expectations as gx
 
 context = gx.get_context()
 
-os.environ["AZURE_STORAGE_ACCOUNT_URL"] = "superconductivetesting.blob.core.windows.net"
-
 # Python
 # <snippet name="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/filesystem/how_to_connect_to_data_on_azure_blob_storage_using_pandas.py define_add_pandas_abs_args">
 datasource_name = "my_datasource"
@@ -32,7 +30,7 @@ datasource = context.data_sources.add_pandas_abs(
 assert datasource_name in context.data_sources.all()
 
 asset_name = "my_taxi_data_asset"
-abs_container = "superconductive-public"
+abs_container = os.environ["AZURE_CONTAINER"]
 abs_name_starts_with = "data/taxi_yellow_tripdata_samples/"
 batching_regex = r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
 
