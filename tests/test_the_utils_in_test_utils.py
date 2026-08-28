@@ -43,3 +43,44 @@ def test_get_clickhouse_sqlalchemy_potential_type():
             get_clickhouse_sqlalchemy_potential_type(clickhouse_sqlalchemy.drivers.base, pair[0])
             == pair[1]
         )
+
+
+def _introspect_db_with_mocked_inspector(mocker, **kwargs):
+    """Run introspect_db against a mocked inspector, returning the schemas it visited."""
+    from tests.test_utils import introspect_db
+
+    inspector = mocker.Mock()
+    inspector.get_schema_names.return_value = ["schema_a", "schema_b", "INFORMATION_SCHEMA"]
+    inspector.get_table_names.return_value = ["some_table"]
+    inspector.get_view_names.return_value = []
+    mocker.patch("tests.test_utils.sa.inspect", return_value=inspector)
+
+    introspect_db(execution_engine=mocker.Mock(), **kwargs)
+
+    visited = [call.kwargs["schema"] for call in inspector.get_table_names.call_args_list]
+    return visited, inspector
+
+
+@pytest.mark.unit
+def test_introspect_db_scopes_to_requested_schema(mocker):
+    visited, inspector = _introspect_db_with_mocked_inspector(mocker, schema_name="schema_b")
+
+    assert visited == ["schema_b"]
+    # Listing every schema on the server is the expensive call this scoping avoids.
+    inspector.get_schema_names.assert_not_called()
+
+
+@pytest.mark.unit
+def test_introspect_db_skips_information_schemas(mocker):
+    visited, _ = _introspect_db_with_mocked_inspector(mocker)
+
+    assert visited == ["schema_a", "schema_b"]
+
+
+@pytest.mark.unit
+def test_introspect_db_includes_information_schemas_when_not_ignored(mocker):
+    visited, _ = _introspect_db_with_mocked_inspector(
+        mocker, ignore_information_schemas_and_system_tables=False
+    )
+
+    assert visited == ["schema_a", "schema_b", "INFORMATION_SCHEMA"]

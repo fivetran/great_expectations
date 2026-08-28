@@ -774,17 +774,20 @@ def introspect_db(  # noqa: C901, PLR0912 # FIXME CoP
     engine: sqlalchemy.Engine = execution_engine.engine
     inspector: sqlalchemy.Inspector = sa.inspect(engine)
 
-    selected_schema_name = schema_name
-
     tables: List[Dict[str, str]] = []
-    all_schema_names: List[str] = inspector.get_schema_names()
-    for schema in all_schema_names:
-        if ignore_information_schemas_and_system_tables and schema_name in information_schemas:
-            continue
+    if schema_name is not None:
+        # Listing every schema on the server is expensive - on BigQuery it enumerates
+        # every dataset in the project - so skip that call entirely when the caller
+        # has already named the schema it cares about.
+        schema_names_to_introspect: List[str] = [schema_name]
+    else:
+        schema_names_to_introspect = [
+            schema
+            for schema in inspector.get_schema_names()
+            if not (ignore_information_schemas_and_system_tables and schema in information_schemas)
+        ]
 
-        if selected_schema_name is not None and schema_name != selected_schema_name:
-            continue
-
+    for schema in schema_names_to_introspect:
         try:
             table_names: List[str] = inspector.get_table_names(schema=schema)
         except ProgrammingError:
