@@ -6,10 +6,8 @@ import itertools
 import json
 import logging
 import pathlib
-import sys
 import tempfile
 import uuid
-import warnings
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -69,28 +67,14 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-if sys.version_info < (3, 14):
-    from marshmallow.warnings import RemovedInMarshmallow4Warning
-
-    # Marshmallow 3 emits this warning for APIs removed in Marshmallow 4.
-    warnings.simplefilter(action="ignore", category=RemovedInMarshmallow4Warning)
-
-
-_MARSHMALLOW_DEFAULT_KWARG = "missing" if sys.version_info < (3, 14) else "load_default"
-
-
-def _marshmallow_default(value: Any) -> Dict[str, Any]:
-    return {_MARSHMALLOW_DEFAULT_KWARG: value}
-
-
 def _validate_config_version(value: float) -> None:
+    """Raise if the config version is outside the representable range.
+
+    Raising (rather than returning False) is required: returning a falsy value from a
+    validator is a no-op, so a boolean validator silently accepts every value.
+    """
     if not 0 < value < 100:  # noqa: PLR2004 # FIXME CoP
-        raise ValidationError(  # noqa: TRY003 # FIXME CoP
-            "config version must be between 0 and 100."
-        )
-
-
-_CONFIG_VERSION_FIELD = fields.Number if sys.version_info < (3, 14) else fields.Float
+        raise ValidationError("config version must be between 0 and 100.")  # noqa: TRY003 # FIXME CoP
 
 
 def object_to_yaml_str(obj):
@@ -273,20 +257,20 @@ class SorterConfigSchema(Schema):
     module_name = fields.String(
         required=False,
         allow_none=True,
-        **_marshmallow_default("great_expectations.datasource.data_connector.sorter"),
+        load_default="great_expectations.datasource.data_connector.sorter",
     )
     orderby = fields.String(
         required=False,
         allow_none=True,
-        **_marshmallow_default("asc"),
+        load_default="asc",
     )
 
     # allow_none = True because it is only used by some Sorters
     reference_list = fields.List(
         cls_or_instance=fields.Str(),
         required=False,
+        load_default=None,
         allow_none=True,
-        **_marshmallow_default(None),
     )
     order_keys_by = fields.String(
         required=False,
@@ -295,13 +279,13 @@ class SorterConfigSchema(Schema):
     key_reference_list = fields.List(
         cls_or_instance=fields.Str(),
         required=False,
+        load_default=None,
         allow_none=True,
-        **_marshmallow_default(None),
     )
     datetime_format = fields.String(
         required=False,
+        load_default=None,
         allow_none=True,
-        **_marshmallow_default(None),
     )
 
     # noinspection PyUnusedLocal
@@ -397,12 +381,12 @@ class AssetConfigSchema(Schema):
     class_name = fields.String(
         required=False,
         allow_none=True,
-        **_marshmallow_default("Asset"),
+        load_default="Asset",
     )
     module_name = fields.String(
         required=False,
         allow_none=True,
-        **_marshmallow_default("great_expectations.datasource.data_connector.asset"),
+        load_default="great_expectations.datasource.data_connector.asset",
     )
     base_directory = fields.String(required=False, allow_none=True)
     glob_directive = fields.String(required=False, allow_none=True)
@@ -639,7 +623,7 @@ class DataConnectorConfigSchema(AbstractConfigSchema):
     module_name = fields.String(
         required=False,
         allow_none=True,
-        **_marshmallow_default("great_expectations.datasource.data_connector"),
+        load_default="great_expectations.datasource.data_connector",
     )
 
     assets = fields.Dict(
@@ -990,7 +974,7 @@ class ExecutionEngineConfigSchema(Schema):
     module_name = fields.String(
         required=False,
         allow_none=True,
-        **_marshmallow_default("great_expectations.execution_engine"),
+        load_default="great_expectations.execution_engine",
     )
     connection_string = fields.String(required=False, allow_none=True)
     credentials = fields.Raw(required=False, allow_none=True)
@@ -1103,7 +1087,7 @@ class GXCloudConfig(DictDot):
 
 
 class DataContextConfigSchema(Schema):
-    config_version: fields.Field = _CONFIG_VERSION_FIELD(
+    config_version: fields.Float = fields.Float(
         validate=_validate_config_version,
         error_messages={"invalid": "config version must be a number."},
     )

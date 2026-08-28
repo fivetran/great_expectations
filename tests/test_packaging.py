@@ -7,12 +7,8 @@ from typing import Final, List
 
 import pytest
 import requirements as rp
-from packaging.markers import default_environment
-from packaging.requirements import Requirement
-from packaging.specifiers import SpecifierSet
 
-# Marshmallow intentionally has a Python-versioned compatibility split.
-IGNORE_PINS: Final[set[str]] = {"marshmallow", "mypy", "ruff", "pytest"}
+IGNORE_PINS: Final[set[str]] = {"mypy", "ruff", "pytest"}
 
 
 def collect_requirements_files() -> List[pathlib.Path]:
@@ -70,47 +66,6 @@ def parse_requirements_files_to_specs(
             req_set_dict[key] = {line.name: line.specs for line in rp.parse(f) if line.specs}  # type: ignore[misc] # FIXME CoP
 
     return req_set_dict
-
-
-@pytest.mark.unit
-def test_marshmallow_requirement_matrix():
-    requirements_path = pathlib.Path(__file__).parents[1] / "requirements.txt"
-    marshmallow_requirements = [
-        Requirement(line.strip())
-        for line in requirements_path.read_text().splitlines()
-        if line.strip().lower().startswith("marshmallow")
-    ]
-
-    assert len(marshmallow_requirements) == 2
-    assert {str(requirement.marker) for requirement in marshmallow_requirements} == {
-        'python_version < "3.14"',
-        'python_version >= "3.14"',
-    }
-
-    expected_specifiers = {
-        SpecifierSet(">=3.7.1,<4.0.0"),
-        SpecifierSet(">=4.0.0"),
-    }
-    assert {
-        requirement.specifier for requirement in marshmallow_requirements
-    } == expected_specifiers
-
-    environment = default_environment()
-    for python_version, expected_specifier in (
-        ("3.10", SpecifierSet(">=3.7.1,<4.0.0")),
-        ("3.11", SpecifierSet(">=3.7.1,<4.0.0")),
-        ("3.12", SpecifierSet(">=3.7.1,<4.0.0")),
-        ("3.13", SpecifierSet(">=3.7.1,<4.0.0")),
-        ("3.14", SpecifierSet(">=4.0.0")),
-    ):
-        environment["python_version"] = python_version
-        selected = [
-            requirement
-            for requirement in marshmallow_requirements
-            if requirement.marker is not None and requirement.marker.evaluate(environment)
-        ]
-        assert len(selected) == 1
-        assert selected[0].specifier == expected_specifier
 
 
 @pytest.mark.unit

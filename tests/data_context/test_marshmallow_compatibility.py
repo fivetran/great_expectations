@@ -51,8 +51,7 @@ def test_configuration_schema_defaults_are_preserved(schema_class, data, expecte
 
     for attribute, expected in expected_defaults.items():
         field = schema.fields[attribute]
-        default = getattr(field, "load_default", getattr(field, "missing", None))
-        assert default == expected
+        assert field.load_default == expected
         if expected is not None:
             assert getattr(config, attribute) == expected
 
