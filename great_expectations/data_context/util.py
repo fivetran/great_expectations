@@ -173,6 +173,12 @@ class PasswordMasker:
     # values with these keys will be directly replaced with cls.MASKED_PASSWORD_STRING:
     PASSWORD_KEYS = {"access_token", "password"}
 
+    # Azure blobstore connection-string fields that are known not to carry a credential, and so
+    # may be shown in cleartext. Every other field is masked rather than dropped: the masked
+    # string stays a faithful description of what was configured, while a field we do not
+    # recognize - including one Azure adds later - is never revealed by default.
+    AZURE_SAFE_TO_DISPLAY_FIELDS = {"DefaultEndpointsProtocol", "AccountName", "EndpointSuffix"}
+
     @classmethod
     def mask_db_url(cls, url: str, use_urlparse: bool = False, **kwargs) -> str:
         """
@@ -239,19 +245,16 @@ class PasswordMasker:
                 "and valid."
             )
 
-        # Only re-emit the fields this method actually validated above; anything else the
-        # connection string happens to carry (e.g. an embedded SAS token) is dropped rather
-        # than echoed back unmasked.
-        recognized_fields = {
-            "DefaultEndpointsProtocol",
-            "AccountName",
-            "AccountKey",
-            "EndpointSuffix",
-        }
+        # Emit every field the connection string carried, masking the value of any field not
+        # known to be safe to display. Dropping unrecognized fields instead would make the
+        # masked string describe a connection that was never configured - `BlobEndpoint`, for
+        # one, overrides the endpoint built from protocol/account/suffix, so omitting it points
+        # the output at a different endpoint than the real config uses.
         return ";".join(
-            f"{key}={cls.MASKED_PASSWORD_STRING}" if key == "AccountKey" else f"{key}={value}"
+            f"{key}={value}"
+            if key in cls.AZURE_SAFE_TO_DISPLAY_FIELDS
+            else f"{key}={cls.MASKED_PASSWORD_STRING}"
             for key, value in fields
-            if key in recognized_fields
         )
 
     @classmethod
