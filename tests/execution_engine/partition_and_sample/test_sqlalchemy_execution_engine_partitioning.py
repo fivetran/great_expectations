@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import hashlib
 import os
 from typing import TYPE_CHECKING, List
 from unittest import mock
@@ -798,3 +799,80 @@ def test_sqlite_partition_and_sample_using_limit(
     for row_date in row_dates:
         assert row_date.month == 1
         assert row_date.year == 2018
+
+
+def _sqlite_md5_udf_reference(value: object, hash_digits: int) -> str:
+    """Reference implementation of the md5 UDF SqlAlchemyExecutionEngine registers on sqlite.
+
+    Recomputed here in Python so the tests below pin the UDF's actual output rather than
+    comparing the database against itself.
+    """
+    return hashlib.md5(str(value).encode("utf-8"), usedforsecurity=False).hexdigest()[
+        -1 * hash_digits :
+    ]
+
+
+@pytest.mark.sqlite
+def test_sqlite_partition_on_hashed_column(sa):
+    """What does this test and why?
+    partition_on_hashed_column has no native sqlite implementation; it depends on the md5
+    UDF that SqlAlchemyExecutionEngine registers on every sqlite connection. Drive that
+    path end to end so a regression in the UDF fails here.
+    """
+    hash_digits: int = 1
+    column_name: str = "id"
+    df: pd.DataFrame = pd.DataFrame({column_name: list(range(20))})
+    engine: SqlAlchemyExecutionEngine = build_sa_execution_engine(df, sa)
+
+    hash_value: str = _sqlite_md5_udf_reference(df[column_name][0], hash_digits)
+    expected_ids: List[int] = [
+        value
+        for value in df[column_name]
+        if _sqlite_md5_udf_reference(value, hash_digits) == hash_value
+    ]
+    # Guard against a vacuous assertion: the partition must be a non-empty, proper subset.
+    assert 0 < len(expected_ids) < len(df)
+
+    batch_spec: SqlAlchemyDatasourceBatchSpec = SqlAlchemyDatasourceBatchSpec(
+        table_name="test",
+        schema_name="main",
+        partitioner_method="partition_on_hashed_column",
+        partitioner_kwargs={"column_name": column_name, "hash_digits": hash_digits},
+        batch_identifiers={column_name: hash_value},
+    )
+    batch_data: SqlAlchemyBatchData = engine.get_batch_data(batch_spec=batch_spec)
+
+    rows: list[sa.RowMapping] = (
+        engine.execute_query(sa.select(sa.text("*")).select_from(batch_data.selectable))
+        .mappings()
+        .fetchall()
+    )
+
+    assert sorted(row[column_name] for row in rows) == sorted(expected_ids)
+
+
+@pytest.mark.sqlite
+def test_sqlite_get_data_for_batch_identifiers_on_hashed_column(sa):
+    """What does this test and why?
+    Introspecting the batch identifiers for a hashed-column partitioner runs the same sqlite
+    md5 UDF, through a different query. The identifiers it yields must be the real digests.
+    """
+    hash_digits: int = 2
+    column_name: str = "id"
+    df: pd.DataFrame = pd.DataFrame({column_name: list(range(20))})
+    engine: SqlAlchemyExecutionEngine = build_sa_execution_engine(df, sa)
+
+    data_partitioner: SqlAlchemyDataPartitioner = SqlAlchemyDataPartitioner(dialect="sqlite")
+    batch_identifiers_list: List[dict] = data_partitioner.get_data_for_batch_identifiers(
+        execution_engine=engine,
+        selectable=sa.table("test", schema="main"),
+        partitioner_method_name="partition_on_hashed_column",
+        partitioner_kwargs={"column_name": column_name, "hash_digits": hash_digits},
+    )
+
+    expected_hash_values: set[str] = {
+        _sqlite_md5_udf_reference(value, hash_digits) for value in df[column_name]
+    }
+    assert {
+        batch_identifiers[column_name] for batch_identifiers in batch_identifiers_list
+    } == expected_hash_values
