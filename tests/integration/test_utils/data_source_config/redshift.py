@@ -8,6 +8,7 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.redshift_datasource import RedshiftDsn
 from tests.integration.test_utils.data_source_config.backend_spec import (
     BackendProvisioning,
+    BackendTier,
     CiLaneRef,
     SqlBackendSpec,
 )
@@ -54,6 +55,7 @@ class RedshiftDatasourceTestConfig(SqlDatasourceTestConfig):
         # the job is named explicitly here rather than being the shared matrix job.
         ci_lane=CiLaneRef(workflow_job="redshift", marker_token="redshift"),
         uses_schema=True,
+        tiers=frozenset({BackendTier.STANDARD_SQL}),
         dev_requirements_file="reqs/requirements-dev-redshift.txt",
         task_runner_marker="redshift",
     )

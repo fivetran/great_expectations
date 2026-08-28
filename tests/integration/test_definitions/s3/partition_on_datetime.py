@@ -1,3 +1,4 @@
+import os
 import re
 
 import great_expectations as gx
@@ -5,7 +6,7 @@ import great_expectations as gx
 context = gx.get_context()
 
 datasource_name = "my_s3_datasource"
-bucket_name = "great-expectations-docs-test"
+bucket_name = os.environ["GX_S3_TEST_BUCKET"]
 
 datasource = context.data_sources.add_pandas_s3(
     name=datasource_name, bucket=bucket_name, boto3_options={}

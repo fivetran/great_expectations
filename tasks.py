@@ -265,6 +265,11 @@ def type_check(  # noqa: C901, PLR0912
     mypy_cache = pathlib.Path(".mypy_cache")
 
     if ci:
+        # The configuration guard runs inside the type-check entry point, before mypy
+        # dispatches, so it takes effect on the pull request that introduces it and every
+        # one after, and can't be skipped by reordering steps in a workflow file.
+        ctx.run("python scripts/mypy_config_guard.py", echo=True, pty=True)
+
         mypy_cache.mkdir(exist_ok=True)
         print(f"  mypy cache {mypy_cache.absolute()}")
 
@@ -1027,12 +1032,33 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         ),
         services=("mssql", "trino"),
         extra_pytest_args=(
-            # TEMPORARY (CI transition): the S3, Azure Blob, BigQuery, Redshift, and
-            # Snowflake backends are unavailable while their CI infrastructure is torn down.
-            # Requesting any of them makes test collection eagerly connect to a dead backend
-            # and abort the whole session, so only the available backends are requested here.
-            # Restore the remaining cloud/warehouse flags once the infra is back.
+            # Every backend this leg installs is requested here, and each flag makes test
+            # collection open a real connection -- so a flag whose backend is unreachable
+            # aborts the whole session rather than skipping its tests. Add one only once
+            # its marker leg is green.
+            #
+            # --azure has no marker leg to be green: nothing carries an azure marker, and
+            # the docs fixtures are the only tests that reach Blob Storage at all. Its
+            # collection check is also weaker than the others -- build_test_backends_list
+            # only asserts that one of AZURE_CREDENTIAL / AZURE_ACCESS_KEY /
+            # AZURE_CONNECTION_STRING is non-empty, and opens no connection -- so a
+            # credential that is present but wrong (an expired SAS, say) surfaces as a
+            # fixture failure here rather than as a collection error.
+            #
+            # One is deliberately left out.
+            #
+            # --snowflake: collection connects fine, but both Snowflake docs fixtures then
+            # fail loading their test data into the test database. That failure is not
+            # diagnosable from CI -- load_data_into_test_database deliberately swallows the
+            # SQLAlchemyError so credentials cannot reach the logs (tests/test_utils.py) --
+            # so it needs someone who can run it against Snowflake directly. The marker
+            # leg is green, so this is a fixture/permissions gap, not a dead backend.
+            "--aws",
+            "--azure",
+            "--bigquery",
             "--gcs",
+            "--redshift",
+            "--sql-server",
             "--trino",
             "--docs-tests",
         ),
@@ -1065,6 +1091,10 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         ("reqs/requirements-dev-mysql.txt",),
         services=("mysql",),
         extra_pytest_args=("--mysql",),
+    ),
+    "oracle": TestDependencies(
+        ("reqs/requirements-dev-oracle.txt",),
+        services=("oracle",),
     ),
     "pyarrow": TestDependencies(("reqs/requirements-dev-arrow.txt",)),
     "postgresql": TestDependencies(
