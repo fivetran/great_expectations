@@ -172,7 +172,7 @@ shared setup or work around the gap locally in the backend's own module.
 
 **1. A backend module must import successfully with its driver package absent.** The harness
 package (`tests/integration/test_utils/data_source_config/__init__.py`) imports every backend
-module unconditionally, and the shared verification lane (`tests/test_sql_backend_registry.py`,
+module unconditionally, and the shared verification lane (`tests/test_data_source_registry.py`,
 which runs under the `project` marker) installs no SQL driver at all. If a backend's module raises
 on import in that lane, the whole package fails to import, which takes down every other backend's
 tests along with it, since the whole suite is collected from one package.
@@ -363,10 +363,10 @@ mutates no shared enum.
 ### 5. Run the wiring drift check
 
 ```
-pytest tests/test_sql_backend_wiring.py -m project -q
+pytest tests/test_data_source_wiring.py -m project -q
 ```
 
-This module (`tests/test_sql_backend_wiring.py`) is a *different* check from the registration
+This module (`tests/test_data_source_wiring.py`) is a *different* check from the registration
 completeness check above: registration validates that one declaration is well-formed in
 isolation; the wiring drift check cross-references every *registered* backend's declared
 coordinates against the actual files those coordinates point at — `pyproject.toml`,
@@ -405,13 +405,13 @@ brings this one up; the task runner will also start a marker's services for you 
 
 ## The per-case exclusion ceiling's registry-side test coverage
 
-The registry test module (`tests/test_sql_backend_registry.py`) is the fastest way to check the
+The registry test module (`tests/test_data_source_registry.py`) is the fastest way to check the
 registration-time invariants above without touching a database — it registers throwaway backends
 inside an isolation seam that snapshots and restores the real registry, so nothing it does
 leaks between test runs or affects `iter_data_source_configs()` for any other test:
 
 ```
-pytest tests/test_sql_backend_registry.py -m project -q
+pytest tests/test_data_source_registry.py -m project -q
 ```
 
 ## The ad-hoc escape hatch's autocommit mechanism

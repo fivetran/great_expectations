@@ -12,7 +12,7 @@ backends one family of tests runs against is a property of that family, not of t
 live in a non-test module because a shared import surface is not a test suite; hosting one inside a
 test module is what let the collision above survive for as long as it did.
 
-Membership is pinned in `tests/test_sql_backend_registry.py` against values captured from
+Membership is pinned in `tests/test_data_source_registry.py` against values captured from
 `test_canonical_expectations.py` before any of this moved, not against the code below.
 """
 

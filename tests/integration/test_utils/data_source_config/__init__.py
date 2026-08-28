@@ -62,7 +62,7 @@ from .trino import TrinoDatasourceTestConfig
 # `isort: split` below asks the import sorter to treat this import as its own block and never
 # merge a later addition into the block above it. That is defence in depth, not the guarantee
 # itself: it only holds while a new backend import lands inside the block above, and does nothing
-# if one is appended after this import instead — `tests/test_sql_backend_registry.py` has the
+# if one is appended after this import instead — `tests/test_data_source_registry.py` has the
 # regression test that catches the ordering violation regardless of where a new import lands.
 # isort: split
 from .tiers import (

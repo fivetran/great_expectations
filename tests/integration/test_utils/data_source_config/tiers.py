@@ -39,7 +39,7 @@ are built once, when this module is first imported, from whatever the registry h
 moment, so a data source module imported after this one has not yet run its registration and is
 silently absent from every list even though it is declared and registered. This package's
 `__init__.py` imports every data source module before this one for exactly that reason; the
-regression test in `tests/test_sql_backend_registry.py` that guards the ordering is what turns a
+regression test in `tests/test_data_source_registry.py` that guards the ordering is what turns a
 violation of it into a failing test instead of a silent gap.
 
 This module reads the registry and imports nothing else from this package at runtime. It sits to

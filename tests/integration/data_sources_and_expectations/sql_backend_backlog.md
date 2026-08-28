@@ -27,7 +27,7 @@ step 4 describe, plus one further signal:
   of the test harness.
 
 None of the six backends below has a harness declaration, so none is registered, and the wiring
-drift check (`pytest tests/test_sql_backend_wiring.py -m project -q`) has nothing to say about any
+drift check (`pytest tests/test_data_source_wiring.py -m project -q`) has nothing to say about any
 of them — that check only walks backends that are already registered.
 
 ## Athena
