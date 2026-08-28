@@ -165,7 +165,11 @@ class SparkDataSampler(DataSampler):
         def _encrypt_value(to_encode):
             to_encode_str = str(to_encode)
             hash_func = getattr(hashlib, hash_function_name)
-            hashed_value = hash_func(to_encode_str.encode()).hexdigest()[-1 * hash_digits :]
+            # not used for security: this is hash sampling, not a cryptographic digest.
+            # usedforsecurity=False lets this run on hosts with FIPS-mode OpenSSL.
+            hashed_value = hash_func(to_encode_str.encode(), usedforsecurity=False).hexdigest()[
+                -1 * hash_digits :
+            ]
             return hashed_value
 
         encrypt_udf = F.udf(_encrypt_value, pyspark.types.StringType())

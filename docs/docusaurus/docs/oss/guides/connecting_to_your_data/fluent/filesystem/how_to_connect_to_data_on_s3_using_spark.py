@@ -5,6 +5,8 @@ pytest -v --docs-tests -k "how_to_connect_to_data_on_s3_using_spark" tests/integ
 ```
 """
 
+import os
+
 import great_expectations as gx
 
 context = gx.get_context()
@@ -16,7 +18,7 @@ bucket_name = "my_bucket"
 boto3_options = {}
 # </snippet>
 
-bucket_name = "great-expectations-docs-test"
+bucket_name = os.environ["GX_S3_TEST_BUCKET"]
 
 
 # Python
@@ -49,7 +51,7 @@ batch_definition = data_asset.add_batch_definition_monthly(
 # </snippet>
 
 
-batch = batch_definition.get_batch(batch_parameters={"year": "2019", "month": "03"})
+batch = batch_definition.get_batch(batch_parameters={"year": 2019, "month": 3})
 assert set(batch.columns()) == {
     "vendor_id",
     "pickup_datetime",

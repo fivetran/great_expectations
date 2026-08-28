@@ -44,8 +44,10 @@ class ColumnValuesMatchRegexValues(ColumnAggregateMetricProvider):
 
         regex_expression = get_dialect_regex_expression(column, regex, _dialect)
         if regex_expression is None:
-            logger.warning(f"Regex is not supported for dialect {_dialect.name!s}")
-            raise NotImplementedError
+            dialect_name = getattr(getattr(_dialect, "dialect", _dialect), "name", str(_dialect))
+            msg = f"Regex is not supported for dialect {dialect_name}"
+            logger.warning(msg)
+            raise NotImplementedError(msg)
 
         query = sa.select(column).where(regex_expression).select_from(selectable)  # type: ignore[arg-type]
         if isinstance(limit, int):

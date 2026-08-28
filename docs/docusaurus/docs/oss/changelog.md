@@ -15,6 +15,37 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.21.0
+* [FEATURE] SQL Harness Backend Framework ([#12049](https://github.com/great-expectations/great_expectations/pull/12049))
+* [FEATURE] Trino SQL backend test harness ([#12050](https://github.com/great-expectations/great_expectations/pull/12050))
+* [FEATURE] ClickHouse SQL backend test harness ([#12053](https://github.com/great-expectations/great_expectations/pull/12053))
+* [FEATURE] Ship agent-skill guidance for configuring data sources and expectations ([#12061](https://github.com/great-expectations/great_expectations/pull/12061))
+* [FEATURE] Harden the data-source skill's driver, cadence, and example guidance ([#12062](https://github.com/great-expectations/great_expectations/pull/12062))
+* [FEATURE] Gate project creation on the user having named the directory ([#12063](https://github.com/great-expectations/great_expectations/pull/12063))
+* [FEATURE] Accept integers for numeric batch parameters on every datasource family ([#12065](https://github.com/great-expectations/great_expectations/pull/12065))
+* [FEATURE] Route validated expectations onward into checkpoint orchestration ([#12068](https://github.com/great-expectations/great_expectations/pull/12068))
+* [FEATURE] Make environment-affecting actions reachable-in-flow and mechanically gated ([#12073](https://github.com/great-expectations/great_expectations/pull/12073))
+* [BUGFIX] Restore the install and test steps to py312-min-versions ([#12076](https://github.com/great-expectations/great_expectations/pull/12076))
+* [MAINTENANCE] Bump dompurify from 3.4.12 to 3.4.13 in /docs/docusaurus ([#12048](https://github.com/great-expectations/great_expectations/pull/12048))
+* [MAINTENANCE] Bump nanoid from 3.3.16 to 3.3.18 in /docs/docusaurus ([#12052](https://github.com/great-expectations/great_expectations/pull/12052))
+* [MAINTENANCE] Bump mermaid from 11.15.0 to 11.16.1 in /docs/docusaurus ([#12047](https://github.com/great-expectations/great_expectations/pull/12047))
+* [MAINTENANCE] Pin SingleStore dev image to 0.2.82 instead of :latest ([#12054](https://github.com/great-expectations/great_expectations/pull/12054))
+* [MAINTENANCE] Read the GCS test bucket from a repository variable ([#12056](https://github.com/great-expectations/great_expectations/pull/12056))
+* [MAINTENANCE] Restore the GCS datasource tests and run them in CI ([#12058](https://github.com/great-expectations/great_expectations/pull/12058))
+* [MAINTENANCE] Restore the GCP credentials setup for the docs-snippets job ([#12057](https://github.com/great-expectations/great_expectations/pull/12057))
+* [MAINTENANCE] Run the GCS docs snippet tests ([#12059](https://github.com/great-expectations/great_expectations/pull/12059))
+* [MAINTENANCE] Surface the RFC threshold in the PR template, AGENTS.md, and a new check ([#12043](https://github.com/great-expectations/great_expectations/pull/12043))
+* [MAINTENANCE] Use the upstream sqlalchemy-redshift dialect instead of the GX fork ([#12044](https://github.com/great-expectations/great_expectations/pull/12044))
+* [MAINTENANCE] Drop the gx-redshift CI marker ([#12060](https://github.com/great-expectations/great_expectations/pull/12060))
+* [MAINTENANCE] Add integration coverage for quoted schema names on PostgreSQL ([#12051](https://github.com/great-expectations/great_expectations/pull/12051))
+* [MAINTENANCE] Create BigQuery test tables in the configured dataset and sweep tables, not datasets ([#12024](https://github.com/great-expectations/great_expectations/pull/12024))
+* [MAINTENANCE] Ship version-matched expectation and datasource catalogs ([#12055](https://github.com/great-expectations/great_expectations/pull/12055))
+* [MAINTENANCE] Sync SparkDBFSDatasource schema with its deprecation notice ([#12077](https://github.com/great-expectations/great_expectations/pull/12077))
+* [MAINTENANCE] Remove the "How to Edit This Suite" button from Data Docs ([#12078](https://github.com/great-expectations/great_expectations/pull/12078))
+* [CONTRIB] Add a great-expectations user-agent suffix to S3 clients ([#11937](https://github.com/great-expectations/great_expectations/pull/11937)) (thanks @goanpeca)
+* [CONTRIB] Promote multicolumn values equal expectation ([#12018](https://github.com/great-expectations/great_expectations/pull/12018)) (thanks @AtomicGlance)
+* [CONTRIB] Add ExpectColumnValuesToNotBeOutliers across Pandas, SQL, and Spark ([#12011](https://github.com/great-expectations/great_expectations/pull/12011)) (thanks @chavalasantosh)
+
 ### 1.20.0
 * [BUGFIX] Support standing up a FileDataContext on a read-only filesystem ([#12000](https://github.com/fivetran/great_expectations/pull/12000))
 * [BUGFIX] Narrow single-pass column_values.unique on SQLAlchemy (Redshift WLM) ([#11863](https://github.com/fivetran/great_expectations/pull/11863)) (thanks @leodrivera)

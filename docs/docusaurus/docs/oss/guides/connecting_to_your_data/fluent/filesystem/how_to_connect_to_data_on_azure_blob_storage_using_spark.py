@@ -51,7 +51,7 @@ assert data_asset
 
 assert datasource.get_asset_names() == {"my_taxi_data_asset"}
 
-my_batch_request = data_asset.build_batch_request({"year": "2019", "month": "03"})
+my_batch_request = data_asset.build_batch_request({"year": 2019, "month": 3})
 batch = data_asset.get_batch(my_batch_request)
 assert set(batch.columns()) == {
     "vendor_id",

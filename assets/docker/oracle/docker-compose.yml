@@ -1,0 +1,70 @@
+services:
+  oracle_db:
+    # Pinned concrete tag, not the floating "21-slim-faststart" alias: the alias currently
+    # resolves to this tag (confirmed via `docker image inspect` reporting Oracle Database
+    # 21.3.0.0.0 inside the running container, and cross-checked against the Docker Hub tag
+    # list, where "21.3.0-slim-faststart" carries the same manifest digest,
+    # sha256:f82bccdf6020d27373fdf0e93046b63eb3f777a0289e329d9839feebaf4555de, as the alias).
+    # Pinning the concrete tag means the lane can't silently move to a different server
+    # version on its own.
+    #
+    # "slim" drops the extra tooling in the "full" variant that this lane doesn't need;
+    # "faststart" ships a pre-initialized datafile so the container reaches readiness in
+    # seconds instead of minutes, which is what keeps cold start inside the wait budget below.
+    #
+    # 21c, not the newer free "oracle-free" line: the newest free Oracle versions accept a
+    # bare boolean literal in a WHERE clause. The supported enterprise versions this lane
+    # exists to represent reject it. Provisioning the newer free version here would make the
+    # lane pass while masking exactly the failure mode it is meant to catch, so 21c is the
+    # version choice, not a default carried over from convenience.
+    #
+    # amd64 only: this image publishes a single-architecture (linux/amd64) manifest, no
+    # arm64 variant exists. It runs unmodified on amd64 CI runners; on arm64 hosts (including
+    # Apple Silicon) it only runs under emulation, and `platform: linux/amd64` below is what
+    # requests that emulation rather than failing outright.
+    image: gvenzl/oracle-xe:21.3.0-slim-faststart
+    platform: linux/amd64
+    environment:
+      # Test-only credentials; no CI secret is required to bring this service up.
+      ORACLE_PASSWORD: test_admin_pw
+      # APP_USER / APP_USER_PASSWORD are the image's own provisioning variables (read out of
+      # its container-entrypoint.sh): when both are set, the entrypoint creates this user via
+      # its bundled createAppUser script and grants CONNECT, RESOURCE, CREATE VIEW, CREATE
+      # MATERIALIZED VIEW, CREATE SYNONYM. This is the user the harness connects as, so
+      # readiness below is defined in terms of a connection succeeding as this user.
+      APP_USER: gx_test
+      APP_USER_PASSWORD: test_app_pw
+    ports:
+      - "1521:1521"
+    # No volumes: nothing here needs to persist across runs, and leaving out a volume means
+    # every run starts from the image's own pre-initialized datafile (see "faststart" above).
+    healthcheck:
+      # Not the image's own healthcheck.sh. That script authenticates locally as SYS via an
+      # OS-authenticated bequeath connection and checks open_mode on v$pdbs/v$database — it
+      # never goes through the listener and never uses the application user, so it reports
+      # healthy as soon as the database is open, which happens *before* the entrypoint creates
+      # APP_USER. Confirmed directly: on a cold start, the stock script reported the container
+      # healthy at t=13s while a connection attempt as gx_test at that same moment failed with
+      # ORA-01017 (invalid username/password) because the user did not exist yet.
+      #
+      # Instead this probe authenticates as the application user over TNS against the service's
+      # own listener port and runs a real query, so "healthy" means what the harness actually
+      # needs: a client can connect as gx_test and get data back, not just that some database
+      # process is up. `WHENEVER SQLERROR EXIT SQL.SQLCODE` is required — sqlplus otherwise
+      # exits 0 even when a SQL statement errors out; verified that without it a failing query
+      # still returns exit 0, and with it a failing query returns the ORA error code and a
+      # bad/missing login returns a non-zero exit on its own.
+      test:
+        [
+          "CMD-SHELL",
+          "printf 'WHENEVER SQLERROR EXIT SQL.SQLCODE\nSELECT 1 FROM dual;\n' | sqlplus -L -S gx_test/test_app_pw@//localhost:1521/XEPDB1",
+        ]
+      # Budget: worst case is start_period + retries * interval = 30s + 40 * 5s = 230s,
+      # comfortably inside the task runner's 300-second `--wait-timeout`. Measured cold start
+      # from an image-already-pulled state was ~13-16s, and the probe itself runs in well under
+      # a second (~0.4s measured), so this budget carries wide margin above the observed figures
+      # while still failing well inside 300s if the container never becomes ready.
+      interval: 5s
+      timeout: 5s
+      start_period: 30s
+      retries: 40

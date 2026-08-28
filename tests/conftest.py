@@ -129,6 +129,7 @@ REQUIRED_MARKERS: Final[set[str]] = {
     "integration",
     "mysql",
     "openpyxl",
+    "oracle",
     "performance",
     "postgresql",
     "project",

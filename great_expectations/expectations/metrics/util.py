@@ -132,6 +132,16 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
     except AttributeError:
         pass
 
+    try:
+        # Oracle
+        if issubclass(dialect.dialect, sa.dialects.oracle.dialect):  # type: ignore[union-attr, attr-defined] # FIXME CoP
+            if positive:
+                return sa.func.regexp_like(column, sqlalchemy.literal(regex))
+            else:
+                return sa.not_(sa.func.regexp_like(column, sqlalchemy.literal(regex)))
+    except AttributeError:
+        pass
+
     # databricks sql
     if _is_databricks_dialect(dialect):
         if positive:

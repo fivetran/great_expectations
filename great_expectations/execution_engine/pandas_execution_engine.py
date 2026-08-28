@@ -731,4 +731,6 @@ def hash_pandas_dataframe(df):
         # In case of facing unhashable objects (like dict), use pickle
         obj = pickle.dumps(df, pickle.HIGHEST_PROTOCOL)
 
-    return hashlib.md5(obj).hexdigest()
+    # not used for security: this is a batch fingerprint, not a cryptographic digest.
+    # usedforsecurity=False lets this run on hosts with FIPS-mode OpenSSL.
+    return hashlib.md5(obj, usedforsecurity=False).hexdigest()

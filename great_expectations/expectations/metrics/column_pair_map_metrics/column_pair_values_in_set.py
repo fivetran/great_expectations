@@ -55,7 +55,7 @@ class ColumnPairValuesInSet(ColumnPairMapMetricProvider):
 
             results.append((a, b) in value_pairs_set)
 
-        return pd.Series(results)
+        return pd.Series(results, index=temp_df.index)
 
     @column_pair_condition_partial(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(cls, column_A, column_B, **kwargs):

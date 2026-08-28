@@ -49,7 +49,7 @@ assert datasource.get_asset_names() == {"my_taxi_data_asset"}
 my_batch_definition = data_asset.add_batch_definition_monthly(
     name="Monthly Taxi Data", regex=batching_regex
 )
-batch = my_batch_definition.get_batch(batch_parameters={"year": "2019", "month": "03"})
+batch = my_batch_definition.get_batch(batch_parameters={"year": 2019, "month": 3})
 assert set(batch.columns()) == {
     "vendor_id",
     "pickup_datetime",

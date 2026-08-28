@@ -10,6 +10,10 @@ import pytest
 
 from great_expectations.checkpoint import UpdateDataDocsAction
 from great_expectations.core.expectation_suite import ExpectationSuite
+from great_expectations.core.expectation_validation_result import (
+    ExpectationSuiteValidationResult,
+)
+from great_expectations.core.run_identifier import RunIdentifier
 from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context.util import file_relative_path
 from great_expectations.expectations.expectation_configuration import (
@@ -659,3 +663,89 @@ def test_asset_name_is_part_of_resource_info_index(mocker: MockerFixture):
     last_call = add_resource_info_spy.call_args_list[-1]
     print(f"Last call kwargs:\n{pf(last_call.kwargs, depth=1)}")
     assert last_call.kwargs["asset_name"] == data_asset.name
+
+
+def _validation_result(meta: dict | None = None) -> ExpectationSuiteValidationResult:
+    """A result whose meta has no "run_id" key unless one is passed in."""
+    return ExpectationSuiteValidationResult(
+        success=True,
+        results=[],
+        suite_name="my_suite",
+        statistics={
+            "evaluated_expectations": 0,
+            "successful_expectations": 0,
+            "unsuccessful_expectations": 0,
+            "success_percent": 100.0,
+        },
+        meta={
+            "great_expectations_version": "1.21.0",
+            "expectation_suite_name": "my_suite",
+            **(meta or {}),
+        },
+    )
+
+
+def test_ValidationResultsPageRenderer_render_without_run_id():
+    document = ValidationResultsPageRenderer().render(_validation_result())
+
+    assert isinstance(document, RenderedDocumentContent)
+    assert document.page_title == "Validations / my_suite / __none__"
+
+
+def test_ValidationResultsPageRenderer_parse_run_values_without_run_id():
+    run_values = ValidationResultsPageRenderer()._parse_run_values(_validation_result())
+
+    assert run_values == ("__none__", "__none__")
+
+
+def test_ValidationResultsPageRenderer_render_validation_info_without_run_id():
+    validation_info = ValidationResultsPageRenderer._render_validation_info(
+        _validation_result()
+    ).to_json_dict()
+
+    assert validation_info["table"] == [
+        ["Great Expectations Version", "1.21.0"],
+        ["Run Name", "__none__"],
+        ["Run Time", "__none__"],
+    ]
+
+
+@pytest.mark.filterwarnings(
+    "ignore:Cannot get %*::great_expectations.render.renderer.profiling_results_overview_section_renderer"  # noqa: E501 # FIXME CoP
+)
+def test_ProfilingResultsPageRenderer_render_without_run_id():
+    document = ProfilingResultsPageRenderer().render(_validation_result())
+
+    assert isinstance(document, RenderedDocumentContent)
+    assert document.page_title == "Profiling Results / my_suite / __none__"
+
+
+@pytest.mark.parametrize(
+    ("run_id", "expected_run_values"),
+    [
+        pytest.param(None, ("__none__", "__none__"), id="none"),
+        pytest.param(
+            "20200322T170247.671855Z",
+            ("20200322T170247.671855Z", "2020-03-22T17:02:47.671855Z"),
+            id="str",
+        ),
+        pytest.param("not_a_time", ("not_a_time", "__none__"), id="str_unparseable"),
+        pytest.param(
+            {"run_name": "my_run", "run_time": "2020-03-22T17:02:47Z"},
+            ("my_run", "2020-03-22T17:02:47Z"),
+            id="dict",
+        ),
+        pytest.param({}, ("__none__", "__none__"), id="dict_empty"),
+        pytest.param(
+            RunIdentifier(run_name="my_run", run_time="2020-03-22T17:02:47Z"),
+            ("my_run", "2020-03-22T17:02:47.000000Z"),
+            id="run_identifier",
+        ),
+    ],
+)
+def test_ValidationResultsPageRenderer_parse_run_values(run_id, expected_run_values):
+    run_values = ValidationResultsPageRenderer()._parse_run_values(
+        _validation_result({"run_id": run_id})
+    )
+
+    assert run_values == expected_run_values

@@ -1,5 +1,4 @@
 import datetime
-import hashlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, List, Optional
@@ -118,10 +117,6 @@ class TaxiTestData:
         column_values: List[Optional[Any]] = self.test_df[self.test_column_name].tolist()
         return column_values
 
-    def get_test_multi_column_values(self) -> List[dict]:
-        multi_column_values: List[dict] = self.test_df[self.test_column_names].to_dict("records")
-        return multi_column_values
-
     def get_unique_sorted_test_column_values(
         self,
         reverse: Optional[bool] = False,
@@ -152,47 +147,6 @@ class TaxiTestData:
 
         return column_values[:limit]
 
-    def get_unique_sorted_test_multi_column_values(
-        self,
-        reverse: Optional[bool] = False,
-        limit: Optional[int] = None,
-    ) -> List[dict]:
-        multi_column_values: List[dict] = self.get_test_multi_column_values()
-        multi_column_values = sorted(
-            multi_column_values,
-            key=lambda element: sum(
-                map(
-                    ord,
-                    hashlib.md5(
-                        str(tuple(zip(element.keys(), element.values(), strict=False))).encode(
-                            "utf-8"
-                        )
-                    ).hexdigest(),
-                )
-            ),
-            reverse=reverse,
-        )
-
-        unique_multi_column_values: List[dict] = []
-
-        hash_codes: List[str] = []
-        hash_code: str
-        dictionary_element: dict
-        for dictionary_element in multi_column_values:
-            hash_code = hashlib.md5(
-                str(
-                    tuple(zip(dictionary_element.keys(), dictionary_element.values(), strict=False))
-                ).encode("utf-8")
-            ).hexdigest()
-            if hash_code not in hash_codes:
-                unique_multi_column_values.append(dictionary_element)
-                hash_codes.append(hash_code)
-
-        if limit is None:
-            return unique_multi_column_values
-
-        return unique_multi_column_values[:limit]
-
     def get_divided_integer_test_column_values(self, divisor: int) -> List[Optional[Any]]:
         column_values: List[Optional[Any]] = self.get_test_column_values()
 
@@ -208,24 +162,6 @@ class TaxiTestData:
         column_values = [column_value % mod for column_value in column_values]
 
         return list(set(column_values))
-
-    def get_hashed_test_column_values(self, hash_digits: int) -> List[Optional[Any]]:
-        """
-        hashlib.md5(string).hexdigest()
-        hashlib.md5(str(tuple_).encode("utf-8")).hexdigest()
-        [:num_digits]
-        """
-        column_values: List[Optional[Any]] = self.get_unique_sorted_test_column_values(
-            reverse=False, move_null_to_front=False, limit=None
-        )
-
-        column_value: Any
-        column_values = [
-            hashlib.md5(str(column_value).encode("utf-8")).hexdigest()[-1 * hash_digits :]
-            for column_value in column_values
-        ]
-
-        return list(sorted(set(column_values)))
 
 
 @dataclass

@@ -14,6 +14,7 @@ from great_expectations.datasource.fluent.sql_server_datasource import (
 from tests.integration.sql_session_manager import ConnectionDetails, SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.backend_spec import (
     BackendProvisioning,
+    BackendTier,
     CiLaneRef,
     SqlBackendSpec,
 )
@@ -43,6 +44,7 @@ class SQLServerDatasourceTestConfig(SqlDatasourceTestConfig):
         provisioning=BackendProvisioning.LOCAL_CONTAINER,
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="sql_server"),
         uses_schema=True,
+        tiers=frozenset({BackendTier.STANDARD_SQL}),
         dev_requirements_file="reqs/requirements-dev-sql-server.txt",
         task_runner_marker="sql_server",
         container_service="mssql",

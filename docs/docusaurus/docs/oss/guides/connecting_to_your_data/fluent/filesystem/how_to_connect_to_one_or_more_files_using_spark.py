@@ -57,7 +57,7 @@ my_batch_definition = my_asset.add_batch_definition_monthly(
     name="my_monthly_batch_definition", regex=batching_regex
 )
 my_batch_request = my_batch_definition.build_batch_request(
-    batch_parameters={"year": "2019", "month": "03"}
+    batch_parameters={"year": 2019, "month": 3}
 )
 batch = my_asset.get_batch(my_batch_request)
 assert set(batch.columns()) == {
