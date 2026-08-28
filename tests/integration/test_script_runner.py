@@ -11,12 +11,14 @@ import logging
 import os
 import pathlib
 import shutil
+import subprocess
+import sys
+import traceback
 from typing import List
 
 import pandas
 import pytest
 import sqlalchemy
-from assets.scripts.build_gallery import execute_shell_command
 from docs.docusaurus.docs.components.examples_under_test import (
     docs_tests,
 )
@@ -30,7 +32,7 @@ from great_expectations.data_context.util import file_relative_path
 from tests.integration.backend_dependencies import BackendDependencies
 from tests.integration.integration_test_fixture import (
     IntegrationTestFixture,
-    substitute_gcs_test_bucket,
+    substitute_test_buckets,
 )
 from tests.integration.test_definitions.abs.integration_tests import (
     abs_integration_tests,
@@ -396,6 +398,49 @@ def test_integration_tests(
     )
 
 
+def _execute_shell_command(command: str) -> int:
+    """Run a command through a shell, with the current working directory on PATH.
+
+    :param command: shell command -- as if typed in a terminal window
+    :return: exit status -- 0 if successful; any other value indicates an error
+    """
+    cwd: str = os.getcwd()  # noqa: PTH109
+
+    path_env_var: str = os.pathsep.join([os.environ.get("PATH", os.defpath), cwd])
+    env: dict = dict(os.environ, PATH=path_env_var)
+
+    status_code: int = 0
+    try:
+        res: subprocess.CompletedProcess = subprocess.run(
+            args=["bash", "-c", command],
+            stdin=None,
+            input=None,
+            capture_output=True,
+            shell=False,
+            cwd=cwd,
+            timeout=None,
+            check=True,
+            encoding=None,
+            errors=None,
+            text=True,
+            env=env,
+        )
+        sh_out: str = res.stdout.strip()
+        logger.info(sh_out)
+    except subprocess.CalledProcessError as cpe:
+        status_code = cpe.returncode
+        sys.stderr.write(cpe.output)
+        sys.stderr.flush()
+        exception_message: str = "A Sub-Process call Exception occurred.\n"
+        exception_traceback: str = traceback.format_exc()
+        exception_message += (
+            f'{type(cpe).__name__}: "{cpe!s}".  Traceback: "{exception_traceback}".'
+        )
+        logger.error(exception_message)  # noqa: TRY400
+
+    return status_code
+
+
 def _execute_integration_test(  # noqa: C901, PLR0915 # FIXME CoP
     integration_test_fixture: IntegrationTestFixture,
     tmp_path: pathlib.Path,
@@ -416,7 +461,7 @@ def _execute_integration_test(  # noqa: C901, PLR0915 # FIXME CoP
             dist.metadata["name"].lower() for dist in importlib.metadata.distributions()
         ]
         if "great-expectations" not in installed_packages:
-            execute_shell_command("pip install .")
+            _execute_shell_command("pip install .")
         os.chdir(tmp_path)
 
         # Build test state
@@ -428,7 +473,7 @@ def _execute_integration_test(  # noqa: C901, PLR0915 # FIXME CoP
                 context_source_dir,
                 test_context_dir,
             )
-            substitute_gcs_test_bucket(test_context_dir / FileDataContext.GX_YML)
+            substitute_test_buckets(test_context_dir / FileDataContext.GX_YML)
 
         # Test Data
         data_dir = integration_test_fixture.data_dir
@@ -534,32 +579,9 @@ def _check_for_skipped_tests(  # noqa: C901, PLR0912 # FIXME CoP
     ]
     if integration_test_fixture.name in TESTS_TO_SKIP_DURING_CI_TRANSITION:
         pytest.skip("CI TRANSITION")
-    # TEMPORARY: This custom-expectation example declares no backend dependencies, so
-    # it runs unconditionally, but its diagnostic checklist opens a connection to every
-    # installed SQL backend -- including BigQuery, whose credentials are unavailable
-    # during the CI transition. That makes it fail on GCP auth regardless of the backend
-    # pytest flags. Gate it by name until the credentials are re-provisioned; remove this
-    # block to re-enable.
-    TESTS_TO_SKIP_DURING_CI_TRANSITION_GCP = [
-        "expect_column_max_to_be_between_custom",
-    ]
-    if integration_test_fixture.name in TESTS_TO_SKIP_DURING_CI_TRANSITION_GCP:
-        pytest.skip("CI TRANSITION")
     dependencies = integration_test_fixture.backend_dependencies
     if not dependencies:
         return
-    # TEMPORARY: Tests backed by S3 and Azure Blob are unconditionally skipped during the
-    # CI transition -- neither has a bucket or a live credential to run against. Remove
-    # this block once that infrastructure is restored.
-    elif any(
-        dependency
-        in (
-            BackendDependencies.AWS,
-            BackendDependencies.AZURE,
-        )
-        for dependency in dependencies
-    ):
-        pytest.skip("CI TRANSITION")
     elif BackendDependencies.POSTGRESQL in dependencies and (
         not pytest_args.postgresql or pytest_args.no_sqlalchemy
     ):

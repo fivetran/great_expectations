@@ -6,6 +6,7 @@ from great_expectations.metrics.column.values_not_match_regex_values import (
     ColumnValuesNotMatchRegexValuesResult,
 )
 from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.integration.test_utils.data_source_config import SQLServerDatasourceTestConfig
 from tests.metrics.conftest import SQL_DATA_SOURCES, SnowflakeDatasourceTestConfig
 
 COLUMN_NAME = "whatevs"
@@ -15,16 +16,26 @@ MATCH_NONE_REGEX = "^$"  # Regex that matches nothing
 DATA_FRAME = pd.DataFrame({COLUMN_NAME: ["abc", "def", "ghi", "1ab2", None]})
 DATA_FRAME_WITH_LOTS_OF_VALUES = pd.DataFrame({COLUMN_NAME: ["A"] * BIG_NUMBER})
 
-SQL_DATA_SOURCES_EXCEPT_SNOWFLAKE = [
+# SQL Server ships no regex operator, so the per-dialect expression these metrics compile to has
+# no SQL Server form and the metric raises instead of computing. The regex expectation modules
+# draw the same line with hand-written supported-source lists; deriving it from the shared lists
+# here keeps this module in step as backends join them.
+REGEX_CAPABLE_SQL_DATA_SOURCES = [
     datasource
     for datasource in SQL_DATA_SOURCES
+    if not isinstance(datasource, SQLServerDatasourceTestConfig)
+]
+
+REGEX_CAPABLE_SQL_DATA_SOURCES_EXCEPT_SNOWFLAKE = [
+    datasource
+    for datasource in REGEX_CAPABLE_SQL_DATA_SOURCES
     if not isinstance(datasource, SnowflakeDatasourceTestConfig)
 ]
 
 
 class TestColumnValuesNotMatchRegexValues:
     @parameterize_batch_for_data_sources(
-        data_source_configs=SQL_DATA_SOURCES_EXCEPT_SNOWFLAKE,
+        data_source_configs=REGEX_CAPABLE_SQL_DATA_SOURCES_EXCEPT_SNOWFLAKE,
         data=DATA_FRAME,
     )
     def test_partial_match_characters(self, batch_for_datasource: Batch) -> None:
@@ -36,7 +47,7 @@ class TestColumnValuesNotMatchRegexValues:
         assert sorted(metric_result.value) == ["def", "ghi"]
 
     @parameterize_batch_for_data_sources(
-        data_source_configs=SQL_DATA_SOURCES,
+        data_source_configs=REGEX_CAPABLE_SQL_DATA_SOURCES,
         data=DATA_FRAME,
     )
     def test_special_characters(self, batch_for_datasource: Batch) -> None:
@@ -48,7 +59,7 @@ class TestColumnValuesNotMatchRegexValues:
         assert sorted(metric_result.value) == ["1ab2", "ghi"]
 
     @parameterize_batch_for_data_sources(
-        data_source_configs=SQL_DATA_SOURCES,
+        data_source_configs=REGEX_CAPABLE_SQL_DATA_SOURCES,
         data=DATA_FRAME_WITH_LOTS_OF_VALUES,
     )
     def test_default_limit(self, batch_for_datasource: Batch) -> None:
@@ -62,7 +73,7 @@ class TestColumnValuesNotMatchRegexValues:
         assert all(val == "A" for val in metric_result.value)
 
     @parameterize_batch_for_data_sources(
-        data_source_configs=SQL_DATA_SOURCES,
+        data_source_configs=REGEX_CAPABLE_SQL_DATA_SOURCES,
         data=DATA_FRAME_WITH_LOTS_OF_VALUES,
     )
     def test_custom_limit(self, batch_for_datasource: Batch) -> None:

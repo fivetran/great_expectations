@@ -81,6 +81,6 @@ analytics_enabled: true
 fluent_datasources:
   my_filesystem_data_source:
     type: pandas_s3
-    bucket: great-expectations-docs-test
+    bucket: ${GX_S3_TEST_BUCKET}
     boto3_options: {}
 data_context_id: 7fbbffee-f620-41fb-9b40-9e2a2032629a

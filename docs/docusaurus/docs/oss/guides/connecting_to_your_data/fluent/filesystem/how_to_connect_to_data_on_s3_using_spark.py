@@ -5,6 +5,8 @@ pytest -v --docs-tests -k "how_to_connect_to_data_on_s3_using_spark" tests/integ
 ```
 """
 
+import os
+
 import great_expectations as gx
 
 context = gx.get_context()
@@ -16,7 +18,7 @@ bucket_name = "my_bucket"
 boto3_options = {}
 # </snippet>
 
-bucket_name = "great-expectations-docs-test"
+bucket_name = os.environ["GX_S3_TEST_BUCKET"]
 
 
 # Python

@@ -33,6 +33,12 @@ if TYPE_CHECKING:
         SqlAlchemyExecutionEngine,
     )
 
+# Oracle compiles a bare `sa.String` type to `VARCHAR2` with no length, and Oracle's grammar
+# rejects a length-less `VARCHAR2` inside `CAST`. An explicit length avoids that while leaving
+# every other dialect's compiled type unchanged. Any length of at least four characters is
+# semantically sufficient, since the widest date part rendered here is a four-digit year.
+_ORACLE_DATE_PART_CAST_LENGTH = 4000
+
 
 class SqlAlchemyDataPartitioner(DataPartitioner):
     """Methods for partitioning data accessible via SqlAlchemyExecutionEngine.
@@ -62,6 +68,19 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
         if self._dialect == GXSqlDialect.SQL_SERVER:
             return sa.func.datepart(sa.text(date_part), column)
         return sa.func.extract(date_part, column)
+
+    def _cast_date_part_to_string(
+        self, date_part_expression: sqlalchemy.ColumnElement
+    ) -> sqlalchemy.ColumnElement:
+        """Cast an extracted date part to a string type the dialect accepts inside CAST.
+
+        A bare ``sa.String`` compiles to a length-less ``VARCHAR2`` on Oracle, which Oracle's
+        grammar rejects inside ``CAST``. Oracle is given an explicit length; every other
+        dialect keeps the length-less form it already renders.
+        """
+        if self._dialect == GXSqlDialect.ORACLE:
+            return sa.cast(date_part_expression, sa.String(_ORACLE_DATE_PART_CAST_LENGTH))
+        return sa.cast(date_part_expression, sa.String)
 
     DATETIME_PARTITIONER_METHOD_TO_GET_UNIQUE_BATCH_IDENTIFIERS_METHOD_MAPPING: dict = {
         PartitionerMethod.PARTITION_ON_YEAR: "get_data_for_batch_identifiers_year",
@@ -506,17 +525,15 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
             Certain SQLAlchemy-compliant backends (e.g., Amazon Redshift, SQLite) allow only binary operators for "CONCAT".
             """  # noqa: E501 # FIXME CoP
             if self._dialect == GXSqlDialect.SQLITE:
-                concat_date_parts = sa.cast(
-                    self._extract_date_part(date_parts[0].value, sa.column(column_name)),
-                    sa.String,
+                concat_date_parts = self._cast_date_part_to_string(
+                    self._extract_date_part(date_parts[0].value, sa.column(column_name))
                 )
 
                 date_part: DatePart
                 for date_part in date_parts[1:]:
                     concat_date_parts = concat_date_parts.concat(
-                        sa.cast(
-                            self._extract_date_part(date_part.value, sa.column(column_name)),
-                            sa.String,
+                        self._cast_date_part_to_string(
+                            self._extract_date_part(date_part.value, sa.column(column_name))
                         )
                     )
 
@@ -524,18 +541,16 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
             else:
                 concat_date_parts = sa.func.concat(
                     "",
-                    sa.cast(
-                        self._extract_date_part(date_parts[0].value, sa.column(column_name)),
-                        sa.String,
+                    self._cast_date_part_to_string(
+                        self._extract_date_part(date_parts[0].value, sa.column(column_name))
                     ),
                 )
 
                 for date_part in date_parts[1:]:
                     concat_date_parts = sa.func.concat(
                         concat_date_parts,
-                        sa.cast(
-                            self._extract_date_part(date_part.value, sa.column(column_name)),
-                            sa.String,
+                        self._cast_date_part_to_string(
+                            self._extract_date_part(date_part.value, sa.column(column_name))
                         ),
                     )
 

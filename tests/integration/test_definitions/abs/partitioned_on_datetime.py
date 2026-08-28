@@ -7,9 +7,13 @@ context = gx.get_context()
 
 datasource_name = "ABS datasource"
 
-CREDENTIAL = os.getenv("AZURE_CREDENTIAL", "")
-ACCOUNT_URL = "superconductivetesting.blob.core.windows.net"
-CONTAINER = "superconductive-public"
+# All three come from the environment, and all three raise rather than default:
+# the account holding this data is not the one these tests were written against,
+# and a silently empty credential or a stale hardcoded host fails later, in the
+# datasource, as an authentication error that says nothing about configuration.
+CREDENTIAL = os.environ["AZURE_CREDENTIAL"]
+ACCOUNT_URL = os.environ["AZURE_STORAGE_ACCOUNT_URL"]
+CONTAINER = os.environ["AZURE_CONTAINER"]
 NAME_STARTS_WITH = "data/taxi_yellow_tripdata_samples/"
 
 
