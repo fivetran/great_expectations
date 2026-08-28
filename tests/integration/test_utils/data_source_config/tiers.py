@@ -147,15 +147,15 @@ gates, the SQL restriction has to be stated where it is meant, as the engine fac
 def data_sources_for_tier_case(tier: SupportTier, case_key: str) -> List[DataSourceTestConfig]:
     """The tier's members, minus any declaring a `tier_case_exclusions` entry for `case_key`.
 
-    A data source joins a tier as a whole; `tier_case_exclusions` (declared on `SqlBackendSpec`, see
-    `backend_spec.py`) is the one way a member can sit out a single named case within that tier's
-    suite instead of the whole tier. This accessor is the only place that mapping takes effect —
-    registration validates it, but nothing else filters tier membership by case — which keeps
-    "does this exclusion take
-    effect" a one-module question instead of a property every future consumer has to reimplement
-    correctly. It is written to take a tier and a case key, not to be specialized to one tier: the
-    exclusion mechanism belongs to tiers in general, and a version hard-coded to one tier would
-    have to be undone the moment a second tier needs the same mechanism.
+    A data source joins a tier as a whole; `tier_case_exclusions` (declared on `DataSourceSpec`,
+    see `data_source_spec.py`) is the one way a member can sit out a single named case within
+    that tier's suite instead of the whole tier. This accessor is the only place that mapping
+    takes effect — registration validates it, but nothing else filters tier membership by case —
+    which keeps "does this exclusion take effect" a one-module question instead of a property
+    every future consumer has to reimplement correctly. It is written to take a tier and a case
+    key, not to be specialized to one tier: the exclusion mechanism belongs to tiers in general,
+    and a version hard-coded to one tier would have to be undone the moment a second tier needs
+    the same mechanism.
 
     Unlike the module-level lists above, this reads the registry fresh on every call (through
     `data_source_configs_for_tier`, itself call-time) rather than once at import — the exclusion

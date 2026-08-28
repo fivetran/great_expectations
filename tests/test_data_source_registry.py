@@ -1355,8 +1355,9 @@ class TestRelocatedDataSourceListsMatchTheirCapturedMembership:
         """The collision is gone because the module is gone, and this says so by looking.
 
         A rename would have left two differently-populated lists under two names and removed only
-        the invitation to compare them. Deletion is what this task chose, and a module reappearing
-        under that path — with either list in it — reopens the divergence the pins above cannot see,
+        the invitation to compare them. Deleting it is what removed the divergence, and a module
+        reappearing under that path — with either list in it — reopens the divergence the pins
+        above cannot see,
         because they only ever read the derived pair.
         """
         retired = (
