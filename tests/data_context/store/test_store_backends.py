@@ -677,5 +677,70 @@ def test_file_backed_store_backends_use_json(empty_data_context):
     context = empty_data_context
     for store in context.stores.values():
         backend = store.store_backend
-        assert isinstance(backend, TupleFilesystemStoreBackend)
-        assert backend.filepath_suffix == ".json"
+
+    assert isinstance(backend, TupleFilesystemStoreBackend)
+    assert backend.filepath_suffix == ".json"
+
+
+# ============================================================================
+# Regression test for issue #12120: TupleFilesystemStoreBackend reads files with
+# the ambient locale encoding while _set() writes UTF-8. A bare open() in _get()
+# resolved to the process locale (cp936/gbk on non-UTF-8 hosts) and raised
+# UnicodeDecodeError on the very bytes _set() emitted.
+# This test runs in a subprocess with PYTHONUTF8=0 / LC_ALL=C to force the
+# non-UTF-8 codepage and asserts the patched code pins encoding="utf-8" on read.
+# ============================================================================
+@pytest.mark.filesystem
+def test_tuple_store_backend_utf8_pinned_read_roundtrip(tmp_path_factory):
+    """Ensure TupleFilesystemStoreBackend._get pins UTF-8 regardless of locale."""
+    import subprocess, sys, os
+
+    # The worker script runs under PYTHONUTF8=0 / LC_ALL=C to expose the bug.
+    worker = r'''
+import sys, os, tempfile, shutil
+from great_expectations.data_context.store.tuple_store_backend import TupleFilesystemStoreBackend
+
+NONASCII = "Prüfung ünïcödé — 中文测试"
+
+tmp = tempfile.mkdtemp()
+try:
+    backend = TupleFilesystemStoreBackend(
+        base_directory=tmp,
+        filepath_template="{0}/{1}",
+        platform_specific_separator=False,
+    )
+    key = ("subdir", "nonascii_value")
+    backend._set(key, NONASCII)
+    got = backend._get(key)
+    ok = got == NONASCII
+    print("OK" if ok else "MISMATCH")
+    sys.exit(0 if ok else 1)
+except UnicodeDecodeError as e:
+    print("UNICODE_DECODE_ERROR:", repr(str(e))[:200])
+    sys.exit(1)
+except Exception as e:
+    print("ERROR:", type(e).__name__, repr(str(e))[:200])
+    sys.exit(2)
+'''
+
+    result = subprocess.run(
+        [sys.executable, "-c", worker],
+        capture_output=True,
+        text=True,
+        env={
+            **os.environ,
+            "PYTHONUTF8": "0",
+            "PYTHONCOERCECLOCALE": "0",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "PYTHONIOENCODING": "ascii",
+        },
+        errors="replace",
+    )
+
+    # With the fix, the roundtrip must succeed (exit 0, stdout "OK")
+    assert result.returncode == 0, (
+        f"TupleFilesystemStoreBackend roundtrip failed under forced locale: "
+        f"rc={result.returncode}, out={result.stdout.strip()}, err={result.stderr.strip()}"
+    )
+    assert "OK" in result.stdout, f"Unexpected output: {result.stdout}"
