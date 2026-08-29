@@ -1,0 +1,124 @@
+"""Regression tests for filesystem-backed reads/writes under a non-UTF-8 locale.
+
+See https://github.com/fivetran/great_expectations/issues/12120. GX always writes
+its own files as UTF-8, but several read paths opened files with a bare open(),
+which resolves its encoding from the process's ambient locale. On a host whose
+locale encoding isn't UTF-8 (chiefly Windows, where nothing coerces the locale
+to UTF-8 the way POSIX's PEP 538 does), reading back a value GX itself wrote can
+raise UnicodeDecodeError.
+
+These tests force a non-UTF-8 locale the same way the issue's own repro does:
+by spawning a subprocess with LC_ALL, LANG, PYTHONCOERCECLOCALE, and PYTHONUTF8
+set so that open()'s default encoding resolves to something other than UTF-8.
+A test that instead relies on the ambient locale would pass either way here,
+since CI runners are UTF-8 and no workflow sets these variables.
+"""
+
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+import textwrap
+from typing import TYPE_CHECKING
+
+import pytest
+
+if TYPE_CHECKING:
+    import pathlib
+
+NON_UTF8_ENV = dict(
+    os.environ,
+    LC_ALL="C",
+    LANG="C",
+    PYTHONCOERCECLOCALE="0",
+    PYTHONUTF8="0",
+)
+
+NON_ASCII_VALUE = "Prüfung ünïcödé Straße café naïve 中文测试"
+
+
+def _run_under_non_utf8_locale(script: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(  # FIXME CoP
+        [sys.executable, "-c", script],
+        capture_output=True,
+        text=True,
+        env=NON_UTF8_ENV,
+        check=False,
+    )
+
+
+@pytest.mark.filesystem
+def test_tuple_filesystem_store_backend_reads_own_writes_under_non_utf8_locale(
+    tmp_path: pathlib.Path,
+) -> None:
+    """A value TupleFilesystemStoreBackend writes must read back unchanged, regardless
+    of what encoding the process's ambient locale resolves to.
+    """  # FIXME CoP
+    store_dir = tmp_path / "store"
+    store_dir.mkdir()
+
+    script = textwrap.dedent(f"""
+        from great_expectations.data_context.store.tuple_store_backend import (
+            TupleFilesystemStoreBackend,
+        )
+
+        import os
+
+        assert open(os.devnull).encoding != "utf-8"  # locale override did not take effect
+
+        backend = TupleFilesystemStoreBackend(
+            root_directory={str(store_dir)!r},
+            base_directory={str(store_dir)!r},
+            filepath_template="my_file_{{0}}",
+        )
+        backend.set(("AAA",), {NON_ASCII_VALUE!r})
+        assert backend.get(("AAA",)) == {NON_ASCII_VALUE!r}
+        print("OK")
+    """)
+
+    result = _run_under_non_utf8_locale(script)
+
+    assert result.returncode == 0, result.stderr
+    assert "OK" in result.stdout
+
+
+@pytest.mark.filesystem
+def test_file_data_context_reloads_non_ascii_project_yaml_under_non_utf8_locale(
+    tmp_path: pathlib.Path,
+) -> None:
+    """A great_expectations.yml written on one host (or under one locale) must load on
+    another, even if a data source name or other config value contains non-ASCII text.
+    """  # FIXME CoP
+    project_root = tmp_path / "project"
+
+    write_script = textwrap.dedent(f"""
+        import great_expectations as gx
+
+        context = gx.get_context(mode="file", context_root_dir={str(project_root)!r})
+        context.data_sources.add_pandas(name={NON_ASCII_VALUE!r})
+    """)
+    write_result = subprocess.run(  # FIXME CoP
+        [sys.executable, "-c", write_script],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert write_result.returncode == 0, write_result.stderr
+
+    reload_script = textwrap.dedent(f"""
+        import great_expectations as gx
+
+        import os
+
+        assert open(os.devnull).encoding != "utf-8"  # locale override did not take effect
+
+        context = gx.get_context(mode="file", context_root_dir={str(project_root)!r})
+        assert {NON_ASCII_VALUE!r} in context.data_sources.all()
+        print("OK")
+    """)
+
+    reload_result = _run_under_non_utf8_locale(reload_script)
+
+    assert reload_result.returncode == 0, reload_result.stderr
+    assert "OK" in reload_result.stdout
