@@ -45,42 +45,19 @@ def test_get_clickhouse_sqlalchemy_potential_type():
         )
 
 
-def _introspect_db_with_mocked_inspector(mocker, **kwargs):
-    """Run introspect_db against a mocked inspector, returning the schemas it visited."""
-    from tests.test_utils import introspect_db
-
-    inspector = mocker.Mock()
-    inspector.get_schema_names.return_value = ["schema_a", "schema_b", "INFORMATION_SCHEMA"]
-    inspector.get_table_names.return_value = ["some_table"]
-    inspector.get_view_names.return_value = []
-    mocker.patch("tests.test_utils.sa.inspect", return_value=inspector)
-
-    introspect_db(execution_engine=mocker.Mock(), **kwargs)
-
-    visited = [call.kwargs["schema"] for call in inspector.get_table_names.call_args_list]
-    return visited, inspector
-
-
 @pytest.mark.unit
-def test_introspect_db_scopes_to_requested_schema(mocker):
-    visited, inspector = _introspect_db_with_mocked_inspector(mocker, schema_name="schema_b")
+def test_drop_table_issues_a_single_drop_statement(mocker):
+    """Teardown knows the table it created, so it should not introspect the database.
 
-    assert visited == ["schema_b"]
-    # Listing every schema on the server is the expensive call this scoping avoids.
-    inspector.get_schema_names.assert_not_called()
+    Discovering the table instead of dropping it by name means listing every schema on
+    the server, which on BigQuery enumerates every dataset in the project.
+    """
+    from tests.test_utils import drop_table
 
+    engine = mocker.patch("tests.test_utils.SqlAlchemyExecutionEngine").return_value
 
-@pytest.mark.unit
-def test_introspect_db_skips_information_schemas(mocker):
-    visited, _ = _introspect_db_with_mocked_inspector(mocker)
+    drop_table(connection_string="postgresql://user@host/db", table_name="taxi_data_abc123")
 
-    assert visited == ["schema_a", "schema_b"]
-
-
-@pytest.mark.unit
-def test_introspect_db_includes_information_schemas_when_not_ignored(mocker):
-    visited, _ = _introspect_db_with_mocked_inspector(
-        mocker, ignore_information_schemas_and_system_tables=False
-    )
-
-    assert visited == ["schema_a", "schema_b", "INFORMATION_SCHEMA"]
+    engine.execute_query_in_transaction.assert_called_once()
+    statement = str(engine.execute_query_in_transaction.call_args.args[0])
+    assert statement == "DROP TABLE IF EXISTS taxi_data_abc123"
