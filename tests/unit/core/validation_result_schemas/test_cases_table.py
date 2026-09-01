@@ -285,3 +285,33 @@ def test_completeness_check_fails_in_each_direction() -> None:
             frozenset({"expect_kept_case", "expect_missing_case", "expect_stale_case"}),
             registered,
         )
+
+
+@pytest.mark.unit
+def test_every_unsupported_data_source_is_a_registered_test_id_with_a_reason() -> None:
+    """A declared gap must name a data source the harness actually has, and say why."""
+    from tests.integration.test_utils.data_source_config import ALL_DATA_SOURCES
+
+    known_test_ids = {config.test_id for config in ALL_DATA_SOURCES}
+    declared = [
+        (case.id, test_id, reason)
+        for case in EXPECTATION_CASES
+        for test_id, reason in case.unsupported_data_sources.items()
+    ]
+    assert declared, "the guard is armed on real declarations; none exist"
+    for case_id, test_id, reason in declared:
+        assert test_id in known_test_ids, (
+            f"{case_id} declares {test_id!r} unsupported, but no canonical data source has "
+            f"that test id; known: {sorted(known_test_ids)}"
+        )
+        assert reason.strip(), f"{case_id} declares {test_id!r} unsupported without a reason"
+
+
+@pytest.mark.unit
+def test_case_unsupported_data_source_without_a_reason_is_rejected() -> None:
+    with pytest.raises(ValueError, match="without both a test id and a reason"):
+        ExpectationCase(
+            id="expect_column_to_exist",
+            expectation=gxe.ExpectColumnToExist(column="increasing_key"),
+            unsupported_data_sources={"mssql": "  "},
+        )

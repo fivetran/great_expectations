@@ -459,3 +459,26 @@ def test_map_complete_is_not_map_boolean_only() -> None:
     """MapCompleteResult and MapBooleanOnlyResult are separate leaf classes."""
     assert not issubclass(MapCompleteResult, MapBooleanOnlyResult)
     assert not issubclass(MapBooleanOnlyResult, MapCompleteResult)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("raw_count", [2, 2.0])
+def test_basic_counts_keep_the_numeric_type_the_engine_emitted(raw_count) -> None:
+    """MySQL returns COUNT results as floats; every other engine returns ints.
+
+    The schema accepts both and preserves whichever arrived, so the findings' recorded runtime
+    type is what exposes the divergence rather than a coercion hiding it or a rejection
+    misreporting it as a schema failure.
+    """
+    model = MapBasicResult.parse_obj(
+        {"element_count": 4, "unexpected_count": raw_count, "missing_count": raw_count}
+    )
+    assert model.unexpected_count == raw_count
+    assert type(model.unexpected_count) is type(raw_count)
+    assert type(model.missing_count) is type(raw_count)
+
+
+@pytest.mark.unit
+def test_basic_counts_reject_strings() -> None:
+    with pytest.raises(pydantic.ValidationError):
+        MapBasicResult.parse_obj({"unexpected_count": "2"})

@@ -85,9 +85,9 @@ class AggregateBasicResult(AggregateResultBase):
     """
 
     element_count: Optional[pydantic.StrictInt] = None
-    missing_count: Optional[pydantic.StrictInt] = None
+    missing_count: Optional[StrictNumber] = None
     missing_percent: Optional[StrictNumber] = None
-    unexpected_count: Optional[pydantic.StrictInt] = None
+    unexpected_count: Optional[StrictNumber] = None
     unexpected_percent: Optional[StrictNumber] = None
     partial_unexpected_list: Optional[List[Any]] = None
     partial_missing_list: Optional[List[Any]] = None

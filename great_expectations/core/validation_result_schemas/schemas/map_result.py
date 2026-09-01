@@ -91,9 +91,14 @@ class MapBasicResult(MapResultBase):
     """
 
     element_count: Optional[pydantic.StrictInt] = None
-    unexpected_count: Optional[pydantic.StrictInt] = None
+    # The two counts are numbers, not integers, because that is what ships: MySQL returns
+    # COUNT(*) results through the SQL execution engine as floats (2.0, not 2), while every other
+    # engine returns ints. Strict typing keeps the value exactly as emitted either way, so the
+    # findings' recorded runtime types are what expose the divergence; narrowing to int here
+    # would make the schema describe what should be uniform rather than what is.
+    unexpected_count: Optional[StrictNumber] = None
     unexpected_percent: Optional[StrictNumber] = None
-    missing_count: Optional[pydantic.StrictInt] = None
+    missing_count: Optional[StrictNumber] = None
     missing_percent: Optional[StrictNumber] = None
     unexpected_percent_total: Optional[StrictNumber] = None
     unexpected_percent_nonmissing: Optional[StrictNumber] = None

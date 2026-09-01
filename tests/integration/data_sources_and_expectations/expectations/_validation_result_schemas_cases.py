@@ -22,9 +22,9 @@ every case's batch.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import date, datetime
-from typing import TYPE_CHECKING, Final, FrozenSet, List, Optional, Tuple
+from dataclasses import dataclass, field
+from datetime import date
+from typing import TYPE_CHECKING, Final, FrozenSet, List, Mapping, Optional, Tuple
 
 import pandas as pd
 
@@ -133,6 +133,16 @@ class ExpectationCase:
     nothing.
     """
 
+    unsupported_data_sources: Mapping[str, str] = field(default_factory=dict)
+    """Data sources, by harness test id, that cannot evaluate this expectation, each with a reason.
+
+    This is a property of one data source, not of an engine: the SQL Server dialect has no regex
+    operator, so the regex metrics raise there while every other SQL dialect evaluates them. The
+    runner records such a cell as `unsupported` and skips it, so the gap stays visible in the
+    findings without being mistaken for a schema failure. Every entry needs a reason; an entry
+    without one is rejected at construction.
+    """
+
     empty_result_reason: Optional[str] = None
     """Why this expectation returns no result payload at all, if it returns none.
 
@@ -168,6 +178,13 @@ class ExpectationCase:
                 f"Case {self.id!r} carries an `engine_restriction_reason` while applying to every "
                 "engine. Drop the reason, or restrict `engines` to the subset it describes."
             )
+        for test_id, reason in self.unsupported_data_sources.items():
+            if not test_id or not test_id.strip() or not reason or not reason.strip():
+                raise ValueError(
+                    f"Case {self.id!r} declares an unsupported data source without both a test id "
+                    "and a reason. Name the data source by its harness test id and state why it "
+                    "cannot evaluate this expectation."
+                )
 
 
 # ---------------------------------------------------------------------------
@@ -209,9 +226,6 @@ and non-null-proportion checks."""
 DATE_COL: Final[str] = "record_date"
 """A date column, carried as a pandas datetime."""
 
-TIMESTAMP_COL: Final[str] = "record_timestamp"
-"""A timestamp column, carried as a pandas datetime."""
-
 JSON_COL: Final[str] = "json_payload"
 """A string column holding valid JSON: JSON-parseable and JSON-schema checks."""
 
@@ -245,16 +259,19 @@ MATRIX_FIXTURE_DATA: pd.DataFrame = pd.DataFrame(
         CATEGORY_COL: ["red", "green", "blue", "red", "green", "blue", "red", "red"],
         PATTERN_COL: ["A100", "A200", "A300", "A400", "A500", "A600", "A700", "A800"],
         NULLABLE_COL: [1.0, None, 3.0, None, 5.0, 6.0, 7.0, 8.0],
-        # Plain `datetime.date`/`datetime.datetime` objects held in an object-dtype column, not
-        # a pandas `datetime64` column. The distinction is load-bearing rather than stylistic:
+        # Plain `datetime.date` objects held in an object-dtype column, not a pandas
+        # `datetime64` column. The distinction is load-bearing rather than stylistic:
         # the Spark batch setup passes each value through untouched when the config declares no
         # column types (as it does here, since every data source is instantiated with no
         # arguments), and Spark infers a `pandas.Timestamp` as an empty nested struct, which the
         # CSV writer then refuses to write at all -- failing every Spark cell in the matrix
         # during setup, before a single expectation runs. A `datetime64` column yields
         # `pandas.Timestamp` values, so the dtype must be pinned to object for the real Python
-        # objects to survive. Both types are in the SQL setup's inference map, so the SQL
-        # backends still get real DATE and DATETIME columns.
+        # objects to survive. `date` is in the SQL setup's inference map, so the SQL backends
+        # get a real DATE column. There is deliberately no timestamp column: the shared SQL
+        # setup infers `datetime` as the generic DATETIME type, which PostgreSQL does not have,
+        # and the configs here are default-constructed so no per-dialect column type can be
+        # supplied to correct it.
         DATE_COL: pd.Series(
             [
                 date(2024, 1, 1),
@@ -265,19 +282,6 @@ MATRIX_FIXTURE_DATA: pd.DataFrame = pd.DataFrame(
                 date(2024, 1, 6),
                 date(2024, 1, 7),
                 date(2024, 1, 8),
-            ],
-            dtype=object,
-        ),
-        TIMESTAMP_COL: pd.Series(
-            [
-                datetime(2024, 1, 1, 8, 0, 0),  # noqa: DTZ001
-                datetime(2024, 1, 2, 8, 0, 0),  # noqa: DTZ001
-                datetime(2024, 1, 3, 8, 0, 0),  # noqa: DTZ001
-                datetime(2024, 1, 4, 8, 0, 0),  # noqa: DTZ001
-                datetime(2024, 1, 5, 8, 0, 0),  # noqa: DTZ001
-                datetime(2024, 1, 6, 8, 0, 0),  # noqa: DTZ001
-                datetime(2024, 1, 7, 8, 0, 0),  # noqa: DTZ001
-                datetime(2024, 1, 8, 8, 0, 0),  # noqa: DTZ001
             ],
             dtype=object,
         ),
@@ -536,6 +540,10 @@ EXPECTATION_CASES: List[ExpectationCase] = [
         id="expect_column_values_to_match_regex",
         # Failing on purpose: no `pattern_code` value starts with "B".
         expectation=gxe.ExpectColumnValuesToMatchRegex(column=PATTERN_COL, regex="^B"),
+        unsupported_data_sources={
+            "mssql": "the SQL Server dialect has no regex operator, so the regex metrics raise "
+            "before producing a result",
+        },
     ),
     ExpectationCase(
         id="expect_column_values_to_match_regex_list",
@@ -543,6 +551,10 @@ EXPECTATION_CASES: List[ExpectationCase] = [
         expectation=gxe.ExpectColumnValuesToMatchRegexList(
             column=PATTERN_COL, regex_list=["^B", "^C"], match_on="any"
         ),
+        unsupported_data_sources={
+            "mssql": "the SQL Server dialect has no regex operator, so the regex metrics raise "
+            "before producing a result",
+        },
     ),
     ExpectationCase(
         id="expect_column_values_to_match_strftime_format",
@@ -592,6 +604,10 @@ EXPECTATION_CASES: List[ExpectationCase] = [
         id="expect_column_values_to_not_match_regex",
         # Failing on purpose: every `pattern_code` value starts with "A".
         expectation=gxe.ExpectColumnValuesToNotMatchRegex(column=PATTERN_COL, regex="^A"),
+        unsupported_data_sources={
+            "mssql": "the SQL Server dialect has no regex operator, so the regex metrics raise "
+            "before producing a result",
+        },
     ),
     ExpectationCase(
         id="expect_column_values_to_not_match_regex_list",
@@ -599,6 +615,10 @@ EXPECTATION_CASES: List[ExpectationCase] = [
         expectation=gxe.ExpectColumnValuesToNotMatchRegexList(
             column=PATTERN_COL, regex_list=["^A"]
         ),
+        unsupported_data_sources={
+            "mssql": "the SQL Server dialect has no regex operator, so the regex metrics raise "
+            "before producing a result",
+        },
     ),
     # ------------------------------------------------------------------
     # Column-pair map expectations

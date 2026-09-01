@@ -22,6 +22,12 @@ StrictNumber = Union[pydantic.StrictInt, pydantic.StrictFloat]
 class Status(str, Enum):
     PARSED = "parsed"
     FAILED = "failed"
+    UNSUPPORTED = "unsupported"
+    """The data source cannot evaluate this expectation at all, by its own declaration.
+
+    Recorded, not failed: the cell was never a candidate for a result dict, and the declaration
+    that says so lives on the case with a reason.
+    """
 
 
 class RuntimeTypeName(str, Enum):

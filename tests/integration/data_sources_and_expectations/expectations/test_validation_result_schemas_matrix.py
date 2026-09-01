@@ -33,7 +33,7 @@ from __future__ import annotations
 import datetime
 import random
 import string
-from typing import TYPE_CHECKING, Generator, Optional
+from typing import TYPE_CHECKING, Callable, Generator, Optional
 
 import pytest
 
@@ -58,6 +58,9 @@ from tests.integration.data_sources_and_expectations.expectations._validation_re
 from tests.integration.test_utils.data_source_config.tiers import ALL_DATA_SOURCES
 
 if TYPE_CHECKING:
+    from great_expectations.core.expectation_validation_result import (
+        ExpectationValidationResult,
+    )
     from great_expectations.datasource.fluent.interfaces import Batch
     from tests.integration.test_utils.data_source_config.base import BatchTestSetup
 
@@ -163,6 +166,15 @@ def test_validation_result_schema_matrix(
             }
         )
 
+    unsupported_reason = case.unsupported_data_sources.get(datasource_test_id)
+    if unsupported_reason is not None:
+        # A declared per-data-source gap. Recorded so the findings show the hole, skipped so it
+        # is not mistaken for a schema that failed to describe a result that was never produced.
+        _write(Status.UNSUPPORTED, error_summary=unsupported_reason)
+        pytest.skip(
+            f"[{case.id}][{result_format.value}][{datasource_test_id}]: {unsupported_reason}"
+        )
+
     try:
         raw_evr = batch_for_datasource.validate(expectation, result_format=result_format)
     except Exception as exc:
@@ -176,42 +188,7 @@ def test_validation_result_schema_matrix(
         )
 
     raw_result: dict = raw_evr.result or {}
-
-    # A metric that raised leaves an empty result dict behind. Every schema in this package
-    # accepts an empty dict, so the cell would otherwise parse cleanly and be filed as coverage of
-    # a result that was never produced.
-    raised_summary: Optional[str] = summarize_raised_exception(raw_evr.exception_info)
-    if raised_summary is not None:
-        _write(
-            Status.FAILED,
-            **summarize_raw_dict(raw_result),
-            error_summary=f"metric raised: {raised_summary}",
-        )
-        pytest.fail(
-            f"[{case.id}][{result_format.value}][{engine_hint}]: metric raised {raised_summary}. "
-            "The cell produced no result dict, so it proves nothing about the schema; "
-            "reconfigure the case against the shared fixture frame, or restrict its engines."
-        )
-
-    # An empty result dict at a format that is supposed to carry one is the other shape a vacuous
-    # cell takes: nothing raised, nothing was computed either, and every schema here accepts `{}`.
-    # An expectation that genuinely returns no payload declares that on its case.
-    if (
-        result_format is not ResultFormat.BOOLEAN_ONLY
-        and not raw_result
-        and not case.empty_result_reason
-    ):
-        _write(
-            Status.FAILED,
-            **summarize_raw_dict(raw_result),
-            error_summary="empty result dict at a non-BOOLEAN_ONLY result format",
-        )
-        pytest.fail(
-            f"[{case.id}][{result_format.value}][{engine_hint}]: the result dict is empty at a "
-            "format that carries one, so the cell records nothing. Reconfigure the case, or -- if "
-            "this expectation really returns no payload on any engine -- say so in its "
-            "`empty_result_reason`."
-        )
+    _reject_vacuous_result(case, result_format, engine_hint, raw_evr, raw_result, _write)
 
     try:
         # Call as_typed() via the dispatcher directly so we pass the exact result_format
@@ -260,3 +237,50 @@ def test_validation_result_schema_matrix(
         schema_optional_fields_present=schema_optional,
         schema_extras_rejected=[],
     )
+
+
+def _reject_vacuous_result(
+    case: ExpectationCase,
+    result_format: ResultFormat,
+    engine_hint: str,
+    raw_evr: ExpectationValidationResult,
+    raw_result: dict,
+    _write: Callable[..., None],
+) -> None:
+    """Fail the cell if it produced nothing a schema could be measured against."""
+
+    # A metric that raised leaves an empty result dict behind. Every schema in this package
+    # accepts an empty dict, so the cell would otherwise parse cleanly and be filed as coverage of
+    # a result that was never produced.
+    raised_summary: Optional[str] = summarize_raised_exception(raw_evr.exception_info)
+    if raised_summary is not None:
+        _write(
+            Status.FAILED,
+            **summarize_raw_dict(raw_result),
+            error_summary=f"metric raised: {raised_summary}",
+        )
+        pytest.fail(
+            f"[{case.id}][{result_format.value}][{engine_hint}]: metric raised {raised_summary}. "
+            "The cell produced no result dict, so it proves nothing about the schema; "
+            "reconfigure the case against the shared fixture frame, or restrict its engines."
+        )
+
+    # An empty result dict at a format that is supposed to carry one is the other shape a vacuous
+    # cell takes: nothing raised, nothing was computed either, and every schema here accepts `{}`.
+    # An expectation that genuinely returns no payload declares that on its case.
+    if (
+        result_format is not ResultFormat.BOOLEAN_ONLY
+        and not raw_result
+        and not case.empty_result_reason
+    ):
+        _write(
+            Status.FAILED,
+            **summarize_raw_dict(raw_result),
+            error_summary="empty result dict at a non-BOOLEAN_ONLY result format",
+        )
+        pytest.fail(
+            f"[{case.id}][{result_format.value}][{engine_hint}]: the result dict is empty at a "
+            "format that carries one, so the cell records nothing. Reconfigure the case, or -- if "
+            "this expectation really returns no payload on any engine -- say so in its "
+            "`empty_result_reason`."
+        )
