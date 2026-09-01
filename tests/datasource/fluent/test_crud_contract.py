@@ -18,7 +18,7 @@ from __future__ import annotations
 import pathlib
 import types
 import uuid
-from typing import TYPE_CHECKING, Callable, List
+from typing import TYPE_CHECKING, Callable, List, Mapping
 
 import pytest
 
@@ -30,6 +30,7 @@ from tests.datasource.fluent.crud_contract import (
     CONTRACT_PARAMETERS,
     CREATE_OR_UPDATE_REPLACES_WHEN_PRESENT,
     OVERLAY_DEPENDENT_CASE_KEYS,
+    UPDATE_REJECTS_ABSENT_NAME,
     UPDATE_REPLACES_CONFIGURATION,
     case_exclusions_by_type,
     contract_parameters_for,
@@ -239,6 +240,16 @@ _registered_fluent_type_parameters = pytest.mark.parametrize(
 )
 
 
+def _configuration_of(datasource: Datasource) -> Mapping[str, object]:
+    """The full field mapping of a stored datasource, with assets and identity excluded.
+
+    Assets are excluded because none of these cases add one, and comparing the identifier
+    separately keeps a case's identifier assertion distinct from its configuration
+    assertion rather than folding both into one dict equality.
+    """
+    return datasource.dict(exclude={"assets", "id"})
+
+
 @pytest.mark.unit
 class TestFluentDatasourceCrudContract:
     """The CRUD contract every registered fluent datasource type satisfies.
@@ -310,3 +321,96 @@ class TestFluentDatasourceCrudContract:
 
         assert isinstance(created, datasource_class)
         assert context.data_sources.get(name) is created
+
+    @_registered_fluent_type_parameters
+    def test_update_replaces_configuration(
+        self,
+        fluent_type: str,
+        neutralized_connection_testing: Callable[[str], type],
+        tmp_path: pathlib.Path,
+    ) -> None:
+        reason = exclusion_reason(fluent_type, UPDATE_REPLACES_CONFIGURATION)
+        if reason is not None:
+            pytest.skip(reason)
+
+        datasource_class = neutralized_connection_testing(fluent_type)
+        context = gx.get_context(mode="ephemeral")
+        name = f"contract-update-{fluent_type}"
+        seeded_id = uuid.uuid4()
+        parameters = contract_parameters_for(fluent_type)
+        creation_arguments = parameters.creation_arguments(tmp_path)
+        overlay_arguments = parameters.update_overlay(tmp_path)  # type: ignore[misc]
+
+        add_method = getattr(context.data_sources, f"add_{fluent_type}")
+        created = add_method(name=name, id=seeded_id, **creation_arguments)
+        created_configuration = _configuration_of(created)
+
+        update_method = getattr(context.data_sources, f"update_{fluent_type}")
+        updated = update_method(name=name, **overlay_arguments)
+
+        assert updated.id == seeded_id
+        assert context.data_sources.get(name).id == seeded_id
+
+        stored_configuration = _configuration_of(context.data_sources.get(name))
+        expected_configuration = _configuration_of(datasource_class(name=name, **overlay_arguments))
+        assert stored_configuration == expected_configuration
+        assert stored_configuration != created_configuration
+
+    @_registered_fluent_type_parameters
+    def test_update_rejects_absent_name(
+        self,
+        fluent_type: str,
+        neutralized_connection_testing: Callable[[str], type],
+        tmp_path: pathlib.Path,
+    ) -> None:
+        reason = exclusion_reason(fluent_type, UPDATE_REJECTS_ABSENT_NAME)
+        if reason is not None:
+            pytest.skip(reason)
+
+        neutralized_connection_testing(fluent_type)
+        context = gx.get_context(mode="ephemeral")
+        name = f"contract-update-absent-{fluent_type}"
+        arguments = contract_parameters_for(fluent_type).creation_arguments(tmp_path)
+
+        update_method = getattr(context.data_sources, f"update_{fluent_type}")
+
+        with pytest.raises(ValueError) as excinfo:
+            update_method(name=name, **arguments)
+
+        assert name in str(excinfo.value)
+        with pytest.raises(KeyError):
+            context.data_sources.get(name)
+
+    @_registered_fluent_type_parameters
+    def test_create_or_update_replaces_when_present(
+        self,
+        fluent_type: str,
+        neutralized_connection_testing: Callable[[str], type],
+        tmp_path: pathlib.Path,
+    ) -> None:
+        reason = exclusion_reason(fluent_type, CREATE_OR_UPDATE_REPLACES_WHEN_PRESENT)
+        if reason is not None:
+            pytest.skip(reason)
+
+        datasource_class = neutralized_connection_testing(fluent_type)
+        context = gx.get_context(mode="ephemeral")
+        name = f"contract-create-or-update-replace-{fluent_type}"
+        seeded_id = uuid.uuid4()
+        parameters = contract_parameters_for(fluent_type)
+        creation_arguments = parameters.creation_arguments(tmp_path)
+        overlay_arguments = parameters.update_overlay(tmp_path)  # type: ignore[misc]
+
+        add_method = getattr(context.data_sources, f"add_{fluent_type}")
+        created = add_method(name=name, id=seeded_id, **creation_arguments)
+        created_configuration = _configuration_of(created)
+
+        add_or_update_method = getattr(context.data_sources, f"add_or_update_{fluent_type}")
+        replaced = add_or_update_method(name=name, **overlay_arguments)
+
+        assert replaced.id == seeded_id
+        assert context.data_sources.get(name).id == seeded_id
+
+        stored_configuration = _configuration_of(context.data_sources.get(name))
+        expected_configuration = _configuration_of(datasource_class(name=name, **overlay_arguments))
+        assert stored_configuration == expected_configuration
+        assert stored_configuration != created_configuration
