@@ -595,7 +595,9 @@ class TestCheckpointResult:
         return bd
 
     @pytest.fixture
-    def validation_definition(self, mock_suite: MockerFixture, mock_batch_def: MockerFixture):
+    def validation_definition(
+        self, mock_suite: ExpectationSuite, mock_batch_def: BatchDefinition
+    ):
         validation_definition = ValidationDefinition(
             name=self.validation_definition_name,
             id=str(uuid.uuid4()),
@@ -926,9 +928,13 @@ class TestCheckpointResult:
         results = checkpoint.run(batch_parameters={"dataframe": df})
         assert len(results.run_results) == 1
         result = list(results.run_results.values())[0]
-        assert result.meta["batch_parameters"]["dataframe"] == DATAFRAME_REPLACEMENT_STR
+        meta = result.meta
+        assert meta is not None
+        batch_parameters = meta["batch_parameters"]
+        assert batch_parameters is not None
+        assert batch_parameters["dataframe"] == DATAFRAME_REPLACEMENT_STR
         assert (
-            result.meta["active_batch_definition"]["batch_identifiers"]["dataframe"]
+            meta["active_batch_definition"]["batch_identifiers"]["dataframe"]
             == DATAFRAME_REPLACEMENT_STR
         )
 
@@ -1034,7 +1040,7 @@ class TestCheckpointResult:
         self,
         tmp_path: pathlib.Path,
     ):
-        actions = [
+        actions: List[ValidationAction] = [
             SlackNotificationAction(name="slack_action", slack_webhook="webhook"),
             UpdateDataDocsAction(name="docs_action"),
         ]
@@ -1054,7 +1060,7 @@ class TestCheckpointResult:
         self,
         tmp_path: pathlib.Path,
     ):
-        actions = [
+        actions: List[ValidationAction] = [
             SlackNotificationAction(name="slack_action", slack_webhook="webhook"),
         ]
         checkpoint = self._build_file_backed_checkpoint(tmp_path=tmp_path, actions=actions)
