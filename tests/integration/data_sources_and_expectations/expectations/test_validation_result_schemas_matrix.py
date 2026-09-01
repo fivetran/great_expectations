@@ -44,9 +44,7 @@ from tests.integration.data_sources_and_expectations.expectations._validation_re
     assert_field_set_covered,
     summarize_raw_dict,
 )
-from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
-    ALL_DATA_SOURCES,
-)
+from tests.integration.test_utils.data_source_config.tiers import ALL_DATA_SOURCES
 
 if TYPE_CHECKING:
     from great_expectations.datasource.fluent.interfaces import Batch

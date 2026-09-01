@@ -103,6 +103,7 @@ _FAMILY_TABLE: Dict[str, str] = {
     "expect_column_values_to_be_null": "map",
     "expect_column_values_to_be_of_type": "map",
     "expect_column_values_to_be_unique": "map",
+    "expect_column_values_to_not_be_outliers": "map",
     "expect_column_values_to_match_json_schema": "map",
     "expect_column_values_to_match_like_pattern": "map",
     "expect_column_values_to_match_like_pattern_list": "map",
@@ -122,6 +123,7 @@ _FAMILY_TABLE: Dict[str, str] = {
     # ---- MAP (MulticolumnMapExpectation) -----------------------------------
     "expect_compound_columns_to_be_unique": "map",
     "expect_multicolumn_sum_to_equal": "map",
+    "expect_multicolumn_values_to_be_equal": "map",
     "expect_multicolumn_values_to_be_unique": "map",
     "expect_select_column_values_to_be_unique_within_record": "map",
     # ---- AGGREGATE (ColumnAggregateExpectation) ----------------------------

@@ -298,6 +298,23 @@ EXPECTATION_CASES: List[ExpectationCase] = [
         data=_DEFAULT_DATA,
     ),
     ExpectationCase(
+        id="expect_column_values_to_not_be_outliers",
+        expectation=gxe.ExpectColumnValuesToNotBeOutliers(
+            column="col_a", method="iqr", multiplier=1.5
+        ),
+        data=_NUMERIC_DATA,
+    ),
+    ExpectationCase(
+        id="expect_multicolumn_values_to_be_equal",
+        expectation=gxe.ExpectMulticolumnValuesToBeEqual(column_list=["col_a", "col_b"]),
+        data=pd.DataFrame(
+            {
+                "col_a": [1, 2, 3, None, 5],
+                "col_b": [1, 2, 4, None, 5],
+            }
+        ),
+    ),
+    ExpectationCase(
         id="expect_multicolumn_sum_to_equal",
         expectation=gxe.ExpectMulticolumnSumToEqual(column_list=["col_a", "col_b"], sum_total=3),
         data=pd.DataFrame(
