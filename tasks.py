@@ -1133,7 +1133,15 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
 }
 
 
-def _marker_statement(marker: str) -> str:
+# Markers that select a suite meant to run in a lane of its own rather than inside the
+# shared per-data-source lanes. A shared lane's marker expression excludes every one of
+# these by default; a lane can opt into exactly one via `_marker_statement`'s `suite`
+# argument. Adding a future suite marker is one tuple entry here, not an edit to every
+# lane's expression.
+_SUITE_MARKERS: Final[tuple[str, ...]] = ("gold",)
+
+
+def _marker_statement(marker: str, suite: str = "") -> str:
     # Perhaps we should move this configuration to the MARKER_DEPENDENCY_MAP instead of
     # doing the mapping here.
     if marker == "mssql":
@@ -1145,9 +1153,18 @@ def _marker_statement(marker: str) -> str:
         "spark",
         "trino",
     ]:
-        return f"'all_backends or {marker}'"
+        base = f"all_backends or {marker}"
     else:
-        return f"'{marker}'"
+        base = marker
+
+    # The base expression is parenthesised before anything is conjoined to it: some
+    # lanes' markers are themselves disjunctions, and `and` binds tighter than `or`, so
+    # conjoining without parentheses would silently re-scope the clause below to only the
+    # last disjunct instead of the whole expression.
+    if suite:
+        return f"'({base}) and {suite}'"
+    exclusion = " and ".join(f"not {suite_marker}" for suite_marker in _SUITE_MARKERS)
+    return f"'({base}) and {exclusion}'"
 
 
 def _tokenize_marker_string(marker_string: str) -> Generator[str, None, None]:
@@ -1295,6 +1312,10 @@ def docs_snippet_tests(
         "splits": "Total number of pytest-split shards. Must be paired with --group.",
         "group": "1-based pytest-split shard index to run. Must satisfy 1 <= group <= splits.",
         "W": "Warnings control",
+        "suite": (
+            "Opt into a suite meant to run in a lane of its own (e.g. 'gold') instead of "
+            "excluding it, for the given marker."
+        ),
     },
     iterable=["service_names", "up_services", "verbose"],
 )
@@ -1317,6 +1338,7 @@ def ci_tests(  # noqa: C901 - too complex (9)
     group: int = 0,
     W: str | None = None,
     pty: bool = True,
+    suite: str = "",
 ):
     """
     Run tests in CI.
@@ -1381,7 +1403,7 @@ def ci_tests(  # noqa: C901 - too complex (9)
         for extra_pytest_arg in test_deps.extra_pytest_args:
             pytest_options.append(extra_pytest_arg)
 
-    pytest_cmd = ["pytest", "-m", _marker_statement(marker)] + pytest_options
+    pytest_cmd = ["pytest", "-m", _marker_statement(marker, suite=suite)] + pytest_options
     ctx.run(" ".join(pytest_cmd), echo=True, pty=pty)
 
 
