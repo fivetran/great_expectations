@@ -40,7 +40,7 @@ class TrinoDatasourceTestConfig(SqlDatasourceTestConfig):
         # scale zero, silently rounding fractional values to integers. A precision-carrying
         # FLOAT compiles to double precision and round-trips exactly.
         column_type_overrides={float: sqltypes.FLOAT(precision=53)},
-        tiers=frozenset({SupportTier.CURATED_SQL}),
+        tiers=frozenset({SupportTier.CURATED_SQL, SupportTier.FLUENT_API}),
         dev_requirements_file="reqs/requirements-dev-trino.txt",
         task_runner_marker="trino",
         container_service="trino",

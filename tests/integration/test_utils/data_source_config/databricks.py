@@ -45,7 +45,7 @@ class DatabricksDatasourceTestConfig(SqlDatasourceTestConfig):
         # databricks requires a length for VARCHAR
         column_type_overrides={str: sqltypes.VARCHAR(255)},
         insert_parameter_limit=250,
-        tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
+        tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API}),
         dev_requirements_file="reqs/requirements-dev-databricks.txt",
         task_runner_marker="databricks",
     )
