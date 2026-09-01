@@ -34,6 +34,7 @@ from tests.datasource.fluent.crud_contract import (
     OVERLAY_DEPENDENT_CASE_KEYS,
     UPDATE_REJECTS_ABSENT_NAME,
     UPDATE_REPLACES_CONFIGURATION,
+    FluentTypeContractParameters,
     case_exclusions_by_type,
     contract_parameters_for,
     covered_fluent_types,
@@ -189,6 +190,207 @@ def test_creation_arguments_are_produced_by_a_callable_over_a_scratch_directory(
         if parameters.update_overlay is not None:
             overlay = parameters.update_overlay(tmp_path)
             assert isinstance(overlay, (dict, types.MappingProxyType))
+
+
+# ---------------------------------------------------------------------------
+# Completeness, exclusion-sanity and anti-vacuity guards
+#
+# Each check below is a small function that raises ``AssertionError`` naming the offending
+# value, rather than a bare assertion, so the same function can be exercised twice: once
+# against the live table, where it must stay silent, and once against a fabricated table
+# built only in this module, where it must raise. That is what lets a guard's failure
+# behavior be proven without mutating the immutable structures this module imports.
+# ---------------------------------------------------------------------------
+
+
+def _check_no_stale_entries(covered_types, registered_types) -> None:
+    stale = frozenset(covered_types) - frozenset(registered_types)
+    if stale:
+        raise AssertionError(
+            f"CONTRACT_PARAMETERS declares an entry for {sorted(stale)!r}, which the live "
+            f"fluent datasource registry does not hold. Remove the stale entry from "
+            f"CONTRACT_PARAMETERS or register the type."
+        )
+
+
+def _check_parameter_list_not_empty(covered_types) -> None:
+    if not covered_types:
+        raise AssertionError(
+            "The derived CRUD contract parameter list is empty; no fluent datasource type "
+            "would be exercised by this suite. Check that CONTRACT_PARAMETERS still has "
+            "entries."
+        )
+
+
+def _check_covered_type_count(actual_count: int, pinned_literal: int, registry_size: int) -> None:
+    if actual_count != pinned_literal:
+        raise AssertionError(
+            f"CONTRACT_PARAMETERS covers {actual_count} fluent datasource types but the "
+            f"pinned literal is {pinned_literal}. Update the pinned literal to match the "
+            f"table's current size."
+        )
+    if actual_count != registry_size:
+        raise AssertionError(
+            f"CONTRACT_PARAMETERS covers {actual_count} fluent datasource types but the "
+            f"live registry holds {registry_size}. Add or remove a table entry so the two "
+            f"stay equal."
+        )
+
+
+def _check_exclusions_use_published_keys(table, published_keys) -> None:
+    for fluent_type, parameters in table.items():
+        unpublished = set(parameters.case_exclusions.keys()) - set(published_keys)
+        if unpublished:
+            raise AssertionError(
+                f"{fluent_type!r} declares an exclusion for {sorted(unpublished)!r}, which "
+                f"is not a key CONTRACT_CASE_KEYS publishes. Use a case key from "
+                f"CONTRACT_CASE_KEYS or remove the exclusion."
+            )
+
+
+def _check_no_type_excluded_from_every_case(table, all_case_keys) -> None:
+    for fluent_type, parameters in table.items():
+        if set(parameters.case_exclusions.keys()) == set(all_case_keys):
+            raise AssertionError(
+                f"{fluent_type!r} is excluded from every contract case, so it is not "
+                f"actually covered despite having a table entry. Remove entries from its "
+                f"case_exclusions or drop the entry from CONTRACT_PARAMETERS."
+            )
+
+
+def _check_overlay_free_types_exclude_exactly_overlay_dependent_cases(
+    table, overlay_dependent_keys
+) -> None:
+    for fluent_type, parameters in table.items():
+        if parameters.update_overlay is None:
+            declared = frozenset(parameters.case_exclusions.keys())
+            if declared != frozenset(overlay_dependent_keys):
+                raise AssertionError(
+                    f"{fluent_type!r} declares no update_overlay but excludes "
+                    f"{sorted(declared)!r} instead of exactly the overlay-dependent cases "
+                    f"{sorted(overlay_dependent_keys)!r}. Declare an update_overlay or fix "
+                    f"the exclusions to match exactly."
+                )
+
+
+@pytest.mark.unit
+def test_no_stale_table_entry_against_the_live_registry() -> None:
+    _check_no_stale_entries(covered_fluent_types(), _registered_fluent_types())
+
+
+@pytest.mark.unit
+def test_stale_entry_guard_fails_naming_the_stale_entry() -> None:
+    fabricated_types = frozenset(covered_fluent_types()) | {"not_a_real_fluent_type"}
+    with pytest.raises(AssertionError, match=r"not_a_real_fluent_type") as excinfo:
+        _check_no_stale_entries(fabricated_types, _registered_fluent_types())
+    assert "not_a_real_fluent_type" in str(excinfo.value)
+
+
+@pytest.mark.unit
+def test_derived_parameter_list_is_not_empty() -> None:
+    _check_parameter_list_not_empty(covered_fluent_types())
+
+
+@pytest.mark.unit
+def test_empty_parameter_list_guard_fails() -> None:
+    with pytest.raises(AssertionError, match=r"empty"):
+        _check_parameter_list_not_empty(frozenset())
+
+
+@pytest.mark.unit
+def test_covered_type_count_matches_the_pinned_literal_and_the_registry() -> None:
+    _check_covered_type_count(
+        actual_count=len(covered_fluent_types()),
+        pinned_literal=26,
+        registry_size=len(_registered_fluent_types()),
+    )
+
+
+@pytest.mark.unit
+def test_covered_type_count_guard_fails_against_a_stale_pinned_literal() -> None:
+    actual_count = len(covered_fluent_types())
+    stale_literal = actual_count - 1
+    with pytest.raises(AssertionError, match=str(stale_literal)) as excinfo:
+        _check_covered_type_count(
+            actual_count=actual_count,
+            pinned_literal=stale_literal,
+            registry_size=len(_registered_fluent_types()),
+        )
+    assert str(stale_literal) in str(excinfo.value)
+    assert str(actual_count) in str(excinfo.value)
+
+
+@pytest.mark.unit
+def test_covered_type_count_guard_fails_against_a_mismatched_registry_size() -> None:
+    actual_count = len(covered_fluent_types())
+    wrong_registry_size = actual_count + 1
+    with pytest.raises(AssertionError, match=str(wrong_registry_size)) as excinfo:
+        _check_covered_type_count(
+            actual_count=actual_count,
+            pinned_literal=actual_count,
+            registry_size=wrong_registry_size,
+        )
+    assert str(wrong_registry_size) in str(excinfo.value)
+
+
+@pytest.mark.unit
+def test_no_declared_exclusion_names_an_unpublished_case_key() -> None:
+    _check_exclusions_use_published_keys(CONTRACT_PARAMETERS, CONTRACT_CASE_KEYS)
+
+
+@pytest.mark.unit
+def test_unpublished_exclusion_key_guard_fails_naming_the_key() -> None:
+    fabricated_entry = FluentTypeContractParameters(
+        creation_arguments=lambda _scratch_directory: {},
+        case_exclusions={"not_a_published_case_key": "fabricated for this proof"},
+    )
+    fabricated_table = {"fabricated_type": fabricated_entry}
+    with pytest.raises(AssertionError, match=r"not_a_published_case_key") as excinfo:
+        _check_exclusions_use_published_keys(fabricated_table, CONTRACT_CASE_KEYS)
+    assert "not_a_published_case_key" in str(excinfo.value)
+    assert "fabricated_type" in str(excinfo.value)
+
+
+@pytest.mark.unit
+def test_no_type_is_excluded_from_every_case_via_the_guard() -> None:
+    _check_no_type_excluded_from_every_case(CONTRACT_PARAMETERS, CONTRACT_CASE_KEYS)
+
+
+@pytest.mark.unit
+def test_excluded_from_every_case_guard_fails_naming_the_type() -> None:
+    fabricated_entry = FluentTypeContractParameters(
+        creation_arguments=lambda _scratch_directory: {},
+        case_exclusions=dict.fromkeys(CONTRACT_CASE_KEYS, "fabricated for this proof"),
+    )
+    fabricated_table = {"fully_excluded_type": fabricated_entry}
+    with pytest.raises(AssertionError, match=r"fully_excluded_type") as excinfo:
+        _check_no_type_excluded_from_every_case(fabricated_table, CONTRACT_CASE_KEYS)
+    assert "fully_excluded_type" in str(excinfo.value)
+
+
+@pytest.mark.unit
+def test_overlay_free_types_exclude_exactly_the_overlay_dependent_cases() -> None:
+    _check_overlay_free_types_exclude_exactly_overlay_dependent_cases(
+        CONTRACT_PARAMETERS, OVERLAY_DEPENDENT_CASE_KEYS
+    )
+
+
+@pytest.mark.unit
+def test_overlay_removed_without_its_exclusion_fails_naming_the_type() -> None:
+    # Simulate an overlay being dropped from a type that used to declare one, without also
+    # adding the exclusions that absence obliges.
+    postgres_creation_arguments = contract_parameters_for("postgres").creation_arguments
+    fabricated_entry = FluentTypeContractParameters(
+        creation_arguments=postgres_creation_arguments,
+        update_overlay=None,
+        case_exclusions={},
+    )
+    fabricated_table = {"postgres": fabricated_entry}
+    with pytest.raises(AssertionError, match=r"postgres") as excinfo:
+        _check_overlay_free_types_exclude_exactly_overlay_dependent_cases(
+            fabricated_table, OVERLAY_DEPENDENT_CASE_KEYS
+        )
+    assert "postgres" in str(excinfo.value)
 
 
 # ---------------------------------------------------------------------------
