@@ -302,6 +302,128 @@ def test_sanitize_config_azure_blob_store():
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize(
+    "connection_string,expected",
+    [
+        pytest.param(
+            "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=iamname;AccountKey=i_am_account_key",
+            "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=iamname;AccountKey=***",
+            id="fields_reordered",
+        ),
+        pytest.param(
+            "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=i_am_account_key",
+            "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=***",
+            id="endpoint_suffix_omitted",
+        ),
+        pytest.param(
+            "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=i_am_account_key;EndpointSuffix=core.windows.net;",
+            "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=***;EndpointSuffix=core.windows.net",
+            id="trailing_semicolon",
+        ),
+        pytest.param(
+            "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=i_am_account_key;SharedAccessSignature=i_am_a_sas_token",
+            "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=***;SharedAccessSignature=***",
+            id="sas_token_masked_not_dropped",
+        ),
+        pytest.param(
+            "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=i_am_account_key;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1",
+            "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=***;BlobEndpoint=***;QueueEndpoint=***",
+            id="emulator_endpoint_fields_masked_not_dropped",
+        ),
+        pytest.param(
+            "DefaultEndpointsProtocol=https;AccountName=iamname;SomeFieldAzureAddedLater=i_am_a_new_secret;AccountKey=i_am_account_key",
+            "DefaultEndpointsProtocol=https;AccountName=iamname;SomeFieldAzureAddedLater=***;AccountKey=***",
+            id="unknown_field_masked_by_default",
+        ),
+    ],
+)
+def test_azure_connection_string_masked_regardless_of_field_order(connection_string, expected):
+    assert PasswordMasker.mask_db_url(connection_string) == expected
+
+
+@pytest.mark.unit
+def test_azure_safe_to_display_fields_is_limited_to_known_non_credentials():
+    """Widening this allowlist reveals a field in cleartext, so it is pinned deliberately.
+
+    Notably absent: AccountKey and SharedAccessSignature are credentials, and the *Endpoint
+    fields can carry a SAS token in their query string.
+    """
+    expected_safe_fields = {"DefaultEndpointsProtocol", "AccountName", "EndpointSuffix"}
+    assert expected_safe_fields == PasswordMasker.AZURE_SAFE_TO_DISPLAY_FIELDS
+
+
+@pytest.mark.unit
+def test_azure_connection_string_masking_drops_no_field():
+    """A masked string that silently omits a field describes a connection nobody configured.
+
+    `BlobEndpoint` overrides the endpoint built from protocol/account/suffix, so dropping it
+    would render output pointing at a different endpoint than the real config uses.
+    """
+    connection_string = (
+        "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=i_am_account_key;"
+        "EndpointSuffix=core.windows.net;BlobEndpoint=https://private.example.net/iamname;"
+        "SharedAccessSignature=i_am_a_sas_token"
+    )
+    masked = PasswordMasker.mask_db_url(connection_string)
+
+    def keys(value: str) -> list[str]:
+        return [segment.partition("=")[0] for segment in value.split(";")]
+
+    assert keys(masked) == keys(connection_string)
+
+
+@pytest.mark.unit
+def test_azure_connection_string_masks_every_value_not_safe_to_display():
+    """Fail closed: only the allowlisted fields survive in cleartext, every other value is ***."""
+    unsafe_values = {
+        "AccountKey": "i_am_account_key",
+        "SharedAccessSignature": "i_am_a_sas_token",
+        "BlobEndpoint": "https://private.example.net/iamname",
+        "SomeFieldAzureAddedLater": "i_am_a_new_secret",
+    }
+    connection_string = ";".join(
+        ["DefaultEndpointsProtocol=https", "AccountName=iamname", "EndpointSuffix=core.windows.net"]
+        + [f"{key}={value}" for key, value in unsafe_values.items()]
+    )
+    masked = PasswordMasker.mask_db_url(connection_string)
+
+    for key, value in unsafe_values.items():
+        assert value not in masked, f"{key} value leaked into masked output"
+        assert f"{key}={PasswordMasker.MASKED_PASSWORD_STRING}" in masked
+
+
+@pytest.mark.unit
+def test_azure_connection_string_account_key_never_appears_in_raised_error():
+    """A masking failure must not put the secret it was masking into the traceback."""
+    account_key = "i_am_account_key"
+    malformed = f"DefaultEndpointsProtocol=nonsense;AccountName=iamname;AccountKey={account_key}"
+    with pytest.raises(StoreConfigurationError) as exc_info:
+        PasswordMasker.mask_db_url(malformed)
+    assert account_key not in str(exc_info.value)
+
+
+@pytest.mark.unit
+def test_azure_connection_string_raises_for_invalid_account_name():
+    """AccountName must be alphanumeric; a hyphen should be rejected."""
+    connection_string = (
+        "DefaultEndpointsProtocol=https;AccountName=iam-name;AccountKey=i_am_account_key"
+    )
+    with pytest.raises(StoreConfigurationError):
+        PasswordMasker.mask_db_url(connection_string)
+
+
+@pytest.mark.unit
+def test_azure_connection_string_raises_for_invalid_endpoint_suffix():
+    """EndpointSuffix must match [a-zA-Z.]+; digits/symbols should be rejected."""
+    connection_string = (
+        "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=i_am_account_key;"
+        "EndpointSuffix=core.windows.net123"
+    )
+    with pytest.raises(StoreConfigurationError):
+        PasswordMasker.mask_db_url(connection_string)
+
+
+@pytest.mark.unit
 def test_sanitize_config_raises_exception_with_bad_input(
     basic_data_context_config,
 ):

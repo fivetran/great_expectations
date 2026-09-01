@@ -1,0 +1,5 @@
+# Lane pin for the dedicated marshmallow-4 CI job. requirements.txt carries no
+# upper bound on marshmallow, so the default install resolves to whichever major
+# is current; this file forces the 4.x line so the 3.x-vs-4.x differences stay
+# covered. Floats within 4.x.
+marshmallow>=4.0.0,<5.0.0

@@ -163,6 +163,12 @@ jobs:
         github.event_name == 'workflow_dispatch'
       )
     runs-on: ubuntu-latest
+    # This matrix installs system packages and talks to external services, so a
+    # hang is a question of when, not if -- and without a timeout a hung job
+    # runs until the repository-wide default of 6 hours. Over the last 30
+    # successful runs the slowest leg was under 12 minutes, so 30 leaves ample
+    # headroom while failing a genuinely stuck job in minutes rather than hours.
+    timeout-minutes: 30
     strategy:
       matrix:
         doc-step:
@@ -187,10 +193,11 @@ jobs:
       GOOGLE_APPLICATION_CREDENTIALS: "${{github.workspace}}/gcp-credentials.json"
       GX_GCS_TEST_BUCKET: ${{vars.GX_GCS_TEST_BUCKET}}
       # aws
-      AWS_ACCESS_KEY_ID: ${{secrets.CI_AWS_ACCESS_KEY_ID}}
-      AWS_DEFAULT_REGION: ${{secrets.CI_AWS_DEFAULT_REGION}}
-      AWS_REGION: ${{secrets.CI_AWS_DEFAULT_REGION}}
-      AWS_SECRET_ACCESS_KEY: ${{secrets.CI_AWS_SECRET_ACCESS_KEY}}
+      # No AWS_* mapping here. Credentials come from the OIDC role assumed in the
+      # "Configure AWS credentials" step below, which exports AWS_ACCESS_KEY_ID,
+      # AWS_SECRET_ACCESS_KEY and AWS_SESSION_TOKEN into $GITHUB_ENV. A job-level
+      # env: entry for any of those would shadow what that step exports.
+      GX_S3_TEST_BUCKET: ${{vars.GX_S3_TEST_BUCKET}}
       # aws-redshift
       REDSHIFT_USERNAME: ${{secrets.REDSHIFT_USERNAME}}
       REDSHIFT_PASSWORD: ${{secrets.REDSHIFT_PASSWORD}}
@@ -236,6 +243,15 @@ jobs:
         uses: actions/checkout@v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+
+      # Only the docs-creds-needed leg passes --aws; the other legs have no reason
+      # to hold AWS credentials, short-lived or not.
+      - name: Configure AWS credentials
+        if: matrix['doc-step'] == 'docs-creds-needed'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.CI_AWS_DEFAULT_REGION }}
 
       - name: Upgrade Docker Compose
         uses: docker/setup-compose-action@v1
@@ -896,6 +912,32 @@ jobs:
 
       - name: Install dependencies
         run: pip install . -c ci/constraints-test/pandas2-min-install.txt -r reqs/requirements-dev-test.txt
+
+      - name: Run the tests
+        run: invoke ci-tests -m unit --xdist --slowest=10  --timeout=2.0
+
+  marshmallow4-test:
+    needs: [unit-tests, static-analysis, check-actor-permissions]
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.3.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+          cache-dependency-path: reqs/requirements-dev-test.txt
+
+      - name: Install dependencies
+        run: pip install . -c ci/constraints-test/marshmallow4-install.txt -r reqs/requirements-dev-test.txt
+
+      - name: Confirm the lane resolved marshmallow 4
+        run: python -c "import marshmallow, sys; from importlib.metadata import version; v = version('marshmallow'); print(v); sys.exit(0 if v.startswith('4.') else 1)"
 
       - name: Run the tests
         run: invoke ci-tests -m unit --xdist --slowest=10  --timeout=2.0

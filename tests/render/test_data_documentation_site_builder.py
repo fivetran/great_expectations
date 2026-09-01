@@ -3,11 +3,20 @@ import shutil
 
 import pytest
 
+from great_expectations.core.expectation_suite import ExpectationSuite
+from great_expectations.core.expectation_validation_result import (
+    ExpectationSuiteValidationResult,
+)
+from great_expectations.core.run_identifier import RunIdentifier
 from great_expectations.data_context import get_context
 from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
 )
 from great_expectations.data_context.store import ExpectationsStore, ValidationResultsStore
+from great_expectations.data_context.types.resource_identifiers import (
+    ExpectationSuiteIdentifier,
+    ValidationResultIdentifier,
+)
 from great_expectations.data_context.util import (
     file_relative_path,
     instantiate_class_from_config,
@@ -57,3 +66,44 @@ def test_site_builder_with_custom_site_section_builders_config(tmp_path_factory)
     profiling_site_section_builder = site_section_builders["profiling"]
     assert isinstance(validations_site_section_builder.source_store, ExpectationsStore)
     assert profiling_site_section_builder.run_name_filter == {"equals": "custom_profiling_filter"}
+
+
+def _validation_result(suite_name: str, meta: dict) -> ExpectationSuiteValidationResult:
+    return ExpectationSuiteValidationResult(
+        success=True,
+        results=[],
+        suite_name=suite_name,
+        statistics={
+            "evaluated_expectations": 0,
+            "successful_expectations": 0,
+            "unsuccessful_expectations": 0,
+            "success_percent": 100.0,
+        },
+        meta={"expectation_suite_name": suite_name, **meta},
+    )
+
+
+def test_site_builder_renders_a_page_per_validation_result(tmp_path):
+    """Every persisted validation result gets a page, including one whose meta has no run_id."""
+    suite_name = "my_suite"
+    context = get_context(mode="file", project_root_dir=str(tmp_path))
+    context.suites.add(ExpectationSuite(name=suite_name))
+
+    results = {
+        "with_run_id": {"run_id": {"run_name": "with_run_id", "run_time": "2026-01-01T00:00:00Z"}},
+        "without_run_id": {},
+    }
+    for run_name, meta in results.items():
+        context.validation_results_store.add(
+            ValidationResultIdentifier(
+                expectation_suite_identifier=ExpectationSuiteIdentifier(name=suite_name),
+                run_id=RunIdentifier(run_name=run_name, run_time="2026-01-01T00:00:00Z"),
+                batch_identifier="my_batch",
+            ),
+            _validation_result(suite_name, meta),
+        )
+
+    context.build_data_docs()
+
+    pages = list(tmp_path.glob("**/data_docs/local_site/validations/**/*.html"))
+    assert len(pages) == len(results)

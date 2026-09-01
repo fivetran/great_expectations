@@ -160,6 +160,11 @@ class PandasDataSampler(DataSampler):
             )
 
         matches: pd.Series = df[column_name].map(
-            lambda x: hash_func(str(x).encode()).hexdigest()[-1 * hash_digits :] == hash_value
+            # not used for security: this is hash sampling, not a cryptographic digest.
+            # usedforsecurity=False lets this run on hosts with FIPS-mode OpenSSL.
+            lambda x: hash_func(str(x).encode(), usedforsecurity=False).hexdigest()[
+                -1 * hash_digits :
+            ]
+            == hash_value
         )
         return df[matches]

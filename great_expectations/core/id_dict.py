@@ -29,7 +29,11 @@ class IDDict(dict):
             return f"{key}={self[key]!s}"
 
         _id_dict = convert_to_json_serializable(data={k: self[k] for k in id_keys})
-        return hashlib.md5(json.dumps(_id_dict, sort_keys=True).encode("utf-8")).hexdigest()
+        # not used for security: this is a stable id/cache key, not a cryptographic digest.
+        # usedforsecurity=False lets this run on hosts with FIPS-mode OpenSSL.
+        return hashlib.md5(
+            json.dumps(_id_dict, sort_keys=True).encode("utf-8"), usedforsecurity=False
+        ).hexdigest()
 
     @override
     def __hash__(self) -> int:  # type: ignore[override] # FIXME CoP
