@@ -51,6 +51,7 @@ from tests.integration.data_sources_and_expectations.expectations._validation_re
 )
 from tests.integration.data_sources_and_expectations.expectations._validation_result_schemas_helpers import (  # noqa: E501
     assert_field_set_covered,
+    release_sql_connections,
     resolve_self_references,
     summarize_raised_exception,
     summarize_raw_dict,
@@ -186,6 +187,8 @@ def test_validation_result_schema_matrix(
             f"[{case.id}][{result_format.value}][{engine_hint}]: "
             f"batch.validate raised {type(exc).__name__}: {exc}"
         )
+    finally:
+        release_sql_connections(batch_for_datasource)
 
     raw_result: dict = raw_evr.result or {}
     _reject_vacuous_result(case, result_format, engine_hint, raw_evr, raw_result, _write)

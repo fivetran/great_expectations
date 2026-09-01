@@ -21,6 +21,7 @@ from tests.integration.data_sources_and_expectations.expectations._validation_re
 )
 
 if TYPE_CHECKING:
+    from great_expectations.datasource.fluent.interfaces import Batch
     from great_expectations.expectations.expectation import Expectation
 
 _ExpectationT = TypeVar("_ExpectationT", bound="Expectation")
@@ -207,3 +208,21 @@ def resolve_self_references(
     if not updates:
         return expectation
     return expectation.copy(update=updates)
+
+
+def release_sql_connections(batch: Batch) -> None:
+    """Dispose the pooled connections a SQL batch's datasource holds, once a cell is done with it.
+
+    The harness builds a fresh datasource for every test that requests a batch, and the session
+    context keeps each one alive until teardown, so every SQL test leaves a pooled connection idle
+    on the server for the rest of the session. A module with a handful of tests never notices; this
+    matrix runs a couple of hundred cells per data source and, measured against a local
+    PostgreSQL, drove the open-session count past 250 on its own -- enough, on top of the sibling
+    modules, to exhaust the CI container's limit for every test that ran after it. Disposing the
+    engines returns the cell's connections; the next cell gets its own datasource anyway.
+    """
+    datasource = batch.datasource
+    if not hasattr(datasource, "get_engine"):
+        return
+    datasource.get_execution_engine().engine.dispose()
+    datasource.get_engine().dispose()
