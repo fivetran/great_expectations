@@ -3063,6 +3063,59 @@ class TestTierClaimsScaleTheObligationsProvenInBothDirections:
         assert [spec.label for spec in iter_data_source_specs()] == ["throwaway-core"]
 
 
+class TestVocabularyCarriesThreeMembers:
+    def test_the_tier_vocabulary_has_exactly_three_members(self) -> None:
+        assert [tier.value for tier in SupportTier] == [
+            "canonical_expectations",
+            "curated_sql",
+            "gold",
+        ]
+
+    def test_no_registered_record_declares_the_new_member(self) -> None:
+        claimants = [
+            spec.label for spec in iter_data_source_specs() if SupportTier.GOLD in spec.tiers
+        ]
+
+        assert claimants == []
+
+
+class TestGoldTierClaimInheritsTheScaledObligations:
+    """The new tier member is not special-cased: `_validate_tier_claims` scales its obligations to
+    whatever is in `spec.tiers`, so a `GOLD` claim must be rejected on exactly the same terms as a
+    `CANONICAL_EXPECTATIONS` claim already is, above. Proven directly rather than assumed: a
+    docstring describing what a tier means is not evidence that the validator sees this member.
+    """
+
+    _CLAIM = frozenset({SupportTier.GOLD})
+
+    def test_a_gold_claim_with_no_marker_is_rejected_naming_the_record_and_the_tier(self) -> None:
+        with pytest.raises(ValueError) as excinfo:
+            register_data_source(
+                _make_core_spec(label="throwaway-claimant", marker=None, tiers=self._CLAIM)
+            )
+
+        message = str(excinfo.value)
+        assert "throwaway-claimant" in message
+        assert "tier membership (gold)" in message
+        assert "declares no data source marker" in message
+
+    def test_a_gold_claim_with_no_ci_lane_is_rejected_naming_the_record_and_the_tier(self) -> None:
+        with pytest.raises(ValueError) as excinfo:
+            register_data_source(
+                _make_core_spec(
+                    label="throwaway-claimant",
+                    marker="throwaway",
+                    ci_lane=None,
+                    tiers=self._CLAIM,
+                )
+            )
+
+        message = str(excinfo.value)
+        assert "throwaway-claimant" in message
+        assert "tier membership (gold)" in message
+        assert "declares no CI lane" in message
+
+
 # --- The shared canonical expectation parameterization is mandatory -------------------------
 #
 # Registration rejects a record that has a config class and a declared execution engine and does

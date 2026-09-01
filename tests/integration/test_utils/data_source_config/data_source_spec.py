@@ -75,6 +75,14 @@ class SupportTier(Enum):
     meaning for a data source that speaks no dialect.
     """
 
+    GOLD = "gold"
+    """Passes the full-gallery expectation suite.
+
+    Membership asserts a test result, not an intention: every expectation the shipped package
+    registers has a case in that suite, and this data source passes each case it participates in.
+    A data source declining more cases than the per-tier ceiling permits does not join.
+    """
+
 
 class MarkerScope(Enum):
     """Whether a declared marker names this data source alone or a class of them."""
