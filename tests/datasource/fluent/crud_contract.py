@@ -78,7 +78,7 @@ from __future__ import annotations
 import pathlib
 import types
 from dataclasses import dataclass, field
-from typing import Callable, FrozenSet, Mapping, Optional
+from typing import Callable, Final, FrozenSet, Mapping, Optional
 
 # ---------------------------------------------------------------------------
 # Contract vocabulary
@@ -483,7 +483,7 @@ def case_exclusions_by_type() -> Mapping[str, Mapping[str, str]]:
 # generator needs a plain import surface rather than a pytest module.
 # ---------------------------------------------------------------------------
 
-FLUENT_TYPES_NAMED_BY_NO_RECORD: FrozenSet[str] = frozenset(
+FLUENT_TYPES_NAMED_BY_NO_RECORD: Final[FrozenSet[str]] = frozenset(
     {
         "spark",  # the Spark DataFrame data source; the only Spark record names the filesystem type
         "pandas_dbfs",  # Databricks File System paths; the public reference names Databricks SQL, not DBFS  # noqa: E501
@@ -492,7 +492,12 @@ FLUENT_TYPES_NAMED_BY_NO_RECORD: FrozenSet[str] = frozenset(
     }
 )
 
-RECORDS_COVERED_BUT_UNABLE_TO_CLAIM: FrozenSet[str] = frozenset(
+# Every fluent type each of these records is reached through is covered by the table above,
+# so the contract itself is not what holds them back: each declares neither a test marker nor
+# a continuous-integration lane, and a record with no lane has nothing running that could earn
+# the claim. The remedy is the same for all six — declare a marker and a lane, and the record
+# can claim the tier and leave this set.
+RECORDS_COVERED_BUT_UNABLE_TO_CLAIM: Final[FrozenSet[str]] = frozenset(
     {
         "azure-blob-storage",
         "alloydb",
