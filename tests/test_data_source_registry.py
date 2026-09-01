@@ -219,7 +219,7 @@ class TestDataSourceConfigsForTier:
 class TestDataSourcesForTierCase:
     """`data_sources_for_tier_case` is the one place a backend's `tier_case_exclusions` entry
     takes effect: it returns a tier's members, instantiated in label order, omitting only those
-    declaring an exclusion for the given case key.
+    declaring an exclusion for the given case key under the given tier.
     """
 
     def test_omits_only_the_backend_excluding_the_case_and_keeps_the_rest_for_other_keys(
@@ -233,7 +233,11 @@ class TestDataSourcesForTierCase:
                 label="zebra",
                 marker="zebra_marker",
                 tiers=frozenset({SupportTier.CURATED_SQL}),
-                tier_case_exclusions={"flaky_case": "observed non-determinism, see issue #1"},
+                tier_case_exclusions={
+                    SupportTier.CURATED_SQL: {
+                        "flaky_case": "observed non-determinism, see issue #1"
+                    }
+                },
             ),
         )
         apple = _make_config_class(
@@ -315,7 +319,11 @@ class TestDataSourcesForTierCase:
                 label="standard-only",
                 marker="standard_only_marker",
                 tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
-                tier_case_exclusions={"skipped_case": "not meaningful for this dialect"},
+                tier_case_exclusions={
+                    SupportTier.CANONICAL_EXPECTATIONS: {
+                        "skipped_case": "not meaningful for this dialect"
+                    }
+                },
             ),
         )
         register_sql_config(curated)
@@ -458,7 +466,8 @@ class TestRegisterSqlConfigEmptyFields:
 class TestRegisterSqlConfigTierCaseExclusionReasons:
     def test_empty_case_key_raises(self) -> None:
         config_class = _make_config_class(
-            "BlankKey", _make_spec(tier_case_exclusions={"": "a reason"})
+            "BlankKey",
+            _make_spec(tier_case_exclusions={SupportTier.CURATED_SQL: {"": "a reason"}}),
         )
 
         with pytest.raises(ValueError, match="BlankKey"):
@@ -466,7 +475,8 @@ class TestRegisterSqlConfigTierCaseExclusionReasons:
 
     def test_empty_reason_raises_naming_class_and_case_key(self) -> None:
         config_class = _make_config_class(
-            "BlankReason", _make_spec(tier_case_exclusions={"some_case": ""})
+            "BlankReason",
+            _make_spec(tier_case_exclusions={SupportTier.CURATED_SQL: {"some_case": ""}}),
         )
 
         with pytest.raises(ValueError) as excinfo:
@@ -478,7 +488,8 @@ class TestRegisterSqlConfigTierCaseExclusionReasons:
 
     def test_whitespace_only_reason_raises_naming_class_and_case_key(self) -> None:
         config_class = _make_config_class(
-            "WhitespaceReason", _make_spec(tier_case_exclusions={"some_case": "   "})
+            "WhitespaceReason",
+            _make_spec(tier_case_exclusions={SupportTier.CURATED_SQL: {"some_case": "   "}}),
         )
 
         with pytest.raises(ValueError) as excinfo:
@@ -495,8 +506,10 @@ class TestRegisterSqlConfigTierCaseExclusionCeiling:
             "TwoExclusions",
             _make_spec(
                 tier_case_exclusions={
-                    "case_one": "dialect gap, see issue #1",
-                    "case_two": "dialect gap, see issue #2",
+                    SupportTier.CURATED_SQL: {
+                        "case_one": "dialect gap, see issue #1",
+                        "case_two": "dialect gap, see issue #2",
+                    }
                 }
             ),
         )
@@ -510,9 +523,11 @@ class TestRegisterSqlConfigTierCaseExclusionCeiling:
             "ThreeExclusions",
             _make_spec(
                 tier_case_exclusions={
-                    "case_one": "dialect gap, see issue #1",
-                    "case_two": "dialect gap, see issue #2",
-                    "case_three": "observed non-determinism, see issue #3",
+                    SupportTier.CURATED_SQL: {
+                        "case_one": "dialect gap, see issue #1",
+                        "case_two": "dialect gap, see issue #2",
+                        "case_three": "observed non-determinism, see issue #3",
+                    }
                 }
             ),
         )

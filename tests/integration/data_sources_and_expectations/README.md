@@ -139,7 +139,7 @@ Core record (`DataSourceSpec`) — every data source, whatever kind:
 | `marker` | no | The pytest marker name that selects this data source's tests; may differ from `label` (SQL Server's label is `mssql`, its marker is `sql_server`). `None` means no marker selects it. |
 | `marker_scope` | no | `DEDICATED` or `SHARED` — see "Dedicated and shared markers" below. An undeclared scope reads as dedicated. |
 | `tiers` | no | The named suites this data source participates in. Empty is a valid declaration. |
-| `tier_case_exclusions` | no | Case key → reason, letting a tier member sit out one named case within that tier's suite. |
+| `tier_case_exclusions` | no | Tier → (case key → reason), letting a tier member sit out one named case within that tier's own suite. Keyed by tier because a case key is only meaningful within the suite that published it. |
 | `ci_lane` | no | `CiLaneRef(workflow_job=..., marker_token=...)`: the workflow job that runs this data source's lane and the marker token it selects on. |
 | `dev_requirements_file` | no | Repo-relative path, e.g. `"reqs/requirements-dev-mysql.txt"`. |
 | `task_runner_marker` | no | Key into the task runner's dependency map; `None` means no entry is needed. |
@@ -468,11 +468,15 @@ no execution engine is one the derived engine lists cannot place either.
 #### Excluding one case within a tier
 
 If a tier member is a member but one specific case in that tier's suite is not meaningful for it,
-the supported way to record that is a per-case entry in `tier_case_exclusions`, keyed by the
-suite's published case key, with a required reason:
+the supported way to record that is a per-case entry in `tier_case_exclusions`, attributed to the
+tier whose suite published the case key, with a required reason:
 
 ```python
-tier_case_exclusions={"quoted_identifiers": "this dialect has no reserved-word column names"}
+tier_case_exclusions={
+    SupportTier.CURATED_SQL: {
+        "quoted_identifiers": "this dialect has no reserved-word column names",
+    },
+}
 ```
 
 The wrong shapes are withdrawing from the tier entirely (that throws away every case the data
@@ -501,12 +505,13 @@ source. Only a count does that. A documented limit whose purpose isn't understoo
 first inconvenienced maintainer raises instead of respecting — hence writing the reasoning down
 here, not just the number.
 
-Two caveats on "not per tier": today `tier_case_exclusions` carries no tier attribution at all —
-a key is just a case key, and the ceiling counts however many are declared, full stop. This is
-exact only because `SupportTier.CURATED_SQL` is currently the only tier that publishes case keys
-a record can exclude by name. If a second tier ever grows its own per-case exclusion mechanism,
-the ceiling as implemented today would count across both tiers combined rather than per tier, and
-that must be made per-tier before a second publishing tier arrives, not after.
+A caveat on "not per tier": `tier_case_exclusions` is now keyed by tier — a mapping's shape is
+tier → (case key → reason) — but the ceiling itself still counts across the whole mapping, not per
+tier. Today that distinction is invisible because `SupportTier.CURATED_SQL` is the only tier that
+publishes case keys a record can exclude by name, so every exclusion in practice belongs to the
+same tier. If a second tier ever grows its own per-case exclusion mechanism, the ceiling as
+implemented today would count across both tiers combined rather than per tier, and that must be
+made per-tier before a second publishing tier arrives, not after.
 
 ### 3. Add the wiring entries
 

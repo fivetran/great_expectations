@@ -164,9 +164,12 @@ class DataSourceSpec:
     no tier's suite proves it".
     """
 
-    tier_case_exclusions: Mapping[str, str] = field(default_factory=dict)
-    """Case key to reason string, defaulting to empty. Lets a tier member sit out one named case
-    within that tier's suite, with a required reason recorded next to the declaration."""
+    tier_case_exclusions: Mapping[SupportTier, Mapping[str, str]] = field(default_factory=dict)
+    """Tier to (case key to reason string), defaulting to empty. Lets a tier member sit out one
+    named case within that tier's own suite, with a required reason recorded next to the
+    declaration. Keyed by tier because a case key is only meaningful within the suite that
+    published it: a second tier publishing its own case keys must not be able to consume, or be
+    confused with, the exclusions another tier's suite already declared."""
 
     # wiring coordinates
     ci_lane: Optional[CiLaneRef] = None

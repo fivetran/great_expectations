@@ -24,12 +24,13 @@ somewhere and so makes the elements that locate that suite required. Applying th
 every record would make the honest declaration unexpressible; applying none of them would let a
 support table advertise coverage that never runs.
 
-**Limitation carried forward.** A record's per-case exclusion keys carry no tier attribution: the
-mapping names cases, not the tier whose suite publishes them, and the ceiling below counts the
-whole mapping. That is exact only while a single tier publishes case keys, which is the situation
-today. As soon as a second tier publishes its own key namespace, a record could sit out two cases
-in each tier and still pass a ceiling meant to bound how much of one suite it skips — so the count
-must become per-tier before a second publishing tier arrives, not after.
+**Limitation carried forward.** A record's per-case exclusions are now attributed to the tier
+whose suite published the excluded key — the mapping is keyed by tier, then by case key — but the
+ceiling below still counts every entry across the whole declaration rather than per tier. That is
+exact only while a single tier publishes case keys, which is the situation today. As soon as a
+second tier publishes its own key namespace, a record could sit out two cases in each tier and
+still pass a ceiling meant to bound how much of one suite it skips — so the count must become
+per-tier before a second publishing tier arrives, not after.
 
 This module imports only the two declaration modules, `data_source_spec` and `backend_spec`. It
 does not import the SQL config base, `sql.py`, or any backend module — those sit to this module's
@@ -330,26 +331,32 @@ def _validate_table_schema_items(name: str, spec: SqlBackendSpec) -> None:
 
 
 def _validate_tier_case_exclusion_reasons(name: str, spec: DataSourceSpec) -> None:
-    for key, reason in spec.tier_case_exclusions.items():
-        if not key:
-            raise ValueError(
-                f"{name} declares a tier case exclusion with an empty case key; "
-                f"every excluded case must be named"
-            )
-        if not reason or not reason.strip():
-            raise ValueError(
-                f"{name} declares a tier case exclusion for case {key!r} with no "
-                f"reason (or a whitespace-only one); an unexplained exclusion is exactly the "
-                f"silent narrowing this mechanism exists to prevent, so every exclusion must "
-                f"record why it exists"
-            )
+    for tier_exclusions in spec.tier_case_exclusions.values():
+        for key, reason in tier_exclusions.items():
+            if not key:
+                raise ValueError(
+                    f"{name} declares a tier case exclusion with an empty case key; "
+                    f"every excluded case must be named"
+                )
+            if not reason or not reason.strip():
+                raise ValueError(
+                    f"{name} declares a tier case exclusion for case {key!r} with no "
+                    f"reason (or a whitespace-only one); an unexplained exclusion is exactly the "
+                    f"silent narrowing this mechanism exists to prevent, so every exclusion must "
+                    f"record why it exists"
+                )
 
 
 def _validate_tier_case_exclusion_ceiling(name: str, spec: DataSourceSpec) -> None:
-    count = len(spec.tier_case_exclusions)
+    # Counted across the whole declaration rather than per tier: made exact per tier by
+    # _validate_tier_case_exclusions's next revision, once a second tier publishes case keys.
+    all_keys = [
+        key for tier_exclusions in spec.tier_case_exclusions.values() for key in tier_exclusions
+    ]
+    count = len(all_keys)
     if count <= _MAX_TIER_CASE_EXCLUSIONS:
         return
-    keys = sorted(spec.tier_case_exclusions)
+    keys = sorted(all_keys)
     raise ValueError(
         f"{name} declares {count} tier case exclusions {keys!r}, exceeding the "
         f"ceiling of {_MAX_TIER_CASE_EXCLUSIONS}. The count is taken over the whole mapping "
