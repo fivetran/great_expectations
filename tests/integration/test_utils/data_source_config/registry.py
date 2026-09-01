@@ -24,13 +24,12 @@ somewhere and so makes the elements that locate that suite required. Applying th
 every record would make the honest declaration unexpressible; applying none of them would let a
 support table advertise coverage that never runs.
 
-**Limitation carried forward.** A record's per-case exclusions are now attributed to the tier
-whose suite published the excluded key — the mapping is keyed by tier, then by case key — but the
-ceiling below still counts every entry across the whole declaration rather than per tier. That is
-exact only while a single tier publishes case keys, which is the situation today. As soon as a
-second tier publishes its own key namespace, a record could sit out two cases in each tier and
-still pass a ceiling meant to bound how much of one suite it skips — so the count must become
-per-tier before a second publishing tier arrives, not after.
+A record's per-case exclusions are attributed to the tier whose suite published the excluded key —
+the mapping is keyed by tier, then by case key — and the ceiling below counts each tier's entries
+independently, so a record can sit out its ceiling's worth of cases in more than one tier without
+either tier's coverage being hollowed out past what a single-tier declaration already permits. An
+exclusion attributed to a tier the record does not claim is rejected: an exclusion from a suite
+that does not run for that data source is meaningless.
 
 This module imports only the two declaration modules, `data_source_spec` and `backend_spec`. It
 does not import the SQL config base, `sql.py`, or any backend module — those sit to this module's
@@ -68,9 +67,10 @@ from tests.integration.test_utils.data_source_config.data_source_spec import (
 if TYPE_CHECKING:
     from tests.integration.test_utils.data_source_config.data_source_spec import DataSourceSpec
 
-# The ceiling on tier_case_exclusions per backend. See _validate_tier_case_exclusion_ceiling: a
-# reason makes one exclusion answerable, but only a count makes the whole set answerable, so the
-# count is enforced here rather than left to per-exclusion review.
+# The ceiling on tier_case_exclusions, applied per tier a backend declares. See
+# _validate_tier_case_exclusion_ceiling: a reason makes one exclusion answerable, but only a
+# count makes the whole set answerable, so the count is enforced here rather than left to
+# per-exclusion review.
 _MAX_TIER_CASE_EXCLUSIONS = 2
 
 # The criterion every config-bound record with a declared execution engine has to declare: the
@@ -347,28 +347,45 @@ def _validate_tier_case_exclusion_reasons(name: str, spec: DataSourceSpec) -> No
                 )
 
 
+def _validate_tier_case_exclusion_membership(name: str, spec: DataSourceSpec) -> None:
+    """Reject an exclusion attributed to a tier the record does not claim.
+
+    An exclusion states which suite's case a data source declines; a tier it does not run has no
+    case for it to decline. This can only be checked once exclusions are attributed to a tier —
+    before that, there was nothing to compare a bare case key against.
+    """
+    for tier in spec.tier_case_exclusions:
+        if tier not in spec.tiers:
+            raise ValueError(
+                f"{name} declares tier case exclusions for {tier.value!r} but does not claim "
+                f"membership in that tier; an exclusion from a suite this data source does not "
+                f"run is meaningless. Join the tier, or remove the exclusion"
+            )
+
+
 def _validate_tier_case_exclusion_ceiling(name: str, spec: DataSourceSpec) -> None:
-    # Counted across the whole declaration rather than per tier: made exact per tier by
-    # _validate_tier_case_exclusions's next revision, once a second tier publishes case keys.
-    all_keys = [
-        key for tier_exclusions in spec.tier_case_exclusions.values() for key in tier_exclusions
-    ]
-    count = len(all_keys)
-    if count <= _MAX_TIER_CASE_EXCLUSIONS:
-        return
-    keys = sorted(all_keys)
-    raise ValueError(
-        f"{name} declares {count} tier case exclusions {keys!r}, exceeding the "
-        f"ceiling of {_MAX_TIER_CASE_EXCLUSIONS}. The count is taken over the whole mapping "
-        f"regardless of what each individual reason records — an exclusion for observed "
-        f"non-determinism subtracts exactly as much coverage as one for a dialect gap. A reason "
-        f"makes one exclusion answerable; only a count makes the set of exclusions answerable, "
-        f"which is why this check exists on top of the per-exclusion reason requirement. The "
-        f"remedy is to escalate this backend's tier participation, not to raise the ceiling"
-    )
+    # Counted per tier: a data source that sits out two cases in one tier and two more in
+    # another has not hollowed out either tier's coverage more than a single-tier declaration
+    # would, so the count is scoped to one tier's entries rather than to the whole mapping.
+    for tier, tier_exclusions in spec.tier_case_exclusions.items():
+        count = len(tier_exclusions)
+        if count <= _MAX_TIER_CASE_EXCLUSIONS:
+            continue
+        keys = sorted(tier_exclusions)
+        raise ValueError(
+            f"{name} declares {count} tier case exclusions {keys!r} for tier "
+            f"{tier.value!r}, exceeding the ceiling of {_MAX_TIER_CASE_EXCLUSIONS} per tier. "
+            f"The count is taken over that tier's entries alone regardless of what each "
+            f"individual reason records — an exclusion for observed non-determinism subtracts "
+            f"exactly as much coverage as one for a dialect gap. A reason makes one exclusion "
+            f"answerable; only a count makes the set of exclusions answerable, which is why this "
+            f"check exists on top of the per-exclusion reason requirement. The remedy is to "
+            f"escalate this backend's participation in {tier.value!r}, not to raise the ceiling"
+        )
 
 
 def _validate_tier_case_exclusions(name: str, spec: DataSourceSpec) -> None:
+    _validate_tier_case_exclusion_membership(name, spec)
     _validate_tier_case_exclusion_reasons(name, spec)
     _validate_tier_case_exclusion_ceiling(name, spec)
 

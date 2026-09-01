@@ -487,15 +487,18 @@ the curated suite is parameterized through it rather than over the raw tier list
 downstream exclusion is honored no matter which case asks.
 
 **The per-case exclusion ceiling.** A record may declare at most two entries in
-`tier_case_exclusions`, counted over the whole mapping — not per tier. Every exclusion counts
-toward the ceiling regardless of what its reason records: an exclusion for observed
-non-determinism costs exactly as much coverage as one for a genuine dialect gap. Registering a
-declaration carrying a third exclusion raises `ValueError` at decoration time, naming the record,
-the count, and every declared key. The remedy the error states is to escalate that data source's
-tier participation — for example, dropping it from the tier rather than papering over three unmet
-cases — not to raise the ceiling. The count is a property of one declaration in isolation (it needs
-no other record's state and no published key set), which is why it is enforced at registration
-rather than by a suite-level check.
+`tier_case_exclusions` for any one tier, counted within that tier rather than across the whole
+mapping — a data source can sit out its ceiling's worth of cases in more than one tier without
+either tier's coverage being hollowed out past what a single-tier declaration already permits.
+Every exclusion counts toward its tier's ceiling regardless of what its reason records: an
+exclusion for observed non-determinism costs exactly as much coverage as one for a genuine dialect
+gap. Registering a declaration carrying a third exclusion for one tier raises `ValueError` at
+decoration time, naming the record, the tier, the count, and every key declared for that tier. The
+remedy the error states is to escalate that data source's participation in that tier — for
+example, dropping it from the tier rather than papering over three unmet cases — not to raise the
+ceiling. The count is a property of one declaration in isolation (it needs no other record's state
+and no published key set), which is why it is enforced at registration rather than by a
+suite-level check.
 
 The reasoning matters as much as the number. A single exclusion's reason makes *that* exclusion
 answerable — a reviewer can read the string and judge it. But a set of exclusions is not
@@ -505,13 +508,14 @@ source. Only a count does that. A documented limit whose purpose isn't understoo
 first inconvenienced maintainer raises instead of respecting — hence writing the reasoning down
 here, not just the number.
 
-A caveat on "not per tier": `tier_case_exclusions` is now keyed by tier — a mapping's shape is
-tier → (case key → reason) — but the ceiling itself still counts across the whole mapping, not per
-tier. Today that distinction is invisible because `SupportTier.CURATED_SQL` is the only tier that
-publishes case keys a record can exclude by name, so every exclusion in practice belongs to the
-same tier. If a second tier ever grows its own per-case exclusion mechanism, the ceiling as
-implemented today would count across both tiers combined rather than per tier, and that must be
-made per-tier before a second publishing tier arrives, not after.
+`tier_case_exclusions` is keyed by tier — a mapping's shape is tier → (case key → reason) — and an
+exclusion is attributed to the tier whose suite published the excluded case key. That attribution
+is what makes a bare case key unambiguous once more than one tier publishes case keys, and it is
+what the per-tier ceiling above is counted against. It also makes a further rule expressible: an
+exclusion attributed to a tier the record does not claim raises `ValueError` at registration,
+naming the record and the tier — an exclusion from a suite that does not run for that data source
+is meaningless, and this catches a real class of stale declaration, a data source dropped from a
+tier whose exclusions were left behind.
 
 ### 3. Add the wiring entries
 
@@ -594,7 +598,7 @@ Well-formedness of one record, checked for every record:
 | `container_service` declared without `LOCAL_CONTAINER` provisioning | Remove the field, or set `provisioning=DataSourceProvisioning.LOCAL_CONTAINER` if the data source really is locally containerized. |
 | A `tier_case_exclusions` entry has an empty case key | Name the case being excluded. |
 | A `tier_case_exclusions` entry has an empty or whitespace-only reason | Record why the case is excluded — an unexplained exclusion is exactly the silent narrowing the mechanism exists to prevent. |
-| More than two `tier_case_exclusions` entries | See "The per-case exclusion ceiling" above — escalate this data source's tier participation rather than raising the limit. |
+| More than two `tier_case_exclusions` entries for one tier | See "The per-case exclusion ceiling" above — escalate this data source's participation in that tier rather than raising the limit. |
 
 Obligations scaled to what the record claims:
 
@@ -602,6 +606,7 @@ Obligations scaled to what the record claims:
 | --- | --- |
 | Claims a tier but declares no `marker` | Declare the marker that selects its tests, or claim no tier. |
 | Claims a tier but declares no `ci_lane` | Declare the lane that runs it, or claim no tier. |
+| A `tier_case_exclusions` entry is attributed to a tier the record does not claim | Join the tier, or remove the exclusion — an exclusion from a suite this data source does not run is meaningless. |
 | Claims a tier with `LOCAL_CONTAINER` provisioning but names no `container_service` | Name the compose service that starts it, or claim no tier. |
 | Has a config class and an `execution_engine`, but declares neither `SupportTier.CANONICAL_EXPECTATIONS` nor an entry in the non-participants literal | Declare the criterion, or add this label to the non-participants with the reason it sits out. |
 
