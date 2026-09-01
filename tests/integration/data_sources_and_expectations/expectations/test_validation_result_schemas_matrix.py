@@ -1,20 +1,31 @@
 """Matrix runner for validation result schema coverage.
 
-Runs every (expectation x result_format x data_source) combination and writes
-a structured findings JSON file.  Expanded to ALL_DATA_SOURCES (task 8.1).
+Runs every (expectation x result_format x data_source) cell against the shared fixture frame
+published in ``_validation_result_schemas_cases.py`` and writes a structured findings JSON file
+recording what each engine actually put in the result dict.
 
-Abstract stubs (5 expectations whose ``__init__`` raises ``NotImplementedError``)
-cannot be validated; they produce ``status=failed`` findings and the corresponding
-test cells are marked as failures — this is expected and documented here.
+A cell counts as coverage only when it produced a real result dict. Four things can prevent
+that, and each one fails the cell rather than filing it:
+
+- ``batch.validate`` raises outright;
+- ``batch.validate`` returns, but records a raised exception in ``exception_info`` -- the result
+  dict is then empty, which a schema parses happily and which would otherwise be filed as a clean
+  parse of nothing at all;
+- the result dict is empty at a format that carries one, with nothing raised, and the case has not
+  declared that its expectation returns no payload;
+- the parsed model does not reproduce the raw dict unchanged.
+
+The one legitimate reason for a cell not to run is that the expectation has no meaning on that
+execution engine. A case declares that itself, with a reason, and the runner skips exactly those
+cells; nothing else is skipped.
 
 Findings file location (relative to the worktree root):
     tests/_artifacts/validation_result_schemas/findings/<run_id>.json
 
-xdist note: this module uses a session-scoped FindingsWriter; parallelising
-within a single session would cause concurrent writes to the same JSON file.
-The ``no_xdist`` marker documents this constraint.  CI uses ``--dist loadfile``
-which naturally routes all cells from this file to a single worker, so the
-constraint is satisfied without extra conftest machinery.
+xdist note: this module uses a session-scoped FindingsWriter; parallelising within a single
+session would cause concurrent writes to the same JSON file. The ``no_xdist`` marker documents
+this constraint. CI uses ``--dist loadfile`` which naturally routes all cells from this file to a
+single worker, so the constraint is satisfied without extra conftest machinery.
 """
 
 from __future__ import annotations
@@ -22,9 +33,8 @@ from __future__ import annotations
 import datetime
 import random
 import string
-from typing import TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING, Generator, Optional
 
-import pandas as pd
 import pytest
 
 from great_expectations.core.result_format import ResultFormat
@@ -36,46 +46,33 @@ from great_expectations.core.validation_result_schemas.types import Status
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.expectations._validation_result_schemas_cases import (  # noqa: E501
     EXPECTATION_CASES,
+    MATRIX_FIXTURE_DATA,
     ExpectationCase,
-    _AbstractStub,
 )
 from tests.integration.data_sources_and_expectations.expectations._validation_result_schemas_helpers import (  # noqa: E501
-    _normalize_engine_hint,
     assert_field_set_covered,
+    resolve_self_references,
+    summarize_raised_exception,
     summarize_raw_dict,
 )
 from tests.integration.test_utils.data_source_config.tiers import ALL_DATA_SOURCES
 
 if TYPE_CHECKING:
     from great_expectations.datasource.fluent.interfaces import Batch
+    from tests.integration.test_utils.data_source_config.base import BatchTestSetup
 
 # ---------------------------------------------------------------------------
-# Module-level marker: session-scoped FindingsWriter must not be split across
-# xdist workers.  CI uses --dist loadfile which enforces this automatically.
+# Module-level markers
 # ---------------------------------------------------------------------------
-pytestmark = [pytest.mark.no_xdist]
-
-# ---------------------------------------------------------------------------
-# Shared fixture data — a superset DataFrame whose columns cover all cases.
 #
-# Per-case data-shape variance resolution (task 8.1):
-#   All EXPECTATION_CASES reference columns that exist in this DataFrame.
-#   Cases needing specific data shapes (dates, JSON strings, pure numerics)
-#   will run against this data; the expectation may fail validation (e.g.
-#   ExpectColumnValuesToBeDateutilParseable against integers), but that is
-#   fine — we are testing schema *parsing* of whatever result dict comes back,
-#   not expectation correctness.  SQL backends that cannot operate on a
-#   VARCHAR column for sum/numeric expectations will produce a batch.validate()
-#   error which is caught, recorded as status=failed, and surfaced to the
-#   curator exactly as designed.
-# ---------------------------------------------------------------------------
-_MATRIX_DATA = pd.DataFrame(
-    {
-        "col_a": [1, 2, 3, None, 5],
-        "col_b": ["x", "y", "z", "w", None],
-        "col_c": [1.0, 2.0, None, 4.0, 5.0],
-    }
-)
+# `no_xdist`: the session-scoped FindingsWriter must not be split across xdist workers. CI uses
+# --dist loadfile, which enforces this automatically.
+#
+# `result_schema_matrix`: names this suite so a run can select or deselect it as a whole. It is
+# not one of the required markers -- the harness's parameterization already attaches exactly one
+# of those per data source -- so it adds a second name for these tests without changing which
+# lane runs them.
+pytestmark = [pytest.mark.no_xdist, pytest.mark.result_schema_matrix]
 
 
 # ---------------------------------------------------------------------------
@@ -88,11 +85,6 @@ def _generate_run_id() -> str:
     ts = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
     suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
     return f"{ts}-{suffix}"
-
-
-def _datasource_test_id(batch: Batch) -> str:
-    """Return a stable identifier for the data source under test."""
-    return type(batch.datasource).__name__
 
 
 # ---------------------------------------------------------------------------
@@ -114,59 +106,69 @@ def _findings_writer(request: pytest.FixtureRequest) -> Generator[FindingsWriter
 
 
 @pytest.mark.parametrize("case", EXPECTATION_CASES, ids=lambda c: c.id)
-@pytest.mark.parametrize("result_format", list(ResultFormat))
+@pytest.mark.parametrize("result_format", list(ResultFormat), ids=lambda f: f.value)
 @parameterize_batch_for_data_sources(
     data_source_configs=ALL_DATA_SOURCES,
-    data=_MATRIX_DATA,
+    data=MATRIX_FIXTURE_DATA,
 )
 def test_validation_result_schema_matrix(
     batch_for_datasource: Batch,
+    _batch_setup_for_datasource: BatchTestSetup,
     case: ExpectationCase,
     result_format: ResultFormat,
     _findings_writer: FindingsWriter,
 ) -> None:
-    """Matrix runner: validate every (expectation x result_format x data_source) cell.
+    """Validate one (expectation x result_format x data_source) cell and record what it produced.
 
-    Abstract-stub expectations (5 total) cannot be instantiated; they produce
-    ``status=failed`` findings.  All other expectations should produce
-    ``status=parsed`` findings.
+    The engine is read from the data source's own declaration rather than sniffed from the fluent
+    datasource ``type`` string. The declaration states the engine as a fact about the data source;
+    the type string is a transport name, and string-matching on it silently mis-keyed every data
+    source whose type name is neither one of the three engine names nor a listed dialect -- the
+    file-backed pandas and Spark configs and the SQL Server one, three of the eleven here. Those
+    three never reached the SQL root validator or the Spark schema override at all, and their
+    findings were filed under an engine name that is not one of the three the findings vocabulary
+    admits.
     """
-    engine_hint = _normalize_engine_hint(batch_for_datasource.datasource.type)
-    datasource_test_id = _datasource_test_id(batch_for_datasource)
+    config = _batch_setup_for_datasource.config
+    execution_engine = config.data_source_spec.execution_engine
+    assert execution_engine is not None, (
+        f"Data source {config.test_id!r} is parameterized into this matrix but declares no "
+        "execution engine, so there is no engine to key its findings on."
+    )
+    engine_hint: str = execution_engine.value
+    datasource_test_id: str = config.test_id
 
-    # ------------------------------------------------------------------
-    # Guard: abstract stubs cannot be validated — record failure immediately
-    # ------------------------------------------------------------------
-    if isinstance(case.expectation, _AbstractStub):
-        _findings_writer.write_finding(
-            {
-                "expectation_type": case.expectation.expectation_type,
-                "result_format": result_format.value,
-                "engine": engine_hint,
-                "datasource_test_id": datasource_test_id,
-                "status": Status.FAILED.value,
-                "error_summary": "AbstractStub: expectation not yet implemented",
-            }
+    if engine_hint not in case.engines:
+        pytest.skip(
+            f"[{case.id}][{result_format.value}][{engine_hint}]: {case.engine_restriction_reason}"
         )
-        pytest.skip(f"[{case.id}][{result_format.value}][{engine_hint}]: abstract stub — skipped")
 
     expectation_type: str = case.expectation.expectation_type
+    expectation = resolve_self_references(
+        case.expectation,
+        table_name=getattr(_batch_setup_for_datasource, "table_name", None),
+        data_source_name=batch_for_datasource.datasource.name,
+    )
 
-    try:
-        raw_evr = batch_for_datasource.validate(
-            case.expectation,
-            result_format=result_format,
-        )
-    except Exception as exc:
+    def _write(status: Status, **extra: object) -> None:
+        """Record one finding for this cell, with the coordinates every finding carries."""
         _findings_writer.write_finding(
             {
                 "expectation_type": expectation_type,
                 "result_format": result_format.value,
                 "engine": engine_hint,
                 "datasource_test_id": datasource_test_id,
-                "status": Status.FAILED.value,
-                "error_summary": f"batch.validate raised: {type(exc).__name__}: {exc}",
+                "status": status.value,
+                **extra,  # type: ignore[typeddict-item]
             }
+        )
+
+    try:
+        raw_evr = batch_for_datasource.validate(expectation, result_format=result_format)
+    except Exception as exc:
+        _write(
+            Status.FAILED,
+            error_summary=f"batch.validate raised: {type(exc).__name__}: {exc}",
         )
         pytest.fail(
             f"[{case.id}][{result_format.value}][{engine_hint}]: "
@@ -174,6 +176,42 @@ def test_validation_result_schema_matrix(
         )
 
     raw_result: dict = raw_evr.result or {}
+
+    # A metric that raised leaves an empty result dict behind. Every schema in this package
+    # accepts an empty dict, so the cell would otherwise parse cleanly and be filed as coverage of
+    # a result that was never produced.
+    raised_summary: Optional[str] = summarize_raised_exception(raw_evr.exception_info)
+    if raised_summary is not None:
+        _write(
+            Status.FAILED,
+            **summarize_raw_dict(raw_result),
+            error_summary=f"metric raised: {raised_summary}",
+        )
+        pytest.fail(
+            f"[{case.id}][{result_format.value}][{engine_hint}]: metric raised {raised_summary}. "
+            "The cell produced no result dict, so it proves nothing about the schema; "
+            "reconfigure the case against the shared fixture frame, or restrict its engines."
+        )
+
+    # An empty result dict at a format that is supposed to carry one is the other shape a vacuous
+    # cell takes: nothing raised, nothing was computed either, and every schema here accepts `{}`.
+    # An expectation that genuinely returns no payload declares that on its case.
+    if (
+        result_format is not ResultFormat.BOOLEAN_ONLY
+        and not raw_result
+        and not case.empty_result_reason
+    ):
+        _write(
+            Status.FAILED,
+            **summarize_raw_dict(raw_result),
+            error_summary="empty result dict at a non-BOOLEAN_ONLY result format",
+        )
+        pytest.fail(
+            f"[{case.id}][{result_format.value}][{engine_hint}]: the result dict is empty at a "
+            "format that carries one, so the cell records nothing. Reconfigure the case, or -- if "
+            "this expectation really returns no payload on any engine -- say so in its "
+            "`empty_result_reason`."
+        )
 
     try:
         # Call as_typed() via the dispatcher directly so we pass the exact result_format
@@ -187,37 +225,25 @@ def test_validation_result_schema_matrix(
             engine_hint=engine_hint,
         )
     except Exception as exc:
-        _findings_writer.write_finding(
-            {
-                "expectation_type": expectation_type,
-                "result_format": result_format.value,
-                "engine": engine_hint,
-                "datasource_test_id": datasource_test_id,
-                "status": Status.FAILED.value,
-                **summarize_raw_dict(raw_result),
-                "error_summary": f"as_typed raised: {type(exc).__name__}: {exc}",
-            }
+        _write(
+            Status.FAILED,
+            **summarize_raw_dict(raw_result),
+            error_summary=f"as_typed raised: {type(exc).__name__}: {exc}",
         )
         pytest.fail(
             f"[{case.id}][{result_format.value}][{engine_hint}]: "
             f"as_typed raised {type(exc).__name__}: {exc}"
         )
 
-    # Coverage assertion: every raw key must appear in the parsed model
+    # Coverage assertion: every raw key must be reproduced, unchanged, on the parsed model.
     try:
         assert_field_set_covered(raw_result, typed)
     except AssertionError as exc:
-        _findings_writer.write_finding(
-            {
-                "expectation_type": expectation_type,
-                "result_format": result_format.value,
-                "engine": engine_hint,
-                "datasource_test_id": datasource_test_id,
-                "status": Status.FAILED.value,
-                **summarize_raw_dict(raw_result),
-                "matched_variant": type(typed).__name__,
-                "error_summary": str(exc),
-            }
+        _write(
+            Status.FAILED,
+            **summarize_raw_dict(raw_result),
+            matched_variant=type(typed).__name__,
+            error_summary=str(exc),
         )
         pytest.fail(f"[{case.id}][{result_format.value}][{engine_hint}]: {exc}")
 
@@ -226,17 +252,11 @@ def test_validation_result_schema_matrix(
     schema_required = [k for k in raw_result if k in model_dict]
     schema_optional = [k for k in model_dict if k not in raw_result]
 
-    _findings_writer.write_finding(
-        {
-            "expectation_type": expectation_type,
-            "result_format": result_format.value,
-            "engine": engine_hint,
-            "datasource_test_id": datasource_test_id,
-            "status": Status.PARSED.value,
-            **summarize_raw_dict(raw_result),
-            "matched_variant": type(typed).__name__,
-            "schema_required_fields_present": schema_required,
-            "schema_optional_fields_present": schema_optional,
-            "schema_extras_rejected": [],
-        }
+    _write(
+        Status.PARSED,
+        **summarize_raw_dict(raw_result),
+        matched_variant=type(typed).__name__,
+        schema_required_fields_present=schema_required,
+        schema_optional_fields_present=schema_optional,
+        schema_extras_rejected=[],
     )

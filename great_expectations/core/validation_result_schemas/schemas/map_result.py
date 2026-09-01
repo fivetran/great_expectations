@@ -1,7 +1,9 @@
 """Map-style validation result schema family.
 
-Covers ColumnMapExpectation (26), ColumnPairMapExpectation (3), and
-MulticolumnMapExpectation (3) = 32 map-style core expectations.
+Covers ColumnMapExpectation, ColumnPairMapExpectation, and
+MulticolumnMapExpectation.  Membership is derived from the expectation class
+hierarchy at dispatch time (see ``dispatcher.family_for``) rather than listed
+here, so it cannot drift as expectations are added or re-parented.
 
 Four format-discriminated classes share a common base:
 
@@ -10,6 +12,15 @@ Four format-discriminated classes share a common base:
     └── MapBasicResult        (BASIC)
         └── MapSummaryResult  (SUMMARY)
             └── MapCompleteResult  (COMPLETE)
+
+This layer types the *shape* of a result dict and reports on it; it must never
+change a value it is handed.  pydantic v1 coerces freely by default — ``int``
+truncates 2.7 to 2, ``float`` widens 5 to 5.0, ``str`` turns 5 into "5" — so every
+scalar field below is either ``Any`` (for genuinely heterogeneous values) or a
+Strict* type that accepts the value unchanged or not at all.  A rejection surfaces
+as a finding; a silent conversion would make the typed view disagree with
+``ExpectationValidationResult.result`` with nothing to show for it.  Container
+fields keep ``Any`` element types so their contents pass through untouched.
 
 Import rules (enforced by ruff banned-api):
 - Pydantic symbols come exclusively from ``great_expectations.compatibility.pydantic``.
@@ -28,6 +39,7 @@ from great_expectations.core.validation_result_schemas.field_validators import (
     validate_partial_unexpected_counts_fallback,
     validate_unexpected_rows_passthrough,
 )
+from great_expectations.core.validation_result_schemas.types import StrictNumber
 
 
 class MapResultBase(BaseModel):
@@ -46,21 +58,25 @@ class MapResultBase(BaseModel):
     # values dict during root validation.  ``exclude=True`` is not used here
     # because pydantic v1's per-field exclude is Config-based; callers that want
     # to omit this field from .dict() output should call .dict(exclude={"engine_hint"}).
-    engine_hint: Optional[str] = None
+    # It is only ever set from an explicit hint supplied by the caller; None means
+    # "engine unknown" and leaves every engine-conditional validator inert.
+    engine_hint: Optional[pydantic.StrictStr] = None
 
-    # SQL-only, optional everywhere; root validator enforces presence when applicable
-    unexpected_index_query: Optional[str] = None
-    unexpected_index_column_names: Optional[List[str]] = None
+    # Present on every engine, not just SQL: pandas emits unexpected_index_query as
+    # a ``df.filter(items=[...], axis=0)`` expression.  The root validator on
+    # MapCompleteResult enforces its presence only under an explicit sql hint.
+    unexpected_index_query: Optional[pydantic.StrictStr] = None
+    unexpected_index_column_names: Optional[List[pydantic.StrictStr]] = None
 
 
 class MapBooleanOnlyResult(MapResultBase):
     """ResultFormat.BOOLEAN_ONLY — empty result dict for map expectations.
 
     The parent EVR carries ``success``.  The result dict may carry only the
-    SQL index-query overflow fields when ``return_unexpected_index_query=True``.
+    index-query overflow fields when ``return_unexpected_index_query=True``.
     """
 
-    pass  # No additional fields beyond the SQL index-query fields in base
+    pass  # No additional fields beyond the index-query fields in base
 
 
 class MapBasicResult(MapResultBase):
@@ -74,17 +90,18 @@ class MapBasicResult(MapResultBase):
     validate cleanly.
     """
 
-    element_count: Optional[int] = None
-    unexpected_count: Optional[int] = None
-    unexpected_percent: Optional[float] = None
-    missing_count: Optional[int] = None
-    missing_percent: Optional[float] = None
-    unexpected_percent_total: Optional[float] = None
-    unexpected_percent_nonmissing: Optional[float] = None
+    element_count: Optional[pydantic.StrictInt] = None
+    unexpected_count: Optional[pydantic.StrictInt] = None
+    unexpected_percent: Optional[StrictNumber] = None
+    missing_count: Optional[pydantic.StrictInt] = None
+    missing_percent: Optional[StrictNumber] = None
+    unexpected_percent_total: Optional[StrictNumber] = None
+    unexpected_percent_nonmissing: Optional[StrictNumber] = None
     partial_unexpected_list: Optional[List[Any]] = None
     # Some map expectations (e.g. expect_column_values_to_be_of_type on pandas)
-    # emit observed_value alongside the standard map fields.
-    observed_value: Optional[Any] = None
+    # emit observed_value alongside the standard map fields.  Typed Any for the
+    # same reason as the aggregate family: the value is reported, never validated.
+    observed_value: Any = None
     # engine-typed; classified at runtime, not validated by type
     unexpected_rows: Any = None
 

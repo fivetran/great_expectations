@@ -2,11 +2,14 @@
 
 Covers:
 - Synthetic input per (family, format) cell — all 8 combinations.
-- Unknown expectation type falls back to 'aggregate'.
-- SQL sniffing: engine_hint=None + unexpected_index_query in result_dict → eff_engine='sql'.
+- family_for derives the family from the expectation class hierarchy, and raises
+  for an unregistered type.
+- Format inference from the result dict's key set.
+- engine_hint is never guessed from the result dict.
 - Per-expectation override route (expect_column_values_to_be_of_type on sql/spark).
 - ParseError raised with a diagnostic message on bad input.
-- test_family_table_covers_core_expectations: every expect_*.py in expectations/core/ is present.
+- test_every_core_expectation_resolves_to_a_family: every expectation registered
+  from great_expectations.expectations.core resolves without raising.
 
 All tests are marked @pytest.mark.unit and run via:
     pytest tests/unit/core/validation_result_schemas/test_dispatcher.py -m unit -v
@@ -14,16 +17,23 @@ All tests are marked @pytest.mark.unit and run via:
 
 from __future__ import annotations
 
-from pathlib import Path
+from itertools import pairwise
 
 import pytest
 
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.core.validation_result_schemas.dispatcher import (
-    _FAMILY_TABLE,
+    _AMBIGUOUS_SHAPE_FORMAT,
+    _FAMILY_CACHE,
+    _FORMAT_ORDER,
+    _SCHEMA_FIELDS,
+    FAMILY_AGGREGATE,
+    FAMILY_MAP,
     ParseError,
+    UnknownExpectationTypeError,
     as_typed,
     family_for,
+    infer_result_format,
 )
 from great_expectations.core.validation_result_schemas.schemas.aggregate_result import (
     AggregateBasicResult,
@@ -40,6 +50,10 @@ from great_expectations.core.validation_result_schemas.schemas.map_result import
 from great_expectations.core.validation_result_schemas.schemas.per_expectation_overrides import (
     ExpectColumnValuesToBeOfTypeSqlSparkResult,
 )
+from great_expectations.expectations.registry import (
+    get_expectation_impl,
+    list_registered_expectation_implementations,
+)
 
 # ---------------------------------------------------------------------------
 # A canonical map expectation and aggregate expectation used across tests
@@ -47,6 +61,7 @@ from great_expectations.core.validation_result_schemas.schemas.per_expectation_o
 
 MAP_EXPECTATION = "expect_column_values_to_be_between"
 AGG_EXPECTATION = "expect_column_mean_to_be_between"
+UNREGISTERED_EXPECTATION = "expect_some_custom_unknown_expectation"
 
 # ---------------------------------------------------------------------------
 # Minimal valid result dicts per family x format
@@ -171,47 +186,255 @@ class TestFamilyFormatMatrix:
 
 
 # ---------------------------------------------------------------------------
-# family_for — unknown type falls back to 'aggregate'
+# family_for — derived from the expectation class hierarchy
 # ---------------------------------------------------------------------------
 
 
 class TestFamilyFor:
     @pytest.mark.unit
-    def test_known_map_type(self):
-        assert family_for("expect_column_values_to_be_between") == "map"
+    @pytest.mark.parametrize(
+        "expectation_type",
+        [
+            "expect_column_values_to_be_between",
+            "expect_column_values_to_not_be_outliers",
+            "expect_column_pair_values_to_be_equal",
+            "expect_multicolumn_values_to_be_equal",
+            "expect_compound_columns_to_be_unique",
+        ],
+    )
+    def test_map_expectations(self, expectation_type: str):
+        assert family_for(expectation_type) == FAMILY_MAP
 
     @pytest.mark.unit
-    def test_known_aggregate_type(self):
-        assert family_for("expect_column_mean_to_be_between") == "aggregate"
+    @pytest.mark.parametrize(
+        "expectation_type",
+        [
+            "expect_column_mean_to_be_between",
+            "expect_column_distinct_values_to_equal_set",
+            "expect_table_row_count_to_equal",
+            "expect_table_columns_to_match_set",
+            "unexpected_rows_expectation",
+        ],
+    )
+    def test_aggregate_expectations(self, expectation_type: str):
+        assert family_for(expectation_type) == FAMILY_AGGREGATE
 
     @pytest.mark.unit
-    def test_unknown_type_falls_back_to_aggregate(self):
-        assert family_for("expect_some_custom_unknown_expectation") == "aggregate"
+    def test_unregistered_type_raises(self):
+        """An unregistered type has no derivable family, so family_for says so."""
+        with pytest.raises(UnknownExpectationTypeError) as exc_info:
+            family_for(UNREGISTERED_EXPECTATION)
+        assert UNREGISTERED_EXPECTATION in str(exc_info.value)
 
     @pytest.mark.unit
-    def test_unknown_type_dispatches_to_aggregate_class(self):
-        """as_typed uses 'aggregate' family for unknown expectation types."""
+    def test_unregistered_type_is_a_parse_error_from_as_typed(self):
+        """as_typed converts the family lookup failure into a ParseError naming the type."""
+        with pytest.raises(ParseError) as exc_info:
+            as_typed(
+                AGG_BASIC_DICT,
+                expectation_type=UNREGISTERED_EXPECTATION,
+                result_format=ResultFormat.BASIC,
+            )
+        assert UNREGISTERED_EXPECTATION in str(exc_info.value)
+
+    @pytest.mark.unit
+    def test_result_is_memoized(self):
+        """Repeat lookups are served from the cache rather than the registry."""
+        _FAMILY_CACHE.pop(MAP_EXPECTATION, None)
+        assert family_for(MAP_EXPECTATION) == FAMILY_MAP
+        assert _FAMILY_CACHE[MAP_EXPECTATION] == FAMILY_MAP
+        # A cached answer is returned even if the registry no longer agrees.
+        _FAMILY_CACHE[MAP_EXPECTATION] = FAMILY_AGGREGATE
+        try:
+            assert family_for(MAP_EXPECTATION) == FAMILY_AGGREGATE
+        finally:
+            _FAMILY_CACHE[MAP_EXPECTATION] = FAMILY_MAP
+
+    @pytest.mark.unit
+    def test_unregistered_type_is_not_cached(self):
+        """A failed lookup must not poison the cache."""
+        with pytest.raises(UnknownExpectationTypeError):
+            family_for(UNREGISTERED_EXPECTATION)
+        assert UNREGISTERED_EXPECTATION not in _FAMILY_CACHE
+
+
+@pytest.mark.unit
+def test_every_core_expectation_resolves_to_a_family():
+    """Every expectation registered from expectations/core resolves to a family.
+
+    The registry is the source of truth, not a directory glob: an expectation
+    registered under a name that does not match its module's filename (e.g.
+    unexpected_rows_expectation) is invisible to a glob but reaches the dispatcher
+    like any other.
+    """
+    core_types = [
+        name
+        for name in list_registered_expectation_implementations()
+        if get_expectation_impl(name).__module__.startswith("great_expectations.expectations.core")
+    ]
+    assert core_types, "No core expectations registered — the registry was not populated"
+
+    unresolved = {}
+    for name in core_types:
+        try:
+            family = family_for(name)
+        except UnknownExpectationTypeError as exc:  # pragma: no cover - defensive
+            unresolved[name] = str(exc)
+            continue
+        if family not in (FAMILY_MAP, FAMILY_AGGREGATE):
+            unresolved[name] = f"unexpected family {family!r}"
+
+    assert not unresolved, f"Unresolved expectation families: {unresolved}"
+
+
+# ---------------------------------------------------------------------------
+# Format inference from the result dict's key set
+# ---------------------------------------------------------------------------
+
+
+class TestInferResultFormat:
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        ("result_dict", "expected"),
+        [
+            (MAP_BOOLEAN_ONLY_DICT, ResultFormat.BOOLEAN_ONLY),
+            (MAP_BASIC_DICT, ResultFormat.BASIC),
+            (MAP_SUMMARY_DICT, ResultFormat.SUMMARY),
+            (MAP_COMPLETE_DICT, ResultFormat.COMPLETE),
+        ],
+    )
+    def test_map_shapes(self, result_dict: dict, expected: ResultFormat):
+        assert infer_result_format(result_dict, family=FAMILY_MAP) == expected
+
+    @pytest.mark.unit
+    def test_aggregate_empty_dict_is_boolean_only(self):
+        assert (
+            infer_result_format(AGG_BOOLEAN_ONLY_DICT, family=FAMILY_AGGREGATE)
+            == ResultFormat.BOOLEAN_ONLY
+        )
+
+    @pytest.mark.unit
+    def test_aggregate_complete_shape(self):
+        assert (
+            infer_result_format(AGG_COMPLETE_DICT, family=FAMILY_AGGREGATE) == ResultFormat.COMPLETE
+        )
+
+    @pytest.mark.unit
+    def test_aggregate_observed_value_only_is_undetermined(self):
+        """Aggregate BASIC, SUMMARY, and COMPLETE payloads can be identical."""
+        assert infer_result_format(AGG_BASIC_DICT, family=FAMILY_AGGREGATE) is None
+
+    @pytest.mark.unit
+    def test_index_query_alone_is_undetermined(self):
+        """unexpected_index_query is on the base, so it names no particular format."""
+        assert (
+            infer_result_format(
+                {"unexpected_index_query": "df.filter(items=[3], axis=0)"}, family=FAMILY_MAP
+            )
+            is None
+        )
+
+
+@pytest.mark.unit
+def test_format_order_is_a_widening_chain():
+    """Each format's field set contains the one before it, in both families.
+
+    The inference reads the discriminating fields as set differences along this
+    chain, and the ambiguous-shape fallback assumes the last format accepts every
+    well-formed result. Both are wrong if the chain ever stops widening.
+    """
+    for family, by_format in _SCHEMA_FIELDS.items():
+        for narrower, wider in pairwise(_FORMAT_ORDER):
+            assert by_format[narrower] <= by_format[wider], (
+                f"{family}: {wider.value} does not accept every {narrower.value} field"
+            )
+
+
+@pytest.mark.unit
+def test_ambiguous_shape_falls_back_to_the_most_permissive_format():
+    assert _FORMAT_ORDER[-1] == _AMBIGUOUS_SHAPE_FORMAT
+
+
+class TestResultFormatResolution:
+    """as_typed resolves the format from the argument, the shape, then configuration."""
+
+    @pytest.mark.unit
+    def test_declared_format_wins_over_the_shape(self):
+        """An explicit request is authoritative, so a shape mismatch surfaces."""
+        with pytest.raises(ParseError):
+            as_typed(
+                MAP_COMPLETE_DICT,
+                expectation_type=MAP_EXPECTATION,
+                result_format=ResultFormat.BASIC,
+            )
+
+    @pytest.mark.unit
+    def test_shape_is_used_when_no_format_is_declared(self):
+        result = as_typed(MAP_COMPLETE_DICT, expectation_type=MAP_EXPECTATION)
+        assert isinstance(result, MapCompleteResult)
+
+    @pytest.mark.unit
+    def test_shape_wins_over_configuration(self):
+        """Configuration can disagree with what the engine rendered; the dict cannot."""
+        result = as_typed(
+            MAP_COMPLETE_DICT,
+            expectation_type=MAP_EXPECTATION,
+            configured_result_format="BASIC",
+        )
+        assert isinstance(result, MapCompleteResult)
+
+    @pytest.mark.unit
+    def test_configuration_is_used_when_the_shape_is_undetermined(self):
         result = as_typed(
             AGG_BASIC_DICT,
-            expectation_type="expect_some_custom_unknown_expectation",
-            result_format=ResultFormat.BASIC,
+            expectation_type=AGG_EXPECTATION,
+            configured_result_format="BASIC",
         )
         assert isinstance(result, AggregateBasicResult)
+        assert not isinstance(result, AggregateSummaryResult)
 
-
-# ---------------------------------------------------------------------------
-# SQL sniffing
-# ---------------------------------------------------------------------------
-
-
-class TestSqlSniffing:
     @pytest.mark.unit
-    def test_sql_sniff_sets_engine_via_unexpected_index_query(self):
-        """When engine_hint is None but unexpected_index_query is in result_dict,
-        eff_engine is sniffed as 'sql' and engine_hint is propagated to the model."""
+    def test_configuration_accepts_a_parsed_config_dict(self):
+        result = as_typed(
+            AGG_BASIC_DICT,
+            expectation_type=AGG_EXPECTATION,
+            configured_result_format={"result_format": "BASIC", "partial_unexpected_count": 20},
+        )
+        assert isinstance(result, AggregateBasicResult)
+        assert not isinstance(result, AggregateSummaryResult)
+
+    @pytest.mark.unit
+    def test_config_dict_without_a_format_is_ignored(self):
+        """parse_result_format({}) returns a config that names no format."""
+        result = as_typed(
+            AGG_BASIC_DICT,
+            expectation_type=AGG_EXPECTATION,
+            configured_result_format={"partial_unexpected_count": 20},
+        )
+        assert isinstance(result, AggregateCompleteResult)
+
+    @pytest.mark.unit
+    def test_undetermined_shape_with_no_configuration_uses_the_fallback(self):
+        result = as_typed(AGG_BASIC_DICT, expectation_type=AGG_EXPECTATION)
+        assert isinstance(result, AggregateCompleteResult)
+
+
+# ---------------------------------------------------------------------------
+# engine_hint — never guessed from the result dict
+# ---------------------------------------------------------------------------
+
+
+class TestEngineHint:
+    @pytest.mark.unit
+    def test_index_query_does_not_imply_sql(self):
+        """pandas emits unexpected_index_query too, so its presence proves nothing.
+
+        A pandas COMPLETE result carries e.g. ``df.filter(items=[3], axis=0)``.
+        Treating that as a SQL engine would arm SQL-only validation against it.
+        """
         result_dict = {
             **MAP_COMPLETE_DICT,
-            "unexpected_index_query": "SELECT * FROM table WHERE x < 0",
+            "unexpected_index_query": "df.filter(items=[3], axis=0)",
         }
         result = as_typed(
             result_dict,
@@ -220,18 +443,28 @@ class TestSqlSniffing:
             engine_hint=None,
         )
         assert isinstance(result, MapCompleteResult)
-        assert result.unexpected_index_query == "SELECT * FROM table WHERE x < 0"
-        assert result.engine_hint == "sql"
+        assert result.unexpected_index_query == "df.filter(items=[3], axis=0)"
+        assert result.engine_hint is None
 
     @pytest.mark.unit
-    def test_explicit_engine_hint_takes_precedence(self):
-        """When engine_hint is supplied, SQL sniffing is bypassed."""
+    def test_explicit_engine_hint_is_propagated(self):
         result_dict = {
             **MAP_COMPLETE_DICT,
             "unexpected_index_query": "SELECT * FROM table WHERE x < 0",
         }
         result = as_typed(
             result_dict,
+            expectation_type=MAP_EXPECTATION,
+            result_format=ResultFormat.COMPLETE,
+            engine_hint="sql",
+        )
+        assert isinstance(result, MapCompleteResult)
+        assert result.engine_hint == "sql"
+
+    @pytest.mark.unit
+    def test_pandas_engine_hint_is_propagated(self):
+        result = as_typed(
+            MAP_COMPLETE_DICT,
             expectation_type=MAP_EXPECTATION,
             result_format=ResultFormat.COMPLETE,
             engine_hint="pandas",
@@ -240,9 +473,7 @@ class TestSqlSniffing:
         assert result.engine_hint == "pandas"
 
     @pytest.mark.unit
-    def test_no_sniff_without_index_query(self):
-        """When result_dict has no unexpected_index_query and engine_hint is None,
-        engine_hint is not injected into the model."""
+    def test_no_hint_leaves_the_field_unset(self):
         result = as_typed(
             MAP_COMPLETE_DICT,
             expectation_type=MAP_EXPECTATION,
@@ -251,6 +482,17 @@ class TestSqlSniffing:
         )
         assert isinstance(result, MapCompleteResult)
         assert result.engine_hint is None
+
+    @pytest.mark.unit
+    def test_hint_is_not_injected_into_aggregate_schemas(self):
+        """Aggregate schemas do not declare engine_hint and forbid extras."""
+        result = as_typed(
+            AGG_BASIC_DICT,
+            expectation_type=AGG_EXPECTATION,
+            result_format=ResultFormat.BASIC,
+            engine_hint="pandas",
+        )
+        assert isinstance(result, AggregateBasicResult)
 
 
 # ---------------------------------------------------------------------------
@@ -287,7 +529,7 @@ class TestPerExpectationOverride:
 
     @pytest.mark.unit
     def test_override_sql_engine_hint_direct(self):
-        """Explicit engine_hint='sql' triggers the override (no sniffing needed)."""
+        """The override is selected by the hint alone, at any requested format."""
         result_dict = {"observed_value": "int64"}
         result = as_typed(
             result_dict,
@@ -359,29 +601,3 @@ class TestParseError:
                 result_format=ResultFormat.BOOLEAN_ONLY,
             )
         assert isinstance(exc_info.value.__cause__, pydantic.ValidationError)
-
-
-# ---------------------------------------------------------------------------
-# Coverage test — every expect_*.py in expectations/core/ must be in _FAMILY_TABLE
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.unit
-def test_family_table_covers_core_expectations():
-    """Every expect_*.py file in expectations/core/ must appear in _FAMILY_TABLE."""
-    core_dir = (
-        Path(__file__).parent
-        / ".."
-        / ".."
-        / ".."
-        / ".."
-        / "great_expectations"
-        / "expectations"
-        / "core"
-    )
-    core_files = list(core_dir.glob("expect_*.py"))
-    expectation_names = {
-        f.name.replace(".py", "") for f in core_files if not f.name.startswith("__")
-    }
-    missing = expectation_names - set(_FAMILY_TABLE.keys())
-    assert not missing, f"Missing from _FAMILY_TABLE: {sorted(missing)}"

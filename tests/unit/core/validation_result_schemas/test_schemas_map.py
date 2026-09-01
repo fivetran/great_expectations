@@ -9,6 +9,7 @@ Covers:
   validate_partial_unexpected_counts_fallback) work as expected.
 - root_validate_engine_required_fields fires when engine_hint='sql' +
   return_unexpected_index_query=True but unexpected_index_query is missing.
+- Scalar fields are strict: they accept a value as-is or reject it, never coerce.
 
 All tests are marked @pytest.mark.unit and run via:
     pytest tests/unit/core/validation_result_schemas/test_schemas_map.py -m unit
@@ -373,6 +374,70 @@ def test_map_result_base_extra_forbid() -> None:
     """MapResultBase itself also enforces extra=forbid."""
     with pytest.raises(pydantic.ValidationError):
         MapResultBase.parse_obj({"completely_unknown": "value"})
+
+
+# ---------------------------------------------------------------------------
+# Scalar fields accept a value unchanged or reject it — they never convert
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_counts_reject_a_float_rather_than_truncating() -> None:
+    """A non-integral count is a finding, not something to silently floor."""
+    with pytest.raises(pydantic.ValidationError):
+        MapBasicResult.parse_obj({"element_count": 2.7})
+
+
+@pytest.mark.unit
+def test_counts_reject_a_bool() -> None:
+    """bool is a subclass of int; accepting it would report True as 1."""
+    with pytest.raises(pydantic.ValidationError):
+        MapBasicResult.parse_obj({"unexpected_count": True})
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "value", [0, 5, 5.0, 2.5], ids=["int-0", "int-5", "float-5.0", "float-2.5"]
+)
+def test_percent_accepts_int_and_float_without_widening(value: object) -> None:
+    parsed = MapBasicResult.parse_obj({"unexpected_percent": value}).unexpected_percent
+    assert type(parsed) is type(value)
+    assert parsed == value
+
+
+@pytest.mark.unit
+def test_index_query_rejects_a_non_string_rather_than_stringifying() -> None:
+    with pytest.raises(pydantic.ValidationError):
+        MapResultBase.parse_obj({"unexpected_index_query": 42})
+
+
+@pytest.mark.unit
+def test_index_column_names_reject_non_strings() -> None:
+    with pytest.raises(pydantic.ValidationError):
+        MapResultBase.parse_obj({"unexpected_index_column_names": [1, 2]})
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "value",
+    [1, 0, 2, 2.5, True, "int64", [1], {"a": 1}],
+    ids=["int-1", "int-0", "int-2", "float", "bool", "str", "list", "dict"],
+)
+def test_observed_value_round_trips_with_identical_type_and_value(value: object) -> None:
+    """Map results carry observed_value too, and it is reported, never converted."""
+    parsed = MapBasicResult.parse_obj({"observed_value": value}).observed_value
+    assert type(parsed) is type(value)
+    assert parsed == value
+
+
+@pytest.mark.unit
+def test_partial_unexpected_list_elements_are_untouched() -> None:
+    """Container element types stay Any so their contents pass through as-is."""
+    values = [1, True, 2.5, "x", None]
+    parsed = MapBasicResult.parse_obj({"partial_unexpected_list": values}).partial_unexpected_list
+    assert parsed is not None
+    assert [type(v) for v in parsed] == [type(v) for v in values]
+    assert parsed == values
 
 
 # ---------------------------------------------------------------------------

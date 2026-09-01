@@ -11,6 +11,19 @@ Four format-discriminated classes share a common base:
         └── AggregateSummaryResult  (SUMMARY)
             └── AggregateCompleteResult  (COMPLETE)
 
+This layer types the *shape* of a result dict and reports on it; it must never
+change a value it is handed.  pydantic v1 coerces freely by default — ``int``
+truncates 2.7 to 2, ``float`` turns 5 into 5.0, ``str`` turns 5 into "5", and a
+multi-member Union converts to whichever member matches first — so every scalar
+field below is either ``Any`` (for genuinely heterogeneous values) or a Strict*
+type that accepts the value unchanged or not at all.  A rejection surfaces as a
+finding; a silent conversion would make the typed view disagree with
+``ExpectationValidationResult.result`` with nothing to show for it.
+
+Container fields keep ``Any`` element types, so their contents pass through
+untouched.  ``details`` is keyed ``str`` because result-dict keys are strings by
+construction.
+
 Import rules (enforced by ruff banned-api):
 - Pydantic symbols come exclusively from ``great_expectations.compatibility.pydantic``.
 - No PEP 604 unions (``X | Y``); use ``Optional[X]`` or ``Union[X, Y]``.
@@ -19,16 +32,19 @@ Import rules (enforced by ruff banned-api):
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pydantic import BaseModel
+from great_expectations.core.validation_result_schemas.types import StrictNumber
 
-# Scalar = Union[int, float, str, bool, None]; observed_value is broadly typed.
-# Union order matters for pydantic v1: bool must come before int (bool is a subclass of
-# int); float must come before int to avoid coercion of 3.14 → 3.  Putting the more
-# specific numeric types first avoids silent coercion.
-ObservedValue = Union[bool, float, int, str, List[Any], Dict[str, Any], None]
+# observed_value carries whatever the expectation computed: a Python scalar, a
+# numpy scalar (expect_column_mean_to_be_between returns numpy.float64), a list of
+# distinct values, a dict of quantiles.  It is typed Any deliberately — the value
+# is reported, never validated.  A Union of concrete types cannot express that:
+# under pydantic v1 the members absorb each other left to right, so 1 arrives as
+# True under a leading ``bool`` and 2 arrives as 2.0 under a leading ``float``.
+ObservedValue = Any
 
 
 class AggregateResultBase(BaseModel):
@@ -60,17 +76,19 @@ class AggregateBooleanOnlyResult(AggregateResultBase):
 class AggregateBasicResult(AggregateResultBase):
     """ResultFormat.BASIC — counts, percents, and partial lists.
 
-    Note: ``unexpected_count`` is included here because a subset of aggregate
-    expectations (e.g. ``expect_column_distinct_values_to_equal_set``) emit
-    it alongside the standard aggregate fields.  It is Optional so that the
-    majority of aggregate expectations — which do *not* emit it — continue to
-    validate cleanly.
+    Note: ``unexpected_count`` and ``unexpected_percent`` are included here
+    because a subset of aggregate expectations emit them alongside the
+    standard aggregate fields (``expect_column_distinct_values_to_equal_set``
+    emits the count; ``expect_query_results_to_match_comparison`` emits both).
+    They are Optional so that the majority of aggregate expectations — which
+    do *not* emit them — continue to validate cleanly.
     """
 
-    element_count: Optional[int] = None
-    missing_count: Optional[int] = None
-    missing_percent: Optional[float] = None
-    unexpected_count: Optional[int] = None
+    element_count: Optional[pydantic.StrictInt] = None
+    missing_count: Optional[pydantic.StrictInt] = None
+    missing_percent: Optional[StrictNumber] = None
+    unexpected_count: Optional[pydantic.StrictInt] = None
+    unexpected_percent: Optional[StrictNumber] = None
     partial_unexpected_list: Optional[List[Any]] = None
     partial_missing_list: Optional[List[Any]] = None
 

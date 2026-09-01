@@ -32,6 +32,8 @@ from great_expectations.util import (
 )
 
 if TYPE_CHECKING:
+    from great_expectations.core.result_format import ResultFormatUnion
+    from great_expectations.core.validation_result_schemas.dispatcher import Result
     from great_expectations.expectations.expectation import Expectation
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
@@ -386,45 +388,40 @@ class ExpectationValidationResult(SerializableDictDot):
         """JSON string description of this ExpectationValidationResult"""
         return json.dumps(self.describe_dict(), indent=4)
 
-    def as_typed(self, *, engine_hint: Optional[str] = None):
+    def as_typed(
+        self,
+        *,
+        result_format: Optional[ResultFormatUnion] = None,
+        engine_hint: Optional[str] = None,
+    ) -> Result:
         """Return a typed view of self.result without mutating anything.
 
         Lazy-imports the dispatcher to avoid an import cycle at module load.
-        Reads expectation_type from self.expectation_config.type and ResultFormat
-        from self.expectation_config.kwargs.get('result_format', DEFAULT_RESULT_FORMAT).
-        Returns the parsed model. Raises ParseError on validation failure.
+        Reads expectation_type from self.expectation_config.type and returns the
+        parsed model. Raises ParseError on validation failure.
 
-        engine_hint: optional 'pandas' | 'spark' | 'sql'. When supplied, the
-            dispatcher uses it directly. When None, the dispatcher sniffs from the
-            result dict shape.
+        Args:
+            result_format: the format the result was rendered at, if known.  When
+                omitted, the dispatcher recovers it from the shape of the result
+                dict, and only falls back to the configured value in
+                ``expectation_config.kwargs`` when the shape does not discriminate.
+                Configuration is a weak signal here: ``result_format`` passed to
+                ``Batch.validate(...)`` is not persisted into kwargs, so a
+                configured value is often absent and can disagree with what the
+                engine actually rendered.
+            engine_hint: optional 'pandas' | 'spark' | 'sql'.  ``None`` means the
+                engine is unknown; it is never guessed from the result dict.
         """
-        from great_expectations.core.result_format import (
-            DEFAULT_RESULT_FORMAT,
-            ResultFormat,
-        )
         from great_expectations.core.validation_result_schemas.dispatcher import (
-            as_typed,
+            as_typed as dispatch_as_typed,
         )
 
-        result_format_value = (
-            self.expectation_config.kwargs.get("result_format", DEFAULT_RESULT_FORMAT)
-            if self.expectation_config
-            else DEFAULT_RESULT_FORMAT
-        )
-        # ResultFormat may be string or enum; normalize
-        if isinstance(result_format_value, str):
-            result_format = ResultFormat(result_format_value)
-        elif isinstance(result_format_value, dict):
-            result_format = ResultFormat(result_format_value["result_format"])
-        else:
-            result_format = result_format_value
-
-        expectation_type = self.expectation_config.type if self.expectation_config else "unknown"
-
-        return as_typed(
+        config = self.expectation_config
+        return dispatch_as_typed(
             self.result or {},
-            expectation_type=expectation_type,
+            expectation_type=config.type if config else "unknown",
             result_format=result_format,
+            configured_result_format=config.kwargs.get("result_format") if config else None,
             engine_hint=engine_hint,
         )
 

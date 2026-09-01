@@ -2,8 +2,11 @@
 
 Covers:
 - Round-trip: write N findings via context manager, read back JSON, assert structure
-- Determinism: two identical runs produce byte-identical output (modulo timestamps)
+- Determinism: two runs over shuffled input produce byte-identical output
+  (modulo timestamps), including for findings that tie on everything but
+  datasource_test_id
 - Env-var resolution: GX_VALIDATION_FINDINGS_DIR overrides default
+- Default dir is anchored on the installed package, not the process CWD
 - Atomic write: if Path.replace raises, the destination file is unchanged
 
 All tests are marked @pytest.mark.unit and run via:
@@ -13,6 +16,7 @@ All tests are marked @pytest.mark.unit and run via:
 from __future__ import annotations
 
 import json
+import random
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, List
@@ -23,6 +27,7 @@ import pytest
 from great_expectations.core.validation_result_schemas.findings_emitter import (
     _DEFAULT_DIR,
     _ENV_VAR,
+    _GX_PACKAGE_DIR,
     SCHEMA_VERSION,
     FindingsWriter,
 )
@@ -57,6 +62,30 @@ _SAMPLE_FINDINGS: List[Finding] = [
         "datasource_test_id": "ds-003",
         "status": "failed",
         "error_summary": "schema mismatch",
+    },
+    # The next three differ from each other only by datasource_test_id.  Without
+    # it in the sort key they tie, and a tie keeps execution order — which varies
+    # between runs.
+    {
+        "expectation_type": "expect_column_values_to_be_in_set",
+        "result_format": "SUMMARY",
+        "engine": "pandas",
+        "datasource_test_id": "ds-005",
+        "status": "parsed",
+    },
+    {
+        "expectation_type": "expect_column_values_to_be_in_set",
+        "result_format": "SUMMARY",
+        "engine": "pandas",
+        "datasource_test_id": "ds-004",
+        "status": "parsed",
+    },
+    {
+        "expectation_type": "expect_column_values_to_be_in_set",
+        "result_format": "SUMMARY",
+        "engine": "pandas",
+        "datasource_test_id": "ds-006",
+        "status": "parsed",
     },
 ]
 
@@ -116,20 +145,30 @@ def test_round_trip_findings(tmp_path: Path) -> None:
 
 @pytest.mark.unit
 def test_deterministic_output(tmp_path: Path) -> None:
-    """Two runs with same findings produce byte-identical findings lists."""
+    """Two runs over the same findings in different orders produce the same file.
+
+    Feeding both runs the same list would only prove that sorted() is stable; the
+    orders are shuffled so the ordering has to come from the sort key itself.
+    """
     run_id = "deterministic-run"
     dirs = [tmp_path / "run1", tmp_path / "run2"]
     for d in dirs:
         d.mkdir()
 
-    for output_dir in dirs:
+    rng = random.Random(20260901)
+    orderings = [list(_SAMPLE_FINDINGS), list(_SAMPLE_FINDINGS)]
+    rng.shuffle(orderings[0])
+    rng.shuffle(orderings[1])
+    assert orderings[0] != orderings[1], "shuffled inputs must differ for this test to bite"
+
+    for output_dir, findings in zip(dirs, orderings, strict=True):
         with patch(
             "great_expectations.core.validation_result_schemas.findings_emitter.datetime"
         ) as mock_dt:
             mock_dt.now.side_effect = _mock_now
 
             with FindingsWriter(run_id, output_dir=output_dir) as writer:
-                for finding in _SAMPLE_FINDINGS:
+                for finding in findings:
                     writer.write_finding(finding)
 
     file1 = dirs[0] / f"{run_id}.json"
@@ -144,10 +183,13 @@ def test_deterministic_output(tmp_path: Path) -> None:
     # With mocked timestamps, full envelope should also be identical
     assert data1 == data2
 
+    # And byte-identical on disk, not merely equal once parsed.
+    assert file1.read_text() == file2.read_text()
+
 
 @pytest.mark.unit
 def test_findings_sorted_by_sort_key(tmp_path: Path) -> None:
-    """Findings are sorted by (expectation_type, engine, result_format)."""
+    """Findings are sorted by (expectation_type, engine, result_format, datasource_test_id)."""
     run_id = "sorted-run"
 
     # Add findings in reverse alphabetical order to confirm sorting
@@ -159,10 +201,31 @@ def test_findings_sorted_by_sort_key(tmp_path: Path) -> None:
 
     data = json.loads((tmp_path / f"{run_id}.json").read_text())
     sort_keys = [
-        (f.get("expectation_type", ""), f.get("engine", ""), f.get("result_format", ""))
+        (
+            f.get("expectation_type", ""),
+            f.get("engine", ""),
+            f.get("result_format", ""),
+            f.get("datasource_test_id", ""),
+        )
         for f in data["findings"]
     ]
     assert sort_keys == sorted(sort_keys)
+
+
+@pytest.mark.unit
+def test_datasource_test_id_breaks_ties(tmp_path: Path) -> None:
+    """Findings identical apart from datasource_test_id are ordered by that id."""
+    run_id = "tie-break-run"
+    tie_group = {"ds-004", "ds-005", "ds-006"}
+    tied = [f for f in _SAMPLE_FINDINGS if f["datasource_test_id"] in tie_group]
+    assert len(tied) == 3, "fixture no longer contains the tie group this test needs"
+
+    with FindingsWriter(run_id, output_dir=tmp_path) as writer:
+        for finding in reversed(tied):
+            writer.write_finding(finding)
+
+    data = json.loads((tmp_path / f"{run_id}.json").read_text())
+    assert [f["datasource_test_id"] for f in data["findings"]] == ["ds-004", "ds-005", "ds-006"]
 
 
 # ---------------------------------------------------------------------------
@@ -205,15 +268,14 @@ def test_explicit_output_dir_overrides_env_var(
 
 
 @pytest.mark.unit
-def test_default_dir_used_when_no_env_var(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_default_dir_used_when_no_env_var(monkeypatch: pytest.MonkeyPatch) -> None:
     """When neither arg nor env var is set, _DEFAULT_DIR is used."""
     monkeypatch.delenv(_ENV_VAR, raising=False)
 
     run_id = "default-dir-run"
-    # We can't easily test the true default without writing to the actual filesystem,
-    # so we verify that FindingsWriter resolves to _DEFAULT_DIR by checking
-    # the resolved path stored on the instance.
-    with patch("os.makedirs"):  # prevent actual dir creation
+    # Patch the mkdir the writer actually calls, so resolving the default does not
+    # create a directory in the working tree as a side effect of the assertion.
+    with patch.object(Path, "mkdir"):
         writer = FindingsWriter(run_id)
         assert writer._output_dir == Path(_DEFAULT_DIR)
 
@@ -304,6 +366,17 @@ def test_schema_version_is_int() -> None:
 @pytest.mark.unit
 def test_default_dir_is_path() -> None:
     assert isinstance(_DEFAULT_DIR, Path)
+
+
+@pytest.mark.unit
+def test_default_dir_is_anchored_on_the_package_not_the_cwd() -> None:
+    """A CWD-relative default writes findings wherever the run happened to start."""
+    assert _DEFAULT_DIR.is_absolute()
+    assert _GX_PACKAGE_DIR.name == "great_expectations"
+    assert _DEFAULT_DIR.parents[3] == _GX_PACKAGE_DIR.parent
+    assert _DEFAULT_DIR.relative_to(_GX_PACKAGE_DIR.parent) == Path(
+        "tests/_artifacts/validation_result_schemas/findings"
+    )
 
 
 @pytest.mark.unit

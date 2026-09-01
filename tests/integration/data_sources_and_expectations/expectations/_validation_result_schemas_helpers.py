@@ -1,65 +1,122 @@
 """Matrix runner helpers for validation result schema tests.
 
-Underscore-prefixed so pytest does not collect this file.
+Underscore-prefixed so pytest does not collect this module.
 
-These helpers are imported by the matrix runner and its unit tests.
-They are intentionally free of test framework dependencies so they can
-be used in both pytest fixtures and standalone scripts.
+These helpers are imported by the matrix runner and by its unit tests. They are intentionally
+free of test-framework dependencies, so the same functions the runner uses are the ones the unit
+tests exercise directly rather than a re-implementation of them.
 """
 
 from __future__ import annotations
 
+import math
+from typing import TYPE_CHECKING, Any, Dict, FrozenSet, List, Mapping, Optional, TypeVar
+
 from great_expectations.core.validation_result_schemas.field_validators import (
     classify_runtime_type,
 )
-
-# ---------------------------------------------------------------------------
-# SQL dialect normalisation table (from design.md)
-# ---------------------------------------------------------------------------
-
-_SQL_DIALECTS = frozenset(
-    {
-        "sql",
-        "snowflake",
-        "postgres",
-        "redshift",
-        "databricks_sql",
-        "sqlite",
-        "bigquery",
-        "mysql",
-        "mssql",
-    }
+from tests.integration.data_sources_and_expectations.expectations._validation_result_schemas_cases import (  # noqa: E501
+    SELF_DATA_SOURCE_SENTINEL,
+    SELF_TABLE_SENTINEL,
 )
 
+if TYPE_CHECKING:
+    from great_expectations.expectations.expectation import Expectation
 
-def _normalize_engine_hint(datasource_type: str) -> str:
-    """Collapse SQL dialects to 'sql'; pass through 'pandas' and 'spark'.
+_ExpectationT = TypeVar("_ExpectationT", bound="Expectation")
 
-    Unknown types are returned as-is.
+# ---------------------------------------------------------------------------
+# Field-set coverage
+# ---------------------------------------------------------------------------
+
+ENGINE_NATIVE_FIELDS: FrozenSet[str] = frozenset({"unexpected_rows"})
+"""Result-dict keys whose value is an engine-native object rather than data.
+
+``unexpected_rows`` is a pandas ``DataFrame`` on the pandas engine, a Spark ``DataFrame`` on
+Spark, and a list of row mappings on SQL. Two data frames holding identical data do not compare
+equal -- ``==`` on either library's frame returns an elementwise frame, not a bool -- so these
+keys are checked for *identity* instead: the schema must hand back the very object it was given,
+which is the strongest statement available and the one that actually matters, since any
+conversion at all would be the schema layer changing a value it was only asked to type.
+
+The set is deliberately small and stated by name. Widening it by inferring "looks exotic" from
+the runtime type would exempt exactly the silent coercions this check exists to catch.
+"""
+
+
+def _values_equal(parsed_value: Any, raw_value: Any) -> bool:
+    """Whether two result-dict values are equal, tolerating NaN and non-boolean comparisons.
+
+    ``NaN != NaN`` by IEEE rule, so a NaN that survived the schema untouched would otherwise read
+    as a changed value. A comparison that refuses to reduce to a bool (a numpy array, say) falls
+    back to identity, which is the only thing that can be asserted about such a value here.
     """
-    if datasource_type == "pandas":
-        return "pandas"
-    if datasource_type in ("spark", "dataframe"):
-        return "spark"
-    if datasource_type in _SQL_DIALECTS:
-        return "sql"
-    # Fallback: return as-is for unknown types
-    return datasource_type
+    if (
+        isinstance(parsed_value, float)
+        and isinstance(raw_value, float)
+        and math.isnan(parsed_value)
+        and math.isnan(raw_value)
+    ):
+        return True
+    try:
+        return bool(parsed_value == raw_value)
+    except (TypeError, ValueError):
+        return parsed_value is raw_value
 
 
-def assert_field_set_covered(raw_result_dict: dict, parsed_model) -> None:
-    """Assert every key in raw_result_dict is reachable in parsed_model.dict().
+def assert_field_set_covered(raw_result_dict: dict, parsed_model: Any) -> None:
+    """Assert the parsed model reproduces every key of ``raw_result_dict`` unchanged.
 
-    The parsed model may have extra fields (like engine_hint) not in the raw
-    dict — that is fine.  The reverse is NOT fine: raw dict keys that are
-    absent from the model indicate information loss.
+    Three things are checked, in order:
 
-    Raises AssertionError with the offending key(s) if any raw key is missing
-    from the model's dict() output.
+    1. Every raw key is a field of the parsed model. The model may carry extra fields the raw
+       dict does not (``engine_hint``, and the optional fields of a wider format variant); the
+       reverse is information loss.
+    2. Every raw value is reproduced *equal* on the model.
+    3. Every raw value is reproduced with the *same runtime type*.
+
+    Checking key presence alone would assert nothing: these schemas set ``extra = Extra.forbid``,
+    so a raw key the model does not declare has already failed parsing before this function is
+    reached, and a key the model does declare is in ``.dict()`` whether or not the value survived.
+    The value and type checks are what make this a real assertion -- a field typed ``float`` that
+    silently widened an integer ``5`` to ``5.0``, or one typed ``str`` that stringified it, passes
+    a key-set comparison and fails here.
+
+    Keys in :data:`ENGINE_NATIVE_FIELDS` are checked by identity instead; see that constant.
+
+    Raises:
+        AssertionError: naming every offending key and what happened to it.
     """
     model_dict = parsed_model.dict()
-    missing = [k for k in raw_result_dict if k not in model_dict]
+    missing = [key for key in raw_result_dict if key not in model_dict]
     assert not missing, f"Fields in raw_result_dict not covered by parsed model: {missing}"
+
+    altered: List[str] = []
+    for key, raw_value in raw_result_dict.items():
+        parsed_value = getattr(parsed_model, key)
+        if key in ENGINE_NATIVE_FIELDS:
+            if parsed_value is not raw_value:
+                altered.append(
+                    f"{key}: engine-native value was replaced rather than passed through "
+                    f"({type(raw_value).__name__} in, {type(parsed_value).__name__} out)"
+                )
+            continue
+        if type(parsed_value) is not type(raw_value):
+            altered.append(
+                f"{key}: type changed from {type(raw_value).__name__} to "
+                f"{type(parsed_value).__name__}"
+            )
+        elif not _values_equal(parsed_value, raw_value):
+            altered.append(f"{key}: value changed from {raw_value!r} to {parsed_value!r}")
+
+    assert not altered, (
+        "Parsed model did not reproduce the raw result dict unchanged: " + "; ".join(altered)
+    )
+
+
+# ---------------------------------------------------------------------------
+# Findings metadata
+# ---------------------------------------------------------------------------
 
 
 def summarize_raw_dict(raw: dict) -> dict:
@@ -73,3 +130,80 @@ def summarize_raw_dict(raw: dict) -> dict:
         "raw_field_set": sorted(raw.keys()),
         "raw_field_types": {k: classify_runtime_type(v).value for k, v in raw.items()},
     }
+
+
+def summarize_raised_exception(exception_info: Any) -> Optional[str]:
+    """One-line summary of the first exception recorded in ``exception_info``, or ``None``.
+
+    ``ExpectationValidationResult.exception_info`` carries one of two shapes: a single record
+    (``{"raised_exception": ..., "exception_message": ..., ...}``) or a mapping of metric
+    identifier to such a record. Both are handled, because which one appears depends on how far
+    validation got, and a runner that understood only one shape would read the other as "nothing
+    was raised" -- turning the very cells this check exists to catch back into silent passes.
+    """
+    if not isinstance(exception_info, dict):
+        return None
+    records: List[Mapping[str, Any]] = []
+    if "raised_exception" in exception_info:
+        records.append(exception_info)
+    else:
+        records.extend(value for value in exception_info.values() if isinstance(value, dict))
+    for record in records:
+        if record.get("raised_exception"):
+            message = record.get("exception_message")
+            return str(message) if message else "exception recorded with no message"
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Self-reference resolution
+# ---------------------------------------------------------------------------
+
+
+def resolve_self_references(
+    expectation: _ExpectationT,
+    *,
+    table_name: Optional[str],
+    data_source_name: Optional[str],
+) -> _ExpectationT:
+    """Substitute the case table's self-reference sentinels with this batch's real names.
+
+    A case that names the batch's own table or data source cannot hold the real value: both are
+    generated with a random suffix when the batch is set up. It holds a sentinel instead, and this
+    function replaces it in every string-valued field immediately before validation, returning a
+    copy so the shared, module-level case instance is never mutated (it is reused by every other
+    cell in the matrix).
+
+    Substitution is driven by the sentinel appearing in a value, not by a hand-listed set of field
+    names: a list of field names would silently stop substituting the moment a case put a sentinel
+    somewhere new, leaving the literal sentinel text in a query.
+
+    Raises:
+        ValueError: when a sentinel is present but the corresponding name is unavailable, rather
+            than passing the literal sentinel through to the engine as a table or source name.
+    """
+    replacements: Dict[str, Optional[str]] = {
+        SELF_TABLE_SENTINEL: table_name,
+        SELF_DATA_SOURCE_SENTINEL: data_source_name,
+    }
+    updates: Dict[str, str] = {}
+    for field_name in expectation.__fields__:
+        value = getattr(expectation, field_name, None)
+        if not isinstance(value, str):
+            continue
+        substituted = value
+        for sentinel, actual in replacements.items():
+            if sentinel not in substituted:
+                continue
+            if not actual:
+                raise ValueError(
+                    f"Field {field_name!r} references {sentinel!r}, but this batch setup exposes "
+                    "no such name. A case using this sentinel must be restricted to the engines "
+                    "whose batch setup provides it."
+                )
+            substituted = substituted.replace(sentinel, actual)
+        if substituted != value:
+            updates[field_name] = substituted
+    if not updates:
+        return expectation
+    return expectation.copy(update=updates)

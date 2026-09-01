@@ -653,6 +653,7 @@ markers = [
     "project: mark a test that verifies properties of the gx project",
     "pyarrow: mark a test as PyArrow-dependent.",
     "redshift: mark a test as redshift-dependent.",
+    "result_schema_matrix: mark a test as part of the validation-result-schema matrix suite",
     "singlestore: mark a test as SingleStore-dependent.",
     "generic_sql: mark a test as generic SQL database-dependent.",
     "snowflake: mark a test as snowflake-dependent.",

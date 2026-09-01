@@ -125,7 +125,7 @@ Before we completely remove the functionality in a new major release, there will
 * [MAINTENANCE] Add bot-enforced issue claiming and scope stale bot to needs-info issues ([#11957](https://github.com/fivetran/great_expectations/pull/11957))
 * [MAINTENANCE] Bump launch-editor from 2.12.0 to 2.14.1 in /docs/docusaurus ([#11918](https://github.com/fivetran/great_expectations/pull/11918))
 * [MAINTENANCE] clean up unused code ([#11717](https://github.com/fivetran/great_expectations/pull/11717))
-* [MAINTENANCE] Extract type comparison logic into dedicated module ([#11798](https://github.com/fivetran/great_expectations/pull/11798))
+* [MAINTENANCE] Extract type comparison logic into dedicated module ([#11798](https://github.com/fivetran/great_expectations/pull/11798)) 
 * [MAINTENANCE] Bump dompurify from 3.4.3 to 3.4.11 in /docs/docusaurus ([#11917](https://github.com/fivetran/great_expectations/pull/11917))
 * [MAINTENANCE] Make pyarrow compatibility type-ignore environment-independent ([#11966](https://github.com/fivetran/great_expectations/pull/11966))
 * [MAINTENANCE] Bump joi from 17.13.3 to 17.13.4 in /docs/docusaurus ([#11914](https://github.com/fivetran/great_expectations/pull/11914))

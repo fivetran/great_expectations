@@ -1,7 +1,9 @@
-"""Unit tests for ResultFormatConfig TypedDict.
+"""Unit tests for the ResultFormatConfig TypedDict.
 
-Round-trips parse_result_format() output under each ResultFormat value,
-asserting required keys are present and optional keys behave correctly.
+Round-trips parse_result_format() output under each ResultFormat value, asserting
+that the keys it always injects are present, that ``result_format`` is optional
+because the dict branch can return without it, and that the dispatcher reads a
+config of this shape when it has to recover a format from configuration.
 """
 
 from __future__ import annotations
@@ -11,15 +13,18 @@ from typing import Mapping
 import pytest
 
 from great_expectations.core.result_format import ResultFormat
+from great_expectations.core.validation_result_schemas.dispatcher import (
+    _normalize_result_format,
+)
 from great_expectations.core.validation_result_schemas.format_config import (
     ResultFormatConfig,
     ResultFormatConfigRequired,
 )
 from great_expectations.expectations.expectation_configuration import parse_result_format
 
-REQUIRED_KEYS = frozenset(
+# Keys parse_result_format injects into every config it returns.
+ALWAYS_INJECTED_KEYS = frozenset(
     {
-        "result_format",
         "partial_unexpected_count",
         "include_unexpected_rows",
         "map_expectation_unexpected_rows_as_dict",
@@ -34,8 +39,8 @@ OPTIONAL_KEYS = frozenset({"exclude_unexpected_values", "return_unexpected_index
 
 
 def _assert_required_keys_present(config: Mapping[str, object]) -> None:
-    """Assert all required keys are present in the config dict."""
-    missing = REQUIRED_KEYS - config.keys()
+    """Assert every always-injected key is present in the config dict."""
+    missing = ALWAYS_INJECTED_KEYS - config.keys()
     assert not missing, f"Missing required keys: {missing}"
 
 
@@ -135,6 +140,50 @@ def test_both_optional_keys_present_when_supplied() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Tests: result_format itself is optional
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_dict_input_without_a_format_returns_a_config_without_one() -> None:
+    """parse_result_format({}) is a live call site and names no format.
+
+    This is why result_format is an optional key: a reader who assumed
+    ``config["result_format"]`` was always safe would be wrong here.
+    """
+    raw = parse_result_format({})
+    _assert_required_keys_present(raw)
+    assert "result_format" not in raw
+
+
+@pytest.mark.unit
+def test_result_format_is_not_a_required_key() -> None:
+    assert "result_format" not in ResultFormatConfigRequired.__required_keys__
+    assert "result_format" not in ResultFormatConfig.__required_keys__
+    assert "result_format" in ResultFormatConfig.__optional_keys__
+
+
+# ---------------------------------------------------------------------------
+# Tests: the dispatcher reads a config of this shape
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("result_format", list(ResultFormat))
+def test_dispatcher_recovers_the_format_from_a_parsed_config(
+    result_format: ResultFormat,
+) -> None:
+    config = parse_result_format(result_format.value)
+    assert _normalize_result_format(config) == result_format
+
+
+@pytest.mark.unit
+def test_dispatcher_treats_a_config_without_a_format_as_unspecified() -> None:
+    """An absent result_format means "unspecified", not "malformed"."""
+    assert _normalize_result_format(parse_result_format({})) is None
+
+
+# ---------------------------------------------------------------------------
 # Tests: partial_unexpected_count default
 # ---------------------------------------------------------------------------
 
@@ -166,7 +215,6 @@ def test_result_format_config_required_is_typeddict() -> None:
     """Confirm ResultFormatConfigRequired is a TypedDict (not a runtime check, but importable)."""
     # Verify the class exists and has the expected annotations
     annotations = ResultFormatConfigRequired.__annotations__
-    assert "result_format" in annotations
     assert "partial_unexpected_count" in annotations
     assert "include_unexpected_rows" in annotations
     assert "map_expectation_unexpected_rows_as_dict" in annotations
@@ -177,6 +225,7 @@ def test_result_format_config_extends_required() -> None:
     """Confirm ResultFormatConfig inherits required keys from ResultFormatConfigRequired."""
     # TypedDict merges required keys from bases into __required_keys__; works on 3.10+.
     assert ResultFormatConfigRequired.__required_keys__ <= ResultFormatConfig.__required_keys__
+    assert ResultFormatConfig.__required_keys__ >= ALWAYS_INJECTED_KEYS
 
 
 @pytest.mark.unit
@@ -186,3 +235,4 @@ def test_result_format_config_has_optional_keys_in_annotations() -> None:
     own_annotations = ResultFormatConfig.__annotations__
     assert "exclude_unexpected_values" in own_annotations
     assert "return_unexpected_index_query" in own_annotations
+    assert "result_format" in own_annotations

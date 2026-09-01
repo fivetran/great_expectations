@@ -71,6 +71,22 @@ def test_sql_spark_path_observed_value_preserved() -> None:
     assert r.observed_value == "INTEGER"
 
 
+@pytest.mark.unit
+def test_sql_spark_path_observed_value_is_not_stringified() -> None:
+    """Case-insensitive SQL dialects hand back the column type object itself.
+
+    The override reports whatever it was given; a ``str`` annotation would turn a
+    type object into its repr and the typed view would stop matching the EVR.
+    """
+
+    class _ColumnType:
+        """Stands in for a SQLAlchemy type object, which is not a str."""
+
+    value = _ColumnType()
+    r = ExpectColumnValuesToBeOfTypeSqlSparkResult(observed_value=value)
+    assert r.observed_value is value
+
+
 # ---------------------------------------------------------------------------
 # extra=forbid: unknown fields on the override must raise
 # ---------------------------------------------------------------------------

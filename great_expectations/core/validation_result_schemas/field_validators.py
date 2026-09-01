@@ -119,11 +119,16 @@ def root_validate_engine_required_fields(cls: Any, values: dict) -> dict:
     Schemas that do not declare ``engine_hint`` as a field will simply not have
     the key, and the check is skipped — ensuring the validator is safe to include
     in any schema regardless of whether the dispatcher sets the hint.
+
+    A ``None`` hint means the engine is unknown, never "assume SQL".  The engine
+    is never guessed from the result dict: ``unexpected_index_query`` is emitted
+    by pandas too (as a ``df.filter(...)`` expression), so a shape-based guess
+    would arm this assertion against results it does not apply to.
     """
     engine_hint = values.get("engine_hint")
 
     if engine_hint != "sql":
-        # Not a SQL engine (or no hint): skip the SQL-specific assertion
+        # Unknown engine (hint is None) or a non-SQL engine: no assertion applies.
         return values
 
     if not values.get("return_unexpected_index_query"):

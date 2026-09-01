@@ -10,8 +10,8 @@ Construction resolves the output directory:
 The filename is ``f"{run_id}.json"``. Findings are accumulated in memory and
 flushed on ``close()``; the file is written atomically (write to ``.tmp``,
 then ``Path.replace``). Within a file, findings are sorted by
-``(expectation_type, engine, result_format)`` for deterministic diffs across
-runs.
+``(expectation_type, engine, result_format, datasource_test_id)`` for
+deterministic diffs across runs.
 """
 
 from __future__ import annotations
@@ -20,16 +20,25 @@ import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Final, List, Optional, Tuple
 
 if TYPE_CHECKING:
     from typing_extensions import Self
 
     from great_expectations.core.validation_result_schemas.types import Finding
 
-_DEFAULT_DIR: Path = Path("tests/_artifacts/validation_result_schemas/findings")
-_ENV_VAR: str = "GX_VALIDATION_FINDINGS_DIR"
-SCHEMA_VERSION: int = 1
+# Anchor the default on the installed package, not the process CWD: this writer is
+# driven from pytest runs that may be launched from any directory, and a
+# CWD-relative default silently scatters findings files wherever the run started.
+# ``.../great_expectations/core/validation_result_schemas/findings_emitter.py``
+# → parents[2] is the ``great_expectations`` package, whose parent is the repo root
+# (or the site-packages dir for an installed distribution).
+_GX_PACKAGE_DIR: Final[Path] = Path(__file__).resolve().parents[2]
+_DEFAULT_DIR: Final[Path] = (
+    _GX_PACKAGE_DIR.parent / "tests" / "_artifacts" / "validation_result_schemas" / "findings"
+)
+_ENV_VAR: Final[str] = "GX_VALIDATION_FINDINGS_DIR"
+SCHEMA_VERSION: Final[int] = 1
 
 
 def _get_gx_version() -> str:
@@ -42,17 +51,35 @@ def _get_gx_version() -> str:
         return "unknown"
 
 
+def _sort_key(finding: Finding) -> Tuple[str, str, str, str]:
+    """Total order over findings.
+
+    ``datasource_test_id`` is part of the key, not just a tiebreak in principle:
+    one run emits many findings sharing an expectation_type, engine, and
+    result_format, and without it those ties keep whatever order execution
+    happened to produce — which reorders between runs and makes the diff of two
+    findings files unreadable.
+    """
+    return (
+        finding.get("expectation_type", ""),
+        finding.get("engine", ""),
+        finding.get("result_format", ""),
+        finding.get("datasource_test_id", ""),
+    )
+
+
 class FindingsWriter:
     """Per-run-id findings file writer.
 
     Construction resolves the output directory:
-      1. environment variable GX_VALIDATION_FINDINGS_DIR if set
-      2. else _DEFAULT_DIR (gitignored in the gx repo)
+      1. ``output_dir`` argument if provided
+      2. environment variable GX_VALIDATION_FINDINGS_DIR if set
+      3. else _DEFAULT_DIR (gitignored in the gx repo)
 
     The filename is f"{run_id}.json". Findings are appended in memory and
     flushed on close(); the file is written atomically (write to .tmp, rename).
     Within a file, findings are sorted by (expectation_type, engine,
-    result_format) for deterministic diffs across runs.
+    result_format, datasource_test_id) for deterministic diffs across runs.
     """
 
     def __init__(self, run_id: str, output_dir: Optional[Path] = None) -> None:
@@ -64,7 +91,7 @@ class FindingsWriter:
         if output_dir is not None:
             self._output_dir = Path(output_dir)
         else:
-            env_val = os.environ.get(_ENV_VAR)  # noqa: TID251 # os.environ allowed in config files
+            env_val = os.getenv(_ENV_VAR)
             if env_val is not None:
                 self._output_dir = Path(env_val)
             else:
@@ -80,15 +107,7 @@ class FindingsWriter:
         """Sort findings and write them atomically to the output file."""
         completed_at_utc: str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        # Sort deterministically by (expectation_type, engine, result_format)
-        sorted_findings: List[Finding] = sorted(
-            self._findings,
-            key=lambda f: (
-                f.get("expectation_type", ""),
-                f.get("engine", ""),
-                f.get("result_format", ""),
-            ),
-        )
+        sorted_findings: List[Finding] = sorted(self._findings, key=_sort_key)
 
         envelope = {
             "schema_version": SCHEMA_VERSION,

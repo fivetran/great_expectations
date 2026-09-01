@@ -1,4 +1,4 @@
-"""Schema family re-exports. Populated as schema tasks land."""
+"""Schema family re-exports."""
 
 from great_expectations.core.validation_result_schemas.schemas.aggregate_result import (
     AggregateBasicResult,

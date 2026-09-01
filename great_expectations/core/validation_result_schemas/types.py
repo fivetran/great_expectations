@@ -1,13 +1,22 @@
 """Type definitions for validation result schemas.
 
-Defines the enumeration types and TypedDicts used across the
+Defines the enumeration types, scalar aliases, and TypedDicts used across the
 validation_result_schemas package.
 """
 
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, List, Optional, TypedDict
+from typing import Dict, List, Optional, TypedDict, Union
+
+from great_expectations.compatibility import pydantic
+
+# Numeric fields in a result dict are floats in practice, but an exactly-integral
+# value may arrive as an int.  Strict members accept each unchanged instead of
+# normalising to one of them: this package reports the values it types and must
+# never alter them, and pydantic v1's non-strict ``int``/``float`` would truncate
+# 2.7 to 2 or widen 5 to 5.0 without a trace.
+StrictNumber = Union[pydantic.StrictInt, pydantic.StrictFloat]
 
 
 class Status(str, Enum):
