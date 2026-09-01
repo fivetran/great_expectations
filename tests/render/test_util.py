@@ -355,6 +355,34 @@ def test_convert_unexpected_indices_to_df_actual_values():
     assert res.iloc[2].tolist() == ["5", 1]
 
 
+def test_convert_unexpected_indices_to_df_only_id_pk_columns():
+    """
+    Records carry only the ID/PK columns (no domain column to group on), which
+    happens for Spark/SQL paths and when exclude_unexpected_values=True. This used
+    to raise "No group keys passed!"; instead the records are aggregated into a
+    single row. See https://github.com/great-expectations/great_expectations/issues/11933
+    """
+    unexpected_index_list = [
+        {"pk_1": 3, "pk_2": "three"},
+        {"pk_1": 4, "pk_2": "four"},
+        {"pk_1": 5, "pk_2": "five"},
+    ]
+    unexpected_index_column_names = ["pk_1", "pk_2"]
+    partial_unexpected_counts = [
+        {"count": 1, "value": "giraffe"},
+        {"count": 1, "value": "lion"},
+        {"count": 1, "value": "zebra"},
+    ]
+
+    res = _convert_unexpected_indices_to_df(
+        unexpected_index_list=unexpected_index_list,
+        unexpected_index_column_names=unexpected_index_column_names,
+        partial_unexpected_counts=partial_unexpected_counts,
+    )
+    assert list(res) == ["pk_1", "pk_2", "Count"]
+    assert res.iloc[0].tolist() == ["3, 4, 5", "three, four, five", 3]
+
+
 def test_truncate_list_of_indices():
     int_indices: List[Union[int, str]] = [4, 5, 6, 7]
     result: str = truncate_list_of_indices(indices=int_indices)
@@ -522,6 +550,37 @@ def test_build_count_and_index_table_with_null():
     assert header_row == ["Sampled Unexpected Values", "Count", "pk_1", "pk_2"]
     assert table_rows == [
         ["null", 1, "5", "five"],
+    ]
+
+
+def test_build_count_and_index_table_only_id_pk_columns():
+    """
+    Records carry only the ID/PK columns (no domain column), so they are
+    aggregated into a single row instead of raising "No group keys passed!".
+    See https://github.com/great-expectations/great_expectations/issues/11933
+    """
+    partial_unexpected_counts = [
+        {"count": 1, "value": "giraffe"},
+        {"count": 1, "value": "lion"},
+        {"count": 1, "value": "zebra"},
+    ]
+    unexpected_index_list = [
+        {"pk_1": 3, "pk_2": "three"},
+        {"pk_1": 4, "pk_2": "four"},
+        {"pk_1": 5, "pk_2": "five"},
+    ]
+    unexpected_count = 3
+    unexpected_index_column_names = ["pk_1", "pk_2"]
+
+    header_row, table_rows = build_count_and_index_table(
+        partial_unexpected_counts=partial_unexpected_counts,
+        unexpected_index_list=unexpected_index_list,
+        unexpected_count=unexpected_count,
+        unexpected_index_column_names=unexpected_index_column_names,
+    )
+    assert header_row == ["Unexpected Value", "Count", "pk_1", "pk_2"]
+    assert table_rows == [
+        ["EMPTY", 3, "3, 4, 5", "three, four, five"],
     ]
 
 

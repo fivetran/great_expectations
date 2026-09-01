@@ -6,9 +6,7 @@ import hashlib
 import logging
 import math
 import os
-import random
 import re
-import string
 import traceback
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -173,7 +171,6 @@ except ImportError:
 if TYPE_CHECKING:
     from sqlalchemy.engine import Engine as SaEngine  # noqa: TID251 # FIXME CoP
 
-    from great_expectations.compatibility import sqlalchemy
 
 SQLAColumnClause: TypeAlias = object  # sqlalchemy isn't installed in all environments
 
@@ -388,10 +385,15 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                 def _add_sqlite_functions(connection):
                     logger.info(f"Adding custom sqlite functions to connection {connection}")
                     connection.create_function("sqrt", 1, math.sqrt)
+                    # not used for security: this is hash partitioning/sampling, not a
+                    # cryptographic digest. usedforsecurity=False lets this run on hosts
+                    # with FIPS-mode OpenSSL.
                     connection.create_function(
                         "md5",
                         2,
-                        lambda x, d: hashlib.md5(str(x).encode("utf-8")).hexdigest()[-1 * d :],
+                        lambda x, d: hashlib.md5(
+                            str(x).encode("utf-8"), usedforsecurity=False
+                        ).hexdigest()[-1 * d :],
                     )
 
                 # Add sqlite functions to any future connections.
@@ -1177,20 +1179,21 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                         domain_batches[domain_id] = {"select": [], "metric_ids": []}
                         batch_counters[domain_id] = new_batch_counter
 
-            if self.engine.dialect.name.lower() == GXSqlDialect.CLICKHOUSE:
-                domain_batches[domain_id]["select"].append(
-                    metric_fn.label(
-                        metric_to_resolve.metric_name.join(
-                            random.choices(string.ascii_lowercase, k=4)
-                        )
-                    )
-                )
-                domain_batches[domain_id]["metric_ids"].append(metric_to_resolve.id)
-            else:
-                domain_batches[domain_id]["select"].append(
-                    metric_fn.label(metric_to_resolve.metric_name)
-                )
-                domain_batches[domain_id]["metric_ids"].append(metric_to_resolve.id)
+            alias = metric_to_resolve.metric_name
+
+            # Prevent "Duplicated field name in view schema" SQL errors by deduplicating aliases
+            existing_aliases = {
+                col.name for col in domain_batches[domain_id]["select"] if hasattr(col, "name")
+            }
+
+            if alias in existing_aliases:
+                suffix = 1
+                while f"{alias}_{suffix}" in existing_aliases:
+                    suffix += 1
+                alias = f"{alias}_{suffix}"
+
+            domain_batches[domain_id]["select"].append(metric_fn.label(alias))
+            domain_batches[domain_id]["metric_ids"].append(metric_to_resolve.id)
 
         for domain_id in list(domain_batches.keys()):
             final_domain_id, new_query_entry, new_batch_counter = self._finalize_domain_query(

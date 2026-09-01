@@ -325,6 +325,51 @@ def test_render_validation_results(titanic_profiled_evrs_1):
     #        in rendered_page
 
 
+@pytest.mark.parametrize(
+    "renderer_class, fixture_name",
+    [
+        pytest.param(
+            ExpectationSuitePageRenderer,
+            "titanic_dataset_profiler_expectations",
+            id="expectation_suite_page",
+        ),
+        pytest.param(
+            ValidationResultsPageRenderer,
+            "titanic_profiled_evrs_1",
+            id="validation_results_page",
+        ),
+    ],
+)
+def test_rendered_page_does_not_advertise_suite_editing(renderer_class, fixture_name, request):
+    """Data Docs must not instruct users to edit a suite with the removed CLI/notebook workflow."""
+    rendered_content = renderer_class().render(request.getfixturevalue(fixture_name))
+    rendered_page = DefaultJinjaPageView().render(rendered_content)
+
+    assert "How to Edit This Suite" not in rendered_page
+    assert "How to Edit This Expectation Suite" not in rendered_page
+    assert "great_expectations suite edit" not in rendered_page
+    assert "ge-expectation-editing-instructions-modal" not in rendered_page
+
+
+def test_expectation_suite_page_omits_empty_actions_card(
+    titanic_dataset_profiler_expectations,
+):
+    """The Actions card only holds the validation filter, so other pages should not render it."""
+    rendered_content = ExpectationSuitePageRenderer().render(titanic_dataset_profiler_expectations)
+    rendered_page = DefaultJinjaPageView().render(rendered_content)
+
+    assert "<strong>Actions</strong>" not in rendered_page
+
+
+def test_validation_results_page_keeps_validation_filter(titanic_profiled_evrs_1):
+    """The Actions card still carries the validation filter on validation results pages."""
+    rendered_content = ValidationResultsPageRenderer().render(titanic_profiled_evrs_1)
+    rendered_page = DefaultJinjaPageView().render(rendered_content)
+
+    assert "<strong>Actions</strong>" in rendered_page
+    assert "Validation Filter:" in rendered_page
+
+
 def test_smoke_render_profiling_results_page_renderer_with_exception(
     titanic_profiler_evrs_with_exception,
 ):

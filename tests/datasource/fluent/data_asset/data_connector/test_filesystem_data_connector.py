@@ -13,6 +13,9 @@ from great_expectations.datasource.fluent.constants import MATCH_ALL_PATTERN
 from great_expectations.datasource.fluent.data_connector import (
     FilesystemDataConnector,
 )
+from great_expectations.datasource.fluent.data_connector.data_connector import (
+    DataConnector as DataConnectorBase,
+)
 from tests.test_utils import create_files_in_directory
 
 if TYPE_CHECKING:
@@ -670,3 +673,79 @@ def test_filesystem_data_connector_uses_batching_regex_from_batch_request(
 
     # assert
     assert len(batch_definitions) == batch_definition_count
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "requested_value,captured_value,should_match",
+    [
+        pytest.param(4, "04", True, id="int request value matches a zero-padded string capture"),
+        pytest.param(4, "4", True, id="int request value matches an unpadded string capture"),
+        pytest.param(5, "04", False, id="a non-matching int does not match"),
+        pytest.param(
+            "04",
+            "4",
+            False,
+            id="string request value stays an exact, non-numeric comparison",
+        ),
+    ],
+)
+def test_batch_definition_matches_batch_request_numeric_equivalence(
+    requested_value: Union[int, str], captured_value: str, should_match: bool
+):
+    # A regex capture is always a string; an int request value denotes the same
+    # partition as its zero-padded capture, while a string request value never does.
+    batch_request = BatchRequest(
+        datasource_name="my_file_path_datasource",
+        data_asset_name="my_filesystem_data_asset",
+        options={"month": requested_value},
+    )
+    batch_definition = LegacyBatchDefinition(
+        datasource_name="my_file_path_datasource",
+        data_connector_name="my_data_connector",
+        data_asset_name="my_filesystem_data_asset",
+        batch_identifiers=IDDict({"month": captured_value}),
+    )
+
+    assert (
+        DataConnectorBase._batch_definition_matches_batch_request(batch_definition, batch_request)
+        is should_match
+    )
+
+
+@pytest.mark.unit
+def test_batch_definition_matches_batch_request_none_wildcard_matches_anything():
+    batch_request = BatchRequest(
+        datasource_name="my_file_path_datasource",
+        data_asset_name="my_filesystem_data_asset",
+        options={"month": None},
+    )
+    batch_definition = LegacyBatchDefinition(
+        datasource_name="my_file_path_datasource",
+        data_connector_name="my_data_connector",
+        data_asset_name="my_filesystem_data_asset",
+        batch_identifiers=IDDict({"month": "04"}),
+    )
+
+    assert DataConnectorBase._batch_definition_matches_batch_request(
+        batch_definition, batch_request
+    )
+
+
+@pytest.mark.unit
+def test_batch_definition_matches_batch_request_key_absent_from_identifiers_fails():
+    batch_request = BatchRequest(
+        datasource_name="my_file_path_datasource",
+        data_asset_name="my_filesystem_data_asset",
+        options={"month": 4},
+    )
+    batch_definition = LegacyBatchDefinition(
+        datasource_name="my_file_path_datasource",
+        data_connector_name="my_data_connector",
+        data_asset_name="my_filesystem_data_asset",
+        batch_identifiers=IDDict({"year": "2020"}),
+    )
+
+    assert not DataConnectorBase._batch_definition_matches_batch_request(
+        batch_definition, batch_request
+    )

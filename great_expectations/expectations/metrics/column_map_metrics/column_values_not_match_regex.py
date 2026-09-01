@@ -44,8 +44,10 @@ class ColumnValuesNotMatchRegex(ColumnMapMetricProvider):
     def _sqlalchemy(cls, column, regex, _dialect, **kwargs):
         regex_expression = get_dialect_regex_expression(column, regex, _dialect, positive=False)
         if regex_expression is None:
-            logger.warning(f"Regex is not supported for dialect {_dialect!s}")
-            raise NotImplementedError
+            dialect_name = getattr(getattr(_dialect, "dialect", _dialect), "name", str(_dialect))
+            msg = f"Regex is not supported for dialect {dialect_name}"
+            logger.warning(msg)
+            raise NotImplementedError(msg)
 
         return regex_expression
 

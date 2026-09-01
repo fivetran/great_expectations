@@ -1,20 +1,12 @@
-import hashlib
-import math
 import os
 from itertools import product
 
 import pytest
 from moto import mock_glue
 
-from great_expectations.compatibility import sqlalchemy
-from great_expectations.data_context.util import file_relative_path
 from great_expectations.execution_engine.sparkdf_execution_engine import (
     SparkDFExecutionEngine,
 )
-from great_expectations.execution_engine.sqlalchemy_execution_engine import (
-    SqlAlchemyExecutionEngine,
-)
-from great_expectations.self_check.util import get_sqlite_connection_url
 
 
 def create_partitions_for_table(glue_client, database_name: str, table_name: str, partitions: dict):
@@ -110,69 +102,3 @@ def glue_titanic_catalog():
             },
         )
         yield client
-
-
-@pytest.fixture
-def test_cases_for_sql_data_connector_sqlite_connection_url(sa):
-    if sa is None:
-        raise ValueError("SQL Database tests require sqlalchemy to be installed.")
-
-    db_file_path: str = file_relative_path(
-        __file__,
-        os.path.join(  # noqa: PTH118 # FIXME CoP
-            "..", "test_sets", "test_cases_for_sql_data_connector.db"
-        ),
-    )
-
-    return get_sqlite_connection_url(db_file_path)
-
-
-@pytest.fixture
-def test_cases_for_sql_data_connector_sqlite_execution_engine(
-    sa, test_cases_for_sql_data_connector_sqlite_connection_url
-):
-    """Provide a sqlite ExecutionEngine for SQL data connector tests.
-
-    The engine and its underlying connections are explicitly closed after use to avoid
-    leaking sqlite3.Connection objects (which surface as ResourceWarning in CI).
-    """
-    if sa is None:
-        raise ValueError("SQL Database tests require sqlalchemy to be installed.")
-
-    engine: sa.engine.Engine = sa.create_engine(
-        test_cases_for_sql_data_connector_sqlite_connection_url,
-        poolclass=sqlalchemy.StaticPool,
-    )
-    _raw_dbapi_con = engine.raw_connection()
-    try:
-        _raw_dbapi_con.create_function("sqrt", 1, math.sqrt)
-        _raw_dbapi_con.create_function(
-            "md5", 2, lambda x, d: hashlib.md5(str(x).encode("utf-8")).hexdigest()[-1 * d :]
-        )
-    finally:
-        # Ensure the temporary raw DB-API connection is closed to avoid ResourceWarning.
-        try:
-            _raw_dbapi_con.close()
-        except Exception:
-            pass
-
-    # Keep a live connection for static pools, but make sure it is closed on teardown.
-    conn: sa.engine.Connection = engine.connect()
-
-    # Build a SqlAlchemyDataset using that database
-    execution_engine = SqlAlchemyExecutionEngine(
-        name="test_sql_execution_engine",
-        engine=engine,
-    )
-
-    try:
-        yield execution_engine
-    finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
-        try:
-            execution_engine.close()
-        except Exception:
-            pass

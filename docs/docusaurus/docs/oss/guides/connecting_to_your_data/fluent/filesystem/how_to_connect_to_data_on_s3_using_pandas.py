@@ -5,6 +5,8 @@ pytest -v --docs-tests -k "how_to_connect_to_data_on_s3_using_pandas" tests/inte
 ```
 """
 
+import os
+
 import great_expectations as gx
 
 context = gx.get_context()
@@ -16,7 +18,7 @@ bucket_name = "my_bucket"
 boto3_options = {}
 # </snippet>
 
-bucket_name = "great-expectations-docs-test"
+bucket_name = os.environ["GX_S3_TEST_BUCKET"]
 
 # Python
 # <snippet name="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/filesystem/how_to_connect_to_data_on_s3_using_pandas.py create_datasource">
@@ -42,7 +44,7 @@ assert data_asset
 
 assert datasource.get_asset_names() == {"my_taxi_data_asset"}
 
-batch_parameters = {"year": "2019", "month": "03"}
+batch_parameters = {"year": 2019, "month": 3}
 batch = batch_definition.get_batch(batch_parameters=batch_parameters)
 assert set(batch.columns()) == {
     "vendor_id",

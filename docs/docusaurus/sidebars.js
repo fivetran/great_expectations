@@ -41,6 +41,11 @@ module.exports = {
           type: 'doc',
           id: 'core/set_up_a_gx_environment/create_a_data_context',
           label: 'Create a Data Context'
+        },
+        {
+          type: 'doc',
+          id: 'core/set_up_a_gx_environment/install_agent_skills',
+          label: 'Install agent skills'
         }
       ]
     },

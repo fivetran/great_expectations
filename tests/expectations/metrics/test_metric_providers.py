@@ -16,6 +16,11 @@ from great_expectations.execution_engine import (
     SqlAlchemyExecutionEngine,
 )
 from great_expectations.expectations import registry
+from great_expectations.expectations.metrics.column_map_metrics.column_values_unique import (
+    _sqlalchemy_unique_unexpected_index_list,
+    _sqlalchemy_unique_unexpected_index_query,
+    _sqlalchemy_unique_unexpected_rows,
+)
 from great_expectations.expectations.metrics.map_metric_provider import (
     ColumnMapMetricProvider,
     ColumnPairMapMetricProvider,
@@ -204,6 +209,90 @@ def test__column_map_metric__registration(mock_registry):
     ]
     for key in new_keys:
         assert key in mock_registry._registered_metrics
+
+
+def test__map_metric_provider__sqlalchemy_row_retrieval_provider_hooks(
+    mock_registry, caplog: pytest.LogCaptureFixture
+):
+    """MapMetricProvider exposes a per-metric override surface for the three SqlAlchemy
+    row-retrieval providers (unexpected_rows / unexpected_index_list / unexpected_index_query):
+    `sqlalchemy_unexpected_rows_provider`, `sqlalchemy_unexpected_index_list_provider`, and
+    `sqlalchemy_unexpected_index_query_provider`. A subclass overriding these class attributes
+    gets its custom provider registered exactly once -- no super()-then-re-register, no
+    "overwriting metric_provider" warning.
+    """  # FIXME CoP
+
+    def _custom_rows(cls, **kwargs):
+        raise NotImplementedError
+
+    def _custom_index_list(cls, **kwargs):
+        raise NotImplementedError
+
+    def _custom_index_query(cls, **kwargs):
+        raise NotImplementedError
+
+    class CustomColumnValuesEqualEight(ColumnMapMetricProvider):
+        condition_metric_name = "column_values.equal_eight"
+
+        sqlalchemy_unexpected_rows_provider = staticmethod(_custom_rows)
+        sqlalchemy_unexpected_index_list_provider = staticmethod(_custom_index_list)
+        sqlalchemy_unexpected_index_query_provider = staticmethod(_custom_index_query)
+
+        @column_condition_partial(engine=PandasExecutionEngine)
+        def _pandas(cls, column, **kwargs):
+            return column == 8
+
+        @column_condition_partial(engine=SqlAlchemyExecutionEngine)
+        def _sqlalchemy(cls, column, **kwargs):
+            return column.is_(8)
+
+        @column_condition_partial(engine=SparkDFExecutionEngine)
+        def _spark(cls, column, **kwargs):
+            return column.contains(8)
+
+    with caplog.at_level("WARNING"):
+        CustomColumnValuesEqualEight()
+
+    assert "overwriting metric_provider" not in caplog.text
+
+    _, rows_fn = mock_registry.get_sqlalchemy_metric_provider(
+        "column_values.equal_eight.unexpected_rows"
+    )
+    _, index_list_fn = mock_registry.get_sqlalchemy_metric_provider(
+        "column_values.equal_eight.unexpected_index_list"
+    )
+    _, index_query_fn = mock_registry.get_sqlalchemy_metric_provider(
+        "column_values.equal_eight.unexpected_index_query"
+    )
+
+    assert rows_fn is _custom_rows
+    assert index_list_fn is _custom_index_list
+    assert index_query_fn is _custom_index_query
+
+
+def test__column_values_unique__sqlalchemy_row_retrieval_providers_are_narrow(mock_registry):
+    """Regression guard for `column_values.unique`'s SqlAlchemy row-retrieval providers.
+
+    `ColumnValuesUnique` overrides the `MapMetricProvider` row-retrieval provider hooks
+    (`sqlalchemy_unexpected_rows_provider` / `sqlalchemy_unexpected_index_list_provider` /
+    `sqlalchemy_unexpected_index_query_provider`) with narrow, single-scan providers that
+    join a dup-keys subquery back to source instead of dragging every table column
+    through the window sort. This test guards against silently reverting to the generic
+    (wide-row) providers.
+    """  # FIXME CoP
+    _, rows_fn = mock_registry.get_sqlalchemy_metric_provider(
+        "column_values.unique.unexpected_rows"
+    )
+    _, index_list_fn = mock_registry.get_sqlalchemy_metric_provider(
+        "column_values.unique.unexpected_index_list"
+    )
+    _, index_query_fn = mock_registry.get_sqlalchemy_metric_provider(
+        "column_values.unique.unexpected_index_query"
+    )
+
+    assert rows_fn is _sqlalchemy_unique_unexpected_rows
+    assert index_list_fn is _sqlalchemy_unique_unexpected_index_list
+    assert index_query_fn is _sqlalchemy_unique_unexpected_index_query
 
 
 def test__column_pair_map_metric__registration(mock_registry):

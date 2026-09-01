@@ -238,8 +238,10 @@ class PandasDataPartitioner(DataPartitioner):
                 )
             )
         matching_rows = df[column_name].map(
+            # not used for security: this is hash partitioning, not a cryptographic digest.
+            # usedforsecurity=False lets this run on hosts with FIPS-mode OpenSSL.
             lambda x: (
-                hash_method(str(x).encode()).hexdigest()[-1 * hash_digits :]
+                hash_method(str(x).encode(), usedforsecurity=False).hexdigest()[-1 * hash_digits :]
                 == batch_identifiers["hash_value"]
             )
         )

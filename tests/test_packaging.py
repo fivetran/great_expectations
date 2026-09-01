@@ -109,8 +109,9 @@ def test_requirements_files():
         | req_set_dict["requirements-dev-dremio.txt"]
         | req_set_dict["requirements-dev-sql-server.txt"]
         | req_set_dict["requirements-dev-mysql.txt"]
+        | req_set_dict["requirements-dev-oracle.txt"]
         | req_set_dict["requirements-dev-postgresql.txt"]
-        | req_set_dict["requirements-dev-gx-redshift.txt"]
+        | req_set_dict["requirements-dev-redshift.txt"]
         | req_set_dict["requirements-dev-snowflake.txt"]
         | req_set_dict["requirements-dev-teradata.txt"]
         | req_set_dict["requirements-dev-clickhouse.txt"]
@@ -150,7 +151,7 @@ def test_requirements_files():
         | req_set_dict["requirements-dev-mysql.txt"]
         | req_set_dict["requirements-dev-pagerduty.txt"]
         | req_set_dict["requirements-dev-postgresql.txt"]
-        | req_set_dict["requirements-dev-gx-redshift.txt"]
+        | req_set_dict["requirements-dev-redshift.txt"]
         | req_set_dict["requirements-dev-snowflake.txt"]
         | req_set_dict["requirements-dev-teradata.txt"]
         | req_set_dict["requirements-dev-clickhouse.txt"]
@@ -193,7 +194,7 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
     )
 
     # Polish and ratchet this number down as low as possible
-    assert len(sorted_packages_with_pins_or_upper_bounds) == 37
+    assert len(sorted_packages_with_pins_or_upper_bounds) == 35
     assert set(sorted_packages_with_pins_or_upper_bounds) == {
         (
             "requirements-dev-api-docs-test.txt",
@@ -241,7 +242,6 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         ("requirements-dev.txt", "altair", (("<", "7.0.0"), (">=", "5.0.0"))),
         ("requirements-dev.txt", "docstring-parser", (("==", "0.16"),)),
         ("requirements-dev.txt", "invoke", (("==", "3.0.0"),)),
-        ("requirements-dev.txt", "marshmallow", (("<", "4.0.0"), (">=", "3.7.1"))),
         ("requirements-dev.txt", "moto", (("<", "5.0"), (">=", "4.2.13"))),
         ("requirements-dev.txt", "pact-python", (("<", "4"), (">=", "3.1.0"))),
         (
@@ -255,5 +255,23 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         ("requirements-dev.txt", "teradatasqlalchemy", (("==", "17.0.0.5"),)),
         ("requirements-dev.txt", "xlrd", (("<", "2.0.0"), (">=", "1.1.0"))),
         ("requirements.txt", "altair", (("<", "7.0.0"), (">=", "5.0.0"))),
-        ("requirements.txt", "marshmallow", (("<", "4.0.0"), (">=", "3.7.1"))),
     }
+
+
+@pytest.mark.unit
+def test_deprecated_gx_redshift_extra_matches_redshift():
+    """The `gx-redshift` extra is a deprecated alias for `redshift`.
+
+    Its requirements file duplicates `requirements-dev-redshift.txt` rather than
+    referencing it, because the requirements parser in setup.py that builds the
+    extras does not resolve `--requirement` file references. This test is what
+    keeps the duplicate honest, so that installing the deprecated extra keeps
+    producing the same environment as the supported one.
+    """
+    req_files = collect_requirements_files()
+    req_set_dict = parse_requirements_files_to_strings(files=req_files)
+
+    assert (
+        req_set_dict["requirements-dev-gx-redshift.txt"]
+        == req_set_dict["requirements-dev-redshift.txt"]
+    )

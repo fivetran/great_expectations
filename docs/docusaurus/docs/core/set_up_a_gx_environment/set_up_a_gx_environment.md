@@ -48,4 +48,12 @@ import OverviewCard from '@site/src/components/OverviewCard';
     icon="/img/expectation_icon.svg" 
   />
 
+  <LinkCard 
+    topIcon 
+    label="Install agent skills"
+    description="Install the agent skills bundled with GX for use with your coding agent."
+    to="/core/set_up_a_gx_environment/install_agent_skills" 
+    icon="/img/expectation_icon.svg" 
+  />
+
 </LinkCardGrid>

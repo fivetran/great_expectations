@@ -20,10 +20,6 @@ from great_expectations.self_check.util import expectationSuiteValidationResultS
 if TYPE_CHECKING:
     import pytest_mock
 
-    from great_expectations.core.expectation_validation_result import (
-        ExpectationSuiteValidationResult,
-    )
-
 
 @pytest.fixture(scope="module")
 def empty_data_context_module_scoped(tmp_path_factory) -> FileDataContext:

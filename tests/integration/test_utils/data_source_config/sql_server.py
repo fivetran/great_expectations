@@ -12,11 +12,17 @@ from great_expectations.datasource.fluent.sql_server_datasource import (
     SQLServerAuthConnectionDetails,
 )
 from tests.integration.sql_session_manager import ConnectionDetails, SessionSQLEngineManager
-from tests.integration.test_utils.data_source_config.base import (
-    BatchTestSetup,
-    DataSourceTestConfig,
+from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
+from tests.integration.test_utils.data_source_config.base import BatchTestSetup
+from tests.integration.test_utils.data_source_config.data_source_spec import (
+    CiLaneRef,
+    DataSourceProvisioning,
+    ExecutionEngineKind,
+    SupportTier,
 )
+from tests.integration.test_utils.data_source_config.registry import register_sql_config
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
+from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 from tests.test_utils import (
     SQL_SERVER_DATABASE,
     SQL_SERVER_DRIVER,
@@ -31,16 +37,22 @@ from tests.test_utils import (
 logger = logging.getLogger(__name__)
 
 
-class SQLServerDatasourceTestConfig(DataSourceTestConfig):
-    @property
-    @override
-    def label(self) -> str:
-        return "mssql"
-
-    @property
-    @override
-    def pytest_mark(self) -> pytest.MarkDecorator:
-        return pytest.mark.sql_server
+@register_sql_config
+class SQLServerDatasourceTestConfig(SqlDatasourceTestConfig):
+    DATA_SOURCE_SPEC = SqlBackendSpec(
+        label="mssql",
+        public_name="SQL Server",
+        marker="sql_server",
+        provisioning=DataSourceProvisioning.LOCAL_CONTAINER,
+        execution_engine=ExecutionEngineKind.SQL,
+        fluent_types=frozenset({"sql_server"}),
+        ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="sql_server"),
+        uses_schema=True,
+        tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
+        dev_requirements_file="reqs/requirements-dev-sql-server.txt",
+        task_runner_marker="sql_server",
+        container_service="mssql",
+    )
 
     @override
     def create_batch_setup(
@@ -81,11 +93,6 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
         # that block DDL (CREATE/DROP SCHEMA, CREATE/DROP TABLE)
         url = self._connection_details(schema).build_connection_string()
         return f"{url}&autocommit=true"
-
-    @property
-    @override
-    def use_schema(self) -> bool:
-        return True
 
     @override
     def make_asset(self) -> TableAsset:

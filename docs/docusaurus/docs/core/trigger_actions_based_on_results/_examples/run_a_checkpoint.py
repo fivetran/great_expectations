@@ -77,7 +77,7 @@ set_up_context_for_example(context)
 
 checkpoint = context.checkpoints.get("my_checkpoint")
 
-batch_parameters = {"month": "01", "year": "2019"}
+batch_parameters = {"month": 1, "year": 2019}
 
 # <snippet name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/run_a_checkpoint.py - define Expectation Parameters">
 expectation_parameters = {

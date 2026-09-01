@@ -1,0 +1,157 @@
+---
+# Checks that a pull request whose diff looks like it crosses the RFC threshold carries
+# either a link to an accepted RFC or an explicit statement that none is needed.
+#
+# The RFC threshold itself is documented in CONTRIBUTING.md ("Requesting comment on larger
+# changes"); this workflow only enforces that the question was answered, never what the answer
+# is. A contributor or reviewer who judges that no RFC applies says so in one line and moves on.
+#
+# Title prefixes are deliberately *not* checked here — pr-title-checker.yml owns that, and a
+# second check with its own copy of the prefix list would drift from it.
+#
+# Runs on `pull_request_target` deliberately: it reads pull-request metadata through the API and
+# never checks out or executes code from the pull request, so it is safe to run on fork pull
+# requests. That trigger is what lets a contributor get this feedback the moment they open the
+# pull request, rather than waiting for a maintainer to approve a CI run.
+
+name: PR Hygiene
+
+on:
+  pull_request_target:
+    types: [opened, edited, reopened, synchronize, ready_for_review]
+
+# The guiding comment is posted at most once per pull request, and that "once" is enforced by
+# reading the existing comments and then writing — not atomic. Serializing per pull request
+# keeps two overlapping runs (a push and a description edit seconds apart, say) from both
+# observing no marker and both commenting.
+concurrency:
+  group: pr-hygiene-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  pr-hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check RFC disclosure
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // ---------------------------------------------------------------
+            // RFC threshold
+            // ---------------------------------------------------------------
+            // High-precision signals that a change adds support for a new data source or
+            // execution engine. Each is an *added* file — modifying an existing datasource or
+            // compatibility module is ordinary work and deliberately doesn't trip this.
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner, repo, pull_number: pr.number, per_page: 100,
+            });
+
+            const SIGNALS = [
+              {
+                test: (f) => /^great_expectations\/compatibility\/[a-z0-9_]+\.py$/.test(f),
+                describe: 'a new compatibility module (a new optional third-party dependency)',
+              },
+              {
+                test: (f) => /^great_expectations\/datasource\/fluent\/[a-z0-9_]+_datasource\.py$/.test(f),
+                describe: 'a new fluent datasource',
+              },
+              {
+                test: (f) => /^reqs\/requirements-dev-[a-z0-9-]+\.txt$/.test(f),
+                describe: 'a new backend requirements file',
+              },
+            ];
+
+            const tripped = [];
+            for (const file of files) {
+              if (file.status !== 'added') continue;
+              for (const signal of SIGNALS) {
+                if (signal.test(file.filename)) {
+                  tripped.push(`${file.filename} — ${signal.describe}`);
+                }
+              }
+            }
+
+            // Accept the declaration however Markdown dresses it: as a list item, inside a
+            // blockquote, wrapped in emphasis or code ticks. The guiding comment below presents
+            // both forms as bullets, so a contributor who pastes one verbatim must match — a
+            // check that rejects the fix it just asked for is worse than no check.
+            const DECLARED = [
+              /^\s*>?\s*(?:[-*+]|\d+[.)])?\s*[`*_]*RFC[`*_]*\s*:/im,
+              /^\s*>?\s*(?:[-*+]|\d+[.)])?\s*[`*_]*No RFC needed[`*_]*\s*:/im,
+            ];
+
+            let rfcFailed = false;
+            const failures = [];
+            if (tripped.length > 0) {
+              // Strip HTML comments before scanning: the pull-request template's own guidance
+              // lives in a comment and contains the literal token we're looking for, so scanning
+              // the raw body would pass every unedited template.
+              const body = (pr.body || '').replace(/<!--[\s\S]*?-->/g, '');
+              const declared = DECLARED.some((re) => re.test(body));
+
+              if (!declared) {
+                rfcFailed = true;
+                failures.push(
+                  'This change looks like it may cross the RFC threshold, but the description ' +
+                  "doesn't say whether an RFC applies.\n" +
+                  tripped.map((t) => `  - ${t}`).join('\n')
+                );
+              }
+            }
+
+            // ---------------------------------------------------------------
+            // Report
+            // ---------------------------------------------------------------
+            // The failure gets a comment as well as an annotation: it needs explanation a check
+            // annotation can't carry, and it fires rarely.
+            if (rfcFailed) {
+              const MARKER = '<!-- pr-hygiene:rfc-threshold -->';
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner, repo, issue_number: pr.number, per_page: 100,
+              });
+
+              if (!comments.some((c) => c.body && c.body.includes(MARKER))) {
+                const body = [
+                  `Thanks for the pull request, @${pr.user.login}! 👋`,
+                  '',
+                  'This change touches files that usually mean new data source or execution engine ' +
+                    'support:',
+                  '',
+                  ...tripped.map((t) => `- \`${t}\``),
+                  '',
+                  'Changes like that need an [RFC]' +
+                    '(https://github.com/fivetran/great_expectations/blob/develop/CONTRIBUTING.md#requesting-comment-on-larger-changes) ' +
+                    'agreed before implementation, so the design discussion happens before you invest ' +
+                    'in code. Sorry if this arrives after the fact — the check is here so the next ' +
+                    'contributor finds out at the right moment.',
+                  '',
+                  '**To resolve this check**, add one of these lines to the pull-request description:',
+                  '',
+                  '- `RFC: <link to the accepted discussion>` — if an RFC exists or you open one now',
+                  '- `No RFC needed: <reason>` — if this isn\'t actually new backend support ' +
+                    '(for example, a bug fix that happens to touch these paths)',
+                  '',
+                  'Either answer satisfies the check. A maintainer will pick it up from there.',
+                  '',
+                  MARKER,
+                ].join('\n');
+
+                await github.rest.issues.createComment({
+                  owner, repo, issue_number: pr.number, body,
+                });
+              }
+            }
+
+            if (failures.length > 0) {
+              core.setFailed(failures.join('\n\n'));
+            } else {
+              core.info('Pull-request hygiene checks passed.');
+            }

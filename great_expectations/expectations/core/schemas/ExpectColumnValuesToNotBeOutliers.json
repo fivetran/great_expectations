@@ -1,0 +1,482 @@
+{
+    "title": "Expect column values to not be outliers",
+    "description": "Expect numeric column values to not be statistical outliers.\n\nThe two methods draw the window of acceptable values differently. The \"iqr\" method\nuses Tukey's fences: with `Q1` and `Q3` the first and third quartiles and\n`IQR = Q3 - Q1`, a value is an outlier when it falls below `Q1 - multiplier * IQR` or\nabove `Q3 + multiplier * IQR`. Each side is tested against its own quartile, so on\nskewed data the window reaches further out on the longer tail, and a value sitting\nexactly on a fence is not an outlier. The \"std\" method measures symmetrically around\nthe mean instead: a value is an outlier when\n`|value - mean| >= multiplier * standard_deviation`. Null values are excluded from\nboth the aggregate statistics and row-level evaluation.\n\nA column with no dispersion is a special case. Under \"iqr\", a zero multiplier - or a\nzero interquartile range - collapses the fences onto the quartiles themselves, leaving\nthe closed interval from `Q1` to `Q3`, so a constant column reports no outliers. Under\n\"std\", a threshold of zero admits only values equal to the mean, so a constant column\nagain reports none. When the batch cannot produce the statistics at all, as for an\nempty column or for a single value under a sample standard deviation, there is nothing\nto measure against and no value is reported as an outlier.\n\nExpectColumnValuesToNotBeOutliers is a Column Map Expectation.\n\nColumn Map Expectations are evaluated for a single column and ask a yes/no question for\nevery non-null row. The percentage of rows that satisfy the condition is compared with\nthe configured `mostly` value.\n\nArgs:\n    column (str):             The column name.\n\nKeyword Args:\n    method (str):             The outlier detection method: \"iqr\" uses the quartiles and the interquartile range, as Tukey's fences do; \"std\" uses the mean and sample standard deviation. Default \"iqr\".\n    multiplier (float):             The threshold multiplier applied to the selected spread statistic. Default 1.5.\n\nOther Parameters:\n    mostly (None or a float between 0 and 1):             Successful if at least `mostly` fraction of values match the Expectation.             For more detail, see [mostly](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#mostly). Default 1.\n    result_format (str or None):             Which output mode to use: BOOLEAN_ONLY, BASIC, COMPLETE, or SUMMARY.             For more detail, see [result_format](https://docs.greatexpectations.io/docs/reference/expectations/result_format).\n    catch_exceptions (boolean or None):             If True, catch exceptions and include them in the result.\n    meta (dict or None):             A JSON-serializable dictionary included in the result without modification.\n    severity (str or None):             The impact of this Expectation failing: critical, warning, or info. Defaults to critical if not set. Severity levels can be used to trigger different alerting patterns and actions.\n\nReturns:\n    An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)\n\nSupported Data Sources:\n    [Pandas](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [Spark](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [SQLite](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [PostgreSQL](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [Amazon Aurora PostgreSQL](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [Citus](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [AlloyDB](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [Neon](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [MySQL](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [SQL Server](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [BigQuery](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [Snowflake](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [Databricks (SQL)](https://docs.greatexpectations.io/docs/application_integration_support/)\n    [Redshift](https://docs.greatexpectations.io/docs/application_integration_support/)\n\nData Quality Issues:\n    Numeric\n\nExample Data:\n            amount\n        0   10\n        1   11\n        2   12\n        3   13\n        4   100\n\nCode Examples:\n    Passing Case:\n        Input:\n            ExpectColumnValuesToNotBeOutliers(\n                column=\"amount\",\n                method=\"std\",\n                multiplier=3.0,\n            )\n\n        Output:\n            {\n              \"exception_info\": {\n                \"raised_exception\": false,\n                \"exception_traceback\": null,\n                \"exception_message\": null\n              },\n              \"result\": {\n                \"element_count\": 5,\n                \"unexpected_count\": 0,\n                \"unexpected_percent\": 0.0,\n                \"partial_unexpected_list\": [],\n                \"missing_count\": 0,\n                \"missing_percent\": 0.0,\n                \"unexpected_percent_total\": 0.0,\n                \"unexpected_percent_nonmissing\": 0.0\n              },\n              \"meta\": {},\n              \"success\": true\n            }\n\n    Failing Case:\n        Input:\n            ExpectColumnValuesToNotBeOutliers(\n                column=\"amount\",\n                method=\"iqr\",\n                multiplier=1.5,\n            )\n\n        Output:\n            {\n              \"exception_info\": {\n                \"raised_exception\": false,\n                \"exception_traceback\": null,\n                \"exception_message\": null\n              },\n              \"result\": {\n                \"element_count\": 5,\n                \"unexpected_count\": 1,\n                \"unexpected_percent\": 20.0,\n                \"partial_unexpected_list\": [\n                  100\n                ],\n                \"missing_count\": 0,\n                \"missing_percent\": 0.0,\n                \"unexpected_percent_total\": 20.0,\n                \"unexpected_percent_nonmissing\": 20.0\n              },\n              \"meta\": {},\n              \"success\": false\n            }",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "Id",
+            "type": "string"
+        },
+        "meta": {
+            "title": "Meta",
+            "type": "object"
+        },
+        "notes": {
+            "title": "Notes",
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "result_format": {
+            "title": "Result Format",
+            "default": "BASIC",
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/ResultFormat"
+                },
+                {
+                    "type": "object"
+                }
+            ]
+        },
+        "description": {
+            "title": "Description",
+            "description": "A short description of your Expectation",
+            "type": "string"
+        },
+        "catch_exceptions": {
+            "title": "Catch Exceptions",
+            "default": true,
+            "type": "boolean"
+        },
+        "rendered_content": {
+            "title": "Rendered Content",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
+        "severity": {
+            "description": "Indicate the impact of this Expectation failing. Severity levels can be used to trigger different alerting patterns and actions.",
+            "default": "critical",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/FailureSeverity"
+                }
+            ]
+        },
+        "windows": {
+            "title": "Windows",
+            "description": "Definition(s) for evaluation of temporal windows",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Window"
+            }
+        },
+        "batch_id": {
+            "title": "Batch Id",
+            "type": "string"
+        },
+        "column": {
+            "title": "Column",
+            "description": "The column name.",
+            "minLength": 1,
+            "type": "string"
+        },
+        "mostly": {
+            "title": "Mostly",
+            "description": "Successful if at least `mostly` fraction of values match the Expectation.",
+            "default": 1,
+            "anyOf": [
+                {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0
+                },
+                {
+                    "type": "object"
+                }
+            ],
+            "multipleOf": 0.01
+        },
+        "row_condition": {
+            "title": "Row Condition",
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "$ref": "#/definitions/ComparisonCondition"
+                },
+                {
+                    "$ref": "#/definitions/NullityCondition"
+                },
+                {
+                    "$ref": "#/definitions/AndCondition"
+                },
+                {
+                    "$ref": "#/definitions/OrCondition"
+                },
+                {
+                    "$ref": "#/definitions/PassThroughCondition"
+                }
+            ]
+        },
+        "condition_parser": {
+            "title": "Condition Parser",
+            "enum": [
+                "great_expectations",
+                "great_expectations__experimental__",
+                "pandas",
+                "spark"
+            ],
+            "type": "string"
+        },
+        "method": {
+            "title": "Method",
+            "description": "The outlier detection method: \"iqr\" uses the quartiles and the interquartile range, as Tukey's fences do; \"std\" uses the mean and sample standard deviation.",
+            "default": "iqr",
+            "anyOf": [
+                {
+                    "enum": [
+                        "iqr",
+                        "std"
+                    ],
+                    "type": "string"
+                },
+                {
+                    "type": "object"
+                }
+            ]
+        },
+        "multiplier": {
+            "title": "Multiplier",
+            "description": "The threshold multiplier applied to the selected spread statistic.",
+            "default": 1.5,
+            "anyOf": [
+                {
+                    "type": "number",
+                    "minimum": 0
+                },
+                {
+                    "type": "object"
+                }
+            ]
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "expectation_class": {
+                    "title": "Expectation Class",
+                    "type": "string",
+                    "const": "ExpectColumnValuesToNotBeOutliers"
+                },
+                "expectation_type": {
+                    "title": "Expectation Type",
+                    "type": "string",
+                    "const": "expect_column_values_to_not_be_outliers"
+                },
+                "domain_type": {
+                    "title": "Domain Type",
+                    "type": "string",
+                    "const": "column",
+                    "description": "Column Map"
+                },
+                "data_quality_issues": {
+                    "title": "Data Quality Issues",
+                    "type": "array",
+                    "const": [
+                        "Numeric"
+                    ]
+                },
+                "library_metadata": {
+                    "title": "Library Metadata",
+                    "type": "object",
+                    "const": {
+                        "maturity": "production",
+                        "tags": [
+                            "core expectation",
+                            "column map expectation",
+                            "outlier detection"
+                        ],
+                        "contributors": [
+                            "@chavalasantosh",
+                            "@rexboyce",
+                            "@lodeous",
+                            "@bragleg"
+                        ],
+                        "requirements": [],
+                        "has_full_test_suite": true,
+                        "manually_reviewed_code": true
+                    }
+                },
+                "short_description": {
+                    "title": "Short Description",
+                    "type": "string",
+                    "const": "Expect numeric column values to not be statistical outliers."
+                },
+                "supported_data_sources": {
+                    "title": "Supported Data Sources",
+                    "type": "array",
+                    "const": [
+                        "Pandas",
+                        "Spark",
+                        "SQLite",
+                        "PostgreSQL",
+                        "Amazon Aurora PostgreSQL",
+                        "Citus",
+                        "AlloyDB",
+                        "Neon",
+                        "MySQL",
+                        "SQL Server",
+                        "BigQuery",
+                        "Snowflake",
+                        "Databricks (SQL)",
+                        "Redshift"
+                    ]
+                }
+            }
+        }
+    },
+    "required": [
+        "column"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "ResultFormat": {
+            "title": "ResultFormat",
+            "description": "An enumeration.",
+            "enum": [
+                "BOOLEAN_ONLY",
+                "BASIC",
+                "COMPLETE",
+                "SUMMARY"
+            ],
+            "type": "string"
+        },
+        "FailureSeverity": {
+            "title": "FailureSeverity",
+            "description": "Severity levels for Expectation failures.",
+            "enum": [
+                "critical",
+                "warning",
+                "info"
+            ],
+            "type": "string"
+        },
+        "Offset": {
+            "title": "Offset",
+            "description": "A threshold in which a metric will be considered passable",
+            "type": "object",
+            "properties": {
+                "positive": {
+                    "title": "Positive",
+                    "type": "number"
+                },
+                "negative": {
+                    "title": "Negative",
+                    "type": "number"
+                }
+            },
+            "required": [
+                "positive",
+                "negative"
+            ],
+            "additionalProperties": false
+        },
+        "Window": {
+            "title": "Window",
+            "description": "A definition for a temporal window across <`range`> number of previous invocations",
+            "type": "object",
+            "properties": {
+                "constraint_fn": {
+                    "title": "Constraint Fn",
+                    "type": "string"
+                },
+                "parameter_name": {
+                    "title": "Parameter Name",
+                    "type": "string"
+                },
+                "range": {
+                    "title": "Range",
+                    "type": "integer"
+                },
+                "offset": {
+                    "$ref": "#/definitions/Offset"
+                },
+                "strict": {
+                    "title": "Strict",
+                    "default": false,
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "constraint_fn",
+                "parameter_name",
+                "range",
+                "offset"
+            ],
+            "additionalProperties": false
+        },
+        "Column": {
+            "title": "Column",
+            "description": "--Public API--\nSpecify the column in a condition statement.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ]
+        },
+        "Operator": {
+            "title": "Operator",
+            "description": "An enumeration.",
+            "enum": [
+                "==",
+                "!=",
+                "<",
+                "<=",
+                ">",
+                ">=",
+                "IN",
+                "NOT_IN"
+            ],
+            "type": "string"
+        },
+        "ComparisonCondition": {
+            "title": "ComparisonCondition",
+            "description": "--Public API--Condition representing the comparison of a column with a parameter.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "comparison",
+                    "enum": [
+                        "comparison"
+                    ],
+                    "type": "string"
+                },
+                "column": {
+                    "$ref": "#/definitions/Column"
+                },
+                "operator": {
+                    "$ref": "#/definitions/Operator"
+                },
+                "parameter": {
+                    "title": "Parameter"
+                }
+            },
+            "required": [
+                "column",
+                "operator",
+                "parameter"
+            ]
+        },
+        "NullityCondition": {
+            "title": "NullityCondition",
+            "description": "--Public API--Condition representing the whether or not a column is null.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "nullity",
+                    "enum": [
+                        "nullity"
+                    ],
+                    "type": "string"
+                },
+                "column": {
+                    "$ref": "#/definitions/Column"
+                },
+                "is_null": {
+                    "title": "Is Null",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "column",
+                "is_null"
+            ]
+        },
+        "Condition": {
+            "title": "Condition",
+            "description": "Base class for conditions.",
+            "type": "object",
+            "properties": {}
+        },
+        "AndCondition": {
+            "title": "AndCondition",
+            "description": "--Public API--Represents an AND condition composed of multiple conditions.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "and",
+                    "enum": [
+                        "and"
+                    ],
+                    "type": "string"
+                },
+                "conditions": {
+                    "title": "Conditions",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Condition"
+                    }
+                }
+            },
+            "required": [
+                "conditions"
+            ]
+        },
+        "OrCondition": {
+            "title": "OrCondition",
+            "description": "--Public API--Represents an OR condition composed of multiple conditions.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "or",
+                    "enum": [
+                        "or"
+                    ],
+                    "type": "string"
+                },
+                "conditions": {
+                    "title": "Conditions",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Condition"
+                    }
+                }
+            },
+            "required": [
+                "conditions"
+            ]
+        },
+        "PassThroughCondition": {
+            "title": "PassThroughCondition",
+            "description": "Condition that passes a filter string directly to the execution engine.\n\nThis is used for legacy pandas/spark condition_parser syntax where the\nrow_condition string is passed directly to DataFrame.query() or DataFrame.filter().",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "pass_through",
+                    "enum": [
+                        "pass_through"
+                    ],
+                    "type": "string"
+                },
+                "pass_through_filter": {
+                    "title": "Pass Through Filter",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "pass_through_filter"
+            ]
+        }
+    }
+}

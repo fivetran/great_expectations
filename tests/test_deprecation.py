@@ -1,3 +1,4 @@
+import ast
 import glob
 import re
 from typing import List, Pattern, Tuple
@@ -36,6 +37,66 @@ def files_with_deprecation_warnings() -> List[str]:
     return files
 
 
+def _deprecation_emission_count(source: str) -> int:
+    """Number of calls in `source` that raise a deprecation warning.
+
+    Counts emissions rather than mentions of the name. A deprecation category that
+    lives in this package has to be imported before it can be raised and may be
+    named in a docstring or in the class definition itself, none of which is an
+    emission a marker should be paired with. Matching on the call is also not
+    sensitive to how the import happens to be formatted.
+    """
+    if "DeprecationWarning" not in source:
+        # No emission can name a category the source never mentions. Without this the
+        # parse runs over every file in the package rather than the dozen that carry a
+        # deprecation, which costs enough to overrun the per-test timeout.
+        return 0
+    count = 0
+    for node in ast.walk(ast.parse(source)):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        func_name = func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", None)
+        if func_name not in ("warn", "warn_explicit"):
+            continue
+        for arg in [*node.args, *(keyword.value for keyword in node.keywords)]:
+            category = arg.attr if isinstance(arg, ast.Attribute) else getattr(arg, "id", None)
+            if category and category.endswith("DeprecationWarning"):
+                count += 1
+                break
+    return count
+
+
+SOURCE_WITH_TWO_EMISSIONS = '''
+import warnings
+from great_expectations.warnings import (
+    GxDeprecationWarning,
+    something_else,
+)
+
+
+class GxDeprecationWarning(UserWarning):
+    """A DeprecationWarning raised by this package."""
+
+
+def emits():
+    warnings.warn("gone soon", GxDeprecationWarning)
+    warnings.warn("gone soon", category=DeprecationWarning)
+    warnings.warn("not a deprecation", UserWarning)
+'''
+
+
+@pytest.mark.unit
+def test_deprecation_emission_count_follows_calls_not_mentions() -> None:
+    """The count must follow the emitting call, not the spelling around it.
+
+    Each non-emission above has at some point been counted as one by a text match,
+    every one of them demanding a spurious marker: an import (in any formatting
+    ruff may produce), a docstring, and the category's own class definition.
+    """
+    assert _deprecation_emission_count(SOURCE_WITH_TWO_EMISSIONS) == 2
+
+
 @pytest.mark.unit
 def test_deprecation_warnings_are_accompanied_by_appropriate_comment(
     regex_for_deprecation_comments: Pattern,
@@ -54,7 +115,7 @@ def test_deprecation_warnings_are_accompanied_by_appropriate_comment(
             contents = f.read()
 
         matches: List[str] = regex_for_deprecation_comments.findall(contents)
-        warning_count: int = contents.count("DeprecationWarning")
+        warning_count: int = _deprecation_emission_count(contents)
         assert len(matches) == warning_count, (
             "Either a 'deprecated-v...' comment or "
             f"'DeprecationWarning' call is missing from {file}"

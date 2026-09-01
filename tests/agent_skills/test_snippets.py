@@ -1,0 +1,2846 @@
+"""Execution tests for the code in the agent skills bundled with ``great_expectations``.
+
+The skills teach an agent how to drive this library, and every instruction they give is
+carried by a code snippet. Markdown is not compiled, imported or linted by anything, so
+a snippet that stopped working would keep being handed to users indefinitely. Three
+contracts are checked here, each of which fails silently without a test:
+
+1.  **Every fenced Python block parses.** A block is dedented first -- some are nested
+    inside list items -- so the check covers the source as an agent would copy it.
+2.  **The blocks tagged ``executable`` on their fence really do run, in order, as one
+    program.** They are executed against a throwaway in-memory session backed by a local
+    SQLite database and an in-memory dataframe, and the run has to reach the end states
+    the skills promise: a batch definition proven by reading data through it, a
+    validation result carrying one entry per expectation, and a written-out project
+    directory that a *fresh* file-backed context opens with its batch definitions and
+    suites usable as they are.
+3.  **The failure behavior the guidance is built on still behaves that way.** The skills
+    tell an agent that retrieving a batch proves nothing, that a false ``success`` means
+    two different things, and that empty tables and all-null columns produce ordinary
+    results rather than errors. Each of those claims is pinned below against real
+    execution, so a change in library behavior fails here -- next to a message naming
+    the document whose text has to be updated -- instead of quietly turning the shipped
+    guidance into misinformation.
+
+Nothing here reaches the network. Everything runs against a local SQLite file and an
+in-memory dataframe, because a check that needs a warehouse is a check that never runs.
+
+The tagging mechanism is the fence itself: ``` ```python executable ``` marks a block as
+part of the runnable sequence, which keeps the tag attached to the block it describes
+instead of in a list somewhere that content edits can silently invalidate. The order the
+tagged blocks run in is ``EXECUTABLE_SEQUENCE``, and its per-document counts are
+asserted against the content so a tag that is added, moved or dropped fails loudly
+rather than quietly leaving a block unexecuted.
+"""
+
+from __future__ import annotations
+
+import ast
+import dataclasses
+import json
+import pathlib
+import re
+import sqlite3
+import subprocess
+import sys
+import textwrap
+import warnings
+from typing import TYPE_CHECKING, Any, Callable, Final, Iterator
+
+import pandas as pd
+import pytest
+
+import great_expectations as gx
+from great_expectations.checkpoint import Checkpoint
+from great_expectations.checkpoint.actions import UpdateDataDocsAction
+from great_expectations.core import ExpectationSuite, ValidationDefinition
+from great_expectations.data_context import EphemeralDataContext, FileDataContext
+from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.exceptions import ResourceFreshnessAggregateError
+from great_expectations.exceptions.exceptions import NoAvailableBatchesError
+from great_expectations.warnings import GxDeprecationWarning
+from tests.agent_skills.test_skill_content import CONSENT_GATES, ConsentGate
+
+if TYPE_CHECKING:
+    from great_expectations.core.expectation_validation_result import (
+        ExpectationSuiteValidationResult,
+        ExpectationValidationResult,
+    )
+    from great_expectations.data_context.store.store import DataDocsSiteConfigTypedDict
+    from great_expectations.datasource.fluent.sqlite_datasource import SqliteDatasource
+    from great_expectations.expectations.expectation_configuration import (
+        ExpectationConfiguration,
+    )
+
+PROJECT_ROOT: Final = pathlib.Path(__file__).parents[2]
+SKILLS_ROOT: Final = PROJECT_ROOT / "great_expectations" / ".agents" / "skills"
+
+ENTRY_DOCUMENT: Final = "SKILL.md"
+REFERENCE_DIR: Final = "references"
+CANONICAL_SKILL: Final = "gx-configure-data-source"
+SHARED_REFERENCES: Final = ("preflight.md", "write-out.md", "robustness.md")
+
+#: The checkpoint skill's own entry document and reference, used by the checkpoint-flow
+#: tests below. Not part of ``EXECUTABLE_SEQUENCE`` -- unlike the data-source and
+#: expectations skills, none of the checkpoint entry document's Python blocks carry the
+#: ``executable`` fence tag, so its snippets are located and exec'd individually, the same
+#: way the data-source skill's fetch-first snippet is exercised above.
+CHECKPOINT_SKILL: Final = "gx-configure-checkpoint"
+CHECKPOINT_ENTRY_DOCUMENT: Final = SKILLS_ROOT / CHECKPOINT_SKILL / ENTRY_DOCUMENT
+CHECKPOINT_ACTION_CATALOG: Final = (
+    SKILLS_ROOT / CHECKPOINT_SKILL / REFERENCE_DIR / "action-catalog.md"
+)
+CHECKPOINT_RUN_AND_SCHEDULE: Final = (
+    SKILLS_ROOT / CHECKPOINT_SKILL / REFERENCE_DIR / "run-and-schedule.md"
+)
+#: The checkpoint skill's own copy of the shared write-out reference -- byte-identical to
+#: the canonical copy under ``gx-configure-data-source``, asserted elsewhere. Sourced from
+#: here (rather than the canonical path) because the tests below are about the checkpoint
+#: flow specifically.
+CHECKPOINT_WRITE_OUT: Final = SKILLS_ROOT / CHECKPOINT_SKILL / REFERENCE_DIR / "write-out.md"
+
+#: The names the checkpoint entry document's bind/group snippets hardcode -- reusing them
+#: lets the real snippets run unmodified against a fixture built to match.
+VALIDATION_DEFINITION_NAME: Final = "orders_quality_check"
+CHECKPOINT_NAME: Final = "orders_checkpoint"
+
+#: The placeholder the null-sites recovery snippet in ``action-catalog.md`` carries for the
+#: project root -- distinct from ``CONFIRMED_PATH_PLACEHOLDER``, which belongs to the
+#: write-out procedure, because the two snippets are offered at different points in the
+#: flow and each documents its own placeholder text.
+PROJECT_ROOT_PLACEHOLDER: Final = "<the project root established at preflight>"
+
+FENCE: Final = "```"
+PYTHON: Final = "python"
+EXECUTABLE_TAG: Final = "executable"
+
+#: Guards every parametrized compile check against a discovery bug reducing it to zero
+#: cases. The content holds comfortably more than this; the number is a floor, not a
+#: count, so ordinary editing does not have to keep it in step.
+MIN_PYTHON_BLOCKS: Final = 40
+
+#: The documents whose ``executable`` blocks make up the runnable sequence, in the order
+#: they run, with the number of tagged blocks each one must contribute. Shared
+#: references are listed under the skill that owns the canonical copy; the byte-identical
+#: copy in the other skill is the same content and is not run twice.
+EXECUTABLE_SEQUENCE: Final[tuple[tuple[str, int], ...]] = (
+    (f"{CANONICAL_SKILL}/{REFERENCE_DIR}/preflight.md", 3),
+    (f"{CANONICAL_SKILL}/{ENTRY_DOCUMENT}", 3),
+    (f"{CANONICAL_SKILL}/{REFERENCE_DIR}/robustness.md", 1),
+    (f"gx-configure-expectations/{ENTRY_DOCUMENT}", 5),
+    (f"{CANONICAL_SKILL}/{REFERENCE_DIR}/write-out.md", 2),
+)
+
+#: Values the content deliberately leaves for the user to supply, spelled in angle
+#: brackets so they are unmistakably placeholders. The runner fills them in and then
+#: asserts it actually did, so a snippet that stopped carrying its placeholder cannot
+#: leave the substitution silently doing nothing.
+CONFIRMED_PATH_PLACEHOLDER: Final = "<confirmed_path>"
+
+#: Environment left over from another project or from the retired managed cloud offering
+#: changes what context discovery returns. The runnable sequence starts by discovering a
+#: context, so the ambient environment has to be neutral for the run to mean anything.
+AMBIENT_ENVIRONMENT: Final = (
+    "GX_HOME",
+    "GX_CLOUD_ACCESS_TOKEN",
+    "GX_CLOUD_ORGANIZATION_ID",
+    "GX_CLOUD_BASE_URL",
+)
+
+#: The table the runnable sequence configures, and the rows the skills' own worked
+#: example describes: four rows, one missing customer, one negative amount, all inside a
+#: single month so a monthly batch definition selects all of them.
+ORDERS_ROWS: Final = (
+    ("alice", 10.0, "2024-03-01"),
+    (None, 20.0, "2024-03-05"),
+    ("carol", -5.0, "2024-03-09"),
+    ("dan", 40.0, "2024-03-20"),
+)
+ORDERS_COLUMNS: Final = ("customer", "amount", "ordered_at")
+NULL_ROW_COUNT: Final = 3
+
+MISSING_TABLE: Final = "does_not_exist"
+
+#: The ceiling the guidance's own error-extraction snippet applies to a recovered cause,
+#: plus the suffix it appends when it truncates.
+CAUSE_CEILING: Final = 500
+TRUNCATION_SUFFIX: Final = "... (truncated)"
+
+#: Text unique to the write-out procedure snippet, used to locate it after it ran.
+WRITE_OUT_STEPS_NEEDLE: Final = "for label, step in steps:"
+
+#: A ``get_context`` call and its arguments. Snippets keep their calls on one logical
+#: line, and no argument the skills pass contains a nested call, so stopping at the first
+#: closing parenthesis reads the whole argument list.
+GET_CONTEXT_CALL: Final = re.compile(r"get_context\((?P<arguments>[^)]*)\)", re.DOTALL)
+
+#: The argument that turns ``get_context`` into a call that *creates* a project.
+FILE_MODE_ARGUMENT: Final = 'mode="file"'
+PROJECT_ROOT_ARGUMENT: Final = "project_root_dir"
+
+#: A directory the user is meant to supply, spelled in angle brackets inside the string
+#: so that a snippet carrying one cannot be copied and run as it stands.
+PLACEHOLDER_DIRECTORY: Final = re.compile(r"""["']<[^>'"]+>["']""")
+
+
+@dataclasses.dataclass(frozen=True)
+class CodeBlock:
+    """One fenced block, with the fence's info string split into language and tags."""
+
+    document: pathlib.Path
+    line: int
+    info: str
+    source: str
+
+    @property
+    def language(self) -> str:
+        parts = self.info.split()
+        return parts[0] if parts else ""
+
+    @property
+    def tags(self) -> frozenset[str]:
+        return frozenset(self.info.split()[1:])
+
+    @property
+    def identifier(self) -> str:
+        """A stable ``<skill>/<document>:<line>`` label, used as the compiled filename."""
+        try:
+            name = self.document.relative_to(SKILLS_ROOT).as_posix()
+        except ValueError:  # a document built by a test rather than shipped content
+            name = self.document.name
+        return f"{name}:{self.line}"
+
+
+def iter_code_blocks(document: pathlib.Path) -> list[CodeBlock]:
+    """Return every fenced block in a markdown document, dedented.
+
+    Blocks nested inside a list item are indented in the source; an agent copying one
+    out reads it without that indentation, so it is removed before the source is
+    compiled or executed. Without the dedent every indented block would fail to parse.
+    """
+    blocks: list[CodeBlock] = []
+    inside = False
+    opening_line = 0
+    info = ""
+    body: list[str] = []
+    for number, line in enumerate(document.read_text(encoding="utf-8").splitlines(), start=1):
+        stripped = line.lstrip()
+        if stripped.startswith(FENCE):
+            if inside:
+                blocks.append(
+                    CodeBlock(
+                        document=document,
+                        line=opening_line,
+                        info=info,
+                        source=textwrap.dedent("\n".join(body)),
+                    )
+                )
+                inside = False
+            else:
+                inside = True
+                opening_line = number
+                info = stripped[len(FENCE) :].strip()
+                body = []
+            continue
+        if inside:
+            body.append(line)
+    assert not inside, (
+        f"{document}: a code fence opened at line {opening_line} is never closed."
+        " Every fence needs a matching closing fence."
+    )
+    return blocks
+
+
+def python_blocks(document: pathlib.Path) -> list[CodeBlock]:
+    return [block for block in iter_code_blocks(document) if block.language == PYTHON]
+
+
+def discover_documents(skills_root: pathlib.Path) -> list[pathlib.Path]:
+    """Every markdown document in every bundled skill, found by walking the tree.
+
+    Discovery is by directory contents rather than a hardcoded list so a document added
+    later is covered without anyone remembering to update this file.
+    """
+    if not skills_root.is_dir():
+        return []
+    return sorted(skills_root.rglob("*.md"))
+
+
+def canonical_relative_path(document: pathlib.Path) -> str:
+    """Map a shared reference onto the skill that owns its canonical copy.
+
+    The shared references are committed once per skill directory and asserted
+    byte-identical elsewhere, so the copies carry identical tags. Collapsing them here
+    keeps the runnable sequence from executing the same block twice.
+    """
+    relative = document.relative_to(SKILLS_ROOT)
+    parts = relative.parts
+    if len(parts) == 3 and parts[1] == REFERENCE_DIR and parts[2] in SHARED_REFERENCES:
+        return f"{CANONICAL_SKILL}/{parts[1]}/{parts[2]}"
+    return relative.as_posix()
+
+
+DOCUMENTS: Final = discover_documents(SKILLS_ROOT)
+ALL_PYTHON_BLOCKS: Final = [block for document in DOCUMENTS for block in python_blocks(document)]
+
+
+def executable_blocks_in_sequence() -> list[CodeBlock]:
+    """The tagged blocks, in the order ``EXECUTABLE_SEQUENCE`` declares."""
+    ordered: list[CodeBlock] = []
+    for relative_path, _expected in EXECUTABLE_SEQUENCE:
+        document = SKILLS_ROOT / relative_path
+        ordered.extend(block for block in python_blocks(document) if EXECUTABLE_TAG in block.tags)
+    return ordered
+
+
+def configuration_of(result: ExpectationValidationResult) -> ExpectationConfiguration:
+    """The configuration a result came from.
+
+    Pairing a result with the expectation it belongs to is the rule the skills state, so
+    a result that arrived without its configuration would make that rule unfollowable.
+    """
+    configuration = result.expectation_config
+    assert configuration is not None, (
+        "a validation result arrived without the expectation configuration it came from,"
+        " so results can no longer be paired with their expectations at all"
+    )
+    return configuration
+
+
+def sole_block_containing(document: pathlib.Path, needle: str) -> CodeBlock:
+    """The one Python block in ``document`` holding ``needle``.
+
+    Selecting a block by something it says, rather than by position, means a block that
+    moves is still found and a block that is deleted or duplicated fails here instead of
+    silently changing which snippet a test exercises.
+    """
+    matches = [block for block in python_blocks(document) if needle in block.source]
+    assert len(matches) == 1, (
+        f"expected exactly one Python block in {document} containing {needle!r},"
+        f" found {len(matches)} (at lines {[block.line for block in matches]})"
+    )
+    return matches[0]
+
+
+# ---------------------------------------------------------------------------
+# Every fenced Python block parses.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_python_blocks_are_extracted_from_every_skill():
+    """The compile checks below are parametrized over extraction, so it is checked first."""
+    assert SKILLS_ROOT.is_dir(), f"{SKILLS_ROOT} does not exist"
+    assert len(ALL_PYTHON_BLOCKS) >= MIN_PYTHON_BLOCKS, (
+        f"only {len(ALL_PYTHON_BLOCKS)} fenced {PYTHON} blocks were extracted from"
+        f" {len(DOCUMENTS)} documents under {SKILLS_ROOT}; expected at least"
+        f" {MIN_PYTHON_BLOCKS}. Either the content lost its snippets or the extractor no"
+        " longer recognises how they are fenced."
+    )
+    skills_with_snippets = {
+        block.document.relative_to(SKILLS_ROOT).parts[0] for block in ALL_PYTHON_BLOCKS
+    }
+    assert len(skills_with_snippets) >= 2, (
+        f"snippets were only extracted from {sorted(skills_with_snippets)};"
+        " every bundled skill teaches through code and should contribute some"
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "block", ALL_PYTHON_BLOCKS, ids=[block.identifier for block in ALL_PYTHON_BLOCKS]
+)
+def test_python_block_compiles(block: CodeBlock):
+    """A snippet an agent is told to run has to be valid Python before anything else."""
+    try:
+        compile(block.source, block.identifier, "exec")
+    except SyntaxError as error:
+        pytest.fail(f"{block.identifier} does not parse as Python: {error}")
+
+
+# ---------------------------------------------------------------------------
+# The extraction each check above rests on reports the problems it exists for.
+# ---------------------------------------------------------------------------
+
+
+def _write_markdown(directory: pathlib.Path, text: str) -> pathlib.Path:
+    document = directory / "sample.md"
+    document.write_text(textwrap.dedent(text), encoding="utf-8")
+    return document
+
+
+@pytest.mark.unit
+def test_a_block_that_does_not_parse_is_reported(tmp_path: pathlib.Path):
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        def broken(
+        ```
+        """,
+    )
+
+    (block,) = python_blocks(document)
+
+    with pytest.raises(SyntaxError):
+        compile(block.source, block.identifier, "exec")
+
+
+@pytest.mark.unit
+def test_a_block_nested_in_a_list_item_is_dedented(tmp_path: pathlib.Path):
+    """Without the dedent an indented block raises ``IndentationError`` on every edit."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        - a bullet holding a snippet:
+
+          ```python
+          value = 1
+          ```
+        """,
+    )
+
+    (block,) = python_blocks(document)
+
+    assert block.source == "value = 1", f"the block was not dedented: {block.source!r}"
+    compile(block.source, block.identifier, "exec")
+
+
+@pytest.mark.unit
+def test_an_unclosed_fence_is_reported(tmp_path: pathlib.Path):
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        value = 1
+        """,
+    )
+
+    with pytest.raises(AssertionError, match="is never closed"):
+        python_blocks(document)
+
+
+@pytest.mark.unit
+def test_only_python_fences_are_collected(tmp_path: pathlib.Path):
+    """Illustrative output blocks are not code and must not be compiled as code."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        value = 1
+        ```
+
+        ```text
+        not python at all: [
+        ```
+        """,
+    )
+
+    blocks = python_blocks(document)
+
+    assert [block.source for block in blocks] == ["value = 1"]
+    assert len(iter_code_blocks(document)) == 2
+
+
+@pytest.mark.unit
+def test_the_executable_tag_is_read_off_the_fence(tmp_path: pathlib.Path):
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python executable
+        tagged = True
+        ```
+
+        ```python
+        untagged = True
+        ```
+        """,
+    )
+
+    tagged, untagged = python_blocks(document)
+
+    assert tagged.language == PYTHON and EXECUTABLE_TAG in tagged.tags
+    assert untagged.language == PYTHON and EXECUTABLE_TAG not in untagged.tags
+
+
+@pytest.mark.unit
+def test_selecting_a_block_by_its_content_reports_an_ambiguous_match(tmp_path: pathlib.Path):
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        value = 1
+        ```
+
+        ```python
+        value = 1
+        ```
+        """,
+    )
+
+    with pytest.raises(AssertionError, match="exactly one Python block"):
+        sole_block_containing(document, "value = 1")
+
+
+# ---------------------------------------------------------------------------
+# The runnable sequence covers exactly the blocks the content tags.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_every_tagged_block_is_part_of_the_run_sequence():
+    """A tag the runner does not know about would leave a snippet silently unexecuted."""
+    tagged_by_document: dict[str, int] = {}
+    for document in DOCUMENTS:
+        count = sum(1 for block in python_blocks(document) if EXECUTABLE_TAG in block.tags)
+        if count:
+            key = canonical_relative_path(document)
+            assert tagged_by_document.get(key, count) == count, (
+                f"{document} carries {count} tagged blocks but its byte-identical"
+                f" counterpart carries {tagged_by_document[key]}"
+            )
+            tagged_by_document[key] = count
+
+    assert tagged_by_document == dict(EXECUTABLE_SEQUENCE), (
+        "the tagged blocks in the content do not match the declared run sequence."
+        f" Content: {tagged_by_document}. Declared: {dict(EXECUTABLE_SEQUENCE)}."
+        " Add the document to EXECUTABLE_SEQUENCE, or update its expected count."
+    )
+
+
+@pytest.mark.unit
+def test_the_write_out_snippet_still_carries_its_placeholder():
+    """The runner fills this in; a snippet without it would run against nothing."""
+    document = SKILLS_ROOT / CANONICAL_SKILL / REFERENCE_DIR / "write-out.md"
+    holders = [
+        block for block in python_blocks(document) if CONFIRMED_PATH_PLACEHOLDER in block.source
+    ]
+    assert len(holders) == 1, (
+        f"expected exactly one snippet in {document} to carry"
+        f" {CONFIRMED_PATH_PLACEHOLDER!r}, found {len(holders)}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# No shipped snippet can create a project without the user naming where.
+# ---------------------------------------------------------------------------
+
+
+def project_creating_calls(block: CodeBlock) -> list[str]:
+    """The argument lists of every ``get_context(mode="file", ...)`` call in a block."""
+    return [
+        match.group("arguments")
+        for match in GET_CONTEXT_CALL.finditer(block.source)
+        if FILE_MODE_ARGUMENT in match.group("arguments")
+    ]
+
+
+def unconfirmed_directory_problems(blocks: list[CodeBlock]) -> list[str]:
+    """Report every snippet that would create a project at a directory of its own choosing.
+
+    ``get_context(mode="file", ...)`` creates the project when the path holds none, so
+    the directory is not an implementation detail of the snippet -- it is the thing the
+    user has to have chosen. Two shapes take that choice away, and both read as
+    perfectly ordinary code:
+
+    * a **concrete path** written into the call. An example directory is the one part of
+      a snippet a reader is least likely to revisit, because it already looks filled in.
+    * **no** ``project_root_dir`` at all, which creates a project in the current working
+      directory with no path stated anywhere.
+
+    A placeholder cannot be run as it stands, which is what keeps the confirmation the
+    documents require in front of the call rather than behind it.
+    """
+    problems: list[str] = []
+    for block in blocks:
+        for arguments in project_creating_calls(block):
+            if PROJECT_ROOT_ARGUMENT not in arguments:
+                problems.append(
+                    f"{block.identifier}: get_context({arguments.strip()}) creates a project"
+                    f" in the current working directory -- no {PROJECT_ROOT_ARGUMENT} is"
+                    " passed, so no directory is ever named or confirmed."
+                )
+            elif not PLACEHOLDER_DIRECTORY.search(arguments):
+                problems.append(
+                    f"{block.identifier}: get_context({arguments.strip()}) creates a project"
+                    " at a directory the snippet chose. The directory belongs to the user:"
+                    " keep it a <placeholder> so the call cannot run until they name one."
+                )
+    return problems
+
+
+@pytest.mark.unit
+def test_no_snippet_creates_a_project_at_a_directory_of_its_own_choosing():
+    """A path baked into a snippet is a project created somewhere nobody agreed to.
+
+    Every document here says the user names the directory, but prose is not what gets
+    copied into a program -- the snippet is. This keeps the two from drifting apart.
+    """
+    assert project_creating_calls_exist(), (
+        'no snippet calls get_context(mode="file", ...) any more, so this check passes'
+        " vacuously; find where the write-out procedure moved to"
+    )
+
+    problems = unconfirmed_directory_problems(ALL_PYTHON_BLOCKS)
+
+    assert not problems, "\n".join(problems)
+
+
+def project_creating_calls_exist() -> bool:
+    return any(project_creating_calls(block) for block in ALL_PYTHON_BLOCKS)
+
+
+@pytest.mark.unit
+def test_a_snippet_with_a_hardcoded_project_directory_is_reported(tmp_path: pathlib.Path):
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        context = gx.get_context(mode="file", project_root_dir="/Users/someone/project")
+        ```
+        """,
+    )
+
+    (problem,) = unconfirmed_directory_problems(python_blocks(document))
+
+    assert "a directory the snippet chose" in problem
+
+
+@pytest.mark.unit
+def test_a_snippet_creating_a_project_in_the_working_directory_is_reported(
+    tmp_path: pathlib.Path,
+):
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        context = gx.get_context(mode="file")
+        ```
+        """,
+    )
+
+    (problem,) = unconfirmed_directory_problems(python_blocks(document))
+
+    assert "current working directory" in problem
+
+
+@pytest.mark.unit
+def test_a_placeholder_directory_and_a_read_only_call_are_both_accepted(
+    tmp_path: pathlib.Path,
+):
+    """The check has to stay silent on the two shapes the skills actually ship."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        confirmed = gx.get_context(mode="file", project_root_dir="<confirmed_path>")
+        discovered = gx.get_context(cloud_mode=False)
+        ```
+        """,
+    )
+
+    assert unconfirmed_directory_problems(python_blocks(document)) == []
+
+
+# ---------------------------------------------------------------------------
+# No shipped snippet passes a numeric batch parameter as a string. Both
+# families accept integers, and digit strings are deprecated with removal
+# planned for 2.0, so a snippet carrying one seeds a user's project with code
+# that warns today and breaks then.
+# ---------------------------------------------------------------------------
+
+#: The batch-parameter names that carry a numeric window. ``dataframe`` and other
+#: non-numeric parameters are untouched by the deprecation and are not checked.
+NUMERIC_BATCH_PARAMETER_NAMES: Final = ("year", "month", "day")
+
+
+def numeric_batch_parameter_bindings(block: CodeBlock) -> list[tuple[str, ast.expr]]:
+    """Every ``batch_parameters={...}`` entry in ``block`` keyed by a numeric window name.
+
+    Parsed rather than pattern-matched. The values these snippets pass are plain literals,
+    but a regex over the source cannot tell a dict key from the same characters inside a
+    partitioning regex -- and every snippet here that binds ``year`` and ``month`` also
+    carries a ``(?P<year>\\d{4})-(?P<month>\\d{2})`` literal a line or two above it. A check
+    whose whole job is to be trusted about types cannot be the one guessing which is which.
+    """
+    bindings: list[tuple[str, ast.expr]] = []
+    for node in ast.walk(ast.parse(block.source)):
+        if not isinstance(node, ast.keyword) or node.arg != "batch_parameters":
+            continue
+        if not isinstance(node.value, ast.Dict):
+            continue
+        for key, value in zip(node.value.keys, node.value.values, strict=True):
+            if not isinstance(key, ast.Constant):
+                continue
+            name = key.value
+            if isinstance(name, str) and name in NUMERIC_BATCH_PARAMETER_NAMES:
+                bindings.append((name, value))
+    return bindings
+
+
+def string_batch_parameter_problems(blocks: list[CodeBlock]) -> list[str]:
+    """Report every snippet binding a numeric window parameter to a string literal."""
+    problems: list[str] = []
+    for block in blocks:
+        for name, value in numeric_batch_parameter_bindings(block):
+            if isinstance(value, ast.Constant) and isinstance(value.value, str):
+                problems.append(
+                    f"{block.identifier}: batch_parameters passes {name}={value.value!r} as a"
+                    " string. Both datasource families take integers; digit strings are"
+                    " deprecated with removal planned for 2.0, so this snippet would seed a"
+                    " project with code that warns now and breaks then."
+                )
+    return problems
+
+
+def numeric_batch_parameter_bindings_exist() -> bool:
+    return any(numeric_batch_parameter_bindings(block) for block in ALL_PYTHON_BLOCKS)
+
+
+@pytest.mark.unit
+def test_no_snippet_passes_a_numeric_batch_parameter_as_a_string():
+    """Guidance is copied from the snippet, not from the prose around it.
+
+    The deprecation this guards is silent by design -- a digit string still returns the
+    right batch, so nothing about running one of these snippets tells a reader it is
+    building on something scheduled for removal. ``test_one_integer_window_drives_both_a
+    _sql_and_a_file_based_validation_definition`` proves the runtime behaviour this check
+    encodes; this one keeps every shipped snippet on the right side of it.
+    """
+    assert numeric_batch_parameter_bindings_exist(), (
+        "no snippet binds a numeric batch parameter any more, so this check passes"
+        " vacuously; find where the partitioned-batch examples moved to"
+    )
+
+    problems = string_batch_parameter_problems(ALL_PYTHON_BLOCKS)
+
+    assert not problems, "\n".join(problems)
+
+
+@pytest.mark.unit
+def test_a_snippet_passing_a_digit_string_batch_parameter_is_reported(tmp_path: pathlib.Path):
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        batch = batch_definition.get_batch(batch_parameters={"year": "2024", "month": "02"})
+        ```
+        """,
+    )
+
+    problems = string_batch_parameter_problems(python_blocks(document))
+
+    assert len(problems) == 2, problems
+    assert "year='2024'" in problems[0]
+    assert "month='02'" in problems[1]
+
+
+@pytest.mark.unit
+def test_integer_and_non_numeric_batch_parameters_are_both_accepted(tmp_path: pathlib.Path):
+    """The check has to stay silent on the shapes the skills actually ship."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        batch = batch_definition.get_batch(batch_parameters={"year": 2024, "month": 2})
+        result = checkpoint.run(batch_parameters={"dataframe": df})
+        ```
+        """,
+    )
+
+    assert string_batch_parameter_problems(python_blocks(document)) == []
+
+
+# ---------------------------------------------------------------------------
+# No shipped snippet performs any of the other register rows' gated actions
+# either. ``CONSENT_GATES`` is imported from ``test_skill_content`` rather
+# than copied here -- a second list of gated actions is how the two would
+# drift out of step with each other.
+# ---------------------------------------------------------------------------
+
+#: A bare package-manager invocation, or ``sys.executable -m pip``, in a
+#: snippet's own source -- the shape a snippet would pass to a shell or
+#: ``subprocess``. Matched as literal text, on the same
+#: over-firing-is-the-safe-direction basis the trigger-token sets already
+#: document.
+PACKAGE_MANAGER_CALL: Final = re.compile(
+    r"\b(?:pip|uv pip|conda)\s+(?:install|uninstall|upgrade)\b"
+    r"|\bsys\.executable\b.*-m.*pip"
+)
+
+#: A shell-out call -- ``subprocess.*`` or ``os.system`` -- matched
+#: regardless of its argument. The install gate cannot see through a
+#: shell-out to know whether it runs a package manager, so every shell-out
+#: is banned; this is a *different* fact from ``PACKAGE_MANAGER_CALL``, and
+#: the two are reported with different messages so the reported reason
+#: matches what actually matched (see ``install_gate_problems``).
+SHELL_OUT_CALL: Final = re.compile(
+    r"subprocess\.(?:run|call|check_call|check_output|Popen)\s*\("
+    r"|\bos\.system\s*\("
+)
+
+#: A write to the process environment. ``os.environ.get(...)`` (a read --
+#: ``preflight.md`` opens with one) does not match, nor does a comparison
+#: like ``os.environ["X"] == "y"`` -- the ``(?!=)`` keeps the subscript
+#: alternation from matching the first ``=`` of ``==``. ``del
+#: os.environ[...]`` is a mutation too, and is matched explicitly rather
+#: than falling out of the assignment alternation, which a ``del`` does not
+#: touch.
+ENVIRONMENT_MUTATION_CALL: Final = re.compile(
+    r"os\.environ\s*\[[^\]]*\]\s*=(?!=)"
+    r"|os\.environ\.(?:update|setdefault|pop)\s*\("
+    r"|os\.putenv\s*\("
+    r"|os\.unsetenv\s*\("
+    r"|del\s+os\.environ\s*\["
+)
+
+
+def install_gate_problems(blocks: list[CodeBlock]) -> list[str]:
+    """Report every snippet that installs a package, shells out to run one, or
+    mutates the process environment on the user's behalf.
+
+    The ``install`` gate hands each of these to the user; a snippet that does
+    one of them itself has taken the decision away rather than asked. The
+    package-manager and shell-out alternations are reported with distinct
+    messages so the reason given matches what actually matched: a
+    ``subprocess`` call that is not a package manager should not be told it
+    "calls a package manager".
+    """
+    problems: list[str] = []
+    for block in blocks:
+        if PACKAGE_MANAGER_CALL.search(block.source):
+            problems.append(
+                f"{block.identifier}: calls a package manager (a bare pip/uv/conda"
+                " invocation, or sys.executable -m pip). Installing, upgrading, or"
+                " removing a package is the user's call to make and run -- hand them"
+                " the command, do not run it for them."
+            )
+        if SHELL_OUT_CALL.search(block.source):
+            problems.append(
+                f"{block.identifier}: shells out (subprocess or os.system), which the"
+                " install gate cannot see through to confirm it is not a package"
+                " manager on the user's behalf -- hand the command to the user instead"
+                " of running it."
+            )
+        if ENVIRONMENT_MUTATION_CALL.search(block.source):
+            problems.append(
+                f"{block.identifier}: writes to the process environment (os.environ or"
+                " similar) rather than asking the user to set it themselves."
+            )
+    return problems
+
+
+def _is_placeholder_string(value: str) -> bool:
+    return value.startswith("<") and value.endswith(">")
+
+
+def _single_assignment_map(tree: ast.AST) -> dict[str, ast.expr]:
+    """Map each name assigned exactly once, via a simple ``name = <expr>``
+    statement, to that expression.
+
+    A name assigned more than once in the block is dropped from the map
+    rather than resolved to one of its several values -- reassignment,
+    loops and cross-block flow are out of scope, and a name this cannot
+    resolve just falls back to ``ast.Name`` in ``_write_target_is_snippet_chosen``,
+    which reads as not snippet-chosen (the existing conservative default).
+    """
+    assignments: dict[str, ast.expr] = {}
+    seen_more_than_once: set[str] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Assign) or len(node.targets) != 1:
+            continue
+        target = node.targets[0]
+        if not isinstance(target, ast.Name):
+            continue
+        if target.id in assignments or target.id in seen_more_than_once:
+            seen_more_than_once.add(target.id)
+            assignments.pop(target.id, None)
+        else:
+            assignments[target.id] = node.value
+    return assignments
+
+
+def _write_target_is_snippet_chosen(node: ast.AST, assignments: dict[str, ast.expr]) -> bool:
+    """True when a write call's path expression is one the snippet picked for
+    itself, rather than a ``<placeholder>`` or a path built from an
+    already-open project's own root -- the two shapes the shipped content
+    actually writes through today (see ``action-catalog.md``'s
+    ``yml_path = Path(context.root_directory) / "great_expectations.yml"``,
+    written through the intermediate variable ``yml_path``).
+
+    Limited to the shapes present in the shipped content: a bare string
+    literal, a call to anything named or attribute-accessed as ``Path``
+    (``Path("...")``, ``pathlib.Path("...")``, or any other ``x.Path("...")``
+    -- see the caveat on that below), a ``/`` join whose left side resolves
+    through the same rules, an f-string (always snippet-chosen -- see
+    below), and a bare name resolved against ``assignments`` -- the block's
+    own single-assignment variables, traced back to their right-hand side
+    and then through these same rules.
+
+    That name resolution only traces a name bound by exactly one
+    single-target ``ast.Assign`` node anywhere in the block, not at control
+    flow -- verified directly rather than assumed:
+
+    - a name reassigned at the top level (more than one ``Assign`` node
+      targeting it) is dropped from the map entirely and reads as not
+      snippet-chosen -- unresolved, as intended;
+    - but a name with exactly one ``Assign`` node that happens to sit inside
+      an ``if`` or ``for`` body *is* traced -- ``ast.walk`` finds that one
+      node regardless of nesting, so this case resolves and fires just like
+      a top-level assignment would;
+    - and augmented assignment (``p /= "a.txt"``) is not an ``ast.Assign``
+      at all, so it neither adds to the map nor counts toward the
+      more-than-once check -- a prior plain assignment to the same name is
+      still traced, resolving to that pre-augment value, not to the
+      augmented one.
+
+    Every binding form other than a single single-target ``ast.Assign`` is
+    unresolved and reads as not snippet-chosen -- not just reassignment and
+    destructuring unpacking (``p, q = ...``), but also an annotated
+    assignment (``p: Path = ...``, ``ast.AnnAssign``, the idiomatic-typed-Python
+    case and the one most likely to actually occur), a chained multi-target
+    assignment (``a = b = ...``, excluded by the single-target check), a
+    walrus binding (``(p := ...)``, ``ast.NamedExpr``), and a ``for`` (or
+    ``with``) loop's own target variable, which is never the target of an
+    ``ast.Assign`` at all. The fallback for everything this cannot resolve
+    -- an unresolved name, or any other node shape -- is ``return False``,
+    i.e. *not* snippet-chosen, *not* flagged. That is an under-firing default,
+    the same direction that let the shipped write go unseen before
+    ``write_calls_exist`` existed as a non-vacuity guard. It is tolerated
+    here only because the shipped corpus contains exactly one write and it
+    is the traced ``/``-join-through-an-assigned-variable shape above, not
+    because under-firing is generally the safe direction -- contrast the
+    ``JoinedStr`` branch below, which deliberately over-fires instead.
+
+    A further caveat this checker does not attempt to close: a write through
+    ``.write_bytes(...)`` is outside ``_write_calls`` entirely and this
+    function never sees it -- verified directly, 0 calls found for that
+    shape. A write through a file handle is not the same blind spot: when
+    the handle comes from ``open(path, "w")``, the ``open`` call itself is
+    the match (``_write_calls`` yields it, and it fires), so
+    ``f = open(p, "w"); f.write(...)`` and
+    ``with open(p, "w") as f: f.write(...)`` are both flagged -- on the
+    ``open``, not on ``f.write``. What escapes is only a handle obtained
+    some other way -- e.g. ``open(p, mode)`` where ``mode`` is a variable
+    rather than a string literal, which defeats ``_open_call_is_write_mode``
+    and so is never even seen as a write call. And the non-vacuity guard,
+    ``write_calls_exist``, only asserts that *some*
+    write call exists in the shipped content -- not that every write call is
+    correctly classified -- so a future write in a shape this function
+    cannot resolve would pass through silently rather than fail loudly.
+
+    The ``/``-join branch below also decides less than its name suggests:
+    it accepts *any* left side this function reads as not snippet-chosen,
+    not specifically one built from an already-open project's root. A join
+    like ``Path(self.own_dir) / "out.yml"`` is accepted identically to
+    ``Path(context.root_directory) / "..."`` -- this function has no way to
+    distinguish "resolved to a project root" from "resolved to something
+    else not literally chosen here." Acceptable under the conservative
+    default above, but worth naming precisely rather than implying a
+    root-specific check that does not exist.
+
+    The ``Path(...)`` branch has the mirror-image imprecision: it decides
+    *more* than its name suggests. It matches any call whose callee is
+    either the bare name ``Path`` or *any* attribute access ending in
+    ``.Path`` -- ``pathlib.Path(...)``, but identically ``some.other.Path(...)``
+    or ``cfg.Path(...)``, verified directly to fire the same as
+    ``pathlib.Path``. Over-firing is the safe direction here, and there is
+    no false positive on shipped content, but the branch does not actually
+    check that the callee resolves to ``pathlib.Path``.
+    """
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return not _is_placeholder_string(node.value)
+    if isinstance(node, ast.JoinedStr):
+        # An f-string can never equal a bare ``<placeholder>`` literal (the
+        # placeholder is copied verbatim, not interpolated), and this checker
+        # does not attempt to trace into its interpolated pieces to prove it
+        # derives from the project root either. Reported as snippet-chosen
+        # rather than silently accepted -- the write ban has to err toward
+        # seeing a write it cannot fully classify, not toward missing one.
+        return True
+    if isinstance(node, ast.Call) and (
+        (isinstance(node.func, ast.Name) and node.func.id == "Path")
+        or (isinstance(node.func, ast.Attribute) and node.func.attr == "Path")
+    ):
+        return bool(node.args) and _write_target_is_snippet_chosen(node.args[0], assignments)
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+        return _write_target_is_snippet_chosen(node.left, assignments)
+    if isinstance(node, ast.Name) and node.id in assignments:
+        return _write_target_is_snippet_chosen(assignments[node.id], assignments)
+    return False
+
+
+#: The ``open(...)`` mode characters that write to a file, as opposed to
+#: reading one.
+_WRITE_MODE_FLAGS: Final = ("w", "a", "x")
+
+
+def _write_text_call_problem(
+    identifier: str, call: ast.Call, assignments: dict[str, ast.expr]
+) -> str | None:
+    """``<expr>.write_text(...)``: flag it when ``<expr>`` is snippet-chosen."""
+    func = call.func
+    assert isinstance(func, ast.Attribute) and func.attr == "write_text"
+    if not _write_target_is_snippet_chosen(func.value, assignments):
+        return None
+    return (
+        f"{identifier}: .write_text(...) is called on a path the snippet chose for"
+        " itself, rather than one the user named or one built from an already-open"
+        " project's own root."
+    )
+
+
+def _open_call_is_write_mode(call: ast.Call) -> bool:
+    """True when an ``open(...)`` call's mode argument is a write mode."""
+    mode = call.args[1] if len(call.args) >= 2 else None
+    for keyword in call.keywords:
+        if keyword.arg == "mode":
+            mode = keyword.value
+    return (
+        isinstance(mode, ast.Constant)
+        and isinstance(mode.value, str)
+        and any(flag in mode.value for flag in _WRITE_MODE_FLAGS)
+    )
+
+
+def _open_call_problem(
+    identifier: str, call: ast.Call, assignments: dict[str, ast.expr]
+) -> str | None:
+    """``open(<path>, "w", ...)``: flag it when in a write mode and ``<path>`` is
+    snippet-chosen."""
+    if (
+        not _open_call_is_write_mode(call)
+        or not call.args
+        or not _write_target_is_snippet_chosen(call.args[0], assignments)
+    ):
+        return None
+    return (
+        f"{identifier}: open(...) writes to a path the snippet chose for itself,"
+        " rather than one the user named or one built from an already-open"
+        " project's own root."
+    )
+
+
+def _write_calls(tree: ast.AST) -> Iterator[ast.Call]:
+    """Every call in ``tree`` that writes a file: ``.write_text(...)`` and
+    ``open(...)`` opened in a write mode. Existence of a write call is a
+    separate question from whether its target is snippet-chosen, which is
+    what lets this back a non-vacuity guard as well as the problem search.
+    """
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        is_write_text_call = isinstance(func, ast.Attribute) and func.attr == "write_text"
+        is_write_mode_open_call = (
+            isinstance(func, ast.Name) and func.id == "open" and _open_call_is_write_mode(node)
+        )
+        if is_write_text_call or is_write_mode_open_call:
+            yield node
+
+
+def snippet_chosen_write_problems(blocks: list[CodeBlock]) -> list[str]:
+    """Report every snippet that writes a file to a path it picked for itself.
+
+    Covers both the ``config-file`` gate (editing an existing project's
+    ``great_expectations.yml``) and the ``saved-file`` gate (writing any
+    other file the user did not ask for and locate): both gate the identical
+    property, a write to a path the snippet chose rather than one the user
+    named or one built from a project already open, so one checker covers
+    both rows rather than two that would test the same thing under different
+    names.
+    """
+    problems: list[str] = []
+    for block in blocks:
+        try:
+            tree = ast.parse(block.source)
+        except SyntaxError:
+            continue  # reported by test_python_block_compiles, not here
+        assignments = _single_assignment_map(tree)
+        for call in _write_calls(tree):
+            func = call.func
+            problem = None
+            if isinstance(func, ast.Attribute) and func.attr == "write_text":
+                problem = _write_text_call_problem(block.identifier, call, assignments)
+            elif isinstance(func, ast.Name) and func.id == "open":
+                problem = _open_call_problem(block.identifier, call, assignments)
+            if problem is not None:
+                problems.append(problem)
+    return problems
+
+
+def write_calls_exist(blocks: list[CodeBlock]) -> bool:
+    """Whether any block in ``blocks`` performs a file write at all, regardless
+    of whether its target is snippet-chosen -- the non-vacuity guard for
+    ``snippet_chosen_write_problems``, modeled on ``project_creating_calls_exist``.
+    """
+    for block in blocks:
+        try:
+            tree = ast.parse(block.source)
+        except SyntaxError:
+            continue
+        if any(True for _ in _write_calls(tree)):
+            return True
+    return False
+
+
+#: Maps each register row to the check that bans shipped Python from
+#: performing the gate's own action. ``project`` reuses
+#: ``unconfirmed_directory_problems`` -- the check already proven above --
+#: rather than a second check over the same property, which would be a green
+#: name over a reimplementation, not coverage.
+CONSENT_GATE_SNIPPET_CHECKS: Final[dict[str, Callable[[list[CodeBlock]], list[str]]]] = {
+    "install": install_gate_problems,
+    "project": unconfirmed_directory_problems,
+    "config-file": snippet_chosen_write_problems,
+    "saved-file": snippet_chosen_write_problems,
+}
+
+
+@pytest.mark.unit
+def test_no_snippet_writes_to_a_path_it_chose_for_itself():
+    """A file write baked into a snippet is a write nobody agreed to.
+
+    Guarded the same way ``test_no_snippet_creates_a_project_at_a_directory_of_its_own_choosing``
+    is: without ``write_calls_exist``, a ban that has stopped seeing the shipped content's
+    one write call would pass with an empty problem list for the wrong reason.
+    """
+    assert write_calls_exist(ALL_PYTHON_BLOCKS), (
+        "no snippet calls .write_text(...) or open(...) in a write mode any more, so this"
+        " check passes vacuously; find where the write happened"
+    )
+
+    problems = snippet_chosen_write_problems(ALL_PYTHON_BLOCKS)
+
+    assert not problems, "\n".join(problems)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("gate", CONSENT_GATES, ids=lambda gate: gate.id)
+def test_no_snippet_performs_its_own_gates_action(gate: ConsentGate):
+    """No shipped snippet performs the action its own consent gate exists to
+    hand to the user, for every row in the register -- including ``project``,
+    whose proof is the pre-existing check registered above rather than a
+    fresh one written against the same property.
+    """
+    assert gate.id in CONSENT_GATE_SNIPPET_CHECKS, (
+        f"the {gate.id!r} gate has no registered snippet-ban check -- add one to"
+        " CONSENT_GATE_SNIPPET_CHECKS"
+    )
+
+    problems = CONSENT_GATE_SNIPPET_CHECKS[gate.id](ALL_PYTHON_BLOCKS)
+
+    assert not problems, "\n".join(problems)
+
+
+@pytest.mark.unit
+def test_a_snippet_calling_a_package_manager_is_reported(tmp_path: pathlib.Path):
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        import subprocess
+        import sys
+
+        subprocess.run([sys.executable, "-m", "pip", "install", "great_expectations[postgresql]"])
+        ```
+        """,
+    )
+
+    problems = install_gate_problems(python_blocks(document))
+
+    assert any("calls a package manager" in problem for problem in problems)
+
+
+@pytest.mark.unit
+def test_a_snippet_that_shells_out_without_naming_a_package_manager_is_reported_accurately(
+    tmp_path: pathlib.Path,
+):
+    """A subprocess call that is not a package manager must not be told it is
+    one -- the reported reason has to match the alternation that matched."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        import subprocess
+
+        subprocess.run(["great_expectations", "checkpoint", "run"])
+        ```
+        """,
+    )
+
+    problems = install_gate_problems(python_blocks(document))
+
+    assert problems and "shells out" in problems[0]
+    assert not any("calls a package manager" in problem for problem in problems)
+
+
+@pytest.mark.unit
+def test_a_snippet_mutating_the_environment_is_reported(tmp_path: pathlib.Path):
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        import os
+
+        os.environ["GX_HOME"] = "/tmp/somewhere"
+        ```
+        """,
+    )
+
+    problems = install_gate_problems(python_blocks(document))
+
+    assert problems and "writes to the process environment" in problems[0]
+
+
+@pytest.mark.unit
+def test_a_snippet_deleting_an_environment_variable_is_reported(tmp_path: pathlib.Path):
+    """``del os.environ[...]`` mutates the environment just as much as an
+    assignment does, and is not covered by the assignment alternation."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        import os
+
+        del os.environ["GX_HOME"]
+        ```
+        """,
+    )
+
+    problems = install_gate_problems(python_blocks(document))
+
+    assert problems and "writes to the process environment" in problems[0]
+
+
+@pytest.mark.unit
+def test_reading_the_environment_is_not_reported(tmp_path: pathlib.Path):
+    """The ``install`` gate bans a write, not the read every preflight snippet
+    opens with."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        import os
+
+        gx_home = os.environ.get("GX_HOME")
+        ```
+        """,
+    )
+
+    assert install_gate_problems(python_blocks(document)) == []
+
+
+@pytest.mark.unit
+def test_comparing_the_environment_is_not_reported(tmp_path: pathlib.Path):
+    """``os.environ["X"] == "y"`` shares its first ``=`` with an assignment;
+    the ban must tell the two apart rather than matching on that shared
+    character."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        import os
+
+        if os.environ["GX_HOME"] == "/tmp/somewhere":
+            pass
+        ```
+        """,
+    )
+
+    assert install_gate_problems(python_blocks(document)) == []
+
+
+@pytest.mark.unit
+def test_a_snippet_writing_to_a_path_it_chose_is_reported(tmp_path: pathlib.Path):
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        from pathlib import Path
+
+        Path("/tmp/report.txt").write_text("done")
+        ```
+        """,
+    )
+
+    problems = snippet_chosen_write_problems(python_blocks(document))
+
+    assert problems and "a path the snippet chose for itself" in problems[0]
+
+
+@pytest.mark.unit
+def test_a_write_text_call_through_an_intermediate_variable_is_reported(
+    tmp_path: pathlib.Path,
+):
+    """``p = Path("...")`` then ``p.write_text(...)`` -- before the variable
+    was traced back to its assignment this read as a bare ``ast.Name`` and
+    was silently skipped."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        from pathlib import Path
+
+        p = Path("/tmp/report.txt")
+        p.write_text("x")
+        ```
+        """,
+    )
+
+    problems = snippet_chosen_write_problems(python_blocks(document))
+
+    assert problems and "a path the snippet chose for itself" in problems[0]
+
+
+@pytest.mark.unit
+def test_an_open_call_through_an_intermediate_variable_is_reported(tmp_path: pathlib.Path):
+    """``p = "..."`` then ``open(p, "w")`` -- the same intermediate-variable
+    miss as ``.write_text(...)``, through ``open`` instead."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        p = "/tmp/report.txt"
+        open(p, "w")
+        ```
+        """,
+    )
+
+    problems = snippet_chosen_write_problems(python_blocks(document))
+
+    assert problems and "a path the snippet chose for itself" in problems[0]
+
+
+@pytest.mark.unit
+def test_a_write_to_an_f_string_path_is_reported(tmp_path: pathlib.Path):
+    """An f-string path is neither a ``<placeholder>`` literal nor a
+    project-root join, and was previously accepted by the unrecognized-shape
+    fallthrough. It is unambiguously snippet-chosen and must be reported."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        from pathlib import Path
+
+        name = "report"
+        Path(f"/tmp/{name}.txt").write_text("x")
+        ```
+        """,
+    )
+
+    problems = snippet_chosen_write_problems(python_blocks(document))
+
+    assert problems and "a path the snippet chose for itself" in problems[0]
+
+
+@pytest.mark.unit
+def test_a_write_through_a_confirmed_placeholder_is_accepted(tmp_path: pathlib.Path):
+    """The placeholder branch of ``_write_target_is_snippet_chosen`` is what
+    has to accept this -- both through an intermediate variable (the shape
+    the write-out procedure ships) and inline."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        from pathlib import Path
+
+        confirmed = Path("<confirmed_path>")
+        confirmed.write_text("done")
+
+        Path("<confirmed_path>").write_text("done")
+        ```
+        """,
+    )
+
+    assert snippet_chosen_write_problems(python_blocks(document)) == []
+
+
+@pytest.mark.unit
+def test_a_write_through_the_project_root_is_accepted(tmp_path: pathlib.Path):
+    """The ``/``-join branch of ``_write_target_is_snippet_chosen`` is what has
+    to accept this -- both through an intermediate variable (the shape
+    ``action-catalog.md`` ships) and inline."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        from pathlib import Path
+
+        yml_path = Path(context.root_directory) / "great_expectations.yml"
+        yml_path.write_text("data_docs_sites: {}")
+
+        (Path(context.root_directory) / "great_expectations.yml").write_text("data_docs_sites: {}")
+        ```
+        """,
+    )
+
+    assert snippet_chosen_write_problems(python_blocks(document)) == []
+
+
+@pytest.mark.unit
+def test_an_attribute_qualified_path_call_is_traced_like_a_bare_one(tmp_path: pathlib.Path):
+    """``pathlib.Path("...")`` -- imported and called by its module-qualified
+    name rather than via ``from pathlib import Path`` -- has to be traced
+    through the same rules as a bare ``Path(...)`` call. Before the
+    ``ast.Attribute`` arm existed, this read as an unhandled node shape and
+    fell through to ``return False``: silently accepted regardless of
+    content, even for a path this checker would flag if written as a bare
+    ``Path(...)`` call. This pins that it is flagged instead."""
+    document = _write_markdown(
+        tmp_path,
+        """\
+        # sample
+
+        ```python
+        import pathlib
+
+        pathlib.Path("/tmp/report.txt").write_text("data_docs_sites: {}")
+        ```
+        """,
+    )
+
+    problems = snippet_chosen_write_problems(python_blocks(document))
+
+    assert problems and "a path the snippet chose for itself" in problems[0]
+
+
+# ---------------------------------------------------------------------------
+# Fixtures: a local warehouse and an in-memory session, no network anywhere.
+# ---------------------------------------------------------------------------
+
+
+def _build_warehouse(path: pathlib.Path) -> pathlib.Path:
+    """A SQLite database holding an ordinary table and two degenerate ones."""
+    types = ("TEXT", "REAL", "TEXT")
+    columns = ", ".join(f"{name} {kind}" for name, kind in zip(ORDERS_COLUMNS, types, strict=True))
+    connection = sqlite3.connect(path)
+    try:
+        for table in ("orders", "empty_orders", "all_null_orders"):
+            connection.execute(f"CREATE TABLE {table} ({columns})")
+        connection.executemany("INSERT INTO orders VALUES (?, ?, ?)", ORDERS_ROWS)
+        connection.executemany(
+            "INSERT INTO all_null_orders VALUES (?, ?, ?)",
+            [(None, None, "2024-03-01")] * NULL_ROW_COUNT,
+        )
+        connection.commit()
+    finally:
+        connection.close()
+    return path
+
+
+def _customers_frame() -> pd.DataFrame:
+    """The in-memory dataframe the runnable sequence hands to its dataframe asset."""
+    return pd.DataFrame({"customer": ["erin", None], "amount": [12.5, -3.0]})
+
+
+@pytest.fixture(scope="module")
+def warehouse_path(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
+    return _build_warehouse(tmp_path_factory.mktemp("warehouse") / "warehouse.sqlite")
+
+
+@pytest.fixture
+def ephemeral_context(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> EphemeralDataContext:
+    """An in-memory session, discovered exactly the way the skills tell an agent to."""
+    monkeypatch.chdir(tmp_path)
+    for name in AMBIENT_ENVIRONMENT:
+        monkeypatch.delenv(name, raising=False)
+    context = gx.get_context(cloud_mode=False)
+    assert isinstance(context, EphemeralDataContext), (
+        f"expected an in-memory session in an empty directory, got {type(context).__name__}"
+    )
+    return context
+
+
+@pytest.fixture
+def warehouse(
+    ephemeral_context: EphemeralDataContext, warehouse_path: pathlib.Path
+) -> SqliteDatasource:
+    return ephemeral_context.data_sources.add_or_update_sqlite(
+        name="warehouse", connection_string=f"sqlite:///{warehouse_path}"
+    )
+
+
+def whole_table_batch(datasource: SqliteDatasource, table: str) -> Batch:
+    asset = datasource.add_table_asset(name=table, table_name=table)
+    return asset.add_batch_definition_whole_table(name="all_rows").get_batch()
+
+
+# ---------------------------------------------------------------------------
+# The tagged blocks run, in order, and reach the end states the skills promise.
+# ---------------------------------------------------------------------------
+
+
+@dataclasses.dataclass(frozen=True)
+class ExecutedFlow:
+    """The result of running the tagged sequence as one program."""
+
+    blocks: tuple[CodeBlock, ...]
+    namespace: dict[str, Any]
+    #: The namespace as it stood after each block, so an intermediate end state can be
+    #: asserted even though a later block rebinds the name.
+    snapshots: tuple[dict[str, Any], ...]
+    substituted: frozenset[str]
+    project_root: pathlib.Path
+    dataframe: pd.DataFrame
+
+    def after(self, needle: str) -> dict[str, Any]:
+        """The namespace as it stood after the one executed block saying ``needle``.
+
+        Selecting the block by something it says, rather than by line number, keeps
+        these assertions attached to the snippet they are about when the surrounding
+        prose is edited -- and turns a snippet that was deleted or duplicated into a
+        failure here rather than into an assertion that quietly moved to another block.
+        """
+        matched = [
+            snapshot
+            for block, snapshot in zip(self.blocks, self.snapshots, strict=True)
+            if needle in block.source
+        ]
+        assert len(matched) == 1, (
+            f"expected exactly one executed block containing {needle!r}, found {len(matched)}"
+        )
+        return matched[0]
+
+
+@pytest.fixture(scope="module")
+def executed_flow(tmp_path_factory: pytest.TempPathFactory) -> Iterator[ExecutedFlow]:
+    """Run every ``executable`` block, in sequence, in one shared namespace."""
+    root = tmp_path_factory.mktemp("skill_flow")
+    warehouse_file = _build_warehouse(root / "warehouse.sqlite")
+    project_root = root / "written_out"
+    project_root.mkdir()
+    working_directory = root / "no_project_here"
+    working_directory.mkdir()
+
+    blocks = tuple(executable_blocks_in_sequence())
+    dataframe = _customers_frame()
+    namespace: dict[str, Any] = {"df": dataframe}
+    snapshots: list[dict[str, Any]] = []
+    substituted: set[str] = set()
+
+    def load_written_out_project(state: dict[str, Any]) -> None:
+        """Reopen the written-out project the way a later session would.
+
+        The final snippet retrieves a batch through a batch definition; pointing that
+        name at the *reloaded* definition is what makes the retrieval evidence that the
+        written-out project is usable rather than evidence about objects still in memory.
+        """
+        reloaded = gx.get_context(mode="file", project_root_dir=str(project_root))
+        state["reloaded_context"] = reloaded
+        state["batch_definition"] = (
+            reloaded.data_sources.get("my_datasource")
+            .get_asset("my_asset")
+            .get_batch_definition("my_batch_definition")
+        )
+
+    hooks: dict[tuple[str, int], Callable[[dict[str, Any]], None]] = {
+        (f"{CANONICAL_SKILL}/{REFERENCE_DIR}/write-out.md", 1): load_written_out_project,
+    }
+    fired: set[tuple[str, int]] = set()
+    seen_per_document: dict[str, int] = {}
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.chdir(working_directory)
+        patch.setenv("WAREHOUSE_PATH", str(warehouse_file))
+        for name in AMBIENT_ENVIRONMENT:
+            patch.delenv(name, raising=False)
+
+        for block in blocks:
+            key = canonical_relative_path(block.document)
+            position = seen_per_document.get(key, 0)
+            seen_per_document[key] = position + 1
+            hook = hooks.get((key, position))
+            if hook is not None:
+                hook(namespace)
+                fired.add((key, position))
+
+            source = block.source
+            if CONFIRMED_PATH_PLACEHOLDER in source:
+                source = source.replace(CONFIRMED_PATH_PLACEHOLDER, str(project_root))
+                substituted.add(CONFIRMED_PATH_PLACEHOLDER)
+
+            try:
+                exec(compile(source, block.identifier, "exec"), namespace)
+            except Exception as error:  # pragma: no cover - the failure is the report
+                raise AssertionError(
+                    f"the snippet at {block.identifier} failed to run as part of the"
+                    f" documented sequence: {type(error).__name__}: {error}"
+                ) from error
+            snapshots.append(dict(namespace))
+
+    assert fired == set(hooks), f"a run-sequence hook never fired: {set(hooks) - fired}"
+
+    yield ExecutedFlow(
+        blocks=blocks,
+        namespace=namespace,
+        snapshots=tuple(snapshots),
+        substituted=frozenset(substituted),
+        project_root=project_root,
+        dataframe=dataframe,
+    )
+
+    executor = namespace.get("executor")
+    if executor is not None:
+        executor.shutdown(wait=True)
+
+
+@pytest.mark.sqlite
+def test_the_whole_tagged_sequence_ran(executed_flow: ExecutedFlow):
+    """Everything below reads state the sequence produced, so the run is checked first."""
+    expected = sum(count for _document, count in EXECUTABLE_SEQUENCE)
+    assert len(executed_flow.blocks) == expected
+    assert len(executed_flow.snapshots) == expected, "a block was skipped mid-sequence"
+    assert executed_flow.substituted == frozenset({CONFIRMED_PATH_PLACEHOLDER}), (
+        "the write-out snippet's placeholder was never substituted, so the procedure did"
+        " not run against the confirmed directory"
+    )
+
+
+@pytest.mark.sqlite
+def test_preflight_lands_in_an_announced_in_memory_session(executed_flow: ExecutedFlow):
+    """Discovery in a directory with no project is an in-memory session, not an error."""
+    discovered = executed_flow.after("context = gx.get_context(cloud_mode=False)")["context"]
+    assert isinstance(discovered, EphemeralDataContext)
+
+    branch = executed_flow.after("isinstance(context, FileDataContext)")
+    assert branch["FileDataContext"] is FileDataContext, (
+        "the branch snippet no longer imports the type it branches on"
+    )
+    assert "context_root" not in branch, (
+        "the file-backed branch ran against an in-memory session; the snippet's"
+        " isinstance check is not doing what the guidance says it does"
+    )
+
+
+@pytest.mark.sqlite
+def test_the_batch_definition_is_verified_by_reading_data_through_it(
+    executed_flow: ExecutedFlow,
+):
+    """Retrieval plus a probe that returns rows is the end state the flow promises."""
+    probed = executed_flow.after("head = batch.head(n_rows=5)")
+    batch = probed["batch"]
+    assert isinstance(batch, Batch)
+
+    frame = probed["head"].data
+    assert list(frame.columns) == list(ORDERS_COLUMNS)
+    assert len(frame) == len(ORDERS_ROWS)
+
+    batch_definition = probed["batch_definition"]
+    assert batch_definition.name == "by_month"
+
+    context = executed_flow.namespace["context"]
+    reachable = (
+        context.data_sources.get("warehouse").get_asset("orders").get_batch_definition("by_month")
+    )
+    assert reachable.name == batch_definition.name, (
+        "the verified batch definition is not retrievable from the session by name,"
+        " so nothing was actually saved for a later step to use"
+    )
+
+
+@pytest.mark.sqlite
+def test_the_time_budget_wrapper_returns_the_probe_result(executed_flow: ExecutedFlow):
+    """The wrapper polls while the call is in flight; a fast call just returns."""
+    wrapped = executed_flow.after("BUDGET_SECONDS")
+    assert wrapped["succeeded"] is True, (
+        "the duration-tracked wrapper reported failure for a call that works;"
+        f" update {CANONICAL_SKILL}/{REFERENCE_DIR}/robustness.md if this is intended"
+    )
+    assert wrapped["checked_in"] is False, "a sub-second probe should not trip the budget"
+    assert wrapped["result"] is not None
+    assert wrapped["result"].data is not None
+
+
+@pytest.mark.sqlite
+def test_validation_reports_every_expectation_on_its_own_terms(executed_flow: ExecutedFlow):
+    """One entry per expectation, each carrying the configuration it came from."""
+    result: ExpectationSuiteValidationResult = executed_flow.after(
+        "result = batch.validate(suite)"
+    )["result"]
+    by_type = {configuration_of(each).type: each for each in result.results}
+    assert set(by_type) == {
+        "expect_column_values_to_not_be_null",
+        "expect_column_values_to_be_between",
+    }
+
+    missing_customer = by_type["expect_column_values_to_not_be_null"]
+    negative_amount = by_type["expect_column_values_to_be_between"]
+    assert missing_customer.success is False
+    assert negative_amount.success is False
+    assert missing_customer.result["element_count"] == len(ORDERS_ROWS)
+    assert missing_customer.result["unexpected_count"] == 1
+    assert missing_customer.result["partial_unexpected_list"] == [None]
+    assert negative_amount.result["partial_unexpected_list"] == [-5.0]
+
+    described = json.loads(result.describe())
+    assert described["statistics"]["evaluated_expectations"] == len(result.results)
+
+
+@pytest.mark.sqlite
+def test_the_suite_the_flow_built_is_registered_with_the_session(executed_flow: ExecutedFlow):
+    """Expectations added to a suite the context never saw are lost without a word.
+
+    Fetching the suite back by name is the only thing that distinguishes a suite that
+    was registered before its expectations were added from one that was not: building,
+    adding and validating all work either way.
+    """
+    context = executed_flow.namespace["context"]
+    registered = context.suites.get("orders_quality")
+    assert [type(each).__name__ for each in registered.expectations] == [
+        "ExpectColumnValuesToNotBeNull",
+        "ExpectColumnValuesToBeBetween",
+    ], (
+        "the suite the flow built did not come back from the session with its"
+        " expectations; the register-first ordering in"
+        f" gx-configure-expectations/{ENTRY_DOCUMENT} is what keeps them"
+    )
+
+
+@pytest.mark.sqlite
+def test_the_write_out_procedure_reports_every_object_it_wrote(executed_flow: ExecutedFlow):
+    """The procedure records failures instead of raising, so the record is the evidence."""
+    written = executed_flow.after(WRITE_OUT_STEPS_NEEDLE)["written"]
+    failed = executed_flow.after(WRITE_OUT_STEPS_NEEDLE)["failed"]
+    assert failed == [], f"write-out steps failed: {failed}"
+    assert written == [
+        "data source my_datasource",
+        "asset my_asset",
+        "batch definition my_batch_definition",
+        "suite my_suite",
+    ]
+
+
+@pytest.mark.sqlite
+def test_a_fresh_file_backed_context_loads_the_written_out_work(executed_flow: ExecutedFlow):
+    """The written-out project is usable as it stands, from a context that never saw the session."""
+    reloaded = gx.get_context(mode="file", project_root_dir=str(executed_flow.project_root))
+    assert isinstance(reloaded, FileDataContext)
+
+    batch_definition = (
+        reloaded.data_sources.get("my_datasource")
+        .get_asset("my_asset")
+        .get_batch_definition("my_batch_definition")
+    )
+    suite: ExpectationSuite = reloaded.suites.get("orders_quality")
+    assert [type(each).__name__ for each in suite.expectations] == [
+        "ExpectColumnValuesToNotBeNull",
+        "ExpectColumnValuesToBeBetween",
+    ]
+
+    # A dataframe asset carries configuration but no data, which is the one documented
+    # caveat on "usable without modification" -- the frame is supplied at retrieval time.
+    batch = batch_definition.get_batch(batch_parameters={"dataframe": executed_flow.dataframe})
+    assert len(batch.head(n_rows=5).data) == len(executed_flow.dataframe)
+
+    result = batch.validate(suite)
+    assert len(result.results) == len(suite.expectations)
+    assert all(each.result for each in result.results), (
+        "the reloaded suite produced no per-expectation payloads, so it did not actually"
+        " evaluate against the reloaded batch"
+    )
+
+    # The snippet the sequence ended on retrieved a batch through the reloaded definition.
+    assert isinstance(executed_flow.namespace["batch"], Batch)
+
+
+# ---------------------------------------------------------------------------
+# The failure behavior the guidance is built on.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.sqlite
+def test_a_query_over_a_missing_table_yields_a_batch_and_fails_only_when_probed(
+    warehouse: SqliteDatasource,
+):
+    """Retrieval touches nothing, which is why the guidance mandates a probe."""
+    asset = warehouse.add_query_asset(name="broken", query=f"SELECT * FROM {MISSING_TABLE}")
+    batch = asset.add_batch_definition_whole_table(name="all_rows").get_batch()
+
+    assert isinstance(batch, Batch), (
+        "retrieving a batch over a missing table no longer succeeds; the probe-first"
+        f" rule in {CANONICAL_SKILL}/{REFERENCE_DIR}/robustness.md rests on it doing so"
+    )
+
+    with pytest.raises(KeyError) as raised:
+        batch.head(n_rows=5)
+
+    assert MISSING_TABLE not in str(raised.value), (
+        "the probe failure now names the real problem, so the recovery procedure in"
+        f" {CANONICAL_SKILL}/{REFERENCE_DIR}/robustness.md is heavier than it needs to be"
+    )
+
+
+@pytest.mark.sqlite
+def test_the_guidance_recovers_the_real_cause_behind_a_bare_probe_failure(
+    warehouse: SqliteDatasource,
+):
+    """The reference's own capture snippet is executed, not paraphrased."""
+    asset = warehouse.add_query_asset(name="broken", query=f"SELECT * FROM {MISSING_TABLE}")
+    batch = asset.add_batch_definition_whole_table(name="all_rows").get_batch()
+
+    document = SKILLS_ROOT / CANONICAL_SKILL / REFERENCE_DIR / "robustness.md"
+    snippet = sole_block_containing(document, "class _CaptureHandler")
+    namespace: dict[str, Any] = {"batch": batch}
+    exec(compile(snippet.source, snippet.identifier, "exec"), namespace)
+
+    cause = namespace.get("cause")
+    assert cause is not None, (
+        "the capture snippet's KeyError branch never ran, so nothing was recovered"
+    )
+    assert MISSING_TABLE in cause, (
+        f"the capture snippet in {document} no longer recovers the underlying database"
+        f" error; it produced {cause!r}"
+    )
+    assert len(cause) <= CAUSE_CEILING + len(TRUNCATION_SUFFIX)
+    assert "Traceback (most recent call last)" not in cause, (
+        "the recovered cause carries a traceback, which the reporting rule forbids"
+    )
+
+
+@pytest.mark.sqlite
+def test_a_metric_error_and_a_data_failure_are_told_apart_by_the_result_payload(
+    warehouse: SqliteDatasource,
+):
+    """``success is False`` alone cannot distinguish broken configuration from bad data."""
+    batch = whole_table_batch(warehouse, "orders")
+
+    errored = batch.validate(gx.expectations.ExpectColumnValuesToNotBeNull(column="nope"))
+    failed = batch.validate(gx.expectations.ExpectColumnValuesToNotBeNull(column="customer"))
+    passed = batch.validate(gx.expectations.ExpectColumnToExist(column="customer"))
+
+    assert errored.success is False and not errored.result
+    assert failed.success is False and failed.result
+    # Both halves of the discriminator are load-bearing: a *passing* expectation also
+    # carries an empty payload, so emptiness alone would misclassify it.
+    assert passed.success is True and not passed.result
+
+    def is_metric_error(result: ExpectationValidationResult) -> bool:
+        return result.success is False and not result.result
+
+    assert [is_metric_error(each) for each in (errored, failed, passed)] == [
+        True,
+        False,
+        False,
+    ]
+
+    messages = {key: value["exception_message"] for key, value in errored.exception_info.items()}
+    assert messages, "a metric error no longer names its cause in exception_info"
+    assert all(isinstance(key, str) for key in messages), (
+        "exception_info keys are no longer strings, so the documented iteration over"
+        " .items() is the only lookup that works"
+    )
+    assert any(
+        message == 'Error: The column "nope" in BatchData does not exist.'
+        for message in messages.values()
+    ), f"the cause message changed shape: {messages}"
+
+
+@pytest.mark.sqlite
+def test_results_come_back_grouped_by_column_rather_than_in_the_order_added(
+    ephemeral_context: EphemeralDataContext, warehouse: SqliteDatasource
+):
+    """Pairing results with inputs by position mislabels every finding once this bites."""
+    batch = whole_table_batch(warehouse, "orders")
+    suite = ephemeral_context.suites.add(gx.ExpectationSuite(name="ordering"))
+    added = [
+        gx.expectations.ExpectColumnValuesToNotBeNull(column="customer"),
+        gx.expectations.ExpectColumnMeanToBeBetween(column="amount", min_value=0, max_value=100),
+        gx.expectations.ExpectColumnValuesToBeUnique(column="customer"),
+        gx.expectations.ExpectColumnMaxToBeBetween(column="amount", min_value=0, max_value=100),
+    ]
+    for expectation in added:
+        suite.add_expectation(expectation)
+
+    result = batch.validate(suite)
+    returned = [configuration_of(each).kwargs["column"] for each in result.results]
+
+    assert returned == ["customer", "customer", "amount", "amount"], (
+        "validation no longer groups a suite by column; the ordering rule in"
+        f" gx-configure-expectations/{ENTRY_DOCUMENT} describes this grouping"
+    )
+    assert returned != ["customer", "amount", "customer", "amount"], (
+        "results came back in the order they were added, so this suite no longer"
+        " demonstrates the trap it exists to demonstrate"
+    )
+    assert len(result.results) == len(added), "every added expectation is still reported"
+
+
+@pytest.mark.sqlite
+def test_checks_without_a_column_are_grouped_on_their_own(
+    ephemeral_context: EphemeralDataContext, warehouse: SqliteDatasource
+):
+    """Table-level checks form a group of their own, placed where it first appears."""
+    batch = whole_table_batch(warehouse, "orders")
+    suite = ephemeral_context.suites.add(gx.ExpectationSuite(name="table_level"))
+    for expectation in (
+        gx.expectations.ExpectColumnValuesToNotBeNull(column="customer"),
+        gx.expectations.ExpectTableRowCountToBeBetween(min_value=1),
+        gx.expectations.ExpectColumnMeanToBeBetween(column="amount", min_value=0, max_value=100),
+        gx.expectations.ExpectColumnValuesToBeUnique(column="customer"),
+    ):
+        suite.add_expectation(expectation)
+
+    result = batch.validate(suite)
+    returned = [configuration_of(each).kwargs.get("column", "<none>") for each in result.results]
+
+    assert returned == ["customer", "customer", "<none>", "amount"], (
+        "a table-level check no longer forms its own group between the column groups;"
+        f" the ordering rule in gx-configure-expectations/{ENTRY_DOCUMENT} says it does"
+    )
+
+
+@pytest.mark.sqlite
+def test_an_expectation_whose_metric_errored_is_moved_to_the_front(
+    ephemeral_context: EphemeralDataContext, warehouse: SqliteDatasource
+):
+    batch = whole_table_batch(warehouse, "orders")
+    suite = ephemeral_context.suites.add(gx.ExpectationSuite(name="hoisted"))
+    for expectation in (
+        gx.expectations.ExpectColumnToExist(column="customer"),
+        gx.expectations.ExpectColumnValuesToNotBeNull(column="customer"),
+        gx.expectations.ExpectColumnValuesToBeBetween(column="amount", min_value=0),
+        gx.expectations.ExpectColumnMeanToBeBetween(column="nope", min_value=0, max_value=100),
+    ):
+        suite.add_expectation(expectation)
+
+    result = batch.validate(suite)
+
+    assert configuration_of(result.results[0]).type == "expect_column_mean_to_be_between", (
+        "the expectation whose metric errored was added last and is no longer reported"
+        f" first; gx-configure-expectations/{ENTRY_DOCUMENT} says it is"
+    )
+    assert not result.results[0].result, "the hoisted entry should carry no payload"
+
+
+@pytest.mark.sqlite
+def test_an_empty_table_produces_results_rather_than_errors(warehouse: SqliteDatasource):
+    """Degenerate data is an ordinary outcome; reporting it as an error is wrong."""
+    batch = whole_table_batch(warehouse, "empty_orders")
+
+    probe = batch.head(n_rows=5)
+    assert list(probe.data.columns) == list(ORDERS_COLUMNS)
+    assert len(probe.data) == 0
+
+    not_null = batch.validate(gx.expectations.ExpectColumnValuesToNotBeNull(column="customer"))
+    mean = batch.validate(
+        gx.expectations.ExpectColumnMeanToBeBetween(column="amount", min_value=0, max_value=100)
+    )
+    row_count = batch.validate(gx.expectations.ExpectTableRowCountToBeBetween(min_value=1))
+
+    assert not_null.success is True
+    assert not_null.result["element_count"] == 0
+    assert mean.success is False
+    assert mean.result == {"observed_value": None}
+    assert row_count.success is False
+    assert row_count.result == {"observed_value": 0}
+    # ``observed_value: None`` is a *populated* payload, so the discriminator reads these
+    # as data failures rather than as metric errors -- which is the correct reading.
+    assert mean.result and row_count.result
+
+
+@pytest.mark.sqlite
+def test_an_all_null_column_produces_results_rather_than_errors(warehouse: SqliteDatasource):
+    batch = whole_table_batch(warehouse, "all_null_orders")
+
+    not_null = batch.validate(gx.expectations.ExpectColumnValuesToNotBeNull(column="customer"))
+    between = batch.validate(
+        gx.expectations.ExpectColumnValuesToBeBetween(column="amount", min_value=0, max_value=100)
+    )
+    mean = batch.validate(
+        gx.expectations.ExpectColumnMeanToBeBetween(column="amount", min_value=0, max_value=100)
+    )
+
+    assert not_null.success is False
+    assert not_null.result["unexpected_count"] == NULL_ROW_COUNT
+    assert not_null.result["unexpected_percent"] == 100.0
+    # The counterintuitive one: nulls count as missing rather than as violations, so a
+    # range check over a column of nothing but nulls passes and is not reassurance.
+    assert between.success is True, (
+        "a value range check over an all-null column no longer passes; the caveat in"
+        f" gx-configure-expectations/{ENTRY_DOCUMENT} depends on it doing so"
+    )
+    assert between.result["missing_count"] == NULL_ROW_COUNT
+    assert between.result["unexpected_count"] == 0
+    assert mean.success is False
+    assert mean.result == {"observed_value": None}
+
+
+@pytest.mark.sqlite
+def test_an_empty_window_fails_at_retrieval_before_any_probe_runs(
+    ephemeral_context: EphemeralDataContext, warehouse: SqliteDatasource, tmp_path: pathlib.Path
+):
+    """An empty *window* is a different outcome from an empty collection, on both families."""
+    sql_definition = warehouse.add_table_asset(
+        name="orders", table_name="orders"
+    ).add_batch_definition_monthly(name="by_month", column="ordered_at")
+
+    files = tmp_path / "sales"
+    files.mkdir()
+    (files / "sales_2024-02.csv").write_text("customer,amount\nalice,1.0\n", encoding="utf-8")
+    file_definition = (
+        ephemeral_context.data_sources.add_or_update_pandas_filesystem(
+            name="sales_files", base_directory=files
+        )
+        .add_csv_asset(name="monthly_sales")
+        .add_batch_definition_monthly(
+            name="by_month", regex=r"sales_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
+        )
+    )
+
+    with pytest.raises(NoAvailableBatchesError):
+        sql_definition.get_batch(batch_parameters={"year": 1999, "month": 1})
+    with pytest.raises(NoAvailableBatchesError):
+        file_definition.get_batch(batch_parameters={"year": 1999, "month": 1})
+
+    # The same definitions do produce a batch for a window that exists, so the failures
+    # above are about the window rather than about a broken configuration.
+    assert sql_definition.get_batch(batch_parameters={"year": 2024, "month": 3}) is not None
+    assert file_definition.get_batch(batch_parameters={"year": 2024, "month": 2}) is not None
+
+
+@pytest.mark.sqlite
+def test_updating_a_data_source_drops_every_asset_on_it(
+    ephemeral_context: EphemeralDataContext, warehouse_path: pathlib.Path
+):
+    """Why the data-source factory runs at most once per flow, and never as an update."""
+    connection_string = f"sqlite:///{warehouse_path}"
+    datasource = ephemeral_context.data_sources.add_or_update_sqlite(
+        name="warehouse", connection_string=connection_string
+    )
+    datasource.add_table_asset(name="orders", table_name="orders")
+    datasource.add_table_asset(name="empty_orders", table_name="empty_orders")
+    assert [asset.name for asset in ephemeral_context.data_sources.get("warehouse").assets] == [
+        "orders",
+        "empty_orders",
+    ]
+
+    ephemeral_context.data_sources.add_or_update_sqlite(
+        name="warehouse", connection_string=connection_string
+    )
+
+    assert [asset.name for asset in ephemeral_context.data_sources.get("warehouse").assets] == [], (
+        "updating a data source no longer drops its assets; the reuse-first rule in"
+        f" {CANONICAL_SKILL}/{ENTRY_DOCUMENT} is written around it doing so"
+    )
+
+
+@pytest.mark.sqlite
+def test_the_flow_snippet_reuses_a_data_source_rather_than_replacing_it(
+    ephemeral_context: EphemeralDataContext,
+    warehouse_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """The shipped configure snippet must fetch before it creates, not just say so.
+
+    The test above pins the destructive behavior as a fact about the library. This one
+    pins the guidance's response to it as a property of the snippet an agent copies:
+    run against a session that already holds the data source, the snippet has to leave
+    the assets already on it alone. Rewriting its fetch-first branch into a plain
+    ``add_or_update_<type>`` call satisfies every other check in this file while
+    silently destroying work the user did not ask it to touch, so nothing else here
+    would notice.
+    """
+    monkeypatch.setenv("WAREHOUSE_PATH", str(warehouse_path))
+    seeded = ephemeral_context.data_sources.add_or_update_sqlite(
+        name="warehouse", connection_string=f"sqlite:///{warehouse_path}"
+    )
+    seeded.add_table_asset(name="empty_orders", table_name="empty_orders")
+    assert [asset.name for asset in ephemeral_context.data_sources.get("warehouse").assets] == [
+        "empty_orders"
+    ], "the sibling asset this test is about was not seeded"
+
+    snippet = sole_block_containing(
+        SKILLS_ROOT / CANONICAL_SKILL / ENTRY_DOCUMENT,
+        "DATASOURCE_NAME, ASSET_NAME, BATCH_DEFINITION_NAME",
+    )
+    assert EXECUTABLE_TAG in snippet.tags, (
+        f"{snippet.identifier} is no longer part of the runnable sequence, so this"
+        " test and the end-to-end run have drifted apart"
+    )
+    namespace: dict[str, Any] = {"context": ephemeral_context}
+    exec(compile(snippet.source, snippet.identifier, "exec"), namespace)
+
+    surviving = [asset.name for asset in ephemeral_context.data_sources.get("warehouse").assets]
+    assert "empty_orders" in surviving, (
+        f"the configure snippet in {CANONICAL_SKILL}/{ENTRY_DOCUMENT} destroyed an asset"
+        " that was already on the data source. It must fetch the data source and create"
+        " one only when absent -- calling add_or_update_<type> against a name that"
+        f" already exists replaces it wholesale. Assets left: {surviving}"
+    )
+    assert "orders" in surviving, "the snippet did not add the asset it exists to add"
+    assert namespace["batch_definition"].name == "by_month"
+
+
+@pytest.mark.sqlite
+def test_assets_and_batch_definitions_refuse_a_duplicate_name(warehouse: SqliteDatasource):
+    """There is no update factory for either, so the flow has to fetch before it creates."""
+    asset = warehouse.add_table_asset(name="orders", table_name="orders")
+    asset.add_batch_definition_whole_table(name="all_rows")
+
+    assert not hasattr(warehouse, "add_or_update_table_asset")
+    assert not hasattr(asset, "add_or_update_batch_definition_whole_table")
+
+    with pytest.raises(ValueError, match="already exists"):
+        warehouse.add_table_asset(name="orders", table_name="orders")
+    with pytest.raises(ValueError, match="already exists"):
+        asset.add_batch_definition_whole_table(name="all_rows")
+
+    # Fetching the existing objects is the path the guidance takes instead, and both
+    # signal absence with a LookupError subclass.
+    assert warehouse.get_asset("orders") is not None
+    with pytest.raises(LookupError):
+        warehouse.get_asset("never_created")
+    with pytest.raises(LookupError):
+        asset.get_batch_definition("never_created")
+
+
+@pytest.mark.sqlite
+def test_updating_a_suite_replaces_it_instead_of_merging(ephemeral_context: EphemeralDataContext):
+    """A fresh suite under an existing name empties it, with no error and no warning."""
+    suite = ephemeral_context.suites.add(gx.ExpectationSuite(name="orders_quality"))
+    for expectation in (
+        gx.expectations.ExpectColumnToExist(column="customer"),
+        gx.expectations.ExpectColumnValuesToNotBeNull(column="customer"),
+        gx.expectations.ExpectColumnValuesToBeBetween(column="amount", min_value=0),
+    ):
+        suite.add_expectation(expectation)
+    assert len(ephemeral_context.suites.get("orders_quality").expectations) == 3
+
+    ephemeral_context.suites.add_or_update(gx.ExpectationSuite(name="orders_quality"))
+
+    assert len(ephemeral_context.suites.get("orders_quality").expectations) == 0, (
+        "updating a suite no longer discards its contents; the fetch-first rule in"
+        f" gx-configure-expectations/{ENTRY_DOCUMENT} is written around it doing so"
+    )
+
+
+@pytest.mark.sqlite
+def test_adding_expectations_to_an_unregistered_suite_persists_nothing(
+    ephemeral_context: EphemeralDataContext, warehouse: SqliteDatasource
+):
+    """The ordering rule exists because the wrong order fails silently, not loudly."""
+    batch = whole_table_batch(warehouse, "orders")
+    unregistered = gx.ExpectationSuite(name="never_registered")
+    unregistered.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column="customer"))
+
+    result = batch.validate(unregistered)
+    assert len(result.results) == 1, "validating against an unregistered suite still works"
+
+    assert "never_registered" not in {suite.name for suite in ephemeral_context.suites.all()}, (
+        "an unregistered suite is now stored anyway; the register-first rule in"
+        f" gx-configure-expectations/{ENTRY_DOCUMENT} would no longer be necessary"
+    )
+
+
+# ---------------------------------------------------------------------------
+# The checkpoint flow: bind, group, explicit add, verify by running.
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def checkpoint_ready(
+    ephemeral_context: EphemeralDataContext, warehouse: SqliteDatasource
+) -> EphemeralDataContext:
+    """A session holding exactly what the checkpoint skill's snippets assume exist.
+
+    The names here -- ``warehouse``/``orders``/``by_month``/``orders_quality`` -- are the
+    ones the checkpoint entry document's bind and group snippets hardcode, so those
+    snippets can be exec'd against this fixture unmodified.
+    """
+    asset = warehouse.add_table_asset(name="orders", table_name="orders")
+    asset.add_batch_definition_monthly(name="by_month", column="ordered_at")
+    suite = ephemeral_context.suites.add(gx.ExpectationSuite(name="orders_quality"))
+    suite.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column="customer"))
+    suite.add_expectation(
+        gx.expectations.ExpectColumnValuesToBeBetween(column="amount", min_value=0, max_value=100)
+    )
+    return ephemeral_context
+
+
+@pytest.mark.sqlite
+def test_the_checkpoint_flow_binds_groups_explicitly_adds_and_verifies_by_running(
+    checkpoint_ready: EphemeralDataContext, capsys: pytest.CaptureFixture[str]
+):
+    """Bind, group, explicit add, run -- the shipped snippets, exec'd in sequence.
+
+    Each step is the real block from the entry document, not a paraphrase: the bind
+    snippet, the group-and-add snippet, and the reporting loop that pairs outcomes to the
+    validation definition and expectation they came from.
+    """
+    context = checkpoint_ready
+
+    bind_snippet = sole_block_containing(
+        CHECKPOINT_ENTRY_DOCUMENT,
+        "existing = {vd.name for vd in context.validation_definitions.all()}",
+    )
+    bind_namespace: dict[str, Any] = {"context": context}
+    exec(compile(bind_snippet.source, bind_snippet.identifier, "exec"), bind_namespace)
+    validation_definition = bind_namespace["validation_definition"]
+    assert validation_definition.name == VALIDATION_DEFINITION_NAME
+
+    group_snippet = sole_block_containing(
+        CHECKPOINT_ENTRY_DOCUMENT,
+        'CHECKPOINT_NAME = "orders_checkpoint"\n\nexisting_checkpoints',
+    )
+    group_namespace: dict[str, Any] = {
+        "context": context,
+        "validation_definition": validation_definition,
+    }
+    exec(compile(group_snippet.source, group_snippet.identifier, "exec"), group_namespace)
+    checkpoint = group_namespace["checkpoint"]
+    assert checkpoint.name == CHECKPOINT_NAME
+
+    # The explicit add in the group step, not the run below, is what persists the
+    # checkpoint -- provable only by checking before the run call executes at all.
+    assert context.checkpoints.get(CHECKPOINT_NAME).name == CHECKPOINT_NAME, (
+        "the checkpoint is not fetchable from the session before it has ever been run;"
+        f" the explicit-add step in {CHECKPOINT_SKILL}/{ENTRY_DOCUMENT} is what persists it"
+    )
+
+    result = checkpoint.run(batch_parameters={"year": 2024, "month": 3})
+    assert len(result.run_results) == 1, "one validation definition should produce one result"
+
+    report_snippet = sole_block_containing(
+        CHECKPOINT_ENTRY_DOCUMENT, "validation definition: batch="
+    )
+    report_namespace: dict[str, Any] = {"result": result}
+    exec(compile(report_snippet.source, report_snippet.identifier, "exec"), report_namespace)
+    printed = capsys.readouterr().out
+
+    (validation_result,) = result.run_results.values()
+    by_type = {configuration_of(each).type: each for each in validation_result.results}
+    assert set(by_type) == {
+        "expect_column_values_to_not_be_null",
+        "expect_column_values_to_be_between",
+    }
+    assert by_type["expect_column_values_to_not_be_null"].success is False
+    assert by_type["expect_column_values_to_be_between"].success is False
+
+    # Printed by the exec'd reporting loop, paired to the expectation it belongs to --
+    # by config, per the same rule the expectations skill's own results carry, never by
+    # position in a list.
+    assert "validation definition: batch=" in printed
+    assert "expect_column_values_to_not_be_null" in printed
+    assert "expect_column_values_to_be_between" in printed
+
+
+@pytest.mark.sqlite
+def test_the_checkpoint_flow_updates_rather_than_duplicates_on_a_repeat_pass(
+    checkpoint_ready: EphemeralDataContext,
+):
+    """A second pass over the bind-and-group snippets fetches, and does not duplicate.
+
+    A validation definition or checkpoint the user describes that already exists under
+    that name is updated in place, never duplicated under a second copy.
+    """
+    context = checkpoint_ready
+    bind_snippet = sole_block_containing(
+        CHECKPOINT_ENTRY_DOCUMENT,
+        "existing = {vd.name for vd in context.validation_definitions.all()}",
+    )
+    group_snippet = sole_block_containing(
+        CHECKPOINT_ENTRY_DOCUMENT,
+        'CHECKPOINT_NAME = "orders_checkpoint"\n\nexisting_checkpoints',
+    )
+
+    for _pass in range(2):
+        bind_namespace: dict[str, Any] = {"context": context}
+        exec(compile(bind_snippet.source, bind_snippet.identifier, "exec"), bind_namespace)
+        group_namespace: dict[str, Any] = {
+            "context": context,
+            "validation_definition": bind_namespace["validation_definition"],
+        }
+        exec(compile(group_snippet.source, group_snippet.identifier, "exec"), group_namespace)
+
+    assert [vd.name for vd in context.validation_definitions.all()] == [VALIDATION_DEFINITION_NAME]
+    assert [c.name for c in context.checkpoints.all()] == [CHECKPOINT_NAME]
+
+
+#: The literal name the write-out reference's own checkpoint-extension block writes
+#: under -- an illustrative example name baked into the shipped text itself, not filled
+#: in by any substitution the runner performs (unlike ``CONFIRMED_PATH_PLACEHOLDER``), so
+#: the round-trip test below looks the written checkpoint up by this exact string.
+WRITE_OUT_CHECKPOINT_NAME: Final = "my_checkpoint"
+
+
+def _exec_write_out_procedure(
+    project_root: pathlib.Path, suite: ExpectationSuite, checkpoint: Checkpoint
+) -> gx.data_context.FileDataContext:
+    """Run the shipped write-out procedure exactly as written, in one namespace.
+
+    The six-step block is not self-contained -- per its own prose, it replaces ``steps``
+    with the complete six-entry list and reuses ``_add_datasource``, ``_add_asset``,
+    ``_add_batch_definition``, and ``_add_suite`` from the four-step block rather than
+    redefining them. So the four-step block has to run first, in the same namespace, for
+    the six-step block's reuse of those names to resolve at all.
+    """
+    four_step_block = sole_block_containing(CHECKPOINT_WRITE_OUT, "def _add_datasource():")
+    six_step_block = sole_block_containing(
+        CHECKPOINT_WRITE_OUT, "def _add_validation_definition():"
+    )
+
+    namespace: dict[str, Any] = {"gx": gx, "suite": suite}
+    source = four_step_block.source.replace(CONFIRMED_PATH_PLACEHOLDER, str(project_root))
+    exec(compile(source, four_step_block.identifier, "exec"), namespace)
+    assert namespace["failed"] == [], f"the four-step write-out block failed: {namespace['failed']}"
+
+    namespace["ValidationDefinition"] = ValidationDefinition
+    namespace["Checkpoint"] = Checkpoint
+    namespace["checkpoint"] = checkpoint
+    exec(compile(six_step_block.source, six_step_block.identifier, "exec"), namespace)
+    assert namespace["failed"] == [], f"the six-step write-out block failed: {namespace['failed']}"
+
+    return namespace["file_context"]
+
+
+@pytest.mark.sqlite
+def test_a_fresh_context_reruns_the_persisted_written_out_checkpoint_unmodified(
+    checkpoint_ready: EphemeralDataContext, tmp_path: pathlib.Path
+):
+    """A checkpoint built and run in an ephemeral session, written out through the real,
+    shipped write-out procedure -- not test-owned glue standing in for it -- and re-run
+    from a fresh file-backed context, produces the same outcome -- including firing its
+    Data Docs update action again -- so the write-out promise reaches checkpoints, not
+    just the objects they group. Exercising the actual document text is what pins the
+    fix to the six-step block's suite lookup (``suites.get(suite.name)``, not the literal
+    placeholder it used to be); test-owned glue reproducing the intended *pattern* would
+    keep passing even if the shipped text regressed.
+
+    The written-out checkpoint validates a dataframe asset -- the write-out block's own
+    illustrative example -- rather than the original session's SQL-backed one; the two
+    are compared by the *type* of outcome each expectation produces, which only requires
+    both datasets to violate the same two expectations, not to be the same data.
+    """
+    context = checkpoint_ready
+    batch_definition = (
+        context.data_sources.get("warehouse").get_asset("orders").get_batch_definition("by_month")
+    )
+    suite = context.suites.get("orders_quality")
+    validation_definition = context.validation_definitions.add(
+        ValidationDefinition(name=VALIDATION_DEFINITION_NAME, data=batch_definition, suite=suite)
+    )
+    checkpoint = context.checkpoints.add(
+        Checkpoint(
+            name=CHECKPOINT_NAME,
+            validation_definitions=[validation_definition],
+            actions=[UpdateDataDocsAction(name="update_data_docs")],
+        )
+    )
+    original = checkpoint.run(batch_parameters={"year": 2024, "month": 3})
+
+    project_root = tmp_path / "checkpoint_write_out"
+    file_context = _exec_write_out_procedure(project_root, suite, checkpoint)
+    assert file_context.checkpoints.get(WRITE_OUT_CHECKPOINT_NAME) is not None
+
+    reloaded_context = gx.get_context(mode="file", project_root_dir=str(project_root))
+    reloaded_checkpoint = reloaded_context.checkpoints.get(WRITE_OUT_CHECKPOINT_NAME)
+    rerun = reloaded_checkpoint.run(batch_parameters={"dataframe": _customers_frame()})
+
+    assert rerun.success == original.success
+    (original_result,) = original.run_results.values()
+    (rerun_result,) = rerun.run_results.values()
+    original_by_type = {
+        configuration_of(each).type: each.success for each in original_result.results
+    }
+    rerun_by_type = {configuration_of(each).type: each.success for each in rerun_result.results}
+    assert (
+        rerun_by_type
+        == original_by_type
+        == {
+            "expect_column_values_to_not_be_null": False,
+            "expect_column_values_to_be_between": False,
+        }
+    )
+
+    data_docs_index = (
+        pathlib.Path(reloaded_context.root_directory)
+        / "uncommitted"
+        / "data_docs"
+        / "local_site"
+        / "index.html"
+    )
+    assert data_docs_index.is_file(), (
+        "the rebuilt checkpoint's UpdateDataDocsAction did not produce Data Docs output on"
+        " a fresh-context re-run"
+    )
+
+
+# ---------------------------------------------------------------------------
+# The run snippet, executed as a subprocess -- exit codes, not just source.
+# ---------------------------------------------------------------------------
+
+
+def _build_file_backed_checkpoint_project(
+    project_root: pathlib.Path, warehouse_path: pathlib.Path, suite_name: str, expectation
+) -> None:
+    """A minimal file-backed project holding one named, persisted, runnable checkpoint."""
+    context = gx.get_context(mode="file", project_root_dir=str(project_root))
+    datasource = context.data_sources.add_or_update_sqlite(
+        name="warehouse", connection_string=f"sqlite:///{warehouse_path}"
+    )
+    batch_definition = datasource.add_table_asset(
+        name="orders", table_name="orders"
+    ).add_batch_definition_monthly(name="by_month", column="ordered_at")
+    suite = context.suites.add(gx.ExpectationSuite(name=suite_name))
+    suite.add_expectation(expectation)
+    validation_definition = context.validation_definitions.add(
+        ValidationDefinition(name=f"{suite_name}_check", data=batch_definition, suite=suite)
+    )
+    context.checkpoints.add(
+        Checkpoint(
+            name=f"{suite_name}_checkpoint",
+            validation_definitions=[validation_definition],
+            actions=[],
+        )
+    )
+
+
+@pytest.mark.sqlite
+def test_the_run_snippet_exits_zero_for_a_passing_checkpoint_and_one_for_a_failing_one(
+    warehouse_path: pathlib.Path, tmp_path: pathlib.Path
+):
+    """The run-snippet's exit code is derived from ``result.success``, read directly.
+
+    Both a passing and a failing checkpoint are built into the same project, and the
+    shipped snippet -- filled in with each checkpoint's name -- is run as a real
+    subprocess from a working directory that is not the project's own, exactly as
+    ``run-and-schedule.md`` says it was verified.
+    """
+    project_root = tmp_path / "project"
+    _build_file_backed_checkpoint_project(
+        project_root,
+        warehouse_path,
+        "passing_suite",
+        gx.expectations.ExpectColumnToExist(column="customer"),
+    )
+    _build_file_backed_checkpoint_project(
+        project_root,
+        warehouse_path,
+        "failing_suite",
+        gx.expectations.ExpectColumnValuesToNotBeNull(column="customer"),
+    )
+
+    snippet = sole_block_containing(
+        CHECKPOINT_RUN_AND_SCHEDULE, "sys.exit(0 if result.success else 1)"
+    )
+
+    unrelated_cwd = tmp_path / "not_the_project"
+    unrelated_cwd.mkdir()
+    expected_exit = {"passing_suite": 0, "failing_suite": 1}
+    for suite_name, exit_code in expected_exit.items():
+        source = (
+            snippet.source.replace(
+                'project_root_dir="<absolute path to the project>"',
+                f"project_root_dir={str(project_root)!r}",
+            )
+            .replace(
+                'checkpoints.get("<checkpoint name>")',
+                f'checkpoints.get("{suite_name}_checkpoint")',
+            )
+            .replace(
+                "checkpoint.run()", 'checkpoint.run(batch_parameters={"year": 2024, "month": 3})'
+            )
+        )
+        script = unrelated_cwd / f"run_{suite_name}.py"
+        script.write_text(source, encoding="utf-8")
+
+        completed = subprocess.run(
+            [sys.executable, str(script)],
+            check=False,
+            cwd=unrelated_cwd,
+            capture_output=True,
+            text=True,
+        )
+        assert completed.returncode == exit_code, (
+            f"{suite_name}: expected exit {exit_code}, got {completed.returncode}."
+            f" stdout={completed.stdout!r} stderr={completed.stderr[-1000:]!r}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Trap regressions: the destructive cascade, the unpersisted suite, ephemeral Data
+# Docs, the null-sites no-op and its recovery, and the mixed temporal-source failure.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.sqlite
+def test_building_a_validation_definition_against_an_unpersisted_suite_raises(
+    checkpoint_ready: EphemeralDataContext,
+):
+    """The persist-before-reference rule step 3 states: fetch, never close over a guess."""
+    context = checkpoint_ready
+    batch_definition = (
+        context.data_sources.get("warehouse").get_asset("orders").get_batch_definition("by_month")
+    )
+    unsaved_suite = gx.ExpectationSuite(name="not_saved_yet")
+
+    with pytest.raises(ResourceFreshnessAggregateError):
+        context.validation_definitions.add(
+            ValidationDefinition(name="x", data=batch_definition, suite=unsaved_suite)
+        )
+
+    # Positive inversion: the identical call against a suite that *was* persisted first
+    # succeeds, so the failure above is about persistence, not about the call shape.
+    saved_suite = context.suites.add(gx.ExpectationSuite(name="was_saved"))
+    persisted = context.validation_definitions.add(
+        ValidationDefinition(name="y", data=batch_definition, suite=saved_suite)
+    )
+    assert persisted.name == "y"
+
+
+@pytest.mark.sqlite
+def test_add_or_update_on_a_checkpoint_cascades_exactly_as_documented(
+    checkpoint_ready: EphemeralDataContext,
+):
+    """The three-row cascade table in ``SKILL.md``, each row isolated and proven --
+    including both directions of the conditionally-lost row's "only when" clause.
+
+    Always lost: the checkpoint's own validation-definition membership and actions.
+    Conditionally lost: a bound suite's contents, only when a fresh suite object under
+    an existing name is what gets passed in -- proven destructive below, and proven safe
+    when the suite is fetched from the context first, which is the whole reason the
+    fetch-first rule in ``SKILL.md`` is given as safe advice. Never lost: validation
+    definitions already in the store.
+    """
+    context = checkpoint_ready
+    batch_definition = (
+        context.data_sources.get("warehouse").get_asset("orders").get_batch_definition("by_month")
+    )
+    kept_suite = context.suites.add(gx.ExpectationSuite(name="kept_suite"))
+    kept_suite.add_expectation(gx.expectations.ExpectColumnToExist(column="customer"))
+    kept_vd = context.validation_definitions.add(
+        ValidationDefinition(name="kept_vd", data=batch_definition, suite=kept_suite)
+    )
+    bound_suite = context.suites.get("orders_quality")
+    bound_vd = context.validation_definitions.add(
+        ValidationDefinition(name="bound_vd", data=batch_definition, suite=bound_suite)
+    )
+    checkpoint = context.checkpoints.add(
+        Checkpoint(
+            name="cascaded",
+            validation_definitions=[kept_vd, bound_vd],
+            actions=[UpdateDataDocsAction(name="update_data_docs")],
+        )
+    )
+    assert [vd.name for vd in checkpoint.validation_definitions] == ["kept_vd", "bound_vd"]
+    assert checkpoint.actions != []
+
+    # Negative control for the "only when" clause, run before the destructive case below
+    # empties "orders_quality" -- otherwise this assertion would hold vacuously, on a
+    # suite that was already empty for an unrelated reason. A *second* stored checkpoint
+    # is upserted here, binding the suite fetched from the context (not a fresh object)
+    # under its existing name; `kept_suite` cannot stand in for this because it was never
+    # in the upserted checkpoint at all, so it only shows unrelated suites survive.
+    context.checkpoints.add(
+        Checkpoint(
+            name="cascaded_fetch_first",
+            validation_definitions=[bound_vd],
+            actions=[UpdateDataDocsAction(name="update_data_docs")],
+        )
+    )
+    fetched_suite_same_name = context.suites.get("orders_quality")
+    fetched_vd_same_name = ValidationDefinition(
+        name="fetched_vd", data=batch_definition, suite=fetched_suite_same_name
+    )
+    context.checkpoints.add_or_update(
+        Checkpoint(
+            name="cascaded_fetch_first",
+            validation_definitions=[fetched_vd_same_name],
+            actions=[],
+        )
+    )
+    assert len(context.suites.get("orders_quality").expectations) == 2, (
+        "upserting with the suite fetched from the context first no longer leaves it"
+        f" untouched; the 'only when' clause in {CHECKPOINT_SKILL}/{ENTRY_DOCUMENT} is"
+        " wrong -- fetch-first is no longer safe advice"
+    )
+    fetch_first_checkpoint = context.checkpoints.get("cascaded_fetch_first")
+    assert [vd.name for vd in fetch_first_checkpoint.validation_definitions] == ["fetched_vd"], (
+        "the fetch-first upsert did not even reach the checkpoint it targeted"
+    )
+
+    fresh_suite_same_name = gx.ExpectationSuite(name="orders_quality")  # no expectations
+    fresh_vd_same_name = ValidationDefinition(
+        name="fresh_vd", data=batch_definition, suite=fresh_suite_same_name
+    )
+    context.checkpoints.add_or_update(
+        Checkpoint(name="cascaded", validation_definitions=[fresh_vd_same_name], actions=[])
+    )
+
+    reloaded_checkpoint = context.checkpoints.get("cascaded")
+    # Always lost.
+    assert [vd.name for vd in reloaded_checkpoint.validation_definitions] == ["fresh_vd"], (
+        "the checkpoint's validation-definition membership survived add_or_update; the"
+        f" cascade table in {CHECKPOINT_SKILL}/{ENTRY_DOCUMENT} says it does not"
+    )
+    assert reloaded_checkpoint.actions == [], (
+        "the checkpoint's actions survived add_or_update; the cascade table in"
+        f" {CHECKPOINT_SKILL}/{ENTRY_DOCUMENT} says they do not"
+    )
+    # Conditionally lost: the fresh suite object wiped the bound suite's contents.
+    assert context.suites.get("orders_quality").expectations == [], (
+        "a fresh suite object passed under an existing name no longer empties it; the"
+        f" cascade table in {CHECKPOINT_SKILL}/{ENTRY_DOCUMENT} says it does"
+    )
+    # Never lost: kept_suite (untouched by the cascade) still carries its expectation,
+    # and both validation definitions -- including the one dropped from membership --
+    # remain independently fetchable from the store.
+    assert len(context.suites.get("kept_suite").expectations) == 1
+    assert context.validation_definitions.get("kept_vd").name == "kept_vd"
+    still_there = context.validation_definitions.get("bound_vd")
+    assert still_there.name == "bound_vd"
+    assert still_there.suite.name == "orders_quality"
+
+
+@pytest.mark.sqlite
+def test_an_ephemeral_run_still_updates_data_docs_at_a_local_file_path(
+    checkpoint_ready: EphemeralDataContext,
+):
+    """An in-memory session's Data Docs action is not a no-op -- it just writes to a
+    directory that dies with the process, which is why the flow announces it as
+    throwaway rather than durable."""
+    context = checkpoint_ready
+    batch_definition = (
+        context.data_sources.get("warehouse").get_asset("orders").get_batch_definition("by_month")
+    )
+    suite = context.suites.get("orders_quality")
+    validation_definition = context.validation_definitions.add(
+        ValidationDefinition(name="ephemeral_docs_vd", data=batch_definition, suite=suite)
+    )
+    checkpoint = context.checkpoints.add(
+        Checkpoint(
+            name="ephemeral_docs_cp",
+            validation_definitions=[validation_definition],
+            actions=[UpdateDataDocsAction(name="update_data_docs")],
+        )
+    )
+
+    sites = context.config.data_docs_sites
+    assert sites is not None and "local_site" in sites, (
+        "an ephemeral session no longer carries a working default Data Docs site; the"
+        f" 'attach it; it works' claim in {CHECKPOINT_SKILL}/references/action-catalog.md"
+        " rests on it doing so"
+    )
+    site_directory = pathlib.Path(sites["local_site"]["store_backend"]["base_directory"])
+    assert site_directory.is_absolute(), "the ephemeral site's directory is not a local path"
+
+    checkpoint.run(batch_parameters={"year": 2024, "month": 3})
+
+    written_pages = list(site_directory.rglob("*.html"))
+    assert written_pages, (
+        "no HTML landed under the ephemeral session's Data Docs directory after a run"
+        " carrying an UpdateDataDocsAction"
+    )
+    assert any(page.name == "index.html" for page in written_pages)
+
+
+@pytest.mark.sqlite
+def test_null_data_docs_sites_silently_no_ops_and_recovers_only_with_the_documented_steps(
+    tmp_path: pathlib.Path,
+):
+    """``data_docs_sites: null`` swallows every site-CRUD call; the recovery snippet
+    from ``action-catalog.md`` is what actually clears it, exec'd end to end."""
+    project_root = tmp_path / "null_sites_project"
+    context = gx.get_context(mode="file", project_root_dir=str(project_root))
+    yml_path = pathlib.Path(context.root_directory) / "great_expectations.yml"
+
+    import yaml
+
+    raw = yaml.safe_load(yml_path.read_text())
+    raw["data_docs_sites"] = None
+    yml_path.write_text(yaml.dump(raw, sort_keys=False))
+
+    context = gx.get_context(mode="file", project_root_dir=str(project_root))
+    assert context.config.data_docs_sites is None
+
+    site_config: DataDocsSiteConfigTypedDict = {
+        "class_name": "SiteBuilder",
+        "store_backend": {
+            "class_name": "TupleFilesystemStoreBackend",
+            "base_directory": "uncommitted/data_docs/local_site/",
+        },
+        "site_index_builder": {"class_name": "DefaultSiteIndexBuilder"},
+    }
+    context.add_data_docs_site(site_name="local_site", site_config=site_config)  # no exception
+
+    still_null = yaml.safe_load(yml_path.read_text())
+    assert still_null.get("data_docs_sites") is None, (
+        "add_data_docs_site() against a null data_docs_sites entry no longer no-ops"
+        " silently; the trap documented in"
+        f" {CHECKPOINT_SKILL}/references/action-catalog.md no longer reproduces"
+    )
+
+    recovery_snippet = sole_block_containing(CHECKPOINT_ACTION_CATALOG, "data_docs_sites: null` to")
+    source = recovery_snippet.source.replace(PROJECT_ROOT_PLACEHOLDER, str(project_root))
+    assert PROJECT_ROOT_PLACEHOLDER not in source, (
+        "the recovery snippet's placeholder was not filled in"
+    )
+    namespace: dict[str, Any] = {"context": context}
+    exec(compile(source, recovery_snippet.identifier, "exec"), namespace)
+
+    recovered = yaml.safe_load(yml_path.read_text())
+    assert recovered.get("data_docs_sites") == {
+        "local_site": {
+            "class_name": "SiteBuilder",
+            "store_backend": {
+                "class_name": "TupleFilesystemStoreBackend",
+                "base_directory": "uncommitted/data_docs/local_site/",
+            },
+            "site_index_builder": {"class_name": "DefaultSiteIndexBuilder"},
+        }
+    }, "the consent-gated recovery snippet did not clear the null sites entry"
+
+    reloaded = gx.get_context(mode="file", project_root_dir=str(project_root))
+    assert reloaded.config.data_docs_sites, "the recovered site is not visible from a fresh load"
+
+
+def documented_deprecation_message(document: pathlib.Path) -> str:
+    """Return the sole block quote in ``document``, unwrapped to a single line.
+
+    Read out of the shipped guidance rather than re-typed here, so a test asserting the
+    runtime's wording is asserting the *same* string the skill shows a user. Re-typing
+    it would let the two drift apart in exactly the case this test exists to catch.
+
+    Requiring exactly one block quote is what makes "the sole block quote" a safe way to
+    name it: a second one added later fails here, loudly, rather than being silently
+    concatenated onto the first into a string that matches nothing.
+    """
+    quotes: list[str] = []
+    inside = False
+    for line in document.read_text(encoding="utf-8").splitlines():
+        if line.startswith(">"):
+            if not inside:
+                quotes.append("")
+                inside = True
+            quotes[-1] = f"{quotes[-1]} {line.lstrip('>').strip()}".strip()
+        else:
+            inside = False
+    assert len(quotes) == 1, (
+        f"{canonical_relative_path(document)} carries {len(quotes)} block quotes;"
+        " this helper names the deprecation message by being the only one"
+    )
+    return quotes[0]
+
+
+@pytest.mark.sqlite
+def test_one_integer_window_drives_both_a_sql_and_a_file_based_validation_definition(
+    ephemeral_context: EphemeralDataContext, warehouse: SqliteDatasource, tmp_path: pathlib.Path
+):
+    """A checkpoint spanning a SQL and a file-based monthly partitioner runs from one
+    ``batch_parameters`` dict of integers -- the two families take the same numeric
+    window parameters, so neither has to be split into a checkpoint of its own.
+
+    Digit strings still select the same batch, so a user's existing snippet keeps
+    working, but they emit the deprecation warning ``run-and-schedule.md`` quotes.
+    The zero-padded filename is deliberate: the file side matches ``2024-03`` as text
+    while the parameter that selects it is the unpadded integer ``3``.
+    """
+    sql_batch_definition = warehouse.add_table_asset(
+        name="orders", table_name="orders"
+    ).add_batch_definition_monthly(name="by_month", column="ordered_at")
+
+    files = tmp_path / "sales"
+    files.mkdir()
+    (files / "sales_2024-03.csv").write_text("customer,amount\nalice,1.0\n", encoding="utf-8")
+    file_batch_definition = (
+        ephemeral_context.data_sources.add_or_update_pandas_filesystem(
+            name="sales_files", base_directory=files
+        )
+        .add_csv_asset(name="monthly_sales")
+        .add_batch_definition_monthly(
+            name="by_month", regex=r"sales_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
+        )
+    )
+
+    suite = ephemeral_context.suites.add(gx.ExpectationSuite(name="mixed_source_suite"))
+    suite.add_expectation(gx.expectations.ExpectColumnToExist(column="customer"))
+    sql_vd = ephemeral_context.validation_definitions.add(
+        ValidationDefinition(name="sql_vd", data=sql_batch_definition, suite=suite)
+    )
+    file_vd = ephemeral_context.validation_definitions.add(
+        ValidationDefinition(name="file_vd", data=file_batch_definition, suite=suite)
+    )
+    checkpoint = ephemeral_context.checkpoints.add(
+        Checkpoint(name="mixed_source_cp", validation_definitions=[sql_vd, file_vd], actions=[])
+    )
+
+    with warnings.catch_warnings(record=True) as integer_run_warnings:
+        warnings.simplefilter("always")
+        integer_result = checkpoint.run(batch_parameters={"year": 2024, "month": 3})
+
+    assert integer_result.success is True
+    # Both sides really ran: a checkpoint whose file side silently contributed nothing
+    # would still report success, so the count is what makes this an integration claim.
+    assert len(integer_result.run_results) == 2
+    assert [
+        str(each.message)
+        for each in integer_run_warnings
+        if issubclass(each.category, GxDeprecationWarning)
+    ] == [], "integer batch parameters are the documented form and must not be deprecated"
+
+    with warnings.catch_warnings(record=True) as string_run_warnings:
+        warnings.simplefilter("always")
+        string_result = checkpoint.run(batch_parameters={"year": "2024", "month": "03"})
+
+    # Strings are deprecated, not broken -- they still select the same window on both
+    # sides, which is why the guidance converts them rather than telling users to stop.
+    assert string_result.success is True
+    assert len(string_result.run_results) == 2
+    deprecations = {
+        str(each.message)
+        for each in string_run_warnings
+        if issubclass(each.category, GxDeprecationWarning)
+    }
+    assert deprecations == {documented_deprecation_message(CHECKPOINT_RUN_AND_SCHEDULE)}, (
+        "the warning digit strings actually emit is not the one"
+        f" {canonical_relative_path(CHECKPOINT_RUN_AND_SCHEDULE)} quotes to the user"
+    )

@@ -21,8 +21,6 @@ azure_options = {
 }
 # </snippet>
 
-bucket_or_name = "test_docs_data"
-
 # Python
 # <snippet name="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/filesystem/how_to_connect_to_data_on_azure_blob_storage_using_spark.py create_datasource">
 datasource = context.data_sources.add_spark_abs(
@@ -53,7 +51,7 @@ assert data_asset
 
 assert datasource.get_asset_names() == {"my_taxi_data_asset"}
 
-my_batch_request = data_asset.build_batch_request({"year": "2019", "month": "03"})
+my_batch_request = data_asset.build_batch_request({"year": 2019, "month": 3})
 batch = data_asset.get_batch(my_batch_request)
 assert set(batch.columns()) == {
     "vendor_id",

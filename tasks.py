@@ -12,6 +12,7 @@ To show task help page `invoke <NAME> --help`
 from __future__ import annotations
 
 import importlib
+import json
 import logging
 import os
 import pathlib
@@ -264,6 +265,11 @@ def type_check(  # noqa: C901, PLR0912
     mypy_cache = pathlib.Path(".mypy_cache")
 
     if ci:
+        # The configuration guard runs inside the type-check entry point, before mypy
+        # dispatches, so it takes effect on the pull request that introduces it and every
+        # one after, and can't be skipped by reordering steps in a workflow file.
+        ctx.run("python scripts/mypy_config_guard.py", echo=True, pty=True)
+
         mypy_cache.mkdir(exist_ok=True)
         print(f"  mypy cache {mypy_cache.absolute()}")
 
@@ -481,6 +487,212 @@ def docker(
     ctx.run(" ".join(cmds), echo=True, pty=True)
 
 
+# Expectation classes that are registered but whose source class defines no curated
+# `Config.schema_extra` metadata block (short description, data quality issues,
+# supported data sources). Generated JSON schemas and any catalog built from them
+# read that block, so an expectation without one can't produce a complete entry -
+# emitting one anyway would silently pass off a structurally incomplete schema as a
+# real one. Recording the gap explicitly here lets completeness checks tell a known,
+# documented absence apart from an accidental one.
+EXPECTATIONS_WITHOUT_SCHEMAS: Final[frozenset[str]] = frozenset(
+    {
+        "ExpectColumnValuesToBeDateutilParseable",
+        "ExpectColumnValuesToBeDecreasing",
+        "ExpectColumnValuesToBeIncreasing",
+        "ExpectColumnValuesToBeJsonParseable",
+        "ExpectColumnValuesToMatchJsonSchema",
+    }
+)
+
+# The `core` expectation classes that get a generated schema file and a catalog entry.
+# Named once here, by class name, rather than as literal class references, so this module
+# can be imported without pulling in the (multi-second) `great_expectations` import - the
+# names are resolved against the live `core` module only inside the functions that need
+# actual classes. Kept as a single source of truth because it can't be reconstructed from
+# the registry alone: `registered - EXPECTATIONS_WITHOUT_SCHEMAS` overcounts by one, since
+# `ExpectMulticolumnValuesToBeUnique` is a `core` class that is never registered.
+SUPPORTED_EXPECTATIONS: Final[tuple[str, ...]] = (
+    "ExpectColumnValuesToBeNull",
+    "ExpectColumnValuesToNotBeNull",
+    "ExpectColumnValuesToBeUnique",
+    "ExpectColumnValuesToBeInSet",
+    "ExpectColumnMaxToBeBetween",
+    "ExpectColumnMeanToBeBetween",
+    "ExpectColumnMedianToBeBetween",
+    "ExpectColumnMinToBeBetween",
+    "ExpectColumnValuesToBeInTypeList",
+    "ExpectColumnValuesToBeOfType",
+    "ExpectTableColumnsToMatchOrderedList",
+    "ExpectTableRowCountToBeBetween",
+    "ExpectTableRowCountToEqual",
+    "ExpectColumnPairValuesToBeEqual",
+    "ExpectMulticolumnSumToEqual",
+    "ExpectMulticolumnValuesToBeEqual",
+    "ExpectCompoundColumnsToBeUnique",
+    "ExpectSelectColumnValuesToBeUniqueWithinRecord",
+    "ExpectColumnPairValuesAToBeGreaterThanB",
+    "ExpectColumnToExist",
+    "ExpectTableColumnCountToEqual",
+    "ExpectTableColumnsToMatchSet",
+    "ExpectTableColumnCountToBeBetween",
+    "ExpectTableRowCountToEqualOtherTable",
+    "ExpectColumnPairValuesToBeInSet",
+    "ExpectColumnProportionOfUniqueValuesToBeBetween",
+    "ExpectColumnUniqueValueCountToBeBetween",
+    "ExpectColumnDistinctValuesToBeInSet",
+    "ExpectColumnDistinctValuesToContainSet",
+    "ExpectColumnDistinctValuesToEqualSet",
+    "ExpectColumnMostCommonValueToBeInSet",
+    "ExpectColumnStdevToBeBetween",
+    "ExpectColumnSumToBeBetween",
+    "ExpectColumnKLDivergenceToBeLessThan",
+    "ExpectColumnQuantileValuesToBeBetween",
+    "ExpectColumnValueLengthsToBeBetween",
+    "ExpectColumnValueLengthsToEqual",
+    "ExpectColumnValueZScoresToBeLessThan",
+    "ExpectColumnValuesToBeBetween",
+    "ExpectColumnValuesToMatchLikePattern",
+    "ExpectColumnValuesToMatchLikePatternList",
+    "ExpectColumnValuesToMatchRegex",
+    "ExpectColumnValuesToMatchRegexList",
+    "ExpectColumnValuesToMatchStrftimeFormat",
+    "ExpectColumnValuesToNotBeInSet",
+    "ExpectColumnValuesToNotBeOutliers",
+    "ExpectColumnValuesToNotMatchLikePattern",
+    "ExpectColumnValuesToNotMatchLikePatternList",
+    "ExpectColumnValuesToNotMatchRegex",
+    "ExpectColumnValuesToNotMatchRegexList",
+    "UnexpectedRowsExpectation",
+    "ExpectQueryResultsToMatchComparison",
+    "ExpectColumnProportionOfNonNullValuesToBeBetween",
+)
+
+
+def _emit_datasource_factory_index(indent: int) -> str:
+    """Build the datasource schema-to-factory-method index.
+
+    Most datasource types snake-case cleanly from their class name, but six of the
+    twenty-six do not (e.g. `BigQueryDatasource` -> `add_or_update_bigquery`,
+    `PandasAzureBlobStorageDatasource` -> `add_or_update_pandas_abs`), so no single rule
+    reproduces the whole mapping. Reading it from the live type registry at generation
+    time, once, freezes the correct mapping into shipped data so nothing consuming the
+    index ever needs to import or introspect the registry itself.
+    """
+    from great_expectations.datasource.fluent.sources import (
+        DataSourceManager,
+        _iter_all_registered_types,
+    )
+
+    datasource_factory_index: dict[str, str] = {
+        f"{ds_type.__name__}.json": f"add_or_update_{ds_name}"
+        for ds_name, ds_type in _iter_all_registered_types(include_data_asset=False)
+    }
+
+    # The factory method name above is reconstructed from the registered type name, not
+    # read off the live factory registry, so if the `add_or_update_<type_name>` naming
+    # convention ever changes, the reconstruction would silently produce a name that
+    # doesn't exist. Check every reconstructed name against the real factory surface so
+    # that kind of drift fails loudly here instead of shipping an index that points at
+    # methods which don't exist. A bare instance is enough - `factories` only reads the
+    # class-level registry and never touches instance state.
+    known_factory_names = frozenset(DataSourceManager.__new__(DataSourceManager).factories)
+    unknown_factory_names = sorted(set(datasource_factory_index.values()) - known_factory_names)
+    if unknown_factory_names:
+        raise ValueError(  # noqa: TRY003
+            "Generated datasource factory index references factory methods that do not "
+            f"exist on DataSourceManager: {unknown_factory_names}"
+        )
+
+    return json.dumps(datasource_factory_index, indent=indent, sort_keys=True) + "\n"
+
+
+def _emit_expectation_catalog_index(
+    supported_expectations: Sequence[type] | None = None,
+    indent: int = 4,
+) -> str:
+    """Build the expectation catalog index.
+
+    The catalog metadata (short description, data quality issues, supported data
+    sources) is read from each expectation's live model, the same source the per-class
+    schema files are generated from, and keyed by its snake_case `expectation_type`
+    rather than its class name. Extracting it once here - rather than leaving every
+    consumer to re-parse every schema file - gives agents a single lookup table that
+    stays in lockstep with the schemas because both are emitted by the same generation
+    step.
+
+    Expectations that are registered but whose source class defines no curated metadata
+    block can't produce a complete catalog entry (see `EXPECTATIONS_WITHOUT_SCHEMAS`).
+    They're listed under `documented_absent` explicitly, rather than left as an implicit
+    gap, so a completeness check can tell a documented absence from an accidental one.
+
+    `supported_expectations` defaults to resolving `SUPPORTED_EXPECTATIONS` against the
+    live `core` module, so a caller that just wants the current catalog - e.g. a test
+    regenerating it for comparison - doesn't have to duplicate that class list itself.
+    """
+    from great_expectations.expectations import core
+
+    if supported_expectations is None:
+        supported_expectations = [getattr(core, name) for name in SUPPORTED_EXPECTATIONS]
+
+    expectation_catalog_index: dict[str, dict[str, object]] = {}
+    for x in supported_expectations:
+        metadata = x.schema()["properties"]["metadata"]["properties"]  # type: ignore[attr-defined]
+        expectation_catalog_index[x.expectation_type] = {  # type: ignore[attr-defined]
+            "schema_file": f"{x.__name__}.json",
+            "short_description": metadata["short_description"]["const"],
+            "data_quality_issues": metadata["data_quality_issues"]["const"],
+            "supported_data_sources": metadata["supported_data_sources"]["const"],
+        }
+
+    documented_absent = sorted(
+        getattr(core, cls_name).expectation_type for cls_name in EXPECTATIONS_WITHOUT_SCHEMAS
+    )
+
+    return (
+        json.dumps(
+            {
+                "expectations": expectation_catalog_index,
+                "documented_absent": documented_absent,
+            },
+            indent=indent,
+            sort_keys=True,
+        )
+        + "\n"
+    )
+
+
+def _emit_catalog_indexes(
+    data_source_schema_dir_root: pathlib.Path,
+    expectation_schema_dir_root: pathlib.Path,
+    supported_expectations: list,
+    indent: int,
+    sync: bool,
+) -> None:
+    """Write both generated catalog indexes (datasource factory methods, expectations).
+
+    Regenerating these only makes sense once the per-class schema files they summarize
+    have themselves been (re)written, which is gated on `--sync` the same way those are.
+    """
+    if not sync:
+        return
+
+    datasource_factory_json = _emit_datasource_factory_index(indent)
+    (data_source_schema_dir_root / "index.json").write_text(datasource_factory_json)
+    print(
+        "🔃  index.json - datasource factory-method index updated"
+        f" ({len(json.loads(datasource_factory_json))} types)"
+    )
+
+    expectation_catalog_json = _emit_expectation_catalog_index(supported_expectations, indent)
+    (expectation_schema_dir_root / "index.json").write_text(expectation_catalog_json)
+    expectation_catalog = json.loads(expectation_catalog_json)
+    print(
+        "🔃  index.json - expectation catalog index updated"
+        f" ({len(expectation_catalog['expectations'])} expectations,"
+        f" {len(expectation_catalog['documented_absent'])} documented absent)"
+    )
+
+
 @invoke.task(
     aliases=("schema", "schemas"),
     help={
@@ -579,65 +791,21 @@ def type_schema(  # noqa: C901 - too complex
             print(f"❌  {name} - Could not sync schema - {type(err).__name__}:{err}")
 
     # handle expectations
-    supported_expectations = [
-        core.ExpectColumnValuesToBeNull,
-        core.ExpectColumnValuesToNotBeNull,
-        core.ExpectColumnValuesToBeUnique,
-        core.ExpectColumnValuesToBeInSet,
-        core.ExpectColumnMaxToBeBetween,
-        core.ExpectColumnMeanToBeBetween,
-        core.ExpectColumnMedianToBeBetween,
-        core.ExpectColumnMinToBeBetween,
-        core.ExpectColumnValuesToBeInTypeList,
-        core.ExpectColumnValuesToBeOfType,
-        core.ExpectTableColumnsToMatchOrderedList,
-        core.ExpectTableRowCountToBeBetween,
-        core.ExpectTableRowCountToEqual,
-        core.ExpectColumnPairValuesToBeEqual,
-        core.ExpectMulticolumnSumToEqual,
-        core.ExpectCompoundColumnsToBeUnique,
-        core.ExpectSelectColumnValuesToBeUniqueWithinRecord,
-        core.ExpectColumnPairValuesAToBeGreaterThanB,
-        core.ExpectColumnToExist,
-        core.ExpectTableColumnCountToEqual,
-        core.ExpectTableColumnsToMatchSet,
-        core.ExpectTableColumnCountToBeBetween,
-        core.ExpectTableRowCountToEqualOtherTable,
-        core.ExpectColumnPairValuesToBeInSet,
-        core.ExpectColumnProportionOfUniqueValuesToBeBetween,
-        core.ExpectColumnUniqueValueCountToBeBetween,
-        core.ExpectColumnDistinctValuesToBeInSet,
-        core.ExpectColumnDistinctValuesToContainSet,
-        core.ExpectColumnDistinctValuesToEqualSet,
-        core.ExpectColumnMostCommonValueToBeInSet,
-        core.ExpectColumnStdevToBeBetween,
-        core.ExpectColumnSumToBeBetween,
-        core.ExpectColumnKLDivergenceToBeLessThan,
-        core.ExpectColumnQuantileValuesToBeBetween,
-        core.ExpectColumnValueLengthsToBeBetween,
-        core.ExpectColumnValueLengthsToEqual,
-        core.ExpectColumnValueZScoresToBeLessThan,
-        core.ExpectColumnValuesToBeBetween,
-        core.ExpectColumnValuesToMatchLikePattern,
-        core.ExpectColumnValuesToMatchLikePatternList,
-        core.ExpectColumnValuesToMatchRegex,
-        core.ExpectColumnValuesToMatchRegexList,
-        core.ExpectColumnValuesToNotBeInSet,
-        core.ExpectColumnValuesToNotBeNull,
-        core.ExpectColumnValuesToNotMatchLikePattern,
-        core.ExpectColumnValuesToNotMatchLikePatternList,
-        core.ExpectColumnValuesToNotMatchRegex,
-        core.ExpectColumnValuesToNotMatchRegexList,
-        core.UnexpectedRowsExpectation,
-        core.ExpectQueryResultsToMatchComparison,
-        core.ExpectColumnProportionOfNonNullValuesToBeBetween,
-    ]
+    supported_expectations = [getattr(core, name) for name in SUPPORTED_EXPECTATIONS]
     for x in supported_expectations:
         schema_path = expectation_dir.joinpath(f"{x.__name__}.json")
-        json_str = x.schema_json(indent=indent) + "\n"  # type: ignore[attr-defined] # FIXME low priority
+        json_str = x.schema_json(indent=indent) + "\n"
         if sync:
             schema_path.write_text(json_str)
             print(f"🔃  {x.__name__}.json updated")
+
+    _emit_catalog_indexes(
+        data_source_schema_dir_root,
+        expectation_schema_dir_root,
+        supported_expectations,
+        indent,
+        sync,
+    )
 
     raise invoke.Exit(code=0)
 
@@ -813,7 +981,10 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
     "athena": TestDependencies(("reqs/requirements-dev-athena.txt",)),
     "aws_deps": TestDependencies(("reqs/requirements-dev-lite.txt",)),
     "bigquery": TestDependencies(("reqs/requirements-dev-bigquery.txt",)),
-    "clickhouse": TestDependencies(("reqs/requirements-dev-clickhouse.txt",)),
+    "clickhouse": TestDependencies(
+        ("reqs/requirements-dev-clickhouse.txt",),
+        services=("clickhouse",),
+    ),
     "cloud": TestDependencies(
         (
             "reqs/requirements-dev-cloud.txt",
@@ -850,6 +1021,9 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             "reqs/requirements-dev-azure.txt",
             "reqs/requirements-dev-bigquery.txt",
             "reqs/requirements-dev-cloud.txt",
+            # Explicit rather than inherited from the bigquery requirements, so that GCS
+            # coverage here does not quietly depend on BigQuery staying installed.
+            "reqs/requirements-dev-gcs.txt",
             "reqs/requirements-dev-redshift.txt",
             "reqs/requirements-dev-snowflake.txt",
             "reqs/requirements-dev-sql-server.txt",
@@ -858,11 +1032,33 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         ),
         services=("mssql", "trino"),
         extra_pytest_args=(
-            # TEMPORARY (CI transition): the S3, GCS, Azure Blob, BigQuery, Redshift, and
-            # Snowflake backends are unavailable while their CI infrastructure is torn down.
-            # Requesting any of them makes test collection eagerly connect to a dead backend
-            # and abort the whole session, so only the still-available Trino backend is
-            # requested here. Restore the cloud/warehouse flags once the infra is back.
+            # Every backend this leg installs is requested here, and each flag makes test
+            # collection open a real connection -- so a flag whose backend is unreachable
+            # aborts the whole session rather than skipping its tests. Add one only once
+            # its marker leg is green.
+            #
+            # --azure has no marker leg to be green: nothing carries an azure marker, and
+            # the docs fixtures are the only tests that reach Blob Storage at all. Its
+            # collection check is also weaker than the others -- build_test_backends_list
+            # only asserts that one of AZURE_CREDENTIAL / AZURE_ACCESS_KEY /
+            # AZURE_CONNECTION_STRING is non-empty, and opens no connection -- so a
+            # credential that is present but wrong (an expired SAS, say) surfaces as a
+            # fixture failure here rather than as a collection error.
+            #
+            # One is deliberately left out.
+            #
+            # --snowflake: collection connects fine, but both Snowflake docs fixtures then
+            # fail loading their test data into the test database. That failure is not
+            # diagnosable from CI -- load_data_into_test_database deliberately swallows the
+            # SQLAlchemyError so credentials cannot reach the logs (tests/test_utils.py) --
+            # so it needs someone who can run it against Snowflake directly. The marker
+            # leg is green, so this is a fixture/permissions gap, not a dead backend.
+            "--aws",
+            "--azure",
+            "--bigquery",
+            "--gcs",
+            "--redshift",
+            "--sql-server",
             "--trino",
             "--docs-tests",
         ),
@@ -873,11 +1069,14 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             "reqs/requirements-dev-spark.txt",
         ),
         services=("spark",),
+        # No --gcs here, so the two fixtures needing both GCS and Spark stay skipped.
+        # Spark reads GCS over gs:// URIs, which requires the GCS Hadoop connector on the
+        # JVM classpath; without it the read fails with UnsupportedFileSystemException.
+        # Supplying that jar is CI infrastructure work, not a Python requirement. See
+        # tests/integration/test_definitions/gcs/README.md.
         extra_pytest_args=("--spark", "--docs-tests"),
     ),
-    "gx-redshift": TestDependencies(
-        requirement_files=("reqs/requirements-dev-gx-redshift.txt",),
-    ),
+    "gcs_deps": TestDependencies(("reqs/requirements-dev-gcs.txt",)),
     "sql_server": TestDependencies(
         ("reqs/requirements-dev-sql-server.txt",),
         services=("mssql",),
@@ -892,6 +1091,10 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         ("reqs/requirements-dev-mysql.txt",),
         services=("mysql",),
         extra_pytest_args=("--mysql",),
+    ),
+    "oracle": TestDependencies(
+        ("reqs/requirements-dev-oracle.txt",),
+        services=("oracle",),
     ),
     "pyarrow": TestDependencies(("reqs/requirements-dev-arrow.txt",)),
     "postgresql": TestDependencies(
@@ -943,8 +1146,6 @@ def _marker_statement(marker: str) -> str:
         "trino",
     ]:
         return f"'all_backends or {marker}'"
-    elif marker == "gx-redshift":
-        return "'redshift'"
     else:
         return f"'{marker}'"
 

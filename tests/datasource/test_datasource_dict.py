@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 class DatasourceStoreSpy(DatasourceStore):
     def __init__(self, datasource_configs: list[dict] | None = None) -> None:
         self.list_keys_count = 0
+        self.get_all_count = 0
         self.has_key_count = 0
         self.set_count = 0
         self.get_count = 0
@@ -33,6 +34,7 @@ class DatasourceStoreSpy(DatasourceStore):
 
         # Reset counters
         self.list_keys_count = 0
+        self.get_all_count = 0
         self.has_key_count = 0
         self.set_count = 0
         self.get_count = 0
@@ -41,6 +43,10 @@ class DatasourceStoreSpy(DatasourceStore):
     def get(self, key):
         self.get_count += 1
         return super().get(key)
+
+    def get_all(self):
+        self.get_all_count += 1
+        return super().get_all()
 
     def set(self, key, value, **kwargs):
         self.set_count += 1
@@ -97,9 +103,9 @@ def test_datasource_dict_data_property_requests_store_just_in_time(
 ):
     store = empty_datasource_dict._datasource_store
 
-    store.list_keys_count = 0
+    assert store.get_all_count == 0
     _ = empty_datasource_dict.data
-    store.list_keys_count = 1
+    assert store.get_all_count == 1
 
 
 @pytest.mark.unit
@@ -108,9 +114,9 @@ def test_datasource_dict___contains___requests_store_just_in_time(
 ):
     store = empty_datasource_dict._datasource_store
 
-    store.list_keys_count = 0
+    assert store.get_all_count == 0
     _ = "foo" in empty_datasource_dict.data
-    store.list_keys_count = 1
+    assert store.get_all_count == 1
 
 
 @pytest.mark.unit

@@ -19,6 +19,7 @@ from .column_median import ColumnMedian
 from .column_min import ColumnMin
 from .column_most_common_value import ColumnMostCommonValue
 from .column_non_null_count import ColumnNonNullCount
+from .column_outlier_statistics import ColumnOutlierStatistics
 from .column_parameterized_distribution_ks_test_p_value import (
     ColumnParameterizedDistributionKSTestPValue,
 )

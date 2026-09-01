@@ -70,7 +70,10 @@ class SparkS3Datasource(_SparkFilePathDatasource):
                     "boto3_options", {}
                 )
                 try:
-                    s3_client = aws.boto3.client("s3", **boto3_options)
+                    s3_client = aws.boto3.client(
+                        "s3",
+                        **aws.get_s3_boto3_options(boto3_options),
+                    )
                 except Exception as e:
                     # Failure to create "s3_client" is most likely due invalid "boto3_options" dictionary.  # noqa: E501 # FIXME CoP
                     raise SparkS3DatasourceError(  # noqa: TRY003 # FIXME CoP

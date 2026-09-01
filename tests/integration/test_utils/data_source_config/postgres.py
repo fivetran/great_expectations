@@ -8,23 +8,35 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.sql_session_manager import SessionSQLEngineManager
-from tests.integration.test_utils.data_source_config.base import (
-    BatchTestSetup,
-    DataSourceTestConfig,
+from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
+from tests.integration.test_utils.data_source_config.base import BatchTestSetup
+from tests.integration.test_utils.data_source_config.data_source_spec import (
+    CiLaneRef,
+    DataSourceProvisioning,
+    ExecutionEngineKind,
+    SupportTier,
 )
+from tests.integration.test_utils.data_source_config.registry import register_sql_config
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
+from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
 
-class PostgreSQLDatasourceTestConfig(DataSourceTestConfig):
-    @property
-    @override
-    def label(self) -> str:
-        return "postgresql"
-
-    @property
-    @override
-    def pytest_mark(self) -> pytest.MarkDecorator:
-        return pytest.mark.postgresql
+@register_sql_config
+class PostgreSQLDatasourceTestConfig(SqlDatasourceTestConfig):
+    DATA_SOURCE_SPEC = SqlBackendSpec(
+        label="postgresql",
+        public_name="PostgreSQL",
+        marker="postgresql",
+        provisioning=DataSourceProvisioning.LOCAL_CONTAINER,
+        execution_engine=ExecutionEngineKind.SQL,
+        fluent_types=frozenset({"postgres"}),
+        ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="postgresql"),
+        uses_schema=True,
+        tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS}),
+        dev_requirements_file="reqs/requirements-dev-postgresql.txt",
+        task_runner_marker="postgresql",
+        container_service="postgresql",
+    )
 
     @override
     def create_batch_setup(
@@ -54,11 +66,6 @@ class PostgresBatchTestSetup(SQLBatchTestSetup[PostgreSQLDatasourceTestConfig]):
             options = urlencode({"options": f"-c search_path={schema}"})
             return f"{self._BASE_CONNECTION_STRING}?{options}"
         return self._BASE_CONNECTION_STRING
-
-    @property
-    @override
-    def use_schema(self) -> bool:
-        return True
 
     @override
     def make_asset(self) -> TableAsset:

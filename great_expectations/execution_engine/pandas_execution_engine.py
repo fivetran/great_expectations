@@ -167,7 +167,8 @@ class PandasExecutionEngine(ExecutionEngine[str]):
     def _instantiate_s3_client(self) -> None:
         # If s3_client was passed in (from data source) use it, otherwise create our own
         self._s3 = self._config.get("s3_client") or aws.boto3.client(
-            "s3", **self.config.get("boto3_options", {})
+            "s3",
+            **aws.get_s3_boto3_options(self.config.get("boto3_options", {})),
         )
 
     def _instantiate_gcs_client(self) -> None:
@@ -730,4 +731,6 @@ def hash_pandas_dataframe(df):
         # In case of facing unhashable objects (like dict), use pickle
         obj = pickle.dumps(df, pickle.HIGHEST_PROTOCOL)
 
-    return hashlib.md5(obj).hexdigest()
+    # not used for security: this is a batch fingerprint, not a cryptographic digest.
+    # usedforsecurity=False lets this run on hosts with FIPS-mode OpenSSL.
+    return hashlib.md5(obj, usedforsecurity=False).hexdigest()

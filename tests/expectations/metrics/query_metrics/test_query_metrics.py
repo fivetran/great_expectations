@@ -3,7 +3,7 @@ from unittest import mock
 from unittest.mock import create_autospec
 
 import pytest
-from sqlalchemy.dialects import mysql
+from sqlalchemy.dialects import mysql, oracle  # noqa: F401 # registers sa.dialects.oracle
 
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
@@ -13,6 +13,7 @@ from great_expectations.expectations.metrics.query_metric_provider import (
     QueryParameters,
     find_last_top_level_order_by,
     has_top_level_token,
+    render_derived_table_alias,
     strip_top_level_order_by,
 )
 from great_expectations.expectations.metrics.query_metrics import (
@@ -542,6 +543,25 @@ def mock_sql_server_execution_engine() -> MockSQLServerSqlAlchemyExecutionEngine
     return engine
 
 
+class MockOracleSqlAlchemyExecutionEngine(MockSqlAlchemyExecutionEngine):
+    """Mock engine that reports dialect_name as 'oracle'."""
+
+    def __init__(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def]
+        super().__init__(*args, **kwargs)
+        from tests.expectations.metrics.conftest import MockSaEngine
+
+        self.engine = MockSaEngine(dialect=sa.dialects.oracle.dialect())  # type: ignore[assignment]
+
+
+@pytest.fixture
+def mock_oracle_execution_engine() -> MockOracleSqlAlchemyExecutionEngine:
+    from tests.expectations.metrics.conftest import MockBatchManager
+
+    engine = MockOracleSqlAlchemyExecutionEngine()
+    engine._batch_manager = MockBatchManager()
+    return engine
+
+
 class TestQueryRowCountSQLServerOrderByStripping:
     @pytest.mark.unit
     @mock.patch.object(sa, "text")
@@ -656,3 +676,498 @@ class TestQueryRowCountSQLServerOrderByStripping:
 
         actual_sql = mock_text.call_args[0][0]
         assert "ORDER BY" in actual_sql
+
+
+def _compile_batch_selectable(
+    batch_selectable: sa.Table, dialect: sa.engine.interfaces.Dialect
+) -> str:
+    """Compile the same selectable, in the same way, that the code under test compiles it.
+
+    ``sa.select(batch_selectable)`` with no columns pulled out renders differently across
+    SQLAlchemy major versions (e.g. an extra space after ``SELECT``), so that fragment is
+    derived here at runtime rather than hardcoded, leaving only this work's contribution --
+    the alias wrapping asserted alongside this helper's return value -- pinned as a literal.
+    """
+    return str(
+        sa.select(batch_selectable).compile(dialect=dialect, compile_kwargs={"literal_binds": True})
+    )
+
+
+class TestDerivedTableAliasDialectInvariance:
+    """Characterization tests pinning the derived-table alias text each dialect receives.
+
+    Three sites build a derived-table alias, all of them through
+    ``render_derived_table_alias``: the single-nested form here (a query-metric re-embedding a
+    compiled ``Select`` bound to ``subselect``) and the doubly-nested form in
+    ``TestRowCountDerivedTableAliasDialectInvariance`` below (the row-count statement's
+    ``substituted_batch_subquery`` wrapping around the same inner form). The keyword ``AS``
+    precedes the alias on every dialect whose grammar admits it there, and is omitted on the
+    one whose grammar does not. They
+    are asserted separately because the two nesting depths surface as two distinct database
+    errors on Oracle, from two different metrics of the same expectation.
+    """
+
+    @pytest.mark.unit
+    def test_single_nested_alias_default_dialect(
+        self,
+        mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        result = (
+            QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
+                query="SELECT * FROM {batch} WHERE passenger_count > 7",
+                batch_selectable=sa.select(batch_selectable),
+                execution_engine=mock_sqlalchemy_execution_engine,
+            )
+        )
+        compiled = _compile_batch_selectable(
+            batch_selectable, mock_sqlalchemy_execution_engine.engine.dialect
+        )
+        assert result == (f"SELECT * FROM ({compiled}) AS subselect WHERE passenger_count > 7")
+
+    @pytest.mark.unit
+    def test_alias_keyword_is_emitted_when_the_dialect_is_unknown(self) -> None:
+        """The renderer emits the keyword when the dialect name is unknown.
+
+        ``render_derived_table_alias`` omits ``AS`` only for the one grammar that rejects it
+        before a table alias. A ``None`` dialect name means the caller could not say which
+        grammar applies, so the form every other dialect receives is the safe answer -- an
+        unknown dialect must not inherit the exception.
+        """
+        assert (
+            render_derived_table_alias(subquery="SELECT 1", alias="subselect", dialect_name=None)
+            == "(SELECT 1) AS subselect"
+        )
+
+    @pytest.mark.unit
+    def test_single_nested_alias_sql_server(
+        self,
+        mock_sql_server_execution_engine: MockSQLServerSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        result = (
+            QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
+                query="SELECT * FROM {batch} WHERE passenger_count > 7",
+                batch_selectable=sa.select(batch_selectable),
+                execution_engine=mock_sql_server_execution_engine,
+            )
+        )
+        compiled = _compile_batch_selectable(
+            batch_selectable, mock_sql_server_execution_engine.engine.dialect
+        )
+        assert result == (f"SELECT * FROM ({compiled}) AS subselect WHERE passenger_count > 7")
+
+    @pytest.mark.unit
+    def test_single_nested_alias_oracle(
+        self,
+        mock_oracle_execution_engine: MockOracleSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        """Oracle's grammar admits ``AS`` before a column alias but not before a table alias, so
+        the derived-table alias renderer omits the keyword here. Every other assertion in this
+        module must stay byte-identical alongside this inversion.
+        """
+        result = (
+            QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
+                query="SELECT * FROM {batch} WHERE passenger_count > 7",
+                batch_selectable=sa.select(batch_selectable),
+                execution_engine=mock_oracle_execution_engine,
+            )
+        )
+        compiled = _compile_batch_selectable(
+            batch_selectable, mock_oracle_execution_engine.engine.dialect
+        )
+        assert result == (f"SELECT * FROM ({compiled}) subselect WHERE passenger_count > 7")
+
+    @pytest.mark.unit
+    def test_join_query_receives_no_alias_default_dialect(
+        self,
+        mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        """The sibling branch immediately above the aliased one: a JOIN query gets no alias at
+        all, on any dialect. This branch carries no dialect condition, so a dialect-specific
+        renderer applied to the aliased branch must not disturb it.
+        """
+        result = (
+            QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
+                query="SELECT * FROM {batch} JOIN other_table ON 1=1",
+                batch_selectable=sa.select(batch_selectable),
+                execution_engine=mock_sqlalchemy_execution_engine,
+            )
+        )
+        compiled = _compile_batch_selectable(
+            batch_selectable, mock_sqlalchemy_execution_engine.engine.dialect
+        )
+        assert result == f"SELECT * FROM ({compiled}) JOIN other_table ON 1=1"
+
+    @pytest.mark.unit
+    def test_join_query_receives_no_alias_oracle(
+        self,
+        mock_oracle_execution_engine: MockOracleSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        """The unaliased JOIN branch is already identical on Oracle today; it is not part of the
+        defect and is not expected to change.
+        """
+        result = (
+            QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
+                query="SELECT * FROM {batch} JOIN other_table ON 1=1",
+                batch_selectable=sa.select(batch_selectable),
+                execution_engine=mock_oracle_execution_engine,
+            )
+        )
+        compiled = _compile_batch_selectable(
+            batch_selectable, mock_oracle_execution_engine.engine.dialect
+        )
+        assert result == f"SELECT * FROM ({compiled}) JOIN other_table ON 1=1"
+
+
+class TestRowCountDerivedTableAliasDialectInvariance:
+    """Characterization tests pinning the row-count statement's doubly-nested derived-table
+    alias, and the column alias that sits alongside it in the same statement.
+
+    The inner form is supplied pre-compiled here (mirroring the existing
+    ``TestQueryRowCountSQLServerOrderByStripping`` pattern in this module) so each test isolates
+    the outer wrapping this statement adds: the table alias ``substituted_batch_subquery``,
+    whose keyword is dialect-dependent, and the column alias ``AS unexpected_row_count``, which
+    every dialect here accepts and which no dialect-specific rendering touches.
+
+    Each test asserts the full statement text and then, separately, a standalone assertion
+    isolating the column alias (``SELECT COUNT(*) as unexpected_row_count FROM``). The two are
+    kept independent on purpose: a change to the table alias rewrites this class's Oracle-side
+    full-statement literal, and the standalone assertion is what keeps a dropped or renamed
+    column alias from riding through that rewrite unnoticed.
+    """
+
+    @pytest.mark.unit
+    @mock.patch.object(sa, "text")
+    @mock.patch.object(
+        QueryMetricProvider, "_get_substituted_batch_subquery_from_query_and_batch_selectable"
+    )
+    def test_double_nested_alias_default_dialect(
+        self,
+        mock_get_sub,
+        mock_text,
+        mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        mock_get_sub.return_value = (
+            "SELECT * FROM (my_table) AS subselect WHERE passenger_count > 7"
+        )
+        mock_text.return_value = "*"
+        mock_result = create_autospec(sa.engine.CursorResult)
+        mock_result.fetchone.return_value = (42,)
+
+        with mock.patch.object(
+            mock_sqlalchemy_execution_engine, "execute_query", return_value=mock_result
+        ):
+            MyQueryRowCount._sqlalchemy(
+                cls=MyQueryRowCount,
+                execution_engine=mock_sqlalchemy_execution_engine,
+                metric_domain_kwargs={},
+                metric_value_kwargs={
+                    "query_param": "my_query",
+                    "my_query": "SELECT * FROM {batch}",
+                },
+                metrics={},
+                runtime_configuration={},
+            )
+
+        actual_sql = mock_text.call_args[0][0]
+        assert actual_sql == (
+            "SELECT COUNT(*) as unexpected_row_count FROM "
+            "(SELECT * FROM (my_table) AS subselect WHERE passenger_count > 7) "
+            "AS substituted_batch_subquery"
+        )
+        # Standalone: the column alias, pinned independently of the table alias above, so a
+        # future rewrite of this test's Oracle-side full-statement literal cannot silently drop
+        # or rename it.
+        assert "SELECT COUNT(*) as unexpected_row_count FROM" in actual_sql
+
+    @pytest.mark.unit
+    @mock.patch.object(sa, "text")
+    @mock.patch.object(
+        QueryMetricProvider, "_get_substituted_batch_subquery_from_query_and_batch_selectable"
+    )
+    def test_double_nested_alias_sql_server(
+        self,
+        mock_get_sub,
+        mock_text,
+        mock_sql_server_execution_engine: MockSQLServerSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        mock_get_sub.return_value = (
+            "SELECT * FROM (my_table) AS subselect WHERE passenger_count > 7"
+        )
+        mock_text.return_value = "*"
+        mock_result = create_autospec(sa.engine.CursorResult)
+        mock_result.fetchone.return_value = (42,)
+
+        with mock.patch.object(
+            mock_sql_server_execution_engine, "execute_query", return_value=mock_result
+        ):
+            MyQueryRowCount._sqlalchemy(
+                cls=MyQueryRowCount,
+                execution_engine=mock_sql_server_execution_engine,
+                metric_domain_kwargs={},
+                metric_value_kwargs={
+                    "query_param": "my_query",
+                    "my_query": "SELECT * FROM {batch}",
+                },
+                metrics={},
+                runtime_configuration={},
+            )
+
+        actual_sql = mock_text.call_args[0][0]
+        assert actual_sql == (
+            "SELECT COUNT(*) as unexpected_row_count FROM "
+            "(SELECT * FROM (my_table) AS subselect WHERE passenger_count > 7) "
+            "AS substituted_batch_subquery"
+        )
+        # Standalone: the column alias, pinned independently of the table alias above, so a
+        # future rewrite of this test's Oracle-side full-statement literal cannot silently drop
+        # or rename it.
+        assert "SELECT COUNT(*) as unexpected_row_count FROM" in actual_sql
+
+    @pytest.mark.unit
+    @mock.patch.object(sa, "text")
+    @mock.patch.object(
+        QueryMetricProvider, "_get_substituted_batch_subquery_from_query_and_batch_selectable"
+    )
+    def test_double_nested_alias_oracle(
+        self,
+        mock_get_sub,
+        mock_text,
+        mock_oracle_execution_engine: MockOracleSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        """Pins the derived-table alias renderer's effect at the second nesting depth: Oracle's
+        outer table alias omits ``AS``, while the inner alias supplied via the mocked
+        ``_get_substituted_batch_subquery_from_query_and_batch_selectable`` return value is
+        unaffected -- that call is mocked here, so this test exercises only the outer wrapping
+        this statement adds. This is the doubly-nested counterpart to
+        ``test_single_nested_alias_oracle`` above -- both invert together, because the two
+        nesting depths surface as two distinct database errors from two different metrics. The
+        column alias ``as unexpected_row_count`` in this same statement is a separate, accepted
+        construct; it is pinned independently below via a standalone assertion, not only inside
+        this method's full-statement literal, so a rewrite of that literal cannot silently carry
+        the column alias along with it.
+        """
+        mock_get_sub.return_value = (
+            "SELECT * FROM (my_table) AS subselect WHERE passenger_count > 7"
+        )
+        mock_text.return_value = "*"
+        mock_result = create_autospec(sa.engine.CursorResult)
+        mock_result.fetchone.return_value = (42,)
+
+        with mock.patch.object(
+            mock_oracle_execution_engine, "execute_query", return_value=mock_result
+        ):
+            MyQueryRowCount._sqlalchemy(
+                cls=MyQueryRowCount,
+                execution_engine=mock_oracle_execution_engine,
+                metric_domain_kwargs={},
+                metric_value_kwargs={
+                    "query_param": "my_query",
+                    "my_query": "SELECT * FROM {batch}",
+                },
+                metrics={},
+                runtime_configuration={},
+            )
+
+        actual_sql = mock_text.call_args[0][0]
+        assert actual_sql == (
+            "SELECT COUNT(*) as unexpected_row_count FROM "
+            "(SELECT * FROM (my_table) AS subselect WHERE passenger_count > 7) "
+            "substituted_batch_subquery"
+        )
+        # Standalone: the column alias, pinned independently of the table alias above, so a
+        # future rewrite of this test's Oracle-side full-statement literal cannot silently drop
+        # or rename it.
+        assert "SELECT COUNT(*) as unexpected_row_count FROM" in actual_sql
+
+
+class TestQueryTemplateValuesDerivedTableAliasDialectInvariance:
+    """Characterization tests pinning the third derived-table alias construction site, in
+    ``QueryTemplateValues._sqlalchemy``.
+
+    The stock mock execution engine's ``get_compute_domain`` returns a ``sa.Table``, which
+    takes the unaliased ``sa.Table`` branch in ``query_template_values.py`` rather than the
+    ``sa.sql.Select`` branch that binds the compiled selectable to ``subselect``. Each test below
+    patches ``get_compute_domain`` on the engine instance to return a compiled ``Select``
+    instead, so the aliased branch is actually exercised, and patches ``execute_query`` so no
+    real database call is attempted. The exact text passed to ``sa.text`` is asserted.
+    """
+
+    @pytest.mark.unit
+    def test_single_nested_alias_default_dialect(
+        self,
+        mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        mock_result = create_autospec(sa.engine.CursorResult)
+        mock_result.fetchall.return_value = []
+
+        with (
+            mock.patch.object(
+                mock_sqlalchemy_execution_engine,
+                "get_compute_domain",
+                return_value=(sa.select(batch_selectable), {}, {}),
+            ),
+            mock.patch.object(
+                mock_sqlalchemy_execution_engine, "execute_query", return_value=mock_result
+            ) as mock_execute_query,
+            mock.patch.object(sa, "text", side_effect=lambda x: x),
+        ):
+            QueryTemplateValues._sqlalchemy(
+                cls=QueryTemplateValues,
+                execution_engine=mock_sqlalchemy_execution_engine,
+                metric_domain_kwargs={},
+                metric_value_kwargs={
+                    "template_dict": {},
+                    "query": "SELECT * FROM {batch} WHERE passenger_count > 7",
+                },
+                metrics={},
+                runtime_configuration={},
+            )
+            actual_sql = mock_execute_query.call_args[0][0]
+        compiled = _compile_batch_selectable(
+            batch_selectable, mock_sqlalchemy_execution_engine.engine.dialect
+        )
+        assert actual_sql == (f"SELECT * FROM ({compiled}) AS subselect WHERE passenger_count > 7")
+
+    @pytest.mark.unit
+    def test_single_nested_alias_sql_server(
+        self,
+        mock_sql_server_execution_engine: MockSQLServerSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        mock_result = create_autospec(sa.engine.CursorResult)
+        mock_result.fetchall.return_value = []
+
+        with (
+            mock.patch.object(
+                mock_sql_server_execution_engine,
+                "get_compute_domain",
+                return_value=(sa.select(batch_selectable), {}, {}),
+            ),
+            mock.patch.object(
+                mock_sql_server_execution_engine, "execute_query", return_value=mock_result
+            ) as mock_execute_query,
+            mock.patch.object(sa, "text", side_effect=lambda x: x),
+        ):
+            QueryTemplateValues._sqlalchemy(
+                cls=QueryTemplateValues,
+                execution_engine=mock_sql_server_execution_engine,
+                metric_domain_kwargs={},
+                metric_value_kwargs={
+                    "template_dict": {},
+                    "query": "SELECT * FROM {batch} WHERE passenger_count > 7",
+                },
+                metrics={},
+                runtime_configuration={},
+            )
+            actual_sql = mock_execute_query.call_args[0][0]
+        compiled = _compile_batch_selectable(
+            batch_selectable, mock_sql_server_execution_engine.engine.dialect
+        )
+        assert actual_sql == (f"SELECT * FROM ({compiled}) AS subselect WHERE passenger_count > 7")
+
+    @pytest.mark.unit
+    def test_single_nested_alias_oracle(
+        self,
+        mock_oracle_execution_engine: MockOracleSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        """Oracle's grammar admits ``AS`` before a column alias but not before a table alias, so
+        the derived-table alias renderer omits the keyword at this third construction site too.
+        This is one of the assertions in this module that inverts together with its siblings in
+        the other two alias-construction test classes.
+        """
+        mock_result = create_autospec(sa.engine.CursorResult)
+        mock_result.fetchall.return_value = []
+
+        with (
+            mock.patch.object(
+                mock_oracle_execution_engine,
+                "get_compute_domain",
+                return_value=(sa.select(batch_selectable), {}, {}),
+            ),
+            mock.patch.object(
+                mock_oracle_execution_engine, "execute_query", return_value=mock_result
+            ) as mock_execute_query,
+            mock.patch.object(sa, "text", side_effect=lambda x: x),
+        ):
+            QueryTemplateValues._sqlalchemy(
+                cls=QueryTemplateValues,
+                execution_engine=mock_oracle_execution_engine,
+                metric_domain_kwargs={},
+                metric_value_kwargs={
+                    "template_dict": {},
+                    "query": "SELECT * FROM {batch} WHERE passenger_count > 7",
+                },
+                metrics={},
+                runtime_configuration={},
+            )
+            actual_sql = mock_execute_query.call_args[0][0]
+        compiled = _compile_batch_selectable(
+            batch_selectable, mock_oracle_execution_engine.engine.dialect
+        )
+        assert actual_sql == (f"SELECT * FROM ({compiled}) subselect WHERE passenger_count > 7")
+
+
+class TestLiteralBooleanReplacementDialectInvariance:
+    """Characterization tests pinning the literal-boolean replacement behavior.
+
+    ``query_metric_provider.py`` replaces the literal ``WHERE true`` with ``WHERE 1=1`` when the
+    execution engine reports the ``mssql`` or ``oracle`` dialect: SQL Server has no boolean
+    literal, and Oracle rejects a bare ``true`` as a ``WHERE``-clause predicate with ORA-00920
+    before it gained a SQL boolean type in 23ai. These tests pin that behavior on SQL Server and
+    on Oracle, and pin its absence on a default dialect.
+    """
+
+    @pytest.mark.unit
+    def test_sql_server_replaces_literal_where_true(
+        self,
+        mock_sql_server_execution_engine: MockSQLServerSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        result = (
+            QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
+                query="SELECT * FROM {batch} WHERE true",
+                batch_selectable=batch_selectable,
+                execution_engine=mock_sql_server_execution_engine,
+            )
+        )
+        assert result == "SELECT * FROM my_table WHERE 1=1"
+
+    @pytest.mark.unit
+    def test_oracle_replaces_literal_where_true(
+        self,
+        mock_oracle_execution_engine: MockOracleSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        result = (
+            QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
+                query="SELECT * FROM {batch} WHERE true",
+                batch_selectable=batch_selectable,
+                execution_engine=mock_oracle_execution_engine,
+            )
+        )
+        assert result == "SELECT * FROM my_table WHERE 1=1"
+
+    @pytest.mark.unit
+    def test_default_dialect_does_not_replace_literal_where_true(
+        self,
+        mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        result = (
+            QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
+                query="SELECT * FROM {batch} WHERE true",
+                batch_selectable=batch_selectable,
+                execution_engine=mock_sqlalchemy_execution_engine,
+            )
+        )
+        assert result == "SELECT * FROM my_table WHERE true"

@@ -129,7 +129,7 @@ jobs:
                 `We could not find a signed CLA for: ${mentions}. Please sign the ` +
                 '[Individual Contributor License Agreement](https://forms.gle/wvregSivqgAaJNEX8), ' +
                 'or the [Software Grant and Corporate Contributor License Agreement]' +
-                '(https://forms.gle/6viSVNxZjui9Vhi29) if you are contributing on behalf of your ' +
+                '(https://forms.gle/tFdJftyGYm2otPKA8) if you are contributing on behalf of your ' +
                 'employer (see [CLA.md](https://github.com/fivetran/great_expectations/blob/develop/CLA.md) ' +
                 'for details).'
               );
@@ -292,7 +292,7 @@ jobs:
                 `We could not find a signed CLA for: ${mentions}. Please sign the ` +
                 '[Individual Contributor License Agreement](https://forms.gle/wvregSivqgAaJNEX8), ' +
                 'or the [Software Grant and Corporate Contributor License Agreement]' +
-                '(https://forms.gle/6viSVNxZjui9Vhi29) if you are contributing on behalf of your ' +
+                '(https://forms.gle/tFdJftyGYm2otPKA8) if you are contributing on behalf of your ' +
                 'employer (see [CLA.md](https://github.com/fivetran/great_expectations/blob/develop/CLA.md) ' +
                 'for details).'
               );

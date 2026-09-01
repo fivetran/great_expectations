@@ -20,6 +20,7 @@ from .column_values_not_match_like_pattern_list import (
 )
 from .column_values_not_match_regex import ColumnValuesNotMatchRegex
 from .column_values_not_match_regex_list import ColumnValuesNotMatchRegexList
+from .column_values_not_outliers import ColumnValuesNotOutliers
 from .column_values_null import ColumnValuesNull
 from .column_values_of_type import ColumnValuesOfType
 from .column_values_unique import ColumnValuesUnique

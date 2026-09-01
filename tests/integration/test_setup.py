@@ -79,3 +79,31 @@ class TestSetupIntegration:
 
         finally:
             os.chdir(original_cwd)
+
+    @pytest.mark.filesystem
+    def test_oracle_is_not_a_published_extra(self):
+        """Oracle's driver is installed for its test lane, not offered to users.
+
+        `get_extras_require` derives the extras map by globbing `reqs/`, so
+        `requirements-dev-oracle.txt` — which exists so the Oracle test lane can
+        install a driver — is on its own enough to publish
+        `pip install 'great_expectations[oracle]'`. Oracle does not yet pass the
+        curated suite, so that install path would promise support that isn't there.
+        The key is held in `ignore_keys` until it does, and this is what keeps the
+        hold from being reverted by accident.
+        """
+        original_cwd = Path.cwd()
+        try:
+            os.chdir(project_root)
+            extras = get_extras_require()
+        finally:
+            os.chdir(original_cwd)
+
+        assert (project_root / "reqs" / "requirements-dev-oracle.txt").exists(), (
+            "The Oracle dev requirements file is what makes this hold necessary; "
+            "if it is gone, remove this test with it."
+        )
+        assert "oracle" not in extras, (
+            "`oracle` is now a published extra. If that is intended, delete this test "
+            "and add the install row to the SQL dialect installation-commands table."
+        )
