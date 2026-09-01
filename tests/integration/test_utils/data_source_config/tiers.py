@@ -52,13 +52,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Final, List, cast
 
 from tests.integration.test_utils.data_source_config.data_source_spec import (
-    ExecutionEngineKind,
     SupportTier,
 )
 from tests.integration.test_utils.data_source_config.registry import (
     data_source_configs_for_engine,
     data_source_configs_for_tier,
 )
+from tests.integration.test_utils.execution_engine_kind import ExecutionEngineKind
 
 if TYPE_CHECKING:
     from tests.integration.test_utils.data_source_config.base import DataSourceTestConfig

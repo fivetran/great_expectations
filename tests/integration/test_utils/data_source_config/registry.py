@@ -59,13 +59,13 @@ from typing import (
 from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
 from tests.integration.test_utils.data_source_config.data_source_spec import (
     DataSourceProvisioning,
-    ExecutionEngineKind,
     MarkerScope,
     SupportTier,
 )
 
 if TYPE_CHECKING:
     from tests.integration.test_utils.data_source_config.data_source_spec import DataSourceSpec
+    from tests.integration.test_utils.execution_engine_kind import ExecutionEngineKind
 
 # The ceiling on tier_case_exclusions, applied per tier a backend declares. See
 # _validate_tier_case_exclusion_ceiling: a reason makes one exclusion answerable, but only a

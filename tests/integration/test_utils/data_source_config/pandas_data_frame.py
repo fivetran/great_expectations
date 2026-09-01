@@ -16,11 +16,11 @@ from tests.integration.test_utils.data_source_config.data_source_spec import (
     CiLaneRef,
     DataSourceProvisioning,
     DataSourceSpec,
-    ExecutionEngineKind,
     MarkerScope,
     SupportTier,
 )
 from tests.integration.test_utils.data_source_config.registry import register_data_source_config
+from tests.integration.test_utils.execution_engine_kind import ExecutionEngineKind
 
 
 @register_data_source_config
