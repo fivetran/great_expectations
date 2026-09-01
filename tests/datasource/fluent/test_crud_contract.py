@@ -24,10 +24,12 @@ import pytest
 
 import great_expectations as gx
 import great_expectations.exceptions as gx_exceptions
+from great_expectations.core.yaml_handler import YAMLHandler
 from great_expectations.datasource.fluent.sources import DataSourceManager
 from tests.datasource.fluent.crud_contract import (
     CONTRACT_CASE_KEYS,
     CONTRACT_PARAMETERS,
+    CREATE_OR_UPDATE_PERSISTS_ONE_ENTRY,
     CREATE_OR_UPDATE_REPLACES_WHEN_PRESENT,
     OVERLAY_DEPENDENT_CASE_KEYS,
     UPDATE_REJECTS_ABSENT_NAME,
@@ -54,6 +56,7 @@ def test_overlay_dependent_case_keys_is_a_subset_of_contract_case_keys() -> None
     assert {
         UPDATE_REPLACES_CONFIGURATION,
         CREATE_OR_UPDATE_REPLACES_WHEN_PRESENT,
+        CREATE_OR_UPDATE_PERSISTS_ONE_ENTRY,
     } == OVERLAY_DEPENDENT_CASE_KEYS
 
 
@@ -101,7 +104,7 @@ def test_exclusion_reason_returns_the_declared_reason() -> None:
 
 
 @pytest.mark.unit
-def test_pandas_excludes_exactly_the_two_overlay_dependent_cases() -> None:
+def test_pandas_excludes_exactly_the_overlay_dependent_cases() -> None:
     reasons = CONTRACT_PARAMETERS["pandas"].case_exclusions
     assert set(reasons.keys()) == OVERLAY_DEPENDENT_CASE_KEYS
     assert all(reason for reason in reasons.values())
@@ -129,6 +132,9 @@ def test_case_exclusions_by_type_returns_the_whole_declared_mapping() -> None:
         UPDATE_REPLACES_CONFIGURATION: exclusion_reason("pandas", UPDATE_REPLACES_CONFIGURATION),
         CREATE_OR_UPDATE_REPLACES_WHEN_PRESENT: exclusion_reason(
             "pandas", CREATE_OR_UPDATE_REPLACES_WHEN_PRESENT
+        ),
+        CREATE_OR_UPDATE_PERSISTS_ONE_ENTRY: exclusion_reason(
+            "pandas", CREATE_OR_UPDATE_PERSISTS_ONE_ENTRY
         ),
     }
     assert mapping["postgres"] == {}
@@ -414,3 +420,112 @@ class TestFluentDatasourceCrudContract:
         expected_configuration = _configuration_of(datasource_class(name=name, **overlay_arguments))
         assert stored_configuration == expected_configuration
         assert stored_configuration != created_configuration
+
+
+# ---------------------------------------------------------------------------
+# Persistence round-trip against a file-backed context
+# ---------------------------------------------------------------------------
+
+
+def _fluent_datasources_config(config_file_path: pathlib.Path) -> Mapping[str, object]:
+    """The ``fluent_datasources`` mapping as it is actually written to the project config file."""
+    yaml_dict = YAMLHandler().load(config_file_path.read_text())
+    return yaml_dict.get("fluent_datasources", {})
+
+
+@pytest.mark.filesystem
+class TestFluentDatasourceCrudContractPersistence:
+    """The subset of the CRUD contract that only a real, file-backed project can verify.
+
+    These cases reopen the project from a fresh context instance rooted at the same
+    directory, rather than reusing the context object that performed the write, so a
+    passing case is evidence that the configuration actually reached disk rather than
+    evidence about in-process state the two context objects happen to share.
+
+    There is no delete case here. Delete's own persistence is already exercised, against a
+    file-backed context reopened from disk the same way this class's cases reopen theirs, by
+    tests elsewhere in this suite; a per-type copy of that coverage here would duplicate an
+    existing check rather than add signal.
+    """
+
+    @_registered_fluent_type_parameters
+    def test_configuration_survives_a_fresh_read_from_disk(
+        self,
+        fluent_type: str,
+        neutralized_connection_testing: Callable[[str], type],
+        tmp_path: pathlib.Path,
+        file_dc_config_dir_init: pathlib.Path,
+    ) -> None:
+        datasource_class = neutralized_connection_testing(fluent_type)
+        writing_context = gx.get_context(context_root_dir=file_dc_config_dir_init, cloud_mode=False)
+        name = f"contract-persist-roundtrip-{fluent_type}"
+        seeded_id = uuid.uuid4()
+        arguments = contract_parameters_for(fluent_type).creation_arguments(tmp_path)
+
+        add_method = getattr(writing_context.data_sources, f"add_{fluent_type}")
+        created = add_method(name=name, id=seeded_id, **arguments)
+        expected_configuration = _configuration_of(created)
+
+        assert created.assets == []
+
+        config_file_path = pathlib.Path(writing_context.root_directory, writing_context.GX_YML)
+        assert name in _fluent_datasources_config(config_file_path)
+
+        # Discard `writing_context` entirely and build a genuinely new context object over
+        # the same directory, so the read below can only be satisfied from disk.
+        del writing_context
+        reread_context = gx.get_context(context_root_dir=file_dc_config_dir_init, cloud_mode=False)
+
+        reread_datasource = reread_context.data_sources.get(name)
+        assert isinstance(reread_datasource, datasource_class)
+        assert reread_datasource.id == seeded_id
+        assert _configuration_of(reread_datasource) == expected_configuration
+
+    @_registered_fluent_type_parameters
+    def test_create_then_create_or_update_leaves_exactly_one_persisted_entry(
+        self,
+        fluent_type: str,
+        neutralized_connection_testing: Callable[[str], type],
+        tmp_path: pathlib.Path,
+        file_dc_config_dir_init: pathlib.Path,
+    ) -> None:
+        # A count over a mapping keyed by datasource name can never exceed one by
+        # construction, so it cannot by itself detect the create-or-update path failing to
+        # persist. The case also has to show that the persisted entry is the *replacement*:
+        # that only holds if create-or-update's own save actually reached disk, rather than
+        # riding on the save the preceding create already performed. A type with no update
+        # overlay cannot produce a materially different replacement, so it is excluded here
+        # exactly as the in-memory replaces-when-present case excludes it.
+        reason = exclusion_reason(fluent_type, CREATE_OR_UPDATE_PERSISTS_ONE_ENTRY)
+        if reason is not None:
+            pytest.skip(reason)
+
+        datasource_class = neutralized_connection_testing(fluent_type)
+        writing_context = gx.get_context(context_root_dir=file_dc_config_dir_init, cloud_mode=False)
+        name = f"contract-persist-create-or-update-{fluent_type}"
+        parameters = contract_parameters_for(fluent_type)
+        creation_arguments = parameters.creation_arguments(tmp_path)
+        overlay_arguments = parameters.update_overlay(tmp_path)  # type: ignore[misc]
+
+        add_method = getattr(writing_context.data_sources, f"add_{fluent_type}")
+        add_method(name=name, id=uuid.uuid4(), **creation_arguments)
+
+        add_or_update_method = getattr(writing_context.data_sources, f"add_or_update_{fluent_type}")
+        add_or_update_method(name=name, id=uuid.uuid4(), **overlay_arguments)
+
+        expected_configuration = _configuration_of(datasource_class(name=name, **overlay_arguments))
+
+        config_file_path = pathlib.Path(writing_context.root_directory, writing_context.GX_YML)
+        persisted_datasources = _fluent_datasources_config(config_file_path)
+        matching_entries = [
+            entry_name for entry_name in persisted_datasources if entry_name == name
+        ]
+        assert len(matching_entries) == 1
+
+        # Discard `writing_context` and reread from disk, so the assertion below can only be
+        # satisfied by create-or-update's own save having reached the file, not by in-process
+        # state the two context objects happen to share.
+        del writing_context
+        reread_context = gx.get_context(context_root_dir=file_dc_config_dir_init, cloud_mode=False)
+        reread_datasource = reread_context.data_sources.get(name)
+        assert _configuration_of(reread_datasource) == expected_configuration

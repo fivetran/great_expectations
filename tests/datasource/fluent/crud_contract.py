@@ -29,8 +29,8 @@ behaviors through its create, update and create-or-update factories:
 - ``create_or_update_persists_one_entry`` — after create then create-or-update against a
   file-backed context, the persisted project holds exactly one entry for that name.
 
-Two of the eight — ``update_replaces_configuration`` and
-``create_or_update_replaces_when_present`` — depend on an update overlay: arguments that
+Three of the eight — ``update_replaces_configuration``, ``create_or_update_replaces_when_present``
+and ``create_or_update_persists_one_entry`` — depend on an update overlay: arguments that
 produce a materially different datasource of the same type. A type whose model has no field
 an update could change cannot run them, and must say so through an exclusion rather than
 running a weaker assertion.
@@ -115,6 +115,7 @@ OVERLAY_DEPENDENT_CASE_KEYS: FrozenSet[str] = frozenset(
     {
         UPDATE_REPLACES_CONFIGURATION,
         CREATE_OR_UPDATE_REPLACES_WHEN_PRESENT,
+        CREATE_OR_UPDATE_PERSISTS_ONE_ENTRY,
     }
 )
 """The subset of case keys that require an update overlay to run.
@@ -408,6 +409,7 @@ CONTRACT_PARAMETERS: Mapping[str, FluentTypeContractParameters] = {
         case_exclusions={
             UPDATE_REPLACES_CONFIGURATION: _PANDAS_EXCLUSION_REASON,
             CREATE_OR_UPDATE_REPLACES_WHEN_PRESENT: _PANDAS_EXCLUSION_REASON,
+            CREATE_OR_UPDATE_PERSISTS_ONE_ENTRY: _PANDAS_EXCLUSION_REASON,
         },
     ),
 }
