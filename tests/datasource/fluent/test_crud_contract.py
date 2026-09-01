@@ -646,10 +646,13 @@ class TestFluentDatasourceCrudContractPersistence:
     passing case is evidence that the configuration actually reached disk rather than
     evidence about in-process state the two context objects happen to share.
 
-    There is no delete case here. Delete's own persistence is already exercised, against a
-    file-backed context reopened from disk the same way this class's cases reopen theirs, by
-    tests elsewhere in this suite; a per-type copy of that coverage here would duplicate an
-    existing check rather than add signal.
+    There is no delete case here, and its absence is deliberate. Deleting a datasource does
+    not reach the persisted project configuration in every shape: removing one of several
+    datasources is written out, but removing the last one is not, and that gap is already
+    recorded elsewhere by a strict expected failure naming the save path responsible. This
+    class neither covers that behavior nor changes it, so adding a per-type delete case here
+    would either duplicate coverage that already passes or restate a failure that is already
+    recorded once.
     """
 
     @_registered_fluent_type_parameters
