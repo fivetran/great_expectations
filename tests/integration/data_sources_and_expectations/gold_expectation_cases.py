@@ -241,6 +241,19 @@ def _validate_gold_fixture_data() -> None:
             "multicolumn_a/multicolumn_b/multicolumn_c must have no duplicate row, for the "
             "multicolumn uniqueness case."
         )
+    if not (GOLD_FIXTURE_DATA[PAIR_LOW_COL] < GOLD_FIXTURE_DATA[PAIR_HIGH_COL]).all():
+        raise ValueError(
+            f"Every row's {PAIR_LOW_COL} must be less than its {PAIR_HIGH_COL}, for the "
+            "column-pair ordering cases."
+        )
+    if not (GOLD_FIXTURE_DATA[PAIR_LOW_COL] == GOLD_FIXTURE_DATA[INCREASING_KEY_COL]).all():
+        raise ValueError(
+            f"Every row's {PAIR_LOW_COL} must equal its {INCREASING_KEY_COL}. Several cases pair "
+            "those two columns to get an equality that holds on every row without spending "
+            "another column on it, so this is a relationship the cases depend on rather than a "
+            "coincidence of the values. Change both columns together, or give those cases a "
+            "dedicated pair."
+        )
 
 
 _validate_gold_fixture_data()

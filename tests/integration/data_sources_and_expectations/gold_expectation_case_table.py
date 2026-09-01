@@ -8,10 +8,10 @@ This module holds the one thing `gold_expectation_cases.py` cannot: real, constr
 publishes the populated table. `test_gold_expectation_suite.py` consumes `GOLD_CASES` from here; it
 does not define cases itself.
 
-Keeping the case table in its own module, rather than inline in the test module, matters as the
-table grows: later work adds roughly fifty more cases here, and collapsing that growth into the
-same file as the collection-time builder and the case-consuming test functions would make the test
-module unreadably long.
+Keeping the case table in its own module, rather than inline in the test module, matters at this
+size: with one case per gallery expectation, collapsing that growth into the same file as the
+collection-time builder and the case-consuming test functions would make the test module
+unreadably long.
 """
 
 from __future__ import annotations
@@ -23,6 +23,7 @@ import great_expectations.expectations as gxe
 from tests.integration.data_sources_and_expectations.gold_expectation_cases import (
     EXTRA_TABLE_SELF_REFERENCE,
     GOLD_EXTRA_TABLE_NAME,
+    GOLD_FIXTURE_DATA,
     CaseFixtureShape,
     GoldCase,
 )
@@ -45,6 +46,19 @@ _PANDAS_ONLY_PROVIDER_REASON: Final[str] = (
     "the shipped package registers a metric provider for this expectation on the pandas engine "
     "only, with neither a SQL nor a Spark provider"
 )
+
+_SQL_AND_SPARK: Final[FrozenSet[ExecutionEngineKind]] = frozenset(
+    {ExecutionEngineKind.SQL, ExecutionEngineKind.SPARK}
+)
+_NO_PANDAS_PROVIDER_REASON: Final[str] = (
+    "the shipped package registers a metric provider for this expectation on the SQL and Spark "
+    "engines only; it runs raw SQL/Spark-SQL queries as its own validation logic and has no "
+    "pandas provider"
+)
+
+_FIXTURE_COLUMNS: Final[Tuple[str, ...]] = tuple(GOLD_FIXTURE_DATA.columns)
+"""Derived from the shared frame itself rather than hand-listed, so the table-shape cases below
+cannot drift from the frame they describe."""
 
 GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
     GoldCase(
@@ -627,10 +641,200 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             threshold=0.01,
         ),
     ),
+    # ----------------------------------------------------------------------------------------
+    # Column-pair, multicolumn, and select-column-values expectations
+    #
+    # `pair_low` and `increasing_key` are numerically identical in every row of the shared frame
+    # (both simply count 1..6) -- a real coincidence of the frame's own data, not a fixture change,
+    # and it is what lets the "equal" cases below be expressed without adding a column. Every
+    # metric these seven cases lean on (`column_pair_values.*`, `compound_columns.unique`,
+    # `multicolumn_sum.equal`, `multicolumn_values.equal`, `select_column_values.unique.
+    # within_record`) registers a provider on every execution engine this table runs against,
+    # verified against `great_expectations.expectations.registry._registered_metrics`. None of
+    # these cases needs an engine restriction.
+    # ----------------------------------------------------------------------------------------
+    GoldCase(
+        key=gxe.ExpectColumnPairValuesAToBeGreaterThanB(
+            column_A="pair_high", column_B="pair_low"
+        ).expectation_type,
+        # `pair_high` exceeds `pair_low` in every row by construction.
+        passing=gxe.ExpectColumnPairValuesAToBeGreaterThanB(
+            column_A="pair_high", column_B="pair_low"
+        ),
+        # Swapping the columns reverses the ordering the shared frame guarantees.
+        failing=gxe.ExpectColumnPairValuesAToBeGreaterThanB(
+            column_A="pair_low", column_B="pair_high"
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectColumnPairValuesToBeEqual(
+            column_A="increasing_key", column_B="pair_low"
+        ).expectation_type,
+        # `pair_low` equals `increasing_key` in every row.
+        passing=gxe.ExpectColumnPairValuesToBeEqual(column_A="increasing_key", column_B="pair_low"),
+        # `pair_high` is ten times `increasing_key`, never equal.
+        failing=gxe.ExpectColumnPairValuesToBeEqual(
+            column_A="increasing_key", column_B="pair_high"
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectColumnPairValuesToBeInSet(
+            column_A="pair_low",
+            column_B="pair_high",
+            value_pairs_set=[(1, 10), (2, 20), (3, 30), (4, 40), (5, 50), (6, 60)],
+        ).expectation_type,
+        # Every `(pair_low, pair_high)` row is exactly one of these six declared pairs.
+        passing=gxe.ExpectColumnPairValuesToBeInSet(
+            column_A="pair_low",
+            column_B="pair_high",
+            value_pairs_set=[(1, 10), (2, 20), (3, 30), (4, 40), (5, 50), (6, 60)],
+        ),
+        # Only the first row's pair is in this narrower set; the other five are not.
+        failing=gxe.ExpectColumnPairValuesToBeInSet(
+            column_A="pair_low",
+            column_B="pair_high",
+            value_pairs_set=[(1, 10), (2, 20), (3, 30), (4, 40), (5, 50)],
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectColumnToExist(column="increasing_key").expectation_type,
+        passing=gxe.ExpectColumnToExist(column="increasing_key"),
+        # No column of this name exists in the shared frame.
+        failing=gxe.ExpectColumnToExist(column="does_not_exist_column"),
+    ),
+    GoldCase(
+        key=gxe.ExpectCompoundColumnsToBeUnique(
+            column_list=["multicolumn_a", "multicolumn_b", "multicolumn_c"]
+        ).expectation_type,
+        # This triple has no duplicate row, by the shared frame's own invariant.
+        passing=gxe.ExpectCompoundColumnsToBeUnique(
+            column_list=["multicolumn_a", "multicolumn_b", "multicolumn_c"]
+        ),
+        # `multicolumn_c` is constant (10 in every row); paired with `category` (three values,
+        # two rows each), each combination repeats exactly twice -- a real duplicate.
+        failing=gxe.ExpectCompoundColumnsToBeUnique(column_list=["multicolumn_c", "category"]),
+    ),
+    GoldCase(
+        key=gxe.ExpectMulticolumnSumToEqual(
+            column_list=["multicolumn_a", "multicolumn_b", "multicolumn_c"], sum_total=30
+        ).expectation_type,
+        # Every row's three multicolumn values sum to exactly 30, by the shared frame's own
+        # invariant.
+        passing=gxe.ExpectMulticolumnSumToEqual(
+            column_list=["multicolumn_a", "multicolumn_b", "multicolumn_c"], sum_total=30
+        ),
+        # A near miss: one more than the true row sum.
+        failing=gxe.ExpectMulticolumnSumToEqual(
+            column_list=["multicolumn_a", "multicolumn_b", "multicolumn_c"], sum_total=31
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectMulticolumnValuesToBeEqual(
+            column_list=["increasing_key", "pair_low"]
+        ).expectation_type,
+        # `pair_low` equals `increasing_key` in every row.
+        passing=gxe.ExpectMulticolumnValuesToBeEqual(column_list=["increasing_key", "pair_low"]),
+        # `pair_high` is never equal to `increasing_key`.
+        failing=gxe.ExpectMulticolumnValuesToBeEqual(column_list=["increasing_key", "pair_high"]),
+    ),
+    GoldCase(
+        key=gxe.ExpectSelectColumnValuesToBeUniqueWithinRecord(
+            column_list=["pair_low", "pair_high"]
+        ).expectation_type,
+        # `pair_low` is strictly less than `pair_high` in every row, so the two selected values
+        # are never equal within a record.
+        passing=gxe.ExpectSelectColumnValuesToBeUniqueWithinRecord(
+            column_list=["pair_low", "pair_high"]
+        ),
+        # `pair_low` equals `increasing_key` in every row, so the two selected values collide on
+        # every record.
+        failing=gxe.ExpectSelectColumnValuesToBeUniqueWithinRecord(
+            column_list=["increasing_key", "pair_low"]
+        ),
+    ),
+    # ----------------------------------------------------------------------------------------
+    # Table-shape expectations
+    #
+    # Every field here is derived from `_FIXTURE_COLUMNS` (itself derived from
+    # `GOLD_FIXTURE_DATA.columns`) rather than hand-listed, so these cases cannot silently drift
+    # from the frame they describe.
+    # ----------------------------------------------------------------------------------------
+    GoldCase(
+        key=gxe.ExpectTableColumnCountToBeBetween(
+            min_value=len(_FIXTURE_COLUMNS), max_value=len(_FIXTURE_COLUMNS)
+        ).expectation_type,
+        passing=gxe.ExpectTableColumnCountToBeBetween(
+            min_value=len(_FIXTURE_COLUMNS), max_value=len(_FIXTURE_COLUMNS)
+        ),
+        # A near miss: the lower bound sits one past the true column count.
+        failing=gxe.ExpectTableColumnCountToBeBetween(
+            min_value=len(_FIXTURE_COLUMNS) + 1, max_value=len(_FIXTURE_COLUMNS) + 5
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectTableColumnCountToEqual(value=len(_FIXTURE_COLUMNS)).expectation_type,
+        passing=gxe.ExpectTableColumnCountToEqual(value=len(_FIXTURE_COLUMNS)),
+        # A near miss: one more than the true column count.
+        failing=gxe.ExpectTableColumnCountToEqual(value=len(_FIXTURE_COLUMNS) + 1),
+    ),
+    GoldCase(
+        key=gxe.ExpectTableColumnsToMatchOrderedList(
+            column_list=list(_FIXTURE_COLUMNS)
+        ).expectation_type,
+        passing=gxe.ExpectTableColumnsToMatchOrderedList(column_list=list(_FIXTURE_COLUMNS)),
+        # A near miss: the first two columns swapped, everything else identical and in place.
+        failing=gxe.ExpectTableColumnsToMatchOrderedList(
+            column_list=[_FIXTURE_COLUMNS[1], _FIXTURE_COLUMNS[0], *_FIXTURE_COLUMNS[2:]]
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectTableColumnsToMatchSet(
+            column_set=set(_FIXTURE_COLUMNS), exact_match=True
+        ).expectation_type,
+        passing=gxe.ExpectTableColumnsToMatchSet(
+            column_set=set(_FIXTURE_COLUMNS), exact_match=True
+        ),
+        # A near miss: one real column dropped from the declared set, which an exact match rejects.
+        failing=gxe.ExpectTableColumnsToMatchSet(
+            column_set=set(_FIXTURE_COLUMNS[1:]), exact_match=True
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectTableRowCountToBeBetween(min_value=6, max_value=6).expectation_type,
+        # The shared frame has exactly six rows.
+        passing=gxe.ExpectTableRowCountToBeBetween(min_value=6, max_value=6),
+        # A near miss: the lower bound sits one past the true row count.
+        failing=gxe.ExpectTableRowCountToBeBetween(min_value=7, max_value=10),
+    ),
+    GoldCase(
+        key=gxe.ExpectTableRowCountToEqual(value=6).expectation_type,
+        passing=gxe.ExpectTableRowCountToEqual(value=6),
+        # A near miss: one more than the true row count.
+        failing=gxe.ExpectTableRowCountToEqual(value=7),
+    ),
+    GoldCase(
+        key=gxe.UnexpectedRowsExpectation(
+            unexpected_rows_query=("SELECT * FROM {batch} WHERE increasing_key > 6")
+        ).expectation_type,
+        # No row has `increasing_key` greater than 6 -- the query returns no rows, which is what
+        # this expectation calls success.
+        passing=gxe.UnexpectedRowsExpectation(
+            unexpected_rows_query="SELECT * FROM {batch} WHERE increasing_key > 6"
+        ),
+        # A near miss: every row but one (`increasing_key` values 2 through 6) is returned as
+        # unexpected.
+        failing=gxe.UnexpectedRowsExpectation(
+            unexpected_rows_query="SELECT * FROM {batch} WHERE increasing_key > 5"
+        ),
+        # This expectation executes its own SQL/Spark-SQL query as its validation logic; the
+        # shipped package registers no pandas provider for it.
+        engines=_SQL_AND_SPARK,
+        engine_restriction_reason=_NO_PANDAS_PROVIDER_REASON,
+    ),
 )
-"""Every declared case. One seed case per `CaseFixtureShape` member proves the wiring end to end;
-the column-map and column-aggregate expectation families fill out most of the gallery, and the
-remaining families are added by later work."""
+"""Every declared case: one per gallery expectation. One seed case per `CaseFixtureShape` member
+proves the wiring end to end; the column-map, column-aggregate, column-pair, multicolumn,
+select-column-values, and table-shape families fill out the rest of the gallery."""
 
 GOLD_CASE_KEYS: Final[FrozenSet[str]] = frozenset(case.key for case in GOLD_CASES)
 """The published case keys, derived from `GOLD_CASES` rather than hand-kept in sync with it."""
