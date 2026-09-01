@@ -1036,16 +1036,11 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             assert len(query["select"]) == len(query["metric_ids"])
 
             try:
-                """
-                If a custom query is passed, selectable will be TextClause and not formatted
-                as a subquery wrapped in "(subquery) alias". TextClause must first be converted
-                to TextualSelect using sa.columns() before it can be converted to type Subquery
-                """
-                if sqlalchemy.TextClause and isinstance(selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function] # FIXME CoP
-                    sa_query_object = sa.select(*query["select"]).select_from(
-                        _wrap_raw_sql_as_subquery(selectable)
-                    )
-                elif (sqlalchemy.Select and isinstance(selectable, sqlalchemy.Select)) or (  # type: ignore[truthy-function] # FIXME CoP
+                # Note: selectable here always comes from get_domain_records(), which converts
+                # any raw-SQL TextClause into a Subquery before returning (see the wrap in
+                # get_domain_records itself), so selectable can never be a TextClause at this
+                # point and there is no corresponding branch for it here.
+                if (sqlalchemy.Select and isinstance(selectable, sqlalchemy.Select)) or (  # type: ignore[truthy-function] # FIXME CoP
                     sqlalchemy.TextualSelect and isinstance(selectable, sqlalchemy.TextualSelect)  # type: ignore[truthy-function] # FIXME CoP
                 ):
                     sa_query_object = sa.select(*query["select"]).select_from(selectable.subquery())
@@ -1252,9 +1247,10 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             Total number of parameters that would be generated when the query is compiled
         """
         DEFAULT_PARAMS_PER_SELECT = 2  # Conservative upper bound
-        if isinstance(selectable, sqlalchemy.TextClause):
-            test_query = sa.select(*select_list).select_from(_wrap_raw_sql_as_subquery(selectable))
-        elif isinstance(selectable, (sqlalchemy.Select, sqlalchemy.TextualSelect)):
+        # Note: selectable's sole caller passes a value from get_domain_records(), which
+        # converts any raw-SQL TextClause into a Subquery before returning, so selectable can
+        # never be a TextClause here and there is no corresponding branch for it.
+        if isinstance(selectable, (sqlalchemy.Select, sqlalchemy.TextualSelect)):
             test_query = sa.select(*select_list).select_from(selectable.subquery())
         elif isinstance(selectable, sa.sql.FromClause):
             test_query = sa.select(*select_list).select_from(selectable)
