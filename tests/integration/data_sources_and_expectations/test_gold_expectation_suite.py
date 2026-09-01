@@ -61,6 +61,7 @@ from great_expectations.expectations.registry import (
 from tests.integration.conftest import MultiSourceBatch
 from tests.integration.conftest import TestConfig as _TestConfig
 from tests.integration.data_sources_and_expectations.gold_expectation_case_table import (
+    GOLD_CASE_KEYS,
     GOLD_CASES,
 )
 from tests.integration.data_sources_and_expectations.gold_expectation_cases import (
@@ -80,6 +81,7 @@ from tests.integration.test_utils.data_source_config import (
 )
 from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
 from tests.integration.test_utils.data_source_config.registry import (
+    data_source_configs_for_tier,
     isolated_registry,
     iter_data_source_configs,
     register_sql_config,
@@ -583,6 +585,168 @@ def test_gallery_expectation_types_excludes_unregistered_abstract_export() -> No
         "ExpectMulticolumnValuesToBeUnique is registered under the live registry; the abstract-"
         "export trap this test documents no longer applies and its docstring needs updating."
     )
+
+
+# --------------------------------------------------------------------------------------------
+# The suite's guards
+# --------------------------------------------------------------------------------------------
+#
+# All five guards below need no data source and run in the project-scoped lane, so a missing case,
+# a stale exclusion, or a runaway engine restriction is reported by the fastest feedback available
+# rather than only by a warehouse lane.
+#
+# The completeness guard runs against the real registry and GOLD_CASE_KEYS -- it is currently
+# vacuous in the sense that both sides already agree (58 published keys, 58 gallery members), but
+# it is not vacuous in the sense that matters: `_completeness_check` is factored out so its failure
+# path can be, and is, exercised directly below against a deliberately incomplete key set, proving
+# the guard can actually fail rather than merely being green over an untested comparison.
+#
+# The exclusion-key and accessor-equality guards are, by contrast, necessarily vacuous today: no
+# data source has yet declared `SupportTier.GOLD` membership, so there is no declared exclusion
+# and no tier member for either guard to check against. A guard that passes over an empty set is
+# not yet coverage -- they stay in the tree so they are already asserting the invariant, and start
+# exercising it for real the moment a data source first declares gold-tier membership.
+#
+# The applicability guard is not vacuous: every restricted-engine case already has real, registered
+# candidates to remove, so it is checked against the live registry directly.
+
+
+def _completeness_check(published_keys: FrozenSet[str], gallery_keys: FrozenSet[str]) -> None:
+    """The published case-key set must equal the derived gallery set in both directions.
+
+    Factored out from `test_gold_case_keys_match_the_gallery_set_exactly` so its failure path can
+    be exercised directly, with a deliberately incomplete key set, in
+    `test_completeness_guard_fails_on_missing_and_unrecognized_keys` below -- proving this check
+    can fail rather than merely being green over the two sets happening to agree today.
+    """
+    missing = gallery_keys - published_keys
+    assert not missing, (
+        f"The following registered expectations have no published gold case: {sorted(missing)}. "
+        "Add a GoldCase for each to GOLD_CASES in gold_expectation_case_table.py."
+    )
+    unrecognized = published_keys - gallery_keys
+    assert not unrecognized, (
+        f"The following published gold case keys do not name a currently registered expectation: "
+        f"{sorted(unrecognized)}. Either the expectation was removed from the shipped package "
+        "(delete the case) or the key is misspelled (fix it to match the registered "
+        "expectation_type) -- check both."
+    )
+
+
+@pytest.mark.project
+def test_gold_case_keys_match_the_gallery_set_exactly() -> None:
+    """`GOLD_CASE_KEYS` and `gallery_expectation_types()` must be exactly equal: an expectation
+    registered with no case, and a case naming an unregistered expectation, are both a defect."""
+    _completeness_check(GOLD_CASE_KEYS, gallery_expectation_types())
+
+
+@pytest.mark.project
+def test_completeness_guard_fails_on_missing_and_unrecognized_keys() -> None:
+    """`_completeness_check` actually fails, in each direction, with a message naming the
+    offending key -- proof the completeness guard is not merely green over nothing."""
+    gallery = frozenset({"expect_kept_case", "expect_missing_case"})
+
+    with pytest.raises(AssertionError, match=r"no published gold case.*expect_missing_case"):
+        _completeness_check(frozenset({"expect_kept_case"}), gallery)
+
+    with pytest.raises(AssertionError, match=r"do not name a currently registered.*extra_key"):
+        _completeness_check(
+            frozenset({"expect_kept_case", "expect_missing_case", "extra_key"}), gallery
+        )
+
+
+@pytest.mark.project
+def test_every_gold_exclusion_key_is_a_published_case_key() -> None:
+    """Every case key any registered backend declares a gold-tier exclusion for must be one of
+    `GOLD_CASE_KEYS`.
+
+    Necessarily vacuous today: no backend has joined `SupportTier.GOLD` yet, so no backend's
+    `tier_case_exclusions` holds a `GOLD` entry to check. It stays here so a stale or misspelled
+    key raises the moment a backend first declares one, rather than that key silently excluding
+    nothing while reading, on inspection, as a real exclusion.
+    """
+    for config_class in iter_data_source_configs():
+        gold_exclusions = config_class.DATA_SOURCE_SPEC.tier_case_exclusions.get(
+            SupportTier.GOLD, {}
+        )
+        for excluded_key in gold_exclusions:
+            assert excluded_key in GOLD_CASE_KEYS, (
+                f"{config_class.__name__} declares a gold-tier case exclusion for "
+                f"{excluded_key!r}, which is not one of GOLD_CASE_KEYS "
+                f"({sorted(GOLD_CASE_KEYS)})."
+            )
+
+
+@pytest.mark.project
+def test_gold_case_accessor_matches_tier_membership_minus_declared_exclusions() -> None:
+    """For every published gold case key, `data_sources_for_tier_case(GOLD, key)` must equal the
+    tier's live membership minus whichever members declare an exclusion for that key, computed
+    from each member's own live `tier_case_exclusions` rather than assumed.
+
+    Necessarily vacuous today: `SupportTier.GOLD` has no members, so both sides of this comparison
+    are the empty list for every key. It stays here so the accessor and the declarations are
+    already pinned to agree, and start exercising that agreement for real the moment a data
+    source first joins the gold tier.
+    """
+    tier_members = [
+        cast("DataSourceTestConfig", config_class())
+        for config_class in data_source_configs_for_tier(SupportTier.GOLD)
+    ]
+    for case_key in GOLD_CASE_KEYS:
+        expected = [
+            config
+            for config in tier_members
+            if case_key
+            not in config.DATA_SOURCE_SPEC.tier_case_exclusions.get(SupportTier.GOLD, {})
+        ]
+        actual = data_sources_for_tier_case(SupportTier.GOLD, case_key)
+        assert actual == expected, (
+            f"data_sources_for_tier_case(GOLD, {case_key!r}) returned "
+            f"{[c.label for c in actual]!r}, expected {[c.label for c in expected]!r} (tier "
+            "membership minus each member's declared exclusion for this key)"
+        )
+
+
+@pytest.mark.project
+def test_engine_restrictions_remove_exactly_the_data_sources_outside_their_engine_set() -> None:
+    """For every gold case declaring a restricted engine set, the exact set of registered data
+    sources the restriction removes must equal the set the restriction claims to remove -- no
+    more, no less -- so a restriction cannot quietly grow into a blanket exemption.
+
+    The expected removed set is computed here directly from each registered config's own declared
+    execution engine, independently of `_engine_applies`/`build_gold_case_params` (the production
+    code this test drives through measurement mode to get the *actual* surviving set) -- so a
+    defect in either side is still caught by the other.
+    """
+    all_configs = [
+        cast("DataSourceTestConfig", config_class()) for config_class in iter_data_source_configs()
+    ]
+    all_labels = {config.label for config in all_configs}
+    restricted_cases = [
+        case for case in GOLD_CASES if case.engines != frozenset(ExecutionEngineKind)
+    ]
+    assert restricted_cases, (
+        "expected at least one gold case to declare a restricted engine set; if every case now "
+        "applies to every engine, this guard has nothing to check and should be revisited"
+    )
+    for case in restricted_cases:
+        assert case.engine_restriction_reason, (
+            f"gold case {case.key!r} restricts its engine set but declares no "
+            "engine_restriction_reason"
+        )
+        expected_removed_labels = {
+            config.label
+            for config in all_configs
+            if config.DATA_SOURCE_SPEC.execution_engine not in case.engines
+        }
+        params = build_gold_case_params([case], measurement_mode=True)
+        surviving_labels = {_param_test_config(param).data_source_config.label for param in params}
+        assert surviving_labels == all_labels - expected_removed_labels, (
+            f"gold case {case.key!r}'s engine restriction to "
+            f"{sorted(engine.value for engine in case.engines)} removed "
+            f"{sorted(all_labels - surviving_labels)}, expected to remove exactly "
+            f"{sorted(expected_removed_labels)}"
+        )
 
 
 # --------------------------------------------------------------------------------------------
