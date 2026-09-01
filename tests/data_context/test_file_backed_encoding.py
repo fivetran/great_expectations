@@ -89,21 +89,24 @@ def test_file_data_context_reloads_non_ascii_project_yaml_under_non_utf8_locale(
 ) -> None:
     """A great_expectations.yml written on one host (or under one locale) must load on
     another, even if a data source name or other config value contains non-ASCII text.
+
+    Both the write and the reload run under a forced non-UTF-8 locale: a write under the
+    ambient (UTF-8) locale would emit correct bytes regardless of whether the write path
+    pins its encoding, leaving nothing for the reload assertion to catch.
     """  # FIXME CoP
     project_root = tmp_path / "project"
 
     write_script = textwrap.dedent(f"""
         import great_expectations as gx
 
+        import os
+
+        assert open(os.devnull).encoding != "utf-8"  # locale override did not take effect
+
         context = gx.get_context(mode="file", context_root_dir={str(project_root)!r})
         context.data_sources.add_pandas(name={NON_ASCII_VALUE!r})
     """)
-    write_result = subprocess.run(  # FIXME CoP
-        [sys.executable, "-c", write_script],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    write_result = _run_under_non_utf8_locale(write_script)
     assert write_result.returncode == 0, write_result.stderr
 
     reload_script = textwrap.dedent(f"""
@@ -115,6 +118,50 @@ def test_file_data_context_reloads_non_ascii_project_yaml_under_non_utf8_locale(
 
         context = gx.get_context(mode="file", context_root_dir={str(project_root)!r})
         assert {NON_ASCII_VALUE!r} in context.data_sources.all()
+        print("OK")
+    """)
+
+    reload_result = _run_under_non_utf8_locale(reload_script)
+
+    assert reload_result.returncode == 0, reload_result.stderr
+    assert "OK" in reload_result.stdout
+
+
+@pytest.mark.filesystem
+def test_inline_store_backend_saves_non_ascii_variable_under_non_utf8_locale(
+    tmp_path: pathlib.Path,
+) -> None:
+    """InlineStoreBackend._save_changes() is a separate write path from
+    FileDataContext._save_project_config(): it backs DataContextVariables (things like
+    config_variables_file_path), not fluent datasources, which persist through
+    _save_project_config's own to_yaml call instead. Exercise it directly by setting a
+    variable to a non-ASCII value and saving.
+    """  # FIXME CoP
+    project_root = tmp_path / "project"
+
+    write_script = textwrap.dedent(f"""
+        import great_expectations as gx
+
+        import os
+
+        assert open(os.devnull).encoding != "utf-8"  # locale override did not take effect
+
+        context = gx.get_context(mode="file", context_root_dir={str(project_root)!r})
+        context.variables.config_variables_file_path = {NON_ASCII_VALUE!r}
+        context.variables.save()
+    """)
+    write_result = _run_under_non_utf8_locale(write_script)
+    assert write_result.returncode == 0, write_result.stderr
+
+    reload_script = textwrap.dedent(f"""
+        import great_expectations as gx
+
+        import os
+
+        assert open(os.devnull).encoding != "utf-8"  # locale override did not take effect
+
+        context = gx.get_context(mode="file", context_root_dir={str(project_root)!r})
+        assert context.variables.config_variables_file_path == {NON_ASCII_VALUE!r}
         print("OK")
     """)
 
