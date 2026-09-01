@@ -481,7 +481,7 @@ class TestFluentDatasourceCrudContract:
         seeded_id = uuid.uuid4()
         arguments = contract_parameters_for(fluent_type).creation_arguments(tmp_path)
 
-        add_method = getattr(context.data_sources, f"add_{fluent_type}")
+        add_method: Callable[..., Datasource] = getattr(context.data_sources, f"add_{fluent_type}")
         created = add_method(name=name, id=seeded_id, **arguments)
 
         assert isinstance(created, datasource_class)
@@ -632,7 +632,9 @@ class TestFluentDatasourceCrudContract:
 def _fluent_datasources_config(config_file_path: pathlib.Path) -> Mapping[str, object]:
     """The ``fluent_datasources`` mapping as it is actually written to the project config file."""
     yaml_dict = YAMLHandler().load(config_file_path.read_text())
-    return yaml_dict.get("fluent_datasources", {})
+    fluent_datasources = yaml_dict.get("fluent_datasources", {})
+    assert isinstance(fluent_datasources, dict)
+    return fluent_datasources
 
 
 @pytest.mark.filesystem
