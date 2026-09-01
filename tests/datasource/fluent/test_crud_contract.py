@@ -1,18 +1,30 @@
-"""Accessor-level tests over the CRUD contract's vocabulary and parameter table.
+"""Tests over the CRUD contract's vocabulary, parameter table, and the contract cases
+themselves.
 
-This module exercises only the accessors declared in ``crud_contract.py``: the case-key
-vocabulary, the lookup that turns an unknown type into an actionable failure, the exclusion
-resolvers, and the covered-type set. The contract cases themselves, and the completeness
-guards over the live registry, belong to other modules.
+The accessor tests below exercise only the accessors declared in ``crud_contract.py``: the
+case-key vocabulary, the lookup that turns an unknown type into an actionable failure, the
+exclusion resolvers, and the covered-type set.
+
+The ``TestFluentDatasourceCrudContract`` class runs the contract's create-family cases
+against every registered fluent datasource type, with connection testing neutralized for the
+duration of each case. Neutralization is deliberate: a passing case in that class asserts
+that the create, duplicate-rejection and create-or-update behavior described by the contract
+holds for that type, and asserts nothing about whether any real service backing that type is
+reachable. The completeness guards over the live registry belong to another module.
 """
 
 from __future__ import annotations
 
 import pathlib
 import types
+import uuid
+from typing import TYPE_CHECKING, Callable, List
 
 import pytest
 
+import great_expectations as gx
+import great_expectations.exceptions as gx_exceptions
+from great_expectations.datasource.fluent.sources import DataSourceManager
 from tests.datasource.fluent.crud_contract import (
     CONTRACT_CASE_KEYS,
     CONTRACT_PARAMETERS,
@@ -24,6 +36,9 @@ from tests.datasource.fluent.crud_contract import (
     covered_fluent_types,
     exclusion_reason,
 )
+
+if TYPE_CHECKING:
+    from great_expectations.datasource.fluent.interfaces import Datasource
 
 
 @pytest.mark.unit
@@ -167,3 +182,131 @@ def test_creation_arguments_are_produced_by_a_callable_over_a_scratch_directory(
         if parameters.update_overlay is not None:
             overlay = parameters.update_overlay(tmp_path)
             assert isinstance(overlay, (dict, types.MappingProxyType))
+
+
+# ---------------------------------------------------------------------------
+# Connection-testing neutralization
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def neutralized_connection_testing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> Callable[[str], type]:
+    """Return a callable that neutralizes connection testing for one fluent type.
+
+    Calling the returned function with a registered fluent type name patches
+    ``test_connection`` on the concrete class the registry resolves for that type, then
+    returns that class. Patching a shared base class does not reach every type: several
+    concrete classes override ``test_connection`` themselves, so a base-class patch leaves
+    those types making a real connection attempt. ``monkeypatch`` restores the original
+    method for every patched class when the test ends, so no case leaves a lasting change to
+    any datasource class.
+
+    This neutralization is deliberate, not incidental. A case built on top of this fixture
+    asserts the CRUD contract for the patched type. It never asserts, and cannot assert, that
+    the type can actually reach the service it represents.
+    """
+
+    def _neutralize(fluent_type: str) -> type:
+        datasource_class = DataSourceManager.type_lookup[fluent_type]
+
+        def _fake_test_connection(self: Datasource, test_assets: bool = True) -> None:
+            return None
+
+        monkeypatch.setattr(datasource_class, "test_connection", _fake_test_connection)
+        return datasource_class
+
+    return _neutralize
+
+
+# ---------------------------------------------------------------------------
+# The create-family contract cases
+# ---------------------------------------------------------------------------
+
+
+def _registered_fluent_types() -> List[str]:
+    """Every registered fluent datasource type name, sorted, read from the live registry.
+
+    Built as a module-level function so a collection-time failure names this module, and so a
+    type registered after this suite is written is exercised without editing this list.
+    """
+    return sorted(name for name in DataSourceManager.type_lookup if isinstance(name, str))
+
+
+_registered_fluent_type_parameters = pytest.mark.parametrize(
+    "fluent_type", _registered_fluent_types(), ids=_registered_fluent_types()
+)
+
+
+@pytest.mark.unit
+class TestFluentDatasourceCrudContract:
+    """The CRUD contract every registered fluent datasource type satisfies.
+
+    Every case in this class runs with connection testing neutralized for the type under
+    test. That neutralization is deliberate: a passing case here is evidence about the
+    create, duplicate-rejection and create-or-update behavior the contract describes, and is
+    never evidence that the underlying service the type represents can be reached.
+    """
+
+    @_registered_fluent_type_parameters
+    def test_create_returns_the_stored_datasource(
+        self,
+        fluent_type: str,
+        neutralized_connection_testing: Callable[[str], type],
+        tmp_path: pathlib.Path,
+    ) -> None:
+        datasource_class = neutralized_connection_testing(fluent_type)
+        context = gx.get_context(mode="ephemeral")
+        name = f"contract-create-{fluent_type}"
+        seeded_id = uuid.uuid4()
+        arguments = contract_parameters_for(fluent_type).creation_arguments(tmp_path)
+
+        add_method = getattr(context.data_sources, f"add_{fluent_type}")
+        created = add_method(name=name, id=seeded_id, **arguments)
+
+        assert isinstance(created, datasource_class)
+        assert created.name == name
+        assert created.id == seeded_id
+        assert context.data_sources.get(name) is created
+
+    @_registered_fluent_type_parameters
+    def test_create_rejects_duplicate_name(
+        self,
+        fluent_type: str,
+        neutralized_connection_testing: Callable[[str], type],
+        tmp_path: pathlib.Path,
+    ) -> None:
+        neutralized_connection_testing(fluent_type)
+        context = gx.get_context(mode="ephemeral")
+        name = f"contract-duplicate-{fluent_type}"
+        arguments = contract_parameters_for(fluent_type).creation_arguments(tmp_path)
+
+        add_method = getattr(context.data_sources, f"add_{fluent_type}")
+        original = add_method(name=name, id=uuid.uuid4(), **arguments)
+
+        with pytest.raises(gx_exceptions.DataContextError) as excinfo:
+            add_method(name=name, id=uuid.uuid4(), **arguments)
+
+        message = str(excinfo.value)
+        assert name in message
+        assert "already exists" in message
+        assert context.data_sources.get(name) is original
+
+    @_registered_fluent_type_parameters
+    def test_create_or_update_creates_when_absent(
+        self,
+        fluent_type: str,
+        neutralized_connection_testing: Callable[[str], type],
+        tmp_path: pathlib.Path,
+    ) -> None:
+        datasource_class = neutralized_connection_testing(fluent_type)
+        context = gx.get_context(mode="ephemeral")
+        name = f"contract-create-or-update-{fluent_type}"
+        arguments = contract_parameters_for(fluent_type).creation_arguments(tmp_path)
+
+        add_or_update_method = getattr(context.data_sources, f"add_or_update_{fluent_type}")
+        created = add_or_update_method(name=name, id=uuid.uuid4(), **arguments)
+
+        assert isinstance(created, datasource_class)
+        assert context.data_sources.get(name) is created
