@@ -37,6 +37,7 @@ from typing import (
     TYPE_CHECKING,
     Callable,
     Dict,
+    Final,
     FrozenSet,
     List,
     Mapping,
@@ -53,6 +54,10 @@ if TYPE_CHECKING:
     from great_expectations.datasource.fluent.interfaces import Batch
 
 import great_expectations.expectations as gxe
+from great_expectations.expectations.registry import (
+    get_expectation_impl,
+    list_registered_expectation_implementations,
+)
 from tests.integration.conftest import MultiSourceBatch
 from tests.integration.conftest import TestConfig as _TestConfig
 from tests.integration.data_sources_and_expectations.gold_expectation_case_table import (
@@ -99,6 +104,42 @@ _SHAPE_BY_TEST_FUNCTION_NAME: Dict[str, CaseFixtureShape] = {
 # parametrize it: the harness's own indirect batch-setup fixture, and the gold case itself.
 _BATCH_SETUP_FIXTURE_NAME = "_batch_setup_for_datasource"
 _GOLD_CASE_FIXTURE_NAME = "gold_case"
+
+# The package the shipped core expectations are defined under. `gallery_expectation_types` keeps
+# only registry entries whose implementation's defining module is this package or a submodule of
+# it -- registration is a side effect of defining an `Expectation` subclass, so importing the
+# community-contributed expectation packages, or defining one inside a test module, adds registry
+# entries the shipped package itself never ships.
+_GALLERY_MODULE_ROOT: Final[str] = "great_expectations.expectations.core"
+
+
+def _is_core_gallery_module(module_name: str) -> bool:
+    return module_name == _GALLERY_MODULE_ROOT or module_name.startswith(_GALLERY_MODULE_ROOT + ".")
+
+
+def gallery_expectation_types() -> FrozenSet[str]:
+    """The expectation type names the shipped package registers from its own core package.
+
+    Reads the live registry through its only two public accessors --
+    `list_registered_expectation_implementations` and `get_expectation_impl`; there is no bulk
+    class accessor -- so an expectation added upstream appears here with no edit to this module.
+    Filtered on each implementation's defining module rather than on its name, because
+    registration is a side effect of defining a class: a filesystem glob of `expect_*.py` module
+    names would miss `unexpected_rows_expectation`, whose module does not match that pattern, and
+    the core package's own export list overcounts by one, because it exports
+    `ExpectMulticolumnValuesToBeUnique`, which declares no map metric and is therefore abstract
+    and never registers.
+
+    Returns a `frozenset` rather than any ordered collection, so no consumer can depend on the
+    registry's insertion order -- that order is `dict` insertion order over the core package's
+    import list, which currently happens to equal sorted order, but nothing guarantees it stays
+    that way.
+    """
+    return frozenset(
+        name
+        for name in list_registered_expectation_implementations()
+        if _is_core_gallery_module(get_expectation_impl(name).__module__)
+    )
 
 
 def _candidate_data_sources(
@@ -439,6 +480,108 @@ def test_shape_dispatch_names_a_real_function_for_every_key_and_vice_versa() -> 
         "_SHAPE_BY_TEST_FUNCTION_NAME, or vice versa. "
         f"dispatch={sorted(_SHAPE_BY_TEST_FUNCTION_NAME)} "
         f"consumers={sorted(case_consuming_names)}"
+    )
+
+
+# --------------------------------------------------------------------------------------------
+# Coverage for the registry-derived gallery set
+# --------------------------------------------------------------------------------------------
+#
+# gallery_expectation_types() needs no data source, so it and its guards run in the project-scoped
+# lane. The filtering behavior is proven against a stubbed registry (below) so the assertion does
+# not depend on what the live registry happens to hold today; the non-vacuity and exactness checks
+# are then repeated against the real, live registry, because those two are exactly the properties
+# that must hold of the tree as it actually stands.
+
+
+@pytest.mark.project
+def test_gallery_expectation_types_filters_on_defining_module(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Only a registry entry whose implementation is defined under the core package survives --
+    not one from a contrib package, and not one defined inside this very test module."""
+    fake_impls: Dict[str, type] = {
+        "core_expectation": type(
+            "CoreExpectation",
+            (),
+            {"__module__": "great_expectations.expectations.core.expect_thing"},
+        ),
+        "contrib_expectation": type(
+            "ContribExpectation",
+            (),
+            {"__module__": "great_expectations_contrib.expectations.expect_other"},
+        ),
+        "test_defined_expectation": type("TestDefinedExpectation", (), {"__module__": __name__}),
+    }
+    # Patched on this module's own object, not by dotted path: this directory has no
+    # `__init__.py`, so pytest's collected instance of this module and the one a dotted-path
+    # patch would resolve via PEP 420 are two different objects.
+    module = sys.modules[__name__]
+    monkeypatch.setattr(
+        module, "list_registered_expectation_implementations", list(fake_impls).copy
+    )
+    monkeypatch.setattr(module, "get_expectation_impl", lambda name: fake_impls[name])
+
+    result = gallery_expectation_types()
+
+    assert result == frozenset({"core_expectation"}), (
+        "gallery_expectation_types() must keep only the entry defined under "
+        f"{_GALLERY_MODULE_ROOT!r}; got {sorted(result)}."
+    )
+
+
+@pytest.mark.project
+def test_gallery_expectation_types_is_non_empty() -> None:
+    """A vacuously-true completeness guard is exactly the failure mode this proves against: if the
+    registry were empty or the module filter matched nothing, every downstream coverage guard
+    built on this set would pass having checked nothing at all."""
+    result = gallery_expectation_types()
+    assert len(result) > 0, (
+        "gallery_expectation_types() returned an empty set. Either the live registry is empty or "
+        f"the module filter matched no registered expectation under {_GALLERY_MODULE_ROOT!r}; "
+        "either way, every guard built on this set would now pass vacuously."
+    )
+
+
+@pytest.mark.project
+def test_gallery_expectation_types_matches_every_registered_expectation() -> None:
+    """Filter exactness, asserted rather than assumed: every expectation the live registry
+    currently holds resolves to a module under the core package. If a future change registered a
+    shipped expectation from a different module, this fails loudly at the point of registration
+    rather than the gallery set silently losing that member -- the filter would just stop seeing
+    it, and the completeness guard built on this set would shrink to match, undetected."""
+    registered = list_registered_expectation_implementations()
+    for name in registered:
+        module_name = get_expectation_impl(name).__module__
+        assert _is_core_gallery_module(module_name), (
+            f"{name!r} is registered from {module_name!r}, which is not under "
+            f"{_GALLERY_MODULE_ROOT!r}. Either a shipped core expectation's module changed and "
+            "the gallery derivation is now silently dropping it, or a non-shipped expectation "
+            "has been registered into the live registry and must not count toward the gallery."
+        )
+
+
+@pytest.mark.project
+def test_gallery_expectation_types_includes_non_conventional_module_name() -> None:
+    """`unexpected_rows_expectation`'s module name does not match the `expect_*.py` pattern a
+    filesystem glob over the core package would use. The registry-based derivation includes it
+    anyway, because it filters on the registered implementation's actual module, not its name."""
+    assert "unexpected_rows_expectation" in gallery_expectation_types()
+
+
+@pytest.mark.project
+def test_gallery_expectation_types_excludes_unregistered_abstract_export() -> None:
+    """The core package exports `ExpectMulticolumnValuesToBeUnique`, but it declares no map
+    metric and so never registers. A derivation built off the core package's export list would
+    overcount by this one; the registry-based derivation here cannot, because it never looks at
+    the export list at all."""
+    from great_expectations.expectations.core import ExpectMulticolumnValuesToBeUnique
+
+    assert not list_registered_expectation_implementations(
+        expectation_root=ExpectMulticolumnValuesToBeUnique
+    ), (
+        "ExpectMulticolumnValuesToBeUnique is registered under the live registry; the abstract-"
+        "export trap this test documents no longer applies and its docstring needs updating."
     )
 
 
