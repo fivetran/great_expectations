@@ -147,7 +147,7 @@ def test_details_explicit_none() -> None:
 def test_aggregate_result_base_extra_forbid() -> None:
     """AggregateResultBase enforces extra=forbid."""
     with pytest.raises(pydantic.ValidationError):
-        AggregateResultBase(completely_unknown="value")
+        AggregateResultBase.parse_obj({"completely_unknown": "value"})
 
 
 # ---------------------------------------------------------------------------
@@ -181,14 +181,14 @@ def test_aggregate_boolean_only_with_details() -> None:
 def test_aggregate_boolean_only_extra_field_raises() -> None:
     """extra=forbid: unknown fields raise ValidationError in AggregateBooleanOnlyResult."""
     with pytest.raises(pydantic.ValidationError):
-        AggregateBooleanOnlyResult(unknown_field="should_fail")
+        AggregateBooleanOnlyResult.parse_obj({"unknown_field": "should_fail"})
 
 
 @pytest.mark.unit
 def test_aggregate_boolean_only_basic_fields_rejected() -> None:
     """AggregateBooleanOnlyResult does not accept AggregateBasicResult-only fields."""
     with pytest.raises(pydantic.ValidationError):
-        AggregateBooleanOnlyResult(element_count=100)
+        AggregateBooleanOnlyResult.parse_obj({"element_count": 100})
 
 
 # ---------------------------------------------------------------------------
@@ -199,7 +199,7 @@ def test_aggregate_boolean_only_basic_fields_rejected() -> None:
 @pytest.mark.unit
 def test_aggregate_basic_parses_valid_result() -> None:
     """AggregateBasicResult parses a typical BASIC result dict correctly."""
-    m = AggregateBasicResult(**_BASIC_RESULT_DATA)
+    m = AggregateBasicResult.parse_obj(_BASIC_RESULT_DATA)
     assert m.element_count == 200
     assert m.missing_count == 10
     assert m.missing_percent == 5.0
@@ -230,14 +230,14 @@ def test_aggregate_basic_with_observed_value() -> None:
 def test_aggregate_basic_extra_field_raises() -> None:
     """extra=forbid: unknown fields raise ValidationError in AggregateBasicResult."""
     with pytest.raises(pydantic.ValidationError):
-        AggregateBasicResult(**_BASIC_RESULT_DATA, unknown_field="bad")
+        AggregateBasicResult.parse_obj({**_BASIC_RESULT_DATA, "unknown_field": "bad"})
 
 
 @pytest.mark.unit
 def test_aggregate_basic_complete_only_field_raises() -> None:
     """AggregateBasicResult does not accept AggregateCompleteResult-only fields."""
     with pytest.raises(pydantic.ValidationError):
-        AggregateBasicResult(**_BASIC_RESULT_DATA, unexpected_list=[1, 2, 3])
+        AggregateBasicResult.parse_obj({**_BASIC_RESULT_DATA, "unexpected_list": [1, 2, 3]})
 
 
 # ---------------------------------------------------------------------------
@@ -248,7 +248,7 @@ def test_aggregate_basic_complete_only_field_raises() -> None:
 @pytest.mark.unit
 def test_aggregate_summary_parses_valid_result() -> None:
     """AggregateSummaryResult parses a typical SUMMARY result dict correctly."""
-    m = AggregateSummaryResult(**_BASIC_RESULT_DATA)
+    m = AggregateSummaryResult.parse_obj(_BASIC_RESULT_DATA)
     assert m.element_count == 200
     assert m.missing_count == 10
     assert m.partial_unexpected_list == ["a", "b"]
@@ -267,7 +267,7 @@ def test_aggregate_summary_all_optional() -> None:
 def test_aggregate_summary_extra_field_raises() -> None:
     """extra=forbid: unknown fields raise ValidationError in AggregateSummaryResult."""
     with pytest.raises(pydantic.ValidationError):
-        AggregateSummaryResult(**_BASIC_RESULT_DATA, unknown_field="bad")
+        AggregateSummaryResult.parse_obj({**_BASIC_RESULT_DATA, "unknown_field": "bad"})
 
 
 @pytest.mark.unit
@@ -287,7 +287,7 @@ def test_aggregate_summary_with_observed_value_and_details() -> None:
 def test_aggregate_summary_complete_only_field_raises() -> None:
     """AggregateSummaryResult does not accept AggregateCompleteResult-only fields."""
     with pytest.raises(pydantic.ValidationError):
-        AggregateSummaryResult(**_BASIC_RESULT_DATA, unexpected_list=[1, 2, 3])
+        AggregateSummaryResult.parse_obj({**_BASIC_RESULT_DATA, "unexpected_list": [1, 2, 3]})
 
 
 # ---------------------------------------------------------------------------
@@ -299,7 +299,7 @@ def test_aggregate_summary_complete_only_field_raises() -> None:
 def test_aggregate_complete_parses_valid_result() -> None:
     """AggregateCompleteResult parses a typical COMPLETE result dict correctly."""
     data = {**_BASIC_RESULT_DATA, **_COMPLETE_EXTRA_DATA}
-    m = AggregateCompleteResult(**data)
+    m = AggregateCompleteResult.parse_obj(data)
     assert m.element_count == 200
     assert m.missing_count == 10
     assert m.unexpected_list == ["a", "b", "c"]
@@ -320,7 +320,7 @@ def test_aggregate_complete_extra_field_raises() -> None:
     """extra=forbid: unknown fields raise ValidationError in AggregateCompleteResult."""
     data = {**_BASIC_RESULT_DATA, **_COMPLETE_EXTRA_DATA}
     with pytest.raises(pydantic.ValidationError):
-        AggregateCompleteResult(**data, not_a_real_field="value")
+        AggregateCompleteResult.parse_obj({**data, "not_a_real_field": "value"})
 
 
 @pytest.mark.unit
@@ -332,7 +332,7 @@ def test_aggregate_complete_inherits_all_ancestor_fields() -> None:
         "observed_value": 3.14,
         "details": {"info": "complete"},
     }
-    m = AggregateCompleteResult(**data)
+    m = AggregateCompleteResult.parse_obj(data)
     # From AggregateResultBase
     assert m.observed_value == 3.14
     assert m.details == {"info": "complete"}

@@ -13,11 +13,14 @@ lightweight ``_AbstractStub`` object that carries the correct
 
 from __future__ import annotations
 
-from typing import List, Mapping, NamedTuple, Optional
+from typing import TYPE_CHECKING, List, Mapping, NamedTuple, Optional, Union
 
 import pandas as pd
 
 import great_expectations.expectations as gxe
+
+if TYPE_CHECKING:
+    from great_expectations.expectations.expectation import Expectation
 
 # ---------------------------------------------------------------------------
 # Default fixture data — small DataFrame covering the most common columns.
@@ -109,7 +112,7 @@ class ExpectationCase(NamedTuple):
     """
 
     id: str
-    expectation: object  # type: ignore[assignment]  # Expectation or _AbstractStub
+    expectation: Union[Expectation, _AbstractStub]
     data: pd.DataFrame
     extra_data: Optional[Mapping[str, pd.DataFrame]] = None
 
@@ -381,6 +384,7 @@ EXPECTATION_CASES: List[ExpectationCase] = [
                 "weights": [0.2, 0.2, 0.2, 0.2, 0.2],
                 "values": [1, 2, 3, None, 5],
             },
+            threshold=None,
         ),
         data=_DEFAULT_DATA,
     ),

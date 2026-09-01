@@ -22,7 +22,7 @@ from __future__ import annotations
 import datetime
 import random
 import string
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generator
 
 import pandas as pd
 import pytest
@@ -101,7 +101,7 @@ def _datasource_test_id(batch: Batch) -> str:
 
 
 @pytest.fixture(scope="session")
-def _findings_writer(request: pytest.FixtureRequest) -> FindingsWriter:  # type: ignore[return]
+def _findings_writer(request: pytest.FixtureRequest) -> Generator[FindingsWriter, None, None]:
     """Session-scoped FindingsWriter; yields writer, flushes on session teardown."""
     run_id: str = request.config.getoption("--vrs-run-id") or _generate_run_id()
     with FindingsWriter(run_id=run_id) as writer:
@@ -150,12 +150,12 @@ def test_validation_result_schema_matrix(
         )
         pytest.skip(f"[{case.id}][{result_format.value}][{engine_hint}]: abstract stub — skipped")
 
-    expectation_type: str = case.expectation.expectation_type  # type: ignore[union-attr]
+    expectation_type: str = case.expectation.expectation_type
 
     try:
         raw_evr = batch_for_datasource.validate(
             case.expectation,
-            result_format=result_format,  # type: ignore[arg-type]
+            result_format=result_format,
         )
     except Exception as exc:
         _findings_writer.write_finding(

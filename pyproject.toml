@@ -129,14 +129,6 @@ exclude = [
     'tests/validator/test_metric_configuration\.py',
     'tests/validator/test_metrics_calculator\.py',
     'tests/validator/test_validation_graph\.py',
-    # validation_result_schemas: pydantic v1 **kwargs unpacking and intentional call-arg tests
-    'tests/unit/core/validation_result_schemas/test_format_config\.py',             # 13
-    'tests/unit/core/validation_result_schemas/test_schemas_map\.py',               # 57
-    'tests/unit/core/validation_result_schemas/test_schemas_aggregate\.py',         # 71
-    'tests/unit/core/validation_result_schemas/test_schemas_overrides\.py',         # 6
-    'tests/unit/core/validation_result_schemas/test_cases_table\.py',               # 1
-    'tests/integration/data_sources_and_expectations/expectations/_validation_result_schemas_cases\.py',  # 2
-    'tests/integration/data_sources_and_expectations/expectations/test_validation_result_schemas_matrix\.py',  # 11
 ]
 
 [[tool.mypy.overrides]]

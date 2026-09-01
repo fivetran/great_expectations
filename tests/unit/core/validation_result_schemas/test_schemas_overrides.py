@@ -40,7 +40,7 @@ def test_pandas_path_parses_as_map_basic_result() -> None:
 
     It must parse as MapBasicResult, confirming it belongs to the Map family.
     """
-    m = MapBasicResult(**_PANDAS_RESULT)
+    m = MapBasicResult.parse_obj(_PANDAS_RESULT)
     assert m.element_count == 10
     assert m.unexpected_count == 0
     assert m.unexpected_percent == 0.0
@@ -80,7 +80,9 @@ def test_sql_spark_path_observed_value_preserved() -> None:
 def test_override_extra_field_raises() -> None:
     """ExpectColumnValuesToBeOfTypeSqlSparkResult rejects unknown extra fields."""
     with pytest.raises(pydantic.ValidationError):
-        ExpectColumnValuesToBeOfTypeSqlSparkResult(
-            observed_value="int",
-            unexpected_extra="x",
+        ExpectColumnValuesToBeOfTypeSqlSparkResult.parse_obj(
+            {
+                "observed_value": "int",
+                "unexpected_extra": "x",
+            }
         )

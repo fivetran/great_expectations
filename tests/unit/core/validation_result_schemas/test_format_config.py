@@ -6,6 +6,8 @@ asserting required keys are present and optional keys behave correctly.
 
 from __future__ import annotations
 
+from typing import Mapping
+
 import pytest
 
 from great_expectations.core.result_format import ResultFormat
@@ -31,13 +33,13 @@ OPTIONAL_KEYS = frozenset({"exclude_unexpected_values", "return_unexpected_index
 # ---------------------------------------------------------------------------
 
 
-def _assert_required_keys_present(config: dict) -> None:
+def _assert_required_keys_present(config: Mapping[str, object]) -> None:
     """Assert all required keys are present in the config dict."""
     missing = REQUIRED_KEYS - config.keys()
     assert not missing, f"Missing required keys: {missing}"
 
 
-def _assert_optional_keys_absent(config: dict) -> None:
+def _assert_optional_keys_absent(config: Mapping[str, object]) -> None:
     """Assert optional keys are NOT present (string-only parse_result_format input)."""
     present = OPTIONAL_KEYS & config.keys()
     assert not present, f"Optional keys should be absent but found: {present}"
@@ -100,7 +102,7 @@ def test_optional_exclude_unexpected_values_present_when_supplied() -> None:
     config: ResultFormatConfig = raw  # type: ignore[assignment]
     _assert_required_keys_present(config)
     assert "exclude_unexpected_values" in config
-    assert config["exclude_unexpected_values"] is True  # type: ignore[typeddict-item]
+    assert config["exclude_unexpected_values"] is True
 
 
 @pytest.mark.unit
@@ -114,7 +116,7 @@ def test_optional_return_unexpected_index_query_present_when_supplied() -> None:
     config: ResultFormatConfig = raw  # type: ignore[assignment]
     _assert_required_keys_present(config)
     assert "return_unexpected_index_query" in config
-    assert config["return_unexpected_index_query"] is False  # type: ignore[typeddict-item]
+    assert config["return_unexpected_index_query"] is False
 
 
 @pytest.mark.unit
