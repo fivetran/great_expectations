@@ -131,7 +131,10 @@ def test_module_imports_with_no_data_source_dependency_installed() -> None:
     import: no submodule of ``tests.integration.test_utils.data_source_config`` -- the package
     whose ``__init__`` eagerly imports every backend and the registry-derived ``tiers`` module --
     and no ``sqlalchemy``, which is what a live data-source read would need and is not required to
-    read this module's pure data.
+    read this module's pure data. This module never imports ``great_expectations`` itself, either
+    -- the populated case table that constructs real ``Expectation`` instances lives in
+    ``gold_expectation_case_table.py``, which imports ``great_expectations`` to build those
+    instances, precisely so this module can keep this guarantee.
 
     Uses ``sys.modules`` introspection rather than a ``sys.meta_path`` blocking finder: a finder
     built on the legacy ``find_module`` hook is silently ignored on Python 3.12+ (the fallback
@@ -145,14 +148,10 @@ def test_module_imports_with_no_data_source_dependency_installed() -> None:
         sys.path.insert(0, "")
 
         from tests.integration.data_sources_and_expectations.gold_expectation_cases import (
-            GOLD_CASES,
-            GOLD_CASE_KEYS,
             GOLD_FIXTURE_DATA,
             GOLD_EXTRA_TABLE_DATA,
         )
 
-        assert isinstance(GOLD_CASES, tuple)
-        assert isinstance(GOLD_CASE_KEYS, frozenset)
         assert len(GOLD_FIXTURE_DATA) > 0
         assert len(GOLD_EXTRA_TABLE_DATA) > 0
 
@@ -174,6 +173,17 @@ def test_module_imports_with_no_data_source_dependency_installed() -> None:
         }
         assert not sqlalchemy_modules, (
             f"gold_expectation_cases.py pulled in sqlalchemy: {sorted(sqlalchemy_modules)}"
+        )
+
+        great_expectations_modules = {
+            name
+            for name in loaded
+            if name == "great_expectations" or name.startswith("great_expectations.")
+        }
+        assert not great_expectations_modules, (
+            "gold_expectation_cases.py pulled in great_expectations itself (which "
+            "opportunistically imports every installed SQL dialect driver at package-import "
+            f"time): {sorted(great_expectations_modules)}"
         )
 
         print("OK")

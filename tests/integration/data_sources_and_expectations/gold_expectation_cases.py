@@ -1,11 +1,16 @@
-"""The declarative case table for the gallery-wide expectation suite, and its shared fixture data.
+"""The declarative case record shape for the gallery-wide expectation suite, and its shared
+fixture data.
 
-This module holds pure data: a case record per expectation, the fixture-shape vocabulary a case
+This module holds pure data: the `GoldCase` record shape, the fixture-shape vocabulary a case
 declares, and the data frame(s) that back every case sharing the default shape. It imports the
-tier and engine vocabularies and the shipped expectation classes, but never a data-source registry
-accessor, so it stays importable in a lane with no data-source dependency installed at all — the
-registry-derived accounting that turns this table into a live parameterization lives beside the
-test functions that consume it, not here.
+engine vocabulary but never `great_expectations` itself and never a data-source registry
+accessor, so it stays importable in a lane with no data-source dependency installed at all --
+`great_expectations`'s own package `__init__` opportunistically imports every SQL dialect driver
+that happens to be installed (soft-imported, so its *absence* is never fatal, but its *presence*
+would defeat this module's purpose of staying import-clean regardless of what is installed). The
+populated case table (`GOLD_CASES`) therefore lives in `gold_expectation_case_table.py`, which
+imports `great_expectations` to construct real `Expectation` instances -- something this module
+must not do.
 
 Cases are collected under one shared data frame wherever possible. A shared frame means every
 standard-shape case resolves to a single cached batch setup per data source per session rather than
@@ -18,7 +23,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from enum import Enum
-from typing import TYPE_CHECKING, Final, FrozenSet, Optional, Tuple
+from typing import TYPE_CHECKING, Final, FrozenSet, Optional
 
 import pandas as pd
 
@@ -63,8 +68,11 @@ class GoldCase:
     """
 
     key: str
-    """The expectation type name. Equal to a member of the registry-derived gallery set this
-    table is checked against."""
+    """The expectation type name, as the shipped package registers it.
+
+    One case per registered expectation is what makes the suite gallery-wide, so this key is
+    how a case is matched to the expectation it is accountable for.
+    """
 
     passing: Expectation
     """A configuration expected to report success against the shared fixture data."""
@@ -92,15 +100,6 @@ class GoldCase:
                 "execution engine proves nothing; either restrict it to a non-empty subset of "
                 "engines, with a reason, or leave `engines` at its default to apply to all of them."
             )
-
-
-GOLD_CASES: Final[Tuple[GoldCase, ...]] = ()
-"""Every declared case. Populated as expectations are added to the table; empty here by design —
-an empty table still satisfies "the module imports cleanly" and "an empty case set is a state the
-suite can report," both of which later work depends on being able to observe."""
-
-GOLD_CASE_KEYS: Final[FrozenSet[str]] = frozenset(case.key for case in GOLD_CASES)
-"""The published case keys, derived from ``GOLD_CASES`` rather than hand-kept in sync with it."""
 
 
 # --------------------------------------------------------------------------------------------
@@ -255,9 +254,26 @@ EXTRA_TABLE_VALUE_COL = "extra_value"
 
 GOLD_EXTRA_TABLE_DATA: pd.DataFrame = pd.DataFrame(
     {
-        EXTRA_TABLE_KEY_COL: [1, 2, 3, 4, 5, 6],
-        EXTRA_TABLE_VALUE_COL: ["a", "b", "c", "d", "e", "f"],
+        EXTRA_TABLE_KEY_COL: [1, 2, 3, 4, 5, 6, 7],
+        EXTRA_TABLE_VALUE_COL: ["a", "b", "c", "d", "e", "f", "g"],
     }
 )
 """The one additional table shared by every ``EXTRA_TABLE``-shape case, so those cases collapse to
-a single second setup rather than one per case."""
+a single second setup rather than one per case. Deliberately sized to seven rows -- one more than
+``GOLD_FIXTURE_DATA``'s six -- so a case comparing the primary table against this one has a real,
+known mismatch to prove a discriminating failure with, rather than two same-sized tables that
+always compare equal."""
+
+
+# --------------------------------------------------------------------------------------------
+# Table-reference vocabulary
+# --------------------------------------------------------------------------------------------
+
+EXTRA_TABLE_SELF_REFERENCE: Final[str] = "__gold_primary_table__"
+"""A placeholder ``other_table_name``/second-table reference for an ``EXTRA_TABLE`` or
+``COMPARISON`` shape case that means "the case's own primary table," as opposed to the shared
+extra table published as ``GOLD_EXTRA_TABLE_NAME``. Neither a case's primary table's physical name
+nor its comparison data source's name exist until the batch is set up at test time (both carry a
+randomly-generated suffix), so a case cannot hold the real value. The suite substitutes the actual
+name for this sentinel immediately before validating; the substitution is invisible to the case
+itself, which keeps every published case a plain constructed instance rather than a factory."""
