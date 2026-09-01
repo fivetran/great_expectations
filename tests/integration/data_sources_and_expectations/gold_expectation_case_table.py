@@ -16,6 +16,7 @@ module unreadably long.
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Final, FrozenSet, Tuple
 
 import great_expectations.expectations as gxe
@@ -391,10 +392,245 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column="pattern_code", regex_list=[r"^A"]
         ),
     ),
+    # ----------------------------------------------------------------------------------------
+    # Column-aggregate expectations
+    #
+    # Every metric these fifteen cases lean on (`column.min`, `column.max`, `column.mean`,
+    # `column.median`, `column.standard_deviation`, `column.sum`, `column.unique_proportion`,
+    # `column.value_counts`, `column.distinct_values`, `column.partition`) registers a provider on
+    # every execution engine this table runs against, verified against
+    # `great_expectations.expectations.registry._registered_metrics`. None of these cases needs an
+    # engine restriction.
+    # ----------------------------------------------------------------------------------------
+    GoldCase(
+        key=gxe.ExpectColumnMinToBeBetween(
+            column="record_date", min_value=date(2024, 1, 1), max_value=date(2024, 1, 1)
+        ).expectation_type,
+        # `record_date`'s true minimum is 2024-01-01, exactly.
+        passing=gxe.ExpectColumnMinToBeBetween(
+            column="record_date", min_value=date(2024, 1, 1), max_value=date(2024, 1, 1)
+        ),
+        # A near miss: the lower bound sits one day past the true minimum.
+        failing=gxe.ExpectColumnMinToBeBetween(
+            column="record_date", min_value=date(2024, 1, 2), max_value=date(2024, 1, 10)
+        ),
+    ),
+    GoldCase(
+        # `record_timestamp` (tz-aware) is deliberately NOT used here.
+        # `_validate_metric_value_between` (great_expectations/expectations/expectation.py) does a
+        # raw Python comparison between the observed metric value and the declared bounds with no
+        # tz-normalization: SQLite round-trips a tz-aware timestamp as tz-naive while pandas
+        # preserves it as tz-aware, so a tz-aware bound crashes on SQLite (comparing naive against
+        # aware) and a tz-naive bound crashes on pandas (comparing aware against naive) -- there is
+        # no bound tz-awareness that survives both locally runnable engines for the same source
+        # column. Recorded as an upstream defect rather than worked around by injecting a
+        # differently-shaped fixture column into the shared frame every other STANDARD case also
+        # uses.
+        key=gxe.ExpectColumnMaxToBeBetween(
+            column="float_value", min_value=22.4, max_value=22.6
+        ).expectation_type,
+        # `float_value`'s true maximum is exactly 22.5.
+        passing=gxe.ExpectColumnMaxToBeBetween(
+            column="float_value", min_value=22.4, max_value=22.6
+        ),
+        # A near miss: the lower bound sits just past the true maximum.
+        failing=gxe.ExpectColumnMaxToBeBetween(
+            column="float_value", min_value=22.51, max_value=23.0
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectColumnMeanToBeBetween(
+            column="float_value", min_value=16.2, max_value=16.3
+        ).expectation_type,
+        # `float_value`'s true mean is exactly 16.25.
+        passing=gxe.ExpectColumnMeanToBeBetween(
+            column="float_value", min_value=16.2, max_value=16.3
+        ),
+        # A near miss: the lower bound sits just past the true mean.
+        failing=gxe.ExpectColumnMeanToBeBetween(
+            column="float_value", min_value=16.26, max_value=16.5
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectColumnMedianToBeBetween(
+            column="float_value", min_value=16.2, max_value=16.3
+        ).expectation_type,
+        # `float_value`'s true median is exactly 16.25 (the mean of the two middle values).
+        passing=gxe.ExpectColumnMedianToBeBetween(
+            column="float_value", min_value=16.2, max_value=16.3
+        ),
+        # A near miss: the lower bound sits just past the true median.
+        failing=gxe.ExpectColumnMedianToBeBetween(
+            column="float_value", min_value=16.26, max_value=17.0
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectColumnStdevToBeBetween(
+            column="float_value", min_value=4.6, max_value=4.8
+        ).expectation_type,
+        # `float_value`'s true sample stdev is ~4.6771.
+        passing=gxe.ExpectColumnStdevToBeBetween(
+            column="float_value", min_value=4.6, max_value=4.8
+        ),
+        # A near miss: the lower bound sits just past the true stdev.
+        failing=gxe.ExpectColumnStdevToBeBetween(
+            column="float_value", min_value=4.68, max_value=5.0
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectColumnSumToBeBetween(
+            column="float_value", min_value=97.4, max_value=97.6
+        ).expectation_type,
+        # `float_value`'s true sum is exactly 97.5.
+        passing=gxe.ExpectColumnSumToBeBetween(
+            column="float_value", min_value=97.4, max_value=97.6
+        ),
+        # A near miss: the lower bound sits just past the true sum.
+        failing=gxe.ExpectColumnSumToBeBetween(
+            column="float_value", min_value=97.51, max_value=98.0
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectColumnUniqueValueCountToBeBetween(
+            column="increasing_key", min_value=6, max_value=6
+        ).expectation_type,
+        # `increasing_key` has exactly six distinct values, one per row.
+        passing=gxe.ExpectColumnUniqueValueCountToBeBetween(
+            column="increasing_key", min_value=6, max_value=6
+        ),
+        # A near miss: the lower bound sits one past the true unique count.
+        failing=gxe.ExpectColumnUniqueValueCountToBeBetween(
+            column="increasing_key", min_value=7, max_value=10
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectColumnProportionOfUniqueValuesToBeBetween(
+            column="increasing_key", min_value=0.99, max_value=1.0
+        ).expectation_type,
+        # `increasing_key`'s proportion of unique values is exactly 1.0 (every row distinct).
+        passing=gxe.ExpectColumnProportionOfUniqueValuesToBeBetween(
+            column="increasing_key", min_value=0.99, max_value=1.0
+        ),
+        # A near miss: the upper bound sits just short of the true proportion.
+        failing=gxe.ExpectColumnProportionOfUniqueValuesToBeBetween(
+            column="increasing_key", min_value=0.0, max_value=0.999
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectColumnProportionOfNonNullValuesToBeBetween(
+            column="nullable_value", min_value=0.66, max_value=0.67
+        ).expectation_type,
+        # `nullable_value` has four non-null rows out of six (0.6667).
+        passing=gxe.ExpectColumnProportionOfNonNullValuesToBeBetween(
+            column="nullable_value", min_value=0.66, max_value=0.67
+        ),
+        # A near miss: the lower bound sits just past the true proportion.
+        failing=gxe.ExpectColumnProportionOfNonNullValuesToBeBetween(
+            column="nullable_value", min_value=0.67, max_value=0.7
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectColumnQuantileValuesToBeBetween(
+            column="float_value",
+            quantile_ranges={"quantiles": [0.5], "value_ranges": [[14.9, 17.6]]},
+        ).expectation_type,
+        # The median-quantile computation is not pinned to one interpolation method across
+        # engines -- pandas resolves the 0.5 quantile of this six-row column to 15.0 (a
+        # lower-value method) rather than to the 16.25 the plain median metric reports, and a
+        # different backend's own interpolation choice could land anywhere between those two
+        # real values. The range is widened to cover both rather than narrowed to a near miss,
+        # so this case does not become a false failure on a backend whose quantile algorithm
+        # differs from pandas's, while still excluding a badly wrong value.
+        passing=gxe.ExpectColumnQuantileValuesToBeBetween(
+            column="float_value",
+            quantile_ranges={"quantiles": [0.5], "value_ranges": [[14.9, 17.6]]},
+        ),
+        # No admissible interpolation of the 0.5 quantile falls below the column's own minimum.
+        failing=gxe.ExpectColumnQuantileValuesToBeBetween(
+            column="float_value",
+            quantile_ranges={"quantiles": [0.5], "value_ranges": [[0.0, 14.9]]},
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectColumnDistinctValuesToBeInSet(
+            column="category", value_set=["red", "green", "blue", "purple"]
+        ).expectation_type,
+        # `category`'s distinct values ({red, green, blue}) are a subset of this wider set.
+        passing=gxe.ExpectColumnDistinctValuesToBeInSet(
+            column="category", value_set=["red", "green", "blue", "purple"]
+        ),
+        # `category` also holds "green" and "blue", outside this narrower set.
+        failing=gxe.ExpectColumnDistinctValuesToBeInSet(column="category", value_set=["red"]),
+    ),
+    GoldCase(
+        key=gxe.ExpectColumnDistinctValuesToContainSet(
+            column="category", value_set=["red", "green"]
+        ).expectation_type,
+        # `category`'s distinct values include both "red" and "green".
+        passing=gxe.ExpectColumnDistinctValuesToContainSet(
+            column="category", value_set=["red", "green"]
+        ),
+        # `category` never holds "purple".
+        failing=gxe.ExpectColumnDistinctValuesToContainSet(column="category", value_set=["purple"]),
+    ),
+    GoldCase(
+        key=gxe.ExpectColumnDistinctValuesToEqualSet(
+            column="category", value_set=["red", "green", "blue"]
+        ).expectation_type,
+        # `category`'s distinct values are exactly {red, green, blue}.
+        passing=gxe.ExpectColumnDistinctValuesToEqualSet(
+            column="category", value_set=["red", "green", "blue"]
+        ),
+        # Missing "blue" makes this an unequal set.
+        failing=gxe.ExpectColumnDistinctValuesToEqualSet(
+            column="category", value_set=["red", "green"]
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectColumnMostCommonValueToBeInSet(
+            column="category", value_set=["red", "green", "blue"], ties_okay=True
+        ).expectation_type,
+        # `category`'s three values are three-way tied for most common (two rows each);
+        # `ties_okay=True` requires every tied mode to be a member of the set, and all three are.
+        passing=gxe.ExpectColumnMostCommonValueToBeInSet(
+            column="category", value_set=["red", "green", "blue"], ties_okay=True
+        ),
+        # None of the tied modes is "purple".
+        failing=gxe.ExpectColumnMostCommonValueToBeInSet(
+            column="category", value_set=["purple"], ties_okay=True
+        ),
+    ),
+    GoldCase(
+        key=gxe.ExpectColumnKLDivergenceToBeLessThan(
+            column="category",
+            partition_object={"values": ["red", "green", "blue"], "weights": [1 / 3, 1 / 3, 1 / 3]},
+            threshold=0.01,
+        ).expectation_type,
+        # `category` is uniformly distributed across its three values (two rows each); the
+        # expected partition matches that distribution exactly, so the observed divergence is 0.
+        passing=gxe.ExpectColumnKLDivergenceToBeLessThan(
+            column="category",
+            partition_object={
+                "values": ["red", "green", "blue"],
+                "weights": [1 / 3, 1 / 3, 1 / 3],
+            },
+            threshold=0.01,
+        ),
+        # A partition heavily skewed toward "red" diverges far past this small threshold -- not a
+        # near miss, because KL divergence has no natural "just past the true value" reading the
+        # way a between-bounds aggregate does; a small skew and a small threshold both risk
+        # floating-point noise flipping the verdict, so the skew is chosen distinctly large
+        # instead.
+        failing=gxe.ExpectColumnKLDivergenceToBeLessThan(
+            column="category",
+            partition_object={"values": ["red", "green", "blue"], "weights": [0.9, 0.05, 0.05]},
+            threshold=0.01,
+        ),
+    ),
 )
 """Every declared case. One seed case per `CaseFixtureShape` member proves the wiring end to end;
-the column-map expectation family fills out most of the gallery, and the remaining families are
-added by later work."""
+the column-map and column-aggregate expectation families fill out most of the gallery, and the
+remaining families are added by later work."""
 
 GOLD_CASE_KEYS: Final[FrozenSet[str]] = frozenset(case.key for case in GOLD_CASES)
 """The published case keys, derived from `GOLD_CASES` rather than hand-kept in sync with it."""
