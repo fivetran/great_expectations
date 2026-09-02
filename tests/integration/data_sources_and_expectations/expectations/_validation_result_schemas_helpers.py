@@ -213,13 +213,18 @@ def resolve_self_references(
 def release_sql_connections(batch: Batch) -> None:
     """Dispose the pooled connections a SQL batch's datasource holds, once a cell is done with it.
 
+    A SQL datasource holds two distinct SQLAlchemy engines, each with its own connection pool: the
+    execution engine's own engine, built from the connection string when the execution engine is
+    constructed, and the datasource's separate `get_engine()` engine. Both need disposing -- closing
+    one leaves the other's pooled connections open.
+
     The harness builds a fresh datasource for every test that requests a batch, and the session
-    context keeps each one alive until teardown, so every SQL test leaves a pooled connection idle
-    on the server for the rest of the session. A module with a handful of tests never notices; this
-    matrix runs a couple of hundred cells per data source and, measured against a local
-    PostgreSQL, drove the open-session count past 250 on its own -- enough, on top of the sibling
-    modules, to exhaust the CI container's limit for every test that ran after it. Disposing the
-    engines returns the cell's connections; the next cell gets its own datasource anyway.
+    context keeps each one alive until teardown, so without this, every SQL test would leave both
+    engines' pooled connections idle on the server for the rest of the session. A module with a
+    handful of tests never notices; at this matrix's cell count per data source, that was enough --
+    on top of the sibling modules -- to exhaust the CI PostgreSQL container's connection limit for
+    every test that ran after it. Disposing both engines here returns the cell's connections; the
+    next cell gets its own datasource anyway, so nothing here needs to be kept alive for reuse.
     """
     datasource = batch.datasource
     if not hasattr(datasource, "get_engine"):
