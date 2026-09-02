@@ -14,8 +14,7 @@ import os
 import pathlib
 import subprocess
 import sys
-from datetime import datetime
-from typing import TYPE_CHECKING, ClassVar, List, Mapping, Optional, Sequence, Type, Union, cast
+from typing import TYPE_CHECKING, ClassVar, List, Mapping, Optional, Sequence, cast
 
 import pandas as pd
 import pytest
@@ -27,7 +26,6 @@ import great_expectations as gx
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from tests.integration.conftest import parameterize_batch_for_data_sources
-from tests.integration.test_utils.data_source_config import iter_data_source_specs
 from tests.integration.test_utils.data_source_config import sql as sql_module
 from tests.integration.test_utils.data_source_config.backend_spec import (
     SqlBackendSpec,
@@ -45,9 +43,6 @@ from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetu
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
 if TYPE_CHECKING:
-    from _pytest.mark.structures import ParameterSet
-
-    from great_expectations.compatibility.sqlalchemy import TypeEngine
     from great_expectations.data_context import AbstractDataContext
     from great_expectations.datasource.fluent.sql_datasource import TableAsset
     from tests.integration.conftest import TestConfig
@@ -273,42 +268,6 @@ class TestSchemaNameConflictsWithNoSchemaDeclarationRaises:
         )
 
 
-def _rendered(sql_type: Union[Type[TypeEngine], TypeEngine], dialect: sa.engine.Dialect) -> str:
-    """The DDL fragment one dialect emits for one declared type."""
-    instance = sql_type() if isinstance(sql_type, type) else sql_type
-    return str(instance.compile(dialect=dialect))
-
-
-def _sql_backend_specs() -> List[SqlBackendSpec]:
-    """Every registered SQL backend's declaration, in label order.
-
-    Read from the registry rather than named here, so a backend added later is one this module
-    accounts for without an edit to this module -- and is not silently skipped by it.
-    """
-    return [spec for spec in iter_data_source_specs() if isinstance(spec, SqlBackendSpec)]
-
-
-def _backend_params() -> List[ParameterSet]:
-    """One parameter per registered SQL backend, carrying that backend's own pytest marker.
-
-    The marker is what puts a backend's case in the lane that installs its dialect. This module
-    carries a module-level `sqlite` marker, which covers the dialects SQLAlchemy ships with, but
-    seven of these backends have a third-party dialect that only its own lane installs -- and no
-    lane selects a module by a marker it does not carry. Without the per-backend marker those
-    seven would be skipped in every lane, leaving their recorded rows checked nowhere.
-    """
-    return [
-        pytest.param(
-            spec,
-            # No marker declared means no lane of its own selects this backend, so its case runs
-            # only where this module's own marker does.
-            marks=[getattr(pytest.mark, spec.marker)] if spec.marker else [],
-            id=spec.label,
-        )
-        for spec in _sql_backend_specs()
-    ]
-
-
 class TestSharedDefaultTypesSayWhatTheyMean:
     """A default type that leaves its width unstated lets each server pick one.
 
@@ -320,10 +279,10 @@ class TestSharedDefaultTypesSayWhatTheyMean:
     def test_a_running_setup_resolves_what_the_declaration_resolves(
         self, tmp_path: pathlib.Path
     ) -> None:
-        """This module reads the type map from the declaration rather than from a live setup,
-        which says something about the tables the harness builds only while a setup reads the
-        same map. A setup that resolved its columns some other way would leave every check below
-        true of a map nothing uses.
+        """The check below, and the recorded rendering table in its own module, both read the
+        type map from a backend's declaration rather than from a live setup. That says something
+        about the tables the harness builds only while a running setup reads the same map; a setup
+        resolving its columns some other way would leave both asserting about a map nothing uses.
         """
         setup = _ThrowawayBatchTestSetup(
             data=pd.DataFrame({"col_int": [1]}),
@@ -340,10 +299,10 @@ class TestSharedDefaultTypesSayWhatTheyMean:
 
         Two spellings do it. An unqualified decimal is read by several dialects as scale zero, so
         every fractional value in a fixture frame is rounded to an integer on write. A float with
-        no precision is read by at least one dialect as its 4-byte type, so a Python float -- a
-        double -- is stored at half the width it was declared at. Both produce valid DDL and no
-        error. A type that names its own width (a double, a float carrying a precision, or a
-        decimal carrying an explicit scale) leaves the server nothing to decide.
+        no width is read by some servers as their 4-byte type, so a Python float -- a double -- is
+        stored at half the width it was declared at. Both produce valid DDL and no error. A type
+        naming its own width -- a double, a float carrying a precision, or a decimal carrying an
+        explicit scale -- leaves the server nothing to decide.
         """
         default_float = sql_module.inferrable_types_for(_BASE_SPEC)[float]
         instance = default_float() if isinstance(default_float, type) else default_float
@@ -362,99 +321,6 @@ class TestSharedDefaultTypesSayWhatTheyMean:
             f"the shared default for `float` is {instance!r}, which names no width: the server "
             "picks one, and a fixture value that does not fit the one it picks is rounded or "
             "narrowed on write, with valid DDL and no error"
-        )
-
-
-class TestEveryBackendResolvesTheColumnTypesRecordedHere:
-    """What each registered backend's fixture columns actually become, written down.
-
-    A shared default is a per-dialect decision even though it is written once, and a backend's own
-    override is the other half of that decision. What a table ends up holding is the two together,
-    so that is what this records: one row per registered SQL backend, resolved from its
-    declaration and compiled against its dialect.
-
-    Recording the shared defaults alone would leave the half a reader most needs to see. An
-    override can change, or be dropped, and move nothing in this file -- which is how a backend
-    whose datetime column had been pinned to a sub-second type could come to be created as a
-    second-resolution one with no line here disagreeing.
-
-    This does not know which renderings are right; no local check can, since a type name means
-    whatever the server says it means, and only a run against one settles that. What it does is
-    make the renderings visible: editing a shared default or a backend override changes this table
-    in the same diff, so the per-backend consequences are read at review time rather than
-    discovered a continuous-integration run later. A dialect absent from the environment is
-    skipped, since each lane installs only its own.
-
-    `float` and `datetime` only, because those two are where a dialect's reading of a type name
-    has actually diverged from what the harness meant. `pd.Timestamp` carries no row of its own:
-    it is asserted to render as `datetime` does, since a backend overriding one and not the other
-    is a defect rather than a fact worth recording.
-    """
-
-    _RESOLVED: ClassVar[Mapping[str, Mapping[str, str]]] = {
-        "big-query": {"dialect": "bigquery", "float": "FLOAT64", "datetime": "DATETIME"},
-        "clickhouse": {
-            "dialect": "clickhouse",
-            "float": "Nullable(Float64)",
-            "datetime": "Nullable(DateTime64(3))",
-        },
-        "databricks": {"dialect": "databricks", "float": "DOUBLE", "datetime": "TIMESTAMP_NTZ"},
-        "mssql": {"dialect": "mssql", "float": "FLOAT(53)", "datetime": "DATETIME"},
-        "mysql": {"dialect": "mysql", "float": "FLOAT(53)", "datetime": "DATETIME"},
-        "oracle": {"dialect": "oracle", "float": "DECIMAL(38, 10)", "datetime": "TIMESTAMP"},
-        "postgresql": {
-            "dialect": "postgresql",
-            "float": "FLOAT(53)",
-            "datetime": "TIMESTAMP WITHOUT TIME ZONE",
-        },
-        "redshift": {
-            "dialect": "redshift",
-            "float": "FLOAT(53)",
-            "datetime": "TIMESTAMP WITHOUT TIME ZONE",
-        },
-        "singlestore": {"dialect": "singlestoredb", "float": "DOUBLE", "datetime": "DATETIME"},
-        # Lowercase as this dialect emits it; the server reads type names case-insensitively.
-        "snowflake": {"dialect": "snowflake", "float": "FLOAT", "datetime": "datetime"},
-        "sqlite": {"dialect": "sqlite", "float": "FLOAT", "datetime": "DATETIME"},
-        "trino": {"dialect": "trino", "float": "DOUBLE", "datetime": "TIMESTAMP"},
-    }
-    """Keyed by the backend's own declared label; `dialect` names the SQLAlchemy dialect it
-    connects through, which is spelled differently from the label for two of them."""
-
-    def test_every_registered_sql_backend_has_a_row(self) -> None:
-        """A backend with no row is one whose columns nobody wrote down."""
-        assert {spec.label for spec in _sql_backend_specs()} == set(self._RESOLVED), (
-            "a SQL backend is registered that this table does not account for (or the reverse); "
-            "add its row, resolved from its declaration, in the change that adds the backend"
-        )
-
-    @pytest.mark.parametrize("spec", _backend_params())
-    def test_the_recorded_types_are_what_this_backend_resolves(self, spec: SqlBackendSpec) -> None:
-        recorded = self._RESOLVED.get(spec.label)
-        assert recorded is not None, (
-            f"{spec.label} has no row here; test_every_registered_sql_backend_has_a_row says why"
-        )
-
-        try:
-            dialect = sa_dialect_registry.load(recorded["dialect"])()
-        except sa.exc.NoSuchModuleError:
-            # Only this: a dialect absent from the lane is the expected case, and skipping says
-            # so out loud. Any other failure means an installed dialect is broken, which must not
-            # read here as though the backend simply were not present.
-            pytest.skip(f"the {recorded['dialect']} dialect is not installed in this lane")
-
-        resolved = sql_module.inferrable_types_for(spec)
-        for name, python_type in (("float", float), ("datetime", datetime)):
-            assert _rendered(resolved[python_type], dialect) == recorded[name], (
-                f"{spec.label} resolves `{name}` to a different type than recorded here; "
-                "confirm the new rendering is a type that server has, and that it holds a "
-                "declared value without narrowing it, then update this table in the same change"
-            )
-
-        assert _rendered(resolved[pd.Timestamp], dialect) == recorded["datetime"], (
-            f"{spec.label} resolves a pandas timestamp to a different type than a plain "
-            "datetime; the two describe the same fixture column and a backend overriding one "
-            "without the other stores the same value two ways"
         )
 
 
