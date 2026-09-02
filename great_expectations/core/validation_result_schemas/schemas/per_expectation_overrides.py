@@ -18,7 +18,7 @@ from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pydantic import BaseModel
 
 
-class ExpectColumnValuesToBeOfTypeSqlSparkResult(BaseModel):
+class TypeExpectationObservedValueResult(BaseModel):
     """Result shape for expectations that report a bare observed type value.
 
     ``expect_column_values_to_be_of_type`` and
@@ -29,9 +29,9 @@ class ExpectColumnValuesToBeOfTypeSqlSparkResult(BaseModel):
     on every engine, takes this one).  For BASIC / SUMMARY / COMPLETE formats the
     result dict contains only ``{observed_value: <type-name>}``.  For BOOLEAN_ONLY
     format the result dict is empty ``{}``, so ``observed_value`` defaults to None
-    to allow both cases through the same override schema.  The name predates the
-    SQL/Spark scope it has since outgrown; the dispatcher selects this schema by
-    the shape of the result dict, not by which engine or expectation produced it.
+    to allow both cases through the same override schema.  The dispatcher selects
+    this schema by the shape of the result dict, not by which engine or
+    expectation produced it, and the name says so.
 
     ``observed_value`` is typed ``Any``, not ``str``: on case-insensitive SQL
     dialects ``compare_column_type`` hands back the column type object itself

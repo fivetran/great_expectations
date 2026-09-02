@@ -13,7 +13,7 @@ from great_expectations.core.validation_result_schemas.schemas.map_result import
     MapSummaryResult,
 )
 from great_expectations.core.validation_result_schemas.schemas.per_expectation_overrides import (
-    ExpectColumnValuesToBeOfTypeSqlSparkResult,
+    TypeExpectationObservedValueResult,
 )
 
 __all__ = [
@@ -21,9 +21,9 @@ __all__ = [
     "AggregateBooleanOnlyResult",
     "AggregateCompleteResult",
     "AggregateSummaryResult",
-    "ExpectColumnValuesToBeOfTypeSqlSparkResult",
     "MapBasicResult",
     "MapBooleanOnlyResult",
     "MapCompleteResult",
     "MapSummaryResult",
+    "TypeExpectationObservedValueResult",
 ]

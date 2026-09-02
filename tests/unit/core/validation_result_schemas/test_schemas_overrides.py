@@ -2,7 +2,7 @@
 
 Covers:
 - expect_column_values_to_be_of_type's map-shaped payload (pandas' object-dtype
-  path) matches MapBasicResult, NOT ExpectColumnValuesToBeOfTypeSqlSparkResult.
+  path) matches MapBasicResult, NOT TypeExpectationObservedValueResult.
 - expect_column_values_to_be_of_type's bare observed_value payload -- which every
   engine emits outside that map path -- matches the override.
 - Extra fields on the override raise pydantic.ValidationError (extra=forbid).
@@ -20,7 +20,7 @@ from great_expectations.core.validation_result_schemas.schemas.map_result import
     MapBasicResult,
 )
 from great_expectations.core.validation_result_schemas.schemas.per_expectation_overrides import (
-    ExpectColumnValuesToBeOfTypeSqlSparkResult,
+    TypeExpectationObservedValueResult,
 )
 
 # ---------------------------------------------------------------------------
@@ -61,14 +61,14 @@ def test_sql_spark_path_parses_as_override() -> None:
 
     SQL/Spark bypasses _format_map_output and emits only {observed_value: <type-name>}.
     """
-    r = ExpectColumnValuesToBeOfTypeSqlSparkResult(**_SQL_SPARK_RESULT)
+    r = TypeExpectationObservedValueResult(**_SQL_SPARK_RESULT)
     assert r.observed_value == "str"
 
 
 @pytest.mark.unit
 def test_sql_spark_path_observed_value_preserved() -> None:
     """observed_value carries the type name string verbatim."""
-    r = ExpectColumnValuesToBeOfTypeSqlSparkResult(observed_value="INTEGER")
+    r = TypeExpectationObservedValueResult(observed_value="INTEGER")
     assert r.observed_value == "INTEGER"
 
 
@@ -84,7 +84,7 @@ def test_sql_spark_path_observed_value_is_not_stringified() -> None:
         """Stands in for a SQLAlchemy type object, which is not a str."""
 
     value = _ColumnType()
-    r = ExpectColumnValuesToBeOfTypeSqlSparkResult(observed_value=value)
+    r = TypeExpectationObservedValueResult(observed_value=value)
     assert r.observed_value is value
 
 
@@ -95,9 +95,9 @@ def test_sql_spark_path_observed_value_is_not_stringified() -> None:
 
 @pytest.mark.unit
 def test_override_extra_field_raises() -> None:
-    """ExpectColumnValuesToBeOfTypeSqlSparkResult rejects unknown extra fields."""
+    """TypeExpectationObservedValueResult rejects unknown extra fields."""
     with pytest.raises(pydantic.ValidationError):
-        ExpectColumnValuesToBeOfTypeSqlSparkResult.parse_obj(
+        TypeExpectationObservedValueResult.parse_obj(
             {
                 "observed_value": "int",
                 "unexpected_extra": "x",

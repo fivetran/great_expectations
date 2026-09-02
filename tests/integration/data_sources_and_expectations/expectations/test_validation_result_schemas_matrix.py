@@ -31,8 +31,7 @@ single worker, so the constraint is satisfied without extra conftest machinery.
 from __future__ import annotations
 
 import datetime
-import random
-import string
+import secrets
 from typing import TYPE_CHECKING, Callable, Generator, List, Optional
 
 import pytest
@@ -87,7 +86,9 @@ pytestmark = [pytest.mark.no_xdist, pytest.mark.result_schema_matrix]
 def _generate_run_id() -> str:
     """Generate a time-stamped run ID when ``--vrs-run-id`` is not supplied."""
     ts = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
-    suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    # Not the global random module: the test suite reseeds it in fixtures, which would
+    # make two runs starting in the same second collide.
+    suffix = secrets.token_hex(3)
     return f"{ts}-{suffix}"
 
 

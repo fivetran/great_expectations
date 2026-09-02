@@ -30,7 +30,13 @@ ALWAYS_INJECTED_KEYS = frozenset(
         "map_expectation_unexpected_rows_as_dict",
     }
 )
-OPTIONAL_KEYS = frozenset({"exclude_unexpected_values", "return_unexpected_index_query"})
+OPTIONAL_KEYS = frozenset(
+    {
+        "exclude_unexpected_values",
+        "return_unexpected_index_query",
+        "unexpected_index_column_names",
+    }
+)
 
 
 # ---------------------------------------------------------------------------

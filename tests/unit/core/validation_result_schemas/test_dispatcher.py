@@ -49,7 +49,7 @@ from great_expectations.core.validation_result_schemas.schemas.map_result import
     MapSummaryResult,
 )
 from great_expectations.core.validation_result_schemas.schemas.per_expectation_overrides import (
-    ExpectColumnValuesToBeOfTypeSqlSparkResult,
+    TypeExpectationObservedValueResult,
 )
 from great_expectations.expectations.registry import (
     get_expectation_impl,
@@ -550,7 +550,7 @@ class TestPerExpectationOverride:
             result_format=ResultFormat.SUMMARY,
             engine_hint="sql",
         )
-        assert isinstance(result, ExpectColumnValuesToBeOfTypeSqlSparkResult)
+        assert isinstance(result, TypeExpectationObservedValueResult)
         assert result.observed_value == "int64"
 
     @pytest.mark.unit
@@ -563,7 +563,7 @@ class TestPerExpectationOverride:
             result_format=ResultFormat.COMPLETE,
             engine_hint="spark",
         )
-        assert isinstance(result, ExpectColumnValuesToBeOfTypeSqlSparkResult)
+        assert isinstance(result, TypeExpectationObservedValueResult)
         assert result.observed_value == "LongType"
 
     @pytest.mark.unit
@@ -576,7 +576,7 @@ class TestPerExpectationOverride:
             result_format=ResultFormat.COMPLETE,
             engine_hint="sql",
         )
-        assert isinstance(result, ExpectColumnValuesToBeOfTypeSqlSparkResult)
+        assert isinstance(result, TypeExpectationObservedValueResult)
         assert result.observed_value == "int64"
 
     @pytest.mark.unit
@@ -621,7 +621,7 @@ class TestPerExpectationOverride:
             result_format=ResultFormat.BASIC,
             engine_hint=engine_hint,
         )
-        assert isinstance(result, ExpectColumnValuesToBeOfTypeSqlSparkResult)
+        assert isinstance(result, TypeExpectationObservedValueResult)
         assert result.observed_value == "INTEGER"
 
     @pytest.mark.unit
@@ -668,7 +668,7 @@ class TestParseError:
     @pytest.mark.unit
     def test_parse_error_raised_for_override_on_bad_dict(self):
         """Override path raises ParseError when schema rejects extra/missing fields."""
-        # ExpectColumnValuesToBeOfTypeSqlSparkResult has extra=forbid.
+        # TypeExpectationObservedValueResult has extra=forbid.
         # An extra field not on the model will trigger validation error.
         bad_dict = {"observed_value": "int64", "unexpected_extra_field": "boom"}
         with pytest.raises(ParseError) as exc_info:

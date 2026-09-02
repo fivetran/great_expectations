@@ -48,7 +48,7 @@ from great_expectations.core.validation_result_schemas.schemas.map_result import
     MapSummaryResult,
 )
 from great_expectations.core.validation_result_schemas.schemas.per_expectation_overrides import (
-    ExpectColumnValuesToBeOfTypeSqlSparkResult,
+    TypeExpectationObservedValueResult,
 )
 
 if TYPE_CHECKING:
@@ -70,7 +70,7 @@ Result = Union[
     AggregateBasicResult,
     AggregateSummaryResult,
     AggregateCompleteResult,
-    ExpectColumnValuesToBeOfTypeSqlSparkResult,
+    TypeExpectationObservedValueResult,
 ]
 
 # ---------------------------------------------------------------------------
@@ -156,8 +156,8 @@ _FAMILY_CACHE: Dict[str, str] = {}
 # the same engine emits both shapes depending on the data, and every engine emits
 # the narrow shape.  See _OVERRIDE_SHAPE below for the predicate that picks it.
 _SHAPE_ONLY_OVERRIDES: Dict[str, Any] = {
-    "expect_column_values_to_be_of_type": ExpectColumnValuesToBeOfTypeSqlSparkResult,
-    "expect_column_values_to_be_in_type_list": ExpectColumnValuesToBeOfTypeSqlSparkResult,
+    "expect_column_values_to_be_of_type": TypeExpectationObservedValueResult,
+    "expect_column_values_to_be_in_type_list": TypeExpectationObservedValueResult,
 }
 
 # The result dict's key set must be a subset of this to select the override above:

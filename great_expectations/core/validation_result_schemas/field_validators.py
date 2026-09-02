@@ -56,9 +56,13 @@ def classify_runtime_type(value: Any) -> RuntimeTypeName:
     # DataFrame detection without importing the package
     type_name = type(value).__name__
     module = type(value).__module__
-    if type_name == "DataFrame" and not module.startswith("pyspark"):
+    # Both the class name and the module prefix have to agree: a DataFrame from
+    # another library (polars, say) is not a pandas frame, and a pyspark Row or
+    # Column is not a Spark DataFrame. Either alone would misreport the runtime
+    # type the findings exist to record.
+    if type_name == "DataFrame" and module.startswith("pandas"):
         return RuntimeTypeName.DATAFRAME_PANDAS
-    if "pyspark" in module:
+    if type_name == "DataFrame" and module.startswith("pyspark"):
         return RuntimeTypeName.DATAFRAME_SPARK
 
     return RuntimeTypeName.OTHER

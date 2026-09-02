@@ -122,6 +122,31 @@ def test_classify_spark_dataframe_other_when_pyspark_unavailable() -> None:
     assert result == RuntimeTypeName.DATAFRAME_SPARK
 
 
+def _fake_instance(module: str, name: str) -> object:
+    cls = type(name, (), {})
+    cls.__module__ = module
+    return cls()
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("module", "name", "expected"),
+    [
+        ("polars.dataframe.frame", "DataFrame", RuntimeTypeName.OTHER),
+        ("pyspark.sql.types", "Row", RuntimeTypeName.OTHER),
+        ("pyspark.sql.column", "Column", RuntimeTypeName.OTHER),
+        ("pyspark.sql.connect.dataframe", "DataFrame", RuntimeTypeName.DATAFRAME_SPARK),
+        ("pandas.core.frame", "DataFrame", RuntimeTypeName.DATAFRAME_PANDAS),
+    ],
+)
+def test_classify_dataframe_requires_both_name_and_module(
+    module: str, name: str, expected: RuntimeTypeName
+) -> None:
+    """A class named DataFrame from another library is not a pandas frame, and a pyspark
+    object that is not a DataFrame is not a Spark frame; both facts must agree."""
+    assert classify_runtime_type(_fake_instance(module, name)) == expected
+
+
 @pytest.mark.unit
 def test_classify_other_for_unknown_type() -> None:
     class _CustomObject:

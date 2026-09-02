@@ -15,7 +15,7 @@ import cycle.
 
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import List, TypedDict
 
 
 class ResultFormatConfigRequired(TypedDict):
@@ -44,3 +44,4 @@ class ResultFormatConfig(ResultFormatConfigRequired, total=False):
     result_format: str  # one of the 4 ResultFormat enum values
     exclude_unexpected_values: bool
     return_unexpected_index_query: bool
+    unexpected_index_column_names: List[str]
