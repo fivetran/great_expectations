@@ -1380,6 +1380,11 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
     def get_batch_data_and_markers(
         self, batch_spec: BatchSpec
     ) -> Tuple[SqlAlchemyBatchData, BatchMarkers]:
+        # The inspector caches everything it reflects, and this execution engine is reused
+        # across validations. A batch fetched after the table's schema changed must not be
+        # described by the column list reflected for an earlier one, so the inspector is
+        # rebuilt lazily on the next request. Within one batch it is still reflected once.
+        self._inspector = None
         if not isinstance(batch_spec, (SqlAlchemyDatasourceBatchSpec, RuntimeQueryBatchSpec)):
             raise InvalidBatchSpecError(  # noqa: TRY003 # FIXME CoP
                 f"""SqlAlchemyExecutionEngine accepts batch_spec only of type SqlAlchemyDatasourceBatchSpec or
