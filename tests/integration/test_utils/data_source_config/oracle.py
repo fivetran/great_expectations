@@ -61,7 +61,7 @@ class OracleDatasourceTestConfig(SqlDatasourceTestConfig):
         dev_requirements_file="reqs/requirements-dev-oracle.txt",
         task_runner_marker="oracle",
         container_service="oracle",
-        tiers=frozenset({SupportTier.CURATED_SQL}),
+        tiers=frozenset({SupportTier.CURATED_SQL, SupportTier.FLUENT_API}),
     )
 
     @override

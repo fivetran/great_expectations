@@ -99,7 +99,7 @@ class ClickHouseDatasourceTestConfig(SqlDatasourceTestConfig):
         dev_requirements_file="reqs/requirements-dev-clickhouse.txt",
         task_runner_marker="clickhouse",
         container_service="clickhouse",
-        tiers=frozenset({SupportTier.CURATED_SQL}),
+        tiers=frozenset({SupportTier.CURATED_SQL, SupportTier.FLUENT_API}),
         tier_case_exclusions={
             # Same root cause already recorded on this backend's scoped module's
             # `test_match_regex`/`test_not_match_regex`: the dialect's regex-matching path calls
