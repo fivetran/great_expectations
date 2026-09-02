@@ -15,7 +15,7 @@ import pathlib
 import subprocess
 import sys
 from datetime import datetime
-from typing import TYPE_CHECKING, ClassVar, List, Mapping, Optional, Sequence, cast
+from typing import TYPE_CHECKING, ClassVar, List, Mapping, Optional, Sequence, Type, Union, cast
 
 import pandas as pd
 import pytest
@@ -27,6 +27,7 @@ import great_expectations as gx
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.integration.test_utils.data_source_config import iter_data_source_specs
 from tests.integration.test_utils.data_source_config import sql as sql_module
 from tests.integration.test_utils.data_source_config.backend_spec import (
     SqlBackendSpec,
@@ -40,13 +41,11 @@ from tests.integration.test_utils.data_source_config.generic_sql import (
     GenericSQLBatchTestSetup,
     GenericSQLDatasourceTestConfig,
 )
-from tests.integration.test_utils.data_source_config.sql import (
-    InferrableTypesLookup,
-    SQLBatchTestSetup,
-)
+from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
 if TYPE_CHECKING:
+    from great_expectations.compatibility.sqlalchemy import TypeEngine
     from great_expectations.data_context import AbstractDataContext
     from great_expectations.datasource.fluent.sql_datasource import TableAsset
     from tests.integration.conftest import TestConfig
@@ -272,79 +271,37 @@ class TestSchemaNameConflictsWithNoSchemaDeclarationRaises:
         )
 
 
+def _rendered(sql_type: Union[Type[TypeEngine], TypeEngine], dialect: sa.engine.Dialect) -> str:
+    """The DDL fragment one dialect emits for one declared type."""
+    instance = sql_type() if isinstance(sql_type, type) else sql_type
+    return str(instance.compile(dialect=dialect))
+
+
+def _sql_backend_specs() -> List[SqlBackendSpec]:
+    """Every registered SQL backend's declaration, in label order.
+
+    Read from the registry rather than named here, so a backend added later is one this module
+    accounts for without an edit to this module -- and is not silently skipped by it.
+    """
+    return [spec for spec in iter_data_source_specs() if isinstance(spec, SqlBackendSpec)]
+
+
 class TestSharedDefaultTypesSayWhatTheyMean:
-    """A default type that leaves its precision unstated lets each server pick one.
+    """A default type that leaves its width unstated lets each server pick one.
 
     That failure does not announce itself: the DDL is valid everywhere, so nothing errors --
     the server simply stores something other than what the fixture declared, and an assertion
     about a value ends up asserting about a different value.
     """
 
-    @staticmethod
-    def _shared_defaults(tmp_path: pathlib.Path) -> InferrableTypesLookup:
-        """The shared map as a real batch setup resolves it, with no override declared."""
-        setup = _ThrowawayBatchTestSetup(
-            data=pd.DataFrame({"col_int": [1]}),
-            config=_ThrowawayDatasourceTestConfig(),
-            base_dir=tmp_path,
-            extra_data=_EXTRA_DATA,
-            context=gx.get_context(mode="ephemeral"),
-        )
-        return setup.inferrable_types_lookup
-
-    def test_the_float_default_is_not_an_unscaled_decimal(self, tmp_path: pathlib.Path) -> None:
-        """A decimal type with no scale is the shape that silently truncates.
-
-        Several dialects read an unqualified decimal as scale zero, so every fractional value
-        in a fixture frame is rounded to an integer on write -- with valid DDL and no error. A
-        type that names its own precision (a double, or a decimal carrying an explicit scale)
-        leaves the server nothing to decide.
-        """
-        default_float = self._shared_defaults(tmp_path)[float]
-        instance = default_float() if isinstance(default_float, type) else default_float
-
-        if isinstance(instance, sa.Numeric) and not isinstance(instance, (sa.Float, sa.Double)):
-            assert instance.scale is not None, (
-                f"the shared default for `float` is {instance!r}: a decimal type with no scale, "
-                "which several servers read as scale zero and round every fractional value away"
-            )
-
-
-class TestSharedDefaultTypesRenderAsRecorded:
-    """What each dialect makes of the shared defaults, written down.
-
-    A default type is a per-dialect decision even though it is written once. The DDL it produces
-    is what each server actually sees, and a type can compile cleanly on every dialect and still
-    name something a particular server does not have -- which surfaces as a query error on that
-    backend alone, far from the line that caused it.
-
-    This does not know which renderings are valid; no local check can, since validity is the
-    server's opinion and only a run against one settles it. What it does is make the renderings
-    visible: editing a default changes this table in the same diff, so the per-backend
-    consequences are read at review time rather than discovered a continuous-integration run
-    later. A dialect absent from the environment is skipped, since each lane installs only its
-    own.
-    """
-
-    _RENDERED: ClassVar[Mapping[str, Mapping[str, str]]] = {
-        "postgresql": {"float": "FLOAT(53)", "datetime": "TIMESTAMP WITHOUT TIME ZONE"},
-        "mysql": {"float": "FLOAT(53)", "datetime": "DATETIME"},
-        "sqlite": {"float": "FLOAT", "datetime": "DATETIME"},
-        "mssql": {"float": "FLOAT(53)", "datetime": "DATETIME"},
-        "bigquery": {"float": "FLOAT64", "datetime": "DATETIME"},
-        "snowflake": {"float": "FLOAT", "datetime": "datetime"},
-        "redshift": {"float": "FLOAT(53)", "datetime": "TIMESTAMP WITHOUT TIME ZONE"},
-        "trino": {"float": "DOUBLE", "datetime": "TIMESTAMP"},
-        "databricks": {"float": "FLOAT", "datetime": "TIMESTAMP_NTZ"},
-        "singlestoredb": {"float": "FLOAT(53)", "datetime": "DATETIME"},
-    }
-    """Oracle is absent deliberately: it overrides both of these, so the shared default never
-    reaches its dialect -- and the float default raises rather than compiling there, which is
-    exactly what that override exists to avoid."""
-
-    def test_each_installed_dialect_renders_the_defaults_as_recorded(
+    def test_a_running_setup_resolves_what_the_declaration_resolves(
         self, tmp_path: pathlib.Path
     ) -> None:
+        """This module reads the type map from the declaration rather than from a live setup,
+        which says something about the tables the harness builds only while a setup reads the
+        same map. A setup that resolved its columns some other way would leave every check below
+        true of a map nothing uses.
+        """
         setup = _ThrowawayBatchTestSetup(
             data=pd.DataFrame({"col_int": [1]}),
             config=_ThrowawayDatasourceTestConfig(),
@@ -352,23 +309,127 @@ class TestSharedDefaultTypesRenderAsRecorded:
             extra_data=_EXTRA_DATA,
             context=gx.get_context(mode="ephemeral"),
         )
-        defaults = setup.inferrable_types_lookup
-        by_name = {"float": defaults[float], "datetime": defaults[datetime]}
 
+        assert setup.inferrable_types_lookup == sql_module.inferrable_types_for(_BASE_SPEC)
+
+    def test_the_float_default_states_its_own_width(self) -> None:
+        """A float type that names no width is the shape that silently loses data.
+
+        Two spellings do it. An unqualified decimal is read by several dialects as scale zero, so
+        every fractional value in a fixture frame is rounded to an integer on write. A float with
+        no precision is read by at least one dialect as its 4-byte type, so a Python float -- a
+        double -- is stored at half the width it was declared at. Both produce valid DDL and no
+        error. A type that names its own width (a double, a float carrying a precision, or a
+        decimal carrying an explicit scale) leaves the server nothing to decide.
+        """
+        default_float = sql_module.inferrable_types_for(_BASE_SPEC)[float]
+        instance = default_float() if isinstance(default_float, type) else default_float
+
+        assert isinstance(instance, sa.Numeric), (
+            f"the shared default for `float` is {instance!r}, which is not a numeric type at all"
+        )
+        states_its_own_width = (
+            # `Double` names 8 bytes in the type name itself, so it needs no precision.
+            isinstance(instance, sa.Double)
+            or (isinstance(instance, sa.Float) and instance.precision is not None)
+            or (not isinstance(instance, sa.Float) and instance.scale is not None)
+        )
+
+        assert states_its_own_width, (
+            f"the shared default for `float` is {instance!r}, which names no width: the server "
+            "picks one, and a fixture value that does not fit the one it picks is rounded or "
+            "narrowed on write, with valid DDL and no error"
+        )
+
+
+class TestEveryBackendResolvesTheColumnTypesRecordedHere:
+    """What each registered backend's fixture columns actually become, written down.
+
+    A shared default is a per-dialect decision even though it is written once, and a backend's own
+    override is the other half of that decision. What a table ends up holding is the two together,
+    so that is what this records: one row per registered SQL backend, resolved from its
+    declaration and compiled against its dialect.
+
+    Recording the shared defaults alone would leave the half a reader most needs to see. An
+    override can change, or be dropped, and move nothing in this file -- which is how a backend
+    whose datetime column had been pinned to a sub-second type could come to be created as a
+    second-resolution one with no line here disagreeing.
+
+    This does not know which renderings are right; no local check can, since a type name means
+    whatever the server says it means, and only a run against one settles that. What it does is
+    make the renderings visible: editing a shared default or a backend override changes this table
+    in the same diff, so the per-backend consequences are read at review time rather than
+    discovered a continuous-integration run later. A dialect absent from the environment is
+    skipped, since each lane installs only its own.
+
+    `float` and `datetime` only, because those two are where a dialect's reading of a type name
+    has actually diverged from what the harness meant. `pd.Timestamp` carries no row of its own:
+    it is asserted to render as `datetime` does, since a backend overriding one and not the other
+    is a defect rather than a fact worth recording.
+    """
+
+    _RESOLVED: ClassVar[Mapping[str, Mapping[str, str]]] = {
+        "big-query": {"dialect": "bigquery", "float": "FLOAT64", "datetime": "DATETIME"},
+        "clickhouse": {
+            "dialect": "clickhouse",
+            "float": "Nullable(Float64)",
+            "datetime": "Nullable(DateTime64(3))",
+        },
+        "databricks": {"dialect": "databricks", "float": "DOUBLE", "datetime": "TIMESTAMP_NTZ"},
+        "mssql": {"dialect": "mssql", "float": "FLOAT(53)", "datetime": "DATETIME"},
+        "mysql": {"dialect": "mysql", "float": "FLOAT(53)", "datetime": "DATETIME"},
+        "oracle": {"dialect": "oracle", "float": "DECIMAL(38, 10)", "datetime": "TIMESTAMP"},
+        "postgresql": {
+            "dialect": "postgresql",
+            "float": "FLOAT(53)",
+            "datetime": "TIMESTAMP WITHOUT TIME ZONE",
+        },
+        "redshift": {
+            "dialect": "redshift",
+            "float": "FLOAT(53)",
+            "datetime": "TIMESTAMP WITHOUT TIME ZONE",
+        },
+        "singlestore": {"dialect": "singlestoredb", "float": "FLOAT(53)", "datetime": "DATETIME"},
+        # Lowercase as this dialect emits it; the server reads type names case-insensitively.
+        "snowflake": {"dialect": "snowflake", "float": "FLOAT", "datetime": "datetime"},
+        "sqlite": {"dialect": "sqlite", "float": "FLOAT", "datetime": "DATETIME"},
+        "trino": {"dialect": "trino", "float": "DOUBLE", "datetime": "TIMESTAMP"},
+    }
+    """Keyed by the backend's own declared label; `dialect` names the SQLAlchemy dialect it
+    connects through, which is spelled differently from the label for two of them."""
+
+    def test_every_registered_sql_backend_has_a_row(self) -> None:
+        """A backend with no row is one whose columns nobody wrote down."""
+        assert {spec.label for spec in _sql_backend_specs()} == set(self._RESOLVED), (
+            "a SQL backend is registered that this table does not account for (or the reverse); "
+            "add its row, resolved from its declaration, in the change that adds the backend"
+        )
+
+    def test_each_installed_dialect_renders_the_recorded_types(self) -> None:
         checked = []
-        for dialect_name, expected in self._RENDERED.items():
+        for spec in _sql_backend_specs():
+            recorded = self._RESOLVED.get(spec.label)
+            if recorded is None:  # the test above is the one that reports a missing row
+                continue
             try:
-                dialect = sa_dialect_registry.load(dialect_name)()
+                dialect = sa_dialect_registry.load(recorded["dialect"])()
             except Exception:  # this lane does not install that dialect
                 continue
-            checked.append(dialect_name)
-            for label, sql_type in by_name.items():
-                instance = sql_type() if isinstance(sql_type, type) else sql_type
-                assert instance.compile(dialect=dialect) == expected[label], (
-                    f"{dialect_name} renders the shared default for `{label}` differently than "
-                    "recorded here; confirm the new rendering is a type that server has, then "
-                    "update this table in the same change"
+            checked.append(spec.label)
+            resolved = sql_module.inferrable_types_for(spec)
+
+            for name, python_type in (("float", float), ("datetime", datetime)):
+                assert _rendered(resolved[python_type], dialect) == recorded[name], (
+                    f"{spec.label} resolves `{name}` to a different type than recorded here; "
+                    "confirm the new rendering is a type that server has, and that it holds a "
+                    "declared value without narrowing it, then update this table in the same "
+                    "change"
                 )
+            assert _rendered(resolved[pd.Timestamp], dialect) == recorded["datetime"], (
+                f"{spec.label} resolves a pandas timestamp to a different type than a plain "
+                "datetime; the two describe the same fixture column and a backend overriding "
+                "one without the other stores the same value two ways"
+            )
 
         # Non-vacuity: with no dialect loaded every assertion above is skipped, which would make
         # this pass hardest exactly when it is checking nothing.

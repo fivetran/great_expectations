@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import TYPE_CHECKING, Mapping, Optional
+from typing import TYPE_CHECKING, Mapping, Optional, Type, Union
 
 from great_expectations.compatibility.pydantic import BaseSettings
-from great_expectations.compatibility.sqlalchemy import sqltypes
+from great_expectations.compatibility.sqlalchemy import TypeEngine, sqltypes
 from great_expectations.compatibility.typing_extensions import override
 from tests.integration.test_utils.data_source_config.backend_spec import (
     SqlBackendSpec,
@@ -30,6 +30,22 @@ if TYPE_CHECKING:
     from tests.integration.test_utils.data_source_config.base import BatchTestSetup
 
 
+# This server reads a bare `FLOAT` as its 4-byte type and `DOUBLE` as its 8-byte one, and the
+# shared default's precision-carrying float renders as the former here: this dialect discards the
+# precision. A Python float is a double, so any value needing more than 24 bits of mantissa is
+# then stored at the narrower width -- valid DDL, no error, and a fixture value that is not the
+# value the test declared. Naming the 8-byte type leaves the server nothing to choose.
+#
+# Behind a guard because `Double` arrived in SQLAlchemy 2.0, and this module is imported under the
+# 1.4 floor the minimum-version lane installs. Nothing is lost by that: this backend's dialect
+# package requires SQLAlchemy 2.0 itself, so a 1.4 environment cannot run this backend at all.
+_COLUMN_TYPE_OVERRIDES: Mapping[type, Union[Type[TypeEngine], TypeEngine]] = {
+    # databricks requires a length for VARCHAR
+    str: sqltypes.VARCHAR(255),
+    **({float: sqltypes.Double()} if hasattr(sqltypes, "Double") else {}),
+}
+
+
 @register_sql_config
 class DatabricksDatasourceTestConfig(SqlDatasourceTestConfig):
     DATA_SOURCE_SPEC = SqlBackendSpec(
@@ -42,8 +58,7 @@ class DatabricksDatasourceTestConfig(SqlDatasourceTestConfig):
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="databricks"),
         uses_schema=True,
         transaction_mode=TransactionMode.AUTOCOMMIT,
-        # databricks requires a length for VARCHAR
-        column_type_overrides={str: sqltypes.VARCHAR(255)},
+        column_type_overrides=_COLUMN_TYPE_OVERRIDES,
         insert_parameter_limit=250,
         tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API}),
         dev_requirements_file="reqs/requirements-dev-databricks.txt",

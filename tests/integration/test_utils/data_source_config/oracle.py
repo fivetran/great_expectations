@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Mapping, Optional
 
 import pandas as pd
@@ -44,6 +45,13 @@ class OracleDatasourceTestConfig(SqlDatasourceTestConfig):
             # `ORA-00906: missing left parenthesis`. SingleStore and MySQL declare the same
             # override for the same reason.
             str: sqltypes.VARCHAR(255),
+            # The shared default's `DateTime` compiles to this dialect's DATE, which carries a
+            # time of day but no fraction of a second. A declared microsecond is then dropped on
+            # write, with valid DDL and no error: `2024-01-03 12:00:00.123456` comes back
+            # `2024-01-03 12:00:00`. TIMESTAMP is this dialect's sub-second type and round-trips
+            # the declared value intact, so the fixture frame is what the table holds.
+            datetime: sqltypes.TIMESTAMP,
+            pd.Timestamp: sqltypes.TIMESTAMP,
             # The shared default's precision-carrying FLOAT does not work here: this dialect
             # raises an argument error over binary vs. decimal precision. A DECIMAL carrying
             # explicit precision and scale round-trips fractional values intact, so that is

@@ -5,9 +5,11 @@ declares in a pandas frame are the values the backend holds once the harness has
 Where that fails it fails silently -- the DDL is valid, no error is raised, and an assertion
 about a value quietly becomes an assertion about a different value.
 
-The two shapes below are the ones that have actually broken. A decimal type carrying no scale
-is read by several servers as scale zero, which rounds every fractional value to an integer on
-write. A datetime type that a server does not have makes the table impossible to create at all.
+The shapes below are the ones that have actually broken. A decimal type carrying no scale is read
+by several servers as scale zero, which rounds every fractional value to an integer on write. A
+float type carrying no width is read by at least one server as its 4-byte type, which stores a
+Python float -- a double -- at half the width it was declared at. A datetime type that a server
+does not have makes the table impossible to create at all.
 """
 
 from __future__ import annotations
@@ -23,7 +25,10 @@ from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.data_source_lists import (
     SPARK_DATA_SOURCES,
 )
-from tests.integration.test_utils.data_source_config import ALL_DATA_SOURCES
+from tests.integration.test_utils.data_source_config import (
+    ALL_DATA_SOURCES,
+    SQL_DATA_SOURCES,
+)
 
 if TYPE_CHECKING:
     from great_expectations.datasource.fluent.interfaces import Batch
@@ -31,11 +36,25 @@ if TYPE_CHECKING:
 FRACTIONAL_COL = "fractional_value"
 MOMENT_COL = "moment"
 
-# A fractional part that survives no rounding: every value here differs from its nearest
-# integer, so a backend storing these at scale zero cannot coincidentally agree.
+# The largest and smallest values below each defeat a different silent substitution, and the
+# assertions pin exactly those two.
+#
+# `16777217.0` is the smallest positive integer a 4-byte float cannot represent: at 2**24 the
+# spacing between representable values is 2, so it sits midway between 16777216 and 16777218 and
+# resolves to a neighbour. A double holds it exactly. Nothing smaller in this column would do --
+# 1.5, 2.25 and -3.75 are all exactly representable at single precision, so a narrowed column
+# would round-trip them and agree.
+#
+# `-3.75` differs from its nearest integer, so a column a server read as scale zero returns -4.
+LARGEST_VALUE = 16777217.0
+SMALLEST_VALUE = -3.75
+
+# The last moment declared, which the datetime assertion pins the stored maximum against.
+LATEST_MOMENT = datetime(2024, 1, 4, 12, 34, 56)  # noqa: DTZ001
+
 ROUND_TRIP_DATA = pd.DataFrame(
     {
-        FRACTIONAL_COL: [1.5, 2.25, -3.75],
+        FRACTIONAL_COL: [1.5, 2.25, SMALLEST_VALUE, LARGEST_VALUE],
         # Plain Python datetimes in an object column, deliberately, rather than a pandas
         # datetime64 column. Two backends cannot take a pandas timestamp as a bound parameter
         # at all, and one infers an empty struct for it rather than a time, so a frame built the
@@ -47,6 +66,7 @@ ROUND_TRIP_DATA = pd.DataFrame(
                 datetime(2024, 1, 1, 12, 0, 0),  # noqa: DTZ001
                 datetime(2024, 1, 2, 12, 0, 0),  # noqa: DTZ001
                 datetime(2024, 1, 3, 12, 0, 0),  # noqa: DTZ001
+                LATEST_MOMENT,
             ],
             dtype=object,
         ),
@@ -55,17 +75,36 @@ ROUND_TRIP_DATA = pd.DataFrame(
 
 
 @parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=ROUND_TRIP_DATA)
-def test_a_fractional_value_is_stored_as_declared(batch_for_datasource: Batch) -> None:
-    """The largest value is 2.25. A backend that rounds to scale zero observes 2."""
+def test_the_largest_fractional_value_is_stored_as_declared(batch_for_datasource: Batch) -> None:
+    """A column narrowed to single precision returns a neighbour of the declared maximum."""
     result = batch_for_datasource.validate(
-        gxe.ExpectColumnMaxToBeBetween(column=FRACTIONAL_COL, min_value=2.25, max_value=2.25),
+        gxe.ExpectColumnMaxToBeBetween(
+            column=FRACTIONAL_COL, min_value=LARGEST_VALUE, max_value=LARGEST_VALUE
+        ),
         result_format=ResultFormat.COMPLETE,
     )
 
     observed = result.result.get("observed_value")
     assert result.success, (
-        f"the maximum of {FRACTIONAL_COL} came back as {observed!r} rather than 2.25, so the "
-        "column's declared values are not the values this backend stored"
+        f"the maximum of {FRACTIONAL_COL} came back as {observed!r} rather than {LARGEST_VALUE}, "
+        "so this backend is storing the column at a narrower width than a Python float"
+    )
+
+
+@parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=ROUND_TRIP_DATA)
+def test_the_smallest_fractional_value_is_stored_as_declared(batch_for_datasource: Batch) -> None:
+    """A column stored at scale zero rounds the declared minimum to an integer."""
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnMinToBeBetween(
+            column=FRACTIONAL_COL, min_value=SMALLEST_VALUE, max_value=SMALLEST_VALUE
+        ),
+        result_format=ResultFormat.COMPLETE,
+    )
+
+    observed = result.result.get("observed_value")
+    assert result.success, (
+        f"the minimum of {FRACTIONAL_COL} came back as {observed!r} rather than "
+        f"{SMALLEST_VALUE}, so this backend rounded the column's fractional part away"
     )
 
 
@@ -81,6 +120,40 @@ def test_a_datetime_column_can_be_created_and_read(batch_for_datasource: Batch) 
     )
 
     assert result.success
+
+
+@parameterize_batch_for_data_sources(data_source_configs=SQL_DATA_SOURCES, data=ROUND_TRIP_DATA)
+def test_a_datetime_value_is_stored_as_declared(batch_for_datasource: Batch) -> None:
+    """The declared maximum is a specific moment, not just a non-null one.
+
+    Creating the table proves the type exists; it does not prove the column holds what was put
+    in it. A type that resolves to a date rather than a datetime accepts the write and drops the
+    time of day, which is not null and so passes every assertion above.
+
+    The SQL data sources rather than all of them, because the column type map this pins is a SQL
+    declaration: a CSV-backed source reads the column back as text no matter what any type map
+    says, and comparing text to a datetime would fail here for a reason that has nothing to do
+    with what this file is about.
+
+    Pinned to the second, which is as fine as every backend here can hold in common: two of them
+    resolve `datetime` to a type with no sub-second component (T-SQL's `DATETIME` keeps about
+    3ms; MySQL's keeps none unless a fractional-seconds precision is declared on it), so a
+    declared microsecond would be rounded away on those two by design. Making the harness carry
+    sub-second values everywhere is a change to what those two backends declare, not to this
+    test, and belongs with that change.
+    """
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnMaxToBeBetween(
+            column=MOMENT_COL, min_value=LATEST_MOMENT, max_value=LATEST_MOMENT
+        ),
+        result_format=ResultFormat.COMPLETE,
+    )
+
+    observed = result.result.get("observed_value")
+    assert result.success, (
+        f"the maximum of {MOMENT_COL} came back as {observed!r} rather than {LATEST_MOMENT}, so "
+        "this backend is not holding the moment the fixture declared"
+    )
 
 
 # A pandas-native datetime column, which is what a frame built the convenient way holds. The
