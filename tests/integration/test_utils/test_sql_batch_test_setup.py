@@ -39,7 +39,10 @@ from tests.integration.test_utils.data_source_config.generic_sql import (
     GenericSQLBatchTestSetup,
     GenericSQLDatasourceTestConfig,
 )
-from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
+from tests.integration.test_utils.data_source_config.sql import (
+    InferrableTypesLookup,
+    SQLBatchTestSetup,
+)
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
 if TYPE_CHECKING:
@@ -265,6 +268,42 @@ class TestSchemaNameConflictsWithNoSchemaDeclarationRaises:
         assert (
             str(excinfo.value)
             == "Schema name provided but use_schema is False for this datasource type."
+        )
+
+
+class TestSharedDefaultTypesSayWhatTheyMean:
+    """A default type that leaves its precision unstated lets each server pick one.
+
+    That failure does not announce itself: the DDL is valid everywhere, so nothing errors --
+    the server simply stores something other than what the fixture declared, and an assertion
+    about a value ends up asserting about a different value.
+    """
+
+    @staticmethod
+    def _shared_defaults(tmp_path: pathlib.Path) -> InferrableTypesLookup:
+        """The shared map as a real batch setup resolves it, with no override declared."""
+        setup = _ThrowawayBatchTestSetup(
+            data=pd.DataFrame({"col_int": [1]}),
+            config=_ThrowawayDatasourceTestConfig(),
+            base_dir=tmp_path,
+            extra_data=_EXTRA_DATA,
+            context=gx.get_context(mode="ephemeral"),
+        )
+        return setup.inferrable_types_lookup
+
+    def test_the_float_default_states_its_precision(self, tmp_path: pathlib.Path) -> None:
+        """An unqualified decimal type is read by several servers as scale zero, which rounds
+        every fractional value in a fixture frame to an integer on write -- silently, since the
+        DDL is valid. The default has to say what it means instead of inheriting that.
+        """
+        default_float = self._shared_defaults(tmp_path)[float]
+        instance = default_float() if isinstance(default_float, type) else default_float
+
+        precision = getattr(instance, "precision", None)
+        scale = getattr(instance, "scale", None)
+        assert precision is not None or scale is not None, (
+            f"the shared default for `float` is {instance!r}, which carries neither precision "
+            "nor scale, so each server chooses -- and several choose scale zero"
         )
 
 

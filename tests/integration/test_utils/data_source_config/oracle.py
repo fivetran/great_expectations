@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Mapping, Optional
 
 import pandas as pd
@@ -45,17 +44,11 @@ class OracleDatasourceTestConfig(SqlDatasourceTestConfig):
             # `ORA-00906: missing left parenthesis`. SingleStore and MySQL declare the same
             # override for the same reason.
             str: sqltypes.VARCHAR(255),
-            # Bare DATETIME is not an Oracle type; DDL fails with
-            # `ORA-00902: invalid datatype`.
-            datetime: sqltypes.TIMESTAMP,
-            pd.Timestamp: sqltypes.TIMESTAMP,
-            # The shared default maps `float` to an unqualified DECIMAL, which this dialect
-            # resolves to a zero-scale NUMBER: the DDL succeeds but every fractional value
-            # rounds to the nearest integer on insert (10.5 comes back 11, -10.5 comes back
-            # -11). A DECIMAL carrying explicit precision and scale round-trips fractional
-            # values intact. A precision-only FLOAT (the override Trino declares) does not
-            # work here either: this dialect raises an argument error over binary vs. decimal
-            # precision, so a scale-carrying DECIMAL is what's declared instead.
+            # The shared default's precision-carrying FLOAT does not work here: this dialect
+            # raises an argument error over binary vs. decimal precision. A DECIMAL carrying
+            # explicit precision and scale round-trips fractional values intact, so that is
+            # what is declared instead. Not a bare DECIMAL, which this dialect resolves to a
+            # zero-scale NUMBER: the DDL succeeds, but 10.5 comes back 11.
             float: sqltypes.DECIMAL(38, 10),
         },
         dev_requirements_file="reqs/requirements-dev-oracle.txt",

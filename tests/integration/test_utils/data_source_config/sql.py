@@ -83,15 +83,25 @@ class SQLBatchTestSetup(BatchTestSetup[_SqlConfigT, TableAsset], ABC, Generic[_S
         The backend's declared `column_type_overrides` are merged over this shared default map,
         so a backend that needs a different type for a given Python type (e.g. a length-carrying
         string type) states that fact once, in its spec, rather than by overriding this property.
+
+        The defaults name types every dialect in use here has, and carry a precision wherever
+        leaving it off would let the server pick one. An unparameterised type compiles on every
+        dialect, so a mismatch is not a DDL error the harness would notice -- it is whatever that
+        server decided the type meant, applied silently to the fixture data.
         """
         default: InferrableTypesLookup = {
             str: sqltypes.VARCHAR,
             int: sqltypes.INTEGER,
-            float: sqltypes.DECIMAL,
+            # Not a bare DECIMAL: several dialects read that as scale zero and round every
+            # fractional value in a fixture frame to an integer on write, so an assertion about
+            # a value ends up asserting about a different value.
+            float: sqltypes.FLOAT(precision=53),
             bool: sqltypes.BOOLEAN,
             date: sqltypes.DATE,
-            datetime: sqltypes.DATETIME,
-            pd.Timestamp: sqltypes.DATETIME,
+            # Not DATETIME: PostgreSQL and Oracle have no such type and reject the DDL outright,
+            # so a fixture frame carrying a datetime column cannot be created at all there.
+            datetime: sqltypes.TIMESTAMP,
+            pd.Timestamp: sqltypes.TIMESTAMP,
         }
         return {**default, **self.backend_spec.column_type_overrides}
 
