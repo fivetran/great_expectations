@@ -1439,12 +1439,16 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
         return batch_data, batch_markers
 
     def get_inspector(self) -> sqlalchemy.engine.reflection.Inspector:
-        if self._inspector is None:
-            if version.parse(sa.__version__) < version.parse("1.4"):
-                # Inspector.from_engine deprecated since 1.4, sa.inspect() should be used instead
-                self._inspector = sqlalchemy.reflection.Inspector.from_engine(self.engine)  # type: ignore[assignment] # FIXME CoP
-            else:
-                self._inspector = sa.inspect(self.engine)  # type: ignore[assignment] # FIXME CoP
+        # A fresh inspector on every call. An Inspector caches the reflection it performs for
+        # its whole lifetime, so an inspector held for the lifetime of this execution engine
+        # would keep serving the column list from the first validation after the table's
+        # schema changed. Building one is cheap; the reflection queries are issued only when a
+        # metric asks for them.
+        if version.parse(sa.__version__) < version.parse("1.4"):
+            # Inspector.from_engine deprecated since 1.4, sa.inspect() should be used instead
+            self._inspector = sqlalchemy.reflection.Inspector.from_engine(self.engine)  # type: ignore[assignment] # FIXME CoP
+        else:
+            self._inspector = sa.inspect(self.engine)  # type: ignore[assignment] # FIXME CoP
 
         return self._inspector  # type: ignore[return-value] # FIXME CoP
 
