@@ -150,7 +150,6 @@ class TestPartitioning:
         assert result.success
 
 
-@pytest.mark.integration
 @pytest.mark.sqlite
 def test_cached_execution_engine_sees_schema_changes(
     ephemeral_context_with_defaults: AbstractDataContext,
