@@ -32,7 +32,7 @@ class SingleStoreDatasourceTestConfig(SqlDatasourceTestConfig):
         fluent_types=frozenset({"sql"}),
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="singlestore"),
         uses_schema=False,
-        tiers=frozenset({SupportTier.CURATED_SQL}),
+        tiers=frozenset({SupportTier.CURATED_SQL, SupportTier.FLUENT_API}),
         # SingleStore requires a length for VARCHAR, the same requirement MySQL declares.
         column_type_overrides={str: sqltypes.VARCHAR(255)},
         dev_requirements_file="reqs/requirements-dev-singlestore.txt",
