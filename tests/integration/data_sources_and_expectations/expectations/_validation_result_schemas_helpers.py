@@ -71,8 +71,8 @@ def assert_field_set_covered(raw_result_dict: dict, parsed_model: Any) -> None:
     Three things are checked, in order:
 
     1. Every raw key is a field of the parsed model. The model may carry extra fields the raw
-       dict does not (``engine_hint``, and the optional fields of a wider format variant); the
-       reverse is information loss.
+       dict does not (the optional fields of a wider format variant); the reverse is information
+       loss.
     2. Every raw value is reproduced *equal* on the model.
     3. Every raw value is reproduced with the *same runtime type*.
 

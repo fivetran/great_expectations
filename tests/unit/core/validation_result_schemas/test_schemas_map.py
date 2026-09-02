@@ -365,6 +365,60 @@ def test_engine_hint_defaults_to_none() -> None:
 
 
 # ---------------------------------------------------------------------------
+# engine_hint is excluded from exported output, but not from the model itself
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "model_class",
+    [MapResultBase, MapBooleanOnlyResult, MapBasicResult, MapSummaryResult, MapCompleteResult],
+    ids=["base", "boolean_only", "basic", "summary", "complete"],
+)
+def test_engine_hint_excluded_from_dict_and_json_on_every_variant(model_class) -> None:
+    """engine_hint is internal plumbing; it must never appear in exported output.
+
+    ``Field(exclude=True)`` in pydantic v1 drops the field from ``.dict()`` and
+    ``.json()`` while leaving it fully readable as a plain attribute -- export and
+    attribute access are governed independently.
+    """
+    m = model_class(engine_hint="sql")
+    assert "engine_hint" not in m.dict()
+    assert m.engine_hint == "sql"
+    assert '"engine_hint"' not in m.json()
+
+
+@pytest.mark.unit
+def test_engine_hint_omitted_from_dict_when_unset() -> None:
+    """The exclusion holds even when engine_hint is left at its default of None."""
+    m = MapCompleteResult()
+    assert "engine_hint" not in m.dict()
+    assert m.engine_hint is None
+
+
+@pytest.mark.unit
+def test_engine_hint_still_reaches_root_validators_despite_export_exclusion() -> None:
+    """``exclude=True`` governs serialization only -- pydantic v1 still populates the
+    field in the ``values`` dict a root validator receives, since validation runs
+    before export. A root validator that depends on ``engine_hint`` (as the map
+    family's does) is unaffected by this change.
+    """
+    seen_values: dict = {}
+
+    def _capture_values(cls, values):
+        seen_values.update(values)
+        return values
+
+    class _EngineHintVisibilityProbe(MapCompleteResult):
+        _capture = pydantic.root_validator(allow_reuse=True)(_capture_values)
+
+    m = _EngineHintVisibilityProbe(engine_hint="sql")
+    assert seen_values.get("engine_hint") == "sql"
+    # And the exclusion still holds on the subclass's own export.
+    assert "engine_hint" not in m.dict()
+
+
+# ---------------------------------------------------------------------------
 # extra=forbid on MapResultBase
 # ---------------------------------------------------------------------------
 

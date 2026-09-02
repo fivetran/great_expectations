@@ -55,12 +55,14 @@ class MapResultBase(BaseModel):
         arbitrary_types_allowed = True
 
     # Internal engine hint — declared as a normal field so it appears in the
-    # values dict during root validation.  ``exclude=True`` is not used here
-    # because pydantic v1's per-field exclude is Config-based; callers that want
-    # to omit this field from .dict() output should call .dict(exclude={"engine_hint"}).
+    # values dict during root validation.  ``Field(..., exclude=True)`` drops it
+    # from ``.dict()``/``.json()`` output only; validation runs before export, so
+    # root validators still see it in ``values``, and it remains a readable
+    # attribute on the model. It is not something the engine emitted and must
+    # never appear in exported output as though it were.
     # It is only ever set from an explicit hint supplied by the caller; None means
     # "engine unknown" and leaves every engine-conditional validator inert.
-    engine_hint: Optional[pydantic.StrictStr] = None
+    engine_hint: Optional[pydantic.StrictStr] = pydantic.Field(None, exclude=True)
 
     # Present on every engine, not just SQL: pandas emits unexpected_index_query as
     # a ``df.filter(items=[...], axis=0)`` expression.  The root validator on
