@@ -45,6 +45,8 @@ from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetu
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
 if TYPE_CHECKING:
+    from _pytest.mark.structures import ParameterSet
+
     from great_expectations.compatibility.sqlalchemy import TypeEngine
     from great_expectations.data_context import AbstractDataContext
     from great_expectations.datasource.fluent.sql_datasource import TableAsset
@@ -286,6 +288,27 @@ def _sql_backend_specs() -> List[SqlBackendSpec]:
     return [spec for spec in iter_data_source_specs() if isinstance(spec, SqlBackendSpec)]
 
 
+def _backend_params() -> List[ParameterSet]:
+    """One parameter per registered SQL backend, carrying that backend's own pytest marker.
+
+    The marker is what puts a backend's case in the lane that installs its dialect. This module
+    carries a module-level `sqlite` marker, which covers the dialects SQLAlchemy ships with, but
+    seven of these backends have a third-party dialect that only its own lane installs -- and no
+    lane selects a module by a marker it does not carry. Without the per-backend marker those
+    seven would be skipped in every lane, leaving their recorded rows checked nowhere.
+    """
+    return [
+        pytest.param(
+            spec,
+            # No marker declared means no lane of its own selects this backend, so its case runs
+            # only where this module's own marker does.
+            marks=[getattr(pytest.mark, spec.marker)] if spec.marker else [],
+            id=spec.label,
+        )
+        for spec in _sql_backend_specs()
+    ]
+
+
 class TestSharedDefaultTypesSayWhatTheyMean:
     """A default type that leaves its width unstated lets each server pick one.
 
@@ -389,7 +412,7 @@ class TestEveryBackendResolvesTheColumnTypesRecordedHere:
             "float": "FLOAT(53)",
             "datetime": "TIMESTAMP WITHOUT TIME ZONE",
         },
-        "singlestore": {"dialect": "singlestoredb", "float": "FLOAT(53)", "datetime": "DATETIME"},
+        "singlestore": {"dialect": "singlestoredb", "float": "DOUBLE", "datetime": "DATETIME"},
         # Lowercase as this dialect emits it; the server reads type names case-insensitively.
         "snowflake": {"dialect": "snowflake", "float": "FLOAT", "datetime": "datetime"},
         "sqlite": {"dialect": "sqlite", "float": "FLOAT", "datetime": "DATETIME"},
@@ -405,35 +428,34 @@ class TestEveryBackendResolvesTheColumnTypesRecordedHere:
             "add its row, resolved from its declaration, in the change that adds the backend"
         )
 
-    def test_each_installed_dialect_renders_the_recorded_types(self) -> None:
-        checked = []
-        for spec in _sql_backend_specs():
-            recorded = self._RESOLVED.get(spec.label)
-            if recorded is None:  # the test above is the one that reports a missing row
-                continue
-            try:
-                dialect = sa_dialect_registry.load(recorded["dialect"])()
-            except Exception:  # this lane does not install that dialect
-                continue
-            checked.append(spec.label)
-            resolved = sql_module.inferrable_types_for(spec)
+    @pytest.mark.parametrize("spec", _backend_params())
+    def test_the_recorded_types_are_what_this_backend_resolves(self, spec: SqlBackendSpec) -> None:
+        recorded = self._RESOLVED.get(spec.label)
+        assert recorded is not None, (
+            f"{spec.label} has no row here; test_every_registered_sql_backend_has_a_row says why"
+        )
 
-            for name, python_type in (("float", float), ("datetime", datetime)):
-                assert _rendered(resolved[python_type], dialect) == recorded[name], (
-                    f"{spec.label} resolves `{name}` to a different type than recorded here; "
-                    "confirm the new rendering is a type that server has, and that it holds a "
-                    "declared value without narrowing it, then update this table in the same "
-                    "change"
-                )
-            assert _rendered(resolved[pd.Timestamp], dialect) == recorded["datetime"], (
-                f"{spec.label} resolves a pandas timestamp to a different type than a plain "
-                "datetime; the two describe the same fixture column and a backend overriding "
-                "one without the other stores the same value two ways"
+        try:
+            dialect = sa_dialect_registry.load(recorded["dialect"])()
+        except sa.exc.NoSuchModuleError:
+            # Only this: a dialect absent from the lane is the expected case, and skipping says
+            # so out loud. Any other failure means an installed dialect is broken, which must not
+            # read here as though the backend simply were not present.
+            pytest.skip(f"the {recorded['dialect']} dialect is not installed in this lane")
+
+        resolved = sql_module.inferrable_types_for(spec)
+        for name, python_type in (("float", float), ("datetime", datetime)):
+            assert _rendered(resolved[python_type], dialect) == recorded[name], (
+                f"{spec.label} resolves `{name}` to a different type than recorded here; "
+                "confirm the new rendering is a type that server has, and that it holds a "
+                "declared value without narrowing it, then update this table in the same change"
             )
 
-        # Non-vacuity: with no dialect loaded every assertion above is skipped, which would make
-        # this pass hardest exactly when it is checking nothing.
-        assert "sqlite" in checked, "no dialect was checked, so this proved nothing"
+        assert _rendered(resolved[pd.Timestamp], dialect) == recorded["datetime"], (
+            f"{spec.label} resolves a pandas timestamp to a different type than a plain "
+            "datetime; the two describe the same fixture column and a backend overriding one "
+            "without the other stores the same value two ways"
+        )
 
 
 class TestColumnTypeOverridesMergeOverSharedDefault:

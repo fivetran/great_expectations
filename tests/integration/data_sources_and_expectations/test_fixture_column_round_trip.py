@@ -7,9 +7,9 @@ about a value quietly becomes an assertion about a different value.
 
 The shapes below are the ones that have actually broken. A decimal type carrying no scale is read
 by several servers as scale zero, which rounds every fractional value to an integer on write. A
-float type carrying no width is read by at least one server as its 4-byte type, which stores a
-Python float -- a double -- at half the width it was declared at. A datetime type that a server
-does not have makes the table impossible to create at all.
+float type carrying no width is read by some servers as their 4-byte type, which stores a Python
+float -- a double -- at half the width it was declared at. A datetime type that a server does not
+have makes the table impossible to create at all.
 """
 
 from __future__ import annotations
@@ -27,11 +27,28 @@ from tests.integration.data_sources_and_expectations.data_source_lists import (
 )
 from tests.integration.test_utils.data_source_config import (
     ALL_DATA_SOURCES,
+    CURATED_SQL_DATA_SOURCES,
     SQL_DATA_SOURCES,
 )
 
 if TYPE_CHECKING:
     from great_expectations.datasource.fluent.interfaces import Batch
+
+# Every data source the harness declares, not just the canonical-expectations tier. The curated
+# tier's four backends are where the shared type map is overridden most, and reaching them found
+# SingleStore storing a declared value narrowed -- a defect no lane would otherwise have run into.
+#
+# Read from the tier lists directly rather than through `data_sources_for_tier_case`, which
+# `test_curated_backend_suite.py` requires of its own cases so that a member can sit one out. That
+# mechanism is for a case a backend legitimately cannot pass, and no such case exists here: a
+# backend that does not store what a fixture declared has a defect to fix, not a case to opt out
+# of. Keyed by label on the way in, so a data source declaring both tiers is parameterized once.
+EVERY_DATA_SOURCE = list(
+    {config.label: config for config in [*ALL_DATA_SOURCES, *CURATED_SQL_DATA_SOURCES]}.values()
+)
+EVERY_SQL_DATA_SOURCE = list(
+    {config.label: config for config in [*SQL_DATA_SOURCES, *CURATED_SQL_DATA_SOURCES]}.values()
+)
 
 FRACTIONAL_COL = "fractional_value"
 MOMENT_COL = "moment"
@@ -74,7 +91,7 @@ ROUND_TRIP_DATA = pd.DataFrame(
 )
 
 
-@parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=ROUND_TRIP_DATA)
+@parameterize_batch_for_data_sources(data_source_configs=EVERY_DATA_SOURCE, data=ROUND_TRIP_DATA)
 def test_the_largest_fractional_value_is_stored_as_declared(batch_for_datasource: Batch) -> None:
     """A column narrowed to single precision returns a neighbour of the declared maximum."""
     result = batch_for_datasource.validate(
@@ -91,7 +108,7 @@ def test_the_largest_fractional_value_is_stored_as_declared(batch_for_datasource
     )
 
 
-@parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=ROUND_TRIP_DATA)
+@parameterize_batch_for_data_sources(data_source_configs=EVERY_DATA_SOURCE, data=ROUND_TRIP_DATA)
 def test_the_smallest_fractional_value_is_stored_as_declared(batch_for_datasource: Batch) -> None:
     """A column stored at scale zero rounds the declared minimum to an integer."""
     result = batch_for_datasource.validate(
@@ -108,7 +125,7 @@ def test_the_smallest_fractional_value_is_stored_as_declared(batch_for_datasourc
     )
 
 
-@parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=ROUND_TRIP_DATA)
+@parameterize_batch_for_data_sources(data_source_configs=EVERY_DATA_SOURCE, data=ROUND_TRIP_DATA)
 def test_a_datetime_column_can_be_created_and_read(batch_for_datasource: Batch) -> None:
     """Reaching this assertion at all is most of the point: a backend whose type vocabulary
     does not include the declared datetime type fails during table creation, before any
@@ -122,7 +139,9 @@ def test_a_datetime_column_can_be_created_and_read(batch_for_datasource: Batch) 
     assert result.success
 
 
-@parameterize_batch_for_data_sources(data_source_configs=SQL_DATA_SOURCES, data=ROUND_TRIP_DATA)
+@parameterize_batch_for_data_sources(
+    data_source_configs=EVERY_SQL_DATA_SOURCE, data=ROUND_TRIP_DATA
+)
 def test_a_datetime_value_is_stored_as_declared(batch_for_datasource: Batch) -> None:
     """The declared maximum is a specific moment, not just a non-null one.
 
@@ -130,7 +149,7 @@ def test_a_datetime_value_is_stored_as_declared(batch_for_datasource: Batch) -> 
     in it. A type that resolves to a date rather than a datetime accepts the write and drops the
     time of day, which is not null and so passes every assertion above.
 
-    The SQL data sources rather than all of them, because the column type map this pins is a SQL
+    The SQL data sources rather than every one, because the column type map this pins is a SQL
     declaration: a CSV-backed source reads the column back as text no matter what any type map
     says, and comparing text to a datetime would fail here for a reason that has nothing to do
     with what this file is about.

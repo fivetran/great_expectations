@@ -17,7 +17,10 @@ from tests.integration.test_utils.data_source_config.data_source_spec import (
     SupportTier,
 )
 from tests.integration.test_utils.data_source_config.registry import register_sql_config
-from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
+from tests.integration.test_utils.data_source_config.sql import (
+    DOUBLE_PRECISION_FLOAT_OVERRIDE,
+    SQLBatchTestSetup,
+)
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
 if TYPE_CHECKING:
@@ -30,19 +33,12 @@ if TYPE_CHECKING:
     from tests.integration.test_utils.data_source_config.base import BatchTestSetup
 
 
-# This server reads a bare `FLOAT` as its 4-byte type and `DOUBLE` as its 8-byte one, and the
-# shared default's precision-carrying float renders as the former here: this dialect discards the
-# precision. A Python float is a double, so any value needing more than 24 bits of mantissa is
-# then stored at the narrower width -- valid DDL, no error, and a fixture value that is not the
-# value the test declared. Naming the 8-byte type leaves the server nothing to choose.
-#
-# Behind a guard because `Double` arrived in SQLAlchemy 2.0, and this module is imported under the
-# 1.4 floor the minimum-version lane installs. Nothing is lost by that: this backend's dialect
-# package requires SQLAlchemy 2.0 itself, so a 1.4 environment cannot run this backend at all.
+# The shared default's precision is discarded by this dialect, and the bare `FLOAT` it leaves is
+# this server's 4-byte type, so the declared override names the 8-byte one instead.
 _COLUMN_TYPE_OVERRIDES: Mapping[type, Union[Type[TypeEngine], TypeEngine]] = {
     # databricks requires a length for VARCHAR
     str: sqltypes.VARCHAR(255),
-    **({float: sqltypes.Double()} if hasattr(sqltypes, "Double") else {}),
+    **DOUBLE_PRECISION_FLOAT_OVERRIDE,
 }
 
 

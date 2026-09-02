@@ -60,13 +60,14 @@ _SHARED_DEFAULTS: InferrableTypesLookup = {
     # assertion about a value ends up asserting about a different one. Nor `Double`, which one
     # dialect renders as a type its server does not have.
     #
-    # A precision-carrying float is the 64-bit type on every dialect here but two. Oracle raises
-    # rather than compiling it, over binary vs. decimal precision; Databricks discards the
-    # precision, and the bare `FLOAT` left over is that server's 4-byte type, which stores a
-    # Python float lossily. Both declare their own override for exactly that reason, and removing
-    # either surfaces this default's limit -- so those two overrides and this line belong
-    # together. The dialects that discard the precision without an override (SQLite, Snowflake)
-    # already mean 64 bits by a bare `FLOAT`.
+    # A precision-carrying float is the 64-bit type on every dialect here but three, and each of
+    # those three declares its own override for a different reason: Oracle raises rather than
+    # compiling it, over binary vs. decimal precision; Databricks discards the precision and reads
+    # the bare `FLOAT` left over as its 4-byte type; SingleStore keeps the precision and ignores
+    # it, creating a 4-byte column anyway. Removing any of those three surfaces this line's limit,
+    # so they and it belong together -- see `DOUBLE_PRECISION_FLOAT_OVERRIDE` below. The dialects
+    # that discard the precision without an override (SQLite, Snowflake) already mean 64 bits by a
+    # bare `FLOAT`.
     float: sqltypes.Float(precision=53),
     bool: sqltypes.BOOLEAN,
     date: sqltypes.DATE,
@@ -87,6 +88,29 @@ Shared instances rather than per-call ones, which is safe because a SQLAlchemy t
 carries no binding to the table it is used on -- the same sharing a backend's declared
 `column_type_overrides` mapping already relies on. Schema *items* are the constructs that bind on
 attachment, and those are declared as a factory for that reason (see `SqlBackendSpec`).
+"""
+
+
+DOUBLE_PRECISION_FLOAT_OVERRIDE: InferrableTypesLookup = (
+    {float: sqltypes.Double()} if hasattr(sqltypes, "Double") else {}
+)
+"""A `float` override for the two backends the shared default does not give 8 bytes.
+
+They get there by different routes, which is why neither is fixable in the default. The Databricks
+dialect discards the precision and emits a bare `FLOAT`, and that spelling is its server's
+single-precision type. SingleStore is handed `FLOAT(53)` intact and, unlike MySQL, does not promote
+it -- `SHOW CREATE TABLE` reports a plain `float`. Either way a Python float, which is a double, is
+stored at half the width the fixture declared, with valid DDL and no error: verified against a live
+SingleStore, which stores 16777217.0 as 16777200.0 under the default and exactly under this.
+`Double` names the width in the type name, leaving the server nothing to pick.
+
+SQLite and Snowflake also emit a bare `FLOAT` and need nothing here: both mean 64 bits by it.
+
+Empty on SQLAlchemy 1.4, where `Double` does not exist. This module is imported there -- the
+minimum-version lane constrains to that floor and collects every test module -- so naming the type
+unconditionally would break collection in a lane that runs none of these backends. An environment
+that did run one under 1.4 would get the narrowing back, which is why the round-trip suite asserts
+the stored value rather than trusting the declaration.
 """
 
 
