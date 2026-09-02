@@ -144,7 +144,59 @@ class TestConfigPasstrough:
         second = ds.get_execution_engine()
 
         assert second is first
-        assert second.engine is first.engine
+
+    def test_changed_config_rebuilds_the_execution_engine(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        ephemeral_context_with_defaults: EphemeralDataContext,
+        ds_kwargs: dict,
+        filter_gx_datasource_warnings: None,
+    ):
+        """Caching must not outlive the configuration the engine was built from.
+
+        The kwargs comparison is the only thing separating a cache hit from a rebuild, so a
+        cache that always hits is as wrong as one that never does: it would serve an engine
+        bound to a connection string the datasource no longer carries.
+        """
+        monkeypatch.setenv("MY_CONN_STR", "sqlite:///")
+
+        context = ephemeral_context_with_defaults
+        ds = context.data_sources.add_or_update_sql(name="my_datasource", **ds_kwargs)
+
+        first = ds.get_execution_engine()
+        ds.create_temp_table = not ds.create_temp_table
+
+        assert ds.get_execution_engine() is not first
+
+    def test_failed_rebuild_does_not_suppress_the_next_one(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        ephemeral_context_with_defaults: EphemeralDataContext,
+        ds_kwargs: dict,
+        filter_gx_datasource_warnings: None,
+    ):
+        """A rebuild that raises must not leave the new kwargs cached against the old engine.
+
+        Construction can fail on a configuration change alone - a rotated connection string
+        naming a driver that is not installed, an unreachable host. If the kwargs were cached
+        before the constructor ran, the next call would compare equal, find the previous
+        engine still in place, and silently return an engine bound to the old configuration.
+        """
+        monkeypatch.setenv("MY_CONN_STR", "sqlite:///")
+
+        context = ephemeral_context_with_defaults
+        ds = context.data_sources.add_or_update_sql(name="my_datasource", **ds_kwargs)
+        first = ds.get_execution_engine()
+
+        def _raise_on_construction(*args, **kwargs):
+            raise RuntimeError("could not connect")
+
+        ds.create_temp_table = not ds.create_temp_table
+        with mock.patch.object(SQLDatasource, "execution_engine_type", _raise_on_construction):
+            with pytest.raises(RuntimeError, match="could not connect"):
+                ds.get_execution_engine()
+
+        assert ds.get_execution_engine() is not first
 
     def test_ds_config_passed_to_gx_sqlalchemy_execution_engine(
         self,
