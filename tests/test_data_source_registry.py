@@ -3079,11 +3079,16 @@ class TestTierClaimsScaleTheObligationsProvenInBothDirections:
         assert [spec.label for spec in iter_data_source_specs()] == ["throwaway-core"]
 
 
-class TestVocabularyCarriesThreeMembers:
-    def test_the_tier_vocabulary_has_exactly_three_members(self) -> None:
+class TestVocabularyMembership:
+    def test_the_tier_vocabulary_is_exactly_these_members(self) -> None:
+        """Spelled out rather than counted. Each member is a claim a data source can make, so a
+        member appearing or disappearing is a change to what this repository promises about a
+        backend -- which should be read in a diff, not absorbed by a number that still matches.
+        """
         assert [tier.value for tier in SupportTier] == [
             "canonical_expectations",
             "curated_sql",
+            "fluent_api",
             "gold",
         ]
 
