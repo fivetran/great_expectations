@@ -1380,6 +1380,11 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
     def get_batch_data_and_markers(
         self, batch_spec: BatchSpec
     ) -> Tuple[SqlAlchemyBatchData, BatchMarkers]:
+        # The inspector caches everything it reflects, and this execution engine is reused
+        # across validations. A batch fetched after the table's schema changed must not be
+        # described by the column list reflected for an earlier one, so the inspector is
+        # rebuilt lazily on the next request. Within one batch it is still reflected once.
+        self._inspector = None
         if not isinstance(batch_spec, (SqlAlchemyDatasourceBatchSpec, RuntimeQueryBatchSpec)):
             raise InvalidBatchSpecError(  # noqa: TRY003 # FIXME CoP
                 f"""SqlAlchemyExecutionEngine accepts batch_spec only of type SqlAlchemyDatasourceBatchSpec or
@@ -1439,16 +1444,12 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
         return batch_data, batch_markers
 
     def get_inspector(self) -> sqlalchemy.engine.reflection.Inspector:
-        # A fresh inspector on every call. An Inspector caches the reflection it performs for
-        # its whole lifetime, so an inspector held for the lifetime of this execution engine
-        # would keep serving the column list from the first validation after the table's
-        # schema changed. Building one is cheap; the reflection queries are issued only when a
-        # metric asks for them.
-        if version.parse(sa.__version__) < version.parse("1.4"):
-            # Inspector.from_engine deprecated since 1.4, sa.inspect() should be used instead
-            self._inspector = sqlalchemy.reflection.Inspector.from_engine(self.engine)  # type: ignore[assignment] # FIXME CoP
-        else:
-            self._inspector = sa.inspect(self.engine)  # type: ignore[assignment] # FIXME CoP
+        if self._inspector is None:
+            if version.parse(sa.__version__) < version.parse("1.4"):
+                # Inspector.from_engine deprecated since 1.4, sa.inspect() should be used instead
+                self._inspector = sqlalchemy.reflection.Inspector.from_engine(self.engine)  # type: ignore[assignment] # FIXME CoP
+            else:
+                self._inspector = sa.inspect(self.engine)  # type: ignore[assignment] # FIXME CoP
 
         return self._inspector  # type: ignore[return-value] # FIXME CoP
 
