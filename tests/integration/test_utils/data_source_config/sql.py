@@ -60,14 +60,15 @@ _SHARED_DEFAULTS: InferrableTypesLookup = {
     # assertion about a value ends up asserting about a different one. Nor `Double`, which one
     # dialect renders as a type its server does not have.
     #
-    # A precision-carrying float is the 64-bit type on every dialect here but three, and each of
-    # those three declares its own override for a different reason: Oracle raises rather than
-    # compiling it, over binary vs. decimal precision; Databricks discards the precision and reads
-    # the bare `FLOAT` left over as its 4-byte type; SingleStore keeps the precision and ignores
-    # it, creating a 4-byte column anyway. Removing any of those three surfaces this line's limit,
-    # so they and it belong together -- see `DOUBLE_PRECISION_FLOAT_OVERRIDE` below. The dialects
-    # that discard the precision without an override (SQLite, Snowflake) already mean 64 bits by a
-    # bare `FLOAT`.
+    # A precision-carrying float is the 64-bit type on every dialect here but four, and each of
+    # those four declares its own override: Oracle raises rather than compiling it, over binary
+    # vs. decimal precision; Databricks discards the precision and reads the bare `FLOAT` left
+    # over as its 4-byte type; ClickHouse does the same, that spelling being its `Float32`;
+    # SingleStore keeps the precision and ignores it, creating a 4-byte column anyway. Removing
+    # any of those four surfaces this line's limit, so they and it belong together -- see
+    # `DOUBLE_PRECISION_FLOAT_OVERRIDE` below, which two of them share. The dialects that discard
+    # the precision without an override (SQLite, Snowflake) already mean 64 bits by a bare
+    # `FLOAT`.
     float: sqltypes.Float(precision=53),
     bool: sqltypes.BOOLEAN,
     date: sqltypes.DATE,
@@ -94,7 +95,7 @@ attachment, and those are declared as a factory for that reason (see `SqlBackend
 DOUBLE_PRECISION_FLOAT_OVERRIDE: InferrableTypesLookup = (
     {float: sqltypes.Double()} if hasattr(sqltypes, "Double") else {}
 )
-"""A `float` override for the two backends the shared default does not give 8 bytes.
+"""A `float` override for the two backends that need the 8-byte type named and can take it plain.
 
 They get there by different routes, which is why neither is fixable in the default. The Databricks
 dialect discards the precision and emits a bare `FLOAT`, and that spelling is its server's
@@ -104,7 +105,9 @@ stored at half the width the fixture declared, with valid DDL and no error: veri
 SingleStore, which stores 16777217.0 as 16777200.0 under the default and exactly under this.
 `Double` names the width in the type name, leaving the server nothing to pick.
 
-SQLite and Snowflake also emit a bare `FLOAT` and need nothing here: both mean 64 bits by it.
+SQLite and Snowflake also emit a bare `FLOAT` and need nothing: both mean 64 bits by it.
+ClickHouse does not, and is the third backend narrowed by the default -- but its types all
+carry a `Nullable(...)` wrapper, so it states its own `Float64` rather than sharing this.
 
 Empty on SQLAlchemy 1.4, where `Double` does not exist. This module is imported there -- the
 minimum-version lane constrains to that floor and collects every test module -- so naming the type
