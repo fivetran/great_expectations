@@ -1,8 +1,8 @@
 """Reusable pydantic v1 field validators for validation result schemas.
 
 All validators are pure functions intended to be bound to schema classes via
-``pydantic.validator`` and ``pydantic.root_validator``.  They are defined once
-here and imported by every schema family so that per-format classes stay thin.
+``pydantic.validator``.  They are defined once here and imported by every
+schema family so that per-format classes stay thin.
 
 Import rules (enforced by ruff banned-api):
 - Pydantic symbols come exclusively from ``great_expectations.compatibility.pydantic``.
@@ -30,14 +30,6 @@ _RUNTIME_TYPE_MAP: dict = {
     list: RuntimeTypeName.LIST,
     dict: RuntimeTypeName.DICT,
 }
-
-# Module-level constant for the SQL engine validation error message (TRY003).
-_SQL_INDEX_QUERY_REQUIRED_MSG = (
-    "unexpected_index_query is required when engine_hint='sql' and "
-    "return_unexpected_index_query=True, but it was not found in the "
-    "result dict.  This indicates a schema mismatch for this SQL engine "
-    "and ResultFormat combination."
-)
 
 
 def classify_runtime_type(value: Any) -> RuntimeTypeName:
@@ -101,42 +93,3 @@ def validate_partial_unexpected_counts_fallback(cls: Any, v: Optional[list]) -> 
     inadvertently forbidding it.
     """
     return v
-
-
-# ---------------------------------------------------------------------------
-# Root validator
-# ---------------------------------------------------------------------------
-
-
-def root_validate_engine_required_fields(cls: Any, values: dict) -> dict:
-    """v1 root_validator for SQL engine-required fields.
-
-    If ``engine_hint`` is ``"sql"`` and ``return_unexpected_index_query`` is
-    ``True``, asserts that ``unexpected_index_query`` is present (non-None) in
-    the parsed values dict.  All other combinations are a no-op.
-
-    Engine hint is read from the ``engine_hint`` key in the ``values`` dict.
-    Schemas that do not declare ``engine_hint`` as a field will simply not have
-    the key, and the check is skipped — ensuring the validator is safe to include
-    in any schema regardless of whether the dispatcher sets the hint.
-
-    A ``None`` hint means the engine is unknown, never "assume SQL".  The engine
-    is never guessed from the result dict: ``unexpected_index_query`` is emitted
-    by pandas too (as a ``df.filter(...)`` expression), so a shape-based guess
-    would arm this assertion against results it does not apply to.
-    """
-    engine_hint = values.get("engine_hint")
-
-    if engine_hint != "sql":
-        # Unknown engine (hint is None) or a non-SQL engine: no assertion applies.
-        return values
-
-    if not values.get("return_unexpected_index_query"):
-        # SQL engine, but the query was not requested: no assertion needed
-        return values
-
-    # SQL engine + query was requested: unexpected_index_query must be present
-    if not values.get("unexpected_index_query"):
-        raise ValueError(_SQL_INDEX_QUERY_REQUIRED_MSG)
-
-    return values

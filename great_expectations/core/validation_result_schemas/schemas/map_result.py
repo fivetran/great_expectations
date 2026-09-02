@@ -35,7 +35,6 @@ from typing import Any, List, Optional
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pydantic import BaseModel
 from great_expectations.core.validation_result_schemas.field_validators import (
-    root_validate_engine_required_fields,
     validate_partial_unexpected_counts_fallback,
     validate_unexpected_rows_passthrough,
 )
@@ -54,19 +53,18 @@ class MapResultBase(BaseModel):
         extra = pydantic.Extra.forbid
         arbitrary_types_allowed = True
 
-    # Internal engine hint — declared as a normal field so it appears in the
-    # values dict during root validation.  ``Field(..., exclude=True)`` drops it
-    # from ``.dict()``/``.json()`` output only; validation runs before export, so
-    # root validators still see it in ``values``, and it remains a readable
-    # attribute on the model. It is not something the engine emitted and must
-    # never appear in exported output as though it were.
-    # It is only ever set from an explicit hint supplied by the caller; None means
-    # "engine unknown" and leaves every engine-conditional validator inert.
+    # Internal engine hint — declared as a normal field so it stays visible on
+    # the model (and to any future validator bound here) even though
+    # ``Field(..., exclude=True)`` drops it from ``.dict()``/``.json()`` output.
+    # It is not something the engine emitted and must never appear in exported
+    # output as though it were. It is only ever set from an explicit hint
+    # supplied by the caller; None means "engine unknown".
     engine_hint: Optional[pydantic.StrictStr] = pydantic.Field(default=None, exclude=True)
 
-    # Present on every engine, not just SQL: pandas emits unexpected_index_query as
-    # a ``df.filter(items=[...], axis=0)`` expression.  The root validator on
-    # MapCompleteResult enforces its presence only under an explicit sql hint.
+    # Present on every engine, not just SQL: pandas emits unexpected_index_query
+    # as a ``df.filter(items=[...], axis=0)`` expression. This layer types and
+    # reports the field; it does not enforce that it be present under any
+    # particular engine or result-format combination.
     unexpected_index_query: Optional[pydantic.StrictStr] = None
     unexpected_index_column_names: Optional[List[pydantic.StrictStr]] = None
 
@@ -131,12 +129,12 @@ class MapSummaryResult(MapBasicResult):
 class MapCompleteResult(MapSummaryResult):
     """ResultFormat.COMPLETE — adds the full unexpected list and index list.
 
-    Also carries the root validator that enforces SQL engine-required fields:
-    when ``engine_hint='sql'`` and ``return_unexpected_index_query=True``,
-    ``unexpected_index_query`` must be present.
+    This layer types and reports the shape of a result dict; it does not
+    enforce cross-field invariants such as "an index query was requested, so
+    one must be present". ``unexpected_index_query`` stays Optional here for
+    the same reason every other field does: a caller that requested it and
+    didn't get one is a finding to surface, not a construction error to raise.
     """
 
     unexpected_list: Optional[List[Any]] = None
     unexpected_index_list: Optional[List[Any]] = None
-
-    _root_validate = pydantic.root_validator(allow_reuse=True)(root_validate_engine_required_fields)

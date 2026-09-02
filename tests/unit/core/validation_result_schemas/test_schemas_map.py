@@ -7,8 +7,8 @@ Covers:
 - Unknown extra fields raise pydantic.ValidationError (extra=forbid).
 - Validator functions (validate_unexpected_rows_passthrough,
   validate_partial_unexpected_counts_fallback) work as expected.
-- root_validate_engine_required_fields fires when engine_hint='sql' +
-  return_unexpected_index_query=True but unexpected_index_query is missing.
+- This layer types and reports shape; it does not enforce cross-field
+  invariants such as "an index query was requested, so one must be present".
 - Scalar fields are strict: they accept a value as-is or reject it, never coerce.
 
 All tests are marked @pytest.mark.unit and run via:
@@ -289,54 +289,21 @@ def test_map_complete_inherits_all_ancestor_fields() -> None:
 
 
 # ---------------------------------------------------------------------------
-# root_validate_engine_required_fields (via MapCompleteResult)
+# This layer types and reports; it does not enforce cross-field invariants
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.unit
-def test_map_complete_sql_hint_with_query_passes() -> None:
-    """SQL engine + return_unexpected_index_query=True + query present → passes."""
-    m = MapCompleteResult(
-        engine_hint="sql",
-        unexpected_index_query="SELECT id FROM table WHERE val > 5",
-    )
-    assert m.unexpected_index_query == "SELECT id FROM table WHERE val > 5"
+def test_map_complete_sql_hint_without_index_query_parses() -> None:
+    """A SQL-hinted COMPLETE result missing ``unexpected_index_query`` still parses.
 
-
-@pytest.mark.unit
-def test_map_complete_sql_hint_missing_query_no_raise_without_return_flag() -> None:
-    """SQL engine + no return_unexpected_index_query flag → validator is a no-op.
-
-    The root_validate_engine_required_fields only raises when BOTH engine_hint='sql'
-    AND return_unexpected_index_query=True are in the values dict.  Since
-    MapCompleteResult does not declare return_unexpected_index_query as a field,
-    setting engine_hint='sql' alone does NOT trigger the SQL assertion.
-    The validator is designed to be composed with the dispatcher, which can
-    inject additional context via a helper field if needed.
+    Every field on the map family is Optional and this layer's job is to type
+    and report the shape it is handed, not to assert that an engine-conditional
+    field must be present. Guard against this schema growing an enforcement
+    rule it does not actually carry.
     """
-    # Should NOT raise: engine_hint='sql' but no return_unexpected_index_query field
     m = MapCompleteResult(engine_hint="sql", unexpected_index_query=None)
     assert m.engine_hint == "sql"
-    assert m.unexpected_index_query is None
-
-
-@pytest.mark.unit
-def test_map_complete_no_engine_hint_no_query_passes() -> None:
-    """No engine hint → root validator is a no-op regardless of other fields."""
-    m = MapCompleteResult(
-        unexpected_index_query=None,
-    )
-    assert m.unexpected_index_query is None
-
-
-@pytest.mark.unit
-def test_map_complete_pandas_engine_no_query_passes() -> None:
-    """Non-SQL engine hint → root validator is a no-op."""
-    m = MapCompleteResult(
-        engine_hint="pandas",
-        unexpected_index_query=None,
-    )
-    assert m.engine_hint == "pandas"
     assert m.unexpected_index_query is None
 
 
@@ -400,8 +367,8 @@ def test_engine_hint_omitted_from_dict_when_unset() -> None:
 def test_engine_hint_still_reaches_root_validators_despite_export_exclusion() -> None:
     """``exclude=True`` governs serialization only -- pydantic v1 still populates the
     field in the ``values`` dict a root validator receives, since validation runs
-    before export. A root validator that depends on ``engine_hint`` (as the map
-    family's does) is unaffected by this change.
+    before export. Any root validator bound on the map family that reads
+    ``engine_hint`` would see it, so the export exclusion cannot silently blind one.
     """
     seen_values: dict = {}
 
