@@ -311,8 +311,13 @@ class TestSharedDefaultTypesSayWhatTheyMean:
             f"the shared default for `float` is {instance!r}, which is not a numeric type at all"
         )
         states_its_own_width = (
-            # `Double` names 8 bytes in the type name itself, so it needs no precision.
-            isinstance(instance, sa.Double)
+            # `Double` names 8 bytes in the type name itself, so it needs no precision. Behind
+            # the same `hasattr` guard the production override carries, and for the same reason:
+            # the type does not exist on the SQLAlchemy 1.4 floor, and a bare attribute access
+            # here raises before any assertion runs. Nothing is lost under 1.4 -- a default this
+            # branch would accept cannot be spelled there -- and the two branches below still
+            # reject every shape that names no width.
+            (hasattr(sa, "Double") and isinstance(instance, sa.Double))
             or (isinstance(instance, sa.Float) and instance.precision is not None)
             or (not isinstance(instance, sa.Float) and instance.scale is not None)
         )
