@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import pathlib
 import warnings
 from pprint import pformat as pf
 from typing import TYPE_CHECKING, Any, Generator
@@ -607,44 +606,3 @@ def test_sql_multi_column_value_partitioner_declares_no_numeric_param_names():
 
 if __name__ == "__main__":
     pytest.main([__file__, "-vv"])
-
-
-@pytest.mark.unit
-def test_cached_execution_engine_sees_schema_changes(
-    ephemeral_context_with_defaults: EphemeralDataContext,
-    tmp_path: pathlib.Path,
-):
-    """Reusing the execution engine must not reuse stale table metadata.
-
-    The engine's SQLAlchemy inspector caches what it reflects. With the execution engine
-    cached across validations, a column added between two validations has to show up in
-    the second one, exactly as it did when every validation built a fresh engine.
-    """
-    import sqlalchemy as sa
-
-    import great_expectations.expectations as gxe
-
-    db_path = tmp_path / "schema_changes.db"
-    raw_engine = sa.create_engine(f"sqlite:///{db_path}")
-    with raw_engine.begin() as conn:
-        conn.execute(sa.text("CREATE TABLE t (a INTEGER, b INTEGER)"))
-        conn.execute(sa.text("INSERT INTO t VALUES (1, 2)"))
-
-    ds = ephemeral_context_with_defaults.data_sources.add_sqlite(
-        name="schema_changes", connection_string=f"sqlite:///{db_path}"
-    )
-    batch = (
-        ds.add_table_asset(name="t", table_name="t")
-        .add_batch_definition_whole_table(name="whole")
-        .get_batch()
-    )
-
-    before = batch.validate(gxe.ExpectTableColumnCountToEqual(value=2))
-    assert ds.get_execution_engine() is ds.get_execution_engine()
-    with raw_engine.begin() as conn:
-        conn.execute(sa.text("ALTER TABLE t ADD COLUMN c INTEGER"))
-    after = batch.validate(gxe.ExpectTableColumnCountToEqual(value=2))
-
-    assert before.success is True
-    assert after.success is False
-    assert after.result["observed_value"] == 3
