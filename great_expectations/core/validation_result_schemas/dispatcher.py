@@ -20,7 +20,18 @@ Import rules (enforced by ruff banned-api):
 from __future__ import annotations
 
 from itertools import pairwise
-from typing import TYPE_CHECKING, Any, Dict, FrozenSet, Optional, Tuple, Union, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    FrozenSet,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    cast,
+)
 
 from great_expectations.compatibility import pydantic
 from great_expectations.core.result_format import ResultFormat
@@ -72,7 +83,23 @@ class ParseError(Exception):
 
     Wraps pydantic.ValidationError; message names the unmatched fields and the
     candidate variant(s) that were tried.
+
+    Attributes:
+        pydantic_errors: the wrapped ``pydantic.ValidationError``'s ``.errors()`` sequence, or
+            ``None`` when this ParseError was not raised from a pydantic failure (an
+            unregistered expectation type, for example). Lets a caller identify what
+            specifically failed -- e.g. an "extra fields not permitted" entry and the field
+            it names -- without parsing the exception message text.
     """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        pydantic_errors: Optional[Sequence[Mapping[str, Any]]] = None,
+    ) -> None:
+        super().__init__(message)
+        self.pydantic_errors = pydantic_errors
 
 
 class UnknownExpectationTypeError(LookupError):
@@ -311,7 +338,10 @@ def as_typed(
             return override_cls(**result_dict)
         except pydantic.ValidationError as exc:
             raise ParseError(
-                _override_parse_error_msg(expectation_type, engine_hint, override_cls.__name__, exc)
+                _override_parse_error_msg(
+                    expectation_type, engine_hint, override_cls.__name__, exc
+                ),
+                pydantic_errors=exc.errors(),
             ) from exc
 
     # 2. Family-based dispatch.
@@ -343,7 +373,8 @@ def as_typed(
         raise ParseError(
             _family_parse_error_msg(
                 expectation_type, resolved_format.value, schema_cls.__name__, exc
-            )
+            ),
+            pydantic_errors=exc.errors(),
         ) from exc
 
 

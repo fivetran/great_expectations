@@ -33,12 +33,12 @@ from __future__ import annotations
 import datetime
 import random
 import string
-from typing import TYPE_CHECKING, Callable, Generator, Optional
+from typing import TYPE_CHECKING, Callable, Generator, List, Optional
 
 import pytest
 
 from great_expectations.core.result_format import ResultFormat
-from great_expectations.core.validation_result_schemas.dispatcher import as_typed
+from great_expectations.core.validation_result_schemas.dispatcher import ParseError, as_typed
 from great_expectations.core.validation_result_schemas.findings_emitter import (
     FindingsWriter,
 )
@@ -89,6 +89,26 @@ def _generate_run_id() -> str:
     ts = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
     suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
     return f"{ts}-{suffix}"
+
+
+def _extra_fields_rejected(exc: BaseException) -> List[str]:
+    """Field names pydantic rejected as unpermitted extras, if *exc* is such a failure.
+
+    ``schema_extras_rejected`` is only observable on the FAILED path: a raw key the schema
+    does not declare rejects the whole dict with ``Extra.forbid`` before a finding could ever
+    be filed as PARSED. This reads the offending keys directly off the wrapped pydantic errors
+    ``ParseError`` carries, rather than parsing them back out of the exception's message text.
+    Returns an empty list for every other kind of failure -- a metric that raised, a value
+    :func:`_helpers.assert_field_set_covered` caught as changed, or a ParseError raised for a
+    reason other than an extra field (an unregistered expectation type, for example).
+    """
+    if not isinstance(exc, ParseError) or exc.pydantic_errors is None:
+        return []
+    return [
+        str(err["loc"][0])
+        for err in exc.pydantic_errors
+        if err.get("type") == "value_error.extra" and err.get("loc")
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -205,10 +225,12 @@ def test_validation_result_schema_matrix(
             engine_hint=engine_hint,
         )
     except Exception as exc:
+        extras_rejected = _extra_fields_rejected(exc)
         _write(
             Status.FAILED,
             **summarize_raw_dict(raw_result),
             error_summary=f"as_typed raised: {type(exc).__name__}: {exc}",
+            **({"schema_extras_rejected": extras_rejected} if extras_rejected else {}),
         )
         pytest.fail(
             f"[{case.id}][{result_format.value}][{engine_hint}]: "
@@ -227,18 +249,17 @@ def test_validation_result_schema_matrix(
         )
         pytest.fail(f"[{case.id}][{result_format.value}][{engine_hint}]: {exc}")
 
-    # Success path — record parsed finding
+    # Success path — record parsed finding. Every raw key is a model field, by the coverage
+    # assertion above; the fields worth recording here are the ones the model carries that the
+    # raw dict never produced -- what a curator would otherwise have to diff by hand.
     model_dict: dict = typed.dict()
-    schema_required = [k for k in raw_result if k in model_dict]
-    schema_optional = [k for k in model_dict if k not in raw_result]
+    schema_fields_absent_from_result = [k for k in model_dict if k not in raw_result]
 
     _write(
         Status.PARSED,
         **summarize_raw_dict(raw_result),
         matched_variant=type(typed).__name__,
-        schema_required_fields_present=schema_required,
-        schema_optional_fields_present=schema_optional,
-        schema_extras_rejected=[],
+        schema_fields_absent_from_result=schema_fields_absent_from_result,
     )
 
 

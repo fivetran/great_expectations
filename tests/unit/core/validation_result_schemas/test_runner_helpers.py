@@ -17,9 +17,14 @@ import pytest
 
 import great_expectations.expectations as gxe
 from great_expectations.compatibility import pydantic
+from great_expectations.core.result_format import ResultFormat
+from great_expectations.core.validation_result_schemas.dispatcher import ParseError, as_typed
 from great_expectations.core.validation_result_schemas.types import RuntimeTypeName
 from tests.integration.data_sources_and_expectations.expectations import (
     _validation_result_schemas_helpers as _helpers,
+)
+from tests.integration.data_sources_and_expectations.expectations import (
+    test_validation_result_schemas_matrix as _matrix,
 )
 from tests.integration.data_sources_and_expectations.expectations._validation_result_schemas_cases import (  # noqa: E501
     SELF_DATA_SOURCE_SENTINEL,
@@ -30,6 +35,7 @@ assert_field_set_covered = _helpers.assert_field_set_covered
 resolve_self_references = _helpers.resolve_self_references
 summarize_raised_exception = _helpers.summarize_raised_exception
 summarize_raw_dict = _helpers.summarize_raw_dict
+extra_fields_rejected = _matrix._extra_fields_rejected
 
 # ---------------------------------------------------------------------------
 # Models for exercising assert_field_set_covered
@@ -347,3 +353,62 @@ def test_resolve_self_references_rejects_an_unavailable_name() -> None:
     expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name=SELF_TABLE_SENTINEL)
     with pytest.raises(ValueError, match="no such name"):
         resolve_self_references(expectation, table_name=None, data_source_name="ds_abc123")
+
+
+# ---------------------------------------------------------------------------
+# _extra_fields_rejected — the runner's schema_extras_rejected extraction
+# ---------------------------------------------------------------------------
+#
+# schema_extras_rejected is populated only when a result dict was rejected for carrying a
+# field its schema does not declare. That is observable in exactly one place: a ParseError
+# whose wrapped pydantic errors include an "extra fields not permitted" entry naming the
+# offending key. Every other failure path (a metric that raised, an assertion that the parsed
+# model changed a value) has nothing to report here, and a clean parse never reaches this
+# function at all -- the runner never calls it on the PARSED path.
+
+
+@pytest.mark.unit
+def test_extra_fields_rejected_populated_on_a_synthetic_extra_field_failure() -> None:
+    """A ParseError carrying pydantic's own 'extra fields not permitted' errors names the
+    offending keys, without parsing the exception's message text."""
+    exc = ParseError(
+        "synthetic failure for this test",
+        pydantic_errors=[
+            {
+                "loc": ("unexpected_extra_field",),
+                "msg": "extra fields not permitted",
+                "type": "value_error.extra",
+            },
+        ],
+    )
+    assert extra_fields_rejected(exc) == ["unexpected_extra_field"]
+
+
+@pytest.mark.unit
+def test_extra_fields_rejected_populated_from_a_real_dispatcher_parse_error() -> None:
+    """The same extraction against a ParseError the dispatcher actually raised, not a fabricated
+    one -- proving the ``pydantic_errors`` attribute and the extraction agree on the real shape
+    pydantic v1 produces for Extra.forbid."""
+    bad_dict = {"observed_value": 6, "unexpected_extra_field": "boom"}
+    with pytest.raises(ParseError) as exc_info:
+        as_typed(
+            bad_dict,
+            expectation_type="expect_column_mean_to_be_between",
+            result_format=ResultFormat.BOOLEAN_ONLY,
+        )
+    assert extra_fields_rejected(exc_info.value) == ["unexpected_extra_field"]
+
+
+@pytest.mark.unit
+def test_extra_fields_rejected_empty_for_a_parse_error_with_no_extra_field_errors() -> None:
+    """A ParseError raised for a reason other than an unpermitted extra field -- an unregistered
+    expectation type, say -- carries no pydantic_errors at all, and reports no rejected keys."""
+    exc = ParseError("no such expectation is registered")
+    assert extra_fields_rejected(exc) == []
+
+
+@pytest.mark.unit
+def test_extra_fields_rejected_empty_for_a_non_parse_error() -> None:
+    """Any other exception type (an AssertionError from assert_field_set_covered, say) is not a
+    schema rejection and reports no rejected keys."""
+    assert extra_fields_rejected(AssertionError("some other failure")) == []

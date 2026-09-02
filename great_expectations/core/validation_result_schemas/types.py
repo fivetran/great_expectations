@@ -59,7 +59,6 @@ class Finding(TypedDict, total=False):
     raw_field_set: List[str]
     raw_field_types: Dict[str, str]  # field name -> RuntimeTypeName value
     matched_variant: Optional[str]
-    schema_required_fields_present: List[str]
-    schema_optional_fields_present: List[str]
+    schema_fields_absent_from_result: List[str]
     schema_extras_rejected: List[str]
     error_summary: Optional[str]
