@@ -104,4 +104,24 @@ class SqlBackendSpec(DataSourceSpec):
     where it is not.
     """
 
+    integer_column_type_name: str = "INTEGER"
+    """The type name this dialect reports for a plain integer column, defaulting to the ANSI
+    spelling every SQL dialect this suite has measured so far actually reports.
+
+    Some dialects introspect an integer column under a different name than the one the test
+    fixture asked for when creating it -- the name a case checks against is a property of what
+    the *server* reports, not of what the schema declaration requested, and those two can differ.
+    A case that needs to assert against this column's reported type name reads it from here rather
+    than hardcoding a name, so a dialect that spells it differently declares the name it actually
+    uses instead of failing a case that assumed the wrong spelling.
+    """
+
+    non_integer_column_type_name: str = "VARCHAR"
+    """A type name this dialect never reports for an integer column, defaulting to the character
+    type name every dialect this suite has measured so far reports under that spelling.
+
+    Paired with ``integer_column_type_name`` for a case that needs a type name its declared type
+    is guaranteed not to match.
+    """
+
     insert_parameter_limit: Optional[int] = None

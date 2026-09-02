@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import inspect
 import sys
+from dataclasses import replace
 from typing import (
     TYPE_CHECKING,
     Callable,
@@ -182,6 +183,58 @@ def _engine_applies(config: DataSourceTestConfig, case: GoldCase) -> bool:
     return engine in case.engines
 
 
+_TYPE_LIST_CASE_KEY: Final[str] = gxe.ExpectColumnValuesToBeInTypeList(
+    column="increasing_key", type_list=["INTEGER"]
+).expectation_type
+_TYPE_CASE_KEY: Final[str] = gxe.ExpectColumnValuesToBeOfType(
+    column="increasing_key", type_="INTEGER"
+).expectation_type
+# The two case keys whose passing/failing configurations assert a SQL dialect type name rather
+# than a fixture-shape-independent fact. A type name is a property of the dialect the data source
+# under test speaks, not something the case table can hardcode once for every backend, so these
+# two are rebuilt per data source from that data source's own declaration below rather than taken
+# verbatim from the case table.
+
+
+def _resolve_case_for_config(case: GoldCase, config: DataSourceTestConfig) -> GoldCase:
+    """Rebuild `case`'s passing/failing configurations from `config`'s declared type names, for
+    the two cases that assert against a SQL dialect type name.
+
+    Every other case is returned unchanged. For the two type-name cases, `config`'s spec is always
+    a `SqlBackendSpec` -- both cases restrict `engines` to SQL -- so its declared
+    `integer_column_type_name`/`non_integer_column_type_name` are read directly rather than
+    branched on which data source this is. A spec that declares nothing still resolves here,
+    to the same names the case table's own literals spell, so this rebuild is a no-op for it.
+    """
+    if case.key not in (_TYPE_LIST_CASE_KEY, _TYPE_CASE_KEY):
+        return case
+    spec = config.DATA_SOURCE_SPEC
+    assert isinstance(spec, SqlBackendSpec), (
+        f"gold case {case.key!r} is restricted to SQL engines, but {config.test_id!r}'s spec is "
+        f"{type(spec).__name__}, not SqlBackendSpec"
+    )
+    integer_name = spec.integer_column_type_name
+    non_integer_name = spec.non_integer_column_type_name
+    if case.key == _TYPE_LIST_CASE_KEY:
+        # BIGINT/SMALLINT stay as fixed fallback alternatives alongside the declared name;
+        # de-duplicated so a dialect that declares one of them verbatim doesn't repeat it.
+        type_list = list(dict.fromkeys([integer_name, "BIGINT", "SMALLINT"]))
+        return replace(
+            case,
+            passing=gxe.ExpectColumnValuesToBeInTypeList(
+                column="increasing_key", type_list=type_list
+            ),
+            failing=gxe.ExpectColumnValuesToBeInTypeList(
+                column="increasing_key", type_list=[non_integer_name]
+            ),
+        )
+    return replace(
+        case,
+        passing=gxe.ExpectColumnValuesToBeOfType(column="increasing_key", type_=integer_name),
+        failing=gxe.ExpectColumnValuesToBeOfType(column="increasing_key", type_=non_integer_name),
+    )
+
+
 def _test_config_for(case: GoldCase, config: DataSourceTestConfig) -> _TestConfig:
     """The `_TestConfig` the existing indirect `_batch_setup_for_datasource` fixture consumes, built
     from `case`'s fixture shape and the shared fixture data `gold_expectation_cases` publishes.
@@ -237,10 +290,11 @@ def build_gold_case_params(
         for config in candidates:
             if not _engine_applies(config, case):
                 continue
+            resolved_case = _resolve_case_for_config(case, config)
             params.append(
                 pytest.param(
-                    _test_config_for(case, config),
-                    case,
+                    _test_config_for(resolved_case, config),
+                    resolved_case,
                     id=f"{config.test_id}-{case.key}",
                     marks=[config.pytest_mark, pytest.mark.gold],
                 )
@@ -1009,6 +1063,106 @@ class TestBuildGoldCaseParams:
     def test_a_case_declaring_empty_engines_shape_is_rejected_at_construction(self) -> None:
         with pytest.raises(ValueError, match="empty engine set"):
             _make_throwaway_case("empty_engines_case", engines=frozenset())
+
+    @pytest.mark.parametrize("case_key", [_TYPE_LIST_CASE_KEY, _TYPE_CASE_KEY])
+    def test_default_spec_resolves_type_name_case_byte_identical_to_the_case_table(
+        self, case_key: str
+    ) -> None:
+        # A backend spec that declares nothing for the two type-name fields must produce the
+        # exact configurations the case table already carries for these two cases -- the
+        # rebuild in `_resolve_case_for_config` is required to be a no-op for a default spec,
+        # not merely equivalent in effect.
+        [table_case] = [case for case in GOLD_CASES if case.key == case_key]
+        default_spec = _make_gold_backend_spec()
+        config_class = _make_config_class(f"DefaultSpecBackend-{case_key}", default_spec)
+
+        resolved = _resolve_case_for_config(
+            table_case, cast("DataSourceTestConfig", config_class())
+        )
+
+        assert resolved.passing == table_case.passing
+        assert resolved.failing == table_case.failing
+
+    def test_declared_type_names_flow_into_the_in_type_list_case(self) -> None:
+        [table_case] = [case for case in GOLD_CASES if case.key == _TYPE_LIST_CASE_KEY]
+        declaring_spec = _make_gold_backend_spec(
+            integer_column_type_name="NUMBER",
+            non_integer_column_type_name="STRING",
+        )
+        config_class = _make_config_class("DeclaringSpecBackend-typelist", declaring_spec)
+
+        resolved = _resolve_case_for_config(
+            table_case, cast("DataSourceTestConfig", config_class())
+        )
+
+        assert isinstance(resolved.passing, gxe.ExpectColumnValuesToBeInTypeList)
+        assert resolved.passing.type_list == ["NUMBER", "BIGINT", "SMALLINT"]
+        assert isinstance(resolved.failing, gxe.ExpectColumnValuesToBeInTypeList)
+        assert resolved.failing.type_list == ["STRING"]
+        # The declaration must actually have moved the result -- proven by disagreeing with the
+        # table's own hardcoded literals, not merely by matching some value.
+        assert resolved.passing != table_case.passing
+        assert resolved.failing != table_case.failing
+
+    def test_declared_type_names_flow_into_the_of_type_case(self) -> None:
+        [table_case] = [case for case in GOLD_CASES if case.key == _TYPE_CASE_KEY]
+        declaring_spec = _make_gold_backend_spec(
+            integer_column_type_name="NUMBER",
+            non_integer_column_type_name="STRING",
+        )
+        config_class = _make_config_class("DeclaringSpecBackend-oftype", declaring_spec)
+
+        resolved = _resolve_case_for_config(
+            table_case, cast("DataSourceTestConfig", config_class())
+        )
+
+        assert isinstance(resolved.passing, gxe.ExpectColumnValuesToBeOfType)
+        assert resolved.passing.type_ == "NUMBER"
+        assert isinstance(resolved.failing, gxe.ExpectColumnValuesToBeOfType)
+        assert resolved.failing.type_ == "STRING"
+        assert resolved.passing != table_case.passing
+        assert resolved.failing != table_case.failing
+
+    def test_a_case_outside_the_type_name_pair_is_returned_unchanged(self) -> None:
+        case = _make_throwaway_case("unrelated_case")
+        declaring_spec = _make_gold_backend_spec(
+            integer_column_type_name="NUMBER",
+            non_integer_column_type_name="STRING",
+        )
+        config_class = _make_config_class("DeclaringSpecBackend-unrelated", declaring_spec)
+
+        resolved = _resolve_case_for_config(case, cast("DataSourceTestConfig", config_class()))
+
+        assert resolved is case
+
+    def test_build_gold_case_params_carries_the_resolved_case_through(self) -> None:
+        # The end-to-end path: a case built through `build_gold_case_params` for a data source
+        # declaring non-default type names must carry the resolved configurations, not the
+        # case table's originals, in both halves of its param.
+        [table_case] = [case for case in GOLD_CASES if case.key == _TYPE_CASE_KEY]
+        declaring_spec = _make_gold_backend_spec(
+            label="declaring-of-type-backend",
+            public_name="Declaring Of Type Backend",
+            marker="postgresql",
+            ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="postgresql"),
+            integer_column_type_name="NUMBER",
+            non_integer_column_type_name="STRING",
+        )
+        with isolated_registry():
+            register_sql_config(_make_config_class("DeclaringOfTypeBackend", declaring_spec))
+
+            params = build_gold_case_params([table_case], measurement_mode=True)
+
+        assert len(params) == 1
+        [param] = params
+        resolved_case = _param_gold_case(param)
+        resolved_test_config = _param_test_config(param)
+        assert isinstance(resolved_case.passing, gxe.ExpectColumnValuesToBeOfType)
+        assert resolved_case.passing.type_ == "NUMBER"
+        assert resolved_test_config.data.equals(GOLD_FIXTURE_DATA)
+        # The param carries the declaring backend's own config, which is what makes the type
+        # name above attributable to that backend's declaration rather than to the default.
+        assert resolved_test_config.data_source_config.label == "declaring-of-type-backend"
 
 
 # --------------------------------------------------------------------------------------------
