@@ -38,7 +38,7 @@ from typing import TYPE_CHECKING, Callable, Generator, List, Optional
 import pytest
 
 from great_expectations.core.result_format import ResultFormat
-from great_expectations.core.validation_result_schemas.dispatcher import ParseError, as_typed
+from great_expectations.core.validation_result_schemas.dispatcher import ParseError
 from great_expectations.core.validation_result_schemas.findings_emitter import (
     FindingsWriter,
 )
@@ -149,7 +149,7 @@ def test_validation_result_schema_matrix(
     the type string is a transport name, and string-matching on it silently mis-keyed every data
     source whose type name is neither one of the three engine names nor a listed dialect -- the
     file-backed pandas and Spark configs and the SQL Server one, three of the eleven here. Those
-    three never reached the SQL root validator or the Spark schema override at all, and their
+    three would have carried a wrong ``engine_hint`` into every engine-keyed resolution, and their
     findings were filed under an engine name that is not one of the three the findings vocabulary
     admits.
     """
@@ -214,16 +214,7 @@ def test_validation_result_schema_matrix(
     _reject_vacuous_result(case, result_format, engine_hint, raw_evr, raw_result, _write)
 
     try:
-        # Call as_typed() via the dispatcher directly so we pass the exact result_format
-        # that was used for the validate() call.  raw_evr.as_typed() reads result_format
-        # from expectation_config.kwargs which may default to SUMMARY instead of the
-        # result_format we actually exercised.
-        typed = as_typed(
-            raw_result,
-            expectation_type=expectation_type,
-            result_format=result_format,
-            engine_hint=engine_hint,
-        )
+        typed = raw_evr.as_typed(result_format=result_format, engine_hint=engine_hint)
     except Exception as exc:
         extras_rejected = _extra_fields_rejected(exc)
         _write(
