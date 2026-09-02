@@ -92,11 +92,16 @@ class SQLBatchTestSetup(BatchTestSetup[_SqlConfigT, TableAsset], ABC, Generic[_S
         default: InferrableTypesLookup = {
             str: sqltypes.VARCHAR,
             int: sqltypes.INTEGER,
-            # `Double`, not a bare DECIMAL: an unqualified decimal is read by several dialects
-            # as scale zero, which rounds every fractional value in a fixture frame to an
-            # integer on write, so an assertion about a value ends up asserting about a
-            # different one.
-            float: sqltypes.Double(),
+            # Not a bare DECIMAL: an unqualified decimal is read by several dialects as scale
+            # zero, which rounds every fractional value in a fixture frame to an integer on
+            # write, so an assertion about a value ends up asserting about a different one.
+            # Nor `Double`, which one dialect renders as a type its server does not have.
+            # A precision-carrying float resolves to double precision on the dialects that
+            # take a precision and to that dialect's own double elsewhere. It raises rather
+            # than compiling on Oracle, which is harmless only because Oracle declares its own
+            # override below -- removing that override would surface this, so the two belong
+            # together.
+            float: sqltypes.Float(precision=53),
             bool: sqltypes.BOOLEAN,
             date: sqltypes.DATE,
             # `DateTime`, not DATETIME or TIMESTAMP. Those two are emitted verbatim, and each is

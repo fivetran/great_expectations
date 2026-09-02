@@ -14,6 +14,7 @@ import os
 import pathlib
 import subprocess
 import sys
+from datetime import datetime
 from typing import TYPE_CHECKING, ClassVar, List, Mapping, Optional, Sequence, cast
 
 import pandas as pd
@@ -307,6 +308,71 @@ class TestSharedDefaultTypesSayWhatTheyMean:
                 f"the shared default for `float` is {instance!r}: a decimal type with no scale, "
                 "which several servers read as scale zero and round every fractional value away"
             )
+
+
+class TestSharedDefaultTypesRenderAsRecorded:
+    """What each dialect makes of the shared defaults, written down.
+
+    A default type is a per-dialect decision even though it is written once. The DDL it produces
+    is what each server actually sees, and a type can compile cleanly on every dialect and still
+    name something a particular server does not have -- which surfaces as a query error on that
+    backend alone, far from the line that caused it.
+
+    This does not know which renderings are valid; no local check can, since validity is the
+    server's opinion and only a run against one settles it. What it does is make the renderings
+    visible: editing a default changes this table in the same diff, so the per-backend
+    consequences are read at review time rather than discovered a continuous-integration run
+    later. A dialect absent from the environment is skipped, since each lane installs only its
+    own.
+    """
+
+    _RENDERED: ClassVar[Mapping[str, Mapping[str, str]]] = {
+        "postgresql": {"float": "FLOAT(53)", "datetime": "TIMESTAMP WITHOUT TIME ZONE"},
+        "mysql": {"float": "FLOAT(53)", "datetime": "DATETIME"},
+        "sqlite": {"float": "FLOAT", "datetime": "DATETIME"},
+        "mssql": {"float": "FLOAT(53)", "datetime": "DATETIME"},
+        "bigquery": {"float": "FLOAT64", "datetime": "DATETIME"},
+        "snowflake": {"float": "FLOAT", "datetime": "datetime"},
+        "redshift": {"float": "FLOAT(53)", "datetime": "TIMESTAMP WITHOUT TIME ZONE"},
+        "trino": {"float": "DOUBLE", "datetime": "TIMESTAMP"},
+        "databricks": {"float": "FLOAT", "datetime": "TIMESTAMP_NTZ"},
+        "singlestoredb": {"float": "FLOAT(53)", "datetime": "DATETIME"},
+    }
+    """Oracle is absent deliberately: it overrides both of these, so the shared default never
+    reaches its dialect -- and the float default raises rather than compiling there, which is
+    exactly what that override exists to avoid."""
+
+    def test_each_installed_dialect_renders_the_defaults_as_recorded(
+        self, tmp_path: pathlib.Path
+    ) -> None:
+        setup = _ThrowawayBatchTestSetup(
+            data=pd.DataFrame({"col_int": [1]}),
+            config=_ThrowawayDatasourceTestConfig(),
+            base_dir=tmp_path,
+            extra_data=_EXTRA_DATA,
+            context=gx.get_context(mode="ephemeral"),
+        )
+        defaults = setup.inferrable_types_lookup
+        by_name = {"float": defaults[float], "datetime": defaults[datetime]}
+
+        checked = []
+        for dialect_name, expected in self._RENDERED.items():
+            try:
+                dialect = sa_dialect_registry.load(dialect_name)()
+            except Exception:  # this lane does not install that dialect
+                continue
+            checked.append(dialect_name)
+            for label, sql_type in by_name.items():
+                instance = sql_type() if isinstance(sql_type, type) else sql_type
+                assert instance.compile(dialect=dialect) == expected[label], (
+                    f"{dialect_name} renders the shared default for `{label}` differently than "
+                    "recorded here; confirm the new rendering is a type that server has, then "
+                    "update this table in the same change"
+                )
+
+        # Non-vacuity: with no dialect loaded every assertion above is skipped, which would make
+        # this pass hardest exactly when it is checking nothing.
+        assert "sqlite" in checked, "no dialect was checked, so this proved nothing"
 
 
 class TestColumnTypeOverridesMergeOverSharedDefault:
