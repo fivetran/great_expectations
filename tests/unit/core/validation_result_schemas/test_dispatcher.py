@@ -25,6 +25,7 @@ from great_expectations.core.result_format import ResultFormat
 from great_expectations.core.validation_result_schemas.dispatcher import (
     _AMBIGUOUS_SHAPE_FORMAT,
     _FAMILY_CACHE,
+    _FORMAT_MAP,
     _FORMAT_ORDER,
     _SCHEMA_FIELDS,
     FAMILY_AGGREGATE,
@@ -297,7 +298,6 @@ class TestInferResultFormat:
     @pytest.mark.parametrize(
         ("result_dict", "expected"),
         [
-            (MAP_BOOLEAN_ONLY_DICT, ResultFormat.BOOLEAN_ONLY),
             (MAP_BASIC_DICT, ResultFormat.BASIC),
             (MAP_SUMMARY_DICT, ResultFormat.SUMMARY),
             (MAP_COMPLETE_DICT, ResultFormat.COMPLETE),
@@ -307,11 +307,17 @@ class TestInferResultFormat:
         assert infer_result_format(result_dict, family=FAMILY_MAP) == expected
 
     @pytest.mark.unit
-    def test_aggregate_empty_dict_is_boolean_only(self):
-        assert (
-            infer_result_format(AGG_BOOLEAN_ONLY_DICT, family=FAMILY_AGGREGATE)
-            == ResultFormat.BOOLEAN_ONLY
-        )
+    @pytest.mark.parametrize("family", [FAMILY_MAP, FAMILY_AGGREGATE])
+    def test_empty_dict_is_undetermined(self, family: str):
+        """An empty result dict does not, by itself, name a format.
+
+        BOOLEAN_ONLY renders as an empty dict, but it is not the only format
+        that can: some expectations (expect_column_to_exist, for one) emit an
+        empty result dict at every format.  Emptiness is consistent with any
+        of them, so it cannot discriminate -- the caller's fallback chain
+        (explicit -> shape -> configured -> most permissive) decides instead.
+        """
+        assert infer_result_format({}, family=family) is None
 
     @pytest.mark.unit
     def test_aggregate_complete_shape(self):
@@ -333,6 +339,30 @@ class TestInferResultFormat:
             )
             is None
         )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("expectation_type", "family"),
+    [
+        (MAP_EXPECTATION, FAMILY_MAP),
+        (AGG_EXPECTATION, FAMILY_AGGREGATE),
+    ],
+)
+@pytest.mark.parametrize("result_format", list(ResultFormat))
+def test_explicit_result_format_wins_for_empty_dict(
+    expectation_type: str, family: str, result_format: ResultFormat
+):
+    """An empty dict is undetermined on its own, but an explicit result_format is
+    still authoritative -- every field of every variant is Optional, so {} parses
+    cleanly under any of them, at any format the caller asks for.
+    """
+    result = as_typed(
+        {},
+        expectation_type=expectation_type,
+        result_format=result_format,
+    )
+    assert type(result) is _FORMAT_MAP[family][result_format]
 
 
 @pytest.mark.unit

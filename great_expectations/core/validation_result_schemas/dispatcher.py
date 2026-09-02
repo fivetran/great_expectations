@@ -288,12 +288,14 @@ def infer_result_format(result_dict: Dict[str, Any], *, family: str) -> Optional
     Returns ``None`` when the key set does not discriminate — an aggregate result
     whose BASIC, SUMMARY, and COMPLETE payloads are all ``{"observed_value": ...}``,
     for example.  Callers decide what to do with an undetermined format.
+
+    An empty dict is one such undetermined case, not a special one: BOOLEAN_ONLY
+    renders as an empty result dict, but that is an implication in one direction
+    only.  Some expectations (``expect_column_to_exist``, for one) report only a
+    success verdict and render an empty dict at every format, so an empty dict does
+    not, on its own, imply the result was rendered at BOOLEAN_ONLY.
     """
     keys = set(result_dict)
-    if not keys:
-        # Every family renders BOOLEAN_ONLY as an empty result dict.
-        return ResultFormat.BOOLEAN_ONLY
-
     for fmt, discriminating in _DISCRIMINATING_FIELDS[family]:
         if keys & discriminating:
             return fmt

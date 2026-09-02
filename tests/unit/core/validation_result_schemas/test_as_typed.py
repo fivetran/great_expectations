@@ -165,6 +165,21 @@ def agg_evrs(pandas_batch: Batch) -> Dict[ResultFormat, ExpectationValidationRes
     }
 
 
+@pytest.fixture(scope="module")
+def column_exist_complete_evr(pandas_batch: Batch) -> ExpectationValidationResult:
+    """A real aggregate-family EVR whose result dict is empty at every ResultFormat.
+
+    expect_column_to_exist reports only success/failure -- no result payload is
+    ever rendered, at BOOLEAN_ONLY or otherwise. Validated at COMPLETE here so an
+    empty-dict-implies-BOOLEAN_ONLY inference would misreport the format this EVR
+    was actually rendered at.
+    """
+    return pandas_batch.validate(
+        gxe.ExpectColumnToExist(column="col_a"),
+        result_format=ResultFormat.COMPLETE,
+    )
+
+
 class TestRealValidateResults:
     """as_typed() with no arguments types results produced by an actual validate()."""
 
@@ -185,7 +200,25 @@ class TestRealValidateResults:
 
     @pytest.mark.unit
     def test_map_boolean_only(self, map_evrs: Dict[ResultFormat, ExpectationValidationResult]):
+        """A real BOOLEAN_ONLY map result is an empty dict -- genuinely ambiguous,
+        since some map expectations also render an empty dict at other formats.
+        result_format is not persisted into kwargs by validate(), so nothing here
+        can recover BOOLEAN_ONLY specifically; the most permissive variant is
+        returned instead, and it parses the empty dict without complaint.
+        """
         typed = map_evrs[ResultFormat.BOOLEAN_ONLY].as_typed()
+        assert isinstance(typed, MapCompleteResult)
+
+    @pytest.mark.unit
+    def test_map_boolean_only_explicit_format(
+        self, map_evrs: Dict[ResultFormat, ExpectationValidationResult]
+    ):
+        """Passing the format the EVR was actually rendered at still recovers the
+        narrow variant -- the ambiguity above is about *inference*, not parsing.
+        """
+        typed = map_evrs[ResultFormat.BOOLEAN_ONLY].as_typed(
+            result_format=ResultFormat.BOOLEAN_ONLY
+        )
         assert isinstance(typed, MapBooleanOnlyResult)
 
     @pytest.mark.unit
@@ -237,8 +270,34 @@ class TestRealValidateResults:
     def test_aggregate_boolean_only(
         self, agg_evrs: Dict[ResultFormat, ExpectationValidationResult]
     ):
+        """As with the map family: a real, empty BOOLEAN_ONLY result cannot be
+        told apart from any other format that also renders empty, so the widest
+        variant is returned rather than a guess that happens to be narrowest.
+        """
         typed = agg_evrs[ResultFormat.BOOLEAN_ONLY].as_typed()
+        assert isinstance(typed, AggregateCompleteResult)
+
+    @pytest.mark.unit
+    def test_aggregate_boolean_only_explicit_format(
+        self, agg_evrs: Dict[ResultFormat, ExpectationValidationResult]
+    ):
+        typed = agg_evrs[ResultFormat.BOOLEAN_ONLY].as_typed(
+            result_format=ResultFormat.BOOLEAN_ONLY
+        )
         assert isinstance(typed, AggregateBooleanOnlyResult)
+
+    @pytest.mark.unit
+    def test_empty_result_at_complete_is_not_boolean_only(
+        self, column_exist_complete_evr: ExpectationValidationResult
+    ):
+        """expect_column_to_exist renders {} at COMPLETE just as it does at
+        BOOLEAN_ONLY. Without an empty-dict-implies-BOOLEAN_ONLY special case,
+        as_typed() with no arguments falls through to the widest aggregate
+        variant instead of mislabeling this a boolean-only result.
+        """
+        typed = column_exist_complete_evr.as_typed()
+        assert isinstance(typed, AggregateCompleteResult)
+        assert not isinstance(typed, AggregateBooleanOnlyResult)
 
     @pytest.mark.unit
     @pytest.mark.parametrize(
