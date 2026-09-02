@@ -1316,10 +1316,14 @@ def docs_snippet_tests(
             "Opt into a suite meant to run in a lane of its own (e.g. 'gold') instead of "
             "excluding it, for the given marker."
         ),
+        "gold_measurement": (
+            "Forward --gold-measurement to pytest, substituting every configured, "
+            "engine-recognized data source for the gold tier's declared membership."
+        ),
     },
     iterable=["service_names", "up_services", "verbose"],
 )
-def ci_tests(  # noqa: C901 - too complex (9)
+def ci_tests(  # noqa: C901, PLR0912 - too complex (14), too many branches (13)
     ctx: Context,
     marker: str,
     up_services: bool = False,
@@ -1339,6 +1343,7 @@ def ci_tests(  # noqa: C901 - too complex (9)
     W: str | None = None,
     pty: bool = True,
     suite: str = "",
+    gold_measurement: bool = False,
 ):
     """
     Run tests in CI.
@@ -1389,6 +1394,9 @@ def ci_tests(  # noqa: C901 - too complex (9)
     if W:
         # https://docs.python.org/3/library/warnings.html#describing-warning-filters
         pytest_options.append(f"-W={W}")
+
+    if gold_measurement:
+        pytest_options.append("--gold-measurement")
 
     for test_deps in _get_marker_dependencies(marker):
         if restart_services or up_services:
