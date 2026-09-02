@@ -144,8 +144,8 @@ def test_expectation_configuration_to_domain_obj(notes: str | list[str] | None):
 
     # Check that the expectation object has the same properties as the config
     assert expectation.expectation_type == expectation_type
-    assert expectation.column == column
-    assert sorted(expectation.value_set) == sorted(expected_list)
+    assert expectation.column == column  # type: ignore[attr-defined]
+    assert sorted(expectation.value_set) == sorted(expected_list)  # type: ignore[attr-defined]
     assert expectation.notes == notes
     assert expectation.meta == meta
 

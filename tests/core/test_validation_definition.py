@@ -95,7 +95,7 @@ def validation_definition(ephemeral_context: EphemeralDataContext) -> Validation
     context = ephemeral_context
     batch_definition = (
         context.data_sources.add_pandas(DATA_SOURCE_NAME)
-        .add_csv_asset(ASSET_NAME, "taxi.csv")  # type: ignore # FIXME CoP
+        .add_csv_asset(ASSET_NAME, "taxi.csv")  # type: ignore[arg-type] # FIXME CoP
         .add_batch_definition(BATCH_DEFINITION_NAME)
     )
     return context.validation_definitions.add(
@@ -426,7 +426,7 @@ class TestValidationDefinitionSerialization:
         context: EphemeralDataContext,
     ) -> tuple[PandasDatasource, CSVAsset, BatchDefinition]:
         ds = context.data_sources.add_pandas(self.ds_name)
-        asset = ds.add_csv_asset(self.asset_name, "data.csv")
+        asset = ds.add_csv_asset(self.asset_name, "data.csv")  # type: ignore[arg-type]
         batch_definition = asset.add_batch_definition(self.batch_definition_name)
 
         return ds, asset, batch_definition
@@ -445,10 +445,10 @@ class TestValidationDefinitionSerialization:
         context = in_memory_runtime_context
         pandas_ds, csv_asset, batch_definition = validation_definition_data
 
-        ds_id = str(uuid.uuid4())
+        ds_id = uuid.uuid4()
         pandas_ds.id = ds_id
 
-        asset_id = str(uuid.uuid4())
+        asset_id = uuid.uuid4()
         csv_asset.id = asset_id
 
         batch_definition_id = str(uuid.uuid4())
@@ -471,11 +471,11 @@ class TestValidationDefinitionSerialization:
             "data": {
                 "datasource": {
                     "name": pandas_ds.name,
-                    "id": ds_id,
+                    "id": str(ds_id),
                 },
                 "asset": {
                     "name": csv_asset.name,
-                    "id": asset_id,
+                    "id": str(asset_id),
                 },
                 "batch_definition": {
                     "name": batch_definition.name,

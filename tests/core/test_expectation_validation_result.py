@@ -182,72 +182,64 @@ def test_expectation_suite_validation_result_returns_expected_shape(
         suite_name="empty_suite",
         results=[
             ExpectationValidationResult(
-                **{
-                    "meta": {},
-                    "success": True,
-                    "exception_info": {
-                        "raised_exception": False,
-                        "exception_traceback": None,
-                        "exception_message": None,
+                meta={},
+                success=True,
+                exception_info={
+                    "raised_exception": False,
+                    "exception_traceback": None,
+                    "exception_message": None,
+                },
+                result={
+                    "element_count": 100000,
+                    "unexpected_count": 1,
+                    "unexpected_percent": 0.001,
+                    "partial_unexpected_list": [7.0],
+                    "missing_count": 0,
+                    "missing_percent": 0.0,
+                    "unexpected_percent_total": 0.001,
+                    "unexpected_percent_nonmissing": 0.001,
+                    "partial_unexpected_counts": [{"value": 7.0, "count": 1}],
+                    "partial_unexpected_index_list": [48422],
+                },
+                expectation_config=ExpectationConfiguration(
+                    meta={},
+                    notes="Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501 # FIXME CoP
+                    id="9f76d0b5-9d99-4ed9-a269-339b35e60490",
+                    kwargs={
+                        "batch_id": "default_pandas_datasource-#ephemeral_pandas_asset",
+                        "mostly": 0.95,
+                        "column": "passenger_count",
+                        "min_value": 0.0,
+                        "max_value": 6.0,
                     },
-                    "result": {
-                        "element_count": 100000,
-                        "unexpected_count": 1,
-                        "unexpected_percent": 0.001,
-                        "partial_unexpected_list": [7.0],
-                        "missing_count": 0,
-                        "missing_percent": 0.0,
-                        "unexpected_percent_total": 0.001,
-                        "unexpected_percent_nonmissing": 0.001,
-                        "partial_unexpected_counts": [{"value": 7.0, "count": 1}],
-                        "partial_unexpected_index_list": [48422],
-                    },
-                    "expectation_config": ExpectationConfiguration(
-                        **{
-                            "meta": {},
-                            "notes": "Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501 # FIXME CoP
-                            "id": "9f76d0b5-9d99-4ed9-a269-339b35e60490",
-                            "kwargs": {
-                                "batch_id": "default_pandas_datasource-#ephemeral_pandas_asset",
-                                "mostly": 0.95,
-                                "column": "passenger_count",
-                                "min_value": 0.0,
-                                "max_value": 6.0,
-                            },
-                            "type": "expect_column_values_to_be_between",
-                        }
-                    ),
-                }
+                    type="expect_column_values_to_be_between",
+                ),
             ),
             ExpectationValidationResult(
-                **{
-                    "meta": {},
-                    "success": True,
-                    "exception_info": {
-                        "raised_exception": False,
-                        "exception_traceback": None,
-                        "exception_message": None,
+                meta={},
+                success=True,
+                exception_info={
+                    "raised_exception": False,
+                    "exception_traceback": None,
+                    "exception_message": None,
+                },
+                result={
+                    "element_count": 100000,
+                    "unexpected_count": 0,
+                    "unexpected_percent": 0.0,
+                    "partial_unexpected_list": [],
+                    "partial_unexpected_counts": [],
+                    "partial_unexpected_index_list": [],
+                },
+                expectation_config=ExpectationConfiguration(
+                    meta={},
+                    id="19c0e80c-d676-4b01-a4a3-2a568552d368",
+                    kwargs={
+                        "batch_id": "default_pandas_datasource-#ephemeral_pandas_asset",
+                        "column": "trip_distance",
                     },
-                    "result": {
-                        "element_count": 100000,
-                        "unexpected_count": 0,
-                        "unexpected_percent": 0.0,
-                        "partial_unexpected_list": [],
-                        "partial_unexpected_counts": [],
-                        "partial_unexpected_index_list": [],
-                    },
-                    "expectation_config": ExpectationConfiguration(
-                        **{
-                            "meta": {},
-                            "id": "19c0e80c-d676-4b01-a4a3-2a568552d368",
-                            "kwargs": {
-                                "batch_id": "default_pandas_datasource-#ephemeral_pandas_asset",
-                                "column": "trip_distance",
-                            },
-                            "type": "expect_column_values_to_not_be_null",
-                        }
-                    ),
-                }
+                    type="expect_column_values_to_not_be_null",
+                ),
             ),
         ],
         result_url=validation_result_url,
@@ -325,27 +317,28 @@ def test_expectation_suite_validation_asset_name_access(
     # arrange
     svr = ExpectationSuiteValidationResult(
         meta=ExpectationSuiteValidationResultMeta(
-            **{
-                "active_batch_definition": {
-                    "batch_identifiers": {},
-                    "data_asset_name": "taxi_data_1.csv",
-                    "data_connector_name": "default_inferred_data_connector_name",
-                    "datasource_name": "pandas",
-                },
-                "batch_markers": {
-                    "ge_load_time": "20220727T154327.630107Z",
-                    "pandas_data_fingerprint": "c4f929e6d4fab001fedc9e075bf4b612",
-                },
-                "batch_spec": {"path": "../data/taxi_data_1.csv"},
-                "checkpoint_name": "single_validation_checkpoint",
-                "expectation_suite_name": "taxi_suite_1",
-                "great_expectations_version": "0.15.15",
-                "run_id": {
-                    "run_name": "20220727-114327-my-run-name-template",
-                    "run_time": "2022-07-27T11:43:27.625252+00:00",
-                },
-                "validation_time": "20220727T154327.701100Z",
-            }
+            active_batch_definition={  # type: ignore[typeddict-item]
+                "batch_identifiers": {},
+                "data_asset_name": "taxi_data_1.csv",
+                "data_connector_name": "default_inferred_data_connector_name",
+                "datasource_name": "pandas",
+            },
+            batch_markers={  # type: ignore[typeddict-item]
+                "ge_load_time": "20220727T154327.630107Z",
+                "pandas_data_fingerprint": "c4f929e6d4fab001fedc9e075bf4b612",
+            },
+            batch_spec={"path": "../data/taxi_data_1.csv"},  # type: ignore[typeddict-item]
+            checkpoint_name="single_validation_checkpoint",
+            expectation_suite_name="taxi_suite_1",
+            great_expectations_version="0.15.15",
+            run_id={  # type: ignore[typeddict-item]
+                "run_name": "20220727-114327-my-run-name-template",
+                "run_time": "2022-07-27T11:43:27.625252+00:00",
+            },
+            validation_time="20220727T154327.701100Z",
+            batch_parameters=None,
+            checkpoint_id=None,
+            validation_id=None,
         ),
         success=True,
         statistics={
@@ -357,38 +350,34 @@ def test_expectation_suite_validation_asset_name_access(
         suite_name="empty_suite",
         results=[
             ExpectationValidationResult(
-                **{
-                    "meta": {},
-                    "success": True,
-                    "exception_info": {
-                        "raised_exception": False,
-                        "exception_traceback": None,
-                        "exception_message": None,
+                meta={},
+                success=True,
+                exception_info={
+                    "raised_exception": False,
+                    "exception_traceback": None,
+                    "exception_message": None,
+                },
+                result={
+                    "element_count": 100000,
+                    "unexpected_count": 1,
+                    "unexpected_percent": 0.001,
+                    "partial_unexpected_list": [7.0],
+                    "missing_count": 0,
+                    "missing_percent": 0.0,
+                    "unexpected_percent_total": 0.001,
+                    "unexpected_percent_nonmissing": 0.001,
+                    "partial_unexpected_counts": [{"value": 7.0, "count": 1}],
+                    "partial_unexpected_index_list": [48422],
+                },
+                expectation_config=ExpectationConfiguration(
+                    meta={},
+                    notes="Test notes",
+                    id="9f76d0b5-9d99-4ed9-a269-339b35e60490",
+                    kwargs={
+                        "batch_id": "default_pandas_datasource-#ephemeral_pandas_asset",
                     },
-                    "result": {
-                        "element_count": 100000,
-                        "unexpected_count": 1,
-                        "unexpected_percent": 0.001,
-                        "partial_unexpected_list": [7.0],
-                        "missing_count": 0,
-                        "missing_percent": 0.0,
-                        "unexpected_percent_total": 0.001,
-                        "unexpected_percent_nonmissing": 0.001,
-                        "partial_unexpected_counts": [{"value": 7.0, "count": 1}],
-                        "partial_unexpected_index_list": [48422],
-                    },
-                    "expectation_config": ExpectationConfiguration(
-                        **{
-                            "meta": {},
-                            "notes": "Test notes",
-                            "id": "9f76d0b5-9d99-4ed9-a269-339b35e60490",
-                            "kwargs": {
-                                "batch_id": "default_pandas_datasource-#ephemeral_pandas_asset",
-                            },
-                            "type": "expect_column_values_to_be_between",
-                        }
-                    ),
-                }
+                    type="expect_column_values_to_be_between",
+                ),
             ),
         ],
         result_url=validation_result_url,

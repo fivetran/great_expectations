@@ -202,7 +202,7 @@ class TestInit:
         """
 
         class NotSerializable:
-            def __dict__(self):
+            def __dict__(self):  # type: ignore[explicit-override]
                 raise NotImplementedError
 
         test_meta = {"this_is_not_json_serializable": NotSerializable()}
@@ -225,7 +225,7 @@ class TestCRUDMethods:
         return gxe.ExpectColumnValuesToBeInSet(
             column="a",
             value_set=[1, 2, 3],
-            result_format="BASIC",
+            result_format={"result_format": "BASIC"},
         )
 
     @pytest.mark.unit
@@ -846,12 +846,12 @@ class TestExpectationsAreEqualish:
                 gxe.ExpectColumnValuesToBeInSet(
                     column="a",
                     value_set=[1, 2, 3],
-                    result_format="BASIC",
+                    result_format={"result_format": "BASIC"},
                 ),
                 gxe.ExpectColumnValuesToBeInSet(
                     column="a",
                     value_set=[1, 2, 3],
-                    result_format="BASIC",
+                    result_format={"result_format": "BASIC"},
                 ),
                 id="same args passed in",
             ),
