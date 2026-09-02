@@ -291,20 +291,22 @@ class TestSharedDefaultTypesSayWhatTheyMean:
         )
         return setup.inferrable_types_lookup
 
-    def test_the_float_default_states_its_precision(self, tmp_path: pathlib.Path) -> None:
-        """An unqualified decimal type is read by several servers as scale zero, which rounds
-        every fractional value in a fixture frame to an integer on write -- silently, since the
-        DDL is valid. The default has to say what it means instead of inheriting that.
+    def test_the_float_default_is_not_an_unscaled_decimal(self, tmp_path: pathlib.Path) -> None:
+        """A decimal type with no scale is the shape that silently truncates.
+
+        Several dialects read an unqualified decimal as scale zero, so every fractional value
+        in a fixture frame is rounded to an integer on write -- with valid DDL and no error. A
+        type that names its own precision (a double, or a decimal carrying an explicit scale)
+        leaves the server nothing to decide.
         """
         default_float = self._shared_defaults(tmp_path)[float]
         instance = default_float() if isinstance(default_float, type) else default_float
 
-        precision = getattr(instance, "precision", None)
-        scale = getattr(instance, "scale", None)
-        assert precision is not None or scale is not None, (
-            f"the shared default for `float` is {instance!r}, which carries neither precision "
-            "nor scale, so each server chooses -- and several choose scale zero"
-        )
+        if isinstance(instance, sa.Numeric) and not isinstance(instance, (sa.Float, sa.Double)):
+            assert instance.scale is not None, (
+                f"the shared default for `float` is {instance!r}: a decimal type with no scale, "
+                "which several servers read as scale zero and round every fractional value away"
+            )
 
 
 class TestColumnTypeOverridesMergeOverSharedDefault:

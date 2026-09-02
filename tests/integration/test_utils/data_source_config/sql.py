@@ -92,16 +92,18 @@ class SQLBatchTestSetup(BatchTestSetup[_SqlConfigT, TableAsset], ABC, Generic[_S
         default: InferrableTypesLookup = {
             str: sqltypes.VARCHAR,
             int: sqltypes.INTEGER,
-            # Not a bare DECIMAL: several dialects read that as scale zero and round every
-            # fractional value in a fixture frame to an integer on write, so an assertion about
-            # a value ends up asserting about a different value.
-            float: sqltypes.FLOAT(precision=53),
+            # `Double`, not a bare DECIMAL: an unqualified decimal is read by several dialects
+            # as scale zero, which rounds every fractional value in a fixture frame to an
+            # integer on write, so an assertion about a value ends up asserting about a
+            # different one.
+            float: sqltypes.Double(),
             bool: sqltypes.BOOLEAN,
             date: sqltypes.DATE,
-            # Not DATETIME: PostgreSQL and Oracle have no such type and reject the DDL outright,
-            # so a fixture frame carrying a datetime column cannot be created at all there.
-            datetime: sqltypes.TIMESTAMP,
-            pd.Timestamp: sqltypes.TIMESTAMP,
+            # `DateTime`, not DATETIME or TIMESTAMP. Those two are emitted verbatim, and each is
+            # wrong somewhere: PostgreSQL has no DATETIME and rejects the DDL, while in T-SQL
+            # TIMESTAMP is a row-version column that refuses an explicit value entirely.
+            datetime: sqltypes.DateTime(),
+            pd.Timestamp: sqltypes.DateTime(),
         }
         return {**default, **self.backend_spec.column_type_overrides}
 
