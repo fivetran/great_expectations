@@ -1,9 +1,10 @@
 """Unit tests for per-expectation schema overrides.
 
 Covers:
-- expect_column_values_to_be_of_type pandas-path payload matches MapBasicResult,
-  NOT ExpectColumnValuesToBeOfTypeSqlSparkResult.
-- expect_column_values_to_be_of_type SQL/Spark-path payload matches the override.
+- expect_column_values_to_be_of_type's map-shaped payload (pandas' object-dtype
+  path) matches MapBasicResult, NOT ExpectColumnValuesToBeOfTypeSqlSparkResult.
+- expect_column_values_to_be_of_type's bare observed_value payload -- which every
+  engine emits outside that map path -- matches the override.
 - Extra fields on the override raise pydantic.ValidationError (extra=forbid).
 
 All tests are marked @pytest.mark.unit and run via:

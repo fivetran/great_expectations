@@ -19,12 +19,19 @@ from great_expectations.compatibility.pydantic import BaseModel
 
 
 class ExpectColumnValuesToBeOfTypeSqlSparkResult(BaseModel):
-    """ExpectColumnValuesToBeOfType bypasses _format_map_output on SQL/Spark.
+    """Result shape for expectations that report a bare observed type value.
 
-    For BASIC / SUMMARY / COMPLETE formats, the result dict contains only
-    ``{observed_value: <type-name>}``.  For BOOLEAN_ONLY format the result
-    dict is empty ``{}``, so ``observed_value`` defaults to None to allow both
-    cases through the same override schema.
+    ``expect_column_values_to_be_of_type`` and
+    ``expect_column_values_to_be_in_type_list`` both bypass ``_format_map_output``
+    on every engine -- pandas, SQL, and Spark alike -- whenever they take their
+    non-map validation path (pandas only takes the map path on an object-dtype
+    column being compared against a non-object expected type; every other case,
+    on every engine, takes this one).  For BASIC / SUMMARY / COMPLETE formats the
+    result dict contains only ``{observed_value: <type-name>}``.  For BOOLEAN_ONLY
+    format the result dict is empty ``{}``, so ``observed_value`` defaults to None
+    to allow both cases through the same override schema.  The name predates the
+    SQL/Spark scope it has since outgrown; the dispatcher selects this schema by
+    the shape of the result dict, not by which engine or expectation produced it.
 
     ``observed_value`` is typed ``Any``, not ``str``: on case-insensitive SQL
     dialects ``compare_column_type`` hands back the column type object itself

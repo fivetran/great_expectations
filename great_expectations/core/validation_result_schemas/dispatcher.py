@@ -145,15 +145,26 @@ FAMILY_AGGREGATE = "aggregate"
 _FAMILY_CACHE: Dict[str, str] = {}
 
 # ---------------------------------------------------------------------------
-# _OVERRIDE_TABLE — per-expectation engine-specific class overrides
+# _SHAPE_ONLY_OVERRIDES — per-expectation overrides keyed on payload shape
 # ---------------------------------------------------------------------------
 
-_OVERRIDE_TABLE: Dict[str, Dict[str, Any]] = {
-    "expect_column_values_to_be_of_type": {
-        "sql": ExpectColumnValuesToBeOfTypeSqlSparkResult,
-        "spark": ExpectColumnValuesToBeOfTypeSqlSparkResult,
-    }
+# Both expectations below bypass the map family's format-driven output on every
+# engine -- pandas, SQL, and Spark alike -- whenever they take their non-map
+# validation path, and instead emit a bare {"observed_value": ...} (or empty, at
+# BOOLEAN_ONLY) result dict.  Only pandas' object-dtype map path produces the full
+# map field set instead.  The override therefore cannot be selected by engine_hint:
+# the same engine emits both shapes depending on the data, and every engine emits
+# the narrow shape.  See _OVERRIDE_SHAPE below for the predicate that picks it.
+_SHAPE_ONLY_OVERRIDES: Dict[str, Any] = {
+    "expect_column_values_to_be_of_type": ExpectColumnValuesToBeOfTypeSqlSparkResult,
+    "expect_column_values_to_be_in_type_list": ExpectColumnValuesToBeOfTypeSqlSparkResult,
 }
+
+# The result dict's key set must be a subset of this to select the override above:
+# either empty ({}, the BOOLEAN_ONLY case) or exactly {"observed_value"}.  Anything
+# wider -- e.g. the full map field set -- is not this narrow shape and falls
+# through to family dispatch instead.
+_OVERRIDE_SHAPE: FrozenSet[str] = frozenset({"observed_value"})
 
 # ---------------------------------------------------------------------------
 # Format dispatch tables
@@ -301,8 +312,11 @@ def as_typed(
     """Dispatch ``result_dict`` to the matching schema variant and return the parsed model.
 
     Resolution order:
-      1. Per-expectation override table, keyed on ``engine_hint`` (e.g. the
-         SQL/Spark path for ``expect_column_values_to_be_of_type``).
+      1. Per-expectation override table, matched by the *shape* of ``result_dict``
+         (e.g. a bare ``{"observed_value": ...}`` payload for
+         ``expect_column_values_to_be_of_type`` and
+         ``expect_column_values_to_be_in_type_list``), regardless of
+         ``engine_hint``.
       2. Family from :func:`family_for`.
       3. Format from ``result_format`` if given, else inferred from the result
          dict's key set, else ``configured_result_format``, else the most
@@ -330,10 +344,12 @@ def as_typed(
         ParseError: when the expectation type is unregistered, or when pydantic
             construction fails; the message names the candidate class.
     """
-    # 1. Per-expectation override, selected purely by an explicit engine hint.
-    override_engines = _OVERRIDE_TABLE.get(expectation_type, {})
-    if engine_hint is not None and engine_hint in override_engines:
-        override_cls = override_engines[engine_hint]
+    # 1. Per-expectation override, selected by the shape of result_dict alone.
+    # engine_hint plays no part: the expectations in the table emit this same
+    # narrow shape from every engine, so keying on engine_hint would type the
+    # identical dict differently depending on which engine happened to produce it.
+    override_cls = _SHAPE_ONLY_OVERRIDES.get(expectation_type)
+    if override_cls is not None and set(result_dict) <= _OVERRIDE_SHAPE:
         try:
             return override_cls(**result_dict)
         except pydantic.ValidationError as exc:

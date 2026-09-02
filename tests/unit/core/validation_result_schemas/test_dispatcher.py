@@ -501,9 +501,18 @@ class TestEngineHint:
 
 
 class TestPerExpectationOverride:
+    """The override is selected by the shape of ``result_dict``, not ``engine_hint``.
+
+    ``expect_column_values_to_be_of_type`` and ``expect_column_values_to_be_in_type_list``
+    both emit a bare ``{"observed_value": ...}`` payload from pandas, SQL, and Spark
+    alike whenever they take their non-map validation path -- only pandas' object-dtype
+    map path produces the full map field set instead.  ``engine_hint`` plays no part in
+    the decision; these tests pass it in each of its possible values to prove that.
+    """
+
     @pytest.mark.unit
     def test_override_with_sql_engine_hint(self):
-        """expect_column_values_to_be_of_type + sql → ExpectColumnValuesToBeOfTypeSqlSparkResult."""
+        """A bare observed_value payload types to the override under a sql hint."""
         result_dict = {"observed_value": "int64"}
         result = as_typed(
             result_dict,
@@ -516,7 +525,7 @@ class TestPerExpectationOverride:
 
     @pytest.mark.unit
     def test_override_with_spark_engine_hint(self):
-        """expect_column_values_to_be_of_type + spark → same override class."""
+        """A bare observed_value payload types to the same override under a spark hint."""
         result_dict = {"observed_value": "LongType"}
         result = as_typed(
             result_dict,
@@ -529,7 +538,7 @@ class TestPerExpectationOverride:
 
     @pytest.mark.unit
     def test_override_sql_engine_hint_direct(self):
-        """The override is selected by the hint alone, at any requested format."""
+        """The override applies at any requested format once the shape matches."""
         result_dict = {"observed_value": "int64"}
         result = as_typed(
             result_dict,
@@ -541,14 +550,68 @@ class TestPerExpectationOverride:
         assert result.observed_value == "int64"
 
     @pytest.mark.unit
-    def test_no_override_without_engine_hint(self):
-        """Without sql/spark engine_hint, falls through to family dispatch (map)."""
+    def test_no_override_when_the_shape_is_the_full_map_field_set(self):
+        """A map-shaped payload falls through to family dispatch, hint or no hint.
+
+        This is pandas' object-dtype map path: the result dict carries the full
+        map field set (element_count, unexpected_count, ...), not a bare
+        observed_value, so the shape predicate must not match it even though the
+        expectation is one of the two the override table names.
+        """
         result_dict = MAP_BASIC_DICT
         result = as_typed(
             result_dict,
             expectation_type="expect_column_values_to_be_of_type",
             result_format=ResultFormat.BASIC,
             engine_hint=None,
+        )
+        assert isinstance(result, MapBasicResult)
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "expectation_type",
+        [
+            "expect_column_values_to_be_of_type",
+            "expect_column_values_to_be_in_type_list",
+        ],
+    )
+    @pytest.mark.parametrize("engine_hint", ["pandas", "spark", "sql", None])
+    def test_bare_observed_value_types_the_same_under_every_engine_hint(
+        self, expectation_type: str, engine_hint
+    ):
+        """The same bare payload must not type differently depending on the engine.
+
+        Before this predicate was shape-based, a pandas or unhinted call fell
+        through to family dispatch (MapBasicResult) while a sql/spark call hit
+        the override -- two different classes for the identical dict.
+        """
+        result = as_typed(
+            {"observed_value": "INTEGER"},
+            expectation_type=expectation_type,
+            result_format=ResultFormat.BASIC,
+            engine_hint=engine_hint,
+        )
+        assert isinstance(result, ExpectColumnValuesToBeOfTypeSqlSparkResult)
+        assert result.observed_value == "INTEGER"
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "expectation_type",
+        [
+            "expect_column_values_to_be_of_type",
+            "expect_column_values_to_be_in_type_list",
+        ],
+    )
+    @pytest.mark.parametrize("engine_hint", ["pandas", "spark", "sql", None])
+    def test_map_shaped_payload_types_to_the_map_family_under_every_engine_hint(
+        self, expectation_type: str, engine_hint
+    ):
+        """A full map-shaped dict for either expectation is never routed to the override."""
+        result = as_typed(
+            MAP_BASIC_DICT,
+            expectation_type=expectation_type,
+            result_format=ResultFormat.BASIC,
+            engine_hint=engine_hint,
         )
         assert isinstance(result, MapBasicResult)
 
