@@ -62,7 +62,7 @@ class MapResultBase(BaseModel):
     # never appear in exported output as though it were.
     # It is only ever set from an explicit hint supplied by the caller; None means
     # "engine unknown" and leaves every engine-conditional validator inert.
-    engine_hint: Optional[pydantic.StrictStr] = pydantic.Field(None, exclude=True)
+    engine_hint: Optional[pydantic.StrictStr] = pydantic.Field(default=None, exclude=True)
 
     # Present on every engine, not just SQL: pandas emits unexpected_index_query as
     # a ``df.filter(items=[...], axis=0)`` expression.  The root validator on
