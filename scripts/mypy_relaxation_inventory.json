@@ -93,9 +93,7 @@
     "tests/performance",
     "tests/render",
     "tests/test_utils\\.py",
-    "tests/validator/test_metric_configuration\\.py",
-    "tests/validator/test_metrics_calculator\\.py",
-    "tests/validator/test_validation_graph\\.py"
+    "tests/validator/test_metric_configuration\\.py"
   ],
   "files": [
     "docs",
