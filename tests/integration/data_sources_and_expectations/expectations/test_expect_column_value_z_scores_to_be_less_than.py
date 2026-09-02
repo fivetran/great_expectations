@@ -4,6 +4,9 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.core.expectation_validation_result import (
+    ExpectationValidationResult,
+)
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
@@ -12,6 +15,7 @@ from tests.integration.data_sources_and_expectations.data_source_lists import (
     NON_SQL_DATA_SOURCES,
 )
 from tests.integration.test_utils.data_source_config import (
+    ALL_DATA_SOURCES,
     SQL_DATA_SOURCES,
     PostgreSQLDatasourceTestConfig,
 )
@@ -20,6 +24,8 @@ BASIC_COL = "basic"
 DISTRIBUTION_WITH_OUTLIER = "with_outlier"
 MOSTLY_ZERO_DISTRIBUTION = "mostly_zero"
 DISTRIBUTION_WITH_NULLS = "lotta_nulls"
+CONSTANT_COL = "constant"
+CONSTANT_COL_WITH_NULLS = "constant_with_nulls"
 
 DATA = pd.DataFrame(
     {
@@ -27,9 +33,21 @@ DATA = pd.DataFrame(
         DISTRIBUTION_WITH_OUTLIER: [-1000000, -1, 0, 1, 1],
         MOSTLY_ZERO_DISTRIBUTION: [1, 0, 0, 0, 0],
         DISTRIBUTION_WITH_NULLS: [-1, 0, 1, None, None],
+        CONSTANT_COL: [5, 5, 5, 5, 5],
+        CONSTANT_COL_WITH_NULLS: [5, 5, 5, None, None],
     },
     dtype="object",
 )
+
+
+def _assert_no_metric_exceptions(result: ExpectationValidationResult) -> None:
+    """Fail loudly if any metric raised instead of producing a value."""
+    exception_info = result.exception_info or {}
+    if "raised_exception" in exception_info:
+        assert not exception_info["raised_exception"], exception_info
+    else:
+        for info in exception_info.values():
+            assert not (info or {}).get("raised_exception"), info
 
 
 @parameterize_batch_for_data_sources(data_source_configs=NON_SQL_DATA_SOURCES, data=DATA)
@@ -191,3 +209,37 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     # Check that "-1000000" appears in the unexpected rows data
     unexpected_rows_str = str(unexpected_rows_data)
     assert "-1000000" in unexpected_rows_str
+
+
+@pytest.mark.parametrize(
+    "column",
+    [
+        pytest.param(CONSTANT_COL, id="constant_column"),
+        pytest.param(CONSTANT_COL_WITH_NULLS, id="constant_column_with_nulls"),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=DATA)
+def test_zero_standard_deviation_is_consistent_across_data_sources(
+    batch_for_datasource: Batch,
+    column: str,
+) -> None:
+    """A column with no variance must produce the same verdict on every backend.
+
+    The z-score of a constant column divides by a standard deviation of zero, and the
+    backends disagree about what that means: Postgres and SQL Server raise, SQLite and
+    MySQL return NULL, Spark returns Infinity (or raises under ANSI), and pandas produces
+    NaN. Left to the backend, the same data yielded a raised exception on some data
+    sources, a silent pass on others, and every row flagged as an outlier on pandas.
+
+    A constant column has no outliers, so the expectation succeeds with nothing
+    unexpected -- and, critically, does so identically everywhere.
+    """
+    expectation = gxe.ExpectColumnValueZScoresToBeLessThan(
+        column=column, threshold=1.96, double_sided=True
+    )
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+
+    _assert_no_metric_exceptions(result)
+    assert result.success
+    assert result.result["unexpected_count"] == 0
+    assert result.result["unexpected_list"] == []
