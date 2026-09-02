@@ -121,6 +121,30 @@ class TestConfigPasstrough:
             },
         )
 
+    def test_execution_engine_is_cached_across_calls(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        ephemeral_context_with_defaults: EphemeralDataContext,
+        ds_kwargs: dict,
+        filter_gx_datasource_warnings: None,
+    ):
+        """The execution engine, and the SQLAlchemy engine it owns, are built once.
+
+        Every validation goes through ``get_execution_engine``. If the cache never hits, each
+        validation builds a new SQLAlchemy engine and connection pool, and the pooled
+        connection of every abandoned engine lingers on the server until garbage collection.
+        """
+        monkeypatch.setenv("MY_CONN_STR", "sqlite:///")
+
+        context = ephemeral_context_with_defaults
+        ds = context.data_sources.add_or_update_sql(name="my_datasource", **ds_kwargs)
+
+        first = ds.get_execution_engine()
+        second = ds.get_execution_engine()
+
+        assert second is first
+        assert second.engine is first.engine
+
     def test_ds_config_passed_to_gx_sqlalchemy_execution_engine(
         self,
         gx_sqlalchemy_execution_engine_spy: mock.MagicMock,  # noqa: TID251 # FIXME CoP
