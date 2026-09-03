@@ -116,9 +116,20 @@ _GOLD_CASE_FIXTURE_NAME = "gold_case"
 # entries the shipped package itself never ships.
 _GALLERY_MODULE_ROOT: Final[str] = "great_expectations.expectations.core"
 
+# The package prefix that marks a registry entry as shipped by this project at all, core or not.
+# A registered expectation whose defining module falls outside this prefix was registered by
+# something else entirely -- a test module, a notebook, a downstream project -- and the shipped
+# package makes no claim about it one way or the other; the exactness guard below is scoped to
+# this prefix precisely so it has no business asserting about those entries.
+_SHIPPED_MODULE_PREFIX: Final[str] = "great_expectations."
+
 
 def _is_core_gallery_module(module_name: str) -> bool:
     return module_name == _GALLERY_MODULE_ROOT or module_name.startswith(_GALLERY_MODULE_ROOT + ".")
+
+
+def _is_shipped_module(module_name: str) -> bool:
+    return module_name == "great_expectations" or module_name.startswith(_SHIPPED_MODULE_PREFIX)
 
 
 def gallery_expectation_types() -> FrozenSet[str]:
@@ -640,19 +651,30 @@ def test_gallery_expectation_types_is_non_empty() -> None:
 
 @pytest.mark.project
 def test_gallery_expectation_types_matches_every_registered_expectation() -> None:
-    """Filter exactness, asserted rather than assumed: every expectation the live registry
-    currently holds resolves to a module under the core package. If a future change registered a
-    shipped expectation from a different module, this fails loudly at the point of registration
-    rather than the gallery set silently losing that member -- the filter would just stop seeing
-    it, and the completeness guard built on this set would shrink to match, undetected."""
+    """Filter exactness, asserted rather than assumed, over shipped registrations only: every
+    registered expectation whose defining module is part of this project resolves under the core
+    package. If a future change moved a shipped expectation's class out of the core package, it
+    would still register from a shipped module -- just not a core one -- and this fails loudly at
+    the point of registration, rather than the gallery set silently losing that member and the
+    completeness guard built on it shrinking to match, undetected.
+
+    Scoped to modules under `great_expectations.` rather than iterating the whole live registry
+    unconditionally: in a shared pytest session, the registry can (and does) hold entries an
+    unrelated test module registered for its own purposes, which are not shipped by this project
+    at all and which this guard has no business asserting about. Those are excluded by construction
+    -- checking the defining module's own prefix -- rather than by naming the specific modules that
+    happen to pollute today's session, so the next unrelated test-registered expectation is
+    excluded the same way without this test changing.
+    """
     registered = list_registered_expectation_implementations()
     for name in registered:
         module_name = get_expectation_impl(name).__module__
+        if not _is_shipped_module(module_name):
+            continue
         assert _is_core_gallery_module(module_name), (
-            f"{name!r} is registered from {module_name!r}, which is not under "
-            f"{_GALLERY_MODULE_ROOT!r}. Either a shipped core expectation's module changed and "
-            "the gallery derivation is now silently dropping it, or a non-shipped expectation "
-            "has been registered into the live registry and must not count toward the gallery."
+            f"{name!r} is registered from {module_name!r}, which is a shipped module but not "
+            f"under {_GALLERY_MODULE_ROOT!r}. A shipped core expectation's module has changed and "
+            "the gallery derivation is now silently dropping it."
         )
 
 
