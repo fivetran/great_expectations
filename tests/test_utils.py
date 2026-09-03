@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import List, Literal, Optional, Tuple, Union, cast
 
 import pandas as pd
+import pytest
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.alias_types import PathStr
@@ -29,6 +30,7 @@ from great_expectations.data_context.types.base import BaseYamlConfig
 from great_expectations.data_context.types.resource_identifiers import (
     ConfigurationIdentifier,
 )
+from great_expectations.data_context.util import instantiate_class_from_config
 from great_expectations.datasource.fluent.redshift_datasource import RedshiftDsn
 from great_expectations.datasource.fluent.sql_datasource import SQLDatasource
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
@@ -137,13 +139,19 @@ def build_tuple_filesystem_store_backend(
         "base_directory": base_directory,
     }
     store_backend_config.update(**kwargs)
-    return cast(
-        "StoreBackend",
-        Store.build_store_from_config(
-            config=store_backend_config,
-            module_name=module_name,
-            runtime_environment=None,
-        ),
+    # `Store.build_store_from_config` is declared to return `Store`, which shares no
+    # base with `StoreBackend`: it is a generic, config-driven factory whose actual
+    # return type depends entirely on the `class_name`/`module_name` in the config it
+    # is given, so its own `-> Store` annotation is only ever accurate for the
+    # common case of building a `Store` subclass, not for this call, which builds a
+    # `StoreBackend` subclass. Calling `instantiate_class_from_config` directly
+    # (the exact call `Store.build_store_from_config` makes internally) reaches the
+    # same runtime object without going through a wrapper whose declared return type
+    # doesn't match what is actually being built here.
+    return instantiate_class_from_config(
+        config=store_backend_config,
+        runtime_environment=None,
+        config_defaults={"store_name": None, "module_name": module_name},
     )
 
 
@@ -644,6 +652,26 @@ def load_data_into_test_database(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
                 connection.close()
             if engine:
                 engine.dispose()
+
+
+@pytest.mark.unit
+def test_load_data_into_test_database_raises_without_csv_path_or_csv_paths():
+    """`load_data_into_test_database` requires at least one of `csv_path`/`csv_paths`.
+
+    This guard is pure input validation - it runs before any engine or connection is
+    created - so it should fail fast with a ValueError rather than falling back to a
+    less useful downstream failure.
+    """
+    with pytest.raises(
+        ValueError,
+        match=r"Either csv_path or csv_paths is required to load test data\.",
+    ):
+        load_data_into_test_database(
+            table_name="some_table",
+            connection_string="sqlite://",
+            csv_path=None,
+            csv_paths=None,
+        )
 
 
 def load_data_into_test_bigquery_database_with_bigquery_client(
