@@ -1400,6 +1400,8 @@ class TestDescribeObservedValue:
     reader to find inside a full result dump.
     """
 
+    pytestmark = pytest.mark.project
+
     def test_reports_a_scalar_observed_value(self) -> None:
         result = cast(
             "_ExpectationValidationResult",
