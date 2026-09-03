@@ -34,6 +34,7 @@ from __future__ import annotations
 import inspect
 import sys
 from dataclasses import replace
+from types import SimpleNamespace
 from typing import (
     TYPE_CHECKING,
     Callable,
@@ -382,6 +383,21 @@ def _raised_exception(exception_info: Mapping[str, object]) -> bool:
     )
 
 
+def _describe_observed_value(result: _ExpectationValidationResult) -> str:
+    """Name the single fact a failed assertion needs to diagnose: what the expectation actually
+    observed.
+
+    Most expectations report `observed_value` under `result.result`, but not all do, and among
+    those that do, the value can be a scalar, a list, or a dict. Report whichever is present, and
+    say plainly when there isn't one, rather than letting a missing key surface as a `KeyError` or
+    a silent `None`.
+    """
+    result_dict = result.result
+    if not isinstance(result_dict, Mapping) or "observed_value" not in result_dict:
+        return "observed_value=<not reported by this expectation>"
+    return f"observed_value={result_dict['observed_value']!r}"
+
+
 def _assert_case_proves_its_expectation(
     case: GoldCase,
     *,
@@ -401,7 +417,7 @@ def _assert_case_proves_its_expectation(
     )
     assert passing_result.success, (
         f"gold case {case.key!r}: the configuration declared as `passing` reported failure. "
-        f"result={passing_result}"
+        f"{_describe_observed_value(passing_result)} result={passing_result}"
     )
 
     failing_result = validate_failing()
@@ -414,7 +430,7 @@ def _assert_case_proves_its_expectation(
         "success against the shared fixture data, so this case cannot distinguish a working "
         "implementation of the expectation from a broken one. This is not an ordinary expectation "
         "failure -- fix the case's `failing` configuration or fixture data. "
-        f"result={failing_result}"
+        f"{_describe_observed_value(failing_result)} result={failing_result}"
     )
 
 
@@ -1375,4 +1391,42 @@ class TestPytestGenerateTests:
         assert (
             _param_test_config(param).data_source_config.label
             == "generate-tests-measurement-backend"
+        )
+
+
+class TestDescribeObservedValue:
+    """`_describe_observed_value` is what makes a case-outcome assertion diagnosable on its own
+    terms: the value that made the case fail is named as its own field, rather than left for a
+    reader to find inside a full result dump.
+    """
+
+    def test_reports_a_scalar_observed_value(self) -> None:
+        result = cast(
+            "_ExpectationValidationResult",
+            SimpleNamespace(result={"observed_value": "VARCHAR"}),
+        )
+        assert _describe_observed_value(result) == "observed_value='VARCHAR'"
+
+    def test_reports_a_list_observed_value(self) -> None:
+        result = cast(
+            "_ExpectationValidationResult",
+            SimpleNamespace(result={"observed_value": [1, 2, 3]}),
+        )
+        assert _describe_observed_value(result) == "observed_value=[1, 2, 3]"
+
+    def test_states_absence_explicitly_when_the_expectation_reports_no_observed_value(
+        self,
+    ) -> None:
+        result = cast(
+            "_ExpectationValidationResult",
+            SimpleNamespace(result={"unexpected_count": 0}),
+        )
+        assert (
+            _describe_observed_value(result) == "observed_value=<not reported by this expectation>"
+        )
+
+    def test_states_absence_explicitly_when_result_itself_is_not_a_mapping(self) -> None:
+        result = cast("_ExpectationValidationResult", SimpleNamespace(result=None))
+        assert (
+            _describe_observed_value(result) == "observed_value=<not reported by this expectation>"
         )
