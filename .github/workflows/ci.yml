@@ -777,14 +777,11 @@ jobs:
         run: invoke ci-tests '${{ matrix.markers }}' --up-services --verbose
 
   # Runs the gold-tier expectation suite (see `tests/integration/data_sources_and_expectations/
-  # test_gold_expectation_suite.py`) with `--gold-measurement`, which substitutes every registered,
-  # engine-recognized data source for the tier's (currently empty) declared membership. The matrix
-  # is temporarily widened to every candidate data source -- one cell per candidate's own marker,
-  # reusing `MARKER_DEPENDENCY_MAP` for install/services exactly as `marker-tests` does -- so a
-  # credential-gated candidate is measured where its credentials already live, rather than only
-  # locally. This is measurement, not a quality gate: some candidates are known to fail some cases
-  # today, so this job is deliberately left out of `ci-required`'s `needs` until the matrix narrows
-  # to the tier's actual (passing) membership.
+  # test_gold_expectation_suite.py`) -- one cell per data source that has joined the tier, named
+  # by that data source's own marker (`CiLaneRef.marker_token` in
+  # `tests/integration/test_utils/data_source_config/`), reusing `MARKER_DEPENDENCY_MAP` for
+  # install/services exactly as `marker-tests` does. Each cell's wall-clock, measured unsharded,
+  # is well inside the 20-minute per-cell budget stated below, so no cell is split across shards.
   gold:
     needs: [unit-tests, static-analysis, check-actor-permissions]
     if: github.event.pull_request.draft == false
@@ -800,14 +797,6 @@ jobs:
       DATABRICKS_HOST: ${{secrets.DATABRICKS_HOST}}
       DATABRICKS_HTTP_PATH: ${{secrets.DATABRICKS_HTTP_PATH}}
       DATABRICKS_CATALOG: ${{ vars.DATABRICKS_CATALOG }}
-      # snowflake
-      SNOWFLAKE_ACCOUNT: ${{secrets.SNOWFLAKE_ACCOUNT}}
-      SNOWFLAKE_USER: ${{secrets.SNOWFLAKE_USER}}
-      SNOWFLAKE_DATABASE: ${{secrets.SNOWFLAKE_DATABASE}}
-      SNOWFLAKE_SCHEMA: ${{secrets.SNOWFLAKE_SCHEMA}}
-      SNOWFLAKE_WAREHOUSE: ${{secrets.SNOWFLAKE_WAREHOUSE}}
-      SNOWFLAKE_ROLE: ${{secrets.SNOWFLAKE_ROLE}}
-      SNOWFLAKE_PRIVATE_KEY: ${{secrets.SNOWFLAKE_PRIVATE_KEY}}
       # aws-redshift
       REDSHIFT_USERNAME: ${{secrets.REDSHIFT_USERNAME}}
       REDSHIFT_PASSWORD: ${{secrets.REDSHIFT_PASSWORD}}
@@ -819,32 +808,36 @@ jobs:
       id-token: write
       contents: read
     runs-on: ubuntu-latest
-    # Same reasoning as `marker-tests`: these cells talk to external warehouses (or spin up
-    # local services), so a hang must fail in minutes, not at the repository-wide default.
+    # Per-cell budget: 20 minutes at P90. The shared marker lane's stated headroom is a
+    # 30-minute timeout against a worst observed case under 17 minutes; this lane keeps the
+    # same shape of headroom while leaving room for the suite to grow with the gallery.
+    #
+    # Job timeout (below): same reasoning as `marker-tests` -- these cells talk to external
+    # warehouses (or spin up local services), so a hang must fail in minutes, not at the
+    # repository-wide default.
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        # One cell per candidate data source (every registered config with a data-source
-        # configuration and an execution engine), named by that candidate's own CI marker
-        # token (`CiLaneRef.marker_token` in `tests/integration/test_utils/data_source_config/`).
-        # Single Python version: this lane measures backend behavior, not interpreter behavior.
+        # One cell per data source that has joined the tier, named by that data source's own CI
+        # marker token (`CiLaneRef.marker_token` in
+        # `tests/integration/test_utils/data_source_config/`). Single Python version: this lane
+        # measures backend behavior, not interpreter behavior; the per-expectation modules
+        # already span the interpreter matrix; and this follows the existing precedent of a
+        # credential-gated lane pinned to one version. No cell is sharded: measured unsharded
+        # wall-clock (bigquery 7m07s, databricks 5m26s, trino 4m23s, mysql 3m13s,
+        # postgresql 2m12s, redshift 2m04s, sqlite 1m28s, unit 1m23s, filesystem 1m17s) is
+        # comfortably under the 20-minute per-cell budget for every cell.
         markers:
           - unit
           - sqlite
           - mysql
           - postgresql
           - trino
-          - oracle
-          - singlestore
-          - clickhouse
-          - sql_server
           - filesystem
-          - spark
           - bigquery
           - databricks
           - redshift
-          - snowflake
 
     steps:
       - name: Checkout
@@ -875,10 +868,6 @@ jobs:
           pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
           invoke deps --gx-install -m '${{ matrix.markers }}' -r test
 
-      - name: Install SQL Server odbc driver
-        if: matrix.markers == 'sql_server'
-        run: ./scripts/install_sql_server_odbc_driver.sh
-
       # See the identical step in `marker-tests` -- same OAuth M2M mint, same masked
       # DATABRICKS_TOKEN export.
       - name: Mint Databricks OAuth access token
@@ -897,7 +886,7 @@ jobs:
           case "${{ matrix.markers }}" in
             bigquery|databricks) FLAGS="--xdist" ;;
           esac
-          invoke ci-tests '${{ matrix.markers }}' --up-services --verbose --suite=gold --gold-measurement $FLAGS
+          invoke ci-tests '${{ matrix.markers }}' --up-services --verbose --suite=gold $FLAGS
 
   py310-min-versions:
     needs: [unit-tests, static-analysis, check-actor-permissions]
@@ -1142,6 +1131,7 @@ jobs:
       - marker-tests
       - marker-tests-snowflake
       - redshift
+      - gold
       - py310-min-versions
       - py311-min-versions
       - py312-min-versions
