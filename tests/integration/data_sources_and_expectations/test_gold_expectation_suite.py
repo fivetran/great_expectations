@@ -303,7 +303,22 @@ def build_gold_case_params(
     return params
 
 
-def _empty_product_placeholder() -> ParameterSet:
+# The two skip reasons an empty (case, data source) product can mean, distinguished at the point
+# they are told apart in `pytest_generate_tests`. Neither is a defect: both are legal end states,
+# but they are different questions a reader would otherwise have to re-derive from the case
+# table and the registry -- "is anything of this shape published at all" versus "did any admitted
+# data source actually offer to run it".
+_NO_CASE_OF_SHAPE_REASON: Final[str] = (
+    "no gold case of this fixture shape is published in the case table"
+)
+_NO_DATA_SOURCE_CLAIMED_REASON: Final[str] = (
+    "no data source offered any published case of this shape anything to validate "
+    "(the tier may be unclaimed for this shape, or every candidate excluded or engine-restricted "
+    "out of every case)"
+)
+
+
+def _empty_product_placeholder(reason: str) -> ParameterSet:
     """The single collected item substituted for a truly empty (case, data source) product.
 
     `metafunc.parametrize` with an empty `argvalues` list already collects one automatically
@@ -311,7 +326,8 @@ def _empty_product_placeholder() -> ParameterSet:
     survive collection at all (see `build_gold_case_params`'s docstring) -- but pytest's own
     synthetic item carries none of this repo's required markers, which the marker-coverage check
     (`tests/conftest.py::_verify_marker_coverage`) treats as an uncovered test. This placeholder
-    supplies that marker explicitly, plus an explicit (rather than pytest's generic) skip reason.
+    supplies that marker explicitly, plus an explicit (rather than pytest's generic) skip reason,
+    naming which of the two ways an empty product can arise the caller has already told apart.
 
     Its `_batch_setup_for_datasource` and `gold_case` values are never touched: a `pytest.mark.skip`
     on a parametrized item's marks makes pytest skip the item during test *setup*, before any
@@ -324,9 +340,7 @@ def _empty_product_placeholder() -> ParameterSet:
         id="no-data-source",
         marks=[
             pytest.mark.project,
-            pytest.mark.skip(
-                reason="no data source offered this shape's cases anything to validate"
-            ),
+            pytest.mark.skip(reason=reason),
         ],
     )
 
@@ -350,9 +364,18 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     measurement_mode = bool(metafunc.config.getoption(GOLD_MEASUREMENT_OPTION))
     cases = [case for case in GOLD_CASES if case.fixture_shape is shape]
     params = build_gold_case_params(cases, measurement_mode=measurement_mode)
+    if not params:
+        # `cases` empty means the case table publishes nothing of this shape at all; `cases`
+        # non-empty but `params` empty means every published case of this shape found no data
+        # source to run it against (an unclaimed tier, or every candidate excluded or
+        # engine-restricted out). The two are told apart here, at collection time, because this
+        # is the one place both facts -- the case table's own contents and the resolved product --
+        # are already in hand together.
+        reason = _NO_CASE_OF_SHAPE_REASON if not cases else _NO_DATA_SOURCE_CLAIMED_REASON
+        params = [_empty_product_placeholder(reason)]
     metafunc.parametrize(
         [_BATCH_SETUP_FIXTURE_NAME, _GOLD_CASE_FIXTURE_NAME],
-        params or [_empty_product_placeholder()],
+        params,
         indirect=[_BATCH_SETUP_FIXTURE_NAME],
     )
 
@@ -661,9 +684,9 @@ def test_gallery_expectation_types_excludes_unregistered_abstract_export() -> No
 # The suite's guards
 # --------------------------------------------------------------------------------------------
 #
-# All five guards below need no data source and run in the project-scoped lane, so a missing case,
-# a stale exclusion, or a runaway engine restriction is reported by the fastest feedback available
-# rather than only by a warehouse lane.
+# All six guards below need no data source and run in the project-scoped lane, so a missing case,
+# a stale exclusion, an empty tier, or a runaway engine restriction is reported by the fastest
+# feedback available rather than only by a warehouse lane.
 #
 # The completeness guard runs against the real registry and GOLD_CASE_KEYS -- it is currently
 # vacuous in the sense that both sides already agree (58 published keys, 58 gallery members), but
@@ -671,11 +694,16 @@ def test_gallery_expectation_types_excludes_unregistered_abstract_export() -> No
 # path can be, and is, exercised directly below against a deliberately incomplete key set, proving
 # the guard can actually fail rather than merely being green over an untested comparison.
 #
-# The exclusion-key and accessor-equality guards are, by contrast, necessarily vacuous today: no
-# data source has yet declared `SupportTier.GOLD` membership, so there is no declared exclusion
-# and no tier member for either guard to check against. A guard that passes over an empty set is
-# not yet coverage -- they stay in the tree so they are already asserting the invariant, and start
-# exercising it for real the moment a data source first declares gold-tier membership.
+# The exclusion-key and accessor-equality guards now exercise real declarations: several data
+# sources have declared `SupportTier.GOLD` membership, so both guards check against a non-empty
+# tier for the first time. Neither declares a `tier_case_exclusions` entry for the tier, since
+# every admitted member passes every case it applies to -- the exclusion-key guard is exercised by
+# the check itself walking every registered config's declarations (finding none for this tier),
+# and the accessor-equality guard is exercised by comparing the accessor's result against the
+# tier's real membership for every published key.
+#
+# The tier-non-empty guard is new: it fails the moment the tier's membership drops to zero, so the
+# suite cannot silently degrade back into the vacuous state the guards above once tolerated.
 #
 # The applicability guard is not vacuous: every restricted-engine case already has real, registered
 # candidates to remove, so it is checked against the live registry directly.
@@ -726,13 +754,32 @@ def test_completeness_guard_fails_on_missing_and_unrecognized_keys() -> None:
 
 
 @pytest.mark.project
+def test_gold_tier_has_at_least_one_member() -> None:
+    """`SupportTier.GOLD` must never go back to having no members.
+
+    Before any data source joined the tier, an empty suite was the correct, legal state -- the
+    fixture-shape test functions collect a single skipped placeholder rather than failing. Once a
+    member exists, an empty tier stops being a start-of-life condition and starts being a
+    regression: it would mean every member that once claimed this tier's coverage was removed
+    without anything else taking its place, and the suite would silently go back to proving
+    nothing while still reporting green.
+    """
+    members = data_source_configs_for_tier(SupportTier.GOLD)
+    assert members, (
+        "No data source declares SupportTier.GOLD membership. If every prior member was removed "
+        "deliberately, this suite is a no-op; if not, restore the missing tiers= declaration(s)."
+    )
+
+
+@pytest.mark.project
 def test_every_gold_exclusion_key_is_a_published_case_key() -> None:
     """Every case key any registered backend declares a gold-tier exclusion for must be one of
     `GOLD_CASE_KEYS`.
 
-    Necessarily vacuous today: no backend has joined `SupportTier.GOLD` yet, so no backend's
-    `tier_case_exclusions` holds a `GOLD` entry to check. It stays here so a stale or misspelled
-    key raises the moment a backend first declares one, rather than that key silently excluding
+    Several backends now declare `SupportTier.GOLD` membership, so this walks their real
+    `tier_case_exclusions` declarations -- none of them holds a `GOLD` entry, because every
+    admitted member passes every case it applies to, but this guard raises the moment a backend
+    declares one naming a stale or misspelled key, rather than that key silently excluding
     nothing while reading, on inspection, as a real exclusion.
     """
     for config_class in iter_data_source_configs():
@@ -753,10 +800,9 @@ def test_gold_case_accessor_matches_tier_membership_minus_declared_exclusions() 
     tier's live membership minus whichever members declare an exclusion for that key, computed
     from each member's own live `tier_case_exclusions` rather than assumed.
 
-    Necessarily vacuous today: `SupportTier.GOLD` has no members, so both sides of this comparison
-    are the empty list for every key. It stays here so the accessor and the declarations are
-    already pinned to agree, and start exercising that agreement for real the moment a data
-    source first joins the gold tier.
+    `SupportTier.GOLD` now has real members, so both sides of this comparison are computed from
+    the live registry for every key -- this is the first point this guard checks anything beyond
+    two empty lists agreeing.
     """
     tier_members = [
         cast("DataSourceTestConfig", config_class())
@@ -823,14 +869,13 @@ def test_engine_restrictions_remove_exactly_the_data_sources_outside_their_engin
 # Coverage for the collection-time builder
 # --------------------------------------------------------------------------------------------
 #
-# GOLD_CASES holds one seed case per fixture shape today; later work fills out the rest of the
-# gallery. No real data source declares SupportTier.GOLD yet, so the product is empty in normal
-# mode. That state is exercised directly below rather than worked around: an unclaimed tier, and
-# a table holding no case of a given shape, are exactly the states the builder has to survive.
-# Every other behavior -- exclusion honored, engine restriction applied, engineless data source
-# dropped, measurement substitution -- is proven against throwaway cases and
-# throwaway registrations, per the module docstring, so none of it waits on a later unit of work
-# filling in real cases or real gold-tier members.
+# Several real data sources now declare SupportTier.GOLD, but the tests below still exercise the
+# builder against throwaway cases and throwaway registrations wrapped in `isolated_registry()`,
+# per the module docstring, so this coverage never depends on which data sources happen to be
+# real members today. The "unclaimed tier" and "no case of this shape" states the builder must
+# survive without raising are reproduced here with a throwaway, isolated registry rather than by
+# depending on the live registry ever going empty again -- which the tier-non-empty guard above
+# now forbids.
 
 
 def _make_throwaway_case(
@@ -914,10 +959,13 @@ class TestBuildGoldCaseParams:
         assert build_gold_case_params([], measurement_mode=False) == []
 
     def test_unclaimed_tier_returns_no_params_without_raising(self) -> None:
-        # No real data source declares SupportTier.GOLD today; this is the "tier unclaimed" state
-        # the suite must report rather than crash on.
+        # An isolated, empty registry reproduces "tier unclaimed" without depending on the live
+        # registry ever going empty again -- several real data sources declare SupportTier.GOLD
+        # today, and the tier-non-empty guard above means the live registry never will.
         case = _make_throwaway_case("unclaimed_tier_case")
-        assert build_gold_case_params([case], measurement_mode=False) == []
+        with isolated_registry():
+            result = build_gold_case_params([case], measurement_mode=False)
+        assert result == []
 
     def test_normal_mode_resolves_through_the_tier_case_accessor_and_honors_exclusion(self) -> None:
         case_key = "exclusion_honoring_case"
@@ -1265,11 +1313,13 @@ class TestPytestGenerateTests:
 
     pytestmark = pytest.mark.project
 
-    def test_empty_product_is_collected_as_one_marked_skipped_placeholder(
+    def test_no_case_of_this_shape_is_collected_as_one_marked_skipped_placeholder(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        # No case of this shape, no registration at all -- guarantees an empty product without
-        # depending on the real registry's current state.
+        # GOLD_CASES holds no case of this shape, so `cases` is empty before the registry is even
+        # consulted -- this is the "no case of this shape" branch, and must report as such even
+        # though several real data sources hold gold-tier membership in the live registry this
+        # test does not isolate.
         monkeypatch.setattr(sys.modules[__name__], "GOLD_CASES", ())
         metafunc = _StubMetafunc(
             function_name="test_standard_case",
@@ -1286,6 +1336,33 @@ class TestPytestGenerateTests:
         [param] = call.argvalues
         assert param.values == (None, None)
         assert {mark.name for mark in param.marks} == {"project", "skip"}
+        [skip_mark] = [mark for mark in param.marks if mark.name == "skip"]
+        assert skip_mark.kwargs["reason"] == _NO_CASE_OF_SHAPE_REASON
+
+    def test_no_data_source_claiming_the_case_is_collected_with_the_other_reason(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # A published case of this shape exists (`cases` is non-empty), but an isolated, empty
+        # registry offers it no candidate at all -- this is the second way an empty product
+        # arises, and it must report a *different* reason than "no case of this shape", even
+        # though both leave `build_gold_case_params` returning the same empty list.
+        case = _make_throwaway_case("no_claimant_case")
+        monkeypatch.setattr(sys.modules[__name__], "GOLD_CASES", (case,))
+        metafunc = _StubMetafunc(
+            function_name="test_standard_case",
+            fixturenames=[_BATCH_SETUP_FIXTURE_NAME, _GOLD_CASE_FIXTURE_NAME],
+            measurement_mode=False,
+        )
+        with isolated_registry():
+            pytest_generate_tests(cast("pytest.Metafunc", metafunc))
+
+        [call] = metafunc.calls
+        assert len(call.argvalues) == 1
+        [param] = call.argvalues
+        assert param.values == (None, None)
+        [skip_mark] = [mark for mark in param.marks if mark.name == "skip"]
+        assert skip_mark.kwargs["reason"] == _NO_DATA_SOURCE_CLAIMED_REASON
+        assert skip_mark.kwargs["reason"] != _NO_CASE_OF_SHAPE_REASON
 
     def test_unrecognized_function_name_is_left_untouched(self) -> None:
         metafunc = _StubMetafunc(

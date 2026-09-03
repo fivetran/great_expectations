@@ -2670,7 +2670,9 @@ _RETROFITTED_CONTROLS: Mapping[str, _RetrofitControl] = {
             marker="unit",
             marker_scope=MarkerScope.SHARED,
             ci_lane=CiLaneRef(workflow_job="unit-tests", marker_token="unit"),
-            tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API}),
+            tiers=frozenset(
+                {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GOLD}
+            ),
         ),
     ),
     "pandas-filesystem-csv": (
@@ -2685,7 +2687,9 @@ _RETROFITTED_CONTROLS: Mapping[str, _RetrofitControl] = {
             marker="filesystem",
             marker_scope=MarkerScope.SHARED,
             ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="filesystem"),
-            tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API}),
+            tiers=frozenset(
+                {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GOLD}
+            ),
         ),
     ),
     "spark-filesystem-csv": (

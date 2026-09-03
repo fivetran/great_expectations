@@ -32,7 +32,9 @@ class SqliteDatasourceTestConfig(SqlDatasourceTestConfig):
         fluent_types=frozenset({"sqlite"}),
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="sqlite"),
         uses_schema=False,
-        tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API}),
+        tiers=frozenset(
+            {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GOLD}
+        ),
         # SQLite has neither a dev-requirements file nor a task-runner entry.
     )
 
