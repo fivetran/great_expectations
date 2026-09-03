@@ -1151,6 +1151,23 @@ class TestBuildGoldCaseParams:
 
         assert resolved is case
 
+    def test_a_real_backends_declared_type_name_reaches_the_resolved_case(self) -> None:
+        # Unlike the tests above, which use throwaway specs, this drives `_resolve_case_for_config`
+        # against Databricks' own registered config -- proving the declaration on that module
+        # actually reaches the resolved case, not just that the resolver honors *a* declaration.
+        from tests.integration.test_utils.data_source_config.databricks import (
+            DatabricksDatasourceTestConfig,
+        )
+
+        [table_case] = [case for case in GOLD_CASES if case.key == _TYPE_CASE_KEY]
+
+        resolved = _resolve_case_for_config(
+            table_case, cast("DataSourceTestConfig", DatabricksDatasourceTestConfig())
+        )
+
+        assert isinstance(resolved.passing, gxe.ExpectColumnValuesToBeOfType)
+        assert resolved.passing.type_ == "INT"
+
     def test_build_gold_case_params_carries_the_resolved_case_through(self) -> None:
         # The end-to-end path: a case built through `build_gold_case_params` for a data source
         # declaring non-default type names must carry the resolved configurations, not the

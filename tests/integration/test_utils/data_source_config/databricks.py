@@ -55,6 +55,9 @@ class DatabricksDatasourceTestConfig(SqlDatasourceTestConfig):
         uses_schema=True,
         transaction_mode=TransactionMode.AUTOCOMMIT,
         column_type_overrides=_COLUMN_TYPE_OVERRIDES,
+        # This dialect reports its integer column's type under this name rather than the ANSI
+        # spelling the default assumes, as observed against a live server.
+        integer_column_type_name="INT",
         insert_parameter_limit=250,
         tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API}),
         dev_requirements_file="reqs/requirements-dev-databricks.txt",
