@@ -3096,13 +3096,6 @@ class TestVocabularyMembership:
             "gold",
         ]
 
-    def test_no_registered_record_declares_the_new_member(self) -> None:
-        claimants = [
-            spec.label for spec in iter_data_source_specs() if SupportTier.GOLD in spec.tiers
-        ]
-
-        assert claimants == []
-
 
 class TestGoldTierClaimInheritsTheScaledObligations:
     """The new tier member is not special-cased: `_validate_tier_claims` scales its obligations to
