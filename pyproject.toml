@@ -123,8 +123,6 @@ exclude = [
     'tests/integration/test_script_runner\.py',
     'tests/performance',
     'tests/validator/test_metric_configuration\.py',
-    'tests/validator/test_metrics_calculator\.py',
-    'tests/validator/test_validation_graph\.py',
 ]
 
 [[tool.mypy.overrides]]

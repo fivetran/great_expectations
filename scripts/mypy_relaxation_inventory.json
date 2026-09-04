@@ -89,9 +89,7 @@
     "tests/integration/test_definitions",
     "tests/integration/test_script_runner\\.py",
     "tests/performance",
-    "tests/validator/test_metric_configuration\\.py",
-    "tests/validator/test_metrics_calculator\\.py",
-    "tests/validator/test_validation_graph\\.py"
+    "tests/validator/test_metric_configuration\\.py"
   ],
   "files": [
     "docs",
