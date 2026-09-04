@@ -143,12 +143,16 @@ class SparkFilesystemCsvBatchTestSetup(
         def _clean(val: object, info: _TypeInfo | None) -> object:
             if pd.isna(val):  # type: ignore[call-overload]  # scalar from itertuples
                 return None
+            # PySpark matches on exact type, and `pd.Timestamp` is a subclass rather than the
+            # type it looks for. Unconditional, because this is needed most where no schema was
+            # declared: with one, the value is checked against a known field type; without one,
+            # PySpark infers from the value alone and reads a timestamp it does not recognise as
+            # an empty struct, which is not a column any file format can be asked to write.
+            if isinstance(val, pd.Timestamp):
+                return val.to_pydatetime()
             if info is not None:
                 target, acceptable = info
                 if type(val) not in acceptable:
-                    # pd.Timestamp subclasses datetime but PySpark checks exact types
-                    if isinstance(val, pd.Timestamp):
-                        return val.to_pydatetime()
                     return target(val)
             return val
 
