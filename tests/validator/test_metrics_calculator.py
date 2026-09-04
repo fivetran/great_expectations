@@ -115,8 +115,10 @@ def _test_column_partition_metric(
 
     increment = float(n_bins + 1) / n_bins
     for idx, element in enumerate(results[desired_metric.id]):
+        expected_value = increment * idx
         assert isinstance(element, Number)
-        assert isclose(operand_a=element, operand_b=(increment * idx))
+        assert isinstance(expected_value, Number)
+        assert isclose(operand_a=element, operand_b=expected_value)
 
     # Test using "datetime.datetime" column.
 
