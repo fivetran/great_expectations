@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
+import numpy as np
+import pandas as pd
+
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
@@ -22,8 +25,6 @@ from great_expectations.expectations.metrics.map_metric_provider import (
 from great_expectations.validator.metric_configuration import MetricConfiguration
 
 if TYPE_CHECKING:
-    import pandas as pd
-
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
     )
@@ -45,6 +46,13 @@ class ColumnValuesZScore(ColumnMapMetricProvider):
         # return the z_score values
         mean = _metrics.get("column.mean")
         std_dev = _metrics.get("column.standard_deviation")
+
+        # std_dev is an already-resolved Python scalar, so the divide-by-zero (constant
+        # column) and undefined (None) cases can be decided here rather than per row.
+        # Dividing by zero would yield NaN/Infinity, so return an undefined z-score in
+        # those cases, matching the SqlAlchemy and Spark implementations.
+        if std_dev is None or std_dev == 0:
+            return pd.Series(np.nan, index=column.index)
         try:
             return (column - mean) / std_dev
         except TypeError:
@@ -61,7 +69,10 @@ class ColumnValuesZScore(ColumnMapMetricProvider):
                 under_threshold = z_score.abs() < abs(threshold)
             else:
                 under_threshold = z_score < threshold
-            return under_threshold
+            # An undefined z-score (constant column) compares False against any threshold,
+            # which would flag every row as an outlier. Treat it as meeting the expectation
+            # instead, matching the NULL comparison semantics of the SQL implementation.
+            return under_threshold | z_score.isna()
         except TypeError:
             raise (TypeError("Cannot check if a string lies under a numerical threshold"))  # noqa: TRY003 # FIXME CoP
 
@@ -69,6 +80,16 @@ class ColumnValuesZScore(ColumnMapMetricProvider):
     def _sqlalchemy_function(cls, column, _metrics, _dialect, **kwargs):
         mean = _metrics["column.mean"]
         standard_deviation = _metrics["column.standard_deviation"]
+
+        # standard_deviation is an already-resolved Python scalar, so the divide-by-zero
+        # (constant column) and undefined (None) cases can be decided here rather than
+        # delegated to the database. Dialects disagree on division by zero -- Postgres,
+        # SQL Server and friends raise, while SQLite and MySQL return NULL -- so decide
+        # it here to keep every data source consistent. The NULL is cast to a numeric
+        # type because dialects such as Postgres cannot resolve abs() over an untyped
+        # NULL.
+        if standard_deviation is None or standard_deviation == 0:
+            return sa.cast(sa.null(), sa.Float)
         return (column - mean) / standard_deviation
 
     @column_condition_partial(engine=SqlAlchemyExecutionEngine)
