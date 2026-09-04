@@ -133,11 +133,12 @@ def _test_column_partition_metric(
 
     increment = datetime.timedelta(seconds=(seconds_in_week * float(n_bins + 1) / n_bins))
     for idx, element in enumerate(results[desired_metric.id]):
+        comparison_value = element
         if isinstance(validator_with_data.execution_engine, PandasExecutionEngine):
-            element = element.to_pydatetime()
-        assert isinstance(element, datetime.datetime)
+            comparison_value = element.to_pydatetime()
+        assert isinstance(comparison_value, datetime.datetime)
         assert isclose(
-            operand_a=element,
+            operand_a=comparison_value,
             operand_b=(datetime.datetime(2021, 1, 1, 0, 0, 0) + (increment * idx)),  # noqa: DTZ001 # FIXME CoP
         )
 
