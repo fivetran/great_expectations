@@ -540,7 +540,7 @@ class TestStripTopLevelOrderBy:
 class MockSQLServerSqlAlchemyExecutionEngine(MockSqlAlchemyExecutionEngine):
     """Mock engine that reports dialect_name as 'mssql' (SQL Server)."""
 
-    def __init__(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def]
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         from tests.expectations.metrics.conftest import MockSaEngine
 
@@ -559,7 +559,7 @@ def mock_sql_server_execution_engine() -> MockSQLServerSqlAlchemyExecutionEngine
 class MockOracleSqlAlchemyExecutionEngine(MockSqlAlchemyExecutionEngine):
     """Mock engine that reports dialect_name as 'oracle'."""
 
-    def __init__(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def]
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         from tests.expectations.metrics.conftest import MockSaEngine
 

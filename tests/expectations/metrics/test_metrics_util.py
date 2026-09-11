@@ -1223,7 +1223,7 @@ class _PGSub(sa.dialects.postgresql.dialect):  # type: ignore[misc,valid-type]
     pass
 
 
-class _MySQLSub(sqlalchemy.dialects.mysql.base.MySQLDialect):  # type: ignore[misc,valid-type]
+class _MySQLSub(sqlalchemy.dialects.mysql.base.MySQLDialect):
     pass
 
 

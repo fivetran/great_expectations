@@ -143,9 +143,7 @@ _VALID_MOSTLY_CASES: List[List[tuple[type[Expectation], ExpectationConfiguration
     [
         (
             FakeColumnMapExpectation,
-            fake_expectation_config(
-                "fake_column_map_expectation", {"column": "col", "mostly": x}
-            ),
+            fake_expectation_config("fake_column_map_expectation", {"column": "col", "mostly": x}),
         )
         for x in [0, 0.5, 1]
     ],
