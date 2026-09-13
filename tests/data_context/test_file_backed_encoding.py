@@ -198,3 +198,109 @@ def test_inline_store_backend_saves_non_ascii_variable_under_non_utf8_locale(
 
     assert reload_result.returncode == 0, reload_result.stderr
     assert "OK" in reload_result.stdout
+
+
+@pytest.mark.filesystem
+def test_config_variables_roundtrip_across_hosts_under_non_utf8_locale(
+    tmp_path: pathlib.Path,
+) -> None:
+    """A config_variables.yml saved on a UTF-8 host must load on a host whose locale
+    encoding isn't UTF-8, even when a substituted value (e.g. a credential) contains
+    non-ASCII text. This is the cross-host case from #12181: the write pins nothing
+    to the locale of the host that authored the file, and the read must not resolve
+    its encoding from the ambient locale of the host loading it.
+    """
+    project_root = tmp_path / "project"
+    payload_path = tmp_path / "payload.txt"
+    payload_path.write_text(NON_ASCII_VALUE, encoding="utf-8")
+
+    write_script = textwrap.dedent(f"""
+        import great_expectations as gx
+
+        with open({str(payload_path)!r}, encoding="utf-8") as f:
+            non_ascii_value = f.read()
+
+        context = gx.get_context(mode="file", context_root_dir={str(project_root)!r})
+        context.save_config_variable("db_password", non_ascii_value)
+    """)
+    write_result = subprocess.run(  # FIXME CoP
+        [sys.executable, "-c", write_script],
+        capture_output=True,
+        text=True,
+        env=dict(os.environ),
+        check=False,
+    )
+    assert write_result.returncode == 0, write_result.stderr
+
+    reload_script = textwrap.dedent(f"""
+        import great_expectations as gx
+
+        import os
+
+        assert open(os.devnull).encoding != "utf-8"  # locale override did not take effect
+
+        with open({str(payload_path)!r}, encoding="utf-8") as f:
+            non_ascii_value = f.read()
+
+        context = gx.get_context(mode="file", context_root_dir={str(project_root)!r})
+        assert context.config_variables["db_password"] == non_ascii_value
+        print("OK")
+    """)
+
+    reload_result = _run_under_non_utf8_locale(reload_script)
+
+    assert reload_result.returncode == 0, reload_result.stderr
+    assert "OK" in reload_result.stdout
+
+
+@pytest.mark.filesystem
+def test_config_variable_saved_under_non_utf8_locale(
+    tmp_path: pathlib.Path,
+) -> None:
+    """Saving a non-ASCII config variable while running under a non-UTF-8 locale
+    (chiefly Windows system codepages) must not raise UnicodeEncodeError, and the
+    saved value must survive a reload under the same locale. Both the save and the
+    reload run under the forced locale: a save under a UTF-8 locale would emit
+    correct bytes regardless, leaving nothing for the reload assertion to catch.
+    """
+    project_root = tmp_path / "project"
+    payload_path = tmp_path / "payload.txt"
+    payload_path.write_text(NON_ASCII_VALUE, encoding="utf-8")
+
+    write_script = textwrap.dedent(f"""
+        import great_expectations as gx
+
+        import os
+
+        assert open(os.devnull).encoding != "utf-8"  # locale override did not take effect
+
+        with open({str(payload_path)!r}, encoding="utf-8") as f:
+            non_ascii_value = f.read()
+
+        context = gx.get_context(mode="file", context_root_dir={str(project_root)!r})
+        context.save_config_variable("db_password", non_ascii_value)
+        print("OK")
+    """)
+    write_result = _run_under_non_utf8_locale(write_script)
+    assert write_result.returncode == 0, write_result.stderr
+    assert "OK" in write_result.stdout
+
+    reload_script = textwrap.dedent(f"""
+        import great_expectations as gx
+
+        import os
+
+        assert open(os.devnull).encoding != "utf-8"  # locale override did not take effect
+
+        with open({str(payload_path)!r}, encoding="utf-8") as f:
+            non_ascii_value = f.read()
+
+        context = gx.get_context(mode="file", context_root_dir={str(project_root)!r})
+        assert context.config_variables["db_password"] == non_ascii_value
+        print("OK")
+    """)
+
+    reload_result = _run_under_non_utf8_locale(reload_script)
+
+    assert reload_result.returncode == 0, reload_result.stderr
+    assert "OK" in reload_result.stdout
