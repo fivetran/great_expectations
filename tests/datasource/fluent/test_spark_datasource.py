@@ -4,6 +4,7 @@ import copy
 import logging
 import pathlib
 from typing import TYPE_CHECKING
+from unittest import mock
 
 import pytest
 
@@ -157,6 +158,17 @@ def test_unmodifiable_config_option_warning(
 def test_spark_test_connection(
     empty_data_context: AbstractDataContext,
 ):
-    # no spark marker means pyspark is not installed when this is run
-    with pytest.raises(TestConnectionError):
+    # This is a unit test, so it must not depend on whether the `spark` extra happens to
+    # be installed in the environment running it -- when pyspark is present, getting a
+    # session can succeed on its own, and the assertion below would fail to raise.
+    # Force the underlying session creation to fail so we deterministically exercise the
+    # test_connection -> TestConnectionError wrapping path.
+    with (
+        mock.patch(
+            "great_expectations.execution_engine.sparkdf_execution_engine."
+            "SparkDFExecutionEngine.get_or_create_spark_session",
+            side_effect=Exception("pyspark is not installed"),
+        ),
+        pytest.raises(TestConnectionError),
+    ):
         _ = empty_data_context.data_sources.add_spark(name="my_spark_datasource")
