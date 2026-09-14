@@ -704,6 +704,26 @@ def _collect_spark_nested_column_paths(schema: Any) -> set:
     return paths
 
 
+def _strip_spark_backtick_quotes(column_name: str) -> str:
+    """Remove Spark identifier-quoting backticks wrapping a column name.
+
+    Flat Spark columns whose names contain a dot are handed downstream in
+    backtick-quoted form by the column-name normalizer, so that Spark SQL
+    treats the name as a literal identifier rather than nested-field access
+    (see community issue #11199). Spark needs those backticks inside ``F.col``
+    expressions, but ``DataFrame.columns`` and the rows selected from it are
+    keyed by the bare column names, so membership checks and result keys must
+    use the bare name (community issue #12196).
+    """
+    if (
+        len(column_name) >= 2  # noqa: PLR2004
+        and column_name.startswith("`")
+        and column_name.endswith("`")
+    ):
+        return column_name[1:-1]
+    return column_name
+
+
 def _spark_map_condition_index(  # noqa: C901 #  too complex
     cls,
     execution_engine: SparkDFExecutionEngine,
@@ -772,10 +792,24 @@ def _spark_map_condition_index(  # noqa: C901 #  too complex
     columns_to_keep: List[str] = [column for column in unexpected_index_column_names]
     columns_to_keep += domain_column_name_list
 
+    # The column-name normalizer hands flat Spark columns whose names contain
+    # a dot downstream in backtick-quoted form so that Spark SQL treats them
+    # as literal identifiers rather than nested-field access (issue #11199).
+    # `DataFrame.columns` and the rows read from it are keyed by the bare
+    # names, however, so data-level checks and result keys must use the
+    # unquoted form (issue #12196). Spark's quoting is only needed when
+    # building column expressions for the final ``select``.
+    bare_columns_to_keep: List[str] = [
+        _strip_spark_backtick_quotes(col_name) for col_name in columns_to_keep
+    ]
+    bare_unexpected_index_column_names: List[str] = [
+        _strip_spark_backtick_quotes(col_name) for col_name in unexpected_index_column_names
+    ]
+
     # check that column name is in row (supporting dotted paths into
     # Spark struct columns, e.g. "Data.evt.id")
     valid_column_paths = set(filtered.columns) | _collect_spark_nested_column_paths(filtered.schema)
-    for col_name in columns_to_keep:
+    for col_name in bare_columns_to_keep:
         if col_name not in valid_column_paths:
             raise gx_exceptions.InvalidMetricAccessorDomainKwargsKeyError(  # noqa: TRY003 # FIXME CoP
                 f"Error: The unexpected_index_column '{col_name}' does not exist in Spark DataFrame. Please check your configuration and try again."  # noqa: E501 # FIXME CoP
@@ -792,7 +826,7 @@ def _spark_map_condition_index(  # noqa: C901 #  too complex
     # so that nested columns remain addressable by that path on the row.
     top_level_columns = set(filtered.columns)
     select_exprs = []
-    for col_name in columns_to_keep:
+    for col_name in bare_columns_to_keep:
         if col_name in top_level_columns:
             # Backtick-quote the literal name; double any embedded backticks
             # per Spark SQL identifier-quoting rules.
@@ -804,9 +838,9 @@ def _spark_map_condition_index(  # noqa: C901 #  too complex
 
     return _get_spark_customized_unexpected_index_list(
         exclude_unexpected_values=exclude_unexpected_values,
-        unexpected_index_column_names=unexpected_index_column_names,
+        unexpected_index_column_names=bare_unexpected_index_column_names,
         filtered=filtered,
-        columns_to_keep=columns_to_keep,
+        columns_to_keep=bare_columns_to_keep,
     )
 
 
