@@ -73,7 +73,17 @@ class ColumnValuesMatchRegexList(ColumnMapMetricProvider):
         if match_on == "any":
             return column.rlike("|".join(regex_list))
         elif match_on == "all":
-            formatted_regex_list = [f"(?={regex})" for regex in regex_list]
-            return column.rlike("".join(formatted_regex_list))
+            # Each regex must be tested independently against the whole value, matching
+            # the pandas and SQL implementations. Joining the patterns into a single
+            # lookahead chain (e.g. "(?=^A)(?=[0-9]{3}$)") instead anchors every pattern
+            # to the same scan position, so patterns that anchor at different positions
+            # (like ^ and $) can never all match at once.
+            compound = None
+            for regex in regex_list:
+                if compound is None:
+                    compound = column.rlike(regex)
+                else:
+                    compound = compound & column.rlike(regex)
+            return compound
         else:
             raise ValueError("match_on must be either 'any' or 'all'")  # noqa: TRY003 # FIXME CoP

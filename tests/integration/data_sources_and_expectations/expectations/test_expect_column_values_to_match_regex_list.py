@@ -42,6 +42,7 @@ ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
 BASIC_STRINGS = "basic_strings"
 COMPLEX_STRINGS = "complex_strings"
 WITH_NULL = "with_null"
+ANCHORED_PATTERNS = "anchored_patterns"
 
 DATA = pd.DataFrame(
     {
@@ -50,6 +51,13 @@ DATA = pd.DataFrame(
         WITH_NULL: ["abc", None, "ghi"],
     }
 )
+
+# Every value starts with "A" and ends with exactly 3 digits, so both patterns below
+# should hold for every row.
+ANCHORED_PATTERNS_SUCCESS_DATA = pd.DataFrame({ANCHORED_PATTERNS: ["A123", "A456", "A789"]})
+# "B456" fails the start-anchored pattern, and "A78" fails the end-anchored one
+# (only 2 trailing digits), so not every row matches both patterns.
+ANCHORED_PATTERNS_FAILURE_DATA = pd.DataFrame({ANCHORED_PATTERNS: ["A123", "B456", "A78"]})
 
 
 @parameterize_batch_for_data_sources(data_source_configs=SUPPORTED_SQL_DATA_SOURCES, data=DATA)
@@ -293,3 +301,37 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
 def test_invalid_config() -> None:
     with pytest.raises(pydantic.ValidationError):
         gxe.ExpectColumnValuesToMatchRegexList(column=BASIC_STRINGS, regex_list=[])
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=ALL_SUPPORTED_DATA_SOURCES, data=ANCHORED_PATTERNS_SUCCESS_DATA
+)
+def test_match_on_all_with_differently_anchored_patterns_success(
+    batch_for_datasource: Batch,
+) -> None:
+    """regex_list patterns that anchor at different positions (^ vs $) must each be
+    tested independently against the whole value for match_on="all", not folded into a
+    single lookahead chain, which anchors every pattern to the same scan position.
+    """
+    expectation = gxe.ExpectColumnValuesToMatchRegexList(
+        column=ANCHORED_PATTERNS,
+        regex_list=["^A", "[0-9]{3}$"],
+        match_on="all",
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=ALL_SUPPORTED_DATA_SOURCES, data=ANCHORED_PATTERNS_FAILURE_DATA
+)
+def test_match_on_all_with_differently_anchored_patterns_failure(
+    batch_for_datasource: Batch,
+) -> None:
+    expectation = gxe.ExpectColumnValuesToMatchRegexList(
+        column=ANCHORED_PATTERNS,
+        regex_list=["^A", "[0-9]{3}$"],
+        match_on="all",
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert not result.success
