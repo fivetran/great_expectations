@@ -60,8 +60,7 @@
     "render/renderer/slack_renderer\\.py",
     "tests/datasource/data_connector",
     "tests/datasource/fluent/tasks\\.py",
-    "tests/datasource/test_datasource_dict\\.py",
-    "tests/expectations"
+    "tests/datasource/test_datasource_dict\\.py"
   ],
   "files": [
     "docs",

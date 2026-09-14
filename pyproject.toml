@@ -94,7 +94,6 @@ exclude = [
     'tests/datasource/data_connector',
     'tests/datasource/fluent/tasks\.py',
     'tests/datasource/test_datasource_dict\.py',
-    'tests/expectations',
 ]
 
 [[tool.mypy.overrides]]
