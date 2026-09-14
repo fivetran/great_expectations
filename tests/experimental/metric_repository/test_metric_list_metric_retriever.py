@@ -32,28 +32,28 @@ LOGGER = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="function")
-def mock_data_asset(mocker):
+def mock_data_asset(mocker: MockerFixture):
     data_asset = mocker.Mock(spec=DataAsset)
     data_asset.name = "some_data_asset_name"
     return data_asset
 
 
 @pytest.fixture(scope="function")
-def mock_validator(mocker, mock_batch):
+def mock_validator(mocker: MockerFixture, mock_batch):
     validator = mocker.Mock(spec=Validator)
     validator.active_batch = mock_batch
     return validator
 
 
 @pytest.fixture(scope="function")
-def mock_context(mocker, mock_validator):
+def mock_context(mocker: MockerFixture, mock_validator):
     context = mocker.Mock(spec=CloudDataContext)
     context.get_validator.return_value = mock_validator
     return context
 
 
 @pytest.fixture(scope="function")
-def mock_batch(mocker, mock_data_asset):
+def mock_batch(mocker: MockerFixture, mock_data_asset):
     batch = mocker.Mock(spec=Batch)
     batch.id = "batch_id"
     batch.data_asset = mock_data_asset
@@ -61,19 +61,19 @@ def mock_batch(mocker, mock_data_asset):
 
 
 @pytest.fixture(scope="function")
-def metric_retriever(mock_context):
+def metric_retriever(mock_context) -> MetricListMetricRetriever:
     return MetricListMetricRetriever(context=mock_context)
 
 
 @pytest.fixture(scope="function")
-def mock_batch_request(mocker):
+def mock_batch_request(mocker: MockerFixture):
     batch_request = mocker.Mock(spec=BatchRequest)
     batch_request.data_asset_name = "some_data_asset_name"
     return batch_request
 
 
 @pytest.fixture(scope="function")
-def mock_batch_request_variant(mocker):
+def mock_batch_request_variant(mocker: MockerFixture):
     batch_request = mocker.Mock(spec=BatchRequest)
     batch_request.data_asset_name = "other_data_asset_name"
     return batch_request
@@ -332,7 +332,7 @@ def test_column_metrics_not_returned_if_column_types_missing(
     assert "TABLE_COLUMN_TYPES metric is required to compute column metrics." in caplog.text
 
 
-def patch_get_numeric_column_names_with(mocker, return_value):
+def patch_get_numeric_column_names_with(mocker: MockerFixture, return_value: List[str]) -> None:
     mocker.patch(
         f"{MetricListMetricRetriever.__module__}.{MetricListMetricRetriever.__name__}._get_numeric_column_names",
         return_value=return_value,
@@ -415,7 +415,7 @@ def test_get_metrics_metrics_missing(
     ]
 
 
-def patch_get_timestamp_column_names_with(mocker, return_value):
+def patch_get_timestamp_column_names_with(mocker: MockerFixture, return_value: List[str]) -> None:
     mocker.patch(
         f"{MetricListMetricRetriever.__module__}.{MetricListMetricRetriever.__name__}._get_timestamp_column_names",
         return_value=return_value,
@@ -725,7 +725,7 @@ def test_get_metrics_only_gets_new_validator_on_asset_change(
 
 def test_get_metrics_with_no_metrics(
     mock_context, mock_validator, mock_batch_request, metric_retriever
-):
+) -> None:
     computed_metrics: Dict[MetricConfigurationID, MetricValue] = {}
     metrics_list: List[MetricTypes] = []
     aborted_metrics: Dict[MetricConfigurationID, MetricsCalculatorErrorResultValue] = {}
@@ -737,7 +737,7 @@ def test_get_metrics_with_no_metrics(
         metric_retriever.get_metrics(batch_request=mock_batch_request, metric_list=metrics_list)
 
 
-def test_valid_metric_types_true(mock_context, metric_retriever):
+def test_valid_metric_types_true(mock_context, metric_retriever) -> None:
     valid_metric_types = [
         MetricTypes.TABLE_ROW_COUNT,
         MetricTypes.TABLE_COLUMNS,
