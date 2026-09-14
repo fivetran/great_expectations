@@ -9,6 +9,7 @@ import pandas as pd
 from scipy import stats
 
 from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )
@@ -421,6 +422,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
                 }
             )
 
+    @override
     def get_validation_dependencies(
         self,
         execution_engine: Optional[ExecutionEngine] = None,
@@ -582,6 +584,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
 
         return validation_dependencies
 
+    @override
     def _validate(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
         self,
         metrics: Dict,
@@ -1232,6 +1235,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
         return header_row, table_rows
 
     @classmethod
+    @override
     def _prescriptive_template(
         cls,
         renderer_configuration: RendererConfiguration,
@@ -1280,6 +1284,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
     @classmethod
     @renderer(renderer_type=AtomicPrescriptiveRendererType.SUMMARY)
     @render_suite_parameter_string
+    @override
     def _prescriptive_summary(
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
@@ -1342,6 +1347,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
     @classmethod
     @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
     @render_suite_parameter_string
+    @override
     def _prescriptive_renderer(
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
@@ -1451,6 +1457,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
 
     @classmethod
     @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
+    @override
     def _atomic_diagnostic_observed_value(
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
@@ -1524,6 +1531,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
 
     @classmethod
     @renderer(renderer_type=LegacyDiagnosticRendererType.OBSERVED_VALUE)
+    @override
     def _diagnostic_observed_value_renderer(
         cls,
         configuration: Optional[ExpectationConfiguration] = None,

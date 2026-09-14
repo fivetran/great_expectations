@@ -3,6 +3,7 @@ from __future__ import annotations
 import warnings
 from collections import Counter, defaultdict
 
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.profiler_types_mapping import ProfilerTypeMapping
 from great_expectations.render import (
     CollapseContent,
@@ -17,6 +18,7 @@ from great_expectations.render.renderer.renderer import Renderer
 
 class ProfilingResultsOverviewSectionRenderer(Renderer):
     @classmethod
+    @override
     def render(cls, evrs, section_name=None):
         content_blocks = []
         # NOTE: I don't love the way this builds content_blocks as a side effect.

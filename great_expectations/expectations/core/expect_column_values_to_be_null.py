@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Type, Union
 
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
@@ -236,6 +237,7 @@ class ExpectColumnValuesToBeNull(ColumnMapExpectation):
             )
 
     @classmethod
+    @override
     def _prescriptive_template(
         cls, renderer_configuration: RendererConfiguration
     ) -> RendererConfiguration:
@@ -266,6 +268,7 @@ class ExpectColumnValuesToBeNull(ColumnMapExpectation):
     @classmethod
     @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
     @render_suite_parameter_string
+    @override
     def _prescriptive_renderer(
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
@@ -318,6 +321,7 @@ class ExpectColumnValuesToBeNull(ColumnMapExpectation):
 
     @classmethod
     @renderer(renderer_type=LegacyDiagnosticRendererType.OBSERVED_VALUE)
+    @override
     def _diagnostic_observed_value_renderer(
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
@@ -335,6 +339,7 @@ class ExpectColumnValuesToBeNull(ColumnMapExpectation):
         except TypeError:
             return "NaN% null"
 
+    @override
     def get_validation_dependencies(
         self,
         execution_engine: Optional[ExecutionEngine] = None,
@@ -350,6 +355,7 @@ class ExpectColumnValuesToBeNull(ColumnMapExpectation):
         )
         return validation_dependencies
 
+    @override
     def _validate(
         self,
         metrics: Dict,
