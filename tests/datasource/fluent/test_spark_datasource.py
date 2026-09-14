@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from great_expectations.compatibility import pyspark
 from great_expectations.datasource.fluent import TestConnectionError
 from great_expectations.datasource.fluent.spark_datasource import (
     DataFrameAsset,
@@ -154,6 +155,10 @@ def test_unmodifiable_config_option_warning(
 
 
 @pytest.mark.unit
+@pytest.mark.skipif(
+    pyspark.pyspark,
+    reason="This test asserts the behavior when pyspark is absent.",
+)
 def test_spark_test_connection(
     empty_data_context: AbstractDataContext,
 ):
