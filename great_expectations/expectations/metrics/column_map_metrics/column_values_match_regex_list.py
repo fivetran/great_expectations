@@ -73,7 +73,12 @@ class ColumnValuesMatchRegexList(ColumnMapMetricProvider):
         if match_on == "any":
             return column.rlike("|".join(regex_list))
         elif match_on == "all":
-            formatted_regex_list = [f"(?={regex})" for regex in regex_list]
-            return column.rlike("".join(formatted_regex_list))
+            compound = None
+            for regex in regex_list:
+                if compound is None:
+                    compound = column.rlike(regex)
+                else:
+                    compound = compound & column.rlike(regex)
+            return compound
         else:
             raise ValueError("match_on must be either 'any' or 'all'")  # noqa: TRY003 # FIXME CoP
