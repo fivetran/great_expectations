@@ -314,3 +314,23 @@ def test_match_on_all_with_patterns_anchored_at_different_positions(
     assert not result.success
     assert result.result["unexpected_count"] == 1
     assert result.result["unexpected_list"] == ["B300"]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[SparkFilesystemCsvDatasourceTestConfig()],
+    data=CODES_DATA,
+)
+def test_empty_regex_list_suite_parameter_spark(
+    batch_for_datasource: Batch,
+) -> None:
+    suite_param_key = "empty_regex_list"
+    expectation = gxe.ExpectColumnValuesToMatchRegexList(
+        column=PATTERN_CODES,
+        regex_list={"$PARAMETER": suite_param_key},
+        match_on="all",
+    )
+    with pytest.raises(pydantic.ValidationError):
+        batch_for_datasource.validate(
+            expectation,
+            expectation_parameters={suite_param_key: []},
+        )

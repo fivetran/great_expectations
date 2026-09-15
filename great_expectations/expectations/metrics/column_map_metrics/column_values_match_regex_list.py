@@ -70,6 +70,9 @@ class ColumnValuesMatchRegexList(ColumnMapMetricProvider):
 
     @column_condition_partial(engine=SparkDFExecutionEngine)
     def _spark(cls, column, regex_list, match_on, **kwargs):
+        if len(regex_list) == 0:
+            raise ValueError("At least one regex must be supplied in the regex_list.")  # noqa: TRY003 # FIXME CoP
+
         if match_on == "any":
             return column.rlike("|".join(regex_list))
         elif match_on == "all":
