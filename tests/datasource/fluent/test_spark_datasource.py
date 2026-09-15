@@ -156,7 +156,7 @@ def test_unmodifiable_config_option_warning(
 
 @pytest.mark.unit
 @pytest.mark.skipif(
-    pyspark.pyspark,
+    pyspark.pyspark is not None,
     reason="This test asserts the behavior when pyspark is absent.",
 )
 def test_spark_test_connection(
