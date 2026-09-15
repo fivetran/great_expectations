@@ -129,13 +129,23 @@ def get_extras_require():
 with open("requirements.txt") as f:
     required = f.read().splitlines()
 
-long_description = "Always know what to expect from your data. (See https://github.com/great-expectations/great_expectations for full description)."  # noqa: E501
+long_description = "Always know what to expect from your data. (See https://github.com/fivetran/great_expectations for full description)."  # noqa: E501
 
 config = {
     "description": "Always know what to expect from your data.",
     "author": "The Great Expectations Team",
     "url": "https://greatexpectations.io",
-    "download_url": "https://github.com/great-expectations/great_expectations",
+    "download_url": "https://github.com/fivetran/great_expectations",
+    # Registry-side links back to the source repository. Package-hosting and
+    # dependency-tracking services key on a repository-type project URL (not on
+    # download_url) to associate the published package with its source; without
+    # one the package is unlinked and its public dependents go uncounted.
+    "project_urls": {
+        "Homepage": "https://greatexpectations.io",
+        "Documentation": "https://docs.greatexpectations.io",
+        "Repository": "https://github.com/fivetran/great_expectations",
+        "Source": "https://github.com/fivetran/great_expectations",
+    },
     "author_email": "team@greatexpectations.io",
     "version": versioneer.get_version(),
     "cmdclass": versioneer.get_cmdclass(),
