@@ -1602,3 +1602,34 @@ def test_file_context_reloads_spark_asset_with_explicit_schema(
     reloaded = gx.get_context(mode="file", project_root_dir=tmp_path)
     asset = reloaded.data_sources.get("my_spark").get_asset("my_csv")
     assert asset.spark_schema == schema.jsonValue()
+
+
+@pytest.mark.spark
+def test_add_csv_asset_rejects_invalid_spark_schema_types(
+    tmp_path: pathlib.Path,
+) -> None:
+    """Values that are no accepted spark_schema form must surface as a pydantic
+    ValidationError naming the field, through the real asset field (whose type is
+    Optional[Union[SerializableStructType, str]]), not as an AttributeError from
+    inside pyspark.
+    """
+    import great_expectations as gx
+
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    (data_dir / "a.csv").write_text("f1,f2\nx,2024-01-01 00:00:00\n")
+
+    context = gx.get_context(mode="file", project_root_dir=tmp_path)
+    data_source = context.data_sources.add_spark_filesystem(
+        name="my_spark", base_directory=data_dir
+    )
+
+    for name, invalid in [
+        ("object", object()),
+        ("non_struct_field_list", ["not_a_struct_field"]),
+        ("mixed_list", [pyspark_types.StructField("f1", pyspark_types.StringType(), True), 42]),
+    ]:
+        with pytest.raises(pydantic.ValidationError) as exc_info:
+            data_source.add_csv_asset(name=name, header=True, spark_schema=invalid)
+
+        assert "spark_schema" in str(exc_info.value)
