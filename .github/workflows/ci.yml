@@ -776,13 +776,13 @@ jobs:
       - name: Run the tests
         run: invoke ci-tests '${{ matrix.markers }}' --up-services --verbose
 
-  # Runs the gold-tier expectation suite (see `tests/integration/data_sources_and_expectations/
-  # test_gold_expectation_suite.py`) -- one cell per data source that has joined the tier, named
+  # Runs the gallery-tier expectation suite (see `tests/integration/data_sources_and_expectations/
+  # test_gallery_expectation_suite.py`) -- one cell per data source that has joined the tier, named
   # by that data source's own marker (`CiLaneRef.marker_token` in
   # `tests/integration/test_utils/data_source_config/`), reusing `MARKER_DEPENDENCY_MAP` for
   # install/services exactly as `marker-tests` does. Each cell's wall-clock, measured unsharded,
   # is well inside the 20-minute per-cell budget stated below, so no cell is split across shards.
-  gold:
+  gallery:
     needs: [unit-tests, static-analysis, check-actor-permissions]
     if: github.event.pull_request.draft == false
     env:
@@ -882,13 +882,13 @@ jobs:
 
       # No `--xdist` here, unlike the shared `marker-tests` lane above. `--xdist` implies
       # `--dist loadfile`, which keeps every test in a module on one worker, and every
-      # gold-marked item lives in the single `test_gold_expectation_suite.py` module -- so four
+      # gallery-marked item lives in the single `test_gallery_expectation_suite.py` module -- so four
       # workers would schedule the whole cell onto one of them and pay three idle process
       # startups for it. Splitting the suite across modules is what would make `--xdist` worth
       # adding back; the shared lane spans every expectation module, which is why it benefits.
-      - name: Run the gold suite
+      - name: Run the gallery suite
         run: |
-          invoke ci-tests '${{ matrix.markers }}' --up-services --verbose --suite=gold
+          invoke ci-tests '${{ matrix.markers }}' --up-services --verbose --suite=gallery
 
   py310-min-versions:
     needs: [unit-tests, static-analysis, check-actor-permissions]
@@ -1133,7 +1133,7 @@ jobs:
       - marker-tests
       - marker-tests-snowflake
       - redshift
-      - gold
+      - gallery
       - py310-min-versions
       - py311-min-versions
       - py312-min-versions

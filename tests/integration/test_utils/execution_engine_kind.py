@@ -5,7 +5,7 @@ This module sits directly under ``tests/integration/test_utils/`` rather than in
 ``data_source_config/__init__.py`` eagerly imports every backend module and then the registry-
 derived ``tiers`` module. Importing anything through ``data_source_config`` -- even a leaf value
 with no dependencies of its own -- runs that whole chain first. A module that must stay importable
-with no data-source driver installed at all (e.g. the gold-tier case table) needs a home outside
+with no data-source driver installed at all (e.g. the gallery-tier case table) needs a home outside
 that chain. ``ExecutionEngineKind`` has no dependencies of its own, so it lives here instead.
 
 ``data_source_config/__init__.py`` re-exports it, so the package's public surface is unchanged.

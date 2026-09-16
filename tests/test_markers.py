@@ -75,7 +75,7 @@ def test_the_default_statement_names_the_suite_marker_literally():
     """Spelled out rather than derived, so that renaming the suite marker to something no
     test carries -- which would silently stop excluding anything -- fails here.
     """
-    assert _marker_statement("sqlite") == "'(sqlite) and not gold'"
+    assert _marker_statement("sqlite") == "'(sqlite) and not gallery'"
 
 
 def test_every_suite_marker_is_a_declared_marker(pytest_markers: list[str]):
@@ -92,9 +92,9 @@ def test_suite_markers_are_excluded_conjunctively(monkeypatch: pytest.MonkeyPatc
     naturally and is a tautology -- anything not carrying one marker satisfies it -- so
     the lane would stop excluding the moment a second suite exists.
     """
-    monkeypatch.setattr("tasks._SUITE_MARKERS", ("gold", "platinum"))
+    monkeypatch.setattr("tasks._SUITE_MARKERS", ("gallery", "platinum"))
 
-    assert _marker_statement("sqlite") == "'(sqlite) and not gold and not platinum'"
+    assert _marker_statement("sqlite") == "'(sqlite) and not gallery and not platinum'"
 
 
 @pytest.mark.parametrize(
@@ -122,7 +122,7 @@ def test_marker_statement_opts_into_one_suite(marker: str, expected_base: str):
 
 def test_the_opt_in_statement_names_the_suite_marker_literally():
     """The opt-in half spelled out, for the same reason as the default half."""
-    assert _marker_statement("sqlite", suite="gold") == "'(sqlite) and gold'"
+    assert _marker_statement("sqlite", suite="gallery") == "'(sqlite) and gallery'"
 
 
 if __name__ == "__main__":

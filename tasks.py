@@ -1138,7 +1138,7 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
 # these by default; a lane can opt into exactly one via `_marker_statement`'s `suite`
 # argument. Adding a future suite marker is one tuple entry here, not an edit to every
 # lane's expression.
-_SUITE_MARKERS: Final[tuple[str, ...]] = ("gold",)
+_SUITE_MARKERS: Final[tuple[str, ...]] = ("gallery",)
 
 
 def _marker_statement(marker: str, suite: str = "") -> str:
@@ -1313,12 +1313,12 @@ def docs_snippet_tests(
         "group": "1-based pytest-split shard index to run. Must satisfy 1 <= group <= splits.",
         "W": "Warnings control",
         "suite": (
-            "Opt into a suite meant to run in a lane of its own (e.g. 'gold') instead of "
+            "Opt into a suite meant to run in a lane of its own (e.g. 'gallery') instead of "
             "excluding it, for the given marker."
         ),
-        "gold_measurement": (
-            "Forward --gold-measurement to pytest, substituting every configured, "
-            "engine-recognized data source for the gold tier's declared membership."
+        "gallery_measurement": (
+            "Forward --gallery-measurement to pytest, substituting every configured, "
+            "engine-recognized data source for the gallery tier's declared membership."
         ),
     },
     iterable=["service_names", "up_services", "verbose"],
@@ -1343,7 +1343,7 @@ def ci_tests(  # noqa: C901, PLR0912 - too complex (14), too many branches (13)
     W: str | None = None,
     pty: bool = True,
     suite: str = "",
-    gold_measurement: bool = False,
+    gallery_measurement: bool = False,
 ):
     """
     Run tests in CI.
@@ -1395,8 +1395,8 @@ def ci_tests(  # noqa: C901, PLR0912 - too complex (14), too many branches (13)
         # https://docs.python.org/3/library/warnings.html#describing-warning-filters
         pytest_options.append(f"-W={W}")
 
-    if gold_measurement:
-        pytest_options.append("--gold-measurement")
+    if gallery_measurement:
+        pytest_options.append("--gallery-measurement")
 
     for test_deps in _get_marker_dependencies(marker):
         if restart_services or up_services:

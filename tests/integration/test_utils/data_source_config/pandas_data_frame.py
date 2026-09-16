@@ -43,7 +43,7 @@ class PandasDataFrameDatasourceTestConfig(DataSourceTestConfig):
         # states that existing result; it switches nothing on. The marker and CI lane the claim
         # obliges are already declared above.
         tiers=frozenset(
-            {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GOLD}
+            {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GALLERY}
         ),
         # No dev_requirements_file and no task_runner_marker: the task runner's dependency map has
         # no key for `unit`, because running these tests installs nothing beyond the base

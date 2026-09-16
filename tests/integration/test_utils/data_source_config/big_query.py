@@ -53,7 +53,7 @@ class BigQueryDatasourceTestConfig(SqlDatasourceTestConfig):
         # than silently doing the wrong thing.
         uses_schema=False,
         tiers=frozenset(
-            {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GOLD}
+            {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GALLERY}
         ),
         dev_requirements_file="reqs/requirements-dev-bigquery.txt",
         task_runner_marker="bigquery",

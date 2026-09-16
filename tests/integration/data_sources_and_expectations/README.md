@@ -420,12 +420,12 @@ constructed items because the construct binds to the first table it is attached 
   curated-tier member inherits without editing that module. It keeps saying SQL because the suite
   it gates exists to prove dialect behavior, and so has no meaning for a data source that speaks
   no dialect.
-- **`SupportTier.GOLD`** — the gallery-wide suite
-  (`tests/integration/data_sources_and_expectations/test_gold_expectation_suite.py`): one case per
+- **`SupportTier.GALLERY`** — the gallery-wide suite
+  (`tests/integration/data_sources_and_expectations/test_gallery_expectation_suite.py`): one case per
   expectation the shipped package registers from its own core package, currently 58 cases. Nine
   data sources have earned it today — big-query, redshift, sqlite, pandas-data-frame,
   pandas-filesystem-csv, mysql, postgresql, trino, and databricks — and none of them currently
-  declares a case exclusion; see "Measuring a candidate before it claims gold" below for what
+  declares a case exclusion; see "Measuring a candidate before it claims gallery" below for what
   membership asserts and how it is earned.
 
 Always write the declaration form, never a bare set literal:
@@ -501,7 +501,7 @@ mapping — a data source can sit out its ceiling's worth of cases in more than 
 either tier's coverage being hollowed out past what a single-tier declaration already permits.
 This per-tier counting had to be true before a second suite could publish case keys at all: a
 single whole-declaration count could not distinguish "this data source sits out two cases in the
-curated suite" from "this data source sits out two cases in gold", so the moment two tiers exist, a
+curated suite" from "this data source sits out two cases in gallery", so the moment two tiers exist, a
 per-declaration ceiling either double-taxes a data source that has earned its full allowance in one
 tier by charging it again against a second tier's suite, or it has to stop counting altogether.
 When a data source would need one more exclusion than the ceiling permits in a tier, it does not
@@ -535,29 +535,29 @@ naming the record and the tier — an exclusion from a suite that does not run f
 is meaningless, and this catches a real class of stale declaration, a data source dropped from a
 tier whose exclusions were left behind.
 
-#### Measuring a candidate before it claims gold
+#### Measuring a candidate before it claims gallery
 
-`SupportTier.GOLD` asserts a test result, not an intention: a data source that declares it has
+`SupportTier.GALLERY` asserts a test result, not an intention: a data source that declares it has
 already passed every case in the gallery-wide suite that applies to it. Because that is a claim
 about a *result*, a candidate has to be measured before it can honestly make it — declaring the
 tier first and finding out whether it holds after the fact would publish a claim as a way of
 finding out whether it is true.
 
-The suite has a permanent measurement mode for exactly this: `--gold-measurement`, a pytest flag
+The suite has a permanent measurement mode for exactly this: `--gallery-measurement`, a pytest flag
 that substitutes every registered data source that has a configuration class and a recognized
 execution engine for the tier's declared membership, unfiltered by tier and by exclusion (a
 candidate has made no claim yet, so there is nothing to filter against). It is not a one-time
-migration switch — evaluating the *next* candidate for gold needs it exactly as evaluating the
+migration switch — evaluating the *next* candidate for gallery needs it exactly as evaluating the
 first ones did, so it stays in the suite rather than being removed once the current membership was
-established. To measure a candidate, run its own marker against the gold suite with the flag set,
+established. To measure a candidate, run its own marker against the gallery suite with the flag set,
 for example:
 
 ```
-pytest tests/integration/data_sources_and_expectations/test_gold_expectation_suite.py -m sqlite --gold-measurement -q
+pytest tests/integration/data_sources_and_expectations/test_gallery_expectation_suite.py -m sqlite --gallery-measurement -q
 ```
 
-A candidate that passes every applicable case earns the tier; declare `SupportTier.GOLD` in its
-`tiers` field (step 2, above) and add its own cell to the `gold` CI job in
+A candidate that passes every applicable case earns the tier; declare `SupportTier.GALLERY` in its
+`tiers` field (step 2, above) and add its own cell to the `gallery` CI job in
 `.github/workflows/ci.yml`, alongside the existing members. A candidate that fails some cases has a
 choice to record, not a declaration to make: either the failure is real and the data source does
 not join yet, or the case reveals a defect in the harness fixtures or the case table itself, worth
@@ -571,7 +571,7 @@ Two mechanisms can keep a `(case, data source)` pair from running, and they are 
 because both result in the pair not being tested. They are not interchangeable, and only one of
 them spends the per-tier exclusion ceiling described above.
 
-- **An engine restriction is a property of the case.** A `GoldCase` declares the execution engines
+- **An engine restriction is a property of the case.** A `GalleryCase` declares the execution engines
   its expectation can run under at all — for example, a case whose fixtures assert a SQL batch
   setup restricts itself to the SQL engine, and a case asserting a dialect-specific type name does
   the same. This is a fact about what the *expectation* can do, independent of which data sources
@@ -807,21 +807,21 @@ have a member. Adding a member is a product decision about what the shipped pack
 and a test harness does not get to force one. The reviewed literal is what stops the single
 direction from becoming a silent ratchet.
 
-## Adding an expectation to the gold gallery
+## Adding an expectation to the gallery gallery
 
-The gold-tier suite is closed in both directions against the shipped package's own expectation
+The gallery-tier suite is closed in both directions against the shipped package's own expectation
 registry: every expectation the shipped core package registers must have exactly one case in
-`tests/integration/data_sources_and_expectations/gold_expectation_case_table.py`, and every case in
+`tests/integration/data_sources_and_expectations/gallery_expectation_case_table.py`, and every case in
 that table must name an expectation the shipped core package actually registers. A completeness
-guard (`test_gold_case_keys_match_the_gallery_set_exactly` in
-`tests/integration/data_sources_and_expectations/test_gold_expectation_suite.py`) fails, naming
+guard (`test_gallery_case_keys_match_the_gallery_set_exactly` in
+`tests/integration/data_sources_and_expectations/test_gallery_expectation_suite.py`) fails, naming
 each offending key, whenever either direction drifts — a new expectation with no case, or a case
 whose expectation was renamed or removed.
 
 That means adding a new expectation to the shipped core package is not complete on its own: the
-gold suite fails the moment that expectation registers until a case exists for it. To add one:
+gallery suite fails the moment that expectation registers until a case exists for it. To add one:
 
-1. Open `gold_expectation_case_table.py` and add one `GoldCase` to the `GOLD_CASES` tuple, keyed
+1. Open `gallery_expectation_case_table.py` and add one `GalleryCase` to the `GALLERY_CASES` tuple, keyed
    by the new expectation's `expectation_type`. Follow an existing case of the same shape as a
    template — a `passing` configuration that should validate cleanly against the suite's shared
    fixture data, and a `failing` configuration that should fail discriminatingly (the assertion is
@@ -829,15 +829,15 @@ gold suite fails the moment that expectation registers until a case exists for i
    expectation runs).
 2. If the expectation can only run under a subset of execution engines — for instance, because the
    shipped package registers no metric provider for it on some engine — restrict `engines` on the
-   `GoldCase` to that proper, non-empty subset and state why in `engine_restriction_reason`. This
+   `GalleryCase` to that proper, non-empty subset and state why in `engine_restriction_reason`. This
    is the engine-restriction mechanism described above; it is a fact about the expectation, decided
    once here, not something declared per data source.
 3. If the case needs a fixture shape other than the default single-table comparison
    (`CaseFixtureShape.STANDARD`), such as a second table or a comparison batch, see
-   `gold_expectation_cases.py` for the other declared shapes.
+   `gallery_expectation_cases.py` for the other declared shapes.
 
-Once the case is added, `test_gold_case_keys_match_the_gallery_set_exactly` passes again, and the
-gallery-wide suite runs the new case against every current gold-tier member the moment it is
+Once the case is added, `test_gallery_case_keys_match_the_gallery_set_exactly` passes again, and the
+gallery-wide suite runs the new case against every current gallery-tier member the moment it is
 collected — no per-member edit is needed for an existing member to pick it up.
 
 ## The ad-hoc escape hatch's autocommit mechanism

@@ -60,7 +60,7 @@ class RedshiftDatasourceTestConfig(SqlDatasourceTestConfig):
         ci_lane=CiLaneRef(workflow_job="redshift", marker_token="redshift"),
         uses_schema=True,
         tiers=frozenset(
-            {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GOLD}
+            {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GALLERY}
         ),
         dev_requirements_file="reqs/requirements-dev-redshift.txt",
         task_runner_marker="redshift",

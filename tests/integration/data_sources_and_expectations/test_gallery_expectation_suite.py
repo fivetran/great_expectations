@@ -1,12 +1,12 @@
-"""The gold-tier suite: the gallery-wide expectation suite every gold-tier data source proves.
+"""The gallery-tier suite: the gallery-wide expectation suite every gallery-tier data source proves.
 
 This module builds the suite's collection-time parameterization -- the (case, data source) product
-that turns the declarative case table in `gold_expectation_case_table.py` into parametrized test
+that turns the declarative case table in `gallery_expectation_case_table.py` into parametrized test
 items --
 and the measurement switch that lets a candidate data source be run against the suite before it has
-declared gold-tier membership.
+declared gallery-tier membership.
 
-Every case is parameterized through `data_sources_for_tier_case(SupportTier.GOLD, case.key)` and
+Every case is parameterized through `data_sources_for_tier_case(SupportTier.GALLERY, case.key)` and
 through nothing else, so a member's declared `tier_case_exclusions` entry for a case takes effect no
 matter which case asks, exactly as the curated-tier suite does in `test_curated_backend_suite.py`. A
 case parameterized directly over a raw membership list would silently ignore that exclusion.
@@ -23,7 +23,7 @@ here deliberately does not.
 The test functions that consume the generated parameters -- one per fixture shape, asserting what
 a case proves -- are `test_standard_case`, `test_extra_table_case`, and `test_comparison_case`,
 below. Each receives the batch (or comparison batch) the harness's own fixtures build from the
-generated `TestConfig`, and the `GoldCase` carried alongside it, and asserts the three things a
+generated `TestConfig`, and the `GalleryCase` carried alongside it, and asserts the three things a
 case proves: the passing configuration succeeds, the failing configuration fails with a message
 that says the case is not discriminating (never merely that the expectation failed), and neither
 validation raised.
@@ -62,18 +62,18 @@ from great_expectations.expectations.registry import (
 )
 from tests.integration.conftest import MultiSourceBatch
 from tests.integration.conftest import TestConfig as _TestConfig
-from tests.integration.data_sources_and_expectations.gold_expectation_case_table import (
-    GOLD_CASE_KEYS,
-    GOLD_CASES,
+from tests.integration.data_sources_and_expectations.gallery_expectation_case_table import (
+    GALLERY_CASE_KEYS,
+    GALLERY_CASES,
     _derive_case_keys,
 )
-from tests.integration.data_sources_and_expectations.gold_expectation_cases import (
+from tests.integration.data_sources_and_expectations.gallery_expectation_cases import (
     EXTRA_TABLE_SELF_REFERENCE,
-    GOLD_EXTRA_TABLE_DATA,
-    GOLD_EXTRA_TABLE_NAME,
-    GOLD_FIXTURE_DATA,
+    GALLERY_EXTRA_TABLE_DATA,
+    GALLERY_EXTRA_TABLE_NAME,
+    GALLERY_FIXTURE_DATA,
     CaseFixtureShape,
-    GoldCase,
+    GalleryCase,
 )
 from tests.integration.test_utils.data_source_config import (
     CiLaneRef,
@@ -94,11 +94,11 @@ from tests.integration.test_utils.execution_engine_kind import ExecutionEngineKi
 # The pytest option that turns on measurement mode. Declared once here and read by name from
 # `metafunc.config` rather than re-declared, so the option string used to register it
 # (`tests/conftest.py`) and the string used to read it can never drift apart.
-GOLD_MEASUREMENT_OPTION = "--gold-measurement"
+GALLERY_MEASUREMENT_OPTION = "--gallery-measurement"
 
 # Which fixture shape each case-consuming test function in this module asserts. A later unit of
 # work adds the functions themselves; this mapping is the contract they join by name. A function
-# not listed here requests no gold parameterization at all, whatever fixtures it declares.
+# not listed here requests no gallery parameterization at all, whatever fixtures it declares.
 _SHAPE_BY_TEST_FUNCTION_NAME: Dict[str, CaseFixtureShape] = {
     "test_standard_case": CaseFixtureShape.STANDARD,
     "test_extra_table_case": CaseFixtureShape.EXTRA_TABLE,
@@ -106,9 +106,9 @@ _SHAPE_BY_TEST_FUNCTION_NAME: Dict[str, CaseFixtureShape] = {
 }
 
 # The two fixture names a case-consuming test function must request together for this module to
-# parametrize it: the harness's own indirect batch-setup fixture, and the gold case itself.
+# parametrize it: the harness's own indirect batch-setup fixture, and the gallery case itself.
 _BATCH_SETUP_FIXTURE_NAME = "_batch_setup_for_datasource"
-_GOLD_CASE_FIXTURE_NAME = "gold_case"
+_GALLERY_CASE_FIXTURE_NAME = "gallery_case"
 
 # The package the shipped core expectations are defined under. `gallery_expectation_types` keeps
 # only registry entries whose implementation's defining module is this package or a submodule of
@@ -159,7 +159,7 @@ def gallery_expectation_types() -> FrozenSet[str]:
 
 
 def _candidate_data_sources(
-    case: GoldCase, *, measurement_mode: bool
+    case: GalleryCase, *, measurement_mode: bool
 ) -> List[DataSourceTestConfig]:
     """The data sources offered to `case`, before the engine filter.
 
@@ -170,7 +170,7 @@ def _candidate_data_sources(
     data source with no recorded execution engine is still offered here -- `_engine_applies`, run
     unconditionally over every candidate this function returns, already drops it, in both modes;
     filtering it out a second time here would duplicate that check rather than add one, since
-    `GoldCase.engines` is never empty and never contains `None`, so `_engine_applies` can never
+    `GalleryCase.engines` is never empty and never contains `None`, so `_engine_applies` can never
     see a case an engineless candidate would otherwise slip past.
     """
     if measurement_mode:
@@ -178,16 +178,16 @@ def _candidate_data_sources(
             cast("DataSourceTestConfig", config_class())
             for config_class in iter_data_source_configs()
         ]
-    return data_sources_for_tier_case(SupportTier.GOLD, case.key)
+    return data_sources_for_tier_case(SupportTier.GALLERY, case.key)
 
 
-def _engine_applies(config: DataSourceTestConfig, case: GoldCase) -> bool:
+def _engine_applies(config: DataSourceTestConfig, case: GalleryCase) -> bool:
     """Whether `config`'s execution engine survives `case`'s engine restriction.
 
     A data source with no recorded execution engine never applies to any case: it names a storage
     target rather than something a single engine reads a batch from. `None` -- what an unrecorded
-    engine reads as -- is never a member of `case.engines` (it is always `GoldCase`'s full default
-    set or a proper, non-empty subset of `ExecutionEngineKind`, per `GoldCase.__post_init__`), so
+    engine reads as -- is never a member of `case.engines` (it is always `GalleryCase`'s full default
+    set or a proper, non-empty subset of `ExecutionEngineKind`, per `GalleryCase.__post_init__`), so
     membership alone already excludes an engineless candidate without a separate `is None` guard.
     Neither drop is treated as an exclusion -- `tier_case_exclusions` is the one mechanism that
     means that, and this filter never consults it and never writes to it.
@@ -209,7 +209,7 @@ _TYPE_CASE_KEY: Final[str] = gxe.ExpectColumnValuesToBeOfType(
 # verbatim from the case table.
 
 
-def _resolve_case_for_config(case: GoldCase, config: DataSourceTestConfig) -> GoldCase:
+def _resolve_case_for_config(case: GalleryCase, config: DataSourceTestConfig) -> GalleryCase:
     """Rebuild `case`'s passing/failing configurations from `config`'s declared type names, for
     the two cases that assert against a SQL dialect type name.
 
@@ -223,7 +223,7 @@ def _resolve_case_for_config(case: GoldCase, config: DataSourceTestConfig) -> Go
         return case
     spec = config.DATA_SOURCE_SPEC
     assert isinstance(spec, SqlBackendSpec), (
-        f"gold case {case.key!r} is restricted to SQL engines, but {config.test_id!r}'s spec is "
+        f"gallery case {case.key!r} is restricted to SQL engines, but {config.test_id!r}'s spec is "
         f"{type(spec).__name__}, not SqlBackendSpec"
     )
     integer_name = spec.integer_column_type_name
@@ -248,39 +248,39 @@ def _resolve_case_for_config(case: GoldCase, config: DataSourceTestConfig) -> Go
     )
 
 
-def _test_config_for(case: GoldCase, config: DataSourceTestConfig) -> _TestConfig:
+def _test_config_for(case: GalleryCase, config: DataSourceTestConfig) -> _TestConfig:
     """The `_TestConfig` the existing indirect `_batch_setup_for_datasource` fixture consumes, built
-    from `case`'s fixture shape and the shared fixture data `gold_expectation_cases` publishes.
+    from `case`'s fixture shape and the shared fixture data `gallery_expectation_cases` publishes.
 
     The `COMPARISON` shape uses the same data source, and the same shared frame, for both the base
-    and the comparison side: `gold_expectation_cases` publishes one shared frame, and a case needing
+    and the comparison side: `gallery_expectation_cases` publishes one shared frame, and a case needing
     a comparison source needing different data from the base declares its own frame there when one
-    is added, the same way `EXTRA_TABLE` cases share `GOLD_EXTRA_TABLE_DATA` rather than each
+    is added, the same way `EXTRA_TABLE` cases share `GALLERY_EXTRA_TABLE_DATA` rather than each
     inventing a second table.
     """
     if case.fixture_shape is CaseFixtureShape.STANDARD:
-        return _TestConfig(data_source_config=config, data=GOLD_FIXTURE_DATA, extra_data={})
+        return _TestConfig(data_source_config=config, data=GALLERY_FIXTURE_DATA, extra_data={})
     if case.fixture_shape is CaseFixtureShape.EXTRA_TABLE:
         return _TestConfig(
             data_source_config=config,
-            data=GOLD_FIXTURE_DATA,
-            extra_data={GOLD_EXTRA_TABLE_NAME: GOLD_EXTRA_TABLE_DATA},
+            data=GALLERY_FIXTURE_DATA,
+            extra_data={GALLERY_EXTRA_TABLE_NAME: GALLERY_EXTRA_TABLE_DATA},
         )
     if case.fixture_shape is CaseFixtureShape.COMPARISON:
         return _TestConfig(
             data_source_config=config,
-            data=GOLD_FIXTURE_DATA,
+            data=GALLERY_FIXTURE_DATA,
             extra_data={},
             secondary_source_config=config,
-            secondary_data=GOLD_FIXTURE_DATA,
+            secondary_data=GALLERY_FIXTURE_DATA,
         )
     raise ValueError(
-        f"Unhandled gold case fixture shape: {case.fixture_shape!r}"
+        f"Unhandled gallery case fixture shape: {case.fixture_shape!r}"
     )  # pragma: no cover
 
 
-def build_gold_case_params(
-    cases: Sequence[GoldCase], *, measurement_mode: bool
+def build_gallery_case_params(
+    cases: Sequence[GalleryCase], *, measurement_mode: bool
 ) -> List[ParameterSet]:
     """The suite's collection-time (case, data source) product, as a flat list of `pytest.param`.
 
@@ -289,7 +289,7 @@ def build_gold_case_params(
     execution engine is outside the case's restriction or unrecorded, and emits one `pytest.param`
     per surviving pair. Each param's id names both the data source and the case key
     (`<data source test id>-<case key>`); each param's marks are the data source's own mark plus the
-    suite marker (`pytest.mark.gold`).
+    suite marker (`pytest.mark.gallery`).
 
     Legal to return an empty list -- an unclaimed tier or a fully excluded case are both reportable
     states, not errors -- and this never raises for either reason. `pytest.mark.parametrize` (via
@@ -309,7 +309,7 @@ def build_gold_case_params(
                     _test_config_for(resolved_case, config),
                     resolved_case,
                     id=f"{config.test_id}-{case.key}",
-                    marks=[config.pytest_mark, pytest.mark.gold],
+                    marks=[config.pytest_mark, pytest.mark.gallery],
                 )
             )
     return params
@@ -321,7 +321,7 @@ def build_gold_case_params(
 # table and the registry -- "is anything of this shape published at all" versus "did any admitted
 # data source actually offer to run it".
 _NO_CASE_OF_SHAPE_REASON: Final[str] = (
-    "no gold case of this fixture shape is published in the case table"
+    "no gallery case of this fixture shape is published in the case table"
 )
 _NO_DATA_SOURCE_CLAIMED_REASON: Final[str] = (
     "no data source offered any published case of this shape anything to validate "
@@ -335,13 +335,13 @@ def _empty_product_placeholder(reason: str) -> ParameterSet:
 
     `metafunc.parametrize` with an empty `argvalues` list already collects one automatically
     skipped item on its own -- that mechanism is what lets an empty tier and a fully excluded case
-    survive collection at all (see `build_gold_case_params`'s docstring) -- but pytest's own
+    survive collection at all (see `build_gallery_case_params`'s docstring) -- but pytest's own
     synthetic item carries none of this repo's required markers, which the marker-coverage check
     (`tests/conftest.py::_verify_marker_coverage`) treats as an uncovered test. This placeholder
     supplies that marker explicitly, plus an explicit (rather than pytest's generic) skip reason,
     naming which of the two ways an empty product can arise the caller has already told apart.
 
-    Its `_batch_setup_for_datasource` and `gold_case` values are never touched: a `pytest.mark.skip`
+    Its `_batch_setup_for_datasource` and `gallery_case` values are never touched: a `pytest.mark.skip`
     on a parametrized item's marks makes pytest skip the item during test *setup*, before any
     fixture (including an indirect one) runs -- verified directly against this repo's fixture, not
     assumed from pytest's docs.
@@ -363,19 +363,19 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     Runs at collection time, once per matching test function, so the registry state it reads is the
     run's registry state rather than whatever the registry held when this module was first
     imported. A function this module has not declared a shape for, or that does not request both
-    `_batch_setup_for_datasource` and `gold_case`, is left untouched.
+    `_batch_setup_for_datasource` and `gallery_case`, is left untouched.
     """
     shape = _SHAPE_BY_TEST_FUNCTION_NAME.get(metafunc.function.__name__)
     if shape is None:
         return
     if _BATCH_SETUP_FIXTURE_NAME not in metafunc.fixturenames:
         return
-    if _GOLD_CASE_FIXTURE_NAME not in metafunc.fixturenames:
+    if _GALLERY_CASE_FIXTURE_NAME not in metafunc.fixturenames:
         return
 
-    measurement_mode = bool(metafunc.config.getoption(GOLD_MEASUREMENT_OPTION))
-    cases = [case for case in GOLD_CASES if case.fixture_shape is shape]
-    params = build_gold_case_params(cases, measurement_mode=measurement_mode)
+    measurement_mode = bool(metafunc.config.getoption(GALLERY_MEASUREMENT_OPTION))
+    cases = [case for case in GALLERY_CASES if case.fixture_shape is shape]
+    params = build_gallery_case_params(cases, measurement_mode=measurement_mode)
     if not params:
         # `cases` empty means the case table publishes nothing of this shape at all; `cases`
         # non-empty but `params` empty means every published case of this shape found no data
@@ -386,7 +386,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
         reason = _NO_CASE_OF_SHAPE_REASON if not cases else _NO_DATA_SOURCE_CLAIMED_REASON
         params = [_empty_product_placeholder(reason)]
     metafunc.parametrize(
-        [_BATCH_SETUP_FIXTURE_NAME, _GOLD_CASE_FIXTURE_NAME],
+        [_BATCH_SETUP_FIXTURE_NAME, _GALLERY_CASE_FIXTURE_NAME],
         params,
         indirect=[_BATCH_SETUP_FIXTURE_NAME],
     )
@@ -434,12 +434,12 @@ def _describe_observed_value(result: _ExpectationValidationResult) -> str:
 
 
 def _assert_case_proves_its_expectation(
-    case: GoldCase,
+    case: GalleryCase,
     *,
     validate_passing: Callable[[], _ExpectationValidationResult],
     validate_failing: Callable[[], _ExpectationValidationResult],
 ) -> None:
-    """Assert the three verdicts every gold case proves, per case-shape test function below.
+    """Assert the three verdicts every gallery case proves, per case-shape test function below.
 
     `validate_passing` and `validate_failing` run `case.passing`/`case.failing` against this
     test's batch and return the result. Taking callables rather than results keeps this helper
@@ -447,21 +447,21 @@ def _assert_case_proves_its_expectation(
     """
     passing_result = validate_passing()
     assert not _raised_exception(passing_result.exception_info), (
-        f"gold case {case.key!r}: the passing configuration raised during "
+        f"gallery case {case.key!r}: the passing configuration raised during "
         f"validation instead of evaluating cleanly: {passing_result.exception_info}"
     )
     assert passing_result.success, (
-        f"gold case {case.key!r}: the configuration declared as `passing` reported failure. "
+        f"gallery case {case.key!r}: the configuration declared as `passing` reported failure. "
         f"{_describe_observed_value(passing_result)} result={passing_result}"
     )
 
     failing_result = validate_failing()
     assert not _raised_exception(failing_result.exception_info), (
-        f"gold case {case.key!r}: the failing configuration raised during validation instead of "
+        f"gallery case {case.key!r}: the failing configuration raised during validation instead of "
         f"evaluating to false: {failing_result.exception_info}"
     )
     assert not failing_result.success, (
-        f"gold case {case.key!r} is not discriminating: its `failing` configuration reported "
+        f"gallery case {case.key!r} is not discriminating: its `failing` configuration reported "
         "success against the shared fixture data, so this case cannot distinguish a working "
         "implementation of the expectation from a broken one. This is not an ordinary expectation "
         "failure -- fix the case's `failing` configuration or fixture data. "
@@ -471,13 +471,13 @@ def _assert_case_proves_its_expectation(
 
 def test_standard_case(
     batch_for_datasource: Batch,
-    gold_case: GoldCase,
+    gallery_case: GalleryCase,
 ) -> None:
-    """Assert what a `STANDARD`-shape gold case proves, against the shared fixture alone."""
+    """Assert what a `STANDARD`-shape gallery case proves, against the shared fixture alone."""
     _assert_case_proves_its_expectation(
-        gold_case,
-        validate_passing=lambda: batch_for_datasource.validate(gold_case.passing),
-        validate_failing=lambda: batch_for_datasource.validate(gold_case.failing),
+        gallery_case,
+        validate_passing=lambda: batch_for_datasource.validate(gallery_case.passing),
+        validate_failing=lambda: batch_for_datasource.validate(gallery_case.failing),
     )
 
 
@@ -485,9 +485,9 @@ def test_extra_table_case(
     batch_for_datasource: Batch,
     _batch_setup_for_datasource: object,
     extra_table_names_for_datasource: Mapping[str, str],
-    gold_case: GoldCase,
+    gallery_case: GalleryCase,
 ) -> None:
-    """Assert what an `EXTRA_TABLE`-shape gold case proves, resolving each configuration's
+    """Assert what an `EXTRA_TABLE`-shape gallery case proves, resolving each configuration's
     placeholder table reference (`EXTRA_TABLE_SELF_REFERENCE`, or the shared extra table's
     logical name) to the physical table name this test's own batch setup created."""
     from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
@@ -501,7 +501,7 @@ def test_extra_table_case(
         assert isinstance(expectation, gxe.ExpectTableRowCountToEqualOtherTable)
         placeholder = expectation.other_table_name
         assert isinstance(placeholder, str), (
-            f"gold case {gold_case.key!r}: expected a placeholder `other_table_name` string, "
+            f"gallery case {gallery_case.key!r}: expected a placeholder `other_table_name` string, "
             f"got {placeholder!r}"
         )
         other_table_name = (
@@ -514,17 +514,17 @@ def test_extra_table_case(
         return resolved
 
     _assert_case_proves_its_expectation(
-        gold_case,
-        validate_passing=lambda: batch_for_datasource.validate(_resolve(gold_case.passing)),
-        validate_failing=lambda: batch_for_datasource.validate(_resolve(gold_case.failing)),
+        gallery_case,
+        validate_passing=lambda: batch_for_datasource.validate(_resolve(gallery_case.passing)),
+        validate_failing=lambda: batch_for_datasource.validate(_resolve(gallery_case.failing)),
     )
 
 
 def test_comparison_case(
     multi_source_batch: MultiSourceBatch,
-    gold_case: GoldCase,
+    gallery_case: GalleryCase,
 ) -> None:
-    """Assert what a `COMPARISON`-shape gold case proves, resolving each configuration's
+    """Assert what a `COMPARISON`-shape gallery case proves, resolving each configuration's
     placeholder comparison-source reference to the comparison batch this test's own multi-source
     setup created."""
 
@@ -534,7 +534,7 @@ def test_comparison_case(
         assert isinstance(expectation, gxe.ExpectQueryResultsToMatchComparison)
         comparison_query = expectation.comparison_query
         assert isinstance(comparison_query, str), (
-            f"gold case {gold_case.key!r}: expected a placeholder `comparison_query` string, "
+            f"gallery case {gallery_case.key!r}: expected a placeholder `comparison_query` string, "
             f"got {comparison_query!r}"
         )
         resolved_query = comparison_query.replace(
@@ -550,12 +550,12 @@ def test_comparison_case(
         return resolved
 
     _assert_case_proves_its_expectation(
-        gold_case,
+        gallery_case,
         validate_passing=lambda: multi_source_batch.base_batch.validate(
-            _resolve(gold_case.passing)
+            _resolve(gallery_case.passing)
         ),
         validate_failing=lambda: multi_source_batch.base_batch.validate(
-            _resolve(gold_case.failing)
+            _resolve(gallery_case.failing)
         ),
     )
 
@@ -564,7 +564,7 @@ def test_comparison_case(
 def test_shape_dispatch_names_a_real_function_for_every_key_and_vice_versa() -> None:
     """`_SHAPE_BY_TEST_FUNCTION_NAME` is a bijection with the case-consuming functions in this
     module: every key names a real function here, and every case-consuming function here (one
-    named `test_*_case`, taking the `gold_case` fixture) has a key. Without this guard, renaming
+    named `test_*_case`, taking the `gallery_case` fixture) has a key. Without this guard, renaming
     a consumer function silently drops its shape from collection -- `pytest_generate_tests` would
     just never dispatch to it, yielding zero collected cases for that shape with a green suite."""
     module_globals = sys.modules[__name__].__dict__
@@ -580,10 +580,10 @@ def test_shape_dispatch_names_a_real_function_for_every_key_and_vice_versa() -> 
         for name, value in module_globals.items()
         if callable(value)
         and getattr(value, "__module__", None) == __name__
-        and _GOLD_CASE_FIXTURE_NAME in inspect.signature(value).parameters
+        and _GALLERY_CASE_FIXTURE_NAME in inspect.signature(value).parameters
     }
     assert case_consuming_names == set(_SHAPE_BY_TEST_FUNCTION_NAME), (
-        "A function in this module requests the `gold_case` fixture but has no entry in "
+        "A function in this module requests the `gallery_case` fixture but has no entry in "
         "_SHAPE_BY_TEST_FUNCTION_NAME, or vice versa. "
         f"dispatch={sorted(_SHAPE_BY_TEST_FUNCTION_NAME)} "
         f"consumers={sorted(case_consuming_names)}"
@@ -714,18 +714,18 @@ def test_gallery_expectation_types_excludes_unregistered_abstract_export() -> No
 # The case table's own key-derivation guard (`_derive_case_keys`) is not one of those six: it is
 # not a test at all but a check the case table makes as it is imported, so it runs in every lane
 # rather than this one. It sits underneath the completeness guard rather than beside it -- it is
-# what makes `GOLD_CASE_KEYS` a faithful index of the table, without which comparing that key set
+# what makes `GALLERY_CASE_KEYS` a faithful index of the table, without which comparing that key set
 # against the registry means nothing. Only its two failure paths are exercised here, as tests: a
 # repeated key, and a key naming an expectation its own configurations do not execute.
 #
-# The completeness guard runs against the real registry and GOLD_CASE_KEYS -- it is currently
+# The completeness guard runs against the real registry and GALLERY_CASE_KEYS -- it is currently
 # vacuous in the sense that both sides already agree (58 published keys, 58 gallery members), but
 # it is not vacuous in the sense that matters: `_completeness_check` is factored out so its failure
 # path can be, and is, exercised directly below against a deliberately incomplete key set, proving
 # the guard can actually fail rather than merely being green over an untested comparison.
 #
 # The exclusion-key and accessor-equality guards now exercise real declarations: several data
-# sources have declared `SupportTier.GOLD` membership, so both guards check against a non-empty
+# sources have declared `SupportTier.GALLERY` membership, so both guards check against a non-empty
 # tier for the first time. Neither declares a `tier_case_exclusions` entry for the tier, since
 # every admitted member passes every case it applies to -- the exclusion-key guard is exercised by
 # the check itself walking every registered config's declarations (finding none for this tier),
@@ -742,19 +742,19 @@ def test_gallery_expectation_types_excludes_unregistered_abstract_export() -> No
 def _completeness_check(published_keys: FrozenSet[str], gallery_keys: FrozenSet[str]) -> None:
     """The published case-key set must equal the derived gallery set in both directions.
 
-    Factored out from `test_gold_case_keys_match_the_gallery_set_exactly` so its failure path can
+    Factored out from `test_gallery_case_keys_match_the_gallery_set_exactly` so its failure path can
     be exercised directly, with a deliberately incomplete key set, in
     `test_completeness_guard_fails_on_missing_and_unrecognized_keys` below -- proving this check
     can fail rather than merely being green over the two sets happening to agree today.
     """
     missing = gallery_keys - published_keys
     assert not missing, (
-        f"The following registered expectations have no published gold case: {sorted(missing)}. "
-        "Add a GoldCase for each to GOLD_CASES in gold_expectation_case_table.py."
+        f"The following registered expectations have no published gallery case: {sorted(missing)}. "
+        "Add a GalleryCase for each to GALLERY_CASES in gallery_expectation_case_table.py."
     )
     unrecognized = published_keys - gallery_keys
     assert not unrecognized, (
-        f"The following published gold case keys do not name a currently registered expectation: "
+        f"The following published gallery case keys do not name a currently registered expectation: "
         f"{sorted(unrecognized)}. Either the expectation was removed from the shipped package "
         "(delete the case) or the key is misspelled (fix it to match the registered "
         "expectation_type) -- check both."
@@ -762,10 +762,10 @@ def _completeness_check(published_keys: FrozenSet[str], gallery_keys: FrozenSet[
 
 
 @pytest.mark.project
-def test_gold_case_keys_match_the_gallery_set_exactly() -> None:
-    """`GOLD_CASE_KEYS` and `gallery_expectation_types()` must be exactly equal: an expectation
+def test_gallery_case_keys_match_the_gallery_set_exactly() -> None:
+    """`GALLERY_CASE_KEYS` and `gallery_expectation_types()` must be exactly equal: an expectation
     registered with no case, and a case naming an unregistered expectation, are both a defect."""
-    _completeness_check(GOLD_CASE_KEYS, gallery_expectation_types())
+    _completeness_check(GALLERY_CASE_KEYS, gallery_expectation_types())
 
 
 @pytest.mark.project
@@ -774,7 +774,7 @@ def test_completeness_guard_fails_on_missing_and_unrecognized_keys() -> None:
     offending key -- proof the completeness guard is not merely green over nothing."""
     gallery = frozenset({"expect_kept_case", "expect_missing_case"})
 
-    with pytest.raises(AssertionError, match=r"no published gold case.*expect_missing_case"):
+    with pytest.raises(AssertionError, match=r"no published gallery case.*expect_missing_case"):
         _completeness_check(frozenset({"expect_kept_case"}), gallery)
 
     with pytest.raises(AssertionError, match=r"do not name a currently registered.*extra_key"):
@@ -790,8 +790,8 @@ def test_case_key_derivation_returns_every_key_of_a_well_formed_table() -> None:
     not_null = gxe.ExpectColumnValuesToNotBeNull(column="increasing_key")
     be_null = gxe.ExpectColumnValuesToBeNull(column="nullable_value")
     cases = (
-        GoldCase(key=not_null.expectation_type, passing=not_null, failing=not_null),
-        GoldCase(key=be_null.expectation_type, passing=be_null, failing=be_null),
+        GalleryCase(key=not_null.expectation_type, passing=not_null, failing=not_null),
+        GalleryCase(key=be_null.expectation_type, passing=be_null, failing=be_null),
     )
     assert _derive_case_keys(cases) == frozenset(
         {not_null.expectation_type, be_null.expectation_type}
@@ -807,7 +807,7 @@ def test_case_key_derivation_rejects_a_repeated_key() -> None:
     expectation, contradicting its stated one-case-per-expectation contract, and stay green.
     """
     expectation = gxe.ExpectColumnValuesToNotBeNull(column="increasing_key")
-    case = GoldCase(key=expectation.expectation_type, passing=expectation, failing=expectation)
+    case = GalleryCase(key=expectation.expectation_type, passing=expectation, failing=expectation)
 
     with pytest.raises(ValueError, match=r"more than one case for.*expect_column_values_to_not"):
         _derive_case_keys((case, case))
@@ -828,7 +828,7 @@ def test_case_key_derivation_rejects_a_key_its_configurations_do_not_execute(
     """
     keyed_as = gxe.ExpectColumnValuesToNotBeNull(column="increasing_key")
     other = gxe.ExpectColumnValuesToBeNull(column="nullable_value")
-    case = GoldCase(
+    case = GalleryCase(
         key=keyed_as.expectation_type,
         passing=other if mismatched_side == "passing" else keyed_as,
         failing=other if mismatched_side == "failing" else keyed_as,
@@ -839,8 +839,8 @@ def test_case_key_derivation_rejects_a_key_its_configurations_do_not_execute(
 
 
 @pytest.mark.project
-def test_gold_tier_has_at_least_one_member() -> None:
-    """`SupportTier.GOLD` must never go back to having no members.
+def test_gallery_tier_has_at_least_one_member() -> None:
+    """`SupportTier.GALLERY` must never go back to having no members.
 
     Before any data source joined the tier, an empty suite was the correct, legal state -- the
     fixture-shape test functions collect a single skipped placeholder rather than failing. Once a
@@ -849,60 +849,60 @@ def test_gold_tier_has_at_least_one_member() -> None:
     without anything else taking its place, and the suite would silently go back to proving
     nothing while still reporting green.
     """
-    members = data_source_configs_for_tier(SupportTier.GOLD)
+    members = data_source_configs_for_tier(SupportTier.GALLERY)
     assert members, (
-        "No data source declares SupportTier.GOLD membership. If every prior member was removed "
+        "No data source declares SupportTier.GALLERY membership. If every prior member was removed "
         "deliberately, this suite is a no-op; if not, restore the missing tiers= declaration(s)."
     )
 
 
 @pytest.mark.project
-def test_every_gold_exclusion_key_is_a_published_case_key() -> None:
-    """Every case key any registered backend declares a gold-tier exclusion for must be one of
-    `GOLD_CASE_KEYS`.
+def test_every_gallery_exclusion_key_is_a_published_case_key() -> None:
+    """Every case key any registered backend declares a gallery-tier exclusion for must be one of
+    `GALLERY_CASE_KEYS`.
 
-    Several backends now declare `SupportTier.GOLD` membership, so this walks their real
-    `tier_case_exclusions` declarations -- none of them holds a `GOLD` entry, because every
+    Several backends now declare `SupportTier.GALLERY` membership, so this walks their real
+    `tier_case_exclusions` declarations -- none of them holds a `GALLERY` entry, because every
     admitted member passes every case it applies to, but this guard raises the moment a backend
     declares one naming a stale or misspelled key, rather than that key silently excluding
     nothing while reading, on inspection, as a real exclusion.
     """
     for config_class in iter_data_source_configs():
-        gold_exclusions = config_class.DATA_SOURCE_SPEC.tier_case_exclusions.get(
-            SupportTier.GOLD, {}
+        gallery_exclusions = config_class.DATA_SOURCE_SPEC.tier_case_exclusions.get(
+            SupportTier.GALLERY, {}
         )
-        for excluded_key in gold_exclusions:
-            assert excluded_key in GOLD_CASE_KEYS, (
-                f"{config_class.__name__} declares a gold-tier case exclusion for "
-                f"{excluded_key!r}, which is not one of GOLD_CASE_KEYS "
-                f"({sorted(GOLD_CASE_KEYS)})."
+        for excluded_key in gallery_exclusions:
+            assert excluded_key in GALLERY_CASE_KEYS, (
+                f"{config_class.__name__} declares a gallery-tier case exclusion for "
+                f"{excluded_key!r}, which is not one of GALLERY_CASE_KEYS "
+                f"({sorted(GALLERY_CASE_KEYS)})."
             )
 
 
 @pytest.mark.project
-def test_gold_case_accessor_matches_tier_membership_minus_declared_exclusions() -> None:
-    """For every published gold case key, `data_sources_for_tier_case(GOLD, key)` must equal the
+def test_gallery_case_accessor_matches_tier_membership_minus_declared_exclusions() -> None:
+    """For every published gallery case key, `data_sources_for_tier_case(GALLERY, key)` must equal the
     tier's live membership minus whichever members declare an exclusion for that key, computed
     from each member's own live `tier_case_exclusions` rather than assumed.
 
-    `SupportTier.GOLD` now has real members, so both sides of this comparison are computed from
+    `SupportTier.GALLERY` now has real members, so both sides of this comparison are computed from
     the live registry for every key -- this is the first point this guard checks anything beyond
     two empty lists agreeing.
     """
     tier_members = [
         cast("DataSourceTestConfig", config_class())
-        for config_class in data_source_configs_for_tier(SupportTier.GOLD)
+        for config_class in data_source_configs_for_tier(SupportTier.GALLERY)
     ]
-    for case_key in GOLD_CASE_KEYS:
+    for case_key in GALLERY_CASE_KEYS:
         expected = [
             config
             for config in tier_members
             if case_key
-            not in config.DATA_SOURCE_SPEC.tier_case_exclusions.get(SupportTier.GOLD, {})
+            not in config.DATA_SOURCE_SPEC.tier_case_exclusions.get(SupportTier.GALLERY, {})
         ]
-        actual = data_sources_for_tier_case(SupportTier.GOLD, case_key)
+        actual = data_sources_for_tier_case(SupportTier.GALLERY, case_key)
         assert actual == expected, (
-            f"data_sources_for_tier_case(GOLD, {case_key!r}) returned "
+            f"data_sources_for_tier_case(GALLERY, {case_key!r}) returned "
             f"{[c.label for c in actual]!r}, expected {[c.label for c in expected]!r} (tier "
             "membership minus each member's declared exclusion for this key)"
         )
@@ -910,12 +910,12 @@ def test_gold_case_accessor_matches_tier_membership_minus_declared_exclusions() 
 
 @pytest.mark.project
 def test_engine_restrictions_remove_exactly_the_data_sources_outside_their_engine_set() -> None:
-    """For every gold case declaring a restricted engine set, the exact set of registered data
+    """For every gallery case declaring a restricted engine set, the exact set of registered data
     sources the restriction removes must equal the set the restriction claims to remove -- no
     more, no less -- so a restriction cannot quietly grow into a blanket exemption.
 
     The expected removed set is computed here directly from each registered config's own declared
-    execution engine, independently of `_engine_applies`/`build_gold_case_params` (the production
+    execution engine, independently of `_engine_applies`/`build_gallery_case_params` (the production
     code this test drives through measurement mode to get the *actual* surviving set) -- so a
     defect in either side is still caught by the other.
     """
@@ -924,15 +924,15 @@ def test_engine_restrictions_remove_exactly_the_data_sources_outside_their_engin
     ]
     all_labels = {config.label for config in all_configs}
     restricted_cases = [
-        case for case in GOLD_CASES if case.engines != frozenset(ExecutionEngineKind)
+        case for case in GALLERY_CASES if case.engines != frozenset(ExecutionEngineKind)
     ]
     assert restricted_cases, (
-        "expected at least one gold case to declare a restricted engine set; if every case now "
+        "expected at least one gallery case to declare a restricted engine set; if every case now "
         "applies to every engine, this guard has nothing to check and should be revisited"
     )
     for case in restricted_cases:
         assert case.engine_restriction_reason, (
-            f"gold case {case.key!r} restricts its engine set but declares no "
+            f"gallery case {case.key!r} restricts its engine set but declares no "
             "engine_restriction_reason"
         )
         expected_removed_labels = {
@@ -940,10 +940,10 @@ def test_engine_restrictions_remove_exactly_the_data_sources_outside_their_engin
             for config in all_configs
             if config.DATA_SOURCE_SPEC.execution_engine not in case.engines
         }
-        params = build_gold_case_params([case], measurement_mode=True)
+        params = build_gallery_case_params([case], measurement_mode=True)
         surviving_labels = {_param_test_config(param).data_source_config.label for param in params}
         assert surviving_labels == all_labels - expected_removed_labels, (
-            f"gold case {case.key!r}'s engine restriction to "
+            f"gallery case {case.key!r}'s engine restriction to "
             f"{sorted(engine.value for engine in case.engines)} removed "
             f"{sorted(all_labels - surviving_labels)}, expected to remove exactly "
             f"{sorted(expected_removed_labels)}"
@@ -954,7 +954,7 @@ def test_engine_restrictions_remove_exactly_the_data_sources_outside_their_engin
 # Coverage for the collection-time builder
 # --------------------------------------------------------------------------------------------
 #
-# Several real data sources now declare SupportTier.GOLD, but the tests below still exercise the
+# Several real data sources now declare SupportTier.GALLERY, but the tests below still exercise the
 # builder against throwaway cases and throwaway registrations wrapped in `isolated_registry()`,
 # per the module docstring, so this coverage never depends on which data sources happen to be
 # real members today. The "unclaimed tier" and "no case of this shape" states the builder must
@@ -965,24 +965,24 @@ def test_engine_restrictions_remove_exactly_the_data_sources_outside_their_engin
 
 def _make_throwaway_case(
     key: str, *, engines: Optional[FrozenSet[ExecutionEngineKind]] = None
-) -> GoldCase:
+) -> GalleryCase:
     expectation = gxe.ExpectColumnValuesToNotBeNull(column="increasing_key")
     kwargs: dict[str, object] = {"key": key, "passing": expectation, "failing": expectation}
     if engines is not None:
         kwargs["engines"] = engines
         kwargs["engine_restriction_reason"] = "throwaway restriction for a builder test"
-    return GoldCase(**kwargs)  # type: ignore[arg-type]
+    return GalleryCase(**kwargs)  # type: ignore[arg-type]
 
 
-def _make_gold_backend_spec(**overrides: object) -> SqlBackendSpec:
+def _make_gallery_backend_spec(**overrides: object) -> SqlBackendSpec:
     defaults: dict[str, object] = dict(
-        label="throwaway-gold-backend",
-        public_name="Throwaway Gold Backend",
-        marker="throwaway_gold_backend",
+        label="throwaway-gallery-backend",
+        public_name="Throwaway Gallery Backend",
+        marker="throwaway_gallery_backend",
         provisioning=DataSourceProvisioning.LOCAL_FILE,
-        ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="throwaway_gold_backend"),
+        ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="throwaway_gallery_backend"),
         uses_schema=False,
-        tiers=frozenset({SupportTier.GOLD, SupportTier.CANONICAL_EXPECTATIONS}),
+        tiers=frozenset({SupportTier.GALLERY, SupportTier.CANONICAL_EXPECTATIONS}),
         execution_engine=ExecutionEngineKind.SQL,
     )
     defaults.update(overrides)
@@ -991,7 +991,7 @@ def _make_gold_backend_spec(**overrides: object) -> SqlBackendSpec:
 
 def _make_config_class(name: str, spec: SqlBackendSpec) -> type:
     """A minimal, instantiable `DataSourceTestConfig` subclass carrying `spec`, so a throwaway
-    registration behaves like a real config for every property `build_gold_case_params` reads
+    registration behaves like a real config for every property `build_gallery_case_params` reads
     (`.label`, `.pytest_mark`, `.test_id`, `.data_source_spec`) -- not just the raw class
     attribute the registry itself reads.
     """
@@ -1014,54 +1014,56 @@ def _param_test_config(param: ParameterSet) -> _TestConfig:
     keeps every call site's assertion about what a param actually carries genuinely checked rather
     than silently `Any`.
     """
-    test_config, _gold_case = param.values
+    test_config, _gallery_case = param.values
     assert isinstance(test_config, _TestConfig)
     return test_config
 
 
-def _param_gold_case(param: ParameterSet) -> GoldCase:
-    """The `GoldCase` half of `param.values`, narrowed the same way as `_param_test_config`."""
-    _test_config, gold_case = param.values
-    assert isinstance(gold_case, GoldCase)
-    return gold_case
+def _param_gallery_case(param: ParameterSet) -> GalleryCase:
+    """The `GalleryCase` half of `param.values`, narrowed the same way as `_param_test_config`."""
+    _test_config, gallery_case = param.values
+    assert isinstance(gallery_case, GalleryCase)
+    return gallery_case
 
 
-class TestBuildGoldCaseParams:
-    """Direct coverage of `build_gold_case_params`, the pure function `pytest_generate_tests`
+class TestBuildGalleryCaseParams:
+    """Direct coverage of `build_gallery_case_params`, the pure function `pytest_generate_tests`
     delegates to. Asserted against the returned `pytest.param` objects themselves -- their ids,
-    their marks, and which `_TestConfig`/`GoldCase` pair they carry -- never by reaching a data
+    their marks, and which `_TestConfig`/`GalleryCase` pair they carry -- never by reaching a data
     source, since none of these tests set up a batch.
 
     Marked `project` here, on the class, rather than on the module: the generated case-shape
     tests a later unit of work adds to this module carry their own marks (a data source's own
-    mark plus `gold`) through `build_gold_case_params` itself, and a module-level mark would give
+    mark plus `gallery`) through `build_gallery_case_params` itself, and a module-level mark would give
     each of those a second required marker alongside its own.
     """
 
     pytestmark = pytest.mark.project
 
     def test_empty_case_list_returns_no_params(self) -> None:
-        assert build_gold_case_params([], measurement_mode=False) == []
+        assert build_gallery_case_params([], measurement_mode=False) == []
 
     def test_unclaimed_tier_returns_no_params_without_raising(self) -> None:
         # An isolated, empty registry reproduces "tier unclaimed" without depending on the live
-        # registry ever going empty again -- several real data sources declare SupportTier.GOLD
+        # registry ever going empty again -- several real data sources declare SupportTier.GALLERY
         # today, and the tier-non-empty guard above means the live registry never will.
         case = _make_throwaway_case("unclaimed_tier_case")
         with isolated_registry():
-            result = build_gold_case_params([case], measurement_mode=False)
+            result = build_gallery_case_params([case], measurement_mode=False)
         assert result == []
 
     def test_normal_mode_resolves_through_the_tier_case_accessor_and_honors_exclusion(self) -> None:
         case_key = "exclusion_honoring_case"
-        excluded_spec = _make_gold_backend_spec(
+        excluded_spec = _make_gallery_backend_spec(
             label="excluded-backend",
             public_name="Excluded Backend",
             marker="sqlite",
             ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="sqlite"),
-            tier_case_exclusions={SupportTier.GOLD: {case_key: "throwaway exclusion for a test"}},
+            tier_case_exclusions={
+                SupportTier.GALLERY: {case_key: "throwaway exclusion for a test"}
+            },
         )
-        included_spec = _make_gold_backend_spec(
+        included_spec = _make_gallery_backend_spec(
             label="included-backend",
             public_name="Included Backend",
             marker="postgresql",
@@ -1072,30 +1074,30 @@ class TestBuildGoldCaseParams:
             register_sql_config(_make_config_class("IncludedBackend", included_spec))
 
             case = _make_throwaway_case(case_key)
-            params = build_gold_case_params([case], measurement_mode=False)
+            params = build_gallery_case_params([case], measurement_mode=False)
 
-            expected_configs = data_sources_for_tier_case(SupportTier.GOLD, case_key)
+            expected_configs = data_sources_for_tier_case(SupportTier.GALLERY, case_key)
 
         assert [config.label for config in expected_configs] == ["included-backend"]
         assert len(params) == 1
         [param] = params
-        test_config, gold_case = param.values
+        test_config, gallery_case = param.values
         assert isinstance(test_config, _TestConfig)
         assert test_config.data_source_config.label == "included-backend"
-        assert gold_case is case
+        assert gallery_case is case
         assert param.id == f"included-backend-{case_key}"
-        assert {mark.name for mark in param.marks} == {"postgresql", "gold"}
+        assert {mark.name for mark in param.marks} == {"postgresql", "gallery"}
 
     def test_engine_restriction_drops_a_pair_without_treating_it_as_an_exclusion(self) -> None:
         case_key = "engine_restricted_case"
-        sql_spec = _make_gold_backend_spec(
+        sql_spec = _make_gallery_backend_spec(
             label="sql-backend",
             public_name="SQL Backend",
             marker="mysql",
             ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="mysql"),
             execution_engine=ExecutionEngineKind.SQL,
         )
-        pandas_spec = _make_gold_backend_spec(
+        pandas_spec = _make_gallery_backend_spec(
             label="pandas-backend",
             public_name="Pandas Backend",
             marker="filesystem",
@@ -1107,7 +1109,7 @@ class TestBuildGoldCaseParams:
             register_sql_config(_make_config_class("PandasBackend", pandas_spec))
 
             case = _make_throwaway_case(case_key, engines=frozenset({ExecutionEngineKind.SQL}))
-            params = build_gold_case_params([case], measurement_mode=False)
+            params = build_gallery_case_params([case], measurement_mode=False)
 
         assert len(params) == 1
         [param] = params
@@ -1123,14 +1125,14 @@ class TestBuildGoldCaseParams:
         # alone cannot distinguish "the engineless backend was dropped for its missing engine"
         # from "everything was dropped for any reason at all."
         case_key = "no_engine_case"
-        engineless_spec = _make_gold_backend_spec(
+        engineless_spec = _make_gallery_backend_spec(
             label="engineless-backend",
             public_name="Engineless Backend",
             marker="trino",
             ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="trino"),
             execution_engine=None,
         )
-        engine_bearing_spec = _make_gold_backend_spec(
+        engine_bearing_spec = _make_gallery_backend_spec(
             label="engine-bearing-backend",
             public_name="Engine Bearing Backend",
             marker="postgresql",
@@ -1142,7 +1144,7 @@ class TestBuildGoldCaseParams:
             register_sql_config(_make_config_class("EngineBearingBackend", engine_bearing_spec))
 
             case = _make_throwaway_case(case_key)
-            params = build_gold_case_params([case], measurement_mode=False)
+            params = build_gallery_case_params([case], measurement_mode=False)
 
         labels = {_param_test_config(param).data_source_config.label for param in params}
         assert labels == {"engine-bearing-backend"}
@@ -1156,14 +1158,14 @@ class TestBuildGoldCaseParams:
         # doing that would move both sides of the assertion together and let a broken filter
         # survive undetected.
         case_key = "measurement_mode_case"
-        engine_bearing_spec = _make_gold_backend_spec(
+        engine_bearing_spec = _make_gallery_backend_spec(
             label="measurement-engine-bearing-backend",
             public_name="Measurement Engine Bearing Backend",
             marker="postgresql",
             ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="postgresql"),
             execution_engine=ExecutionEngineKind.SQL,
         )
-        engineless_spec = _make_gold_backend_spec(
+        engineless_spec = _make_gallery_backend_spec(
             label="measurement-engineless-backend",
             public_name="Measurement Engineless Backend",
             marker="trino",
@@ -1177,7 +1179,7 @@ class TestBuildGoldCaseParams:
             register_sql_config(_make_config_class("MeasurementEnginelessBackend", engineless_spec))
 
             case = _make_throwaway_case(case_key)
-            params = build_gold_case_params([case], measurement_mode=True)
+            params = build_gallery_case_params([case], measurement_mode=True)
 
             labels = {_param_test_config(param).data_source_config.label for param in params}
             ids = {param.id for param in params}
@@ -1185,25 +1187,27 @@ class TestBuildGoldCaseParams:
         assert labels == {"measurement-engine-bearing-backend"}
         assert ids == {f"measurement-engine-bearing-backend-{case_key}"}
         for param in params:
-            assert pytest.mark.gold in param.marks
+            assert pytest.mark.gallery in param.marks
 
     def test_measurement_mode_ignores_a_declared_exclusion(self) -> None:
         # A candidate in measurement mode has declared no membership at all, so it has nothing
         # for `tier_case_exclusions` to take effect against -- unlike normal mode, an exclusion
         # declared for this case must not remove the backend from measurement mode's result.
         case_key = "measurement_ignores_exclusion_case"
-        excluded_spec = _make_gold_backend_spec(
+        excluded_spec = _make_gallery_backend_spec(
             label="measurement-excluded-backend",
             public_name="Measurement Excluded Backend",
             marker="oracle",
             ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="oracle"),
-            tier_case_exclusions={SupportTier.GOLD: {case_key: "throwaway exclusion for a test"}},
+            tier_case_exclusions={
+                SupportTier.GALLERY: {case_key: "throwaway exclusion for a test"}
+            },
         )
         with isolated_registry():
             register_sql_config(_make_config_class("MeasurementExcludedBackend", excluded_spec))
 
             case = _make_throwaway_case(case_key)
-            params = build_gold_case_params([case], measurement_mode=True)
+            params = build_gallery_case_params([case], measurement_mode=True)
 
             labels = {_param_test_config(param).data_source_config.label for param in params}
 
@@ -1221,8 +1225,8 @@ class TestBuildGoldCaseParams:
         # exact configurations the case table already carries for these two cases -- the
         # rebuild in `_resolve_case_for_config` is required to be a no-op for a default spec,
         # not merely equivalent in effect.
-        [table_case] = [case for case in GOLD_CASES if case.key == case_key]
-        default_spec = _make_gold_backend_spec()
+        [table_case] = [case for case in GALLERY_CASES if case.key == case_key]
+        default_spec = _make_gallery_backend_spec()
         config_class = _make_config_class(f"DefaultSpecBackend-{case_key}", default_spec)
 
         resolved = _resolve_case_for_config(
@@ -1233,8 +1237,8 @@ class TestBuildGoldCaseParams:
         assert resolved.failing == table_case.failing
 
     def test_declared_type_names_flow_into_the_in_type_list_case(self) -> None:
-        [table_case] = [case for case in GOLD_CASES if case.key == _TYPE_LIST_CASE_KEY]
-        declaring_spec = _make_gold_backend_spec(
+        [table_case] = [case for case in GALLERY_CASES if case.key == _TYPE_LIST_CASE_KEY]
+        declaring_spec = _make_gallery_backend_spec(
             integer_column_type_name="NUMBER",
             non_integer_column_type_name="STRING",
         )
@@ -1254,8 +1258,8 @@ class TestBuildGoldCaseParams:
         assert resolved.failing != table_case.failing
 
     def test_declared_type_names_flow_into_the_of_type_case(self) -> None:
-        [table_case] = [case for case in GOLD_CASES if case.key == _TYPE_CASE_KEY]
-        declaring_spec = _make_gold_backend_spec(
+        [table_case] = [case for case in GALLERY_CASES if case.key == _TYPE_CASE_KEY]
+        declaring_spec = _make_gallery_backend_spec(
             integer_column_type_name="NUMBER",
             non_integer_column_type_name="STRING",
         )
@@ -1274,7 +1278,7 @@ class TestBuildGoldCaseParams:
 
     def test_a_case_outside_the_type_name_pair_is_returned_unchanged(self) -> None:
         case = _make_throwaway_case("unrelated_case")
-        declaring_spec = _make_gold_backend_spec(
+        declaring_spec = _make_gallery_backend_spec(
             integer_column_type_name="NUMBER",
             non_integer_column_type_name="STRING",
         )
@@ -1292,7 +1296,7 @@ class TestBuildGoldCaseParams:
             DatabricksDatasourceTestConfig,
         )
 
-        [table_case] = [case for case in GOLD_CASES if case.key == _TYPE_CASE_KEY]
+        [table_case] = [case for case in GALLERY_CASES if case.key == _TYPE_CASE_KEY]
 
         resolved = _resolve_case_for_config(
             table_case, cast("DataSourceTestConfig", DatabricksDatasourceTestConfig())
@@ -1301,12 +1305,12 @@ class TestBuildGoldCaseParams:
         assert isinstance(resolved.passing, gxe.ExpectColumnValuesToBeOfType)
         assert resolved.passing.type_ == "INT"
 
-    def test_build_gold_case_params_carries_the_resolved_case_through(self) -> None:
-        # The end-to-end path: a case built through `build_gold_case_params` for a data source
+    def test_build_gallery_case_params_carries_the_resolved_case_through(self) -> None:
+        # The end-to-end path: a case built through `build_gallery_case_params` for a data source
         # declaring non-default type names must carry the resolved configurations, not the
         # case table's originals, in both halves of its param.
-        [table_case] = [case for case in GOLD_CASES if case.key == _TYPE_CASE_KEY]
-        declaring_spec = _make_gold_backend_spec(
+        [table_case] = [case for case in GALLERY_CASES if case.key == _TYPE_CASE_KEY]
+        declaring_spec = _make_gallery_backend_spec(
             label="declaring-of-type-backend",
             public_name="Declaring Of Type Backend",
             marker="postgresql",
@@ -1317,15 +1321,15 @@ class TestBuildGoldCaseParams:
         with isolated_registry():
             register_sql_config(_make_config_class("DeclaringOfTypeBackend", declaring_spec))
 
-            params = build_gold_case_params([table_case], measurement_mode=True)
+            params = build_gallery_case_params([table_case], measurement_mode=True)
 
         assert len(params) == 1
         [param] = params
-        resolved_case = _param_gold_case(param)
+        resolved_case = _param_gallery_case(param)
         resolved_test_config = _param_test_config(param)
         assert isinstance(resolved_case.passing, gxe.ExpectColumnValuesToBeOfType)
         assert resolved_case.passing.type_ == "NUMBER"
-        assert resolved_test_config.data.equals(GOLD_FIXTURE_DATA)
+        assert resolved_test_config.data.equals(GALLERY_FIXTURE_DATA)
         # The param carries the declaring backend's own config, which is what makes the type
         # name above attributable to that backend's declaration rather than to the default.
         assert resolved_test_config.data_source_config.label == "declaring-of-type-backend"
@@ -1340,9 +1344,9 @@ class TestBuildGoldCaseParams:
 # `function.__name__`, `fixturenames`, `config.getoption`, and a recording `parametrize` -- is
 # enough to drive it directly and pin all four behaviors the hook itself is responsible for: the
 # `_SHAPE_BY_TEST_FUNCTION_NAME` name dispatch, both `fixturenames` gates, the
-# `--gold-measurement` option read reaching `build_gold_case_params`, and `indirect=` being passed
-# as intended. `build_gold_case_params` itself is not re-verified here -- that is
-# `TestBuildGoldCaseParams`'s job -- so these cases use throwaway registrations only large enough
+# `--gallery-measurement` option read reaching `build_gallery_case_params`, and `indirect=` being passed
+# as intended. `build_gallery_case_params` itself is not re-verified here -- that is
+# `TestBuildGalleryCaseParams`'s job -- so these cases use throwaway registrations only large enough
 # to tell the hook's own wiring apart from a no-op.
 
 
@@ -1377,7 +1381,7 @@ class _StubMetafunc:
             (),
             {
                 "getoption": lambda self, name: measurement_mode
-                if name == GOLD_MEASUREMENT_OPTION
+                if name == GALLERY_MEASUREMENT_OPTION
                 else None
             },  # FIXME CoP
         )()
@@ -1401,20 +1405,20 @@ class TestPytestGenerateTests:
     def test_no_case_of_this_shape_is_collected_as_one_marked_skipped_placeholder(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        # GOLD_CASES holds no case of this shape, so `cases` is empty before the registry is even
+        # GALLERY_CASES holds no case of this shape, so `cases` is empty before the registry is even
         # consulted -- this is the "no case of this shape" branch, and must report as such even
-        # though several real data sources hold gold-tier membership in the live registry this
+        # though several real data sources hold gallery-tier membership in the live registry this
         # test does not isolate.
-        monkeypatch.setattr(sys.modules[__name__], "GOLD_CASES", ())
+        monkeypatch.setattr(sys.modules[__name__], "GALLERY_CASES", ())
         metafunc = _StubMetafunc(
             function_name="test_standard_case",
-            fixturenames=[_BATCH_SETUP_FIXTURE_NAME, _GOLD_CASE_FIXTURE_NAME],
+            fixturenames=[_BATCH_SETUP_FIXTURE_NAME, _GALLERY_CASE_FIXTURE_NAME],
             measurement_mode=False,
         )
         pytest_generate_tests(cast("pytest.Metafunc", metafunc))
 
         [call] = metafunc.calls
-        # A real, non-empty parametrize call -- not the empty list `build_gold_case_params` itself
+        # A real, non-empty parametrize call -- not the empty list `build_gallery_case_params` itself
         # would legally return -- is what makes marker-coverage see a required marker on this
         # otherwise-collected-but-empty test (see `_empty_product_placeholder`'s docstring).
         assert len(call.argvalues) == 1
@@ -1430,12 +1434,12 @@ class TestPytestGenerateTests:
         # A published case of this shape exists (`cases` is non-empty), but an isolated, empty
         # registry offers it no candidate at all -- this is the second way an empty product
         # arises, and it must report a *different* reason than "no case of this shape", even
-        # though both leave `build_gold_case_params` returning the same empty list.
+        # though both leave `build_gallery_case_params` returning the same empty list.
         case = _make_throwaway_case("no_claimant_case")
-        monkeypatch.setattr(sys.modules[__name__], "GOLD_CASES", (case,))
+        monkeypatch.setattr(sys.modules[__name__], "GALLERY_CASES", (case,))
         metafunc = _StubMetafunc(
             function_name="test_standard_case",
-            fixturenames=[_BATCH_SETUP_FIXTURE_NAME, _GOLD_CASE_FIXTURE_NAME],
+            fixturenames=[_BATCH_SETUP_FIXTURE_NAME, _GALLERY_CASE_FIXTURE_NAME],
             measurement_mode=False,
         )
         with isolated_registry():
@@ -1451,8 +1455,8 @@ class TestPytestGenerateTests:
 
     def test_unrecognized_function_name_is_left_untouched(self) -> None:
         metafunc = _StubMetafunc(
-            function_name="test_not_a_gold_shape_function",
-            fixturenames=[_BATCH_SETUP_FIXTURE_NAME, _GOLD_CASE_FIXTURE_NAME],
+            function_name="test_not_a_gallery_shape_function",
+            fixturenames=[_BATCH_SETUP_FIXTURE_NAME, _GALLERY_CASE_FIXTURE_NAME],
             measurement_mode=False,
         )
         pytest_generate_tests(cast("pytest.Metafunc", metafunc))
@@ -1461,13 +1465,13 @@ class TestPytestGenerateTests:
     def test_recognized_name_missing_batch_setup_fixture_is_left_untouched(self) -> None:
         metafunc = _StubMetafunc(
             function_name="test_standard_case",
-            fixturenames=[_GOLD_CASE_FIXTURE_NAME],
+            fixturenames=[_GALLERY_CASE_FIXTURE_NAME],
             measurement_mode=False,
         )
         pytest_generate_tests(cast("pytest.Metafunc", metafunc))
         assert metafunc.calls == []
 
-    def test_recognized_name_missing_gold_case_fixture_is_left_untouched(self) -> None:
+    def test_recognized_name_missing_gallery_case_fixture_is_left_untouched(self) -> None:
         metafunc = _StubMetafunc(
             function_name="test_standard_case",
             fixturenames=[_BATCH_SETUP_FIXTURE_NAME],
@@ -1483,7 +1487,7 @@ class TestPytestGenerateTests:
         # `test_standard_case`, which pins the `_SHAPE_BY_TEST_FUNCTION_NAME` dispatch itself, not
         # just "some case reached the builder."
         standard_case = _make_throwaway_case("generate_tests_standard_case")
-        extra_table_case = GoldCase(
+        extra_table_case = GalleryCase(
             key="generate_tests_extra_table_case",
             passing=standard_case.passing,
             failing=standard_case.failing,
@@ -1494,9 +1498,11 @@ class TestPytestGenerateTests:
         # module name while the dotted path resolves (via PEP 420 namespace packages) to a
         # *second*, independently-imported module object -- patching that one leaves the globals
         # `pytest_generate_tests` actually reads untouched.
-        monkeypatch.setattr(sys.modules[__name__], "GOLD_CASES", (standard_case, extra_table_case))
+        monkeypatch.setattr(
+            sys.modules[__name__], "GALLERY_CASES", (standard_case, extra_table_case)
+        )
 
-        spec = _make_gold_backend_spec(
+        spec = _make_gallery_backend_spec(
             label="generate-tests-backend",
             public_name="Generate Tests Backend",
             marker="postgresql",
@@ -1507,31 +1513,35 @@ class TestPytestGenerateTests:
 
             metafunc = _StubMetafunc(
                 function_name="test_standard_case",
-                fixturenames=[_BATCH_SETUP_FIXTURE_NAME, _GOLD_CASE_FIXTURE_NAME],
+                fixturenames=[_BATCH_SETUP_FIXTURE_NAME, _GALLERY_CASE_FIXTURE_NAME],
                 measurement_mode=False,
             )
             pytest_generate_tests(cast("pytest.Metafunc", metafunc))
 
-            expected_params = build_gold_case_params([standard_case], measurement_mode=False)
+            expected_params = build_gallery_case_params([standard_case], measurement_mode=False)
 
         assert len(metafunc.calls) == 1
         [call] = metafunc.calls
-        assert call.argnames == [_BATCH_SETUP_FIXTURE_NAME, _GOLD_CASE_FIXTURE_NAME]
+        assert call.argnames == [_BATCH_SETUP_FIXTURE_NAME, _GALLERY_CASE_FIXTURE_NAME]
         assert call.indirect == [_BATCH_SETUP_FIXTURE_NAME]
         assert {param.id for param in call.argvalues} == {param.id for param in expected_params}
         # The EXTRA_TABLE case must not have contributed a param to a STANDARD-shape function.
-        assert all(_param_gold_case(param).key != extra_table_case.key for param in call.argvalues)
+        assert all(
+            _param_gallery_case(param).key != extra_table_case.key for param in call.argvalues
+        )
 
     def test_measurement_option_reaches_the_builder(self, monkeypatch: pytest.MonkeyPatch) -> None:
         case = _make_throwaway_case("generate_tests_measurement_case")
-        monkeypatch.setattr(sys.modules[__name__], "GOLD_CASES", (case,))
+        monkeypatch.setattr(sys.modules[__name__], "GALLERY_CASES", (case,))
 
-        excluded_spec = _make_gold_backend_spec(
+        excluded_spec = _make_gallery_backend_spec(
             label="generate-tests-measurement-backend",
             public_name="Generate Tests Measurement Backend",
             marker="postgresql",
             ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="postgresql"),
-            tier_case_exclusions={SupportTier.GOLD: {case.key: "throwaway exclusion for a test"}},
+            tier_case_exclusions={
+                SupportTier.GALLERY: {case.key: "throwaway exclusion for a test"}
+            },
         )
         with isolated_registry():
             register_sql_config(
@@ -1540,14 +1550,14 @@ class TestPytestGenerateTests:
 
             normal_metafunc = _StubMetafunc(
                 function_name="test_standard_case",
-                fixturenames=[_BATCH_SETUP_FIXTURE_NAME, _GOLD_CASE_FIXTURE_NAME],
+                fixturenames=[_BATCH_SETUP_FIXTURE_NAME, _GALLERY_CASE_FIXTURE_NAME],
                 measurement_mode=False,
             )
             pytest_generate_tests(cast("pytest.Metafunc", normal_metafunc))
 
             measurement_metafunc = _StubMetafunc(
                 function_name="test_standard_case",
-                fixturenames=[_BATCH_SETUP_FIXTURE_NAME, _GOLD_CASE_FIXTURE_NAME],
+                fixturenames=[_BATCH_SETUP_FIXTURE_NAME, _GALLERY_CASE_FIXTURE_NAME],
                 measurement_mode=True,
             )
             pytest_generate_tests(cast("pytest.Metafunc", measurement_metafunc))
@@ -1555,7 +1565,7 @@ class TestPytestGenerateTests:
         # Normal mode resolves through the tier-case accessor, so a declared exclusion for this
         # backend/case pair drops it; measurement mode ignores that exclusion entirely. The two
         # calls' argvalues differing is the evidence that `metafunc.config.getoption` actually
-        # reached `build_gold_case_params` rather than the option being read and then ignored.
+        # reached `build_gallery_case_params` rather than the option being read and then ignored.
         [normal_call] = normal_metafunc.calls
         [measurement_call] = measurement_metafunc.calls
         # An empty product is substituted with the single marked placeholder param -- see

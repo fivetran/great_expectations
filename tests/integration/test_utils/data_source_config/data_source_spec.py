@@ -84,7 +84,7 @@ class SupportTier(Enum):
     unreachable.
     """
 
-    GOLD = "gold"
+    GALLERY = "gallery"
     """Passes the full-gallery expectation suite.
 
     Membership asserts a test result, not an intention: every expectation the shipped package

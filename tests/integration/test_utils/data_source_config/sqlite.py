@@ -33,7 +33,7 @@ class SqliteDatasourceTestConfig(SqlDatasourceTestConfig):
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="sqlite"),
         uses_schema=False,
         tiers=frozenset(
-            {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GOLD}
+            {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GALLERY}
         ),
         # SQLite has neither a dev-requirements file nor a task-runner entry.
     )

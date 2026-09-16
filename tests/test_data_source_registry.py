@@ -2671,7 +2671,7 @@ _RETROFITTED_CONTROLS: Mapping[str, _RetrofitControl] = {
             marker_scope=MarkerScope.SHARED,
             ci_lane=CiLaneRef(workflow_job="unit-tests", marker_token="unit"),
             tiers=frozenset(
-                {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GOLD}
+                {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GALLERY}
             ),
         ),
     ),
@@ -2688,7 +2688,7 @@ _RETROFITTED_CONTROLS: Mapping[str, _RetrofitControl] = {
             marker_scope=MarkerScope.SHARED,
             ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="filesystem"),
             tiers=frozenset(
-                {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GOLD}
+                {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GALLERY}
             ),
         ),
     ),
@@ -3093,20 +3093,22 @@ class TestVocabularyMembership:
             "canonical_expectations",
             "curated_sql",
             "fluent_api",
-            "gold",
+            "gallery",
         ]
 
 
-class TestGoldTierClaimInheritsTheScaledObligations:
+class TestGalleryTierClaimInheritsTheScaledObligations:
     """The new tier member is not special-cased: `_validate_tier_claims` scales its obligations to
-    whatever is in `spec.tiers`, so a `GOLD` claim must be rejected on exactly the same terms as a
+    whatever is in `spec.tiers`, so a `GALLERY` claim must be rejected on exactly the same terms as a
     `CANONICAL_EXPECTATIONS` claim already is, above. Proven directly rather than assumed: a
     docstring describing what a tier means is not evidence that the validator sees this member.
     """
 
-    _CLAIM = frozenset({SupportTier.GOLD})
+    _CLAIM = frozenset({SupportTier.GALLERY})
 
-    def test_a_gold_claim_with_no_marker_is_rejected_naming_the_record_and_the_tier(self) -> None:
+    def test_a_gallery_claim_with_no_marker_is_rejected_naming_the_record_and_the_tier(
+        self,
+    ) -> None:
         with pytest.raises(ValueError) as excinfo:
             register_data_source(
                 _make_core_spec(label="throwaway-claimant", marker=None, tiers=self._CLAIM)
@@ -3114,10 +3116,12 @@ class TestGoldTierClaimInheritsTheScaledObligations:
 
         message = str(excinfo.value)
         assert "throwaway-claimant" in message
-        assert "tier membership (gold)" in message
+        assert "tier membership (gallery)" in message
         assert "declares no data source marker" in message
 
-    def test_a_gold_claim_with_no_ci_lane_is_rejected_naming_the_record_and_the_tier(self) -> None:
+    def test_a_gallery_claim_with_no_ci_lane_is_rejected_naming_the_record_and_the_tier(
+        self,
+    ) -> None:
         with pytest.raises(ValueError) as excinfo:
             register_data_source(
                 _make_core_spec(
@@ -3130,7 +3134,7 @@ class TestGoldTierClaimInheritsTheScaledObligations:
 
         message = str(excinfo.value)
         assert "throwaway-claimant" in message
-        assert "tier membership (gold)" in message
+        assert "tier membership (gallery)" in message
         assert "declares no CI lane" in message
 
 

@@ -1,11 +1,11 @@
-"""The populated gold-tier case table: `GOLD_CASES` and its derived key set.
+"""The populated gallery-tier case table: `GALLERY_CASES` and its derived key set.
 
-This module holds the one thing `gold_expectation_cases.py` cannot: real, constructed
+This module holds the one thing `gallery_expectation_cases.py` cannot: real, constructed
 `Expectation` instances. Building those requires importing `great_expectations`, and
-`gold_expectation_cases.py` must stay importable with no data-source dependency installed at all
+`gallery_expectation_cases.py` must stay importable with no data-source dependency installed at all
 (see that module's docstring). This module is the layer in between -- it imports
-`great_expectations`, imports the pure data and record shape from `gold_expectation_cases.py`, and
-publishes the populated table. `test_gold_expectation_suite.py` consumes `GOLD_CASES` from here; it
+`great_expectations`, imports the pure data and record shape from `gallery_expectation_cases.py`, and
+publishes the populated table. `test_gallery_expectation_suite.py` consumes `GALLERY_CASES` from here; it
 does not define cases itself.
 
 Keeping the case table in its own module, rather than inline in the test module, matters at this
@@ -20,12 +20,12 @@ from datetime import date
 from typing import Final, FrozenSet, List, Sequence, Set, Tuple
 
 import great_expectations.expectations as gxe
-from tests.integration.data_sources_and_expectations.gold_expectation_cases import (
+from tests.integration.data_sources_and_expectations.gallery_expectation_cases import (
     EXTRA_TABLE_SELF_REFERENCE,
-    GOLD_EXTRA_TABLE_NAME,
-    GOLD_FIXTURE_DATA,
+    GALLERY_EXTRA_TABLE_NAME,
+    GALLERY_FIXTURE_DATA,
     CaseFixtureShape,
-    GoldCase,
+    GalleryCase,
 )
 from tests.integration.test_utils.execution_engine_kind import ExecutionEngineKind
 
@@ -56,18 +56,18 @@ _NO_PANDAS_PROVIDER_REASON: Final[str] = (
     "pandas provider"
 )
 
-_FIXTURE_COLUMNS: Final[Tuple[str, ...]] = tuple(GOLD_FIXTURE_DATA.columns)
+_FIXTURE_COLUMNS: Final[Tuple[str, ...]] = tuple(GALLERY_FIXTURE_DATA.columns)
 """Derived from the shared frame itself rather than hand-listed, so the table-shape cases below
 cannot drift from the frame they describe."""
 
-GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
-    GoldCase(
+GALLERY_CASES: Final[Tuple[GalleryCase, ...]] = (
+    GalleryCase(
         key=gxe.ExpectColumnValuesToNotBeNull(column="increasing_key").expectation_type,
         passing=gxe.ExpectColumnValuesToNotBeNull(column="increasing_key"),
         failing=gxe.ExpectColumnValuesToNotBeNull(column="nullable_value"),
         fixture_shape=CaseFixtureShape.STANDARD,
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectTableRowCountToEqualOtherTable(
             other_table_name=EXTRA_TABLE_SELF_REFERENCE
         ).expectation_type,
@@ -78,12 +78,12 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         ),
         # Failing: the primary table (six rows) compared against the shared extra table (seven
         # rows) -- a real, known mismatch.
-        failing=gxe.ExpectTableRowCountToEqualOtherTable(other_table_name=GOLD_EXTRA_TABLE_NAME),
+        failing=gxe.ExpectTableRowCountToEqualOtherTable(other_table_name=GALLERY_EXTRA_TABLE_NAME),
         fixture_shape=CaseFixtureShape.EXTRA_TABLE,
         engines=_SQL_ONLY,
         engine_restriction_reason=_SQL_ONLY_REASON,
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectQueryResultsToMatchComparison(
             base_query="SELECT increasing_key FROM {batch} ORDER BY increasing_key",
             comparison_data_source_name=EXTRA_TABLE_SELF_REFERENCE,
@@ -113,7 +113,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
     # ----------------------------------------------------------------------------------------
     # Column-map expectations
     # ----------------------------------------------------------------------------------------
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValueLengthsToBeBetween(
             column="pattern_code", min_value=4, max_value=4
         ).expectation_type,
@@ -126,12 +126,12 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column="pattern_code", min_value=5, max_value=10
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValueLengthsToEqual(column="pattern_code", value=4).expectation_type,
         passing=gxe.ExpectColumnValueLengthsToEqual(column="pattern_code", value=4),
         failing=gxe.ExpectColumnValueLengthsToEqual(column="pattern_code", value=5),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValueZScoresToBeLessThan(
             column="float_value", threshold=2.0, double_sided=True
         ).expectation_type,
@@ -144,7 +144,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column="float_value", threshold=0.01, double_sided=True
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToBeBetween(
             column="float_value", min_value=10.0, max_value=22.5
         ).expectation_type,
@@ -156,7 +156,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column="float_value", min_value=10.0, max_value=20.0
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToBeDateutilParseable(column="strftime_code").expectation_type,
         # `strftime_code` values ("2024-01-01" ...) are dateutil-parseable dates.
         passing=gxe.ExpectColumnValuesToBeDateutilParseable(column="strftime_code"),
@@ -165,7 +165,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         engines=_PANDAS_ONLY,
         engine_restriction_reason=_PANDAS_ONLY_PROVIDER_REASON,
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToBeDecreasing(column="decreasing_value").expectation_type,
         passing=gxe.ExpectColumnValuesToBeDecreasing(column="decreasing_value"),
         # `increasing_key` is strictly increasing, not decreasing.
@@ -173,7 +173,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         engines=_PANDAS_AND_SPARK,
         engine_restriction_reason=_NO_SQL_PROVIDER_REASON,
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToBeInSet(
             column="category", value_set=["red", "green", "blue"]
         ).expectation_type,
@@ -183,7 +183,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         # `category` also holds "green" and "blue", outside this narrower set.
         failing=gxe.ExpectColumnValuesToBeInSet(column="category", value_set=["red"]),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToBeInTypeList(
             column="increasing_key", type_list=["INTEGER", "BIGINT", "SMALLINT"]
         ).expectation_type,
@@ -201,7 +201,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             "have no meaning on a non-SQL engine"
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToBeIncreasing(column="increasing_key").expectation_type,
         passing=gxe.ExpectColumnValuesToBeIncreasing(column="increasing_key"),
         # `decreasing_value` is strictly decreasing, not increasing.
@@ -209,7 +209,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         engines=_PANDAS_AND_SPARK,
         engine_restriction_reason=_NO_SQL_PROVIDER_REASON,
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToBeJsonParseable(column="json_payload").expectation_type,
         passing=gxe.ExpectColumnValuesToBeJsonParseable(column="json_payload"),
         # `category` values are plain strings, not JSON documents.
@@ -217,14 +217,14 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         engines=_PANDAS_AND_SPARK,
         engine_restriction_reason=_NO_SQL_PROVIDER_REASON,
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToBeNull(column="nullable_value", mostly=0.3).expectation_type,
         # Two of six `nullable_value` rows are null (0.333...), clearing a 0.3 `mostly` floor.
         passing=gxe.ExpectColumnValuesToBeNull(column="nullable_value", mostly=0.3),
         # The default `mostly` (1.0) demands every row be null; four of six are not.
         failing=gxe.ExpectColumnValuesToBeNull(column="nullable_value"),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToBeOfType(
             column="increasing_key", type_="INTEGER"
         ).expectation_type,
@@ -236,13 +236,13 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             "meaning on a non-SQL engine"
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToBeUnique(column="increasing_key").expectation_type,
         passing=gxe.ExpectColumnValuesToBeUnique(column="increasing_key"),
         # `category` repeats "red", "green", and "blue" across six rows.
         failing=gxe.ExpectColumnValuesToBeUnique(column="category"),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToMatchJsonSchema(
             column="json_payload",
             json_schema={
@@ -271,7 +271,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         engines=_PANDAS_AND_SPARK,
         engine_restriction_reason=_NO_SQL_PROVIDER_REASON,
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToMatchLikePattern(
             column="pattern_code", like_pattern="A%"
         ).expectation_type,
@@ -281,7 +281,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         engines=_SQL_ONLY,
         engine_restriction_reason="a SQL `LIKE` pattern has no meaning on a non-SQL engine",
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToMatchLikePatternList(
             column="pattern_code",
             like_pattern_list=["A1%", "A2%", "A3%", "A4%", "A5%", "A6%"],
@@ -300,7 +300,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         engines=_SQL_ONLY,
         engine_restriction_reason="a SQL `LIKE` pattern has no meaning on a non-SQL engine",
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToMatchRegex(
             column="pattern_code", regex=r"^A[0-9]{3}$"
         ).expectation_type,
@@ -308,7 +308,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         # No `pattern_code` value starts with "B".
         failing=gxe.ExpectColumnValuesToMatchRegex(column="pattern_code", regex=r"^B"),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToMatchRegexList(
             column="pattern_code", regex_list=[r"^A", r"[0-9]{3}$"], match_on="all"
         ).expectation_type,
@@ -320,7 +320,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column="pattern_code", regex_list=[r"^B"], match_on="all"
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToMatchStrftimeFormat(
             column="strftime_code", strftime_format="%Y-%m-%d"
         ).expectation_type,
@@ -334,7 +334,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         engines=_PANDAS_AND_SPARK,
         engine_restriction_reason=_NO_SQL_PROVIDER_REASON,
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToNotBeInSet(
             column="category", value_set=["purple"]
         ).expectation_type,
@@ -343,7 +343,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         # `category` does hold "red".
         failing=gxe.ExpectColumnValuesToNotBeInSet(column="category", value_set=["red"]),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToNotBeOutliers(
             column="float_value", method="std", multiplier=2.0
         ).expectation_type,
@@ -357,7 +357,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column="float_value", method="std", multiplier=0.01
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToNotMatchLikePattern(
             column="pattern_code", like_pattern="B%"
         ).expectation_type,
@@ -371,7 +371,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         engines=_SQL_ONLY,
         engine_restriction_reason="a SQL `LIKE` pattern has no meaning on a non-SQL engine",
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToNotMatchLikePatternList(
             column="pattern_code", like_pattern_list=["B%", "C%"]
         ).expectation_type,
@@ -386,7 +386,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         engines=_SQL_ONLY,
         engine_restriction_reason="a SQL `LIKE` pattern has no meaning on a non-SQL engine",
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToNotMatchRegex(
             column="pattern_code", regex=r"^B"
         ).expectation_type,
@@ -394,7 +394,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         # Every `pattern_code` value starts with "A".
         failing=gxe.ExpectColumnValuesToNotMatchRegex(column="pattern_code", regex=r"^A"),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnValuesToNotMatchRegexList(
             column="pattern_code", regex_list=[r"^B", r"^C"]
         ).expectation_type,
@@ -416,7 +416,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
     # `great_expectations.expectations.registry._registered_metrics`. None of these cases needs an
     # engine restriction.
     # ----------------------------------------------------------------------------------------
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnMinToBeBetween(
             column="record_date", min_value=date(2024, 1, 1), max_value=date(2024, 1, 1)
         ).expectation_type,
@@ -429,7 +429,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column="record_date", min_value=date(2024, 1, 2), max_value=date(2024, 1, 10)
         ),
     ),
-    GoldCase(
+    GalleryCase(
         # `record_timestamp` (tz-aware) is deliberately NOT used here.
         # `_validate_metric_value_between` (great_expectations/expectations/expectation.py) does a
         # raw Python comparison between the observed metric value and the declared bounds with no
@@ -452,7 +452,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column="float_value", min_value=22.51, max_value=23.0
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnMeanToBeBetween(
             column="float_value", min_value=16.2, max_value=16.3
         ).expectation_type,
@@ -465,7 +465,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column="float_value", min_value=16.26, max_value=16.5
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnMedianToBeBetween(
             column="float_value", min_value=16.2, max_value=16.3
         ).expectation_type,
@@ -478,7 +478,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column="float_value", min_value=16.26, max_value=17.0
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnStdevToBeBetween(
             column="float_value", min_value=4.6, max_value=4.8
         ).expectation_type,
@@ -491,7 +491,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column="float_value", min_value=4.68, max_value=5.0
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnSumToBeBetween(
             column="float_value", min_value=97.4, max_value=97.6
         ).expectation_type,
@@ -504,7 +504,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column="float_value", min_value=97.51, max_value=98.0
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnUniqueValueCountToBeBetween(
             column="increasing_key", min_value=6, max_value=6
         ).expectation_type,
@@ -517,7 +517,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column="increasing_key", min_value=7, max_value=10
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnProportionOfUniqueValuesToBeBetween(
             column="increasing_key", min_value=0.99, max_value=1.0
         ).expectation_type,
@@ -530,7 +530,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column="increasing_key", min_value=0.0, max_value=0.999
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnProportionOfNonNullValuesToBeBetween(
             column="nullable_value", min_value=0.66, max_value=0.67
         ).expectation_type,
@@ -543,7 +543,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column="nullable_value", min_value=0.67, max_value=0.7
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnQuantileValuesToBeBetween(
             column="float_value",
             quantile_ranges={"quantiles": [0.5], "value_ranges": [[14.9, 17.6]]},
@@ -565,7 +565,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             quantile_ranges={"quantiles": [0.5], "value_ranges": [[0.0, 14.9]]},
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnDistinctValuesToBeInSet(
             column="category", value_set=["red", "green", "blue", "purple"]
         ).expectation_type,
@@ -576,7 +576,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         # `category` also holds "green" and "blue", outside this narrower set.
         failing=gxe.ExpectColumnDistinctValuesToBeInSet(column="category", value_set=["red"]),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnDistinctValuesToContainSet(
             column="category", value_set=["red", "green"]
         ).expectation_type,
@@ -587,7 +587,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         # `category` never holds "purple".
         failing=gxe.ExpectColumnDistinctValuesToContainSet(column="category", value_set=["purple"]),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnDistinctValuesToEqualSet(
             column="category", value_set=["red", "green", "blue"]
         ).expectation_type,
@@ -600,7 +600,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column="category", value_set=["red", "green"]
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnMostCommonValueToBeInSet(
             column="category", value_set=["red", "green", "blue"], ties_okay=True
         ).expectation_type,
@@ -614,7 +614,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column="category", value_set=["purple"], ties_okay=True
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnKLDivergenceToBeLessThan(
             column="category",
             partition_object={"values": ["red", "green", "blue"], "weights": [1 / 3, 1 / 3, 1 / 3]},
@@ -653,7 +653,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
     # verified against `great_expectations.expectations.registry._registered_metrics`. None of
     # these cases needs an engine restriction.
     # ----------------------------------------------------------------------------------------
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnPairValuesAToBeGreaterThanB(
             column_A="pair_high", column_B="pair_low"
         ).expectation_type,
@@ -666,7 +666,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column_A="pair_low", column_B="pair_high"
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnPairValuesToBeEqual(
             column_A="increasing_key", column_B="pair_low"
         ).expectation_type,
@@ -677,7 +677,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column_A="increasing_key", column_B="pair_high"
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnPairValuesToBeInSet(
             column_A="pair_low",
             column_B="pair_high",
@@ -696,13 +696,13 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             value_pairs_set=[(1, 10), (2, 20), (3, 30), (4, 40), (5, 50)],
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectColumnToExist(column="increasing_key").expectation_type,
         passing=gxe.ExpectColumnToExist(column="increasing_key"),
         # No column of this name exists in the shared frame.
         failing=gxe.ExpectColumnToExist(column="does_not_exist_column"),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectCompoundColumnsToBeUnique(
             column_list=["multicolumn_a", "multicolumn_b", "multicolumn_c"]
         ).expectation_type,
@@ -714,7 +714,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         # two rows each), each combination repeats exactly twice -- a real duplicate.
         failing=gxe.ExpectCompoundColumnsToBeUnique(column_list=["multicolumn_c", "category"]),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectMulticolumnSumToEqual(
             column_list=["multicolumn_a", "multicolumn_b", "multicolumn_c"], sum_total=30
         ).expectation_type,
@@ -728,7 +728,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column_list=["multicolumn_a", "multicolumn_b", "multicolumn_c"], sum_total=31
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectMulticolumnValuesToBeEqual(
             column_list=["increasing_key", "pair_low"]
         ).expectation_type,
@@ -737,7 +737,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
         # `pair_high` is never equal to `increasing_key`.
         failing=gxe.ExpectMulticolumnValuesToBeEqual(column_list=["increasing_key", "pair_high"]),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectSelectColumnValuesToBeUniqueWithinRecord(
             column_list=["pair_low", "pair_high"]
         ).expectation_type,
@@ -756,10 +756,10 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
     # Table-shape expectations
     #
     # Every field here is derived from `_FIXTURE_COLUMNS` (itself derived from
-    # `GOLD_FIXTURE_DATA.columns`) rather than hand-listed, so these cases cannot silently drift
+    # `GALLERY_FIXTURE_DATA.columns`) rather than hand-listed, so these cases cannot silently drift
     # from the frame they describe.
     # ----------------------------------------------------------------------------------------
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectTableColumnCountToBeBetween(
             min_value=len(_FIXTURE_COLUMNS), max_value=len(_FIXTURE_COLUMNS)
         ).expectation_type,
@@ -771,13 +771,13 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             min_value=len(_FIXTURE_COLUMNS) + 1, max_value=len(_FIXTURE_COLUMNS) + 5
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectTableColumnCountToEqual(value=len(_FIXTURE_COLUMNS)).expectation_type,
         passing=gxe.ExpectTableColumnCountToEqual(value=len(_FIXTURE_COLUMNS)),
         # A near miss: one more than the true column count.
         failing=gxe.ExpectTableColumnCountToEqual(value=len(_FIXTURE_COLUMNS) + 1),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectTableColumnsToMatchOrderedList(
             column_list=list(_FIXTURE_COLUMNS)
         ).expectation_type,
@@ -787,7 +787,7 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column_list=[_FIXTURE_COLUMNS[1], _FIXTURE_COLUMNS[0], *_FIXTURE_COLUMNS[2:]]
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectTableColumnsToMatchSet(
             column_set=set(_FIXTURE_COLUMNS), exact_match=True
         ).expectation_type,
@@ -799,20 +799,20 @@ GOLD_CASES: Final[Tuple[GoldCase, ...]] = (
             column_set=set(_FIXTURE_COLUMNS[1:]), exact_match=True
         ),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectTableRowCountToBeBetween(min_value=6, max_value=6).expectation_type,
         # The shared frame has exactly six rows.
         passing=gxe.ExpectTableRowCountToBeBetween(min_value=6, max_value=6),
         # A near miss: the lower bound sits one past the true row count.
         failing=gxe.ExpectTableRowCountToBeBetween(min_value=7, max_value=10),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.ExpectTableRowCountToEqual(value=6).expectation_type,
         passing=gxe.ExpectTableRowCountToEqual(value=6),
         # A near miss: one more than the true row count.
         failing=gxe.ExpectTableRowCountToEqual(value=7),
     ),
-    GoldCase(
+    GalleryCase(
         key=gxe.UnexpectedRowsExpectation(
             unexpected_rows_query=("SELECT * FROM {batch} WHERE increasing_key > 6")
         ).expectation_type,
@@ -837,11 +837,11 @@ proves the wiring end to end; the column-map, column-aggregate, column-pair, mul
 select-column-values, and table-shape families fill out the rest of the gallery."""
 
 
-def _derive_case_keys(cases: Sequence[GoldCase]) -> FrozenSet[str]:
-    """The key set `GOLD_CASES` publishes, checked against the two things that make it a faithful
+def _derive_case_keys(cases: Sequence[GalleryCase]) -> FrozenSet[str]:
+    """The key set `GALLERY_CASES` publishes, checked against the two things that make it a faithful
     index of the table rather than merely a set of strings.
 
-    The gallery completeness check (`test_gold_expectation_suite.py`) compares this key set against
+    The gallery completeness check (`test_gallery_expectation_suite.py`) compares this key set against
     the live registry and nothing else. That comparison is only worth what the key set is worth, so
     both ways the set can misrepresent the table are rejected here rather than collapsed silently:
 
@@ -857,8 +857,8 @@ def _derive_case_keys(cases: Sequence[GoldCase]) -> FrozenSet[str]:
 
     Raises `ValueError` rather than asserting: a bare `assert` at module scope is stripped entirely
     under `python -O`, which would drop the guarantee for every consumer of this module in an
-    optimized run (the same reasoning as `_validate_gold_fixture_data` in
-    `gold_expectation_cases.py`).
+    optimized run (the same reasoning as `_validate_gallery_fixture_data` in
+    `gallery_expectation_cases.py`).
     """
     seen: Set[str] = set()
     duplicates: List[str] = []
@@ -875,7 +875,7 @@ def _derive_case_keys(cases: Sequence[GoldCase]) -> FrozenSet[str]:
                 )
     if duplicates:
         raise ValueError(
-            f"GOLD_CASES declares more than one case for {sorted(set(duplicates))}. The table is "
+            f"GALLERY_CASES declares more than one case for {sorted(set(duplicates))}. The table is "
             "one case per gallery expectation, and the published key set is what the gallery "
             "completeness check reads -- a repeated key collapses into one entry there, leaving "
             "the check green while the table says something else. Merge the duplicates or give "
@@ -883,7 +883,7 @@ def _derive_case_keys(cases: Sequence[GoldCase]) -> FrozenSet[str]:
         )
     if mismatched:
         raise ValueError(
-            "Every gold case's key must equal the expectation type of both its passing and its "
+            "Every gallery case's key must equal the expectation type of both its passing and its "
             "failing configuration, because the key is all the gallery completeness check sees "
             "while the configurations are what the suite executes. Mismatched: "
             f"{sorted(mismatched)}."
@@ -891,5 +891,5 @@ def _derive_case_keys(cases: Sequence[GoldCase]) -> FrozenSet[str]:
     return frozenset(seen)
 
 
-GOLD_CASE_KEYS: Final[FrozenSet[str]] = _derive_case_keys(GOLD_CASES)
-"""The published case keys, derived from `GOLD_CASES` rather than hand-kept in sync with it."""
+GALLERY_CASE_KEYS: Final[FrozenSet[str]] = _derive_case_keys(GALLERY_CASES)
+"""The published case keys, derived from `GALLERY_CASES` rather than hand-kept in sync with it."""

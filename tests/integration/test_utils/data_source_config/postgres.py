@@ -33,7 +33,7 @@ class PostgreSQLDatasourceTestConfig(SqlDatasourceTestConfig):
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="postgresql"),
         uses_schema=True,
         tiers=frozenset(
-            {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GOLD}
+            {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GALLERY}
         ),
         dev_requirements_file="reqs/requirements-dev-postgresql.txt",
         task_runner_marker="postgresql",

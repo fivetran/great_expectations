@@ -1,14 +1,14 @@
 """The declarative case record shape for the gallery-wide expectation suite, and its shared
 fixture data.
 
-This module holds pure data: the `GoldCase` record shape, the fixture-shape vocabulary a case
+This module holds pure data: the `GalleryCase` record shape, the fixture-shape vocabulary a case
 declares, and the data frame(s) that back every case sharing the default shape. It imports the
 engine vocabulary but never `great_expectations` itself and never a data-source registry
 accessor, so it stays importable in a lane with no data-source dependency installed at all --
 `great_expectations`'s own package `__init__` opportunistically imports every SQL dialect driver
 that happens to be installed (soft-imported, so its *absence* is never fatal, but its *presence*
 would defeat this module's purpose of staying import-clean regardless of what is installed). The
-populated case table (`GOLD_CASES`) therefore lives in `gold_expectation_case_table.py`, which
+populated case table (`GALLERY_CASES`) therefore lives in `gallery_expectation_case_table.py`, which
 imports `great_expectations` to construct real `Expectation` instances -- something this module
 must not do.
 
@@ -57,7 +57,7 @@ _ALL_ENGINES: FrozenSet[ExecutionEngineKind] = frozenset(ExecutionEngineKind)
 
 
 @dataclass(frozen=True, kw_only=True)
-class GoldCase:
+class GalleryCase:
     """One declarative case: an expectation, proven both ways, against the shared fixture.
 
     ``passing`` and ``failing`` are configurations of the *same* expectation type — one expected
@@ -96,7 +96,7 @@ class GoldCase:
     def __post_init__(self) -> None:
         if not self.engines:
             raise ValueError(
-                f"Gold case {self.key!r} declares an empty engine set. A case that applies to no "
+                f"Gallery case {self.key!r} declares an empty engine set. A case that applies to no "
                 "execution engine proves nothing; either restrict it to a non-empty subset of "
                 "engines, with a reason, or leave `engines` at its default to apply to all of them."
             )
@@ -162,7 +162,7 @@ row of the shared frame."""
 
 _ROW_COUNT = 6
 
-GOLD_FIXTURE_DATA: pd.DataFrame = pd.DataFrame(
+GALLERY_FIXTURE_DATA: pd.DataFrame = pd.DataFrame(
     {
         INCREASING_KEY_COL: [1, 2, 3, 4, 5, 6],
         DECREASING_COL: [60, 50, 40, 30, 20, 10],
@@ -210,22 +210,22 @@ GOLD_FIXTURE_DATA: pd.DataFrame = pd.DataFrame(
     }
 )
 """The one shared frame every ``STANDARD``-shape case validates against. Carries no additional
-tables — the ``EXTRA_TABLE`` shape's second table lives in ``GOLD_EXTRA_TABLE_DATA`` below, kept
+tables — the ``EXTRA_TABLE`` shape's second table lives in ``GALLERY_EXTRA_TABLE_DATA`` below, kept
 separate so this frame alone still resolves every ``STANDARD`` case to one cached batch setup."""
 
 
-def _validate_gold_fixture_data() -> None:
+def _validate_gallery_fixture_data() -> None:
     """Check the invariants the shared frame's docstrings promise, as real (non-strippable)
     checks -- a bare module-level ``assert`` is removed entirely under ``python -O``, silently
     dropping the guarantee for every consumer of this module in an optimized run."""
-    if len(GOLD_FIXTURE_DATA) != _ROW_COUNT:
+    if len(GALLERY_FIXTURE_DATA) != _ROW_COUNT:
         raise ValueError(
-            f"GOLD_FIXTURE_DATA must have exactly {_ROW_COUNT} rows, got {len(GOLD_FIXTURE_DATA)}."
+            f"GALLERY_FIXTURE_DATA must have exactly {_ROW_COUNT} rows, got {len(GALLERY_FIXTURE_DATA)}."
         )
     row_sums = (
-        GOLD_FIXTURE_DATA[MULTICOLUMN_A_COL]
-        + GOLD_FIXTURE_DATA[MULTICOLUMN_B_COL]
-        + GOLD_FIXTURE_DATA[MULTICOLUMN_C_COL]
+        GALLERY_FIXTURE_DATA[MULTICOLUMN_A_COL]
+        + GALLERY_FIXTURE_DATA[MULTICOLUMN_B_COL]
+        + GALLERY_FIXTURE_DATA[MULTICOLUMN_C_COL]
     )
     if not (row_sums == MULTICOLUMN_ROW_SUM).all():
         raise ValueError(
@@ -233,7 +233,7 @@ def _validate_gold_fixture_data() -> None:
             f"MULTICOLUMN_ROW_SUM ({MULTICOLUMN_ROW_SUM}); got {row_sums.tolist()}."
         )
     if (
-        GOLD_FIXTURE_DATA[[MULTICOLUMN_A_COL, MULTICOLUMN_B_COL, MULTICOLUMN_C_COL]]
+        GALLERY_FIXTURE_DATA[[MULTICOLUMN_A_COL, MULTICOLUMN_B_COL, MULTICOLUMN_C_COL]]
         .duplicated()
         .any()
     ):
@@ -241,12 +241,12 @@ def _validate_gold_fixture_data() -> None:
             "multicolumn_a/multicolumn_b/multicolumn_c must have no duplicate row, for the "
             "multicolumn uniqueness case."
         )
-    if not (GOLD_FIXTURE_DATA[PAIR_LOW_COL] < GOLD_FIXTURE_DATA[PAIR_HIGH_COL]).all():
+    if not (GALLERY_FIXTURE_DATA[PAIR_LOW_COL] < GALLERY_FIXTURE_DATA[PAIR_HIGH_COL]).all():
         raise ValueError(
             f"Every row's {PAIR_LOW_COL} must be less than its {PAIR_HIGH_COL}, for the "
             "column-pair ordering cases."
         )
-    if not (GOLD_FIXTURE_DATA[PAIR_LOW_COL] == GOLD_FIXTURE_DATA[INCREASING_KEY_COL]).all():
+    if not (GALLERY_FIXTURE_DATA[PAIR_LOW_COL] == GALLERY_FIXTURE_DATA[INCREASING_KEY_COL]).all():
         raise ValueError(
             f"Every row's {PAIR_LOW_COL} must equal its {INCREASING_KEY_COL}. Several cases pair "
             "those two columns to get an equality that holds on every row without spending "
@@ -256,16 +256,16 @@ def _validate_gold_fixture_data() -> None:
         )
 
 
-_validate_gold_fixture_data()
+_validate_gallery_fixture_data()
 
 
-GOLD_EXTRA_TABLE_NAME = "gold_extra_table"
+GALLERY_EXTRA_TABLE_NAME = "gallery_extra_table"
 """The name every ``EXTRA_TABLE``-shape case's second table is set up under."""
 
 EXTRA_TABLE_KEY_COL = "extra_key"
 EXTRA_TABLE_VALUE_COL = "extra_value"
 
-GOLD_EXTRA_TABLE_DATA: pd.DataFrame = pd.DataFrame(
+GALLERY_EXTRA_TABLE_DATA: pd.DataFrame = pd.DataFrame(
     {
         EXTRA_TABLE_KEY_COL: [1, 2, 3, 4, 5, 6, 7],
         EXTRA_TABLE_VALUE_COL: ["a", "b", "c", "d", "e", "f", "g"],
@@ -273,7 +273,7 @@ GOLD_EXTRA_TABLE_DATA: pd.DataFrame = pd.DataFrame(
 )
 """The one additional table shared by every ``EXTRA_TABLE``-shape case, so those cases collapse to
 a single second setup rather than one per case. Deliberately sized to seven rows -- one more than
-``GOLD_FIXTURE_DATA``'s six -- so a case comparing the primary table against this one has a real,
+``GALLERY_FIXTURE_DATA``'s six -- so a case comparing the primary table against this one has a real,
 known mismatch to prove a discriminating failure with, rather than two same-sized tables that
 always compare equal."""
 
@@ -282,10 +282,10 @@ always compare equal."""
 # Table-reference vocabulary
 # --------------------------------------------------------------------------------------------
 
-EXTRA_TABLE_SELF_REFERENCE: Final[str] = "__gold_primary_table__"
+EXTRA_TABLE_SELF_REFERENCE: Final[str] = "__gallery_primary_table__"
 """A placeholder ``other_table_name``/second-table reference for an ``EXTRA_TABLE`` or
 ``COMPARISON`` shape case that means "the case's own primary table," as opposed to the shared
-extra table published as ``GOLD_EXTRA_TABLE_NAME``. Neither a case's primary table's physical name
+extra table published as ``GALLERY_EXTRA_TABLE_NAME``. Neither a case's primary table's physical name
 nor its comparison data source's name exist until the batch is set up at test time (both carry a
 randomly-generated suffix), so a case cannot hold the real value. The suite substitutes the actual
 name for this sentinel immediately before validating; the substitution is invisible to the case

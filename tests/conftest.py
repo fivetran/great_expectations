@@ -293,11 +293,11 @@ def pytest_addoption(parser):
         help="If set, run performance tests (which might also require additional arguments like --bigquery)",  # noqa: E501 # FIXME CoP
     )
     parser.addoption(
-        "--gold-measurement",
+        "--gallery-measurement",
         action="store_true",
         help=(
-            "If set, the gold-tier expectation suite runs against every registered data source "
-            "that has a configuration and an execution engine, instead of only declared gold-tier "
+            "If set, the gallery-tier expectation suite runs against every registered data source "
+            "that has a configuration and an execution engine, instead of only declared gallery-tier "
             "members. Off by default; a measurement run does not edit any data source's "
             "declaration."
         ),

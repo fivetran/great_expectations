@@ -60,7 +60,7 @@ class DatabricksDatasourceTestConfig(SqlDatasourceTestConfig):
         integer_column_type_name="INT",
         insert_parameter_limit=250,
         tiers=frozenset(
-            {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GOLD}
+            {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GALLERY}
         ),
         dev_requirements_file="reqs/requirements-dev-databricks.txt",
         task_runner_marker="databricks",

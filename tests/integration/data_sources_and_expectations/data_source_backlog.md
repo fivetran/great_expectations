@@ -572,7 +572,7 @@ already describes from the registry side.
 ## Fifteen candidates were measured for the top tier; nine joined
 
 Fifteen data sources were run against the full expectation-gallery case table to decide membership in
-the `SupportTier.GOLD` tier (a tier declared on `tests/integration/test_utils/data_source_config/data_source_spec.py`'s
+the `SupportTier.GALLERY` tier (a tier declared on `tests/integration/test_utils/data_source_config/data_source_spec.py`'s
 `SupportTier` enum, asserting that a data source passes every applicable case in that suite). Nine
 joined, each clearing every applicable case with nothing excluded: `big-query`, `redshift`, `sqlite`,
 `pandas-data-frame`, `pandas-filesystem-csv`, `mysql`, `postgresql`, `trino`, and `databricks`.
