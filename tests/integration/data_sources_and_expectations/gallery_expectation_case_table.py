@@ -4,9 +4,10 @@ This module holds the one thing `gallery_expectation_cases.py` cannot: real, con
 `Expectation` instances. Building those requires importing `great_expectations`, and
 `gallery_expectation_cases.py` must stay importable with no data-source dependency installed at all
 (see that module's docstring). This module is the layer in between -- it imports
-`great_expectations`, imports the pure data and record shape from `gallery_expectation_cases.py`, and
-publishes the populated table. `test_gallery_expectation_suite.py` consumes `GALLERY_CASES` from here; it
-does not define cases itself.
+`great_expectations`, imports the pure data and record shape from
+`gallery_expectation_cases.py`, and publishes the populated table.
+`test_gallery_expectation_suite.py` consumes `GALLERY_CASES` from here; it does not define cases
+itself.
 
 Keeping the case table in its own module, rather than inline in the test module, matters at this
 size: with one case per gallery expectation, collapsing that growth into the same file as the
@@ -841,9 +842,10 @@ def _derive_case_keys(cases: Sequence[GalleryCase]) -> FrozenSet[str]:
     """The key set `GALLERY_CASES` publishes, checked against the two things that make it a faithful
     index of the table rather than merely a set of strings.
 
-    The gallery completeness check (`test_gallery_expectation_suite.py`) compares this key set against
-    the live registry and nothing else. That comparison is only worth what the key set is worth, so
-    both ways the set can misrepresent the table are rejected here rather than collapsed silently:
+    The case-table completeness check (`test_gallery_expectation_suite.py`) compares this key set
+    against the live registry and nothing else. That comparison is only worth what the key set is
+    worth, so both ways the set can misrepresent the table are rejected here rather than collapsed
+    silently:
 
     - **A repeated key.** Building the set with `frozenset(case.key for case in cases)` on its own
       absorbs a duplicate without a trace: two cases for one expectation, one key, a completeness
@@ -875,8 +877,8 @@ def _derive_case_keys(cases: Sequence[GalleryCase]) -> FrozenSet[str]:
                 )
     if duplicates:
         raise ValueError(
-            f"GALLERY_CASES declares more than one case for {sorted(set(duplicates))}. The table is "
-            "one case per gallery expectation, and the published key set is what the gallery "
+            f"GALLERY_CASES declares more than one case for {sorted(set(duplicates))}. The table "
+            "is one case per gallery expectation, and the published key set is what the gallery "
             "completeness check reads -- a repeated key collapses into one entry there, leaving "
             "the check green while the table says something else. Merge the duplicates or give "
             "each the expectation it is actually accountable for."
@@ -884,7 +886,7 @@ def _derive_case_keys(cases: Sequence[GalleryCase]) -> FrozenSet[str]:
     if mismatched:
         raise ValueError(
             "Every gallery case's key must equal the expectation type of both its passing and its "
-            "failing configuration, because the key is all the gallery completeness check sees "
+            "failing configuration, because the key is all the case-table completeness check sees "
             "while the configurations are what the suite executes. Mismatched: "
             f"{sorted(mismatched)}."
         )

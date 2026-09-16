@@ -3099,8 +3099,8 @@ class TestVocabularyMembership:
 
 class TestGalleryTierClaimInheritsTheScaledObligations:
     """The new tier member is not special-cased: `_validate_tier_claims` scales its obligations to
-    whatever is in `spec.tiers`, so a `GALLERY` claim must be rejected on exactly the same terms as a
-    `CANONICAL_EXPECTATIONS` claim already is, above. Proven directly rather than assumed: a
+    whatever is in `spec.tiers`, so a `GALLERY` claim must be rejected on exactly the same terms as
+    a `CANONICAL_EXPECTATIONS` claim already is, above. Proven directly rather than assumed: a
     docstring describing what a tier means is not evidence that the validator sees this member.
     """
 

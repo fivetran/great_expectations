@@ -886,7 +886,7 @@ jobs:
       # workers would schedule the whole cell onto one of them and pay three idle process
       # startups for it. Splitting the suite across modules is what would make `--xdist` worth
       # adding back; the shared lane spans every expectation module, which is why it benefits.
-      - name: Run the gallery suite
+      - name: Run the gallery-tier suite
         run: |
           invoke ci-tests '${{ matrix.markers }}' --up-services --verbose --suite=gallery
 

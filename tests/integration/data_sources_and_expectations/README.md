@@ -420,12 +420,13 @@ constructed items because the construct binds to the first table it is attached 
   curated-tier member inherits without editing that module. It keeps saying SQL because the suite
   it gates exists to prove dialect behavior, and so has no meaning for a data source that speaks
   no dialect.
-- **`SupportTier.GALLERY`** — the gallery-wide suite
+- **`SupportTier.GALLERY`** — the gallery-tier suite
   (`tests/integration/data_sources_and_expectations/test_gallery_expectation_suite.py`): one case per
-  expectation the shipped package registers from its own core package, currently 58 cases. Nine
+  expectation in the gallery — the expectations the shipped package registers from its own core
+  package — currently 58 cases. The tier is named for the claim: a member passes the gallery. Nine
   data sources have earned it today — big-query, redshift, sqlite, pandas-data-frame,
   pandas-filesystem-csv, mysql, postgresql, trino, and databricks — and none of them currently
-  declares a case exclusion; see "Measuring a candidate before it claims gallery" below for what
+  declares a case exclusion; see "Measuring a candidate before it claims the gallery tier" below for what
   membership asserts and how it is earned.
 
 Always write the declaration form, never a bare set literal:
@@ -501,7 +502,7 @@ mapping — a data source can sit out its ceiling's worth of cases in more than 
 either tier's coverage being hollowed out past what a single-tier declaration already permits.
 This per-tier counting had to be true before a second suite could publish case keys at all: a
 single whole-declaration count could not distinguish "this data source sits out two cases in the
-curated suite" from "this data source sits out two cases in gallery", so the moment two tiers exist, a
+curated suite" from "this data source sits out two cases in the gallery tier", so the moment two tiers exist, a
 per-declaration ceiling either double-taxes a data source that has earned its full allowance in one
 tier by charging it again against a second tier's suite, or it has to stop counting altogether.
 When a data source would need one more exclusion than the ceiling permits in a tier, it does not
@@ -535,10 +536,10 @@ naming the record and the tier — an exclusion from a suite that does not run f
 is meaningless, and this catches a real class of stale declaration, a data source dropped from a
 tier whose exclusions were left behind.
 
-#### Measuring a candidate before it claims gallery
+#### Measuring a candidate before it claims the gallery tier
 
 `SupportTier.GALLERY` asserts a test result, not an intention: a data source that declares it has
-already passed every case in the gallery-wide suite that applies to it. Because that is a claim
+already passed every case in the gallery-tier suite that applies to it. Because that is a claim
 about a *result*, a candidate has to be measured before it can honestly make it — declaring the
 tier first and finding out whether it holds after the fact would publish a claim as a way of
 finding out whether it is true.
@@ -547,9 +548,9 @@ The suite has a permanent measurement mode for exactly this: `--gallery-measurem
 that substitutes every registered data source that has a configuration class and a recognized
 execution engine for the tier's declared membership, unfiltered by tier and by exclusion (a
 candidate has made no claim yet, so there is nothing to filter against). It is not a one-time
-migration switch — evaluating the *next* candidate for gallery needs it exactly as evaluating the
+migration switch — evaluating the *next* candidate for the gallery tier needs it exactly as evaluating the
 first ones did, so it stays in the suite rather than being removed once the current membership was
-established. To measure a candidate, run its own marker against the gallery suite with the flag set,
+established. To measure a candidate, run its own marker against the gallery-tier suite with the flag set,
 for example:
 
 ```
@@ -807,19 +808,19 @@ have a member. Adding a member is a product decision about what the shipped pack
 and a test harness does not get to force one. The reviewed literal is what stops the single
 direction from becoming a silent ratchet.
 
-## Adding an expectation to the gallery gallery
+## Adding a case for a new expectation
 
 The gallery-tier suite is closed in both directions against the shipped package's own expectation
 registry: every expectation the shipped core package registers must have exactly one case in
 `tests/integration/data_sources_and_expectations/gallery_expectation_case_table.py`, and every case in
 that table must name an expectation the shipped core package actually registers. A completeness
-guard (`test_gallery_case_keys_match_the_gallery_set_exactly` in
+guard (`test_case_table_keys_match_the_gallery_set_exactly` in
 `tests/integration/data_sources_and_expectations/test_gallery_expectation_suite.py`) fails, naming
 each offending key, whenever either direction drifts — a new expectation with no case, or a case
 whose expectation was renamed or removed.
 
 That means adding a new expectation to the shipped core package is not complete on its own: the
-gallery suite fails the moment that expectation registers until a case exists for it. To add one:
+gallery-tier suite fails the moment that expectation registers until a case exists for it. To add one:
 
 1. Open `gallery_expectation_case_table.py` and add one `GalleryCase` to the `GALLERY_CASES` tuple, keyed
    by the new expectation's `expectation_type`. Follow an existing case of the same shape as a
@@ -836,8 +837,8 @@ gallery suite fails the moment that expectation registers until a case exists fo
    (`CaseFixtureShape.STANDARD`), such as a second table or a comparison batch, see
    `gallery_expectation_cases.py` for the other declared shapes.
 
-Once the case is added, `test_gallery_case_keys_match_the_gallery_set_exactly` passes again, and the
-gallery-wide suite runs the new case against every current gallery-tier member the moment it is
+Once the case is added, `test_case_table_keys_match_the_gallery_set_exactly` passes again, and the
+gallery-tier suite runs the new case against every current member the moment it is
 collected — no per-member edit is needed for an existing member to pick it up.
 
 ## The ad-hoc escape hatch's autocommit mechanism

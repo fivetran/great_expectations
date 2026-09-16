@@ -1,4 +1,4 @@
-"""The declarative case record shape for the gallery-wide expectation suite, and its shared
+"""The declarative case record shape for the gallery-tier expectation suite, and its shared
 fixture data.
 
 This module holds pure data: the `GalleryCase` record shape, the fixture-shape vocabulary a case
@@ -96,8 +96,8 @@ class GalleryCase:
     def __post_init__(self) -> None:
         if not self.engines:
             raise ValueError(
-                f"Gallery case {self.key!r} declares an empty engine set. A case that applies to no "
-                "execution engine proves nothing; either restrict it to a non-empty subset of "
+                f"Gallery case {self.key!r} declares an empty engine set. A case that applies to "
+                "no execution engine proves nothing; either restrict it to a non-empty subset of "
                 "engines, with a reason, or leave `engines` at its default to apply to all of them."
             )
 
@@ -220,7 +220,8 @@ def _validate_gallery_fixture_data() -> None:
     dropping the guarantee for every consumer of this module in an optimized run."""
     if len(GALLERY_FIXTURE_DATA) != _ROW_COUNT:
         raise ValueError(
-            f"GALLERY_FIXTURE_DATA must have exactly {_ROW_COUNT} rows, got {len(GALLERY_FIXTURE_DATA)}."
+            f"GALLERY_FIXTURE_DATA must have exactly {_ROW_COUNT} rows, "
+            f"got {len(GALLERY_FIXTURE_DATA)}."
         )
     row_sums = (
         GALLERY_FIXTURE_DATA[MULTICOLUMN_A_COL]
@@ -285,8 +286,9 @@ always compare equal."""
 EXTRA_TABLE_SELF_REFERENCE: Final[str] = "__gallery_primary_table__"
 """A placeholder ``other_table_name``/second-table reference for an ``EXTRA_TABLE`` or
 ``COMPARISON`` shape case that means "the case's own primary table," as opposed to the shared
-extra table published as ``GALLERY_EXTRA_TABLE_NAME``. Neither a case's primary table's physical name
-nor its comparison data source's name exist until the batch is set up at test time (both carry a
-randomly-generated suffix), so a case cannot hold the real value. The suite substitutes the actual
-name for this sentinel immediately before validating; the substitution is invisible to the case
+extra table published as ``GALLERY_EXTRA_TABLE_NAME``. Neither a case's primary table's physical
+name nor its comparison data source's name exist until the batch is set up at test time (both
+carry a randomly-generated suffix), so a case cannot hold the real value. The suite substitutes
+the actual name for this sentinel immediately before validating; the substitution is invisible to
+the case
 itself, which keeps every published case a plain constructed instance rather than a factory."""

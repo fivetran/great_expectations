@@ -342,8 +342,8 @@ def _assert_tier_claim_carries_evidence(name: str, spec: DataSourceSpec) -> None
 
 # --------------------------------------------------------------------------------------------
 # The gallery-lane drift check. Every other assertion above verifies a coordinate a record declares
-# about its *own* lane. A gallery-tier record is additionally restated as a cell in the gallery job's
-# matrix - a second lane the record's own schema has no field for - and nothing else in this
+# about its *own* lane. A gallery-tier record is additionally restated as a cell in the gallery
+# job's matrix - a second lane the record's own schema has no field for - and nothing else in this
 # module reads that restatement, so a record could join the tier and never get a cell, or a cell
 # could run for a data source that never joined, and neither would be caught above. This is the
 # one place that reads the gallery job's matrix and compares it against tier membership directly,
@@ -354,8 +354,8 @@ def _assert_tier_claim_carries_evidence(name: str, spec: DataSourceSpec) -> None
 def _gallery_tier_marker_tokens(records: Tuple[DataSourceSpec, ...]) -> FrozenSet[str]:
     """The marker token each gallery-tier record's own CI lane runs under.
 
-    The gallery job's matrix cell is keyed by that same token (see the gallery job's matrix comment in
-    the workflow file), so this is the coordinate to compare against, not the record's label or
+    The gallery job's matrix cell is keyed by that same token (see the gallery job's matrix comment
+    in the workflow file), so this is the coordinate to compare against, not the record's label or
     public name.
     """
     tokens = set()
@@ -363,8 +363,8 @@ def _gallery_tier_marker_tokens(records: Tuple[DataSourceSpec, ...]) -> FrozenSe
         if SupportTier.GALLERY not in spec.tiers:
             continue
         assert spec.ci_lane is not None, (
-            f"{_record_label(spec)!r} claims the gallery tier but declares no CI lane, so it has no "
-            f"marker token to compare against the gallery job's matrix"
+            f"{_record_label(spec)!r} claims the gallery tier but declares no CI lane, so it has "
+            f"no marker token to compare against the gallery job's matrix"
         )
         tokens.add(spec.ci_lane.marker_token)
     return frozenset(tokens)
@@ -691,9 +691,9 @@ class TestWiringDriftFailurePaths:
         assert iter_data_sources() == before
 
     def test_gallery_member_with_no_matrix_cell_names_the_data_source(self) -> None:
-        """A record joining the gallery tier under a marker token the gallery job's matrix has no cell
-        for - the exact shape a data source that claims the tier and is never given a lane takes.
-        The tier side is the real registry's tier tokens widened by the one token the matrix
+        """A record joining the gallery tier under a marker token the gallery job's matrix has no
+        cell for - the exact shape a data source that claims the tier and is never given a lane
+        takes. The tier side is the real registry's tier tokens widened by the one token the matrix
         cannot possibly have, so the failure is attributable to the added member alone.
         """
         lane_tokens = _gallery_job_matrix_markers(_ci_workflow_jobs())

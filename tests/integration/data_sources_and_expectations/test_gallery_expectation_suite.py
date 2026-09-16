@@ -1,4 +1,4 @@
-"""The gallery-tier suite: the gallery-wide expectation suite every gallery-tier data source proves.
+"""The gallery-tier suite: one case per expectation in the gallery, which every member proves.
 
 This module builds the suite's collection-time parameterization -- the (case, data source) product
 that turns the declarative case table in `gallery_expectation_case_table.py` into parametrized test
@@ -186,8 +186,9 @@ def _engine_applies(config: DataSourceTestConfig, case: GalleryCase) -> bool:
 
     A data source with no recorded execution engine never applies to any case: it names a storage
     target rather than something a single engine reads a batch from. `None` -- what an unrecorded
-    engine reads as -- is never a member of `case.engines` (it is always `GalleryCase`'s full default
-    set or a proper, non-empty subset of `ExecutionEngineKind`, per `GalleryCase.__post_init__`), so
+    engine reads as -- is never a member of `case.engines` (it is always `GalleryCase`'s full
+    default set or a proper, non-empty subset of `ExecutionEngineKind`, per
+    `GalleryCase.__post_init__`), so
     membership alone already excludes an engineless candidate without a separate `is None` guard.
     Neither drop is treated as an exclusion -- `tier_case_exclusions` is the one mechanism that
     means that, and this filter never consults it and never writes to it.
@@ -253,10 +254,10 @@ def _test_config_for(case: GalleryCase, config: DataSourceTestConfig) -> _TestCo
     from `case`'s fixture shape and the shared fixture data `gallery_expectation_cases` publishes.
 
     The `COMPARISON` shape uses the same data source, and the same shared frame, for both the base
-    and the comparison side: `gallery_expectation_cases` publishes one shared frame, and a case needing
-    a comparison source needing different data from the base declares its own frame there when one
-    is added, the same way `EXTRA_TABLE` cases share `GALLERY_EXTRA_TABLE_DATA` rather than each
-    inventing a second table.
+    and the comparison side: `gallery_expectation_cases` publishes one shared frame, and a case
+    needing a comparison source needing different data from the base declares its own frame there
+    when one is added, the same way `EXTRA_TABLE` cases share `GALLERY_EXTRA_TABLE_DATA` rather
+    than each inventing a second table.
     """
     if case.fixture_shape is CaseFixtureShape.STANDARD:
         return _TestConfig(data_source_config=config, data=GALLERY_FIXTURE_DATA, extra_data={})
@@ -341,10 +342,10 @@ def _empty_product_placeholder(reason: str) -> ParameterSet:
     supplies that marker explicitly, plus an explicit (rather than pytest's generic) skip reason,
     naming which of the two ways an empty product can arise the caller has already told apart.
 
-    Its `_batch_setup_for_datasource` and `gallery_case` values are never touched: a `pytest.mark.skip`
-    on a parametrized item's marks makes pytest skip the item during test *setup*, before any
-    fixture (including an indirect one) runs -- verified directly against this repo's fixture, not
-    assumed from pytest's docs.
+    Its `_batch_setup_for_datasource` and `gallery_case` values are never touched: a
+    `pytest.mark.skip` on a parametrized item's marks makes pytest skip the item during test
+    *setup*, before any fixture (including an indirect one) runs -- verified directly against this
+    repo's fixture, not assumed from pytest's docs.
     """
     return pytest.param(
         None,
@@ -742,7 +743,7 @@ def test_gallery_expectation_types_excludes_unregistered_abstract_export() -> No
 def _completeness_check(published_keys: FrozenSet[str], gallery_keys: FrozenSet[str]) -> None:
     """The published case-key set must equal the derived gallery set in both directions.
 
-    Factored out from `test_gallery_case_keys_match_the_gallery_set_exactly` so its failure path can
+    Factored out from `test_case_table_keys_match_the_gallery_set_exactly` so its failure path can
     be exercised directly, with a deliberately incomplete key set, in
     `test_completeness_guard_fails_on_missing_and_unrecognized_keys` below -- proving this check
     can fail rather than merely being green over the two sets happening to agree today.
@@ -754,15 +755,15 @@ def _completeness_check(published_keys: FrozenSet[str], gallery_keys: FrozenSet[
     )
     unrecognized = published_keys - gallery_keys
     assert not unrecognized, (
-        f"The following published gallery case keys do not name a currently registered expectation: "
-        f"{sorted(unrecognized)}. Either the expectation was removed from the shipped package "
-        "(delete the case) or the key is misspelled (fix it to match the registered "
+        f"The following published gallery case keys do not name a currently registered "
+        f"expectation: {sorted(unrecognized)}. Either the expectation was removed from the shipped "
+        "package (delete the case) or the key is misspelled (fix it to match the registered "
         "expectation_type) -- check both."
     )
 
 
 @pytest.mark.project
-def test_gallery_case_keys_match_the_gallery_set_exactly() -> None:
+def test_case_table_keys_match_the_gallery_set_exactly() -> None:
     """`GALLERY_CASE_KEYS` and `gallery_expectation_types()` must be exactly equal: an expectation
     registered with no case, and a case naming an unregistered expectation, are both a defect."""
     _completeness_check(GALLERY_CASE_KEYS, gallery_expectation_types())
@@ -881,8 +882,8 @@ def test_every_gallery_exclusion_key_is_a_published_case_key() -> None:
 
 @pytest.mark.project
 def test_gallery_case_accessor_matches_tier_membership_minus_declared_exclusions() -> None:
-    """For every published gallery case key, `data_sources_for_tier_case(GALLERY, key)` must equal the
-    tier's live membership minus whichever members declare an exclusion for that key, computed
+    """For every published gallery case key, `data_sources_for_tier_case(GALLERY, key)` must equal
+    the tier's live membership minus whichever members declare an exclusion for that key, computed
     from each member's own live `tier_case_exclusions` rather than assumed.
 
     `SupportTier.GALLERY` now has real members, so both sides of this comparison are computed from
@@ -1034,8 +1035,8 @@ class TestBuildGalleryCaseParams:
 
     Marked `project` here, on the class, rather than on the module: the generated case-shape
     tests a later unit of work adds to this module carry their own marks (a data source's own
-    mark plus `gallery`) through `build_gallery_case_params` itself, and a module-level mark would give
-    each of those a second required marker alongside its own.
+    mark plus `gallery`) through `build_gallery_case_params` itself, and a module-level mark would
+    give each of those a second required marker alongside its own.
     """
 
     pytestmark = pytest.mark.project
@@ -1344,8 +1345,8 @@ class TestBuildGalleryCaseParams:
 # `function.__name__`, `fixturenames`, `config.getoption`, and a recording `parametrize` -- is
 # enough to drive it directly and pin all four behaviors the hook itself is responsible for: the
 # `_SHAPE_BY_TEST_FUNCTION_NAME` name dispatch, both `fixturenames` gates, the
-# `--gallery-measurement` option read reaching `build_gallery_case_params`, and `indirect=` being passed
-# as intended. `build_gallery_case_params` itself is not re-verified here -- that is
+# `--gallery-measurement` option read reaching `build_gallery_case_params`, and `indirect=` being
+# passed as intended. `build_gallery_case_params` itself is not re-verified here -- that is
 # `TestBuildGalleryCaseParams`'s job -- so these cases use throwaway registrations only large enough
 # to tell the hook's own wiring apart from a no-op.
 
@@ -1418,8 +1419,8 @@ class TestPytestGenerateTests:
         pytest_generate_tests(cast("pytest.Metafunc", metafunc))
 
         [call] = metafunc.calls
-        # A real, non-empty parametrize call -- not the empty list `build_gallery_case_params` itself
-        # would legally return -- is what makes marker-coverage see a required marker on this
+        # A real, non-empty parametrize call -- not the empty list `build_gallery_case_params`
+        # itself would legally return -- is what makes marker-coverage see a required marker on this
         # otherwise-collected-but-empty test (see `_empty_product_placeholder`'s docstring).
         assert len(call.argvalues) == 1
         [param] = call.argvalues

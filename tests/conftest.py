@@ -297,9 +297,9 @@ def pytest_addoption(parser):
         action="store_true",
         help=(
             "If set, the gallery-tier expectation suite runs against every registered data source "
-            "that has a configuration and an execution engine, instead of only declared gallery-tier "
-            "members. Off by default; a measurement run does not edit any data source's "
-            "declaration."
+            "that has a configuration and an execution engine, instead of only declared "
+            "gallery-tier members. Off by default; a measurement run does not edit any data "
+            "source's declaration."
         ),
     )
 
