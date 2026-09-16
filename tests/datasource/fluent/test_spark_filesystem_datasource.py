@@ -1630,6 +1630,10 @@ def test_add_csv_asset_rejects_invalid_spark_schema_types(
         ("mixed_list", [pyspark_types.StructField("f1", pyspark_types.StringType(), True), 42]),
     ]:
         with pytest.raises(pydantic.ValidationError) as exc_info:
-            data_source.add_csv_asset(name=name, header=True, spark_schema=invalid)
+            data_source.add_csv_asset(
+                name=name,
+                header=True,
+                spark_schema=invalid,  # type: ignore[arg-type] # FIXME CoP
+            )
 
         assert "spark_schema" in str(exc_info.value)
