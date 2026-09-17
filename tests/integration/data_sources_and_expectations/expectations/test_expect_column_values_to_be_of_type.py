@@ -10,6 +10,7 @@ from tests.integration.data_sources_and_expectations.data_source_lists import (
 )
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
+    ClickHouseDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
     GenericSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
@@ -82,6 +83,18 @@ def test_success_for_type__INTEGER(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="INTEGER")
     result = batch_for_datasource.validate(expectation)
     assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[ClickHouseDatasourceTestConfig()],
+    data=DATA,
+)
+def test_clickhouse_nullable_type(batch_for_datasource: Batch) -> None:
+    expectation = gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="Int64")
+    result = batch_for_datasource.validate(expectation)
+
+    assert result.success
+    assert result.result["observed_value"] == "Int64"
 
 
 @parameterize_batch_for_data_sources(
