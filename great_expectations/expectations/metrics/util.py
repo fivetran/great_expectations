@@ -974,7 +974,12 @@ def get_dialect_like_pattern_expression(  # noqa: C901, PLR0912, PLR0915 # FIXME
         except AttributeError:
             pass
         try:
-            if issubclass(dialect.dialect, sa.dialects.mysql.dialect):
+            if issubclass(dialect.dialect, sa.dialects.mysql.base.MySQLDialect):
+                dialect_supported = True
+        except AttributeError:
+            pass
+        try:
+            if issubclass(dialect.dialect, sa.dialects.oracle.base.OracleDialect):  # type: ignore[attr-defined] # FIXME CoP
                 dialect_supported = True
         except AttributeError:
             pass
