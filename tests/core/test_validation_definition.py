@@ -54,6 +54,7 @@ from great_expectations.execution_engine.execution_engine import ExecutionEngine
 from great_expectations.validator.v1_validator import (
     OldValidator,
 )
+from great_expectations.validator.v1_validator import Validator as V1Validator
 
 if TYPE_CHECKING:
     from unittest.mock import MagicMock  # noqa: TID251 # FIXME CoP
@@ -1044,8 +1045,10 @@ class TestConcurrentValidationRuns:
     thread that waits for the other thread *inside* that computation holds the lock the other
     thread needs to build its own Validator, and both hang. So a wait for the other thread's
     Validator goes at ``graph_validate``, the first call after the property has been computed,
-    and the one wait that must sit inside ``__init__`` only ever waits on a thread whose
-    Validator already exists.
+    or earlier still at ``_validate_expectation_configs``, before the property is touched at
+    all. Neither placement ever sits inside ``__init__``: a wait there would itself be holding
+    the lock the other thread needs to build its own Validator, which is exactly the deadlock
+    this design avoids.
     """
 
     @staticmethod
@@ -1122,12 +1125,17 @@ class TestConcurrentValidationRuns:
         big_built = threading.Event()
         original_init = OldValidator.__init__
         original_graph_validate = OldValidator.graph_validate
+        original_validate_expectation_configs = V1Validator._validate_expectation_configs
 
-        def init_big_after_small_resolves(self, *args, **kwargs) -> None:
-            # Waits inside the cached-property computation, which is safe here: "small"'s
-            # Validator already exists, so "small" never needs that lock again.
+        def big_waits_for_small_before_building_its_validator(self, *args, **kwargs):
+            # Waits before "big" ever touches `_wrapped_validator`, so this wait never holds
+            # the cached-property lock: "small"'s Validator already exists (and the lock is
+            # already released) by the time this returns.
             if threading.current_thread().name == "big":
                 assert small_resolved.wait(timeout=_CONCURRENT_RUN_WAIT_SECONDS)
+            return original_validate_expectation_configs(self, *args, **kwargs)
+
+        def set_big_built_after_init(self, *args, **kwargs) -> None:
             original_init(self, *args, **kwargs)
             if threading.current_thread().name == "big":
                 big_built.set()
@@ -1139,7 +1147,12 @@ class TestConcurrentValidationRuns:
                 assert big_built.wait(timeout=_CONCURRENT_RUN_WAIT_SECONDS)
             return result
 
-        monkeypatch.setattr(OldValidator, "__init__", init_big_after_small_resolves)
+        monkeypatch.setattr(
+            V1Validator,
+            "_validate_expectation_configs",
+            big_waits_for_small_before_building_its_validator,
+        )
+        monkeypatch.setattr(OldValidator, "__init__", set_big_built_after_init)
         monkeypatch.setattr(OldValidator, "graph_validate", small_waits_for_big_before_returning)
 
         results = self._run_on_threads(two_dataframe_validation_definitions)
