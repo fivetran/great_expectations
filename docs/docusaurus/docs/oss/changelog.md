@@ -1266,21 +1266,57 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Update experimental metric repository for V1 backend api ([#10486](https://github.com/great-expectations/great_expectations/pull/10486))
 * [MAINTENANCE] Remove `urllib3` dependency ([#10488](https://github.com/great-expectations/great_expectations/pull/10488))
 
-### 1.1.0
-* [FEATURE] Update `Batch.validate()` API to accept expectation parameters ([#10456](https://github.com/great-expectations/great_expectations/pull/10456))
-* [BUGFIX] README.md updated link ([#10446](https://github.com/great-expectations/great_expectations/pull/10446))
-* [BUGFIX] Ensure that fluent_datasources show up in context ([#10438](https://github.com/great-expectations/great_expectations/pull/10438))
-* [BUGFIX] Enable `SlackNotificationAction` variable substitution ([#10443](https://github.com/great-expectations/great_expectations/pull/10443))
-* [DOCS] Bump python version to 3.9 in docs ([#10453](https://github.com/great-expectations/great_expectations/pull/10453))
-* [DOCS] add example of environment variable substitution ([#10417](https://github.com/great-expectations/great_expectations/pull/10417))
-* [DOCS] Add `Databricks (SQL)` to Cloud supported list ([#10452](https://github.com/great-expectations/great_expectations/pull/10452))
-* [MAINTENANCE] Improve context.data_sources autocomplete ([#10447](https://github.com/great-expectations/great_expectations/pull/10447))
-* [MAINTENANCE] Use `Comparable` type alias for Expectation min/max value ([#10448](https://github.com/great-expectations/great_expectations/pull/10448))
-* [MAINTENANCE] Remove `mostly` from `ExpectColumnUniqueValueCountToBeBetween` ([#10450](https://github.com/great-expectations/great_expectations/pull/10450))
-* [MAINTENANCE] Limit Result Format and `QueryMetricProvider` total unexpected records ([#10432](https://github.com/great-expectations/great_expectations/pull/10432))
-* [MAINTENANCE] Mark GX as stable on PyPi ([#10457](https://github.com/great-expectations/great_expectations/pull/10457))
-* [MAINTENANCE] Add Alena Hutchinson to core developers team ([#10459](https://github.com/great-expectations/great_expectations/pull/10459))
-* [MAINTENANCE] Remove Python 3.8 Support (EOL) ([#10441](https://github.com/great-expectations/great_expectations/pull/10441))
+### 1.1.0 (2024-10-03)
+
+#### Highlights
+
+- **Pass expectation parameters to `Batch.validate()`** — `Batch.validate()` now accepts expectation parameters, so you can supply runtime parameter values when validating a single expectation or an expectation suite against a batch. ([#10456](https://github.com/fivetran/great_expectations/pull/10456))
+
+  ```python
+  batch.validate(expectation, expectation_parameters={"min_value": 1})
+  ```
+
+- **Better autocomplete for `context.data_sources`** — Additional method signatures are now published for `context.data_sources`, so editors and type checkers offer complete autocomplete and type information for data source methods. ([#10447](https://github.com/fivetran/great_expectations/pull/10447))
+
+  ```python
+  context.data_sources.add_snowflake(name="my_ds", connection_string="...")
+  ```
+
+- **Environment variable substitution in Slack notifications** — `SlackNotificationAction` now supports `${VAR}` substitution, so Slack webhooks and tokens can be supplied through environment variables or config variables instead of being hard-coded. ([#10443](https://github.com/fivetran/great_expectations/pull/10443))
+
+  ```python
+  SlackNotificationAction(name="slack", slack_webhook="${SLACK_WEBHOOK}")
+  ```
+
+#### Changes
+
+##### Features
+
+- `Batch.validate()` accepts expectation parameters, letting you pass runtime parameter values when validating against a batch. ([#10456](https://github.com/fivetran/great_expectations/pull/10456))
+- Autocomplete and type hints for `context.data_sources` now cover previously missing methods. ([#10447](https://github.com/fivetran/great_expectations/pull/10447))
+
+##### Bug fixes
+
+- `SlackNotificationAction` now resolves `${VAR}`-style substitutions in its configuration values. ([#10443](https://github.com/fivetran/great_expectations/pull/10443))
+- Data Sources added, updated, or deleted at runtime are now reflected when you print the Data Context. ([#10438](https://github.com/fivetran/great_expectations/pull/10438))
+- Fixed an outdated link in the README that pointed to a page that has moved. ([#10446](https://github.com/fivetran/great_expectations/pull/10446))
+
+##### Docs
+
+- The integration support table now lists Databricks (SQL) as a GX Cloud supported Data Source. ([#10452](https://github.com/fivetran/great_expectations/pull/10452))
+- Added a Data Source credential management section with an example of using environment variable substitution. ([#10417](https://github.com/fivetran/great_expectations/pull/10417))
+- Documentation now states Python 3.9 as the supported minimum version. ([#10453](https://github.com/fivetran/great_expectations/pull/10453))
+
+<details>
+<summary>Maintenance</summary>
+
+- Result format and query-based metrics now return at most 200 unexpected records, and the docs state this limit. ([#10432](https://github.com/fivetran/great_expectations/pull/10432))
+- `ExpectColumnUniqueValueCountToBeBetween` no longer accepts the `mostly` parameter, which does not apply to column aggregate expectations. ([#10450](https://github.com/fivetran/great_expectations/pull/10450))
+- Expectation `min_value`/`max_value` parameters use a shared comparable type and now accept `date` values. ([#10448](https://github.com/fivetran/great_expectations/pull/10448))
+- Great Expectations is now published as a stable release on PyPI. ([#10457](https://github.com/fivetran/great_expectations/pull/10457))
+- Added Alena Hutchinson to the core developers team. ([#10459](https://github.com/fivetran/great_expectations/pull/10459))
+
+</details>
 
 ### 1.0.6 (2024-10-01)
 
