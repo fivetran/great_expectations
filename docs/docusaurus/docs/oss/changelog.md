@@ -405,9 +405,28 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Remove references to v0 api in dockerfile ([#11624](https://github.com/great-expectations/great_expectations/pull/11624))
 * [MAINTENANCE] Bump lodash from 4.17.21 to 4.17.23 in /docs/docusaurus ([#11608](https://github.com/great-expectations/great_expectations/pull/11608))
 
-### 1.11.2
-* [DOCS] RCA result format ([#11596](https://github.com/great-expectations/great_expectations/pull/11596))
-* [MAINTENANCE] Upper bound pandas to be below 3.0.0 ([#11607](https://github.com/great-expectations/great_expectations/pull/11607))
+### 1.11.2 (2026-01-22)
+
+Compatibility: `pandas` minimum set to 1.3.0 (`python_version >= "3.12"`)
+
+#### Highlights
+
+- **pandas 3.0 is excluded from supported versions** — Installations now resolve a `pandas` version below 3.0.0, so environments no longer pick up an incompatible pandas 3.x release. On Python 3.12 and newer, the minimum supported `pandas` version is 1.3.0. ([#11607](https://github.com/fivetran/great_expectations/pull/11607))
+
+- **Refreshed Result format documentation** — The documentation covering result format has been reworked so it is easier to find the right result format setting and understand what each one returns. ([#11596](https://github.com/fivetran/great_expectations/pull/11596))
+
+#### Changes
+
+##### Docs
+
+- Reworked the result format documentation. ([#11596](https://github.com/fivetran/great_expectations/pull/11596))
+
+<details>
+<summary>Maintenance</summary>
+
+- Constrained the supported `pandas` version to below 3.0.0. ([#11607](https://github.com/fivetran/great_expectations/pull/11607))
+
+</details>
 
 ### 1.11.1 (2026-01-20)
 
