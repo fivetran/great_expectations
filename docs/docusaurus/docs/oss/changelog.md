@@ -246,14 +246,47 @@ Thanks to @siddharthgaur1 (first contribution), @Star-cloud626 (first contributi
 * [MAINTENANCE] Authenticate Databricks CI via OAuth M2M service principal ([#11970](https://github.com/fivetran/great_expectations/pull/11970))
 * [MAINTENANCE] Remove Codecov from CI and documentation ([#11971](https://github.com/fivetran/great_expectations/pull/11971))
 
-### 1.18.2
-* [BUGFIX] Fix .rdd usage in Spark distinct-values metrics for Spark Connect compatibility ([#11922](https://github.com/fivetran/great_expectations/pull/11922))
-* [DOCS] Fix typos in the Run a Validation Definition guide ([#11920](https://github.com/fivetran/great_expectations/pull/11920)) (thanks @zozo123)
-* [MAINTENANCE] Fix pytest parametrize non-Collection iterable deprecation breaking scheduled CI ([#11921](https://github.com/fivetran/great_expectations/pull/11921))
-* [MAINTENANCE] Fix BigQuery Python 3.13 collection error from NumPy 'generic' unit DeprecationWarning ([#11924](https://github.com/fivetran/great_expectations/pull/11924))
-* [MAINTENANCE] Bump http-proxy-middleware from 2.0.9 to 2.0.10 in /docs/docusaurus ([#11927](https://github.com/fivetran/great_expectations/pull/11927))
-* [MAINTENANCE] Bump webpack-dev-server from 5.2.3 to 5.2.5 in /docs/docusaurus ([#11926](https://github.com/fivetran/great_expectations/pull/11926))
-* [MAINTENANCE] Bump @babel/core from 7.28.6 to 7.29.6 in /docs/docusaurus ([#11925](https://github.com/fivetran/great_expectations/pull/11925))
+### 1.18.2 (2026-06-26)
+
+#### Highlights
+
+- **Spark Connect compatibility for distinct-values expectations** — Expectations that rely on a column's distinct values — including expect_column_distinct_values_to_equal_set, expect_column_distinct_values_to_contain_set, and expect_column_distinct_values_to_be_subset_of — now run successfully against a Spark Connect session (for example Databricks serverless via an `sc://` URL) instead of failing with a MetricResolutionError. Classic Spark sessions behave exactly as before. ([#11922](https://github.com/fivetran/great_expectations/pull/11922))
+
+  ```python
+  import great_expectations as gx
+
+  batch = ...  # a Spark Connect-backed batch
+  batch.validate(
+      gx.expectations.ExpectColumnDistinctValuesToEqualSet(
+          column="color", value_set=["red", "green", "yellow"]
+      )
+  )
+  ```
+
+#### Changes
+
+##### Bug fixes
+
+- Distinct-values Spark metrics no longer fail with MetricResolutionError on Spark Connect sessions such as Databricks serverless, so expectations like expect_column_distinct_values_to_equal_set work there again. ([#11922](https://github.com/fivetran/great_expectations/pull/11922))
+
+##### Docs
+
+- Corrected three typos in the "Run a Validation Definition" guide in the GX Core documentation. ([#11920](https://github.com/fivetran/great_expectations/pull/11920))
+
+<details>
+<summary>Maintenance</summary>
+
+- Suppressed a third-party NumPy 'generic' unit deprecation warning so the BigQuery test suite can be collected on Python 3.13. ([#11924](https://github.com/fivetran/great_expectations/pull/11924))
+- Updated a parametrized test to pass a list instead of an iterator, fixing test collection failures with newer pytest releases. ([#11921](https://github.com/fivetran/great_expectations/pull/11921))
+- Updated the documentation site's @babel/core dependency from 7.28.6 to 7.29.6. ([#11925](https://github.com/fivetran/great_expectations/pull/11925))
+- Updated the documentation site's webpack-dev-server dependency from 5.2.3 to 5.2.5. ([#11926](https://github.com/fivetran/great_expectations/pull/11926))
+- Updated the documentation site's http-proxy-middleware dependency from 2.0.9 to 2.0.10. ([#11927](https://github.com/fivetran/great_expectations/pull/11927))
+
+</details>
+
+#### Contributors
+
+Thanks to @zozo123 (first contribution).
 
 ### 1.18.1 (2026-06-11)
 
