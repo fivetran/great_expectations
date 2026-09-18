@@ -876,36 +876,75 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] remove outdated walkthrough modal ([#11022](https://github.com/great-expectations/great_expectations/pull/11022))
 * [MAINTENANCE] Bump mysql max_connections for tests ([#11023](https://github.com/great-expectations/great_expectations/pull/11023))
 
-### 1.3.9
-* [FEATURE] Remove batch_id parameter from Metric classes ([#10971](https://github.com/great-expectations/great_expectations/pull/10971))
-* [FEATURE] `QueryRowCount` metric ([#10964](https://github.com/great-expectations/great_expectations/pull/10964))
-* [FEATURE] ColumnPairValueInSet metric ([#10969](https://github.com/great-expectations/great_expectations/pull/10969))
-* [FEATURE] MultiColumnValues metric ([#10973](https://github.com/great-expectations/great_expectations/pull/10973))
-* [BUGFIX] Validation Definition factory add_or_update doesnt allow updating batch definition ([#10960](https://github.com/great-expectations/great_expectations/pull/10960))
-* [BUGFIX] Fix 3 batch.compute_metrics bugs and enforce len(metrics) == len(results) ([#10979](https://github.com/great-expectations/great_expectations/pull/10979))
-* [BUGFIX] Ensure Asset.get_batch_definition returns BatchDefinition with ID ([#10986](https://github.com/great-expectations/great_expectations/pull/10986))
-* [BUGFIX] Raise error when ExpectColumnValuesToBeBetween is run against an unsupported column ([#10995](https://github.com/great-expectations/great_expectations/pull/10995))
-* [DOCS] make airflow provider discoverable ([#10967](https://github.com/great-expectations/great_expectations/pull/10967))
-* [DOCS] Adding title to codeblocks in API ([#10970](https://github.com/great-expectations/great_expectations/pull/10970))
-* [DOCS] Adds script to update links when new docs version is cut ([#10976](https://github.com/great-expectations/great_expectations/pull/10976))
-* [DOCS] Add README.md to scripts folder ([#10982](https://github.com/great-expectations/great_expectations/pull/10982))
-* [DOCS] DOC-1045: Beta badge ([#10980](https://github.com/great-expectations/great_expectations/pull/10980))
-* [DOCS] DSB-1312: Fix validation definition parameters display ([#10981](https://github.com/great-expectations/great_expectations/pull/10981))
-* [DOCS] temporarily remove link checker ([#10992](https://github.com/great-expectations/great_expectations/pull/10992))
-* [DOCS] volume change detection ([#10927](https://github.com/great-expectations/great_expectations/pull/10927))
-* [DOCS] update action docs to include custom field example ([#10987](https://github.com/great-expectations/great_expectations/pull/10987))
-* [DOCS] update search key ([#10994](https://github.com/great-expectations/great_expectations/pull/10994))
-* [DOCS] Adding formatting to codeblocks in API ([#10985](https://github.com/great-expectations/great_expectations/pull/10985))
-* [MAINTENANCE] Remove `Domain` mixin from Metrics API ([#10966](https://github.com/great-expectations/great_expectations/pull/10966))
-* [MAINTENANCE] Remove old workflow. ([#10975](https://github.com/great-expectations/great_expectations/pull/10975))
-* [MAINTENANCE] Slack notification message - remove duplicated link text, decluttering ([#10890](https://github.com/great-expectations/great_expectations/pull/10890)) (thanks @data-han)
-* [MAINTENANCE] Upgrade mypy to version 1.15.0 ([#10988](https://github.com/great-expectations/great_expectations/pull/10988))
-* [MAINTENANCE] Change github action event name we exclude from marker tests ([#10991](https://github.com/great-expectations/great_expectations/pull/10991))
-* [MAINTENANCE] Remove unused domain key ([#10983](https://github.com/great-expectations/great_expectations/pull/10983))
-* [MAINTENANCE] Analytics event for validation definition runs ([#10984](https://github.com/great-expectations/great_expectations/pull/10984))
-* [MAINTENANCE] Upgrade ruff to version 0.9.9 ([#10990](https://github.com/great-expectations/great_expectations/pull/10990))
-* [MAINTENANCE] Remove duplicated configuration ([#10989](https://github.com/great-expectations/great_expectations/pull/10989))
-* [MAINTENANCE] refactor to use data_context fixture ([#10997](https://github.com/great-expectations/great_expectations/pull/10997))
+### 1.3.9 (2025-03-05)
+
+Compatibility: `pandas-gbq` added (extra `bigquery`); `pandas-gbq` added (extra `gcp`)
+
+#### Highlights
+
+- **Clearer error when checking value ranges on non-numeric columns** — Running ExpectColumnValuesToBeBetween against a column whose underlying type is not numeric or datetime (for example a SQL VARCHAR column) now raises an explicit, actionable Great Expectations error instead of an opaque database exception that could also cause every other expectation in the same run to fail. ([#10995](https://github.com/fivetran/great_expectations/pull/10995))
+
+- **New metrics: query row count, column-pair, and multi-column** — The metrics API gains QueryRowCount, ColumnPairValuesInSetUnexpectedCount, and MultiColumnSumEqualUnexpectedCount, extending the typed metrics you can compute directly against a batch. ([#10964](https://github.com/fivetran/great_expectations/pull/10964), [#10969](https://github.com/fivetran/great_expectations/pull/10969), [#10973](https://github.com/fivetran/great_expectations/pull/10973))
+
+  ```python
+  from great_expectations.metrics import QueryRowCount
+
+  metric = QueryRowCount(query="SELECT * FROM my_table WHERE passenger_count > 2")
+  result = batch.compute_metrics(metric)
+  ```
+
+- **More reliable batch.compute_metrics results** — batch.compute_metrics no longer drops results when two metrics share a name, computes distinct configuration IDs per batch, and always returns a list of results when a list of metrics is passed — so the number of results always matches the number of metrics requested. ([#10979](https://github.com/fivetran/great_expectations/pull/10979))
+
+- **Cleaner Slack notification messages** — Slack validation notifications no longer repeat the link text, highlight the asset and expectation suite names in Markdown for easier scanning, and once again include a summary of how many expectations passed out of the total. ([#10890](https://github.com/fivetran/great_expectations/pull/10890))
+
+#### Changes
+
+##### Features
+
+- Added the first multi-column metric, MultiColumnSumEqualUnexpectedCount, along with multi-column metric support including column_list, row_condition, condition_parser, and ignore_row_if options. ([#10973](https://github.com/fivetran/great_expectations/pull/10973))
+- Added the first column-pair metric, ColumnPairValuesInSetUnexpectedCount, with test coverage. ([#10969](https://github.com/fivetran/great_expectations/pull/10969))
+- Added a QueryRowCount metric for computing the number of rows returned by a query. ([#10964](https://github.com/fivetran/great_expectations/pull/10964))
+- Removed the batch_id parameter from Metric classes, so metrics are defined without specifying a batch. ([#10971](https://github.com/fivetran/great_expectations/pull/10971))
+
+##### Bug fixes
+
+- ExpectColumnValuesToBeBetween now raises a clear error when run against a column whose type is not numeric or datetime, instead of surfacing an opaque database exception. ([#10995](https://github.com/fivetran/great_expectations/pull/10995))
+- Batch definitions returned by Asset.get_batch_definition now always include their ID. ([#10986](https://github.com/fivetran/great_expectations/pull/10986))
+- Fixed batch.compute_metrics so identically named metrics no longer overwrite each other, configuration IDs differ per batch, and passing a list of metrics always returns a list of results of matching length. ([#10979](https://github.com/fivetran/great_expectations/pull/10979))
+- ValidationDefinition add_or_update can now update a batch definition that belongs to a different data source instead of failing unexpectedly. ([#10960](https://github.com/fivetran/great_expectations/pull/10960))
+
+##### Docs
+
+- API reference code blocks now place each method parameter on its own line for easier reading. ([#10985](https://github.com/fivetran/great_expectations/pull/10985))
+- Updated the documentation site search key to fix broken search. ([#10994](https://github.com/fivetran/great_expectations/pull/10994))
+- Custom action documentation now shows how to define a user-defined field on an action so runtime values can be passed through to custom run logic. ([#10987](https://github.com/fivetran/great_expectations/pull/10987))
+- Added documentation covering volume change detection. ([#10927](https://github.com/fivetran/great_expectations/pull/10927))
+- Temporarily disabled the documentation link checker while a known issue is resolved. ([#10992](https://github.com/fivetran/great_expectations/pull/10992))
+- Fixed the formatting of the parameters for the ValidationDefinition run method in the API reference. ([#10981](https://github.com/fivetran/great_expectations/pull/10981))
+- Added a README to the docs scripts folder explaining how to run the API reference link-versioning script. ([#10982](https://github.com/fivetran/great_expectations/pull/10982))
+- Documentation pages can now show a beta badge on a section, visible both in the heading and the table of contents. ([#10980](https://github.com/fivetran/great_expectations/pull/10980))
+- Added a script that rewrites API reference links with an explicit docs version after a new documentation version is cut, so archived links no longer break. ([#10976](https://github.com/fivetran/great_expectations/pull/10976))
+- API reference pages now show a heading above each method's code block. ([#10970](https://github.com/fivetran/great_expectations/pull/10970))
+- Made the Airflow provider easier to discover in the documentation. ([#10967](https://github.com/fivetran/great_expectations/pull/10967))
+
+<details>
+<summary>Maintenance</summary>
+
+- Removed duplicated metric configuration information from metric error results. ([#10989](https://github.com/fivetran/great_expectations/pull/10989))
+- Upgraded ruff from 0.7.2 to 0.9.9. ([#10990](https://github.com/fivetran/great_expectations/pull/10990))
+- Added an analytics event for validation definition runs and a mode field on all analytics events distinguishing ephemeral, file, and cloud usage. ([#10984](https://github.com/fivetran/great_expectations/pull/10984))
+- Removed the unused table domain key from ExpectTableColumnsToMatchOrderedList. ([#10983](https://github.com/fivetran/great_expectations/pull/10983))
+- Changed which GitHub Actions event name is excluded from marker tests in CI. ([#10991](https://github.com/fivetran/great_expectations/pull/10991))
+- Upgraded mypy to 1.15.0. ([#10988](https://github.com/fivetran/great_expectations/pull/10988))
+- Slack validation notifications drop the duplicated link text, highlight the asset and expectation suite names, and include a summary of expectations met out of the total. ([#10890](https://github.com/fivetran/great_expectations/pull/10890))
+- Removed the unused PEP 273 compatibility CI workflow. ([#10975](https://github.com/fivetran/great_expectations/pull/10975))
+- Replaced the Domain mixin in the metrics API with dedicated Metric subclasses. ([#10966](https://github.com/fivetran/great_expectations/pull/10966))
+
+</details>
+
+#### Contributors
+
+Thanks to @data-han (first contribution).
 
 ### 1.3.8 (2025-02-26)
 
