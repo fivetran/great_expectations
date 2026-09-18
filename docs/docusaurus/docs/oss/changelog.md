@@ -965,17 +965,51 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Allow forked PRs to run CI ([#10894](https://github.com/great-expectations/great_expectations/pull/10894))
 * [MAINTENANCE] Remove bot check on permissions checker action ([#10895](https://github.com/great-expectations/great_expectations/pull/10895))
 
-### 1.3.3
-* [BUGFIX] Make validation results' describe_dict return a serializable dict ([#10863](https://github.com/great-expectations/great_expectations/pull/10863))
-* [BUGFIX] Allow adding Expectations with identical attributes to Suites ([#10884](https://github.com/great-expectations/great_expectations/pull/10884))
-* [DOCS] Add titles to properties and methods sections in API Reference ([#10821](https://github.com/great-expectations/great_expectations/pull/10821))
-* [DOCS] Update documentation around batch_parameters and link to updated API docs. ([#10877](https://github.com/great-expectations/great_expectations/pull/10877))
-* [DOCS] Corrections and clarifications for result_format ([#10875](https://github.com/great-expectations/great_expectations/pull/10875))
-* [MAINTENANCE] Handle `aws-chunked` encoding type data in `TupleS3StoreBackend` ([#10861](https://github.com/great-expectations/great_expectations/pull/10861))
-* [MAINTENANCE] Add user-agent-str to analytics events ([#10869](https://github.com/great-expectations/great_expectations/pull/10869))
-* [MAINTENANCE] Add method to set analytics user_agent_str ([#10883](https://github.com/great-expectations/great_expectations/pull/10883))
-* [MAINTENANCE] Convert BatchTestSetup.asset property to BatchTestSetup… ([#10864](https://github.com/great-expectations/great_expectations/pull/10864))
-* [MAINTENANCE] Migrate from `databricks-sql-connector` to `databricks-sqlalchemy` in tests ([#10886](https://github.com/great-expectations/great_expectations/pull/10886))
+### 1.3.3 (2025-01-22)
+
+Compatibility: `databricks-sql-connector` removed (extra `databricks`); `databricks-sqlalchemy` added (extra `databricks`)
+
+#### Highlights
+
+- **Expectations with identical attributes can now coexist in a Suite** — Adding two Expectations of different types that happen to have identical attributes to the same Suite now works as expected — previously the second Expectation was silently not added. ([#10884](https://github.com/fivetran/great_expectations/pull/10884))
+
+  ```python
+  suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="passenger_count"))
+  suite.add_expectation(gxe.ExpectColumnValuesToBeUnique(column="passenger_count"))
+  ```
+
+- **Validation result descriptions are JSON-serializable** — `describe_dict()` on suite and expectation validation results now returns a plain, JSON-serializable dictionary, so the output of `describe()` can be passed straight to `json.dumps` without errors. ([#10863](https://github.com/fivetran/great_expectations/pull/10863))
+
+  ```python
+  result = batch.validate(suite)
+  print(json.dumps(result.describe_dict()))
+  ```
+
+- **Databricks SQLAlchemy support via `databricks-sqlalchemy`** — Databricks connectivity now relies on the `databricks-sqlalchemy` package instead of `databricks-sql-connector`, which dropped SQLAlchemy support in its 4.0.0 release. Installing the `databricks` extra pulls in the new dependency. ([#10886](https://github.com/fivetran/great_expectations/pull/10886))
+
+#### Changes
+
+##### Bug fixes
+
+- Expectations of different types with identical attributes can now both be added to the same Suite. ([#10884](https://github.com/fivetran/great_expectations/pull/10884))
+- `describe_dict()` on suite and expectation validation results now returns a JSON-serializable dictionary, so `describe()` output can be passed to `json.dumps`. ([#10863](https://github.com/fivetran/great_expectations/pull/10863))
+
+##### Docs
+
+- Corrected and clarified the documentation on choosing a result format. ([#10875](https://github.com/fivetran/great_expectations/pull/10875))
+- Updated the documentation about batch parameters and linked to the updated API docs. ([#10877](https://github.com/fivetran/great_expectations/pull/10877))
+- API Reference pages now show titles for the properties and methods sections. ([#10821](https://github.com/fivetran/great_expectations/pull/10821))
+
+<details>
+<summary>Maintenance</summary>
+
+- Databricks support now uses the `databricks-sqlalchemy` package instead of `databricks-sql-connector`, which removed SQLAlchemy support in version 4.0.0. ([#10886](https://github.com/fivetran/great_expectations/pull/10886))
+- Reworked the batch test setup helpers so tests create their own assets instead of sharing one, avoiding duplicate batch definition names across tests. ([#10864](https://github.com/fivetran/great_expectations/pull/10864))
+- Added a method for setting the analytics user agent string. ([#10883](https://github.com/fivetran/great_expectations/pull/10883))
+- Analytics events and contexts now carry a user agent string, allowing callers such as GX operators to identify themselves. ([#10869](https://github.com/fivetran/great_expectations/pull/10869))
+- The S3 store backend now correctly handles objects returned with `aws-chunked` content encoding. ([#10861](https://github.com/fivetran/great_expectations/pull/10861))
+
+</details>
 
 ### 1.3.2 (2025-01-17)
 
