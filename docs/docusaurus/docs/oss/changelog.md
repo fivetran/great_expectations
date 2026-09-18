@@ -1226,16 +1226,38 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Basic expectation testing framework ([#10554](https://github.com/great-expectations/great_expectations/pull/10554))
 * [MAINTENANCE] Reenable xfailed e2e tests ([#10555](https://github.com/great-expectations/great_expectations/pull/10555))
 
-### 1.1.3
-* [BUGFIX] Fix datadocs icons ([#10511](https://github.com/great-expectations/great_expectations/pull/10511))
-* [DOCS] Add `public_api` decorators to object factories ([#10513](https://github.com/great-expectations/great_expectations/pull/10513))
-* [DOCS] Patch incorrect label in migration guide ([#10518](https://github.com/great-expectations/great_expectations/pull/10518))
-* [MAINTENANCE] Remove `snapshottest` dependency ([#10498](https://github.com/great-expectations/great_expectations/pull/10498))
-* [MAINTENANCE] Add GH Actions for release process ([#10502](https://github.com/great-expectations/great_expectations/pull/10502))
-* [MAINTENANCE] Support Python 3.12 ([#10503](https://github.com/great-expectations/great_expectations/pull/10503))
-* [MAINTENANCE] Patch `ge_releaser` installation pattern in released-related GH Actions ([#10509](https://github.com/great-expectations/great_expectations/pull/10509))
-* [MAINTENANCE] Enable pact test for all expectation suites ([#10506](https://github.com/great-expectations/great_expectations/pull/10506))
-* [MAINTENANCE] Isolate `clickhouse` marker in CI ([#10512](https://github.com/great-expectations/great_expectations/pull/10512))
+### 1.1.3 (2024-10-15)
+
+Compatibility: Python `<3.12,>=3.9` → `<3.13,>=3.9`; `snapshottest` removed (extra `test`) (`python_version < "3.12"`)
+
+#### Highlights
+
+- **Python 3.12 support** — Great Expectations now supports Python 3.12; the supported range is Python >=3.9,\<3.13. ([#10503](https://github.com/fivetran/great_expectations/pull/10503))
+
+- **Data Docs icons render again** — Icons in Data Docs now load correctly instead of failing to appear, after switching to a working icon source. ([#10511](https://github.com/fivetran/great_expectations/pull/10511))
+
+#### Changes
+
+##### Bug fixes
+
+- Fixed missing icons in Data Docs by serving them from a working CDN source. ([#10511](https://github.com/fivetran/great_expectations/pull/10511))
+
+##### Docs
+
+- Corrected an incorrect label in the migration guide. ([#10518](https://github.com/fivetran/great_expectations/pull/10518))
+- Documented object factories as part of the public API reference. ([#10513](https://github.com/fivetran/great_expectations/pull/10513))
+
+<details>
+<summary>Maintenance</summary>
+
+- Ran the ClickHouse test suite under its own isolated CI marker, since it is not yet compatible with Python 3.12. ([#10512](https://github.com/fivetran/great_expectations/pull/10512))
+- Extended the pact contract test to cover all expectation suites. ([#10506](https://github.com/fivetran/great_expectations/pull/10506))
+- Corrected how the release-related GitHub Actions install the release tooling. ([#10509](https://github.com/fivetran/great_expectations/pull/10509))
+- Added support for running Great Expectations on Python 3.12. ([#10503](https://github.com/fivetran/great_expectations/pull/10503))
+- Added manually triggered GitHub Actions workflows for the release process. ([#10502](https://github.com/fivetran/great_expectations/pull/10502))
+- Removed the `snapshottest` test dependency. ([#10498](https://github.com/fivetran/great_expectations/pull/10498))
+
+</details>
 
 ### 1.1.2 (2024-10-10)
 
