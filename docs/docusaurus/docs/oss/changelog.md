@@ -617,10 +617,21 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [DOCS] Cloud docs for built-in actions ([#11338](https://github.com/great-expectations/great_expectations/pull/11338))
 * [MAINTENANCE] Update ports that mercury runs on ([#11351](https://github.com/great-expectations/great_expectations/pull/11351))
 
-### 1.5.10
-* [DOCS] Completeness anomaly detection now uses forecasted range ([#11346](https://github.com/great-expectations/great_expectations/pull/11346))
-* [DOCS] forecasted range limitation ([#11349](https://github.com/great-expectations/great_expectations/pull/11349))
-* [MAINTENANCE] Bump mermaid from 11.9.0 to 11.10.1 in /docs/docusaurus ([#11348](https://github.com/great-expectations/great_expectations/pull/11348))
+### 1.5.10 (2025-08-27)
+
+#### Changes
+
+##### Docs
+
+- Documented a limitation of the forecasted range used by anomaly detection. ([#11349](https://github.com/fivetran/great_expectations/pull/11349))
+- Documentation now explains that completeness anomaly detection uses the forecasted range. ([#11346](https://github.com/fivetran/great_expectations/pull/11346))
+
+<details>
+<summary>Maintenance</summary>
+
+- Updated the mermaid diagram library used to build the documentation site from 11.9.0 to 11.10.1. ([#11348](https://github.com/fivetran/great_expectations/pull/11348))
+
+</details>
 
 ### 1.5.9 (2025-08-20)
 
