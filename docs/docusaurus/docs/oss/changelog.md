@@ -1125,22 +1125,42 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Condition parser typing and row conditions testing ([#10667](https://github.com/great-expectations/great_expectations/pull/10667))
 * [MAINTENANCE] Improve experience around expectation deletion with Cloud-backed suites ([#10662](https://github.com/great-expectations/great_expectations/pull/10662))
 
-### 1.2.3
-* [BUGFIX] double-sided z score renderer ([#10648](https://github.com/great-expectations/great_expectations/pull/10648))
-* [BUGFIX] Stop masking config strings ([#10625](https://github.com/great-expectations/great_expectations/pull/10625))
-* [DOCS] Mark actions as not ready for contributions ([#10646](https://github.com/great-expectations/great_expectations/pull/10646))
-* [DOCS] MS Teams Action ([#10655](https://github.com/great-expectations/great_expectations/pull/10655))
-* [DOCS] Remove install instructions for redshift and trino ([#10660](https://github.com/great-expectations/great_expectations/pull/10660))
-* [MAINTENANCE] Clean up Azure CI configuration ([#10638](https://github.com/great-expectations/great_expectations/pull/10638))
-* [MAINTENANCE] add Aaron to teams file ([#10641](https://github.com/great-expectations/great_expectations/pull/10641))
-* [MAINTENANCE] Bump ruff to `0.7.2` ([#10629](https://github.com/great-expectations/great_expectations/pull/10629))
-* [MAINTENANCE] Bump `docstring-parser` to `0.16` ([#10608](https://github.com/great-expectations/great_expectations/pull/10608))
-* [MAINTENANCE] Add integration test for `MicrosoftTeamsNotificationAction` ([#10628](https://github.com/great-expectations/great_expectations/pull/10628))
-* [MAINTENANCE] Clean up `MicrosoftTeamsNotificationAction` docstring and import patterns ([#10642](https://github.com/great-expectations/great_expectations/pull/10642))
-* [MAINTENANCE] Add constant for all unparameterized data sources to test ([#10654](https://github.com/great-expectations/great_expectations/pull/10654))
-* [MAINTENANCE] Refactor Checkpoint utils ([#10649](https://github.com/great-expectations/great_expectations/pull/10649))
-* [MAINTENANCE] Sqlite integration testing ([#10657](https://github.com/great-expectations/great_expectations/pull/10657))
-* [MAINTENANCE] Use random schema in integration tests ([#10658](https://github.com/great-expectations/great_expectations/pull/10658))
+### 1.2.3 (2024-11-14)
+
+#### Highlights
+
+- **Double-sided Z-score expectations render their threshold value** — Expectations using a double-sided Z-score now render the inverse threshold as its numeric value instead of showing the literal placeholder text "$inverse_threshold". ([#10648](https://github.com/fivetran/great_expectations/pull/10648))
+
+- **No more spurious warnings when masking config strings without SQLAlchemy** — Configuration strings are no longer masked, so users without SQLAlchemy support installed (for example, when using Azure Blob Storage) no longer see unnecessary warnings. ([#10625](https://github.com/fivetran/great_expectations/pull/10625))
+
+#### Changes
+
+##### Bug fixes
+
+- Configuration strings are no longer masked, removing warnings for users who do not have SQLAlchemy support installed (for example with Azure Blob Storage). ([#10625](https://github.com/fivetran/great_expectations/pull/10625))
+- Double-sided Z-score expectations now render the numeric inverse threshold instead of the literal string "$inverse_threshold". ([#10648](https://github.com/fivetran/great_expectations/pull/10648))
+
+##### Docs
+
+- Removed installation instructions for Redshift and Trino, which are no longer officially supported. ([#10660](https://github.com/fivetran/great_expectations/pull/10660))
+- Updated the Microsoft Teams Action documentation. ([#10655](https://github.com/fivetran/great_expectations/pull/10655))
+- Documentation now notes that Actions are not currently open for contributions while custom Action support is being restored. ([#10646](https://github.com/fivetran/great_expectations/pull/10646))
+
+<details>
+<summary>Maintenance</summary>
+
+- Integration tests now generate randomized schema names, with data sources opting in via a `use_schema` flag. ([#10658](https://github.com/fivetran/great_expectations/pull/10658))
+- Added SQLite coverage to integration testing, and test table names no longer include the data source type as a prefix. ([#10657](https://github.com/fivetran/great_expectations/pull/10657))
+- Moved Checkpoint utility helpers alongside the actions they support, removing the separate utils module. ([#10649](https://github.com/fivetran/great_expectations/pull/10649))
+- Added a shared constant listing all unparameterized data sources used in tests. ([#10654](https://github.com/fivetran/great_expectations/pull/10654))
+- Cleaned up the `MicrosoftTeamsNotificationAction` docstring so it no longer references YAML configuration, and made its import patterns consistent. ([#10642](https://github.com/fivetran/great_expectations/pull/10642))
+- Added an integration test for `MicrosoftTeamsNotificationAction`. ([#10628](https://github.com/fivetran/great_expectations/pull/10628))
+- Bumped ruff to 0.7.2. ([#10629](https://github.com/fivetran/great_expectations/pull/10629))
+- Bumped docstring-parser to 0.16. ([#10608](https://github.com/fivetran/great_expectations/pull/10608))
+- Added a new maintainer to the teams file. ([#10641](https://github.com/fivetran/great_expectations/pull/10641))
+- Cleaned up unused Azure CI configuration. ([#10638](https://github.com/fivetran/great_expectations/pull/10638))
+
+</details>
 
 ### 1.2.2 (2024-11-07)
 
