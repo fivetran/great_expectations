@@ -184,20 +184,89 @@ Thanks to @siddharthgaur1 (first contribution), @Star-cloud626 (first contributi
 * [CONTRIB] Promote multicolumn values equal expectation ([#12018](https://github.com/great-expectations/great_expectations/pull/12018)) (thanks @AtomicGlance)
 * [CONTRIB] Add ExpectColumnValuesToNotBeOutliers across Pandas, SQL, and Spark ([#12011](https://github.com/great-expectations/great_expectations/pull/12011)) (thanks @chavalasantosh)
 
-### 1.20.0
-* [BUGFIX] Support standing up a FileDataContext on a read-only filesystem ([#12000](https://github.com/fivetran/great_expectations/pull/12000))
-* [BUGFIX] Narrow single-pass column_values.unique on SQLAlchemy (Redshift WLM) ([#11863](https://github.com/fivetran/great_expectations/pull/11863)) (thanks @leodrivera)
-* [BUGFIX] deduplicate sql metric aliases to prevent view schema collisions (#10926) ([#11905](https://github.com/fivetran/great_expectations/pull/11905)) (thanks @TemidayoA)
-* [BUGFIX] Report an unmet expectation when a column has no quantiles ([#12026](https://github.com/fivetran/great_expectations/pull/12026))
-* [BUGFIX] Exclude nulls and fix the rank offset in the SQLite quantile metric ([#12008](https://github.com/fivetran/great_expectations/pull/12008)) (thanks @SreeramaYeshwanthGowd)
-* [MAINTENANCE] Explain why a not-ready issue can't be self-claimed ([#11999](https://github.com/fivetran/great_expectations/pull/11999))
-* [MAINTENANCE] Bump postcss from 8.5.12 to 8.5.25 in /docs/docusaurus ([#12013](https://github.com/fivetran/great_expectations/pull/12013))
-* [MAINTENANCE] Bump brace-expansion from 1.1.16 to 1.1.18 in /docs/docusaurus ([#12014](https://github.com/fivetran/great_expectations/pull/12014))
-* [MAINTENANCE] Namespace ephemeral SQL test schemas under gx_ci_test_ and fix cleanup regex charsets ([#12015](https://github.com/fivetran/great_expectations/pull/12015))
-* [MAINTENANCE] Bump fast-uri from 3.1.4 to 3.1.5 in /docs/docusaurus ([#12019](https://github.com/fivetran/great_expectations/pull/12019))
-* [MAINTENANCE] Defer the schema listing in TableAsset.test_connection to the failure path ([#12020](https://github.com/fivetran/great_expectations/pull/12020))
-* [MAINTENANCE] BigQuery CI ([#12016](https://github.com/fivetran/great_expectations/pull/12016))
-* [CONTRIB] Promote ExpectColumnValuesToMatchStrftimeFormat to supported-core ([#12009](https://github.com/fivetran/great_expectations/pull/12009)) (thanks @nanjeshramesh)
+### 1.20.0 (2026-08-07)
+
+#### Highlights
+
+- **Quantile expectations are correct on SQLite and no longer error on all-null columns** — `ExpectColumnQuantileValuesToBeBetween` now selects the right rank on SQLite and ignores null values when computing quantiles, so observed quantiles match the other backends. A column with no non-null values now reports an unmet expectation — `success: false` with null observed values and per-quantile success details — on every backend instead of raising a `TypeError` on SQL backends or an `IndexError` on Spark. ([#12008](https://github.com/fivetran/great_expectations/pull/12008), [#12026](https://github.com/fivetran/great_expectations/pull/12026))
+
+  ```python
+  import great_expectations.expectations as gxe
+
+  suite.add_expectation(
+      gxe.ExpectColumnQuantileValuesToBeBetween(
+          column="passenger_count",
+          quantile_ranges={"quantiles": [0.25, 0.5], "value_ranges": [[1, 2], [1, 3]]},
+      )
+  )
+  ```
+
+- **Faster `expect_column_values_to_be_unique` on wide SQL tables** — The SQLAlchemy implementation of `column_values.unique` now scans the source table once through a narrow window over only the target column, and only retrieves full rows (via a narrow duplicate-key join) when `SUMMARY` or `COMPLETE` result formats are requested. Wide column-store tables — where the previous query was cancelled by Redshift's workload-management timeouts — now validate reliably. ([#11863](https://github.com/fivetran/great_expectations/pull/11863))
+
+  ```python
+  import great_expectations.expectations as gxe
+
+  gxe.ExpectColumnValuesToBeUnique(column="id")
+  ```
+
+- **Validating multiple expectations on the same metric no longer fails on strict SQL backends** — When several expectations in a suite depend on the same underlying metric, the generated SQL now gives each metric a unique alias, so backends such as Postgres no longer reject the query with `Duplicated field name in view schema`. ([#11905](https://github.com/fivetran/great_expectations/pull/11905))
+
+- **File-backed Data Contexts work on read-only, version-controlled projects** — `gx.get_context(mode="file")` now recognizes a project as already set up based on a committed `great_expectations.yml` alone, instead of requiring the gitignored `uncommitted/` runtime directories. A clean checkout on a read-only filesystem is no longer mistaken for an unscaffolded project and no longer crashes during initialization. ([#12000](https://github.com/fivetran/great_expectations/pull/12000))
+
+  ```python
+  import great_expectations as gx
+
+  context = gx.get_context(mode="file", project_root_dir="/path/to/checkout")
+  ```
+
+- **`ExpectColumnValuesToMatchStrftimeFormat` is now a supported core Expectation** — The Expectation now carries full support metadata and a generated schema, appears in the Expectation Gallery with a properly rendered docstring and examples, and declares a backend matrix of Pandas and Spark (SQL is out of scope). ([#12009](https://github.com/fivetran/great_expectations/pull/12009))
+
+  ```python
+  import great_expectations.expectations as gxe
+
+  gxe.ExpectColumnValuesToMatchStrftimeFormat(
+      column="event_date",
+      strftime_format="%Y-%m-%d",
+      mostly=0.95,
+  )
+  ```
+
+- **Adding a table asset is much faster on projects with many schemas** — `TableAsset.test_connection()` now probes the table first and only lists server schemas if that probe fails, purely to refine the error message. On backends where schema listing is a server-wide metadata operation — for example a BigQuery project with thousands of datasets — adding a table asset no longer pays that cost. Table configurations whose schema name did not match the normalized schema listing but were otherwise accessible now succeed. ([#12020](https://github.com/fivetran/great_expectations/pull/12020))
+
+  ```python
+  asset = datasource.add_table_asset(name="my_asset", table_name="my_table", schema_name="my_schema")
+  ```
+
+#### Changes
+
+##### Features
+
+- `ExpectColumnValuesToMatchStrftimeFormat` is promoted to a supported core Expectation, with a corrected and Gallery-formatted docstring, support metadata, a generated JSON schema, a declared Pandas and Spark backend matrix, and expanded test coverage including `mostly` thresholds. ([#12009](https://github.com/fivetran/great_expectations/pull/12009))
+
+##### Bug fixes
+
+- `ExpectColumnQuantileValuesToBeBetween` no longer reports a quantile one rank too low on SQLite and no longer raises on columns containing null values; quantile ranks are computed from non-null counts with exact fractional arithmetic, and the MySQL query applies the same null filter. ([#12008](https://github.com/fivetran/great_expectations/pull/12008))
+- `ExpectColumnQuantileValuesToBeBetween` now reports an unmet expectation, with null observed values and per-quantile success details, for a column that has no non-null values, instead of raising on SQL backends and Spark; the Spark metric returns one null per requested quantile so `column.quantile_values` has the same shape on every backend. ([#12026](https://github.com/fivetran/great_expectations/pull/12026))
+- Validating multiple expectations that share an underlying metric against a SQL backend no longer fails with a duplicated-field-name view schema error, because each bundled metric is now given a unique SQL alias. ([#11905](https://github.com/fivetran/great_expectations/pull/11905))
+- `expect_column_values_to_be_unique` on SQLAlchemy backends now runs a single narrow pass over the target column, and only joins back to the source for full-row details under `SUMMARY`/`COMPLETE` result formats, eliminating the Redshift workload-management timeouts seen on very wide tables. ([#11863](https://github.com/fivetran/great_expectations/pull/11863))
+- A file-backed Data Context can now be created against a fully-scaffolded, version-controlled project on a read-only filesystem: an already-set-up project is recognized from its committed `great_expectations.yml` rather than from gitignored `uncommitted/` directories, so a clean checkout is no longer destructively re-scaffolded. ([#12000](https://github.com/fivetran/great_expectations/pull/12000))
+
+<details>
+<summary>Maintenance</summary>
+
+- BigQuery tests run in CI again — the temporary unconditional skip for BigQuery-marked tests was removed — and the external-warehouse CI jobs now fail after 30 minutes instead of hanging for hours. ([#12016](https://github.com/fivetran/great_expectations/pull/12016))
+- Testing the connection for a table asset now probes the table first and only lists schemas on the failure path to refine the error message, so the operation no longer pays a server-wide metadata scan; error messages are unchanged. ([#12020](https://github.com/fivetran/great_expectations/pull/12020))
+- Updated the documentation site's `fast-uri` dependency from 3.1.4 to 3.1.5, which includes a security fix. ([#12019](https://github.com/fivetran/great_expectations/pull/12019))
+- Ephemeral schemas created by the SQL integration test suite are now namespaced under a `gx_ci_test_` prefix, and the stale-schema cleanup patterns were corrected to match hex suffixes so stale schemas are actually swept. No library behavior changes. ([#12015](https://github.com/fivetran/great_expectations/pull/12015))
+- Updated the documentation site's `brace-expansion` dependency from 1.1.16 to 1.1.18. ([#12014](https://github.com/fivetran/great_expectations/pull/12014))
+- Updated the documentation site's `postcss` dependency from 8.5.12 to 8.5.25. ([#12013](https://github.com/fivetran/great_expectations/pull/12013))
+- Commenting `/assign-me` on an issue that is not yet labeled ready for work now gets a posted explanation of why the claim was declined and where to find issues open for claiming, instead of silently doing nothing. ([#11999](https://github.com/fivetran/great_expectations/pull/11999))
+
+</details>
+
+#### Contributors
+
+Thanks to @SreeramaYeshwanthGowd (first contribution), @TemidayoA (first contribution), @leodrivera, @nanjeshramesh (first contribution).
 
 ### 1.19.1 (2026-07-24)
 
