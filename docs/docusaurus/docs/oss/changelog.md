@@ -280,32 +280,80 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Add Pact record-release to PyPI publish workflow ([#11816](https://github.com/great-expectations/great_expectations/pull/11816))
 * [MAINTENANCE] Bump follow-redirects from 1.15.11 to 1.16.0 in /docs/docusaurus ([#11815](https://github.com/great-expectations/great_expectations/pull/11815))
 
-### 1.16.0
-* [MINORBUMP] Deprecate DBFS datasources (GX-2543) ([#11759](https://github.com/great-expectations/great_expectations/pull/11759))
-* [FEATURE] Remove deprecated legacy Pact contract tests (GX-3023) ([#11768](https://github.com/great-expectations/great_expectations/pull/11768))
-* [FEATURE] Migrate pact-python v2 → v3 (GX-3024) ([#11769](https://github.com/great-expectations/great_expectations/pull/11769))
-* [FEATURE] Add client-driven Pact contracts for validation definition and checkpoint CRUD (GX-2730) ([#11757](https://github.com/great-expectations/great_expectations/pull/11757))
-* [FEATURE] Add client-driven Pact contracts for expectation suite CRUD (GX-2729) ([#11756](https://github.com/great-expectations/great_expectations/pull/11756))
-* [FEATURE] Add client-driven Pact contracts for datasource CRUD (GX-2727) ([#11754](https://github.com/great-expectations/great_expectations/pull/11754))
-* [FEATURE] Add multi-step workflow contract test (GX-2731) ([#11783](https://github.com/great-expectations/great_expectations/pull/11783))
-* [FEATURE] Support `column.unique_proportion` in metric list runs ([#11786](https://github.com/great-expectations/great_expectations/pull/11786))
-* [BUGFIX] Fix suite freshness check after add in ephemeral context (GX-2891) ([#11758](https://github.com/great-expectations/great_expectations/pull/11758))
-* [BUGFIX] Fix unclosed SQLite connections causing ResourceWarning on Python 3.13 ([#11766](https://github.com/great-expectations/great_expectations/pull/11766))
-* [BUGFIX] Pin invoke==3.0.0 to avoid breaking change in 3.0.2 ([#11781](https://github.com/great-expectations/great_expectations/pull/11781))
-* [BUGFIX] Fix default exact_match value in ExpectTableColumnsToMatchSet renderers ([#11785](https://github.com/great-expectations/great_expectations/pull/11785))
-* [DOCS] Jira integration ([#11741](https://github.com/great-expectations/great_expectations/pull/11741))
-* [DOCS] teams integration ([#11761](https://github.com/great-expectations/great_expectations/pull/11761))
-* [DOCS] Hide magic-comment lines when line numbers are enabled ([#11731](https://github.com/great-expectations/great_expectations/pull/11731))
-* [MAINTENANCE] Remove dead code: profile module ([#11763](https://github.com/great-expectations/great_expectations/pull/11763))
-* [MAINTENANCE] Bump lodash from 4.17.23 to 4.18.1 in /docs/docusaurus ([#11776](https://github.com/great-expectations/great_expectations/pull/11776))
-* [MAINTENANCE] Add pact-broker publish step to CI (GX-3025) ([#11775](https://github.com/great-expectations/great_expectations/pull/11775))
-* [MAINTENANCE] Fix pact-broker publish step in CI ([#11787](https://github.com/great-expectations/great_expectations/pull/11787))
-* [MAINTENANCE] Fix pact publish to use PR head SHA ([#11790](https://github.com/great-expectations/great_expectations/pull/11790))
-* [MAINTENANCE] Bump brace-expansion from 1.1.12 to 1.1.13 in /docs/docusaurus ([#11777](https://github.com/great-expectations/great_expectations/pull/11777))
-* [MAINTENANCE] Skip code CI jobs for docs-only PRs ([#11792](https://github.com/great-expectations/great_expectations/pull/11792))
-* [MAINTENANCE] Increase SQL test connection pool size ([#11793](https://github.com/great-expectations/great_expectations/pull/11793))
-* [MAINTENANCE] Use pact regex matcher for Gx-Version header in contract tests ([#11791](https://github.com/great-expectations/great_expectations/pull/11791))
-* [MAINTENANCE] Skip pact publish on release tag CI runs ([#11796](https://github.com/great-expectations/great_expectations/pull/11796))
+### 1.16.0 (2026-04-09)
+
+Compatibility: `pact-python` added (extra `cloud`); `invoke` minimum 2.0.0 removed (extra `test`); `pact-python` minimum 2.0.1 → 3.1.0 (extra `test`)
+
+#### Highlights
+
+- **`column.unique_proportion` available in metric list runs** — Metric list runs can now compute `column.unique_proportion` alongside the existing column metrics, so you can retrieve the proportion of unique values per column without a separate run. ([#11786](https://github.com/fivetran/great_expectations/pull/11786))
+
+  ```python
+  from great_expectations.experimental.metric_repository.metrics import MetricTypes
+
+  metrics = [MetricTypes.COLUMN_UNIQUE_PROPORTION]
+  ```
+
+- **Suites added to an ephemeral context now pass freshness checks** — `context.suites.add(suite)` now returns a suite that matches what was stored, so passing that suite straight into `context.validation_definitions.add()` in an ephemeral context no longer raises a freshness error. ([#11758](https://github.com/fivetran/great_expectations/pull/11758))
+
+  ```python
+  suite = context.suites.add(suite)
+  context.validation_definitions.add(
+      gx.ValidationDefinition(name="vd", data=batch_definition, suite=suite)
+  )
+  ```
+
+- **Correct `exact_match` default in `ExpectTableColumnsToMatchSet` output** — Rendered descriptions for `ExpectTableColumnsToMatchSet` now reflect the expectation's real default for `exact_match`, so the rendered text no longer contradicts how the expectation actually validates. ([#11785](https://github.com/fivetran/great_expectations/pull/11785))
+
+- **Microsoft Teams and Jira integration documentation** — The documentation now covers setting up the Microsoft Teams and Jira integrations for GX notifications and issue tracking. ([#11761](https://github.com/fivetran/great_expectations/pull/11761), [#11741](https://github.com/fivetran/great_expectations/pull/11741))
+
+- **No more unclosed-SQLite resource warnings on Python 3.13** — SQLAlchemy execution engines now dispose their connection pool when they are garbage collected, eliminating `ResourceWarning: unclosed database` noise and the spurious failures it caused on Python 3.13. ([#11766](https://github.com/fivetran/great_expectations/pull/11766))
+
+#### Deprecations
+
+- `PandasDBFSDatasource` and `SparkDBFSDatasource` is deprecated; use datasources backed by Unity Catalog volumes, external locations, or workspace files. Removal in 2.0.0. ([#11759](https://github.com/fivetran/great_expectations/pull/11759))
+
+#### Changes
+
+##### Features
+
+- Metric list runs now support the `column.unique_proportion` metric, computed alongside other column-level metrics. ([#11786](https://github.com/fivetran/great_expectations/pull/11786))
+- Added an end-to-end contract test covering the full GX Cloud resource creation flow: datasource, expectation suite, validation definition, and checkpoint. ([#11783](https://github.com/fivetran/great_expectations/pull/11783))
+- Added client-driven contract tests covering datasource create, read, update, and delete through the Python client. ([#11754](https://github.com/fivetran/great_expectations/pull/11754))
+- Added client-driven contract tests covering expectation suite add, get, add-or-update, and delete through the Python client. ([#11756](https://github.com/fivetran/great_expectations/pull/11756))
+- Added client-driven contract tests covering validation definition and checkpoint add, get, and delete through the Python client. ([#11757](https://github.com/fivetran/great_expectations/pull/11757))
+- Contract testing now runs on pact-python v3, with matchers and interactions updated to the new API and the supported version range moved to 3.x. ([#11769](https://github.com/fivetran/great_expectations/pull/11769))
+- Removed the legacy hand-crafted HTTP contract tests and their supporting fixtures, which are superseded by the new client-driven contract tests. ([#11768](https://github.com/fivetran/great_expectations/pull/11768))
+- `PandasDBFSDatasource` and `SparkDBFSDatasource` are now marked as deprecated, following Databricks' deprecation of DBFS; the classes still work and will be removed in a future major release. ([#11759](https://github.com/fivetran/great_expectations/pull/11759))
+
+##### Bug fixes
+
+- `ExpectTableColumnsToMatchSet` renderers now use the correct default value for `exact_match` in their rendered output. ([#11785](https://github.com/fivetran/great_expectations/pull/11785))
+- Pinned the development `invoke` dependency to 3.0.0 to avoid a breaking change introduced in 3.0.2. ([#11781](https://github.com/fivetran/great_expectations/pull/11781))
+- SQLAlchemy execution engines now dispose their engine and connection pool when garbage collected, preventing unclosed-SQLite resource warnings on Python 3.13. ([#11766](https://github.com/fivetran/great_expectations/pull/11766))
+- Adding a suite in an ephemeral context now returns a suite that passes later freshness checks, so using it in a validation definition no longer raises a resource freshness error. ([#11758](https://github.com/fivetran/great_expectations/pull/11758))
+
+##### Docs
+
+- Documentation code blocks now keep lines marked as hidden out of view even when line numbers are shown. ([#11731](https://github.com/fivetran/great_expectations/pull/11731))
+- Added documentation for the Microsoft Teams integration. ([#11761](https://github.com/fivetran/great_expectations/pull/11761))
+- Added documentation for the Jira integration. ([#11741](https://github.com/fivetran/great_expectations/pull/11741))
+
+<details>
+<summary>Maintenance</summary>
+
+- Release-tag CI runs no longer attempt to re-publish pact contracts, unblocking tagged releases. ([#11796](https://github.com/fivetran/great_expectations/pull/11796))
+- Contract tests match the `Gx-Version` request header with a pattern instead of a literal value, so generated contracts are stable across commits. ([#11791](https://github.com/fivetran/great_expectations/pull/11791))
+- Increased the SQL test connection pool size to reduce connection contention in Databricks and Snowflake test runs. ([#11793](https://github.com/fivetran/great_expectations/pull/11793))
+- CI skips code and test jobs for pull requests that only change documentation, and adds a single aggregate status check for branch protection. ([#11792](https://github.com/fivetran/great_expectations/pull/11792))
+- Bumped `brace-expansion` from 1.1.12 to 1.1.13 in the documentation site dependencies. ([#11777](https://github.com/fivetran/great_expectations/pull/11777))
+- CI publishes pact contracts against the pull request's head commit instead of the base branch commit, so provider verification runs against the actual changes. ([#11790](https://github.com/fivetran/great_expectations/pull/11790))
+- Fixed the CI pact-broker publish step so contract publishing actually succeeds and fails loudly when it cannot. ([#11787](https://github.com/fivetran/great_expectations/pull/11787))
+- CI now publishes generated pact contract files to PactFlow after cloud tests pass, skipping gracefully when no contracts exist. ([#11775](https://github.com/fivetran/great_expectations/pull/11775))
+- Bumped `lodash` from 4.17.23 to 4.18.1 in the documentation site dependencies, picking up prototype-pollution and template code-injection fixes. ([#11776](https://github.com/fivetran/great_expectations/pull/11776))
+- Removed the unreachable `great_expectations.profile` module and its tests as dead code. ([#11763](https://github.com/fivetran/great_expectations/pull/11763))
+
+</details>
 
 ### 1.15.2 (2026-04-01)
 
