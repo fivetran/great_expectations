@@ -42,6 +42,8 @@ This table lists every deprecated item, the version that deprecated it, and the 
 | `MapMetricProvider.is_sqlalchemy_metric_selectable` | 0.16.1 | 2.0.0 |  |
 | `context.sources.delete_<type>` CRUD methods | 0.17.2 | 2.0.0 | `context.sources.delete` |
 | V2 API style custom rendering | 0.13.28 | 2.0.0 |  |
+| `gx-redshift` install extra (alias of `redshift`) | 1.21.0 | 2.0.0 | `great_expectations[redshift]` |
+| `CloudDataContext` and cloud mode of `get_context(...)` | 1.18.0 | 2.0.0 | `gx.get_context(mode="file")` or `mode="ephemeral"` |
 
 ### 1.23.0 (2026-09-10)
 
@@ -259,8 +261,8 @@ Compatibility: new extra `gcs`; `gx-sqlalchemy-redshift` removed (extra `gx-reds
 
 #### Deprecations
 
-- Passing digit strings for numeric batch parameters (for example `{"year": "2024", "month": "02"}`); integers are now the contract on every datasource family is deprecated; use Pass integers, e.g. \{"year": 2024, "month": 2}. Removal in 2.0.0. ([#12065](https://github.com/fivetran/great_expectations/pull/12065))
-- The `gx-redshift` install extra, now a deprecated alias that resolves identically to `redshift` is deprecated; use great_expectations[redshift]. Removal in 2.0.0. ([#12044](https://github.com/fivetran/great_expectations/pull/12044))
+- Digit strings for numeric batch parameters (for example `\{"year": "2024", "month": "02"}`) are deprecated; pass integers instead (`\{"year": 2024, "month": 2}`). Removal in 2.0.0. ([#12065](https://github.com/fivetran/great_expectations/pull/12065))
+- The `gx-redshift` install extra is deprecated and is now an alias that resolves identically to `redshift`; use `great_expectations[redshift]`. Removal in 2.0.0. ([#12044](https://github.com/fivetran/great_expectations/pull/12044))
 
 #### Changes
 
@@ -622,7 +624,7 @@ Thanks to @zozo123 (first contribution).
 
 #### Deprecations
 
-- `CloudDataContext` and the GX Cloud branch of `get_context(...)` (including the `cloud_*` parameters, `mode="cloud"`, `cloud_mode=True`, and `GX_CLOUD_*` environment configuration) no longer function and now raise an error; the cloud-only exception, store, config, and identifier symbols remain importable only as shells. is deprecated; use Use a non-cloud context, such as `gx.get_context(mode="file")` or `gx.get_context(mode="ephemeral")`.. Removal in 2.0.0. ([#11894](https://github.com/fivetran/great_expectations/pull/11894))
+- `CloudDataContext` and the GX Cloud branch of `get_context(...)` (the `cloud_*` parameters, `mode="cloud"`, `cloud_mode=True`, and `GX_CLOUD_*` environment configuration) are deprecated and now raise an error; the cloud-only exception, store, config, and identifier symbols remain importable only as shells. Use a non-cloud context such as `gx.get_context(mode="file")` or `gx.get_context(mode="ephemeral")`. Removal in 2.0.0. ([#11894](https://github.com/fivetran/great_expectations/pull/11894))
 
 #### Changes
 
