@@ -59,7 +59,7 @@ This table lists every deprecated item, the version that deprecated it, and the 
   )
   ```
 
-- **Each Validator reports results for its own Batch when a datasource is reused** — Validators built on the same datasource no longer borrow one another's Batch. Running two validation definitions on threads, or creating two validators from one datasource on a single thread, now evaluates and reports each validator's own data, with the correct batch_id, batch_spec and batch_definition on the result. ([#12211](https://github.com/fivetran/great_expectations/pull/12211))
+- **Each Validator reports results for its own Batch when a datasource is reused** — Validators built on the same datasource no longer borrow one another's Batch. Running two validation definitions on threads, or creating two validators from one datasource on a single thread, now evaluates and reports each validator's own data, with the correct batch_id, batch_spec and batch_definition on the result. This fixes a long-standing latent bug made reachable by [#12148](https://github.com/fivetran/great_expectations/pull/12148) in the 1.23.0 release. ([#12211](https://github.com/fivetran/great_expectations/pull/12211))
 
   ```python
   validator_a = context.get_validator(batch_request=request_a)
