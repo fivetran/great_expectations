@@ -349,27 +349,86 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Install ODBC driver in `docs-creds-needed` ([#11698](https://github.com/great-expectations/great_expectations/pull/11698))
 * [MAINTENANCE] Deprecate `schema_name` on all `TableAsset`s ([#11689](https://github.com/great-expectations/great_expectations/pull/11689))
 
-### 1.13.0
-* [MINORBUMP] `ExpectColumnDistinctValuesToBeInSet` with database-pushed comparison ([#11614](https://github.com/great-expectations/great_expectations/pull/11614))
-* [MINORBUMP] `ExpectColumnDistinctValuesToContainSet` with database-pushed comparison ([#11615](https://github.com/great-expectations/great_expectations/pull/11615))
-* [MINORBUMP] `ExpectColumnDistinctValuesToEqualSet` with database-pushed comparison ([#11616](https://github.com/great-expectations/great_expectations/pull/11616))
-* [FEATURE] Auto-strip ORDER BY for MSSQL COUNT(*) subqueries ([#11670](https://github.com/great-expectations/great_expectations/pull/11670))
-* [FEATURE] Add `FabricDatasource` ([#11685](https://github.com/great-expectations/great_expectations/pull/11685))
-* [BUGFIX] Fix Databricks identifier quoting in batch query compilation. ([#11671](https://github.com/great-expectations/great_expectations/pull/11671))
-* [BUGFIX] Roll back connection after failed retry in _execute_query_with_recovery to prevent SQL Server teardown hang ([#11680](https://github.com/great-expectations/great_expectations/pull/11680))
-* [DOCS] ExpectAI for the agent ([#11644](https://github.com/great-expectations/great_expectations/pull/11644))
-* [DOCS] fix ExpectAI for the agent prereqs ([#11678](https://github.com/great-expectations/great_expectations/pull/11678))
-* [MAINTENANCE] Add azure ad service principal auth connection details ([#11653](https://github.com/great-expectations/great_expectations/pull/11653))
-* [MAINTENANCE] Add `SQLServerDatasource` schema ([#11662](https://github.com/great-expectations/great_expectations/pull/11662))
-* [MAINTENANCE] Remove unsupported Entra ID Password authentication ([#11665](https://github.com/great-expectations/great_expectations/pull/11665))
-* [MAINTENANCE] Human-readable MSSQL test connection exceptions ([#11661](https://github.com/great-expectations/great_expectations/pull/11661))
-* [MAINTENANCE] Only run python 3.13 marker tests on PRs ([#11666](https://github.com/great-expectations/great_expectations/pull/11666))
-* [MAINTENANCE] Rename MSSQL references to SQL Server for brand consistency ([#11674](https://github.com/great-expectations/great_expectations/pull/11674))
-* [MAINTENANCE] Avoid unnecessary _get_default_value() calls for non-field keys ([#11626](https://github.com/great-expectations/great_expectations/pull/11626)) (thanks @jni-bot)
-* [MAINTENANCE] Remove problematic runtime context fixture ([#11683](https://github.com/great-expectations/great_expectations/pull/11683))
-* [MAINTENANCE] Remove Pandas Upper Pin ([#11677](https://github.com/great-expectations/great_expectations/pull/11677))
-* [MAINTENANCE] Normalize SQL Server column type metrics ([#11684](https://github.com/great-expectations/great_expectations/pull/11684))
-* [MAINTENANCE] remove deprecated store backends ([#11675](https://github.com/great-expectations/great_expectations/pull/11675))
+### 1.13.0 (2026-02-26)
+
+Compatibility: `altair` minimum 4.2.1 → 5.0.0; new extra `fabric`; removed extra `mssql`; new extra `sql-server`
+
+#### Highlights
+
+- **Microsoft Fabric datasource** — You can now connect to Microsoft Fabric with the new Fabric datasource, which authenticates with an Entra ID service principal. Install it with the new `fabric` extra. ([#11685](https://github.com/fivetran/great_expectations/pull/11685), [#11662](https://github.com/fivetran/great_expectations/pull/11662))
+
+  ```python
+  import great_expectations as gx
+
+  context = gx.get_context()
+  datasource = context.data_sources.add_fabric(
+      name="my_fabric",
+      host="my-workspace.datawarehouse.fabric.microsoft.com",
+      database="my_warehouse",
+      client_id="<client-id>",
+      client_secret="<client-secret>",
+  )
+  ```
+
+- **Distinct-value set expectations now compare in the database** — `ExpectColumnDistinctValuesToBeInSet`, `ExpectColumnDistinctValuesToContainSet`, and `ExpectColumnDistinctValuesToEqualSet` now push set comparison into the database instead of pulling every distinct value into memory, so they stay fast and produce small results on high-cardinality columns. Results no longer include the full list of distinct values as `observed_value`; instead they report `unexpected_count`/`partial_unexpected_list` and/or `missing_count`/`partial_missing_list`, each capped at 20 values. ([#11614](https://github.com/fivetran/great_expectations/pull/11614), [#11615](https://github.com/fivetran/great_expectations/pull/11615), [#11616](https://github.com/fivetran/great_expectations/pull/11616))
+
+  ```python
+  import great_expectations.expectations as gxe
+
+  suite.add_expectation(
+      gxe.ExpectColumnDistinctValuesToBeInSet(
+          column="my_col",
+          value_set=["a", "b", "c"],
+      )
+  )
+  ```
+
+- **"SQL Server" naming throughout, including the pip extra** — User-facing references to MSSQL are now written as SQL Server. Install SQL Server support with the renamed extra. ([#11674](https://github.com/fivetran/great_expectations/pull/11674))
+
+  ```python
+  pip install 'great_expectations[sql-server]'
+  ```
+
+- **pandas 3 support** — The upper pin on pandas has been removed, so Great Expectations can be installed alongside pandas 3. BigQuery reads fall back to `pandas_gbq.read_gbq`, and chart rendering works with pandas 3's new string dtype default (requires altair 5). ([#11677](https://github.com/fivetran/great_expectations/pull/11677))
+
+- **ExpectAI documentation for the agent** — The documentation now covers ExpectAI for the agent, including its prerequisites. ([#11644](https://github.com/fivetran/great_expectations/pull/11644), [#11678](https://github.com/fivetran/great_expectations/pull/11678))
+
+#### Changes
+
+##### Features
+
+- `ExpectColumnDistinctValuesToEqualSet` now compares the value set inside the database rather than loading all distinct values into memory. Results return `observed_value: None` along with `unexpected_count`, `partial_unexpected_list`, `missing_count`, and `partial_missing_list` (each capped at 20 values), and the rendered output marks unexpected and missing values accordingly. ([#11616](https://github.com/fivetran/great_expectations/pull/11616))
+- `ExpectColumnDistinctValuesToBeInSet` now compares the value set inside the database rather than loading all distinct values into memory. Results return `observed_value: None` along with `unexpected_count` and `partial_unexpected_list` (capped at 20 values), and the descriptive value-counts bar chart is no longer produced. ([#11614](https://github.com/fivetran/great_expectations/pull/11614))
+- `ExpectColumnDistinctValuesToContainSet` now compares the value set inside the database rather than loading all distinct values into memory. Results return `observed_value: None` along with `missing_count` and `partial_missing_list` (capped at 20 values), and the rendered output marks missing values. ([#11615](https://github.com/fivetran/great_expectations/pull/11615))
+- Added a Microsoft Fabric datasource with `add_fabric()`, `update_fabric()`, and `delete_fabric()` APIs, authenticated with an Entra ID service principal. ([#11685](https://github.com/fivetran/great_expectations/pull/11685))
+- A top-level ORDER BY in a user-supplied query is now stripped automatically when that query is wrapped in a row count, so SQL Server no longer rejects it. ORDER BY inside window functions or nested subqueries, and queries using OFFSET, are left untouched. ([#11670](https://github.com/fivetran/great_expectations/pull/11670))
+
+##### Bug fixes
+
+- When a metric computation fails twice on a SQL Server connection, the connection is now explicitly rolled back before the error is raised, so closing the connection no longer hangs. ([#11680](https://github.com/fivetran/great_expectations/pull/11680))
+- SQL expectations using the `{batch}` placeholder on Databricks no longer fail with a cast error, because batch queries are now compiled with the datasource's own dialect so identifiers are quoted correctly. ([#11671](https://github.com/fivetran/great_expectations/pull/11671))
+
+##### Docs
+
+- Refined the prerequisites documentation for using ExpectAI with the agent. ([#11678](https://github.com/fivetran/great_expectations/pull/11678))
+- Added documentation for using ExpectAI with the agent. ([#11644](https://github.com/fivetran/great_expectations/pull/11644))
+
+<details>
+<summary>Maintenance</summary>
+
+- Store backend implementations that were deprecated in the v1 release, along with the documentation examples that referenced them, have been removed. ([#11675](https://github.com/fivetran/great_expectations/pull/11675))
+- SQL Server column types are now reported consistently between the metric repository and `ExpectColumnValuesToBeOfType`/`ExpectColumnValuesToBeInTypeList`, compared case-insensitively and without `COLLATE` clauses in the type string. ([#11684](https://github.com/fivetran/great_expectations/pull/11684))
+- The upper pin on pandas has been removed so Great Expectations works with pandas 3, with BigQuery reads falling back to `pandas_gbq.read_gbq` and chart rendering updated for the new string dtype default. ([#11677](https://github.com/fivetran/great_expectations/pull/11677))
+- Test helpers now build an ephemeral context via `gx.get_context(mode="ephemeral")` instead of the removed `build_in_memory_runtime_context` helper, eliminating a source of flaky tests. ([#11683](https://github.com/fivetran/great_expectations/pull/11683))
+- Removed the repeated noisy `_get_default_value called with key ... but it is not a known field` INFO log messages emitted during checkpoint validation. ([#11626](https://github.com/fivetran/great_expectations/pull/11626))
+- MSSQL references are now named SQL Server throughout: the pip extra is `sql-server` instead of `mssql`, and related enum members, helper names, pytest markers, and the test CLI flag were renamed to match. The SQLAlchemy dialect value `mssql` is unchanged. ([#11674](https://github.com/fivetran/great_expectations/pull/11674))
+- Datasource marker tests now run against a single Python version on pull requests, with the full version matrix reserved for releases. ([#11666](https://github.com/fivetran/great_expectations/pull/11666))
+- Failed SQL Server connection tests now report human-readable error messages. ([#11661](https://github.com/fivetran/great_expectations/pull/11661))
+- Removed Entra ID Password authentication, which Microsoft's mandatory MFA enforcement makes unusable. ([#11665](https://github.com/fivetran/great_expectations/pull/11665))
+- Added a published JSON schema for the SQL Server datasource, documenting its connection-detail options. ([#11662](https://github.com/fivetran/great_expectations/pull/11662))
+- Added Azure AD service principal authentication details for SQL Server connections and corrected the casing of the authentication query parameter used for Azure AD password authentication. ([#11653](https://github.com/fivetran/great_expectations/pull/11653))
+
+</details>
 
 ### 1.12.3 (2026-02-13)
 
