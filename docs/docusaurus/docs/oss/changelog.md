@@ -622,14 +622,34 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [DOCS] forecasted range limitation ([#11349](https://github.com/great-expectations/great_expectations/pull/11349))
 * [MAINTENANCE] Bump mermaid from 11.9.0 to 11.10.1 in /docs/docusaurus ([#11348](https://github.com/great-expectations/great_expectations/pull/11348))
 
-### 1.5.9
-* [FEATURE] Update JSON schemas for Expectations to incorporate failure severity ([#11337](https://github.com/great-expectations/great_expectations/pull/11337))
-* [DOCS] remove "settings" from nav paths ([#11332](https://github.com/great-expectations/great_expectations/pull/11332))
-* [DOCS] env var typo ([#11335](https://github.com/great-expectations/great_expectations/pull/11335))
-* [DOCS] Sunset Cloud API version 0.18 ([#11334](https://github.com/great-expectations/great_expectations/pull/11334))
-* [DOCS] temporarily remove link checker ([#11342](https://github.com/great-expectations/great_expectations/pull/11342))
-* [DOCS] Split manage expectations page ([#11340](https://github.com/great-expectations/great_expectations/pull/11340))
-* [MAINTENANCE] Fix webpack-dev-server and form-data vulnerabilities ([#11339](https://github.com/great-expectations/great_expectations/pull/11339))
+### 1.5.9 (2025-08-20)
+
+#### Highlights
+
+- **Expectation JSON schemas now carry failure severity** — Expectations can express a failure severity, and the published JSON schemas now include the new `severity` field backed by a `FailureSeverity` enum. ([#11337](https://github.com/fivetran/great_expectations/pull/11337))
+
+- **Documentation for Cloud API version 0.18 sunset** — The compatibility reference and related documentation now reflect the sunset of Cloud API version 0.18. ([#11334](https://github.com/fivetran/great_expectations/pull/11334))
+
+#### Changes
+
+##### Features
+
+- Expectation JSON schemas now include a `severity` field, with a new `FailureSeverity` enum describing Expectation failure severity. ([#11337](https://github.com/fivetran/great_expectations/pull/11337))
+
+##### Docs
+
+- The "Manage Expectations" documentation is split into separate, more focused pages. ([#11340](https://github.com/fivetran/great_expectations/pull/11340))
+- Temporarily removed the documentation link checker to unblock documentation builds. ([#11342](https://github.com/fivetran/great_expectations/pull/11342))
+- Documentation now reflects the sunset of Cloud API version 0.18, including an updated compatibility reference. ([#11334](https://github.com/fivetran/great_expectations/pull/11334))
+- Corrected a typo in an environment variable name in the documentation. ([#11335](https://github.com/fivetran/great_expectations/pull/11335))
+- Documentation navigation paths no longer include "Settings", matching the updated UI navigation. ([#11332](https://github.com/fivetran/great_expectations/pull/11332))
+
+<details>
+<summary>Maintenance</summary>
+
+- Updated documentation site dependencies (Docusaurus 3.8.1, webpack-dev-server 5.2.2, jest-environment-jsdom 30.0.5) to resolve CVE-2025-30360 and CVE-2025-7783. ([#11339](https://github.com/fivetran/great_expectations/pull/11339))
+
+</details>
 
 ### 1.5.8 (2025-08-07)
 
