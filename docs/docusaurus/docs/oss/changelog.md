@@ -1394,10 +1394,30 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] mypy 1.11.2 ([#10142](https://github.com/great-expectations/great_expectations/pull/10142))
 * [MAINTENANCE] Remove override of `ValidationDefinition` init ([#10278](https://github.com/great-expectations/great_expectations/pull/10278))
 
-### 1.0.0
-* [BUGFIX] Always rerender content (#10257)
-* [BUGFIX] Ensure that all diagnostics for a Checkpoint's children validation definitions appear in error messages (#10250)
-* [MAINTENANCE] Revert "[BUGFIX] Ensure that all diagnostics for a Checkpoint's children validation definitions appear in error messages" (#10256)
+### 1.0.0 (2024-08-22)
+
+#### Highlights
+
+- **Rendered content stays up to date** — Rendered content is now regenerated every time rather than reused from a previous render, so descriptions and rendered output always reflect the current expectations and validation results. ([#10257](https://github.com/fivetran/great_expectations/pull/10257))
+
+#### Changes
+
+##### Bug fixes
+
+- Content is now always re-rendered, so rendered output reflects the latest state instead of stale previously rendered content. ([#10257](https://github.com/fivetran/great_expectations/pull/10257))
+- Error messages raised when running a Checkpoint include the diagnostics for all of its child validation definitions, not just the first problem found. This change was subsequently reverted in this release. ([#10250](https://github.com/fivetran/great_expectations/pull/10250))
+
+##### Docs
+
+- Updated the project README to describe GX Core. ([#10252](https://github.com/fivetran/great_expectations/pull/10252))
+
+<details>
+<summary>Maintenance</summary>
+
+- Reverted the previous change to Checkpoint and Validation Definition error reporting, restoring the earlier behavior where running an unsaved Checkpoint or Validation Definition is saved automatically when its children are already saved and otherwise raises the prior error message. ([#10256](https://github.com/fivetran/great_expectations/pull/10256))
+- Introduced an internal diagnostics helper used by the checks that determine whether a Checkpoint, Validation Definition, Expectation Suite, or Batch Definition has been saved, with no change to expected behavior. ([#10249](https://github.com/fivetran/great_expectations/pull/10249))
+
+</details>
 
 ### 1.0.0a6
 * [FEATURE] Add the public api to context.data_source and context.data_source.get ([#10180](https://github.com/great-expectations/great_expectations/pull/10180))
