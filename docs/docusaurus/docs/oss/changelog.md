@@ -153,36 +153,94 @@ Thanks to @siddharthgaur1 (first contribution), @Star-cloud626 (first contributi
 * [CONTRIB] add explanatory message to NotImplementedError for unsupported regex dialects ([#12109](https://github.com/great-expectations/great_expectations/pull/12109)) (thanks @ArjunPakhan)
 * [CONTRIB] Support Marshmallow 4.x ([#12092](https://github.com/great-expectations/great_expectations/pull/12092)) (thanks @Dev-iL)
 
-### 1.21.0
-* [FEATURE] SQL Harness Backend Framework ([#12049](https://github.com/great-expectations/great_expectations/pull/12049))
-* [FEATURE] Trino SQL backend test harness ([#12050](https://github.com/great-expectations/great_expectations/pull/12050))
-* [FEATURE] ClickHouse SQL backend test harness ([#12053](https://github.com/great-expectations/great_expectations/pull/12053))
-* [FEATURE] Ship agent-skill guidance for configuring data sources and expectations ([#12061](https://github.com/great-expectations/great_expectations/pull/12061))
-* [FEATURE] Harden the data-source skill's driver, cadence, and example guidance ([#12062](https://github.com/great-expectations/great_expectations/pull/12062))
-* [FEATURE] Gate project creation on the user having named the directory ([#12063](https://github.com/great-expectations/great_expectations/pull/12063))
-* [FEATURE] Accept integers for numeric batch parameters on every datasource family ([#12065](https://github.com/great-expectations/great_expectations/pull/12065))
-* [FEATURE] Route validated expectations onward into checkpoint orchestration ([#12068](https://github.com/great-expectations/great_expectations/pull/12068))
-* [FEATURE] Make environment-affecting actions reachable-in-flow and mechanically gated ([#12073](https://github.com/great-expectations/great_expectations/pull/12073))
-* [BUGFIX] Restore the install and test steps to py312-min-versions ([#12076](https://github.com/great-expectations/great_expectations/pull/12076))
-* [MAINTENANCE] Bump dompurify from 3.4.12 to 3.4.13 in /docs/docusaurus ([#12048](https://github.com/great-expectations/great_expectations/pull/12048))
-* [MAINTENANCE] Bump nanoid from 3.3.16 to 3.3.18 in /docs/docusaurus ([#12052](https://github.com/great-expectations/great_expectations/pull/12052))
-* [MAINTENANCE] Bump mermaid from 11.15.0 to 11.16.1 in /docs/docusaurus ([#12047](https://github.com/great-expectations/great_expectations/pull/12047))
-* [MAINTENANCE] Pin SingleStore dev image to 0.2.82 instead of :latest ([#12054](https://github.com/great-expectations/great_expectations/pull/12054))
-* [MAINTENANCE] Read the GCS test bucket from a repository variable ([#12056](https://github.com/great-expectations/great_expectations/pull/12056))
-* [MAINTENANCE] Restore the GCS datasource tests and run them in CI ([#12058](https://github.com/great-expectations/great_expectations/pull/12058))
-* [MAINTENANCE] Restore the GCP credentials setup for the docs-snippets job ([#12057](https://github.com/great-expectations/great_expectations/pull/12057))
-* [MAINTENANCE] Run the GCS docs snippet tests ([#12059](https://github.com/great-expectations/great_expectations/pull/12059))
-* [MAINTENANCE] Surface the RFC threshold in the PR template, AGENTS.md, and a new check ([#12043](https://github.com/great-expectations/great_expectations/pull/12043))
-* [MAINTENANCE] Use the upstream sqlalchemy-redshift dialect instead of the GX fork ([#12044](https://github.com/great-expectations/great_expectations/pull/12044))
-* [MAINTENANCE] Drop the gx-redshift CI marker ([#12060](https://github.com/great-expectations/great_expectations/pull/12060))
-* [MAINTENANCE] Add integration coverage for quoted schema names on PostgreSQL ([#12051](https://github.com/great-expectations/great_expectations/pull/12051))
-* [MAINTENANCE] Create BigQuery test tables in the configured dataset and sweep tables, not datasets ([#12024](https://github.com/great-expectations/great_expectations/pull/12024))
-* [MAINTENANCE] Ship version-matched expectation and datasource catalogs ([#12055](https://github.com/great-expectations/great_expectations/pull/12055))
-* [MAINTENANCE] Sync SparkDBFSDatasource schema with its deprecation notice ([#12077](https://github.com/great-expectations/great_expectations/pull/12077))
-* [MAINTENANCE] Remove the "How to Edit This Suite" button from Data Docs ([#12078](https://github.com/great-expectations/great_expectations/pull/12078))
-* [CONTRIB] Add a great-expectations user-agent suffix to S3 clients ([#11937](https://github.com/great-expectations/great_expectations/pull/11937)) (thanks @goanpeca)
-* [CONTRIB] Promote multicolumn values equal expectation ([#12018](https://github.com/great-expectations/great_expectations/pull/12018)) (thanks @AtomicGlance)
-* [CONTRIB] Add ExpectColumnValuesToNotBeOutliers across Pandas, SQL, and Spark ([#12011](https://github.com/great-expectations/great_expectations/pull/12011)) (thanks @chavalasantosh)
+### 1.21.0 (2026-08-19)
+
+Compatibility: new extra `gcs`; `gx-sqlalchemy-redshift` removed (extra `gx-redshift`); `sqlalchemy-redshift` added (extra `gx-redshift`); `sqlalchemy` minimum  → 1.4.0 (extra `redshift`)
+
+#### Highlights
+
+- **Integer batch parameters work on every datasource family** — Numeric batch parameters such as `year` and `month` now accept integers on file, directory, and SQL assets alike, so a single `batch_parameters` dict drives one checkpoint spanning files and a warehouse. Digit strings still work but now emit a deprecation warning. A SQL request that matches nothing also explains why, distinguishing an empty table or column from candidates that exist but did not match, and naming the offending parameter and value. ([#12065](https://github.com/fivetran/great_expectations/pull/12065))
+
+  ```python
+  checkpoint.run(batch_parameters={"year": 2020, "month": 4})
+  ```
+
+- **Agent-skill guidance ships with the package** — Great Expectations now bundles version-matched guidance for coding agents covering data source configuration, expectation authoring, and checkpoint orchestration, installable into a project's agent discovery directories. The guidance names the right optional dependency group for a missing driver, offers a batching cadence instead of assuming one, carries reuse-safe worked examples, and will not install packages, edit configuration files, create a project directory, or save files unless the user asked for it. ([#12061](https://github.com/fivetran/great_expectations/pull/12061), [#12062](https://github.com/fivetran/great_expectations/pull/12062), [#12063](https://github.com/fivetran/great_expectations/pull/12063), [#12068](https://github.com/fivetran/great_expectations/pull/12068), [#12073](https://github.com/fivetran/great_expectations/pull/12073))
+
+  ```python
+  python -m great_expectations skills install --target all
+  python -m great_expectations skills list
+  ```
+
+- **Two experimental expectations promoted into the core library** — `ExpectColumnValuesToNotBeOutliers` (IQR and standard-deviation methods) and the multicolumn values-equal expectation are now supported core expectations on Pandas, SQL, and Spark, with null-safe evaluation, Gallery metadata, prescriptive rendering, and public exports. ([#12011](https://github.com/fivetran/great_expectations/pull/12011), [#12018](https://github.com/fivetran/great_expectations/pull/12018))
+
+  ```python
+  gx.expectations.ExpectColumnValuesToNotBeOutliers(
+      column="fare_amount", method="iqr", multiplier=1.5
+  )
+  ```
+
+- **Redshift installs the upstream SQLAlchemy dialect** — `pip install 'great_expectations[redshift]'` now resolves the upstream `sqlalchemy-redshift` 1.0.0 dialect with SQLAlchemy 2, replacing the Great Expectations fork and lifting a `sqlalchemy<2.0.0` pin that had been holding the dialect back at a three-year-old release. The `gx-redshift` extra keeps working as a deprecated alias that resolves identically. ([#12044](https://github.com/fivetran/great_expectations/pull/12044))
+
+  ```python
+  pip install 'great_expectations[redshift]'
+  ```
+
+- **S3 requests are attributable to Great Expectations** — S3 clients built by Great Expectations now send a `great-expectations/<version>` user-agent suffix, appended to any user-supplied agent string rather than replacing it, so operators and S3-compatible providers can see which requests originate from Great Expectations. The S3 Data Source docs also clarify that `endpoint_url` is how you connect to a non-AWS S3-compatible store. ([#11937](https://github.com/fivetran/great_expectations/pull/11937))
+
+- **Data Docs no longer advertises a removed suite-editing workflow** — The "How to Edit This Suite" button and its popup, which pointed at a CLI command and notebook workflow that no longer exist, are gone from expectation suite and validation results pages, and expectation suite, profiling, and site index pages no longer render an empty "Actions" card. Validation results pages keep the Actions card and its Show All / Failed Only filter. ([#12078](https://github.com/fivetran/great_expectations/pull/12078))
+
+#### Deprecations
+
+- Passing digit strings for numeric batch parameters (for example `{"year": "2024", "month": "02"}`); integers are now the contract on every datasource family is deprecated; use Pass integers, e.g. \{"year": 2024, "month": 2}. Removal in 2.0.0. ([#12065](https://github.com/fivetran/great_expectations/pull/12065))
+- The `gx-redshift` install extra, now a deprecated alias that resolves identically to `redshift` is deprecated; use great_expectations[redshift]. Removal in 2.0.0. ([#12044](https://github.com/fivetran/great_expectations/pull/12044))
+
+#### Changes
+
+##### Features
+
+- S3 clients now carry a `great-expectations/<version>` user-agent suffix, appended to any user-supplied agent string, and the S3 Data Source docs clarify that `endpoint_url` connects to an S3-compatible object store. ([#11937](https://github.com/fivetran/great_expectations/pull/11937))
+- `ExpectColumnValuesToNotBeOutliers` is now a supported core expectation on Pandas, SQL, and Spark, with IQR and standard-deviation detection, consistent null handling, inclusive threshold boundaries, and a clear error for unsupported methods. ([#12011](https://github.com/fivetran/great_expectations/pull/12011))
+- The bundled agent skills now state up front, and again at each point they could act, that they will not install dependencies, edit configuration files, or save unrequested files without the user asking; the data source skill's batch-parameter examples were also corrected to use integers. ([#12073](https://github.com/fivetran/great_expectations/pull/12073))
+- The multicolumn values-equal expectation is promoted into the core library with null-safe equality on Pandas, SQLAlchemy, and Spark, plus Gallery metadata, prescriptive rendering, and public exports. ([#12018](https://github.com/fivetran/great_expectations/pull/12018))
+- A third bundled agent skill covers checkpoint orchestration — binding assets and suites into validation definitions, grouping them into a named checkpoint with post-run actions, and verifying with one run — and the expectations skill now routes onward into it; writing a session out to a project also persists validation definitions and checkpoints and reports when an object already existed. ([#12068](https://github.com/fivetran/great_expectations/pull/12068))
+- Numeric batch parameters accept integers on file, directory, and SQL assets, so one `batch_parameters` dict drives a checkpoint spanning files and SQL; digit strings still work but warn, and a SQL request matching nothing now explains whether the data is absent or the parameter did not match. ([#12065](https://github.com/fivetran/great_expectations/pull/12065))
+- The bundled agent skills will not create a project directory unless the user has agreed to it and named the path, and the write-out offer is now the end of the flow rather than something done in the same breath as reporting results. ([#12063](https://github.com/fivetran/great_expectations/pull/12063))
+- The data source skill now names the correct optional dependency group for a missing driver (read from the installed distribution), keeps the batching question open until the verification probe reports the available columns, and carries the reuse guard inside its worked examples so copying one cannot silently replace an existing data source. ([#12062](https://github.com/fivetran/great_expectations/pull/12062))
+- Great Expectations ships agent-skill guidance for configuring data sources and expectations, installable with `python -m great_expectations skills install` and listable with `skills list`; the installer leaves already-correct destinations alone, refuses directories it did not write, and requires `--force` to replace user-edited copies. ([#12061](https://github.com/fivetran/great_expectations/pull/12061))
+- ClickHouse is onboarded as a first-class backend in the SQL integration test harness, which along the way fixed a quantile-metric helper that called a nonexistent execution-engine method and two shared test-harness defects. ([#12053](https://github.com/fivetran/great_expectations/pull/12053))
+- Trino is onboarded onto the SQL backend integration-test harness with a pinned container, a declared backend record, corrected double-quote identifier quoting for the dialect, and full curated-tier coverage. ([#12050](https://github.com/fivetran/great_expectations/pull/12050))
+- The SQL integration test harness gains a declarative backend framework: a new SQL backend is onboarded by declaring one frozen backend record (schema support, column type overrides, transaction mode, insert parameter limits, table schema items, tiers, and CI wiring) instead of adding dialect-specific branches, with onboarding documentation and a wiring drift check. ([#12049](https://github.com/fivetran/great_expectations/pull/12049))
+
+##### Bug fixes
+
+- The Python 3.12 minimum-version test job installs dependencies and runs tests again, restoring minimum-version coverage and unblocking the required CI gate. ([#12076](https://github.com/fivetran/great_expectations/pull/12076))
+
+<details>
+<summary>Maintenance</summary>
+
+- The "How to Edit This Suite" button and its popup no longer appear in Data Docs, and expectation suite, profiling, and site index pages no longer render an empty "Actions" card; validation results pages keep the Actions card and its validation filter, and the `show_how_to_buttons` site config option still loads but gates nothing. ([#12078](https://github.com/fivetran/great_expectations/pull/12078))
+- The shipped `SparkDBFSDatasource` JSON schema description now includes the deprecation notice the Python API has carried since 1.16.0, so schema-driven consumers see it too. ([#12077](https://github.com/fivetran/great_expectations/pull/12077))
+- The distribution now ships version-matched expectation and datasource schema catalogs with index files mapping each datasource schema to its `add_or_update_*` factory method and each expectation to its schema, description, data quality issues, and supported data sources. ([#12055](https://github.com/fivetran/great_expectations/pull/12055))
+- BigQuery test tables are created in the configured dataset rather than in a per-config dataset, and the cleanup job sweeps stale tables within that dataset instead of querying project-level metadata it lacks permission to read. ([#12024](https://github.com/fivetran/great_expectations/pull/12024))
+- Added PostgreSQL integration coverage documenting that a quoted schema name on an asset is not honored as quoting today, with the passing bare-name control beside it so the behavior cannot be corrected without the test being updated. ([#12051](https://github.com/fivetran/great_expectations/pull/12051))
+- Removed the `gx-redshift` CI launch key now that the Redshift lane selects the canonical `redshift` marker; the deprecated `gx-redshift` install extra is unaffected. ([#12060](https://github.com/fivetran/great_expectations/pull/12060))
+- The `redshift` extra now installs upstream `sqlalchemy-redshift` 1.0.0 with `sqlalchemy>=1.4.0` instead of the Great Expectations fork, fixing a pin that had been silently installing a three-year-old dialect; `gx-redshift` remains as a deprecated alias resolving identically. ([#12044](https://github.com/fivetran/great_expectations/pull/12044))
+- The pull request template and AGENTS.md now state the RFC threshold for new backend support, a new advisory check asks contributors to answer that question when a change looks like new backend support, and the superseded Markdown issue templates that bypassed triage labeling are removed. ([#12043](https://github.com/fivetran/great_expectations/pull/12043))
+- The GCS documentation snippets run in CI again behind a dedicated `--gcs` flag, and the Spark-on-GCS guide is migrated to the current asset API so it no longer documents a call that raises. ([#12059](https://github.com/fivetran/great_expectations/pull/12059))
+- Restored GCP credentials for the docs snippets CI job and made the credentials path absolute so it resolves after the snippet runner changes directories. ([#12057](https://github.com/fivetran/great_expectations/pull/12057))
+- Corrected the stale patch paths in the pandas and Spark GCS datasource tests and added a `gcs_deps` marker and requirements file so they actually run in CI. ([#12058](https://github.com/fivetran/great_expectations/pull/12058))
+- GCS test and docs fixtures read the bucket name from a `GX_GCS_TEST_BUCKET` environment variable and raise clearly when it is unset; the published GCS guides now show a `my_bucket` placeholder instead of the real CI bucket. ([#12056](https://github.com/fivetran/great_expectations/pull/12056))
+- The SingleStore development container image used by CI is pinned to 0.2.82 instead of tracking `:latest`. ([#12054](https://github.com/fivetran/great_expectations/pull/12054))
+- Bumped mermaid from 11.15.0 to 11.16.1 in the documentation site dependencies. ([#12047](https://github.com/fivetran/great_expectations/pull/12047))
+- Bumped nanoid from 3.3.16 to 3.3.18 in the documentation site dependencies. ([#12052](https://github.com/fivetran/great_expectations/pull/12052))
+- Bumped dompurify from 3.4.12 to 3.4.13 in the documentation site dependencies. ([#12048](https://github.com/fivetran/great_expectations/pull/12048))
+
+</details>
+
+#### Contributors
+
+Thanks to @goanpeca (first contribution), @chavalasantosh (first contribution), @AtomicGlance (first contribution).
 
 ### 1.20.0 (2026-08-07)
 
