@@ -50,6 +50,8 @@ DATA = pd.DataFrame(
         WITH_NULL: ["abc", None, "ghi"],
     }
 )
+PATTERN_CODES = "pattern_codes"
+CODES_DATA = pd.DataFrame({PATTERN_CODES: ["A100", "A200", "B300"]})
 
 
 @parameterize_batch_for_data_sources(data_source_configs=SUPPORTED_SQL_DATA_SOURCES, data=DATA)
@@ -293,3 +295,42 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
 def test_invalid_config() -> None:
     with pytest.raises(pydantic.ValidationError):
         gxe.ExpectColumnValuesToMatchRegexList(column=BASIC_STRINGS, regex_list=[])
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[SparkFilesystemCsvDatasourceTestConfig()],
+    data=CODES_DATA,
+)
+def test_match_on_all_with_patterns_anchored_at_different_positions(
+    batch_for_datasource: Batch,
+) -> None:
+    """Each regex is tested independently; a value passes when every one matches somewhere."""
+    expectation = gxe.ExpectColumnValuesToMatchRegexList(
+        column=PATTERN_CODES,
+        regex_list=["^A", "[0-9]{3}$"],
+        match_on="all",
+    )
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    assert not result.success
+    assert result.result["unexpected_count"] == 1
+    assert result.result["unexpected_list"] == ["B300"]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[SparkFilesystemCsvDatasourceTestConfig()],
+    data=CODES_DATA,
+)
+def test_empty_regex_list_suite_parameter_spark(
+    batch_for_datasource: Batch,
+) -> None:
+    suite_param_key = "empty_regex_list"
+    expectation = gxe.ExpectColumnValuesToMatchRegexList(
+        column=PATTERN_CODES,
+        regex_list={"$PARAMETER": suite_param_key},
+        match_on="all",
+    )
+    with pytest.raises(pydantic.ValidationError):
+        batch_for_datasource.validate(
+            expectation,
+            expectation_parameters={suite_param_key: []},
+        )

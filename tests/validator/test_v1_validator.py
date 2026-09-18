@@ -5,6 +5,7 @@ from pprint import pformat as pf
 from typing import TYPE_CHECKING
 from unittest import mock
 
+import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
@@ -19,6 +20,7 @@ if TYPE_CHECKING:
     from great_expectations.data_context.data_context.abstract_data_context import (
         AbstractDataContext,
     )
+    from great_expectations.datasource.fluent.pandas_datasource import PandasDatasource
     from great_expectations.expectations.expectation import Expectation
 
 
@@ -281,3 +283,40 @@ def test_cloud_validate_renders_results_when_appropriate(
 
     assert len(result.results) == 1
     assert result.results[0].rendered_content
+
+
+@pytest.fixture
+def pandas_datasource(empty_data_context: AbstractDataContext) -> PandasDatasource:
+    return empty_data_context.data_sources.add_pandas("pandas_datasource")
+
+
+def _validator_for(pandas_datasource: PandasDatasource, name: str, rows: int) -> Validator:
+    batch_definition = pandas_datasource.add_dataframe_asset(
+        name
+    ).add_batch_definition_whole_dataframe("whole")
+    return Validator(
+        batch_definition=batch_definition,
+        batch_parameters={"dataframe": pd.DataFrame({"x": range(rows)})},
+    )
+
+
+@pytest.mark.unit
+def test_validate_expectation_suite_reports_its_own_batch_when_a_sibling_validator_is_built(
+    pandas_datasource: PandasDatasource,
+):
+    """Both Validators share the datasource's cached execution engine. Building the second
+    one after the first has been built (but before it validates) must not make the first
+    compute against, or label its result with, the second one's Batch."""
+    small = _validator_for(pandas_datasource, "small", rows=3)
+    big = _validator_for(pandas_datasource, "big", rows=10)
+    assert small._wrapped_validator.execution_engine is big._wrapped_validator.execution_engine
+
+    suite = ExpectationSuite("row_count")
+    suite.add_expectation(gxe.ExpectTableRowCountToEqual(value=3))
+    result = small.validate_expectation_suite(suite)
+
+    assert result.success is True
+    assert result.results[0].result["observed_value"] == 3
+    assert result.batch_id == "pandas_datasource-small"
+    assert small.active_batch_id == "pandas_datasource-small"
+    assert result.meta["active_batch_definition"]["data_asset_name"] == "small"

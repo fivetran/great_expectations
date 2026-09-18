@@ -292,6 +292,16 @@ def pytest_addoption(parser):
         action="store_true",
         help="If set, run performance tests (which might also require additional arguments like --bigquery)",  # noqa: E501 # FIXME CoP
     )
+    parser.addoption(
+        "--gallery-measurement",
+        action="store_true",
+        help=(
+            "If set, the gallery-tier expectation suite runs against every registered data source "
+            "that has a configuration and an execution engine, instead of only declared "
+            "gallery-tier members. Off by default; a measurement run does not edit any data "
+            "source's declaration."
+        ),
+    )
 
 
 def build_test_backends_list_v2_api(metafunc):
@@ -1870,7 +1880,10 @@ def arbitrary_validation_definition(
 @pytest.fixture
 def validator_with_mock_execution_engine(mocker: MockerFixture) -> Validator:
     execution_engine = mocker.MagicMock()
-    validator = Validator(execution_engine=execution_engine)
+    # A Validator without a Batch refuses attribute access (see Validator.__getattr__), so
+    # give it one; the engine is a mock, so nothing is loaded anywhere.
+    batch = mocker.MagicMock(id="mock_batch_id")
+    validator = Validator(execution_engine=execution_engine, batches=[batch])
     return validator
 
 

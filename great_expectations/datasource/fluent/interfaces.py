@@ -1123,7 +1123,7 @@ class Batch:
         Returns:
             list of column names.
         """
-        return self._get_metrics_calculator().columns()
+        return self._get_metrics_calculator().columns(domain_kwargs={"batch_id": self.id})
 
     @public_api
     @validate_arguments

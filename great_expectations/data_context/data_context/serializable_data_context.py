@@ -188,7 +188,7 @@ class SerializableDataContext(AbstractDataContext):
         path_to_yml = gx_dir / cls.GX_YML
 
         # TODO this is so brittle and gross
-        with path_to_yml.open() as f:
+        with path_to_yml.open(encoding="utf-8") as f:
             config = yaml.load(f)
         config_var_path = config.get("config_variables_file_path")
         if not config_var_path:
@@ -260,7 +260,7 @@ class SerializableDataContext(AbstractDataContext):
 
         uncommitted_dir = f"{cls.GX_UNCOMMITTED_DIR}/"
         if gitignore.is_file():
-            contents = gitignore.read_text()
+            contents = gitignore.read_text(encoding="utf-8")
             if uncommitted_dir in contents:
                 return
 
@@ -311,7 +311,7 @@ class SerializableDataContext(AbstractDataContext):
         if yml_path is None:
             return None
 
-        with open(yml_path) as f:
+        with open(yml_path, encoding="utf-8") as f:
             config_commented_map_from_yaml = yaml.load(f)
 
         config_version = config_commented_map_from_yaml.get("config_version")
@@ -345,11 +345,20 @@ class SerializableDataContext(AbstractDataContext):
         if yml_path is None:
             return False
 
-        with open(yml_path) as f:
-            config_commented_map_from_yaml = yaml.load(f)
-            config_commented_map_from_yaml["config_version"] = float(config_version)
+        try:
+            with open(yml_path, encoding="utf-8") as f:
+                config_commented_map_from_yaml = yaml.load(f)
+                config_commented_map_from_yaml["config_version"] = float(config_version)
+        except UnicodeDecodeError as e:
+            raise gx_exceptions.InvalidConfigurationYamlError(  # noqa: TRY003
+                f"{yml_path} is not valid UTF-8, so great_expectations cannot read it: {e}.\n"
+                "Great Expectations reads and writes this file as UTF-8. Bytes in another codec "
+                "come from a hand edit or from a version that used the host locale, and the "
+                "loader path in FileDataContext (file_data_context.py:197) cannot read them "
+                "either."
+            ) from e
 
-        with open(yml_path, "w") as f:
+        with open(yml_path, "w", encoding="utf-8") as f:
             yaml.dump(config_commented_map_from_yaml, f)
 
         return True

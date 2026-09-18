@@ -487,7 +487,9 @@ def _sqlalchemy_map_condition_query(  # noqa: C901 #  too complex
     unexpected_condition_query_with_selected_columns: sa.select = sa.select(*column_selector).where(  # type: ignore[valid-type] # FIXME CoP
         unexpected_condition
     )
-    source_table_and_schema: sa.Table = get_sqlalchemy_source_table_and_schema(execution_engine)
+    source_table_and_schema: sa.Table = get_sqlalchemy_source_table_and_schema(
+        execution_engine, batch_id=metric_domain_kwargs.get("batch_id")
+    )
 
     source_table_and_schema_as_selectable: Union[sa.Table, sa.Select] = get_sqlalchemy_selectable(
         source_table_and_schema
