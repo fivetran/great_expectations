@@ -697,14 +697,44 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Update "fraction" to "proportion" on NonNullProportion renderer ([#11253](https://github.com/great-expectations/great_expectations/pull/11253))
 * [MAINTENANCE] Bump brace-expansion from 1.1.11 to 1.1.12 in /docs/docusaurus ([#11251](https://github.com/great-expectations/great_expectations/pull/11251))
 
-### 1.5.1
-* [FEATURE] Add ColumnAggregateNonNullCount metric ([#11229](https://github.com/great-expectations/great_expectations/pull/11229))
-* [FEATURE] `ExpectColumnProportionOfUniqueValuesToBeBetween` ([#11235](https://github.com/great-expectations/great_expectations/pull/11235))
-* [DOCS] Revise use of the term "API" ([#11196](https://github.com/great-expectations/great_expectations/pull/11196))
-* [DOCS] fix link to removed content ([#11232](https://github.com/great-expectations/great_expectations/pull/11232))
-* [MAINTENANCE] Revert "[MAINTENANCE] Snowflake tests only run with snowflake flag" ([#11230](https://github.com/great-expectations/great_expectations/pull/11230))
-* [MAINTENANCE] Add session pool to expectation tests ([#11228](https://github.com/great-expectations/great_expectations/pull/11228))
-* [MAINTENANCE] Remove RuleBasedProfiler ([#11231](https://github.com/great-expectations/great_expectations/pull/11231))
+### 1.5.1 (2025-06-11)
+
+#### Highlights
+
+- **New expectation: ExpectColumnProportionOfUniqueValuesToBeBetween** — You can now assert that the proportion of unique values in a column falls within an expected range, letting you catch columns that become unexpectedly duplicated or unexpectedly high-cardinality. ([#11235](https://github.com/fivetran/great_expectations/pull/11235))
+
+  ```python
+  import great_expectations.expectations as gxe
+
+  expectation = gxe.ExpectColumnProportionOfUniqueValuesToBeBetween(
+      column="passenger_count",
+      min_value=0.1,
+      max_value=0.9,
+  )
+  ```
+
+- **Non-null count available as a column metric** — A column aggregate metric for the number of non-null values in a column is now available, so expectations and custom checks can reason about how much data a column actually contains. ([#11229](https://github.com/fivetran/great_expectations/pull/11229))
+
+#### Changes
+
+##### Features
+
+- Added `ExpectColumnProportionOfUniqueValuesToBeBetween`, which validates that the proportion of unique values in a column falls between a minimum and maximum value. ([#11235](https://github.com/fivetran/great_expectations/pull/11235))
+- Added a `ColumnAggregateNonNullCount` metric that reports the number of non-null values in a column. ([#11229](https://github.com/fivetran/great_expectations/pull/11229))
+
+##### Docs
+
+- Fixed a documentation link that pointed at content removed in an earlier change. ([#11232](https://github.com/fivetran/great_expectations/pull/11232))
+- Revised documentation wording around the term "API" for consistency with the current style guidance. ([#11196](https://github.com/fivetran/great_expectations/pull/11196))
+
+<details>
+<summary>Maintenance</summary>
+
+- Removed the Rule-Based Profiler and its references, moving the column-filtering behavior it provided into a standalone module. ([#11231](https://github.com/fivetran/great_expectations/pull/11231))
+- Restored database connection pooling in the expectation test suite, including cleanup of the temporary schemas the tests create. ([#11228](https://github.com/fivetran/great_expectations/pull/11228))
+- Reverted a change that gated Snowflake tests behind a `--snowflake` flag, so those tests run again in CI via the `snowflake` marker. ([#11230](https://github.com/fivetran/great_expectations/pull/11230))
+
+</details>
 
 ### 1.5.0 (2025-06-05)
 
