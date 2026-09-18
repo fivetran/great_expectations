@@ -539,15 +539,45 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Condition class handling for spark ([#11470](https://github.com/great-expectations/great_expectations/pull/11470))
 * [MAINTENANCE] Condition class handling for SQL ([#11473](https://github.com/great-expectations/great_expectations/pull/11473))
 
-### 1.7.1
-* [BUGFIX] Fix ExpectColumnValuesToBeOfType for trino ([#11438](https://github.com/great-expectations/great_expectations/pull/11438))
-* [BUGFIX] Compile Databricks parameters in `unexpected_index_query` ([#11437](https://github.com/great-expectations/great_expectations/pull/11437))
-* [DOCS] UI for workspace ID ([#11435](https://github.com/great-expectations/great_expectations/pull/11435))
-* [DOCS] python version 3.13 ([#11442](https://github.com/great-expectations/great_expectations/pull/11442))
-* [DOCS] workspace required ([#11443](https://github.com/great-expectations/great_expectations/pull/11443))
-* [DOCS] Connect S3 ([#11375](https://github.com/great-expectations/great_expectations/pull/11375))
-* [MAINTENANCE] Add `RedshiftConnectionDetails` to type stub ([#11434](https://github.com/great-expectations/great_expectations/pull/11434))
-* [MAINTENANCE] [pre-commit.ci] pre-commit autoupdate ([#11355](https://github.com/great-expectations/great_expectations/pull/11355))
+### 1.7.1 (2025-10-15)
+
+#### Highlights
+
+- **Databricks SQL parameters are now compiled in `unexpected_index_query`** — Validation results for Databricks now return an `unexpected_index_query` with its parameters fully rendered, so the query can be copied and run as-is. The query compilation is also no longer sensitive to unfamiliar bind-parameter patterns or to the ordering of parameter values. ([#11437](https://github.com/fivetran/great_expectations/pull/11437))
+
+- **`ExpectColumnValuesToBeOfType` works against Trino** — `ExpectColumnValuesToBeOfType` now evaluates correctly when validating data in Trino. ([#11438](https://github.com/fivetran/great_expectations/pull/11438))
+
+  ```python
+  import great_expectations as gx
+
+  gx.expectations.ExpectColumnValuesToBeOfType(column="id", type_="INTEGER")
+  ```
+
+#### Changes
+
+##### Bug fixes
+
+- Databricks SQL parameters are now compiled into `unexpected_index_query`, so the returned query is complete and runnable, and no longer depends on bind-parameter naming patterns or dictionary ordering. ([#11437](https://github.com/fivetran/great_expectations/pull/11437))
+- Fixed `ExpectColumnValuesToBeOfType` so it evaluates correctly against Trino. ([#11438](https://github.com/fivetran/great_expectations/pull/11438))
+
+##### Docs
+
+- Added documentation for connecting to data in Amazon S3. ([#11375](https://github.com/fivetran/great_expectations/pull/11375))
+- Clarified in the documentation that a workspace is required. ([#11443](https://github.com/fivetran/great_expectations/pull/11443))
+- Documented support for Python 3.13. ([#11442](https://github.com/fivetran/great_expectations/pull/11442))
+- Updated documentation to describe finding the workspace ID in the UI. ([#11435](https://github.com/fivetran/great_expectations/pull/11435))
+
+<details>
+<summary>Maintenance</summary>
+
+- Updated pre-commit hooks to newer versions of pre-commit-hooks and ruff. ([#11355](https://github.com/fivetran/great_expectations/pull/11355))
+- Type checkers no longer flag passing Redshift connection details when adding or updating a Redshift data source; the type stubs now accept them alongside a connection string. ([#11434](https://github.com/fivetran/great_expectations/pull/11434))
+
+</details>
+
+#### Contributors
+
+Thanks to @dctalbot.
 
 ### 1.7.0 (2025-10-09)
 
