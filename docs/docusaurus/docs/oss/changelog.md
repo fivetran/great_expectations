@@ -1315,29 +1315,71 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Ensure that all nested validation definition diagnostics are emitted from a parent checkpoint ([#10386](https://github.com/great-expectations/great_expectations/pull/10386))
 * [MAINTENANCE] Fix `SQLAlchemyExectionEngine.get_connection()` typing + update column identifier tests ([#10399](https://github.com/great-expectations/great_expectations/pull/10399))
 
-### 1.0.3
-* [FEATURE] Replace get_batch_list_from_batch_request with get_batch and get_batch_identifiers_list ([#10295](https://github.com/great-expectations/great_expectations/pull/10295))
-* [FEATURE] Add Checkpoint.run analytics ([#10382](https://github.com/great-expectations/great_expectations/pull/10382))
-* [FEATURE] BatchDefinition.get_batch_identifiers_list ([#10383](https://github.com/great-expectations/great_expectations/pull/10383))
-* [BUGFIX] Patch issue with data docs page retrieval in checkpoint actions ([#10374](https://github.com/great-expectations/great_expectations/pull/10374))
-* [DOCS] Update changelog attributions for 1.0 releases ([#10348](https://github.com/great-expectations/great_expectations/pull/10348))
-* [DOCS] Embed Wistia video in GX Core introduction ([#10366](https://github.com/great-expectations/great_expectations/pull/10366)) (thanks @JessSaavedra)
-* [DOCS] added data doc support posture ([#10373](https://github.com/great-expectations/great_expectations/pull/10373))
-* [DOCS] Adding BigQuery to GX Core support posture ([#10375](https://github.com/great-expectations/great_expectations/pull/10375))
-* [DOCS] Update Learn data quality use case articles to use &lt;small&gt; tags ([#10377](https://github.com/great-expectations/great_expectations/pull/10377))
-* [DOCS] Hide feedback survey on homepage ([#10378](https://github.com/great-expectations/great_expectations/pull/10378)) (thanks @deborahniesz)
-* [MAINTENANCE] SQLAlchemy 2 typing ([#10112](https://github.com/great-expectations/great_expectations/pull/10112))
-* [MAINTENANCE] Update `Expectation` equality to simplify meta and notes checks ([#10349](https://github.com/great-expectations/great_expectations/pull/10349))
-* [MAINTENANCE] Add `description` field to `ExpectationConfigurationSchema` and render always `description` over `template_str` ([#10347](https://github.com/great-expectations/great_expectations/pull/10347))
-* [MAINTENANCE] Clean up GX error types ([#10356](https://github.com/great-expectations/great_expectations/pull/10356))
-* [MAINTENANCE] Check that `BatchDefinitions` and `ExpectationSuites` are up-to-date before saving ([#10277](https://github.com/great-expectations/great_expectations/pull/10277))
-* [MAINTENANCE] Clean up test fixtures ([#10358](https://github.com/great-expectations/great_expectations/pull/10358))
-* [MAINTENANCE] Move "freshness"-related exceptions to separate file ([#10359](https://github.com/great-expectations/great_expectations/pull/10359))
-* [MAINTENANCE] Guard against dictionary `KeyError`s ([#10353](https://github.com/great-expectations/great_expectations/pull/10353))
-* [MAINTENANCE] Add "freshness" checks for ValidationDefinitions and Checkpoints ([#10365](https://github.com/great-expectations/great_expectations/pull/10365))
-* [MAINTENANCE] Additional tests for `BatchDefinition` and `ExpectationSuite` freshness ([#10380](https://github.com/great-expectations/great_expectations/pull/10380))
-* [MAINTENANCE] Delete misc functions from `test_utils` ([#10357](https://github.com/great-expectations/great_expectations/pull/10357))
-* [MAINTENANCE] Additional tests for `ValidationDefinition` and `Checkpoint` freshness ([#10381](https://github.com/great-expectations/great_expectations/pull/10381))
+### 1.0.3 (2024-09-12)
+
+Compatibility: `sqlalchemy` minimum set to 1.4.0 (extra `snowflake`)
+
+#### Highlights
+
+- **List available batches without loading data** — `BatchDefinition` now offers a public `get_batch_identifiers_list()` method that returns the batch identifiers available for that batch definition. It replaces the old `get_batch_list_from_batch_request` workflow for inspecting available batches, and because it does not read the underlying data it is considerably faster. ([#10383](https://github.com/fivetran/great_expectations/pull/10383), [#10295](https://github.com/fivetran/great_expectations/pull/10295))
+
+  ```python
+  batch_definition = asset.get_batch_definition("daily")
+  for identifiers in batch_definition.get_batch_identifiers_list():
+      print(identifiers)
+  ```
+
+- **Fetch a single batch with `get_batch`** — `get_batch_list_from_batch_request` has been replaced by `get_batch`, which retrieves only the batch you actually need instead of reading every matching batch. For Pandas filesystem datasources in particular, this removes the long-standing cost of loading data for batches that were never used. ([#10295](https://github.com/fivetran/great_expectations/pull/10295))
+
+  ```python
+  batch = batch_definition.get_batch()
+  result = batch.validate(expectation)
+  ```
+
+- **Checkpoint results no longer break Data Docs links in actions** — Checkpoint actions such as the Microsoft Teams notification no longer raise a `TypeError` when building Data Docs links from a checkpoint run; the links are rendered correctly again. ([#10374](https://github.com/fivetran/great_expectations/pull/10374))
+
+#### Changes
+
+##### Features
+
+- `BatchDefinition.get_batch_identifiers_list()` is now available as a public, non-data-reading way to see which batches a batch definition covers. ([#10383](https://github.com/fivetran/great_expectations/pull/10383))
+- Running a Checkpoint now emits usage analytics for the run. ([#10382](https://github.com/fivetran/great_expectations/pull/10382))
+- `get_batch_list_from_batch_request` is replaced by `get_batch`, which fetches only the batch you need, and by `get_batch_identifiers_list` for inspecting available batch metadata; documentation has been updated to the new methods. ([#10295](https://github.com/fivetran/great_expectations/pull/10295))
+
+##### Bug fixes
+
+- Checkpoint actions no longer fail with `TypeError: list indices must be integers` when rendering Data Docs page links. ([#10374](https://github.com/fivetran/great_expectations/pull/10374))
+
+##### Docs
+
+- The feedback survey is no longer shown on the documentation homepage. ([#10378](https://github.com/fivetran/great_expectations/pull/10378))
+- Data quality use case articles in the Learn section now use small text instead of superscript for footnotes. ([#10377](https://github.com/fivetran/great_expectations/pull/10377))
+- Documentation now lists BigQuery in the GX Core support posture. ([#10375](https://github.com/fivetran/great_expectations/pull/10375))
+- Documentation now describes the support posture for Data Docs. ([#10373](https://github.com/fivetran/great_expectations/pull/10373))
+- The GX Core introduction page now includes an embedded overview video. ([#10366](https://github.com/fivetran/great_expectations/pull/10366))
+- Changelog attributions for the 1.0 releases now credit external contributors. ([#10348](https://github.com/fivetran/great_expectations/pull/10348))
+
+<details>
+<summary>Maintenance</summary>
+
+- Removed unused miscellaneous helper functions from the internal test utilities. ([#10357](https://github.com/fivetran/great_expectations/pull/10357))
+- Added test coverage for up-to-date (freshness) checks on validation definitions and checkpoints. ([#10381](https://github.com/fivetran/great_expectations/pull/10381))
+- Added test coverage for up-to-date (freshness) checks on batch definitions and expectation suites. ([#10380](https://github.com/fivetran/great_expectations/pull/10380))
+- Validation definitions and checkpoints are now checked for being up to date with their stored versions, raising a dedicated error when they are not. ([#10365](https://github.com/fivetran/great_expectations/pull/10365))
+- Rendering an expectation's description no longer risks a `KeyError` when configuration or result values are absent. ([#10353](https://github.com/fivetran/great_expectations/pull/10353))
+- Errors raised when a resource is not added or not up to date now live in a dedicated module with a clearer class hierarchy. ([#10359](https://github.com/fivetran/great_expectations/pull/10359))
+- Cleaned up test fixtures. ([#10358](https://github.com/fivetran/great_expectations/pull/10358))
+- Batch definitions and expectation suites are now checked for being up to date before they are saved. ([#10277](https://github.com/fivetran/great_expectations/pull/10277))
+- Removed error types left over from legacy versions to simplify the set of exceptions the library raises. ([#10356](https://github.com/fivetran/great_expectations/pull/10356))
+- An expectation's `description`, when set, is now always rendered in place of the default rendered text, and it is omitted from serialized expectation suites when unset. ([#10347](https://github.com/fivetran/great_expectations/pull/10347))
+- Expectation equality comparison now handles `meta` and `notes` more simply and consistently. ([#10349](https://github.com/fivetran/great_expectations/pull/10349))
+- Type checking now runs against SQLAlchemy 2, while both SQLAlchemy 1 and 2 remain supported at runtime. ([#10112](https://github.com/fivetran/great_expectations/pull/10112))
+
+</details>
+
+#### Contributors
+
+Thanks to @deborahniesz, @JessSaavedra, @anthonyburdi.
 
 ### 1.0.2 (2024-09-05)
 
