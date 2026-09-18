@@ -595,8 +595,13 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Ensure pyarrow wheel on Python 3.12 Snowflake marker tests ([#11388](https://github.com/great-expectations/great_expectations/pull/11388))
 * [MAINTENANCE] fix snowlake dependency resolution in 3.10 ([#11390](https://github.com/great-expectations/great_expectations/pull/11390))
 
-### 1.6.1
-* [BUGFIX] Make workspaces optional for cloud_user_info ([#11378](https://github.com/great-expectations/great_expectations/pull/11378))
+### 1.6.1 (2025-09-15)
+
+#### Changes
+
+##### Bug fixes
+
+- Users without any associated workspaces — such as the system user used by the runner — no longer hit an error when retrieving cloud user information, so analytics can be logged with no workspaces present. ([#11378](https://github.com/fivetran/great_expectations/pull/11378))
 
 ### 1.6.0 (2025-09-12)
 
