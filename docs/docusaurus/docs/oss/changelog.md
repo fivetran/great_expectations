@@ -349,6 +349,53 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Install ODBC driver in `docs-creds-needed` ([#11698](https://github.com/great-expectations/great_expectations/pull/11698))
 * [MAINTENANCE] Deprecate `schema_name` on all `TableAsset`s ([#11689](https://github.com/great-expectations/great_expectations/pull/11689))
 
+### 1.13.1 (2026-03-04)
+
+#### Highlights
+
+- **Trust a SQL Server certificate without turning off encryption** — SQL Server and Fabric data sources accept a new `trust_server_certificate` option, so you can connect to a server presenting a self-signed or otherwise untrusted certificate while keeping encryption enabled instead of weakening `encrypt` to "Optional". The option works with both SQL Server authentication and Entra ID. ([#11694](https://github.com/fivetran/great_expectations/pull/11694))
+
+  ```python
+  import great_expectations as gx
+
+  context = gx.get_context()
+  datasource = context.data_sources.add_sql_server(
+      name="my_sql_server",
+      host="my-host",
+      database="my_database",
+      username="my_user",
+      password="my_password",
+      trust_server_certificate=True,
+  )
+  ```
+
+- **Config variable substitution errors no longer echo secret text** — When a password or secret contains a literal `$`, Great Expectations no longer includes the text following the `$` in the resulting missing-config-variable error message, so part of the secret is not leaked in logs. The error guidance also no longer points at the retired `$MY_CONFIG_VAR` substitution syntax. ([#11693](https://github.com/fivetran/great_expectations/pull/11693))
+
+#### Deprecations
+
+- The `schema_name` parameter on `TableAsset` and `add_table_asset` is deprecated; use the schema configured on the SQL data source's connection string. Removal in 2.0.0. ([#11689](https://github.com/fivetran/great_expectations/pull/11689))
+
+#### Changes
+
+##### Features
+
+- SQL Server and Fabric data sources accept a new `trust_server_certificate` option, letting you trust a self-signed or untrusted server certificate while keeping the connection encrypted, with both SQL Server authentication and Entra ID. ([#11694](https://github.com/fivetran/great_expectations/pull/11694))
+
+##### Docs
+
+- The Cloud email alert documentation now lists ServiceNow as a supported third-party service and includes `*.service-now.com` in the default allowed email domains. ([#11669](https://github.com/fivetran/great_expectations/pull/11669))
+
+<details>
+<summary>Maintenance</summary>
+
+- The `schema_name` parameter on `TableAsset` and `add_table_asset` is deprecated; table assets now resolve their schema from the SQL data source they belong to, so specify the schema in the data source's connection configuration instead. ([#11689](https://github.com/fivetran/great_expectations/pull/11689))
+- Installed the SQL Server ODBC driver in the credentials-backed documentation test step so SQL Server examples in the docs are exercised in CI. ([#11698](https://github.com/fivetran/great_expectations/pull/11698))
+- Added Sentry error tracking to the documentation site, initialized early enough to capture errors that occur before the page finishes loading; the DSN comes from a `SENTRY_DSN` environment variable and no performance data is collected. ([#11695](https://github.com/fivetran/great_expectations/pull/11695))
+- Config variable substitution errors no longer include text that follows a literal `$` in a password or secret, avoiding partial secret leakage, and their guidance no longer references the removed `$MY_CONFIG_VAR` syntax. ([#11693](https://github.com/fivetran/great_expectations/pull/11693))
+- Updated the documentation site's `qs` dependency from 6.14.1 to 6.14.2. ([#11660](https://github.com/fivetran/great_expectations/pull/11660))
+
+</details>
+
 ### 1.13.0 (2026-02-26)
 
 Compatibility: `altair` minimum 4.2.1 → 5.0.0; new extra `fabric`; removed extra `mssql`; new extra `sql-server`
