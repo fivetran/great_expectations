@@ -1142,28 +1142,67 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Sqlite integration testing ([#10657](https://github.com/great-expectations/great_expectations/pull/10657))
 * [MAINTENANCE] Use random schema in integration tests ([#10658](https://github.com/great-expectations/great_expectations/pull/10658))
 
-### 1.2.2
-* [FEATURE] Add check for valid column type when calling add_batch_def in a sql asset ([#10590](https://github.com/great-expectations/great_expectations/pull/10590))
-* [FEATURE] Expectations tests against SQL backends infer column types ([#10622](https://github.com/great-expectations/great_expectations/pull/10622))
-* [BUGFIX] Parse spaces in row condition column name ([#10611](https://github.com/great-expectations/great_expectations/pull/10611))
-* [BUGFIX] Batch Expectations correctly handle `date` min and max values ([#10613](https://github.com/great-expectations/great_expectations/pull/10613))
-* [BUGFIX] Mask conn_str in configs ([#10626](https://github.com/great-expectations/great_expectations/pull/10626))
-* [BUGFIX] Missing renderer params when `row_condition` is used ([#10632](https://github.com/great-expectations/great_expectations/pull/10632))
-* [DOCS] Updated cloud action support posture to be in line with reality ([#10609](https://github.com/great-expectations/great_expectations/pull/10609))
-* [DOCS] Add dynamic parameters documentation ([#10483](https://github.com/great-expectations/great_expectations/pull/10483))
-* [DOCS] Fix column name in failing example for ExpectColumnValuesToBeB… ([#10620](https://github.com/great-expectations/great_expectations/pull/10620))
-* [DOCS] remove unsupported actions ([#10624](https://github.com/great-expectations/great_expectations/pull/10624))
-* [MAINTENANCE] Bump mermaid from 10.9.0 to 10.9.3 in /docs/docusaurus ([#10549](https://github.com/great-expectations/great_expectations/pull/10549))
-* [MAINTENANCE] Bump http-proxy-middleware from 2.0.6 to 2.0.7 in /docs/docusaurus ([#10566](https://github.com/great-expectations/great_expectations/pull/10566))
-* [MAINTENANCE] Mock posthog in action tests ([#10615](https://github.com/great-expectations/great_expectations/pull/10615))
-* [MAINTENANCE] Add another member to teams.yml ([#10616](https://github.com/great-expectations/great_expectations/pull/10616))
-* [MAINTENANCE] Validate Expectation JSON Schema follows meta-schema specification ([#10627](https://github.com/great-expectations/great_expectations/pull/10627))
-* [MAINTENANCE] Prevent unneeded test setup/teardown ([#10619](https://github.com/great-expectations/great_expectations/pull/10619))
-* [MAINTENANCE] dynamically generate extra table names in tests ([#10630](https://github.com/great-expectations/great_expectations/pull/10630))
-* [MAINTENANCE] test cleanup ([#10631](https://github.com/great-expectations/great_expectations/pull/10631))
-* [MAINTENANCE] Add mysql support to testing framework ([#10633](https://github.com/great-expectations/great_expectations/pull/10633))
-* [MAINTENANCE] Make PR Title Checker GH Action more secure ([#10636](https://github.com/great-expectations/great_expectations/pull/10636))
-* [MAINTENANCE] Add mssql support to testing framework ([#10634](https://github.com/great-expectations/great_expectations/pull/10634))
+### 1.2.2 (2024-11-07)
+
+#### Highlights
+
+- **Row conditions accept column names containing spaces** — Row conditions whose column names contain spaces are now parsed correctly instead of raising an exception. ([#10611](https://github.com/fivetran/great_expectations/pull/10611))
+
+  ```python
+  gxe.ExpectColumnValuesToNotBeNull(
+      column="passenger_count",
+      row_condition='col("pickup location")=="A"',
+      condition_parser="great_expectations",
+  )
+  ```
+
+- **Renderer parameters restored when using row_condition** — Expectation keyword arguments are once again included as renderer parameters, so rendered output for Expectations that use a row condition shows the full set of parameters. ([#10632](https://github.com/fivetran/great_expectations/pull/10632))
+
+- **Batch definitions validate the column type they partition on** — Adding a batch definition to a SQL data asset now checks that the named column is a valid date/datetime column and raises a clear error otherwise, instead of failing later at validation time. ([#10590](https://github.com/fivetran/great_expectations/pull/10590))
+
+  ```python
+  asset.add_batch_definition_daily(name="daily", column="event_date")
+  ```
+
+- **Connection strings masked in configuration output** — The `conn_str` field used by Azure Blob Storage data sources is now masked when configuration is displayed or serialized, keeping credentials out of output. ([#10626](https://github.com/fivetran/great_expectations/pull/10626))
+
+#### Changes
+
+##### Features
+
+- Expectation tests run against SQL backends now infer column types from the test data. ([#10622](https://github.com/fivetran/great_expectations/pull/10622))
+- Adding a batch definition to a SQL data asset now validates that the specified column is a supported type and raises an error when it is not. ([#10590](https://github.com/fivetran/great_expectations/pull/10590))
+
+##### Bug fixes
+
+- Expectation keyword arguments are again passed through as renderer parameters, restoring missing parameters when a row condition is used. ([#10632](https://github.com/fivetran/great_expectations/pull/10632))
+- The `conn_str` field used by Azure Blob Storage data sources is now masked in configuration output. ([#10626](https://github.com/fivetran/great_expectations/pull/10626))
+- Batch Expectations now correctly handle `date` values for minimum and maximum bounds. ([#10613](https://github.com/fivetran/great_expectations/pull/10613))
+- Row conditions now parse column names that contain spaces instead of raising an exception. ([#10611](https://github.com/fivetran/great_expectations/pull/10611))
+
+##### Docs
+
+- Removed unsupported actions (Opsgenie, PagerDuty, SNS) from the API documentation. ([#10624](https://github.com/fivetran/great_expectations/pull/10624))
+- Fixed an incorrect column name in the failing example for ExpectColumnValuesToBeBetween. ([#10620](https://github.com/fivetran/great_expectations/pull/10620))
+- Added documentation for dynamic parameters. ([#10483](https://github.com/fivetran/great_expectations/pull/10483))
+- Updated documentation of which actions are supported in GX Cloud to match current behavior. ([#10609](https://github.com/fivetran/great_expectations/pull/10609))
+
+<details>
+<summary>Maintenance</summary>
+
+- Added Microsoft SQL Server coverage to the Expectation testing framework. ([#10634](https://github.com/fivetran/great_expectations/pull/10634))
+- Hardened the pull request title checker workflow against injection. ([#10636](https://github.com/fivetran/great_expectations/pull/10636))
+- Added MySQL coverage to the Expectation testing framework. ([#10633](https://github.com/fivetran/great_expectations/pull/10633))
+- Simplified the internal test framework with clearer table lookups and more immutable setup objects. ([#10631](https://github.com/fivetran/great_expectations/pull/10631))
+- Extra table names used by tests are now randomly generated, and keys in extra test data are labels for correlation rather than table names. ([#10630](https://github.com/fivetran/great_expectations/pull/10630))
+- Test setup and teardown are now reused across compatible test configurations, avoiding unneeded database setup work. ([#10619](https://github.com/fivetran/great_expectations/pull/10619))
+- Expectation JSON schemas are now verified against the Draft-7 meta-schema, with `multiple_of` corrected to `multipleOf` and a regression test added. ([#10627](https://github.com/fivetran/great_expectations/pull/10627))
+- Added another member to the repository teams configuration. ([#10616](https://github.com/fivetran/great_expectations/pull/10616))
+- Mocked Posthog in action tests to stop intermittent CI failures. ([#10615](https://github.com/fivetran/great_expectations/pull/10615))
+- Bumped http-proxy-middleware from 2.0.6 to 2.0.7 in the documentation site. ([#10566](https://github.com/fivetran/great_expectations/pull/10566))
+- Bumped mermaid from 10.9.0 to 10.9.3 in the documentation site. ([#10549](https://github.com/fivetran/great_expectations/pull/10549))
+
+</details>
 
 ### 1.2.1 (2024-10-31)
 
