@@ -1297,16 +1297,58 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Add test showing expectation parameters being passed to… ([#10435](https://github.com/great-expectations/great_expectations/pull/10435))
 * [MAINTENANCE] Update expectation equality checks to ignore rendered content ([#10444](https://github.com/great-expectations/great_expectations/pull/10444))
 
-### 1.0.5
-* [BUGFIX] Using `{batch}` keyword in `UnexpectedRowsQuery` ([#10392](https://github.com/great-expectations/great_expectations/pull/10392))
-* [BUGFIX] Fix Databricks SQL Regex and Like based Expectations ([#10406](https://github.com/great-expectations/great_expectations/pull/10406))
-* [BUGFIX] Support Spark connect dataframes ([#10420](https://github.com/great-expectations/great_expectations/pull/10420))
-* [BUGFIX] Handle DatabricksSQL attribute error and update dependency ([#10424](https://github.com/great-expectations/great_expectations/pull/10424))
-* [DOCS] Add Connect to Databricks SQL page in GX Cloud ([#10394](https://github.com/great-expectations/great_expectations/pull/10394)) (thanks @allisongx)
-* [DOCS] Changelog updates `0.18.18` -> `0.18.21` ([#10422](https://github.com/great-expectations/great_expectations/pull/10422))
-* [DOCS] Add Connect to Databricks SQL to GX Cloud docs TOC ([#10423](https://github.com/great-expectations/great_expectations/pull/10423))
-* [MAINTENANCE] Fix `SQLAlchemyExectionEngine.get_connection()` typing + update column identifier tests ([#10399](https://github.com/great-expectations/great_expectations/pull/10399))
-* [MAINTENANCE] Move FabricPowerBIDatasource out of experimental dir ([#10419](https://github.com/great-expectations/great_expectations/pull/10419))
+### 1.0.5 (2024-09-19)
+
+Compatibility: `databricks-sql-connector` added (extra `databricks`); removed extra `databricks`; new extra `spark-connect`
+
+#### Highlights
+
+- **Spark Connect DataFrames are now accepted** — You can now pass Spark Connect DataFrames to Great Expectations wherever a Spark DataFrame is expected; previously only classic Spark DataFrames were accepted and Spark Connect DataFrames were rejected. Note that sessions created through the Spark Connect session factory methods are still not supported. ([#10420](https://github.com/fivetran/great_expectations/pull/10420))
+
+- **Regex and LIKE Expectations work on Databricks SQL** — Expectations such as expect_column_values_to_match_regex and expect_column_values_to_match_like_pattern now run correctly against Databricks SQL. ([#10406](https://github.com/fivetran/great_expectations/pull/10406))
+
+  ```python
+  batch.validate(
+      gxe.ExpectColumnValuesToMatchRegex(column="name", regex=".*")
+  )
+  ```
+
+- **`{batch}` keyword works in UnexpectedRowsExpectation queries** — Queries that use the `{batch}` keyword now run successfully on Postgres, which requires subquery aliases in SELECT and WHERE clauses, and on all backends when the batch uses a splitter, where batch parameters are now rendered as literal values. ([#10392](https://github.com/fivetran/great_expectations/pull/10392))
+
+  ```python
+  gxe.UnexpectedRowsExpectation(
+      unexpected_rows_query="SELECT * FROM {batch} WHERE passenger_count > 6"
+  )
+  ```
+
+- **Documentation for connecting GX Cloud to Databricks SQL** — The GX Cloud documentation now includes a "Connect to Databricks SQL" page, listed in the documentation table of contents. ([#10394](https://github.com/fivetran/great_expectations/pull/10394), [#10423](https://github.com/fivetran/great_expectations/pull/10423))
+
+#### Changes
+
+##### Bug fixes
+
+- Connecting to Databricks SQL no longer fails with an AttributeError when the installed `databricks` package does not provide a `sqlalchemy` sub-module, and the minimum supported `databricks-sql-connector` version has been raised. ([#10424](https://github.com/fivetran/great_expectations/pull/10424))
+- Spark Connect DataFrames are now accepted wherever Spark DataFrames are, instead of being rejected as an unsupported type; DataFrames from sessions created via the Spark Connect session factory methods remain unsupported. ([#10420](https://github.com/fivetran/great_expectations/pull/10420))
+- Regex- and LIKE-based Expectations, including expect_column_values_to_match_regex and expect_column_values_to_match_like_pattern, now work against Databricks SQL. ([#10406](https://github.com/fivetran/great_expectations/pull/10406))
+- Using the `{batch}` keyword in an unexpected-rows query no longer fails on Postgres due to missing subquery aliases, and no longer fails on any backend when the batch uses a splitter, since batch parameters are now rendered as literal values. ([#10392](https://github.com/fivetran/great_expectations/pull/10392))
+
+##### Docs
+
+- The "Connect to Databricks SQL" page is now listed in the GX Cloud documentation table of contents. ([#10423](https://github.com/fivetran/great_expectations/pull/10423))
+- The published changelog now includes the 0.18.18 through 0.18.21 releases. ([#10422](https://github.com/fivetran/great_expectations/pull/10422))
+- Added a "Connect to Databricks SQL" page to the GX Cloud documentation. ([#10394](https://github.com/fivetran/great_expectations/pull/10394))
+
+<details>
+<summary>Maintenance</summary>
+
+- `FabricPowerBIDatasource` now lives outside the `great_expectations.experimental` sub-package, removing confusion with the separate contributor experimental package. ([#10419](https://github.com/fivetran/great_expectations/pull/10419))
+- Corrected the type annotations for `SQLAlchemyExecutionEngine.get_connection()` and updated column identifier tests to match fixes carried over from the 0.18.x branch. ([#10399](https://github.com/fivetran/great_expectations/pull/10399))
+
+</details>
+
+#### Contributors
+
+Thanks to @allisongx.
 
 ### 1.0.4 (2024-09-16)
 
