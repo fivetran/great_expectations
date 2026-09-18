@@ -803,20 +803,93 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [BUGFIX] redshift: prevent runtime TypeError ([#11112](https://github.com/great-expectations/great_expectations/pull/11112))
 * [MAINTENANCE] Cleanup metrics package ([#11109](https://github.com/great-expectations/great_expectations/pull/11109))
 
-### 1.4.0
-* [FEATURE] Add `ColumnSampleValues` metric ([#11083](https://github.com/great-expectations/great_expectations/pull/11083))
-* [FEATURE] Add Redshift to SUPPORTED_DATA_SOURCES where appropriate ([#11084](https://github.com/great-expectations/great_expectations/pull/11084))
-* [FEATURE] Add gx-redshift extra ([#11092](https://github.com/great-expectations/great_expectations/pull/11092))
-* [FEATURE] Add `ColumnValuesMatchRegexCount` metric ([#11091](https://github.com/great-expectations/great_expectations/pull/11091))
-* [BUGFIX] Expectations fail validation when using sets/tuples as value_set due to JSON serialization ([#11082](https://github.com/great-expectations/great_expectations/pull/11082)) (thanks @gyermich)
-* [DOCS] update schedule instructions ([#11080](https://github.com/great-expectations/great_expectations/pull/11080))
-* [DOCS] Fix default gx directory in docstring ([#11077](https://github.com/great-expectations/great_expectations/pull/11077))
-* [MAINTENANCE] Improve PostHog pageview tracking in docs ([#11087](https://github.com/great-expectations/great_expectations/pull/11087))
-* [MAINTENANCE] Add ColumnDistinctValues metric ([#11081](https://github.com/great-expectations/great_expectations/pull/11081))
-* [MAINTENANCE] Type narrowing on compute_metrics with a single metric ([#11089](https://github.com/great-expectations/great_expectations/pull/11089))
-* [MAINTENANCE] Implement ColumnValuesMatchRegexValues metric ([#11088](https://github.com/great-expectations/great_expectations/pull/11088))
-* [MAINTENANCE] Implement ColumnValuesNotMatchRegexValues metric ([#11096](https://github.com/great-expectations/great_expectations/pull/11096))
-* [MAINTENANCE] Run gx-sqlalchemy-redshift tests. ([#11094](https://github.com/great-expectations/great_expectations/pull/11094))
+### 1.4.0 (2025-04-15)
+
+Compatibility: new extra `gx-redshift`
+
+#### Highlights
+
+- **Redshift support via a new `gx-redshift` extra** — Great Expectations can now be installed with Redshift support through a dedicated extra, and Redshift is listed among the supported data sources for the expectations that run against it. ([#11092](https://github.com/fivetran/great_expectations/pull/11092), [#11084](https://github.com/fivetran/great_expectations/pull/11084), [#11094](https://github.com/fivetran/great_expectations/pull/11094))
+
+  ```python
+  pip install 'great_expectations[gx-redshift]'
+  ```
+
+- **SQLAlchemy 2.x support for BigQuery** — The BigQuery extra now works with SQLAlchemy 2.x as well as 1.x, so you can install great_expectations[bigquery] in a SQLAlchemy 2.x environment. ([#11059](https://github.com/fivetran/great_expectations/pull/11059))
+
+  ```python
+  pip install 'great_expectations[bigquery]'
+  ```
+
+- **New column metrics for sampling and regex counts** — You can compute a sample of values from a column and a count of values matching a regular expression directly from a batch. ([#11083](https://github.com/fivetran/great_expectations/pull/11083), [#11091](https://github.com/fivetran/great_expectations/pull/11091))
+
+  ```python
+  from great_expectations.metrics.column.column_values_match_regex_count import (
+      ColumnValuesMatchRegexCount,
+  )
+
+  metric = ColumnValuesMatchRegexCount(column="my_column", regex="ab")
+  result = batch.compute_metrics(metric)
+  ```
+
+- **Sets and tuples accepted for `value_set`** — Expectations such as ExpectColumnValuesToBeInSet now accept sets and tuples for `value_set` instead of failing validation; these inputs are coerced to lists automatically. ([#11082](https://github.com/fivetran/great_expectations/pull/11082))
+
+  ```python
+  from great_expectations.expectations import ExpectColumnValuesToBeInSet
+
+  expectation = ExpectColumnValuesToBeInSet(
+      column="country_name_en",
+      value_set={"UNITED STATES", "CHINA", "SPAIN"},
+  )
+  ```
+
+- **`get_context` honors `context_root_dir`** — Requesting a file-backed Data Context with an explicit root directory now creates and loads the context in that directory. ([#11078](https://github.com/fivetran/great_expectations/pull/11078))
+
+  ```python
+  import great_expectations as gx
+
+  context = gx.get_context(mode="file", context_root_dir="/path/to/my/project")
+  ```
+
+#### Changes
+
+##### Features
+
+- Add a ColumnValuesMatchRegexCount metric that reports how many column values match a given regular expression, available on Pandas, SQL, and Spark batches. ([#11091](https://github.com/fivetran/great_expectations/pull/11091))
+- Add a `gx-redshift` install extra so Redshift dependencies can be installed with `pip install 'great_expectations[gx-redshift]'`. ([#11092](https://github.com/fivetran/great_expectations/pull/11092))
+- List Redshift among the supported data sources for the expectations that are verified against Redshift. ([#11084](https://github.com/fivetran/great_expectations/pull/11084))
+- Add a ColumnSampleValues metric for retrieving a sample of values from a column. ([#11083](https://github.com/fivetran/great_expectations/pull/11083))
+- The BigQuery extra now supports SQLAlchemy 2.x as well as 1.x, requiring sqlalchemy-bigquery 1.11.0 or newer. ([#11059](https://github.com/fivetran/great_expectations/pull/11059))
+
+##### Bug fixes
+
+- Expectations that take a `value_set`, such as ExpectColumnValuesToBeInSet, no longer fail validation when given a set or tuple; such inputs are coerced to a list (strings and bytes excluded). ([#11082](https://github.com/fivetran/great_expectations/pull/11082))
+- `get_context` now respects `context_root_dir` when scaffolding and reloading a file-backed Data Context, and the overload accepts `mode="file"` together with `context_root_dir`. ([#11078](https://github.com/fivetran/great_expectations/pull/11078))
+
+##### Docs
+
+- Correct the outdated default Great Expectations directory named in a docstring. ([#11077](https://github.com/fivetran/great_expectations/pull/11077))
+- Update the scheduling instructions to match the current user interface. ([#11080](https://github.com/fivetran/great_expectations/pull/11080))
+
+<details>
+<summary>Maintenance</summary>
+
+- Run the gx-sqlalchemy-redshift test suite in continuous integration. ([#11094](https://github.com/fivetran/great_expectations/pull/11094))
+- Add a ColumnValuesNotMatchRegexValues metric that returns a sample of column values that do not match a given regular expression. ([#11096](https://github.com/fivetran/great_expectations/pull/11096))
+- Add a ColumnValuesMatchRegexValues metric that returns a sample of column values matching a regular expression, rather than a pass/fail column map result. ([#11088](https://github.com/fivetran/great_expectations/pull/11088))
+- Narrow the return type of `compute_metrics` when called with a single metric, so the result type is known without extra casting. ([#11089](https://github.com/fivetran/great_expectations/pull/11089))
+- Add a ColumnDistinctValues metric that returns the distinct values found in a column. ([#11081](https://github.com/fivetran/great_expectations/pull/11081))
+- Improve PostHog pageview tracking on the documentation site by disabling automatic capture and tracking single-page navigation instead, removing duplicate pageviews. ([#11087](https://github.com/fivetran/great_expectations/pull/11087))
+- Revert the earlier gx-redshift extra, which pointed at a direct GitHub dependency and blocked uploading the release to PyPI. ([#11079](https://github.com/fivetran/great_expectations/pull/11079))
+- Add a ColumnNullCount metric that reports the number of null values in a column. ([#11073](https://github.com/fivetran/great_expectations/pull/11073))
+- Add a ColumnDistinctValuesCount metric that reports the number of distinct values in a column. ([#11075](https://github.com/fivetran/great_expectations/pull/11075))
+- Add a SampleValues metric for retrieving a sample of values from a batch. ([#11071](https://github.com/fivetran/great_expectations/pull/11071))
+
+</details>
+
+#### Contributors
+
+Thanks to @gyermich.
 
 ### 1.3.14 (2025-04-08)
 
