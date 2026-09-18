@@ -440,20 +440,55 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Don't fail CI if codecov upload fails ([#11569](https://github.com/great-expectations/great_expectations/pull/11569))
 * [MAINTENANCE] Filter out google warning about using python 3.10 ([#11572](https://github.com/great-expectations/great_expectations/pull/11572))
 
-### 1.9.3
-* [FEATURE] infer primary keys during column_types metric fetch ([#11554](https://github.com/great-expectations/great_expectations/pull/11554))
-* [BUGFIX] Prevent FROM DUAL from being added to a properly formatted ORACLE SQL query when using SQLAlchemy ([#11538](https://github.com/great-expectations/great_expectations/pull/11538)) (thanks @konnor-b)
-* [DOCS] asset history ([#11543](https://github.com/great-expectations/great_expectations/pull/11543))
-* [DOCS] typos on manage_expectations.md ([#11547](https://github.com/great-expectations/great_expectations/pull/11547))
-* [DOCS] combined compatibility reference updates ([#11555](https://github.com/great-expectations/great_expectations/pull/11555))
-* [DOCS] unexpected_rows ([#11553](https://github.com/great-expectations/great_expectations/pull/11553))
-* [MAINTENANCE] pre-commit autoupdate ([#11539](https://github.com/great-expectations/great_expectations/pull/11539))
-* [MAINTENANCE] Fix build_docs invocation of invoke ([#11545](https://github.com/great-expectations/great_expectations/pull/11545))
-* [MAINTENANCE] Bump ruff to 0.14.8 ([#11550](https://github.com/great-expectations/great_expectations/pull/11550))
-* [MAINTENANCE] restore null columns to rendered_content tables on multi-source expectations ([#11548](https://github.com/great-expectations/great_expectations/pull/11548))
-* [MAINTENANCE] ensure sqlite tests cleanup connections ([#11552](https://github.com/great-expectations/great_expectations/pull/11552))
-* [MAINTENANCE] Bump mypy to 0.19.0 ([#11551](https://github.com/great-expectations/great_expectations/pull/11551))
-* [MAINTENANCE] Update ruff pre-commit and remove TCH001 from tests ruff ignore list ([#11557](https://github.com/great-expectations/great_expectations/pull/11557))
+### 1.9.3 (2025-12-10)
+
+#### Highlights
+
+- **Primary key information in column type metrics** — The `table.column_types` metric now reports whether each column is part of the table's primary key when using a SQL (SQLAlchemy) execution engine. Single-column, composite, and quoted primary keys are all detected, and columns in tables without a primary key are reported as not primary keys. ([#11554](https://github.com/fivetran/great_expectations/pull/11554))
+
+  ```python
+  # Each entry in the metric value now includes a `primary_key` flag:
+  # [
+  #     {"name": "id", "type": "UUID", "primary_key": True},
+  #     {"name": "created_at", "type": "TIMESTAMP WITH TIME ZONE", "primary_key": False},
+  # ]
+  ```
+
+- **Oracle query assets no longer get an unwanted FROM DUAL clause** — Querying Oracle data sources through SQLAlchemy no longer appends a spurious `FROM DUAL` clause to an already well-formed SQL query, so query assets against Oracle run as written. Verified against Oracle 19c and PostgreSQL 10.16. ([#11538](https://github.com/fivetran/great_expectations/pull/11538))
+
+#### Changes
+
+##### Features
+
+- The `table.column_types` metric now includes a `primary_key` flag for each column when read through a SQL execution engine, covering single-column, composite, and quoted primary keys. ([#11554](https://github.com/fivetran/great_expectations/pull/11554))
+
+##### Bug fixes
+
+- Queries against Oracle data sources are no longer rewritten with an extra `FROM DUAL` clause when the query is already properly formatted. ([#11538](https://github.com/fivetran/great_expectations/pull/11538))
+
+##### Docs
+
+- Updated the documentation covering unexpected rows. ([#11553](https://github.com/fivetran/great_expectations/pull/11553))
+- Updated the compatibility reference page with combined reference updates. ([#11555](https://github.com/fivetran/great_expectations/pull/11555))
+- Fixed typos in the manage expectations documentation page. ([#11547](https://github.com/fivetran/great_expectations/pull/11547))
+- Added documentation for asset history. ([#11543](https://github.com/fivetran/great_expectations/pull/11543))
+
+<details>
+<summary>Maintenance</summary>
+
+- Aligned the ruff pre-commit version with the pinned requirements version and re-enabled the TC001 lint rule for tests. ([#11557](https://github.com/fivetran/great_expectations/pull/11557))
+- Upgraded the mypy version used for type checking and updated type annotations across the codebase to match. ([#11551](https://github.com/fivetran/great_expectations/pull/11551))
+- SQLite test fixtures now close their raw database connections, eliminating ResourceWarnings from unclosed connections during test runs. ([#11552](https://github.com/fivetran/great_expectations/pull/11552))
+- Rendered unexpected-rows tables for multi-source expectations such as `expect_query_results_to_match_comparison` again include columns whose values are null, so column headers line up with the data. ([#11548](https://github.com/fivetran/great_expectations/pull/11548))
+- Bumped the ruff linter to 0.14.8. ([#11550](https://github.com/fivetran/great_expectations/pull/11550))
+- Fixed the documentation build so that the `invoke` command is found during the docs build step. ([#11545](https://github.com/fivetran/great_expectations/pull/11545))
+- Ran pre-commit autoupdate, moving the ruff pre-commit hook from v0.14.3 to v0.14.7. ([#11539](https://github.com/fivetran/great_expectations/pull/11539))
+
+</details>
+
+#### Contributors
+
+Thanks to @konnor-b (first contribution), @nicgrayson.
 
 ### 1.9.2 (2025-12-03)
 
