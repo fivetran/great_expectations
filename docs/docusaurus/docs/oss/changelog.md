@@ -340,14 +340,7 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Bump dompurify from 3.3.1 to 3.3.2 in /docs/docusaurus ([#11706](https://github.com/great-expectations/great_expectations/pull/11706))
 * [MAINTENANCE] Suppress mypy assignment errors in Trino compatibility module ([#11707](https://github.com/great-expectations/great_expectations/pull/11707))
 
-### 1.14.0
-* [FEATURE] Add `trust_server_certificate` to `SQLServerDatasource` ([#11694](https://github.com/great-expectations/great_expectations/pull/11694))
-* [DOCS] Add ServiceNow to email alerts Cloud documentation ([#11669](https://github.com/great-expectations/great_expectations/pull/11669))
-* [MAINTENANCE] Bump qs from 6.14.1 to 6.14.2 in /docs/docusaurus ([#11660](https://github.com/great-expectations/great_expectations/pull/11660))
-* [MAINTENANCE] Improve error message on ConfigStr substitution ([#11693](https://github.com/great-expectations/great_expectations/pull/11693))
-* [MAINTENANCE] Add sentry error tracking for the Doc Site ([#11695](https://github.com/great-expectations/great_expectations/pull/11695))
-* [MAINTENANCE] Install ODBC driver in `docs-creds-needed` ([#11698](https://github.com/great-expectations/great_expectations/pull/11698))
-* [MAINTENANCE] Deprecate `schema_name` on all `TableAsset`s ([#11689](https://github.com/great-expectations/great_expectations/pull/11689))
+### 1.14.0 (2026-03-04)
 
 ### 1.13.1 (2026-03-04)
 
