@@ -1075,36 +1075,72 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Atomic diagnostic observed value renderer for `Expect table columns to match set` ([#10748](https://github.com/great-expectations/great_expectations/pull/10748))
 * [MAINTENANCE] Simplify bigquery assertion ([#10750](https://github.com/great-expectations/great_expectations/pull/10750))
 
-### 1.2.5
-* [FEATURE] `expect_table_columns_to_match_ordered_list` observed value renderer ([#10683](https://github.com/great-expectations/great_expectations/pull/10683))
-* [FEATURE] Value-set Expectation observed value renderers ([#10718](https://github.com/great-expectations/great_expectations/pull/10718))
-* [BUGFIX] `UnexpectedRowsExpectation` - Unable to use `{batch}` keyword with partitioner for some backends ([#10721](https://github.com/great-expectations/great_expectations/pull/10721))
-* [DOCS] Cloud Expectation condition docs ([#10690](https://github.com/great-expectations/great_expectations/pull/10690))
-* [DOCS] DSB-1233: addyng non-versioned-section styling to all the cloud section ([#10694](https://github.com/great-expectations/great_expectations/pull/10694))
-* [DOCS] Ensure "Connect GX Cloud to ..." pages accurately reflect the current workflow ([#10689](https://github.com/great-expectations/great_expectations/pull/10689))
-* [DOCS] DSB-1219: Adding redirects ([#10692](https://github.com/great-expectations/great_expectations/pull/10692))
-* [DOCS] Add databricks to supported datasources in corresponding expectations ([#10691](https://github.com/great-expectations/great_expectations/pull/10691))
-* [DOCS] Update Manage Data Assets page to reflect the current UI and remove duplicate content ([#10695](https://github.com/great-expectations/great_expectations/pull/10695))
-* [DOCS] Changing announcement banner ([#10703](https://github.com/great-expectations/great_expectations/pull/10703))
-* [DOCS] data quality uniqueness article ([#10584](https://github.com/great-expectations/great_expectations/pull/10584))
-* [DOCS] remove abandoned pages ([#10704](https://github.com/great-expectations/great_expectations/pull/10704))
-* [DOCS] add code block titles to avoid overlaps in display ([#10708](https://github.com/great-expectations/great_expectations/pull/10708))
-* [DOCS] Fixing close button on Announcement bar ([#10717](https://github.com/great-expectations/great_expectations/pull/10717))
-* [DOCS] link fixes - December 2024 ([#10716](https://github.com/great-expectations/great_expectations/pull/10716))
-* [DOCS] Make announcement bar not closable ([#10719](https://github.com/great-expectations/great_expectations/pull/10719))
-* [DOCS] - Wrong dependency included in Set Up a GX Environment ([#10722](https://github.com/great-expectations/great_expectations/pull/10722))
-* [DOCS] data quality -- freshness ([#10612](https://github.com/great-expectations/great_expectations/pull/10612))
-* [DOCS]  fix batch definition data types ([#10723](https://github.com/great-expectations/great_expectations/pull/10723))
-* [DOCS] fix docs typo ([#10725](https://github.com/great-expectations/great_expectations/pull/10725))
-* [MAINTENANCE] Pin `snowflake-sqlalchemy` due to breaking change ([#10698](https://github.com/great-expectations/great_expectations/pull/10698))
-* [MAINTENANCE] Add atomic diagnostic renderer to `ExpectColumnMostCommonValueToBeInSet` ([#10697](https://github.com/great-expectations/great_expectations/pull/10697))
-* [MAINTENANCE] Add tests around expectations ([#10688](https://github.com/great-expectations/great_expectations/pull/10688))
-* [MAINTENANCE] Write tests for misconfigured expectations error reporting ([#10696](https://github.com/great-expectations/great_expectations/pull/10696))
-* [MAINTENANCE] Test expectations against Snowflake column types ([#10706](https://github.com/great-expectations/great_expectations/pull/10706))
-* [MAINTENANCE] Test remaining expectations ([#10715](https://github.com/great-expectations/great_expectations/pull/10715))
-* [MAINTENANCE] Logging message in Datasource store ([#10729](https://github.com/great-expectations/great_expectations/pull/10729))
-* [MAINTENANCE] Test postgres type support ([#10727](https://github.com/great-expectations/great_expectations/pull/10727))
-* [CONTRIB] Handle connection error during version check ([#10720](https://github.com/great-expectations/great_expectations/pull/10720)) (thanks @stejin)
+### 1.2.5 (2024-12-04)
+
+#### Highlights
+
+- **Observed-value rendering for value-set Expectations** — Validation results for value-set Expectations — including expect_column_distinct_values_to_be_in_set, expect_column_distinct_values_to_contain_set, and expect_column_most_common_value_to_be_in_set — now render their observed values as atomic content, with each observed item marked as expected or unexpected so it is clear which values fell outside the configured set. ([#10718](https://github.com/fivetran/great_expectations/pull/10718), [#10697](https://github.com/fivetran/great_expectations/pull/10697))
+
+  ```python
+  result = batch.validate(gxe.ExpectColumnDistinctValuesToBeInSet(column="species", value_set=["setosa", "virginica"]))
+  rendered = result.render()
+  ```
+
+- **Observed-value renderer for expect_table_columns_to_match_ordered_list** — Validation results for expect_table_columns_to_match_ordered_list now include a rendered observed value, so the actual column list is displayed alongside the expected ordered list. ([#10683](https://github.com/fivetran/great_expectations/pull/10683))
+
+- **The \{batch} keyword works with partitioned batches across more backends** — UnexpectedRowsExpectation queries that reference the \{batch} keyword now resolve correctly when the batch comes from a partitioner, including queries that use JOIN clauses, where previously some SQL backends raised errors or produced invalid SQL. ([#10721](https://github.com/fivetran/great_expectations/pull/10721))
+
+  ```python
+  gxe.UnexpectedRowsExpectation(unexpected_rows_query="SELECT * FROM {batch} WHERE passenger_count > 7")
+  ```
+
+- **Version check no longer fails on network errors** — Great Expectations now handles connection failures while checking for a newer released version instead of surfacing an error to the user, so the library keeps working when there is no network access. ([#10720](https://github.com/fivetran/great_expectations/pull/10720))
+
+#### Changes
+
+##### Features
+
+- Value-set Expectations now render their observed values as atomic content, marking each observed value as expected or unexpected relative to the configured value set. ([#10718](https://github.com/fivetran/great_expectations/pull/10718))
+- Validation results for expect_table_columns_to_match_ordered_list now render the observed column list. ([#10683](https://github.com/fivetran/great_expectations/pull/10683))
+
+##### Bug fixes
+
+- UnexpectedRowsExpectation queries using the \{batch} keyword now resolve correctly for partitioned batches on more SQL backends, including queries containing JOIN clauses. ([#10721](https://github.com/fivetran/great_expectations/pull/10721))
+- Connection errors raised while checking for the latest released version of Great Expectations are now handled gracefully. ([#10720](https://github.com/fivetran/great_expectations/pull/10720))
+
+##### Docs
+
+- Corrected a typo in the documentation. ([#10725](https://github.com/fivetran/great_expectations/pull/10725))
+- Fixed incorrect data types shown in the batch definition examples and removed an unused code snippet from the retrieve-a-batch-of-test-data docs. ([#10723](https://github.com/fivetran/great_expectations/pull/10723))
+- Added a data quality article covering freshness. ([#10612](https://github.com/fivetran/great_expectations/pull/10612))
+- Corrected the dependency listed in the Set Up a GX Environment documentation. ([#10722](https://github.com/fivetran/great_expectations/pull/10722))
+- The documentation site announcement bar can no longer be dismissed. ([#10719](https://github.com/fivetran/great_expectations/pull/10719))
+- Fixed a set of broken links throughout the documentation. ([#10716](https://github.com/fivetran/great_expectations/pull/10716))
+- Restored the close button on the documentation site announcement bar, which was not displaying on the published site. ([#10717](https://github.com/fivetran/great_expectations/pull/10717))
+- Added titles to documentation code blocks so they no longer overlap in display, and removed an unused snippet. ([#10708](https://github.com/fivetran/great_expectations/pull/10708))
+- Removed published documentation pages that were no longer reachable from the site navigation. ([#10704](https://github.com/fivetran/great_expectations/pull/10704))
+- Added a data quality article covering uniqueness. ([#10584](https://github.com/fivetran/great_expectations/pull/10584))
+- Updated the announcement banner on the documentation site. ([#10703](https://github.com/fivetran/great_expectations/pull/10703))
+- Updated the Manage Data Assets page to match the current UI and removed duplicated content. ([#10695](https://github.com/fivetran/great_expectations/pull/10695))
+- Listed Databricks as a supported data source for the Expectations that support it in the Expectation gallery. ([#10691](https://github.com/fivetran/great_expectations/pull/10691))
+- Added documentation redirects and fixed existing redirects that pointed to a retired legacy docs site. ([#10692](https://github.com/fivetran/great_expectations/pull/10692))
+- Updated the "Connect GX Cloud to ..." pages to reflect the current workflow. ([#10689](https://github.com/fivetran/great_expectations/pull/10689))
+- Applied the non-versioned section styling consistently across the GX Cloud documentation section. ([#10694](https://github.com/fivetran/great_expectations/pull/10694))
+- Added documentation for Expectation conditions in GX Cloud. ([#10690](https://github.com/fivetran/great_expectations/pull/10690))
+
+<details>
+<summary>Maintenance</summary>
+
+- Added test coverage for Expectation behavior against PostgreSQL column types. ([#10727](https://github.com/fivetran/great_expectations/pull/10727))
+- Removed a log message from the datasource store that could include sensitive information. ([#10729](https://github.com/fivetran/great_expectations/pull/10729))
+- Added tests for the remaining Expectations that were not yet covered by the new test suite. ([#10715](https://github.com/fivetran/great_expectations/pull/10715))
+- Added tests that exercise Expectations against Snowflake column types. ([#10706](https://github.com/fivetran/great_expectations/pull/10706))
+- Added tests asserting that misconfigured Expectations fail with informative error messages. ([#10696](https://github.com/fivetran/great_expectations/pull/10696))
+- Added a new per-Expectation test suite structure with broader coverage of Expectation behavior. ([#10688](https://github.com/fivetran/great_expectations/pull/10688))
+- Added an observed-value renderer for expect_column_most_common_value_to_be_in_set and a render state on rendered content parameters so individual set items can be shown as expected or unexpected. ([#10697](https://github.com/fivetran/great_expectations/pull/10697))
+- Pinned snowflake-sqlalchemy to avoid a breaking change in that dependency. ([#10698](https://github.com/fivetran/great_expectations/pull/10698))
+
+</details>
 
 ### 1.2.4 (2024-11-20)
 
