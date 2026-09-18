@@ -239,31 +239,91 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Shard snowflake marker-tests + xdist for bigquery/databricks ([#11850](https://github.com/great-expectations/great_expectations/pull/11850))
 * [MAINTENANCE] Bump postcss from 8.5.6 to 8.5.12 in /docs/docusaurus ([#11859](https://github.com/great-expectations/great_expectations/pull/11859))
 
-### 1.17.0
-* [FEATURE] Pass batch_definition_id to GET /expectation-parameters ([#11831](https://github.com/great-expectations/great_expectations/pull/11831))
-* [BUGFIX] Fix pact-broker command not found in record-release CI step ([#11819](https://github.com/great-expectations/great_expectations/pull/11819))
-* [BUGFIX] Fix SingleStoreDB expectations ([#11828](https://github.com/great-expectations/great_expectations/pull/11828))
-* [BUGFIX] Fix Spark metric strftime validation failing with timezone-aware formats ([#11817](https://github.com/great-expectations/great_expectations/pull/11817))
-* [BUGFIX] SQLAlchemy ignores strict_min/strict_max in column value lengths (GX-3252) ([#11836](https://github.com/great-expectations/great_expectations/pull/11836))
-* [BUGFIX] Spark ignores strict_min/strict_max in column value lengths (GX-3252) ([#11834](https://github.com/great-expectations/great_expectations/pull/11834))
-* [DOCS] expect column proportion of non-null values to be between supports forecasted range ([#11821](https://github.com/great-expectations/great_expectations/pull/11821))
-* [DOCS] trino and bigquery ([#11747](https://github.com/great-expectations/great_expectations/pull/11747))
-* [MAINTENANCE] Bump dompurify from 3.3.2 to 3.4.0 in /docs/docusaurus ([#11820](https://github.com/great-expectations/great_expectations/pull/11820))
-* [MAINTENANCE] Add can-i-deploy check to cloud-tests CI ([#11801](https://github.com/great-expectations/great_expectations/pull/11801))
-* [MAINTENANCE] bump jest-environment-jsdom 30.2.0 → 30.3.0 (CVE-2026-33671) ([#11823](https://github.com/great-expectations/great_expectations/pull/11823))
-* [MAINTENANCE] fix minimatch 3.1.2→3.1.5 and lodash-es 4.17.x→4.18.1 in docs ([#11827](https://github.com/great-expectations/great_expectations/pull/11827))
-* [MAINTENANCE] fix path-to-regexp 0.1.12→0.1.13 and picomatch 2.3.1→2.3.2 in docs (CVE-2026-4867, CVE-2026-33671) ([#11824](https://github.com/great-expectations/great_expectations/pull/11824))
-* [MAINTENANCE] allow Can I deploy? step to continue on failure ([#11829](https://github.com/great-expectations/great_expectations/pull/11829))
-* [MAINTENANCE] Move pact contract check into dedicated parallel job ([#11822](https://github.com/great-expectations/great_expectations/pull/11822))
-* [MAINTENANCE] Remove deprecated str support for Validator.validate run_id ([#11826](https://github.com/great-expectations/great_expectations/pull/11826))
-* [MAINTENANCE] Silence mypy assignment error after pyarrow 24.0.0 ([#11838](https://github.com/great-expectations/great_expectations/pull/11838))
-* [MAINTENANCE] Remove DeprecatedMetaMetricProvider and ColumnMetricProvider ([#11832](https://github.com/great-expectations/great_expectations/pull/11832))
-* [MAINTENANCE] Add singlestore documentation ([#11837](https://github.com/great-expectations/great_expectations/pull/11837))
-* [MAINTENANCE] Backfill test on custom sql expectations ([#11844](https://github.com/great-expectations/great_expectations/pull/11844))
-* [MAINTENANCE] Remove deprecated Batch args (data_context, datasource_name, batch_parameters, batch_kwargs) ([#11843](https://github.com/great-expectations/great_expectations/pull/11843))
-* [MAINTENANCE] SingleStore quoted identifier support ([#11839](https://github.com/great-expectations/great_expectations/pull/11839))
-* [MAINTENANCE] Init singlestore db when container is created ([#11842](https://github.com/great-expectations/great_expectations/pull/11842))
-* [MAINTENANCE] Extend pact can-i-deploy retry window to 20 minutes ([#11846](https://github.com/great-expectations/great_expectations/pull/11846))
+### 1.17.0 (2026-04-22)
+
+Compatibility: new extra `singlestore`
+
+#### Highlights
+
+- **SingleStore support** — Great Expectations now works against SingleStore databases: SingleStoreDB is recognized as its own SQL dialect, regex and uniqueness expectations produce correct results, quoted identifiers are handled, and setup is covered in the documentation. Install with the new `singlestore` extra. ([#11828](https://github.com/fivetran/great_expectations/pull/11828), [#11839](https://github.com/fivetran/great_expectations/pull/11839), [#11837](https://github.com/fivetran/great_expectations/pull/11837), [#11842](https://github.com/fivetran/great_expectations/pull/11842))
+
+  ```python
+  pip install 'great_expectations[singlestore]'
+
+  import great_expectations as gx
+
+  context = gx.get_context()
+  data_source = context.data_sources.add_sql(
+      name="my_singlestore",
+      connection_string="singlestoredb://user:password@host:3306/my_db",
+  )
+  ```
+
+- **strict_min and strict_max now respected in expect_column_value_lengths_to_be_between on Spark and SQL** — Passing `strict_min=True` or `strict_max=True` to `expect_column_value_lengths_to_be_between` previously produced inclusive-bound results on the Spark and SQL backends. Both backends now apply strictly exclusive bounds, matching the documented semantics and the Pandas backend. Non-strict usage is unchanged. ([#11834](https://github.com/fivetran/great_expectations/pull/11834), [#11836](https://github.com/fivetran/great_expectations/pull/11836))
+
+  ```python
+  import great_expectations.expectations as gxe
+
+  suite.add_expectation(
+      gxe.ExpectColumnValueLengthsToBeBetween(
+          column="name", min_value=2, max_value=4, strict_min=True, strict_max=True
+      )
+  )
+  ```
+
+- **Timezone-aware strftime formats accepted** — `ExpectColumnValuesToMatchStrftimeFormat` no longer raises a validation error when the format contains `%z`, and the Spark implementation of the underlying metric now validates timezone-aware formats correctly. ([#11812](https://github.com/fivetran/great_expectations/pull/11812), [#11817](https://github.com/fivetran/great_expectations/pull/11817))
+
+  ```python
+  import great_expectations.expectations as gxe
+
+  gxe.ExpectColumnValuesToMatchStrftimeFormat(
+      column="ts", strftime_format="%Y-%m-%d %H:%M:%S%z"
+  )
+  ```
+
+- **Forecast store bounds used for windowed expectations** — Windowed expectations now send each expectation's batch definition to the expectation-parameters endpoint, so users on the asynchronous forecast store path receive stored forecast bounds instead of falling back to inline training. Checkpoints spanning several batch definitions fetch and merge parameters for each one. ([#11831](https://github.com/fivetran/great_expectations/pull/11831))
+
+#### Changes
+
+##### Features
+
+- Windowed expectations now pass their batch definition when fetching expectation parameters, so forecast store bounds are used instead of inline forecast training; checkpoints with multiple batch definitions fetch and merge parameters per definition. ([#11831](https://github.com/fivetran/great_expectations/pull/11831))
+
+##### Bug fixes
+
+- `expect_column_value_lengths_to_be_between` on Spark now honors `strict_min` and `strict_max`, excluding boundary lengths as documented. ([#11834](https://github.com/fivetran/great_expectations/pull/11834))
+- `expect_column_value_lengths_to_be_between` on SQL data sources now honors `strict_min` and `strict_max`, applying strictly exclusive bounds as documented. ([#11836](https://github.com/fivetran/great_expectations/pull/11836))
+- Fixed the Spark implementation of the strftime-format metric so timezone directives such as `%z` validate correctly. ([#11817](https://github.com/fivetran/great_expectations/pull/11817))
+- Fixed regex and uniqueness expectations against SingleStoreDB by recognizing it as its own SQL dialect, and enabled SingleStore tests in continuous integration. ([#11828](https://github.com/fivetran/great_expectations/pull/11828))
+- Fixed the release pipeline step that recorded contract releases, which failed because the pact command was unavailable; PyPI releases are unblocked with no end-user behavior change. ([#11819](https://github.com/fivetran/great_expectations/pull/11819))
+- `ExpectColumnValuesToMatchStrftimeFormat` no longer raises a validation error when the format string includes the `%z` timezone directive. ([#11812](https://github.com/fivetran/great_expectations/pull/11812))
+
+##### Docs
+
+- Updated the Trino and BigQuery documentation, including coverage of query assets. ([#11747](https://github.com/fivetran/great_expectations/pull/11747))
+- Documented that `expect_column_proportion_of_non_null_values_to_be_between` supports a forecasted range. ([#11821](https://github.com/fivetran/great_expectations/pull/11821))
+
+<details>
+<summary>Maintenance</summary>
+
+- Extended the retry window on the continuous-integration contract deployment check to 20 minutes so it can outwait slow provider verification. ([#11846](https://github.com/fivetran/great_expectations/pull/11846))
+- SingleStore test database is now initialized as a container service rather than through a test fixture. ([#11842](https://github.com/fivetran/great_expectations/pull/11842))
+- Added support for quoted identifiers when working with SingleStore data sources. ([#11839](https://github.com/fivetran/great_expectations/pull/11839))
+- Removed the long-deprecated `data_context`, `datasource_name`, `batch_parameters`, and `batch_kwargs` arguments (and their read-only properties) from the internal `Batch` class. ([#11843](https://github.com/fivetran/great_expectations/pull/11843))
+- Added test coverage for custom SQL expectations. ([#11844](https://github.com/fivetran/great_expectations/pull/11844))
+- Added documentation for connecting to SingleStore. ([#11837](https://github.com/fivetran/great_expectations/pull/11837))
+- Removed the `ColumnMetricProvider` alias and its deprecation-warning metaclass, which were deprecated in favor of `ColumnAggregateMetricProvider`. ([#11832](https://github.com/fivetran/great_expectations/pull/11832))
+- Restored clean static type checking after the pyarrow 24.0.0 release began shipping type information; no runtime behavior changed. ([#11838](https://github.com/fivetran/great_expectations/pull/11838))
+- Removed support for passing a plain string as `run_id` to `Validator.validate()`; a run identifier or dict is required. ([#11826](https://github.com/fivetran/great_expectations/pull/11826))
+- Contract verification now runs as its own independently retryable continuous-integration job that waits for provider verification to complete. ([#11822](https://github.com/fivetran/great_expectations/pull/11822))
+- The contract deployment check no longer fails its continuous-integration job, keeping the signal visible without blocking unrelated work. ([#11829](https://github.com/fivetran/great_expectations/pull/11829))
+- Resolved two denial-of-service advisories in documentation build dependencies by pinning path-to-regexp to 0.1.13 and picking up picomatch 2.3.2. ([#11824](https://github.com/fivetran/great_expectations/pull/11824))
+- Resolved documentation tooling advisories by upgrading minimatch to 3.1.5 and lodash-es to 4.18.1. ([#11827](https://github.com/fivetran/great_expectations/pull/11827))
+- Bumped jest-environment-jsdom to 30.3.0 in the documentation site to pick up a fixed picomatch dependency. ([#11823](https://github.com/fivetran/great_expectations/pull/11823))
+- Added a contract-compatibility deployment check to the cloud test job in continuous integration and removed a dead log-collection step. ([#11801](https://github.com/fivetran/great_expectations/pull/11801))
+- Bumped dompurify from 3.3.2 to 3.4.0 in the documentation site. ([#11820](https://github.com/fivetran/great_expectations/pull/11820))
+
+</details>
 
 ### 1.16.1 (2026-04-15)
 
