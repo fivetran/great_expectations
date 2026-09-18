@@ -1,0 +1,67 @@
+"""The Spark ``unexpected_index_query`` must be a runnable Python expression."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+import pytest
+
+import great_expectations as gx
+import great_expectations.expectations as gxe
+from great_expectations.compatibility import pyspark
+from great_expectations.compatibility.not_imported import is_version_greater_or_equal
+from great_expectations.compatibility.pyspark import functions as F
+
+if TYPE_CHECKING:
+    from great_expectations.core.expectation_validation_result import (
+        ExpectationValidationResult,
+    )
+
+pytestmark = pytest.mark.spark
+
+_RUNS_ON_PYSPARK_4 = bool(pyspark.pyspark) and is_version_greater_or_equal(
+    pyspark.pyspark.__version__, "4.0.0"
+)
+
+
+@pytest.fixture
+def cities_df(spark_session):
+    return spark_session.createDataFrame([("nyc",), ("sf",), ("boston",), ("la",)], "city string")
+
+
+def _validate_city_lengths(df) -> ExpectationValidationResult:
+    """Validate a condition with no string literals in it, so that the outer quoting of the
+    rendered query is the only thing standing between it and a runnable expression.
+    """
+    context = gx.get_context(mode="ephemeral")
+    asset = context.data_sources.add_spark(name="spark").add_dataframe_asset(name="cities")
+    batch = asset.add_batch_definition_whole_dataframe(name="cities_bd").get_batch(
+        batch_parameters={"dataframe": df}
+    )
+    return batch.validate(
+        gxe.ExpectColumnValueLengthsToBeBetween(column="city", min_value=2, max_value=3),
+        result_format="COMPLETE",
+    )
+
+
+def test_spark_unexpected_index_query_is_valid_python(cities_df) -> None:
+    """The rendered query parses as Python on every supported pyspark version."""
+    result = _validate_city_lengths(cities_df)
+
+    query = result.result["unexpected_index_query"]
+
+    compile(query, "<unexpected_index_query>", "eval")
+
+
+@pytest.mark.skipif(
+    _RUNS_ON_PYSPARK_4,
+    reason="Spark 4 renders the condition in a function-prefix grammar that F.expr cannot parse",
+)
+def test_spark_unexpected_index_query_returns_the_unexpected_rows(cities_df) -> None:
+    """Evaluating the rendered query returns exactly the rows counted in unexpected_count."""
+    result = _validate_city_lengths(cities_df)
+
+    query = result.result["unexpected_index_query"]
+
+    unexpected_rows = eval(query, {"df": cities_df, "F": F})
+    assert unexpected_rows.count() == result.result["unexpected_count"] == 1

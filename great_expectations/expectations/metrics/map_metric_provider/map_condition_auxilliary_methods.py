@@ -824,11 +824,12 @@ def _spark_map_condition_query(
     Returns query that will return all rows which do not meet an expected Expectation condition for instances
     of ColumnMapExpectation.
 
-    Converts unexpected_condition into a string that can be rendered in DataDocs
+    Converts unexpected_condition into a string that can be rendered in DataDocs and evaluated
+    as Python against the DataFrame the Expectation ran on.
 
     Output will look like:
 
-        df.filter(F.expr( [unexpected_condition] ))
+        df.filter(F.expr('[unexpected_condition]'))
 
     """  # noqa: E501 # FIXME CoP
     result_format: dict = metric_value_kwargs["result_format"]
@@ -866,7 +867,7 @@ def _spark_map_condition_query(
         ")"
     ):
         unexpected_condition_filtered = unexpected_condition_filtered[1:-1]
-    return f"df.filter(F.expr({unexpected_condition_filtered}))"
+    return f"df.filter(F.expr({unexpected_condition_filtered!r}))"
 
 
 def _generate_temp_table(
