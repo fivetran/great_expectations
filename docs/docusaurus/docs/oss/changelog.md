@@ -706,17 +706,45 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Add session pool to expectation tests ([#11228](https://github.com/great-expectations/great_expectations/pull/11228))
 * [MAINTENANCE] Remove RuleBasedProfiler ([#11231](https://github.com/great-expectations/great_expectations/pull/11231))
 
-### 1.5.0
-* [MINORBUMP] docs for Multi-source Expectations ([#11165](https://github.com/great-expectations/great_expectations/pull/11165))
-* [DOCS] revise use of the term "Cloud" in the Core docs ([#11207](https://github.com/great-expectations/great_expectations/pull/11207))
-* [DOCS] restore link checker ([#11212](https://github.com/great-expectations/great_expectations/pull/11212))
-* [MAINTENANCE] add warning filter ([#11217](https://github.com/great-expectations/great_expectations/pull/11217))
-* [MAINTENANCE] Update renderer labels ([#11216](https://github.com/great-expectations/great_expectations/pull/11216))
-* [MAINTENANCE] Improve `ExpectQueryResultsToMatchComparison` docstring ([#11221](https://github.com/great-expectations/great_expectations/pull/11221))
-* [MAINTENANCE] pre-commit autoupdate ([#11218](https://github.com/great-expectations/great_expectations/pull/11218))
-* [MAINTENANCE] Remove `pkg_resources` dependency ([#11213](https://github.com/great-expectations/great_expectations/pull/11213))
-* [MAINTENANCE] Example suite parameter tests ([#11225](https://github.com/great-expectations/great_expectations/pull/11225))
-* [CONTRIB] Add type geometry and super into redshift_execution_engine.py ([#11194](https://github.com/great-expectations/great_expectations/pull/11194)) (thanks @VolkovGeoPhy)
+### 1.5.0 (2025-06-05)
+
+#### Highlights
+
+- **Multi-source Expectations documentation** — The documentation now covers Multi-source Expectations, explaining how to compare data across two different data sources. ([#11165](https://github.com/fivetran/great_expectations/pull/11165))
+
+- **Redshift geometry and super column types supported** — Redshift data sources now recognize the `GEOMETRY` and `SUPER` column types, so assets containing these columns can be introspected and validated. ([#11194](https://github.com/fivetran/great_expectations/pull/11194))
+
+- **No more pkg_resources dependency** — GX Core no longer depends on the deprecated `pkg_resources` package, removing its import-time deprecation warnings on modern Python installs. ([#11213](https://github.com/fivetran/great_expectations/pull/11213))
+
+#### Changes
+
+##### Features
+
+- Added support for the Redshift `GEOMETRY` and `SUPER` column types. ([#11194](https://github.com/fivetran/great_expectations/pull/11194))
+
+##### Docs
+
+- Restored the documentation link checker that had been temporarily disabled. ([#11212](https://github.com/fivetran/great_expectations/pull/11212))
+- Added documentation for Multi-source Expectations. ([#11165](https://github.com/fivetran/great_expectations/pull/11165))
+- Revised how the term "Cloud" is used throughout the GX Core documentation for consistency. ([#11207](https://github.com/fivetran/great_expectations/pull/11207))
+
+<details>
+<summary>Maintenance</summary>
+
+- Added test coverage for suite parameters used as `min_value` and `max_value` in `ExpectColumnMaxToBeBetween`. ([#11225](https://github.com/fivetran/great_expectations/pull/11225))
+- Removed the `pkg_resources` dependency, replacing requirements parsing with a pip compatibility module and a self-contained parser in `setup.py`. ([#11213](https://github.com/fivetran/great_expectations/pull/11213))
+- Reverted the session-scoped SQL engine pool in the expectation test suite because it broke test schema cleanup. ([#11224](https://github.com/fivetran/great_expectations/pull/11224))
+- Updated pre-commit hooks, bumping ruff-pre-commit to v0.11.12. ([#11218](https://github.com/fivetran/great_expectations/pull/11218))
+- Added a session-scoped SQL engine pool to the expectation tests (subsequently reverted in this release). ([#11219](https://github.com/fivetran/great_expectations/pull/11219))
+- Improved the `ExpectQueryResultsToMatchComparison` docstring so parameter names and descriptions read consistently. ([#11221](https://github.com/fivetran/great_expectations/pull/11221))
+- Updated the diagnostic renderer labels shown for `ExpectQueryResultsToMatchComparison`. ([#11216](https://github.com/fivetran/great_expectations/pull/11216))
+- Added a warning filter to the test configuration to quiet expected warnings. ([#11217](https://github.com/fivetran/great_expectations/pull/11217))
+
+</details>
+
+#### Contributors
+
+Thanks to @VolkovGeoPhy.
 
 ### 1.4.6 (2025-05-28)
 
