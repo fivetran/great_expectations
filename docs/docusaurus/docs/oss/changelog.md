@@ -1244,27 +1244,65 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Remove `result_url` from `CheckpointResult` ([#10493](https://github.com/great-expectations/great_expectations/pull/10493))
 * [MAINTENANCE] Deprecate context.get_datasource ([#10471](https://github.com/great-expectations/great_expectations/pull/10471))
 
-### 1.1.1
-* [BUGFIX] Ensure that `SlackNotificationAction` credentials don't get serialized ([#10476](https://github.com/great-expectations/great_expectations/pull/10476))
-* [BUGFIX] Ensure that Cloud-backed validation results get IDs ([#10478](https://github.com/great-expectations/great_expectations/pull/10478))
-* [DOCS] Remove Python 3.8 reference from readme ([#10474](https://github.com/great-expectations/great_expectations/pull/10474))
-* [DOCS] dbt Tutorial created in collaboration with Jonathan Porter ([#10458](https://github.com/great-expectations/great_expectations/pull/10458))
-* [DOCS] Replace terms.json urls in v0.18 ([#10479](https://github.com/great-expectations/great_expectations/pull/10479))
-* [DOCS] V0 to V1 Migration Guide ([#10477](https://github.com/great-expectations/great_expectations/pull/10477))
-* [MAINTENANCE] Remove Python 3.8 Support (EOL) ([#10441](https://github.com/great-expectations/great_expectations/pull/10441))
-* [MAINTENANCE] Bump dompurify from 3.0.11 to 3.1.7 in /docs/docusaurus ([#10465](https://github.com/great-expectations/great_expectations/pull/10465))
-* [MAINTENANCE] Bump express from 4.19.2 to 4.21.0 in /docs/docusaurus ([#10464](https://github.com/great-expectations/great_expectations/pull/10464))
-* [MAINTENANCE] Bump webpack from 5.88.2 to 5.94.0 in /docs/docusaurus ([#10463](https://github.com/great-expectations/great_expectations/pull/10463))
-* [MAINTENANCE] Bump micromatch from 4.0.5 to 4.0.8 in /docs/docusaurus ([#10466](https://github.com/great-expectations/great_expectations/pull/10466))
-* [MAINTENANCE] Remove old team and non-gx employees from teams.yml ([#10469](https://github.com/great-expectations/great_expectations/pull/10469))
-* [MAINTENANCE] Remove contrib pipeline. ([#10470](https://github.com/great-expectations/great_expectations/pull/10470))
-* [MAINTENANCE] Remove `makefun` dependency ([#10472](https://github.com/great-expectations/great_expectations/pull/10472))
-* [MAINTENANCE] Add `public-api` check back to CI ([#10449](https://github.com/great-expectations/great_expectations/pull/10449))
-* [MAINTENANCE] Clean up requirements files ([#10485](https://github.com/great-expectations/great_expectations/pull/10485))
-* [MAINTENANCE] Remove `ipython` dependency ([#10487](https://github.com/great-expectations/great_expectations/pull/10487))
-* [MAINTENANCE] Remove `pytz` dependency ([#10489](https://github.com/great-expectations/great_expectations/pull/10489))
-* [MAINTENANCE] Update experimental metric repository for V1 backend api ([#10486](https://github.com/great-expectations/great_expectations/pull/10486))
-* [MAINTENANCE] Remove `urllib3` dependency ([#10488](https://github.com/great-expectations/great_expectations/pull/10488))
+### 1.1.1 (2024-10-08)
+
+Compatibility: Python `<3.12,>=3.8` → `<3.12,>=3.9`; `ipython` removed; `ipywidgets` removed; `makefun` removed; `numpy` removed (`python_version == "3.8"`); `pandas` removed (`python_version <= "3.8"`); `pytz` removed; `urllib3` removed; removed extra `test`
+
+#### Highlights
+
+- **Python 3.9 is now the minimum supported Python version** — Python 3.8 reached end of life, so GX Core no longer supports it. Supported versions are now Python 3.9 through 3.11, with experimental support for 3.12 and later available via the GX_PYTHON_EXPERIMENTAL environment variable. The README now states the updated support policy. ([#10441](https://github.com/fivetran/great_expectations/pull/10441), [#10474](https://github.com/fivetran/great_expectations/pull/10474))
+
+- **Leaner install footprint** — Installing great_expectations now pulls in fewer third-party packages: the top-level urllib3, pytz, ipython, ipywidgets, and makefun requirements have been removed, and the requirements files were tidied up. ([#10488](https://github.com/fivetran/great_expectations/pull/10488), [#10489](https://github.com/fivetran/great_expectations/pull/10489), [#10487](https://github.com/fivetran/great_expectations/pull/10487), [#10472](https://github.com/fivetran/great_expectations/pull/10472), [#10485](https://github.com/fivetran/great_expectations/pull/10485))
+
+- **Slack webhook credentials no longer leak into serialized configuration** — SlackNotificationAction now substitutes configured credentials just in time when the action runs, so your token or webhook URL is no longer written out when the action is serialized. ([#10476](https://github.com/fivetran/great_expectations/pull/10476))
+
+  ```python
+  import great_expectations as gx
+  from great_expectations.checkpoint import SlackNotificationAction
+
+  action = SlackNotificationAction(
+      name="notify_slack",
+      slack_webhook="${SLACK_WEBHOOK}",
+  )
+  print(action.json())  # the substituted secret is no longer included
+  ```
+
+- **Validation results from GX Cloud carry their backend-assigned IDs** — Validation results produced against a Cloud-backed Data Context now come back with the IDs generated by the Cloud backend, so you can reference and look them up reliably. ([#10478](https://github.com/fivetran/great_expectations/pull/10478))
+
+- **New tutorial for dbt, Airflow, and Postgres with GX** — The documentation now includes an end-to-end tutorial showing how dbt, GX, Airflow, and Postgres work together to validate data in a pipeline. ([#10458](https://github.com/fivetran/great_expectations/pull/10458))
+
+#### Changes
+
+##### Bug fixes
+
+- Validation results generated against a Cloud-backed Data Context now receive the IDs assigned by the Cloud backend. ([#10478](https://github.com/fivetran/great_expectations/pull/10478))
+- SlackNotificationAction credentials are no longer serialized: variable substitution now happens when the action runs rather than when it is constructed. ([#10476](https://github.com/fivetran/great_expectations/pull/10476))
+
+##### Docs
+
+- Glossary term links in the 0.18 documentation now point at the versioned URLs instead of returning 404s. ([#10479](https://github.com/fivetran/great_expectations/pull/10479))
+- Added a tutorial demonstrating how dbt, GX, Airflow, and Postgres can be used together. ([#10458](https://github.com/fivetran/great_expectations/pull/10458))
+- The README integration support policy now states that GX Core supports Python 3.9 through 3.11, dropping the reference to Python 3.8. ([#10474](https://github.com/fivetran/great_expectations/pull/10474))
+
+<details>
+<summary>Maintenance</summary>
+
+- The top-level `urllib3` requirement was removed; it is already installed as part of `requests`. ([#10488](https://github.com/fivetran/great_expectations/pull/10488))
+- The `pytz` requirement was removed from the installed dependency set. ([#10489](https://github.com/fivetran/great_expectations/pull/10489))
+- The experimental metric repository was updated to work with the V1 backend API. ([#10486](https://github.com/fivetran/great_expectations/pull/10486))
+- The `ipython` and `ipywidgets` requirements were removed from the installed dependency set. ([#10487](https://github.com/fivetran/great_expectations/pull/10487))
+- The requirements files were cleaned up, reducing what gets installed alongside great_expectations. ([#10485](https://github.com/fivetran/great_expectations/pull/10485))
+- The public API check runs in CI again, restoring coverage that had previously been turned off. ([#10449](https://github.com/fivetran/great_expectations/pull/10449))
+- The outdated `makefun` requirement, used only by the removed data assistants, is no longer installed. ([#10472](https://github.com/fivetran/great_expectations/pull/10472))
+- The contrib pipeline was removed from the repository's build tooling. ([#10470](https://github.com/fivetran/great_expectations/pull/10470))
+- Stale teams and non-employee entries were removed from the repository's teams.yml ownership file. ([#10469](https://github.com/fivetran/great_expectations/pull/10469))
+- Bumped `micromatch` from 4.0.5 to 4.0.8 in the documentation site build, picking up fixes for CVE-2024-4067 and CVE-2024-4068. ([#10466](https://github.com/fivetran/great_expectations/pull/10466))
+- Bumped `webpack` from 5.88.2 to 5.94.0 in the documentation site build, including a DOM-clobbering security fix. ([#10463](https://github.com/fivetran/great_expectations/pull/10463))
+- Bumped `dompurify` from 3.0.11 to 3.1.7 in the documentation site build, picking up several sanitizer bypass fixes. ([#10465](https://github.com/fivetran/great_expectations/pull/10465))
+- Bumped `express` from 4.19.2 to 4.21.0 in the documentation site build. ([#10464](https://github.com/fivetran/great_expectations/pull/10464))
+- Python 3.8 is no longer a supported version now that it has reached end of life; Python 3.9 is the minimum supported version and CI no longer tests 3.8. ([#10441](https://github.com/fivetran/great_expectations/pull/10441))
+
+</details>
 
 ### 1.1.0 (2024-10-03)
 
