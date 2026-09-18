@@ -718,21 +718,49 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Example suite parameter tests ([#11225](https://github.com/great-expectations/great_expectations/pull/11225))
 * [CONTRIB] Add type geometry and super into redshift_execution_engine.py ([#11194](https://github.com/great-expectations/great_expectations/pull/11194)) (thanks @VolkovGeoPhy)
 
-### 1.4.6
-* [BUGFIX] Handle unhashable data types for ExpectQueryResultsToMatchComparison ([#11193](https://github.com/great-expectations/great_expectations/pull/11193))
-* [BUGFIX] Make type expectation case-insensitive for Databricks, Snowflake an Postgres ([#11192](https://github.com/great-expectations/great_expectations/pull/11192))
-* [BUGFIX] Handle set rendering cases for `ExpectQueryResultsToMatchComparison` ([#11203](https://github.com/great-expectations/great_expectations/pull/11203))
-* [BUGFIX] Handle UUID in rendered content ([#11204](https://github.com/great-expectations/great_expectations/pull/11204))
-* [DOCS] Anomaly Detection ([#11172](https://github.com/great-expectations/great_expectations/pull/11172))
-* [DOCS] Refine use of the term "platform" ([#11187](https://github.com/great-expectations/great_expectations/pull/11187))
-* [DOCS] Update docs to reflect that views are supported ([#11198](https://github.com/great-expectations/great_expectations/pull/11198))
-* [DOCS] Revise use of the term "Core" in relation to Cloud ([#11205](https://github.com/great-expectations/great_expectations/pull/11205))
-* [MAINTENANCE] Add CloudAMQP connection string env variable to ci ([#11190](https://github.com/great-expectations/great_expectations/pull/11190))
-* [MAINTENANCE] Show gx cloud logs on cloud test failures. ([#11188](https://github.com/great-expectations/great_expectations/pull/11188))
-* [MAINTENANCE] limit pyspark to &lt;4.0 due to breaking changes in types ([#11197](https://github.com/great-expectations/great_expectations/pull/11197))
-* [MAINTENANCE] Ignore warnings around pkg_resources ([#11201](https://github.com/great-expectations/great_expectations/pull/11201))
-* [MAINTENANCE] Update descriptions for multi-source parameter ([#11202](https://github.com/great-expectations/great_expectations/pull/11202))
-* [MAINTENANCE] Snowflake tests only run with snowflake flag ([#10605](https://github.com/great-expectations/great_expectations/pull/10605))
+### 1.4.6 (2025-05-28)
+
+#### Highlights
+
+- **Clearer errors for unhashable column types in ExpectQueryResultsToMatchComparison** — When a query returns unhashable data types such as JSONB, ExpectQueryResultsToMatchComparison now raises a helpful error that names the first column containing unhashable data instead of failing with an unclear message. ([#11193](https://github.com/fivetran/great_expectations/pull/11193))
+
+- **Case-insensitive column type checks on Databricks, Snowflake, and Postgres** — expect_column_values_to_be_of_type now treats unquoted identifiers in column_name and column_type as case-insensitive on Databricks, Postgres, and Snowflake, so type expectations pass regardless of the casing you write. ([#11192](https://github.com/fivetran/great_expectations/pull/11192))
+
+  ```python
+  suite.add_expectation(
+      gxe.ExpectColumnValuesToBeOfType(column="my_column", type_="varchar")
+  )
+  ```
+
+- **Documentation for anomaly detection** — The documentation now covers anomaly detection, alongside refreshed wording for the terms "Core" and "platform" and updated guidance noting that both tables and views are supported as data assets. ([#11172](https://github.com/fivetran/great_expectations/pull/11172), [#11187](https://github.com/fivetran/great_expectations/pull/11187), [#11198](https://github.com/fivetran/great_expectations/pull/11198), [#11205](https://github.com/fivetran/great_expectations/pull/11205))
+
+#### Changes
+
+##### Bug fixes
+
+- UUID values are now handled correctly when rendering expectation content. ([#11204](https://github.com/fivetran/great_expectations/pull/11204))
+- Rendering of ExpectQueryResultsToMatchComparison now handles cases where results contain sets. ([#11203](https://github.com/fivetran/great_expectations/pull/11203))
+- expect_column_values_to_be_of_type now treats unquoted column names and column types as case-insensitive on Databricks, Postgres, and Snowflake. ([#11192](https://github.com/fivetran/great_expectations/pull/11192))
+- ExpectQueryResultsToMatchComparison now raises a clear error naming the first column with unhashable data (for example JSONB) instead of failing unhelpfully. ([#11193](https://github.com/fivetran/great_expectations/pull/11193))
+
+##### Docs
+
+- Revised how the term "Core" is used in relation to GX Cloud throughout the documentation. ([#11205](https://github.com/fivetran/great_expectations/pull/11205))
+- Data Source connection and Expectation docs now state that views are supported in addition to tables. ([#11198](https://github.com/fivetran/great_expectations/pull/11198))
+- Refined how the term "platform" is used across the documentation. ([#11187](https://github.com/fivetran/great_expectations/pull/11187))
+- Added documentation covering anomaly detection. ([#11172](https://github.com/fivetran/great_expectations/pull/11172))
+
+<details>
+<summary>Maintenance</summary>
+
+- Snowflake tests now run only when the Snowflake flag is enabled, so local test runs no longer hit external backends by default. ([#10605](https://github.com/fivetran/great_expectations/pull/10605))
+- Updated the parameter descriptions for the multi-source comparison parameter. ([#11202](https://github.com/fivetran/great_expectations/pull/11202))
+- Suppressed a newly surfaced pkg_resources deprecation warning. ([#11201](https://github.com/fivetran/great_expectations/pull/11201))
+- Restricted the supported pyspark range to >=2.3.2,\<4.0, since pyspark 4.0 introduces incompatible type changes. ([#11197](https://github.com/fivetran/great_expectations/pull/11197))
+- GX Cloud logs are now surfaced when cloud tests fail. ([#11188](https://github.com/fivetran/great_expectations/pull/11188))
+- Added a CloudAMQP connection string environment variable to the CI configuration. ([#11190](https://github.com/fivetran/great_expectations/pull/11190))
+
+</details>
 
 ### 1.4.5 (2025-05-22)
 
