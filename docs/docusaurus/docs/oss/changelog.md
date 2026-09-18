@@ -686,16 +686,63 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [DOCS] ExpectColumnProportionOfNonNullValuesToBeBetween (#11245) ([#11257](https://github.com/great-expectations/great_expectations/pull/11257))
 * [MAINTENANCE] Allow posthog v4 and v5 ([#11265](https://github.com/great-expectations/great_expectations/pull/11265))
 
-### 1.5.2
-* [FEATURE] Add SuiteParameterDict to all Expectation Kwargs ([#11222](https://github.com/great-expectations/great_expectations/pull/11222)) (thanks @Pascal06S)
-* [BUGFIX] fix `ValidationError` in `ExpectColumnPairValuesToHaveDifferenceOfCustomPercentage` ([#11209](https://github.com/great-expectations/great_expectations/pull/11209)) (thanks @sariaslaso)
-* [BUGFIX] `add_batch_definition_whole_directory` only loading 1 file ([#11254](https://github.com/great-expectations/great_expectations/pull/11254))
-* [BUGFIX] Remove datetime types from proportion `min_value` and `max_value` parameters ([#11259](https://github.com/great-expectations/great_expectations/pull/11259))
-* [DOCS] temporarily remove link checker ([#11250](https://github.com/great-expectations/great_expectations/pull/11250))
-* [DOCS] Cloud API data source tip ([#11248](https://github.com/great-expectations/great_expectations/pull/11248))
-* [DOCS] ExpectColumnProportionOfNonNullValuesToBeBetween (#11245) ([#11257](https://github.com/great-expectations/great_expectations/pull/11257))
-* [MAINTENANCE] Update "fraction" to "proportion" on NonNullProportion renderer ([#11253](https://github.com/great-expectations/great_expectations/pull/11253))
-* [MAINTENANCE] Bump brace-expansion from 1.1.11 to 1.1.12 in /docs/docusaurus ([#11251](https://github.com/great-expectations/great_expectations/pull/11251))
+### 1.5.2 (2025-06-18)
+
+#### Highlights
+
+- **Suite parameters accepted in every expectation argument** — All expectation arguments now accept suite parameters, so any keyword argument of an expectation can be supplied at validation time instead of being hard-coded when the expectation is defined. ([#11222](https://github.com/fivetran/great_expectations/pull/11222))
+
+  ```python
+  import great_expectations as gx
+
+  expectation = gx.expectations.ExpectColumnValuesToBeBetween(
+      column="passenger_count",
+      min_value={"$PARAMETER": "min_passengers"},
+      max_value={"$PARAMETER": "max_passengers"},
+  )
+
+  results = batch.validate(
+      expectation,
+      expectation_parameters={"min_passengers": 1, "max_passengers": 6},
+  )
+  ```
+
+- **Whole-directory batch definitions read every file again** — Batch definitions created with `add_batch_definition_whole_directory` on S3, Azure Blob Storage, and Google Cloud Storage data assets now read all files in the directory instead of only one. ([#11254](https://github.com/fivetran/great_expectations/pull/11254))
+
+  ```python
+  asset = data_source.add_directory_csv_asset(name="my_asset", s3_prefix="data/")
+  batch_definition = asset.add_batch_definition_whole_directory("all_files")
+  batch = batch_definition.get_batch()
+  ```
+
+#### Changes
+
+##### Features
+
+- Every expectation argument now accepts a suite parameter, so all expectation keyword arguments can be parameterized and supplied at validation time. ([#11222](https://github.com/fivetran/great_expectations/pull/11222))
+
+##### Bug fixes
+
+- The `min_value` and `max_value` parameters of `ExpectColumnProportionOfNonNullValuesToBeBetween` and `ExpectColumnProportionOfUniqueValuesToBeBetween` no longer accept date or datetime values; they now accept only numbers (or a suite parameter), and their published schemas reflect this. ([#11259](https://github.com/fivetran/great_expectations/pull/11259))
+- Fixed `add_batch_definition_whole_directory` reading only a single file for S3, Azure Blob Storage, and Google Cloud Storage data assets; the whole directory is now read as one batch. ([#11254](https://github.com/fivetran/great_expectations/pull/11254))
+- Fixed a `ValidationError` raised when using `ExpectColumnPairValuesToHaveDifferenceOfCustomPercentage`; the expectation now declares its required `percentage` argument. ([#11209](https://github.com/fivetran/great_expectations/pull/11209))
+
+##### Docs
+
+- Added a tip about Cloud API data sources to the documentation. ([#11248](https://github.com/fivetran/great_expectations/pull/11248))
+- Temporarily disabled the documentation link checker while changed page paths are sorted out. ([#11250](https://github.com/fivetran/great_expectations/pull/11250))
+
+<details>
+<summary>Maintenance</summary>
+
+- Bumped the `brace-expansion` documentation-site dependency from 1.1.11 to 1.1.12. ([#11251](https://github.com/fivetran/great_expectations/pull/11251))
+- Rendered output for the non-null proportion expectation now says "proportion" instead of "fraction". ([#11253](https://github.com/fivetran/great_expectations/pull/11253))
+
+</details>
+
+#### Contributors
+
+Thanks to @Pascal06S (first contribution), @sariaslaso (first contribution).
 
 ### 1.5.1 (2025-06-11)
 
