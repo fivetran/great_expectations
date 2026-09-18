@@ -639,17 +639,36 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Restore Link Checker CI step ([#11327](https://github.com/great-expectations/great_expectations/pull/11327))
 * [MAINTENANCE] pre-commit autoupdate ([#11330](https://github.com/great-expectations/great_expectations/pull/11330))
 
-### 1.5.7
-* [BUGFIX] change pyspark column reference from DataFrame.__getitem__ to F.col() ([#11286](https://github.com/great-expectations/great_expectations/pull/11286)) (thanks @alansk97)
-* [MAINTENANCE] Remove link checker step (temporarily) ([#11322](https://github.com/great-expectations/great_expectations/pull/11322))
-* [MAINTENANCE] Fix MSSQL compatibility test CI flow ([#11320](https://github.com/great-expectations/great_expectations/pull/11320))
-* [MAINTENANCE] Bump posthog 6.1.0 ([#11303](https://github.com/great-expectations/great_expectations/pull/11303))
-* [MAINTENANCE] Improve CI speed for marker tests ([#11321](https://github.com/great-expectations/great_expectations/pull/11321))
-* [MAINTENANCE] Bump form-data from 4.0.2 to 4.0.4 in /docs/docusaurus ([#11310](https://github.com/great-expectations/great_expectations/pull/11310))
-* [MAINTENANCE] pre-commit autoupdate ([#11287](https://github.com/great-expectations/great_expectations/pull/11287))
-* [MAINTENANCE] Bump mypy to 1.16.1 ([#11262](https://github.com/great-expectations/great_expectations/pull/11262))
-* [MAINTENANCE] Add typing extensions dependency to build ([#11323](https://github.com/great-expectations/great_expectations/pull/11323))
-* [MAINTENANCE] Update build commands ([#11324](https://github.com/great-expectations/great_expectations/pull/11324))
+### 1.5.7 (2025-07-30)
+
+#### Highlights
+
+- **Spark Connect and Databricks shared clusters now supported for column comparisons** — Expectations that reference columns on Spark now build those references in a way Spark Connect accepts, so validations that previously failed with "[CANNOT_RESOLVE_DATAFRAME_COLUMN] Cannot resolve dataframe column" on Spark Connect and Databricks shared clusters now run correctly. Expectations such as ExpectColumnValueLengthsToBeBetween and ExpectColumnPairValuesAToBeGreaterThanB are fixed; behavior on local Spark is unchanged. ([#11286](https://github.com/fivetran/great_expectations/pull/11286))
+
+#### Changes
+
+##### Bug fixes
+
+- Fixed Spark column references so expectations no longer fail with "Cannot resolve dataframe column" on Spark Connect and Databricks shared clusters. ([#11286](https://github.com/fivetran/great_expectations/pull/11286))
+
+<details>
+<summary>Maintenance</summary>
+
+- Release artifacts are now built with the standard build tooling so source and wheel distributions are produced reliably. ([#11324](https://github.com/fivetran/great_expectations/pull/11324))
+- Added the typing_extensions dependency to the build step so the release build no longer fails. ([#11323](https://github.com/fivetran/great_expectations/pull/11323))
+- Bumped mypy to 1.16.1. ([#11262](https://github.com/fivetran/great_expectations/pull/11262))
+- Updated pre-commit hooks, including ruff to v0.12.2. ([#11287](https://github.com/fivetran/great_expectations/pull/11287))
+- Sped up marker tests in CI by bulk loading test data instead of inserting records one at a time. ([#11321](https://github.com/fivetran/great_expectations/pull/11321))
+- Bumped form-data from 4.0.2 to 4.0.4 in the documentation site dependencies. ([#11310](https://github.com/fivetran/great_expectations/pull/11310))
+- Bumped posthog to 6.1.0. ([#11303](https://github.com/fivetran/great_expectations/pull/11303))
+- Fixed the MSSQL compatibility test CI flow, which would hang on an interactive package upgrade prompt. ([#11320](https://github.com/fivetran/great_expectations/pull/11320))
+- Temporarily removed the documentation link checker step from CI. ([#11322](https://github.com/fivetran/great_expectations/pull/11322))
+
+</details>
+
+#### Contributors
+
+Thanks to @alansk97 (first contribution), @dctalbot.
 
 ### 1.5.6 (2025-07-24)
 
