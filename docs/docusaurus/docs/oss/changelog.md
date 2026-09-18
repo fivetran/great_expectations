@@ -517,27 +517,71 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Use Suites v2 REST endpoints ([#11487](https://github.com/great-expectations/great_expectations/pull/11487))
 * [MAINTENANCE] Handle `None` parameter in `Condition`s ([#11491](https://github.com/great-expectations/great_expectations/pull/11491))
 
-### 1.8.0
-* [FEATURE] Snowflake Key Pair Auth API ([#11395](https://github.com/great-expectations/great_expectations/pull/11395))
-* [BUGFIX] Row condition for Volume Expectations ([#11467](https://github.com/great-expectations/great_expectations/pull/11467))
-* [DOCS] Data Health - Failed Expectations ([#11419](https://github.com/great-expectations/great_expectations/pull/11419))
-* [DOCS] Data Health failed Expectations screenshot updates ([#11458](https://github.com/great-expectations/great_expectations/pull/11458))
-* [DOCS] GX Cloud Architecture Supporting Content ([#11439](https://github.com/great-expectations/great_expectations/pull/11439))
-* [DOCS] restore link checker ([#11449](https://github.com/great-expectations/great_expectations/pull/11449))
-* [DOCS] schema in connection string for redshift and postgreSQL ([#11433](https://github.com/great-expectations/great_expectations/pull/11433))
-* [MAINTENANCE] Row condition comparison classes ([#11450](https://github.com/great-expectations/great_expectations/pull/11450))
-* [MAINTENANCE] Row condition execution engine scaffolding ([#11452](https://github.com/great-expectations/great_expectations/pull/11452))
-* [MAINTENANCE] Run CI datasource cleanup hourly and clean up more schemas ([#11462](https://github.com/great-expectations/great_expectations/pull/11462))
-* [MAINTENANCE] Filter clauses for pandas conditions ([#11455](https://github.com/great-expectations/great_expectations/pull/11455))
-* [MAINTENANCE] Filter clauses for spark conditions ([#11456](https://github.com/great-expectations/great_expectations/pull/11456))
-* [MAINTENANCE] Ignore pkg_resources warning ([#11465](https://github.com/great-expectations/great_expectations/pull/11465))
-* [MAINTENANCE] Add Condition type to row condition instances ([#11464](https://github.com/great-expectations/great_expectations/pull/11464))
-* [MAINTENANCE] Clean up datasource schemas that are over an hour old ([#11463](https://github.com/great-expectations/great_expectations/pull/11463))
-* [MAINTENANCE] Filter clauses for SQLA conditions ([#11459](https://github.com/great-expectations/great_expectations/pull/11459))
-* [MAINTENANCE] Condition class handling for pandas ([#11469](https://github.com/great-expectations/great_expectations/pull/11469))
-* [MAINTENANCE] Bump lycheeverse/lychee-action from 2.0.1 to 2.0.2 in /.github/workflows ([#11466](https://github.com/great-expectations/great_expectations/pull/11466))
-* [MAINTENANCE] Condition class handling for spark ([#11470](https://github.com/great-expectations/great_expectations/pull/11470))
-* [MAINTENANCE] Condition class handling for SQL ([#11473](https://github.com/great-expectations/great_expectations/pull/11473))
+### 1.8.0 (2025-10-23)
+
+#### Highlights
+
+- **Snowflake key pair authentication** — Snowflake data sources now accept key pair authentication as a first-class part of the connection API, so you can configure a Snowflake data source with a private key instead of a password. ([#11395](https://github.com/fivetran/great_expectations/pull/11395))
+
+  ```python
+  context.data_sources.add_snowflake(
+      name="my_snowflake",
+      connection_details={
+          "account": "myOrg-my_account",
+          "user": "my_user",
+          "database": "my_db",
+          "schema": "my_schema",
+          "warehouse": "my_wh",
+          "role": "my_role",
+          "private_key": "<PEM-encoded private key>",
+      },
+  )
+  ```
+
+- **Row conditions are honored by Volume Expectations** — Volume Expectations now apply the configured row condition, so expected row counts are evaluated against the filtered rows rather than the whole batch. ([#11467](https://github.com/fivetran/great_expectations/pull/11467))
+
+- **Documented schema handling in Redshift and PostgreSQL connection strings** — The connection documentation now explains how to specify a schema in Redshift and PostgreSQL connection strings. ([#11433](https://github.com/fivetran/great_expectations/pull/11433))
+
+- **GX Cloud Data Health documentation for failed Expectations** — New GX Cloud documentation covers the Data Health view for failed Expectations, with screenshots refreshed to match the current interface, alongside new GX Cloud architecture supporting content. ([#11419](https://github.com/fivetran/great_expectations/pull/11419), [#11458](https://github.com/fivetran/great_expectations/pull/11458), [#11439](https://github.com/fivetran/great_expectations/pull/11439))
+
+#### Changes
+
+##### Features
+
+- Snowflake data sources can now be configured with key pair authentication as a supported set of connection details. ([#11395](https://github.com/fivetran/great_expectations/pull/11395))
+
+##### Bug fixes
+
+- Volume Expectations now respect the configured row condition when counting rows. ([#11467](https://github.com/fivetran/great_expectations/pull/11467))
+
+##### Docs
+
+- Documentation now describes how to include a schema in Redshift and PostgreSQL connection strings. ([#11433](https://github.com/fivetran/great_expectations/pull/11433))
+- Re-enabled the documentation link checker. ([#11449](https://github.com/fivetran/great_expectations/pull/11449))
+- Added supporting content to the GX Cloud architecture documentation. ([#11439](https://github.com/fivetran/great_expectations/pull/11439))
+- Updated the Data Health failed Expectations screenshots to match recent interface changes. ([#11458](https://github.com/fivetran/great_expectations/pull/11458))
+- Added GX Cloud documentation for the Data Health view of failed Expectations. ([#11419](https://github.com/fivetran/great_expectations/pull/11419))
+
+<details>
+<summary>Maintenance</summary>
+
+- SQL execution now handles the structured row-condition type internally, with no change to how existing string conditions behave. ([#11473](https://github.com/fivetran/great_expectations/pull/11473))
+- Spark execution now handles the structured row-condition type internally, with no change to how existing string conditions behave. ([#11470](https://github.com/fivetran/great_expectations/pull/11470))
+- Updated the lychee link-checking GitHub Action used in CI from 2.0.1 to 2.0.2. ([#11466](https://github.com/fivetran/great_expectations/pull/11466))
+- The pandas execution engine now handles the structured row-condition type for row conditions, with no change to existing behavior. ([#11469](https://github.com/fivetran/great_expectations/pull/11469))
+- Added internal filter-clause support for SQLAlchemy row conditions. ([#11459](https://github.com/fivetran/great_expectations/pull/11459))
+- CI cleanup of test data source schemas now removes schemas older than one hour instead of two. ([#11463](https://github.com/fivetran/great_expectations/pull/11463))
+- Expectation row conditions now accept the new structured condition type in their schemas, though passing a condition object currently raises an error. ([#11464](https://github.com/fivetran/great_expectations/pull/11464))
+- Suppressed a pkg_resources deprecation warning that was causing spurious test failures. ([#11465](https://github.com/fivetran/great_expectations/pull/11465))
+- Added internal filter-clause support for Spark row conditions. ([#11456](https://github.com/fivetran/great_expectations/pull/11456))
+- Added internal filter-clause support for pandas row conditions. ([#11455](https://github.com/fivetran/great_expectations/pull/11455))
+- CI now cleans up test data sources hourly and covers more leftover schemas. ([#11462](https://github.com/fivetran/great_expectations/pull/11462))
+- Added internal execution-engine scaffolding for structured row conditions. ([#11452](https://github.com/fivetran/great_expectations/pull/11452))
+- Added comparison, nullity, and column classes used to build row conditions. ([#11450](https://github.com/fivetran/great_expectations/pull/11450))
+- The SQLite connection used to register helper functions is now closed, removing a resource warning seen in test runs. ([#11451](https://github.com/fivetran/great_expectations/pull/11451))
+- Added AND/OR classes for combining multiple row conditions. ([#11448](https://github.com/fivetran/great_expectations/pull/11448))
+
+</details>
 
 ### 1.7.1 (2025-10-15)
 
