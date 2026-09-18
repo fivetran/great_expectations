@@ -746,29 +746,67 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [CONTRIB] use existing LRU cache for secrets store ([#11184](https://github.com/great-expectations/great_expectations/pull/11184)) (thanks @ThiloSchneider-fraport)
 * [CONTRIB] add GEOMETRY, and SUPER types to REDSHIFT_TYPES ([#11183](https://github.com/great-expectations/great_expectations/pull/11183)) (thanks @VolkovGeoPhy)
 
-### 1.4.4
-* [FEATURE] Compute missing/unexpected rows for ExpectQueryResultsToMatchSource ([#11161](https://github.com/great-expectations/great_expectations/pull/11161))
-* [FEATURE] ExpectQueryResultsToMatchSource table diagnostic renderer ([#11168](https://github.com/great-expectations/great_expectations/pull/11168))
-* [FEATURE] ExpectQueryResultsToMatchSource renderer for single-column … ([#11173](https://github.com/great-expectations/great_expectations/pull/11173))
-* [DOCS] remove link checker ([#11162](https://github.com/great-expectations/great_expectations/pull/11162))
-* [MAINTENANCE] Fix dying mssql compatibility tests. ([#11153](https://github.com/great-expectations/great_expectations/pull/11153))
-* [MAINTENANCE] Bump prismjs from 1.29.0 to 1.30.0 in /docs/docusaurus ([#11126](https://github.com/great-expectations/great_expectations/pull/11126))
-* [MAINTENANCE] Breakout redshift tests into own job. ([#11167](https://github.com/great-expectations/great_expectations/pull/11167))
-* [MAINTENANCE] Bring back redshift creds for docs tests ([#11169](https://github.com/great-expectations/great_expectations/pull/11169))
-* [MAINTENANCE] Improve `ExpectQueryResultsToMatchSource` docstring ([#11158](https://github.com/great-expectations/great_expectations/pull/11158))
-* [MAINTENANCE] Nightly redshift cleanup ([#11166](https://github.com/great-expectations/great_expectations/pull/11166))
-* [MAINTENANCE] Bump image-size from 1.2.0 to 1.2.1 in /docs/docusaurus ([#11125](https://github.com/great-expectations/great_expectations/pull/11125))
-* [MAINTENANCE] Add prescriptive atomic renderer to `ExpectQueryResultsToMatchSource` ([#11160](https://github.com/great-expectations/great_expectations/pull/11160))
-* [MAINTENANCE] Resolve datetime deprecation warnings ([#11134](https://github.com/great-expectations/great_expectations/pull/11134)) (thanks @emmanuel-ferdman)
-* [MAINTENANCE] Bump http-proxy-middleware from 2.0.7 to 2.0.9 in /docs/docusaurus ([#11120](https://github.com/great-expectations/great_expectations/pull/11120))
-* [MAINTENANCE] Bump @babel/runtime from 7.26.9 to 7.27.0 in /docs/docusaurus ([#11124](https://github.com/great-expectations/great_expectations/pull/11124))
-* [MAINTENANCE] Bump estree-util-value-to-estree from 3.3.2 to 3.3.3 in /docs/docusaurus ([#11121](https://github.com/great-expectations/great_expectations/pull/11121))
-* [MAINTENANCE] ensure latest docker compose ([#11156](https://github.com/great-expectations/great_expectations/pull/11156))
-* [MAINTENANCE] Fix flakey test and simplify another assertion ([#11163](https://github.com/great-expectations/great_expectations/pull/11163))
-* [MAINTENANCE] Update `ExpectQueryResultsToMatchSource` DQI ([#11164](https://github.com/great-expectations/great_expectations/pull/11164))
-* [MAINTENANCE] Bump @babel/helpers from 7.26.9 to 7.27.0 in /docs/docusaurus ([#11123](https://github.com/great-expectations/great_expectations/pull/11123))
-* [MAINTENANCE] Change DQ issue for `ExpectQueryResultsToMatchSource` ([#11174](https://github.com/great-expectations/great_expectations/pull/11174))
-* [CONTRIB] Update ruff badge ([#10905](https://github.com/great-expectations/great_expectations/pull/10905)) (thanks @esadek)
+### 1.4.4 (2025-05-14)
+
+#### Highlights
+
+- **New Expectation: ExpectQueryResultsToMatchSource** — You can now compare the results of a SQL query run against your Data Source with the results of a query run against another Data Source, and require that at least a `mostly` fraction of records match. Supported on PostgreSQL, Snowflake, Databricks (SQL), Redshift, and SQLite. ([#11144](https://github.com/fivetran/great_expectations/pull/11144))
+
+  ```python
+  import great_expectations as gx
+
+  expectation = gx.expectations.ExpectQueryResultsToMatchSource(
+      target_query="SELECT id, amount FROM orders",
+      source_data_source_name="my_source_data_source",
+      source_query="SELECT id, amount FROM orders",
+      mostly=0.95,
+  )
+  ```
+
+- **Richer results and rendering for ExpectQueryResultsToMatchSource** — Validation results for ExpectQueryResultsToMatchSource now report the specific rows missing from or unexpected in the target query results, and those differences are presented as a diagnostic table — with a simplified presentation when the source and target queries each return a single column. The Expectation also renders a readable summary showing the target query and the source Data Source it is compared against. ([#11161](https://github.com/fivetran/great_expectations/pull/11161), [#11168](https://github.com/fivetran/great_expectations/pull/11168), [#11173](https://github.com/fivetran/great_expectations/pull/11173), [#11160](https://github.com/fivetran/great_expectations/pull/11160))
+
+#### Changes
+
+##### Features
+
+- ExpectQueryResultsToMatchSource results now use a simplified diagnostic rendering when the target and source queries each return a single column. ([#11173](https://github.com/fivetran/great_expectations/pull/11173))
+- ExpectQueryResultsToMatchSource validation results are now displayed as a diagnostic table of differences between the target and source query results. ([#11168](https://github.com/fivetran/great_expectations/pull/11168))
+- ExpectQueryResultsToMatchSource now computes and reports the rows missing from and unexpected in the target query results. ([#11161](https://github.com/fivetran/great_expectations/pull/11161))
+- Added the ExpectQueryResultsToMatchSource Expectation, which compares the results of a SQL query against the results of a query on another Data Source and passes when at least a `mostly` fraction of records match. ([#11144](https://github.com/fivetran/great_expectations/pull/11144))
+
+##### Docs
+
+- Updated the Ruff badge in the README to point at the current astral-sh/ruff endpoint. ([#10905](https://github.com/fivetran/great_expectations/pull/10905))
+- Temporarily removed the documentation link checker as a workaround for a known issue. ([#11162](https://github.com/fivetran/great_expectations/pull/11162))
+- Updated the ExpectAI documentation to reflect current email alert behavior. ([#11154](https://github.com/fivetran/great_expectations/pull/11154))
+
+<details>
+<summary>Maintenance</summary>
+
+- Updated the data quality issue category reported for ExpectQueryResultsToMatchSource. ([#11174](https://github.com/fivetran/great_expectations/pull/11174))
+- Bumped @babel/helpers from 7.26.9 to 7.27.0 in the documentation site. ([#11123](https://github.com/fivetran/great_expectations/pull/11123))
+- Updated the data quality issue metadata for ExpectQueryResultsToMatchSource. ([#11164](https://github.com/fivetran/great_expectations/pull/11164))
+- Fixed a flaky test caused by floating-point comparison and simplified a related assertion to use pytest.approx. ([#11163](https://github.com/fivetran/great_expectations/pull/11163))
+- CI now ensures a recent Docker Compose version to avoid a race condition when pulling many images concurrently. ([#11156](https://github.com/fivetran/great_expectations/pull/11156))
+- Bumped @babel/runtime from 7.26.9 to 7.27.0 in the documentation site. ([#11124](https://github.com/fivetran/great_expectations/pull/11124))
+- Bumped estree-util-value-to-estree from 3.3.2 to 3.3.3 in the documentation site. ([#11121](https://github.com/fivetran/great_expectations/pull/11121))
+- Bumped http-proxy-middleware from 2.0.7 to 2.0.9 in the documentation site. ([#11120](https://github.com/fivetran/great_expectations/pull/11120))
+- ExpectQueryResultsToMatchSource now renders a prescriptive summary showing the target SQL query and the source Data Source it is compared against. ([#11160](https://github.com/fivetran/great_expectations/pull/11160))
+- Removed deprecated datetime.utcnow() and utcfromtimestamp() usage so no datetime deprecation warnings are emitted on Python 3.12+. ([#11134](https://github.com/fivetran/great_expectations/pull/11134))
+- Bumped image-size from 1.2.0 to 1.2.1 in the documentation site, picking up a denial-of-service fix. ([#11125](https://github.com/fivetran/great_expectations/pull/11125))
+- Cleaned up the nightly Redshift test setup. ([#11166](https://github.com/fivetran/great_expectations/pull/11166))
+- Clarified the ExpectQueryResultsToMatchSource documentation to note that column names do not matter but column order does. ([#11158](https://github.com/fivetran/great_expectations/pull/11158))
+- Restored Redshift credentials needed by the documentation tests in CI. ([#11169](https://github.com/fivetran/great_expectations/pull/11169))
+- Split the Redshift tests into their own CI job. ([#11167](https://github.com/fivetran/great_expectations/pull/11167))
+- Bumped prismjs from 1.29.0 to 1.30.0 in the documentation site. ([#11126](https://github.com/fivetran/great_expectations/pull/11126))
+- Repaired the failing MSSQL compatibility test runs. ([#11153](https://github.com/fivetran/great_expectations/pull/11153))
+- Bumped @babel/runtime-corejs3 from 7.26.9 to 7.27.0 in the documentation site. ([#11122](https://github.com/fivetran/great_expectations/pull/11122))
+
+</details>
+
+#### Contributors
+
+Thanks to @esadek (first contribution), @emmanuel-ferdman (first contribution).
 
 ### 1.4.3 (2025-05-07)
 
