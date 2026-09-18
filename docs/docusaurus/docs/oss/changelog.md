@@ -416,18 +416,69 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Fix npm security vulnerabilities in docusaurus ([#11600](https://github.com/great-expectations/great_expectations/pull/11600))
 * [CONTRIB] Fix typing export for get_context ([#11578](https://github.com/great-expectations/great_expectations/pull/11578)) (thanks @ipriyankalimbad)
 
-### 1.11.0
-* [MINORBUMP] Format `unexpected_rows` as dicts in map expectation validation results ([#11591](https://github.com/great-expectations/great_expectations/pull/11591))
-* [BUGFIX] batch.columns() returns empty list for Redshift batches ([#11534](https://github.com/great-expectations/great_expectations/pull/11534)) (thanks @leodrivera)
-* [DOCS] reframe and clarify Data Source limitations ([#11570](https://github.com/great-expectations/great_expectations/pull/11570))
-* [DOCS] Prevent copying hidden lines from code blocks when pressing copy button ([#11571](https://github.com/great-expectations/great_expectations/pull/11571))
-* [DOCS] remove temporary row conditions notes ([#11581](https://github.com/great-expectations/great_expectations/pull/11581))
-* [DOCS] remove beta from ExpectAI ([#11590](https://github.com/great-expectations/great_expectations/pull/11590))
-* [MAINTENANCE] Improve local type checking developer experience ([#11574](https://github.com/great-expectations/great_expectations/pull/11574))
-* [MAINTENANCE] Add `--pty` and `--no-pty` flags to `invoke deps` ([#11586](https://github.com/great-expectations/great_expectations/pull/11586))
-* [MAINTENANCE] Serialize `unexpected_rows` for all Map expectations when opt-in flag is provided ([#11583](https://github.com/great-expectations/great_expectations/pull/11583))
-* [MAINTENANCE] Ignore `DeprecationWarning` emitted by deps ([#11587](https://github.com/great-expectations/great_expectations/pull/11587))
-* [MAINTENANCE] Include SUMMARY in result_format query support ([#11594](https://github.com/great-expectations/great_expectations/pull/11594))
+### 1.11.0 (2026-01-12)
+
+#### Highlights
+
+- **Unexpected rows are returned as dictionaries for Map expectations** — Map expectation validation results now report `unexpected_rows` as dictionaries keyed by column name instead of database-specific row objects rendered as tuples, so results are easier to parse and no longer depend on an opt-in flag. ([#11591](https://github.com/fivetran/great_expectations/pull/11591), [#11583](https://github.com/fivetran/great_expectations/pull/11583))
+
+  ```python
+  result = batch.validate(expectation)
+  # result["result"]["unexpected_rows"]
+  # [{"col_a": 1.0, "col_b": 1.0, "col_c": 2.0}]
+  ```
+
+- **Column-based validations work on Redshift batches** — `batch.columns()` no longer returns an empty list for Redshift batches on clusters with restricted `information_schema` access, and table names given as `"schema.table"` are resolved correctly, so column-based expectations run instead of failing with a metric domain error. ([#11534](https://github.com/fivetran/great_expectations/pull/11534))
+
+  ```python
+  batch = batch_definition.get_batch()
+  print(batch.columns())
+  ```
+
+- **Unexpected index query available with SUMMARY result format** — `return_unexpected_index_query` is now supported with the SUMMARY result format, matching what BASIC already offered. ([#11594](https://github.com/fivetran/great_expectations/pull/11594))
+
+  ```python
+  result = batch.validate(
+      expectation,
+      result_format={
+          "result_format": "SUMMARY",
+          "unexpected_index_column_names": ["pk"],
+          "return_unexpected_index_query": True,
+      },
+  )
+  ```
+
+#### Changes
+
+##### Features
+
+- Map expectation validation results now serialize `unexpected_rows` as dictionaries by default, and the `map_expectation_unexpected_rows_as_dict` opt-in flag is no longer needed. ([#11591](https://github.com/fivetran/great_expectations/pull/11591))
+
+##### Bug fixes
+
+- Fixed `batch.columns()` returning an empty list for Redshift batches, which caused column-based expectations to fail; column names are now retrieved via a fallback query when `information_schema` is inaccessible, and `table_name` values of the form `"schema.table"` are parsed correctly. ([#11534](https://github.com/fivetran/great_expectations/pull/11534))
+
+##### Docs
+
+- Documentation no longer labels ExpectAI as beta. ([#11590](https://github.com/fivetran/great_expectations/pull/11590))
+- Removed temporary notes about row conditions from the documentation. ([#11581](https://github.com/fivetran/great_expectations/pull/11581))
+- The copy button on documentation code blocks no longer copies hidden lines. ([#11571](https://github.com/fivetran/great_expectations/pull/11571))
+- Reframed and clarified the documented Data Source limitations. ([#11570](https://github.com/fivetran/great_expectations/pull/11570))
+
+<details>
+<summary>Maintenance</summary>
+
+- `return_unexpected_index_query` is now supported with the SUMMARY result format, so SUMMARY is no longer more limited than BASIC. ([#11594](https://github.com/fivetran/great_expectations/pull/11594))
+- Suppressed `DeprecationWarning`s emitted by dependencies so local test runs are not failed by them. ([#11587](https://github.com/fivetran/great_expectations/pull/11587))
+- Added an opt-in `map_expectation_unexpected_rows_as_dict` Checkpoint setting that serializes `unexpected_rows` as dictionaries for all Map expectations on SQLAlchemy and Spark, with the default output unchanged. ([#11583](https://github.com/fivetran/great_expectations/pull/11583))
+- `invoke deps` accepts `--pty` and `--no-pty` flags so automated environments can control pseudo-terminal usage. ([#11586](https://github.com/fivetran/great_expectations/pull/11586))
+- Improved the local type-checking developer experience: fixed type errors, silenced `pyparsing` deprecation warnings via the compatibility layer, and documented the type-checking workflow so local runs match CI. ([#11574](https://github.com/fivetran/great_expectations/pull/11574))
+
+</details>
+
+#### Contributors
+
+Thanks to @leodrivera (first contribution).
 
 ### 1.10.0 (2025-12-18)
 
