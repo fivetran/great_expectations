@@ -1061,19 +1061,62 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Clean up `cloud-tests` environment variables ([#10792](https://github.com/great-expectations/great_expectations/pull/10792))
 * [MAINTENANCE] Adding `databricks` compatibility types ([#10787](https://github.com/great-expectations/great_expectations/pull/10787))
 
-### 1.2.6
-* [BUGFIX] Enable custom actions in V1 ([#10743](https://github.com/great-expectations/great_expectations/pull/10743))
-* [BUGFIX] Fix like pattern expectations to work without optional SQL deps ([#10745](https://github.com/great-expectations/great_expectations/pull/10745))
-* [BUGFIX] Default `exact_match` to `True` for `ExpectTableColumnsToMatchSet` ([#10746](https://github.com/great-expectations/great_expectations/pull/10746))
-* [BUGFIX] check for variance in validator and batch asset ([#10744](https://github.com/great-expectations/great_expectations/pull/10744))
-* [DOCS] Update Row Condition guidance ([#10736](https://github.com/great-expectations/great_expectations/pull/10736))
-* [DOCS] Update banner content ([#10747](https://github.com/great-expectations/great_expectations/pull/10747))
-* [DOCS] key-pair auth for Snowflake ([#10751](https://github.com/great-expectations/great_expectations/pull/10751))
-* [MAINTENANCE] Add `JOIN` test cases for `UnexpectedRowsExpectation` ([#10733](https://github.com/great-expectations/great_expectations/pull/10733))
-* [MAINTENANCE] Enable custom table names in expectation testing framework ([#10724](https://github.com/great-expectations/great_expectations/pull/10724))
-* [MAINTENANCE] Prefix schema ([#10742](https://github.com/great-expectations/great_expectations/pull/10742))
-* [MAINTENANCE] Atomic diagnostic observed value renderer for `Expect table columns to match set` ([#10748](https://github.com/great-expectations/great_expectations/pull/10748))
-* [MAINTENANCE] Simplify bigquery assertion ([#10750](https://github.com/great-expectations/great_expectations/pull/10750))
+### 1.2.6 (2024-12-11)
+
+#### Highlights
+
+- **Define your own custom validation actions** — You can now define custom actions and use them in Great Expectations validation workflows. Custom action classes are picked up automatically and serialize and deserialize correctly alongside built-in actions. ([#10743](https://github.com/fivetran/great_expectations/pull/10743))
+
+  ```python
+  from great_expectations.checkpoint.actions import ValidationAction
+
+
+  class MyCustomAction(ValidationAction):
+      type: str = "my_custom_action"
+
+      def run(self, checkpoint_result, action_context=None):
+          ...
+  ```
+
+- **Pattern-matching expectations no longer require optional SQL dependencies** — LikePattern expectations now run in environments where the MySQL, MsSQL, or PostgreSQL SQLAlchemy libraries are not installed, instead of failing on a faulty attribute check. ([#10745](https://github.com/fivetran/great_expectations/pull/10745))
+
+- **ExpectTableColumnsToMatchSet now defaults to exact matching** — The exact_match parameter of ExpectTableColumnsToMatchSet now defaults to True, matching the behavior described in the Expectation Gallery documentation. ([#10746](https://github.com/fivetran/great_expectations/pull/10746))
+
+  ```python
+  import great_expectations.expectations as gxe
+
+  # exact_match now defaults to True
+  expectation = gxe.ExpectTableColumnsToMatchSet(column_set=["id", "name"])
+  ```
+
+#### Changes
+
+##### Features
+
+- You can now define your own custom validation actions; they are registered automatically and serialize and deserialize correctly. ([#10743](https://github.com/fivetran/great_expectations/pull/10743))
+
+##### Bug fixes
+
+- Fetching metrics for multiple data assets in a single call no longer returns metrics from a previously cached asset; the batch is now checked against the incoming batch request. ([#10744](https://github.com/fivetran/great_expectations/pull/10744))
+- ExpectTableColumnsToMatchSet now defaults exact_match to True, matching its documented behavior. ([#10746](https://github.com/fivetran/great_expectations/pull/10746))
+- LikePattern expectations now work in environments without the MySQL, MsSQL, or PostgreSQL SQLAlchemy libraries installed. ([#10745](https://github.com/fivetran/great_expectations/pull/10745))
+
+##### Docs
+
+- Documented key-pair authentication for connecting to Snowflake. ([#10751](https://github.com/fivetran/great_expectations/pull/10751))
+- Updated the content of the documentation site banner. ([#10747](https://github.com/fivetran/great_expectations/pull/10747))
+- Refreshed the Row Condition guidance, with consistent punctuation and corrected indentation in the examples. ([#10736](https://github.com/fivetran/great_expectations/pull/10736))
+
+<details>
+<summary>Maintenance</summary>
+
+- Loosened a BigQuery test assertion so it tolerates BigQuery's updated error message wording. ([#10750](https://github.com/fivetran/great_expectations/pull/10750))
+- Added an atomic diagnostic observed-value renderer for ExpectTableColumnsToMatchSet that highlights unexpected and missing columns whether or not the Expectation passed. ([#10748](https://github.com/fivetran/great_expectations/pull/10748))
+- Test schemas are now created with a common prefix so they are easier to identify and clean up manually. ([#10742](https://github.com/fivetran/great_expectations/pull/10742))
+- The expectation testing framework now allows developers to override the randomly generated table name when using SQL data sources. ([#10724](https://github.com/fivetran/great_expectations/pull/10724))
+- Added integration test coverage for UnexpectedRowsExpectation, including JOIN queries against a second table and partitioned batches, across the supported SQL and Spark data sources. ([#10733](https://github.com/fivetran/great_expectations/pull/10733))
+
+</details>
 
 ### 1.2.5 (2024-12-04)
 
