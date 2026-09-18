@@ -455,18 +455,53 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Bump mypy to 0.19.0 ([#11551](https://github.com/great-expectations/great_expectations/pull/11551))
 * [MAINTENANCE] Update ruff pre-commit and remove TCH001 from tests ruff ignore list ([#11557](https://github.com/great-expectations/great_expectations/pull/11557))
 
-### 1.9.2
-* [DOCS] validations with the Cloud API ([#11400](https://github.com/great-expectations/great_expectations/pull/11400))
-* [DOCS] remove "read-only" deployment pattern as a misnomer ([#11533](https://github.com/great-expectations/great_expectations/pull/11533))
-* [DOCS] DOC-1180 - Add documentation for Custom Actions in GX Cloud ([#11521](https://github.com/great-expectations/great_expectations/pull/11521))
-* [DOCS] add dependencies to compatibility reference ([#11530](https://github.com/great-expectations/great_expectations/pull/11530))
-* [MAINTENANCE] Warn when snowflake pkey exists in kwargs ([#11520](https://github.com/great-expectations/great_expectations/pull/11520))
-* [MAINTENANCE] pin posthog-docusaurus ([#11531](https://github.com/great-expectations/great_expectations/pull/11531))
-* [MAINTENANCE] Bump node-forge from 1.3.1 to 1.3.2 in /docs/docusaurus ([#11536](https://github.com/great-expectations/great_expectations/pull/11536))
-* [MAINTENANCE] Reenable stale bot for PRs ([#11544](https://github.com/great-expectations/great_expectations/pull/11544))
-* [MAINTENANCE] Bump mdast-util-to-hast from 13.2.0 to 13.2.1 in /docs/docusaurus ([#11541](https://github.com/great-expectations/great_expectations/pull/11541))
-* [MAINTENANCE] Bump express from 4.21.2 to 4.22.1 in /docs/docusaurus ([#11540](https://github.com/great-expectations/great_expectations/pull/11540))
-* [MAINTENANCE] pre-commit autoupdate ([#11539](https://github.com/great-expectations/great_expectations/pull/11539))
+### 1.9.2 (2025-12-03)
+
+#### Highlights
+
+- **Fluent Snowflake datasource update methods** — Snowflake datasources can now be updated or upserted through the fluent API with `update_snowflake` and `add_or_update_snowflake`, matching the methods already available for other datasource types. ([#11520](https://github.com/fivetran/great_expectations/pull/11520))
+
+  ```python
+  context.data_sources.add_or_update_snowflake(
+      name="my_snowflake_ds",
+      connection_string="snowflake://<user>@<account>/<database>/<schema>?warehouse=<wh>&role=<role>",
+  )
+  ```
+
+- **Documentation for running validations with the GX Cloud API** — The documentation now explains how to run validations using the GX Cloud API, including what is supported and how results are handled. ([#11400](https://github.com/fivetran/great_expectations/pull/11400))
+
+- **Documentation for Custom Actions in GX Cloud** — New documentation describes how to configure and use Custom Actions in GX Cloud. ([#11521](https://github.com/fivetran/great_expectations/pull/11521))
+
+- **Dependency compatibility reference expanded** — The compatibility reference in the docs now lists supported dependencies, so you can check which versions work with your installation before upgrading. ([#11530](https://github.com/fivetran/great_expectations/pull/11530))
+
+#### Deprecations
+
+- Passing `private_key` inside a Snowflake datasource's `kwargs` is deprecated; use the datasource's dedicated `private_key` connection argument. Removal in 2.0.0. ([#11520](https://github.com/fivetran/great_expectations/pull/11520))
+
+#### Changes
+
+##### Docs
+
+- Added supported dependencies to the compatibility reference documentation. ([#11530](https://github.com/fivetran/great_expectations/pull/11530))
+- Added documentation for Custom Actions in GX Cloud. ([#11521](https://github.com/fivetran/great_expectations/pull/11521))
+- Removed the misleading "read-only" deployment pattern from the deployment documentation. ([#11533](https://github.com/fivetran/great_expectations/pull/11533))
+- Added documentation on running validations with the GX Cloud API. ([#11400](https://github.com/fivetran/great_expectations/pull/11400))
+
+<details>
+<summary>Maintenance</summary>
+
+- Bumped express from 4.21.2 to 4.22.1 in the documentation site dependencies. ([#11540](https://github.com/fivetran/great_expectations/pull/11540))
+- Re-enabled the stale bot for pull requests on a nightly schedule, covering all pull requests regardless of labels and excluding issues. ([#11544](https://github.com/fivetran/great_expectations/pull/11544))
+- Bumped mdast-util-to-hast from 13.2.0 to 13.2.1 in the documentation site dependencies. ([#11541](https://github.com/fivetran/great_expectations/pull/11541))
+- Bumped node-forge from 1.3.1 to 1.3.2 in the documentation site dependencies, picking up its security fixes. ([#11536](https://github.com/fivetran/great_expectations/pull/11536))
+- Pinned the posthog-docusaurus version used by the documentation site. ([#11531](https://github.com/fivetran/great_expectations/pull/11531))
+- Creating, updating, or loading a Snowflake datasource that supplies `private_key` through `kwargs` now emits a deprecation warning, and the fluent API gained `update_snowflake` and `add_or_update_snowflake`. ([#11520](https://github.com/fivetran/great_expectations/pull/11520))
+
+</details>
+
+#### Contributors
+
+Thanks to @NathanFarmer.
 
 ### 1.9.1 (2025-11-20)
 
