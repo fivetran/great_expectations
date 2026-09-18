@@ -321,10 +321,25 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] ci health report script ([#11751](https://github.com/great-expectations/great_expectations/pull/11751))
 * [CONTRIB] add BigQuery datasource methods to sources.pyi stub file ([#11736](https://github.com/great-expectations/great_expectations/pull/11736)) (thanks @Julian901)
 
-### 1.15.1
-* [DOCS] Expectation history ([#11704](https://github.com/great-expectations/great_expectations/pull/11704))
-* [MAINTENANCE] remove nested actions format ([#11713](https://github.com/great-expectations/great_expectations/pull/11713))
-* [MAINTENANCE] increase expectation parameter timeout ([#11716](https://github.com/great-expectations/great_expectations/pull/11716))
+### 1.15.1 (2026-03-13)
+
+#### Highlights
+
+- **Documentation for Expectation history** — The documentation now covers Expectation history, explaining how changes to an Expectation are tracked over time. ([#11704](https://github.com/fivetran/great_expectations/pull/11704))
+
+#### Changes
+
+##### Docs
+
+- Added documentation covering Expectation history. ([#11704](https://github.com/fivetran/great_expectations/pull/11704))
+
+<details>
+<summary>Maintenance</summary>
+
+- Increased the timeout used when resolving Expectation parameters, so slower parameter lookups are less likely to time out. ([#11716](https://github.com/fivetran/great_expectations/pull/11716))
+- Removed support for the older nested format for configuring actions. ([#11713](https://github.com/fivetran/great_expectations/pull/11713))
+
+</details>
 
 ### 1.15.0 (2026-03-11)
 
