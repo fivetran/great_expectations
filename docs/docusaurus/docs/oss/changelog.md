@@ -977,30 +977,70 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Convert BatchTestSetup.asset property to BatchTestSetup… ([#10864](https://github.com/great-expectations/great_expectations/pull/10864))
 * [MAINTENANCE] Migrate from `databricks-sql-connector` to `databricks-sqlalchemy` in tests ([#10886](https://github.com/great-expectations/great_expectations/pull/10886))
 
-### 1.3.2
-* [FEATURE] CheckpointFactory.add_or_update ([#10856](https://github.com/great-expectations/great_expectations/pull/10856))
-* [FEATURE] Enable strict_min/max for ExpectTableRowCountToBeBetween ([#10845](https://github.com/great-expectations/great_expectations/pull/10845))
-* [BUGFIX] `ExpectColumnUniqueValueCountToBeBetween` `strict_min` and `strict_max` not getting set ([#10835](https://github.com/great-expectations/great_expectations/pull/10835))
-* [BUGFIX] Extend existing version logic for pandas `series.between()` `inclusive` to missing conditions ([#10837](https://github.com/great-expectations/great_expectations/pull/10837))
-* [BUGFIX] Add input args validators to various Expectations ([#10833](https://github.com/great-expectations/great_expectations/pull/10833))
-* [DOCS] Expectation selection, group by data quality issue ([#10806](https://github.com/great-expectations/great_expectations/pull/10806))
-* [DOCS] Editing Admonition titles ([#10813](https://github.com/great-expectations/great_expectations/pull/10813))
-* [DOCS] consolidate info about analytics / usage stats ([#10853](https://github.com/great-expectations/great_expectations/pull/10853))
-* [DOCS] update checkpoint snippet location ([#10854](https://github.com/great-expectations/great_expectations/pull/10854))
-* [DOCS] In-app agent request ([#10836](https://github.com/great-expectations/great_expectations/pull/10836))
-* [DOCS] small fixes for newer DQ use case articles ([#10847](https://github.com/great-expectations/great_expectations/pull/10847))
-* [DOCS] Adding keys to duplicated headers ([#10846](https://github.com/great-expectations/great_expectations/pull/10846))
-* [DOCS] fix custom SQL Expectation approach for cloud ([#10844](https://github.com/great-expectations/great_expectations/pull/10844))
-* [DOCS] update screenshot of observed value ([#10867](https://github.com/great-expectations/great_expectations/pull/10867))
-* [MAINTENANCE] Add `--force-reinstall` flag to `invoke deps` and update help text ([#10834](https://github.com/great-expectations/great_expectations/pull/10834))
-* [MAINTENANCE] Update `responses` pin due to mypy error with latest release ([#10842](https://github.com/great-expectations/great_expectations/pull/10842))
-* [MAINTENANCE] Remove xfailed test ([#10843](https://github.com/great-expectations/great_expectations/pull/10843))
-* [MAINTENANCE] Pin `boto3` due to breaking change ([#10862](https://github.com/great-expectations/great_expectations/pull/10862))
-* [MAINTENANCE] Change mssql tests to use version 18 driver ([#10868](https://github.com/great-expectations/great_expectations/pull/10868))
-* [MAINTENANCE] Temporary fix to move past failing schema cleanup ([#10860](https://github.com/great-expectations/great_expectations/pull/10860))
-* [MAINTENANCE] Unpin `snowflake-sqlalchemy` ([#10838](https://github.com/great-expectations/great_expectations/pull/10838))
-* [MAINTENANCE] CI skips xfailed quoted identifier tests ([#10857](https://github.com/great-expectations/great_expectations/pull/10857))
-* [MAINTENANCE] Enforce a minimum length of 2 for MulticolumnMapExpectation `column_list` ([#10850](https://github.com/great-expectations/great_expectations/pull/10850))
+### 1.3.2 (2025-01-17)
+
+#### Highlights
+
+- **Strict bounds for table row count expectations** — `ExpectTableRowCountToBeBetween` now accepts `strict_min` and `strict_max`, so you can require the row count to be strictly greater than the minimum and strictly less than the maximum. ([#10845](https://github.com/fivetran/great_expectations/pull/10845))
+
+  ```python
+  import great_expectations.expectations as gxe
+
+  expectation = gxe.ExpectTableRowCountToBeBetween(
+      min_value=10,
+      max_value=100,
+      strict_min=True,
+      strict_max=True,
+  )
+  ```
+
+- **Add or update a Checkpoint in one call** — The Checkpoint factory now offers `add_or_update`, which creates a Checkpoint if it does not exist yet and replaces the stored configuration if it does. ([#10856](https://github.com/fivetran/great_expectations/pull/10856))
+
+  ```python
+  checkpoint = context.checkpoints.add_or_update(checkpoint)
+  ```
+
+- **Faster feedback on invalid Expectation arguments** — Several Expectations now validate their input arguments when you create them, raising an error immediately instead of failing partway through validation. Multicolumn map Expectations also now require at least two entries in `column_list`. ([#10833](https://github.com/fivetran/great_expectations/pull/10833), [#10850](https://github.com/fivetran/great_expectations/pull/10850))
+
+#### Changes
+
+##### Features
+
+- `ExpectTableRowCountToBeBetween` now supports the `strict_min` and `strict_max` parameters. ([#10845](https://github.com/fivetran/great_expectations/pull/10845))
+- Added `add_or_update` to the Checkpoint factory so a Checkpoint can be created or replaced in a single call. ([#10856](https://github.com/fivetran/great_expectations/pull/10856))
+
+##### Bug fixes
+
+- Several Expectations now validate their input arguments up front and raise an error immediately rather than failing during validation. ([#10833](https://github.com/fivetran/great_expectations/pull/10833))
+- Expectations backed by pandas `Series.between()` now handle all combinations of inclusive bounds correctly across supported pandas versions. ([#10837](https://github.com/fivetran/great_expectations/pull/10837))
+- `ExpectColumnUniqueValueCountToBeBetween` now honors `strict_min` and `strict_max`, which were previously ignored. ([#10835](https://github.com/fivetran/great_expectations/pull/10835))
+
+##### Docs
+
+- Updated a documentation screenshot to reflect the current handling of observed values in the validation run history view. ([#10867](https://github.com/fivetran/great_expectations/pull/10867))
+- Corrected the documented approach for defining a custom SQL Expectation in GX Cloud. ([#10844](https://github.com/fivetran/great_expectations/pull/10844))
+- Added explicit anchor IDs to repeated headings in the documentation so that direct links to a section now land on the intended section. ([#10846](https://github.com/fivetran/great_expectations/pull/10846))
+- Corrected typos and removed an outdated reference to suites in the GX Cloud UI from the data quality use case pages. ([#10847](https://github.com/fivetran/great_expectations/pull/10847))
+- Documented how to request the GX Agent from within the GX Cloud app on the agent deployment page. ([#10836](https://github.com/fivetran/great_expectations/pull/10836))
+- Updated the documented location of the "generate snippet" button in the Airflow connection instructions. ([#10854](https://github.com/fivetran/great_expectations/pull/10854))
+- Consolidated the documentation about analytics and usage statistics into a single place. ([#10853](https://github.com/fivetran/great_expectations/pull/10853))
+- Corrected the capitalization of admonition titles throughout the documentation. ([#10813](https://github.com/fivetran/great_expectations/pull/10813))
+- Reorganized the Expectation selection documentation so Expectations are grouped by the data quality issue they address. ([#10806](https://github.com/fivetran/great_expectations/pull/10806))
+
+<details>
+<summary>Maintenance</summary>
+
+- Multicolumn map Expectations now reject a `column_list` with fewer than two columns when the Expectation is created. ([#10850](https://github.com/fivetran/great_expectations/pull/10850))
+- Continuous integration now skips the slow quoted-identifier tests that were already expected to fail. ([#10857](https://github.com/fivetran/great_expectations/pull/10857))
+- Unpinned `snowflake-sqlalchemy`, excluding only the broken 1.7.0 release. ([#10838](https://github.com/fivetran/great_expectations/pull/10838))
+- Applied a temporary fix to get past a failing test schema cleanup step. ([#10860](https://github.com/fivetran/great_expectations/pull/10860))
+- Microsoft SQL Server tests now run against the version 18 ODBC driver, with connection strings updated and consolidated accordingly. ([#10868](https://github.com/fivetran/great_expectations/pull/10868))
+- Pinned `boto3` to avoid a behavior change in a newer release. ([#10862](https://github.com/fivetran/great_expectations/pull/10862))
+- Removed an expected-to-fail Databricks test case for `ExpectColumnValuesToBeInTypeList` from the test suite. ([#10843](https://github.com/fivetran/great_expectations/pull/10843))
+- Updated the `responses` version pin to avoid a type-checking error in its latest release. ([#10842](https://github.com/fivetran/great_expectations/pull/10842))
+- The `invoke deps` development task now accepts a `--force-reinstall` flag and has clearer help text. ([#10834](https://github.com/fivetran/great_expectations/pull/10834))
+
+</details>
 
 ### 1.3.1 (2025-01-08)
 
