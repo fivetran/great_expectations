@@ -223,28 +223,86 @@ Thanks to @siddharthgaur1 (first contribution), @Star-cloud626 (first contributi
 * [MAINTENANCE] Add per-metric override hooks for SqlAlchemy row-retrieval providers ([#11998](https://github.com/fivetran/great_expectations/pull/11998))
 * [CONTRIB] Update distinct values set Expectations to document observed_value contract ([#11934](https://github.com/fivetran/great_expectations/pull/11934)) (thanks @EshwarCVS)
 
-### 1.19.0
-* [FEATURE] Spark 4 support ([#11969](https://github.com/fivetran/great_expectations/pull/11969))
-* [BUGFIX] Preserve date-like strings in SQL distinct value sets ([#11947](https://github.com/fivetran/great_expectations/pull/11947)) (thanks @yuricavalcanti06)
-* [BUGFIX] Reject empty regex_list in ExpectColumnValuesToMatchRegexList ([#11958](https://github.com/fivetran/great_expectations/pull/11958)) (thanks @anxkhn)
-* [BUGFIX] Fix broken link in issue assign welcome message ([#11961](https://github.com/fivetran/great_expectations/pull/11961))
-* [DOCS] Enumerate Ephemeral Data Context use cases in type overview ([#11931](https://github.com/fivetran/great_expectations/pull/11931)) (thanks @zozo123)
-* [MAINTENANCE] remove broken redirect entries ([#11936](https://github.com/fivetran/great_expectations/pull/11936))
-* [MAINTENANCE] Replace broken Wistia embed with YouTube on GX Core intro page ([#11932](https://github.com/fivetran/great_expectations/pull/11932))
-* [MAINTENANCE] Skip broken GCP SDK setup in docs-snippets during CI transition ([#11959](https://github.com/fivetran/great_expectations/pull/11959))
-* [MAINTENANCE] Self-provision data in Snowflake connection tests ([#11945](https://github.com/fivetran/great_expectations/pull/11945))
-* [MAINTENANCE] Contrib Docs ([#11950](https://github.com/fivetran/great_expectations/pull/11950))
-* [MAINTENANCE] Add bot-enforced issue claiming and scope stale bot to needs-info issues ([#11957](https://github.com/fivetran/great_expectations/pull/11957))
-* [MAINTENANCE] Bump launch-editor from 2.12.0 to 2.14.1 in /docs/docusaurus ([#11918](https://github.com/fivetran/great_expectations/pull/11918))
-* [MAINTENANCE] clean up unused code ([#11717](https://github.com/fivetran/great_expectations/pull/11717))
-* [MAINTENANCE] Extract type comparison logic into dedicated module ([#11798](https://github.com/fivetran/great_expectations/pull/11798)) 
-* [MAINTENANCE] Bump dompurify from 3.4.3 to 3.4.11 in /docs/docusaurus ([#11917](https://github.com/fivetran/great_expectations/pull/11917))
-* [MAINTENANCE] Make pyarrow compatibility type-ignore environment-independent ([#11966](https://github.com/fivetran/great_expectations/pull/11966))
-* [MAINTENANCE] Bump joi from 17.13.3 to 17.13.4 in /docs/docusaurus ([#11914](https://github.com/fivetran/great_expectations/pull/11914))
-* [MAINTENANCE] Remove dead expectation helpers and types/attributes ([#11765](https://github.com/fivetran/great_expectations/pull/11765))
-* [MAINTENANCE] Databricks CI ([#11968](https://github.com/fivetran/great_expectations/pull/11968))
-* [MAINTENANCE] Authenticate Databricks CI via OAuth M2M service principal ([#11970](https://github.com/fivetran/great_expectations/pull/11970))
-* [MAINTENANCE] Remove Codecov from CI and documentation ([#11971](https://github.com/fivetran/great_expectations/pull/11971))
+### 1.19.0 (2026-07-13)
+
+Compatibility: `zstandard` added (extra `spark-connect`)
+
+#### Highlights
+
+- **Spark 4 and ANSI mode support** — Great Expectations now works with Spark 4, including ANSI mode, so you can validate Spark DataFrames on the latest Spark release without pinning to Spark 3. The `spark-connect` extra now also installs `zstandard`. ([#11969](https://github.com/fivetran/great_expectations/pull/11969))
+
+  ```python
+  import great_expectations as gx
+
+  context = gx.get_context()
+  data_source = context.data_sources.add_spark(name="my_spark")
+  asset = data_source.add_dataframe_asset(name="my_df")
+  batch = asset.add_batch_definition_whole_dataframe("batch").get_batch(
+      batch_parameters={"dataframe": spark_df}
+  )
+  ```
+
+- **Date-like strings stay strings in SQL value sets** — Distinct-value expectations against SQL data sources no longer turn non-ISO, date-like text such as "10-20" into a date, so text bins in a `value_set` compare correctly against text columns. Only strict `YYYY-MM-DD` strings are converted to dates. ([#11947](https://github.com/fivetran/great_expectations/pull/11947))
+
+  ```python
+  import great_expectations.expectations as gxe
+
+  gxe.ExpectColumnDistinctValuesToBeInSet(
+      column="bin",
+      value_set=["10-20", "20-30"],
+  )
+  ```
+
+- **Clearer failure for an empty regex_list** — `ExpectColumnValuesToMatchRegexList` now rejects an empty `regex_list` at construction time with the message "regex_list must not be empty", instead of failing later during validation with an opaque "No objects to concatenate" error. This matches the behavior of `ExpectColumnValuesToNotMatchRegexList`. ([#11958](https://github.com/fivetran/great_expectations/pull/11958))
+
+  ```python
+  import great_expectations.expectations as gxe
+
+  gxe.ExpectColumnValuesToMatchRegexList(column="my_col", regex_list=[])
+  # pydantic.ValidationError: ... regex_list must not be empty
+  ```
+
+#### Changes
+
+##### Features
+
+- Added support for Spark 4, including ANSI mode. ([#11969](https://github.com/fivetran/great_expectations/pull/11969))
+
+##### Bug fixes
+
+- Fixed the broken contributing-guide link in the welcome message posted when an issue is assigned. ([#11961](https://github.com/fivetran/great_expectations/pull/11961))
+- `ExpectColumnValuesToMatchRegexList` now fails at construction with "regex_list must not be empty" when given an empty list, instead of raising an opaque error at validation time. ([#11958](https://github.com/fivetran/great_expectations/pull/11958))
+- Non-ISO date-like strings such as "10-20" in a `value_set` are no longer parsed into dates for SQL distinct-value expectations; only strict `YYYY-MM-DD` strings are converted. ([#11947](https://github.com/fivetran/great_expectations/pull/11947))
+
+##### Docs
+
+- Expanded the Ephemeral Data Context description on the Create a Data Context page to name CI pipelines and disposable or read-only compute environments as use cases. ([#11931](https://github.com/fivetran/great_expectations/pull/11931))
+
+<details>
+<summary>Maintenance</summary>
+
+- Removed the Codecov integration from continuous integration and from the project README; no library behavior changes. ([#11971](https://github.com/fivetran/great_expectations/pull/11971))
+- Databricks test runs now authenticate with a service principal using short-lived OAuth machine-to-machine tokens instead of a stored personal access token. ([#11970](https://github.com/fivetran/great_expectations/pull/11970))
+- Re-enabled the Databricks test suite and made the target catalog configurable rather than hard-coded. ([#11968](https://github.com/fivetran/great_expectations/pull/11968))
+- Removed unreachable expectation helper modules and unused internal types that were not part of the public API. ([#11765](https://github.com/fivetran/great_expectations/pull/11765))
+- Updated the documentation site dependency joi from 17.13.3 to 17.13.4. ([#11914](https://github.com/fivetran/great_expectations/pull/11914))
+- Made the pyarrow compatibility type-ignore valid whether or not pyarrow is installed, fixing static-analysis failures; no runtime behavior change. ([#11966](https://github.com/fivetran/great_expectations/pull/11966))
+- Updated the documentation site dependency dompurify from 3.4.3 to 3.4.11. ([#11917](https://github.com/fivetran/great_expectations/pull/11917))
+- Moved dialect-aware column type comparison used by the type and type-list expectations into a dedicated internal module with expanded unit-test coverage; behavior is unchanged. ([#11798](https://github.com/fivetran/great_expectations/pull/11798))
+- Removed unused code from the codebase. ([#11717](https://github.com/fivetran/great_expectations/pull/11717))
+- Updated the documentation site dependency launch-editor from 2.12.0 to 2.14.1. ([#11918](https://github.com/fivetran/great_expectations/pull/11918))
+- Added a comment-driven issue-claiming workflow (`/assign-me`, `/unassign-me`) with automatic release of idle claims, and narrowed issue staleness to issues labeled as needing more information. ([#11957](https://github.com/fivetran/great_expectations/pull/11957))
+- Rewrote the contributor documentation and added structured issue, bug-report, and request-for-comment templates. ([#11950](https://github.com/fivetran/great_expectations/pull/11950))
+- Snowflake connection tests now provision their own schema and table, so they no longer depend on pre-existing warehouse state or grants. ([#11945](https://github.com/fivetran/great_expectations/pull/11945))
+- Skipped the broken Google Cloud SDK setup and one credential-dependent docs snippet test so the documentation test job runs again during the continuous-integration transition. ([#11959](https://github.com/fivetran/great_expectations/pull/11959))
+- Replaced the broken video embed on the GX Core introduction page with a working YouTube embed of the same demo. ([#11932](https://github.com/fivetran/great_expectations/pull/11932))
+- Removed broken and malformed entries from the documentation site's redirect list. ([#11936](https://github.com/fivetran/great_expectations/pull/11936))
+
+</details>
+
+#### Contributors
+
+Thanks to @wookasz, @anxkhn (first contribution), @yuricavalcanti06 (first contribution).
 
 ### 1.18.2 (2026-06-26)
 
