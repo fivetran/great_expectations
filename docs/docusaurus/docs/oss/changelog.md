@@ -907,17 +907,51 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Remove duplicated configuration ([#10989](https://github.com/great-expectations/great_expectations/pull/10989))
 * [MAINTENANCE] refactor to use data_context fixture ([#10997](https://github.com/great-expectations/great_expectations/pull/10997))
 
-### 1.3.8
-* [FEATURE] `Batch.compute_metrics()` ([#10950](https://github.com/great-expectations/great_expectations/pull/10950))
-* [FEATURE] `ColumnValuesNonNull` and `ColumnValuesNonNullCount` metrics ([#10959](https://github.com/great-expectations/great_expectations/pull/10959))
-* [FEATURE] Add mean to metrics API ([#10961](https://github.com/great-expectations/great_expectations/pull/10961))
-* [FEATURE] Remove batch_id parameter from Metric classes ([#10971](https://github.com/great-expectations/great_expectations/pull/10971))
-* [DOCS] SSO cta ([#10872](https://github.com/great-expectations/great_expectations/pull/10872))
-* [DOCS] Display args, returns and raises as tables in API reference pages ([#10910](https://github.com/great-expectations/great_expectations/pull/10910))
-* [DOCS] typo ([#10965](https://github.com/great-expectations/great_expectations/pull/10965))
-* [DOCS] Args and Raises in API reference should be able to display several rows ([#10968](https://github.com/great-expectations/great_expectations/pull/10968))
-* [MAINTENANCE] Remove `table` parameter from all Metric `Domain`s ([#10954](https://github.com/great-expectations/great_expectations/pull/10954))
-* [CONTRIB] remove table domain key ([#10956](https://github.com/great-expectations/great_expectations/pull/10956)) (thanks @VolkovGeoPhy)
+### 1.3.8 (2025-02-26)
+
+#### Highlights
+
+- **Compute metrics directly from a Batch** — Batches now expose a `compute_metrics()` method, so you can request one or more metrics for a batch and get back typed results without assembling a validation run. ([#10950](https://github.com/fivetran/great_expectations/pull/10950))
+
+  ```python
+  batch = batch_definition.get_batch()
+  results = batch.compute_metrics([ColumnMean(column="passenger_count")])
+  ```
+
+- **New metrics: column mean and non-null counts** — The metrics API now includes a mean metric along with `ColumnValuesNonNull` and `ColumnValuesNonNullCount`, so you can measure column averages and how many values in a column are populated. ([#10961](https://github.com/fivetran/great_expectations/pull/10961), [#10959](https://github.com/fivetran/great_expectations/pull/10959))
+
+  ```python
+  batch.compute_metrics([ColumnValuesNonNullCount(column="passenger_count")])
+  ```
+
+- **API reference arguments, returns, and raises now render as tables** — API reference pages present a method's arguments, return values, and raised exceptions in readable tables, and every argument and raised exception is listed instead of only the first one. ([#10910](https://github.com/fivetran/great_expectations/pull/10910), [#10968](https://github.com/fivetran/great_expectations/pull/10968))
+
+#### Changes
+
+##### Features
+
+- Added a mean metric to the metrics API, so column averages can be requested directly. ([#10961](https://github.com/fivetran/great_expectations/pull/10961))
+- Added `ColumnValuesNonNull` and `ColumnValuesNonNullCount` metrics for inspecting which column values are populated and how many there are. ([#10959](https://github.com/fivetran/great_expectations/pull/10959))
+- Added `Batch.compute_metrics()` for requesting metrics from a batch, with typed metric results. ([#10950](https://github.com/fivetran/great_expectations/pull/10950))
+
+##### Docs
+
+- API reference pages now list every entry under Args and Raises instead of showing only a single row, so documented arguments and exceptions are no longer lost. ([#10968](https://github.com/fivetran/great_expectations/pull/10968))
+- Fixed a typo in the documentation. ([#10965](https://github.com/fivetran/great_expectations/pull/10965))
+- API reference pages now display arguments, returns, and raises as tables instead of plain bulleted text. ([#10910](https://github.com/fivetran/great_expectations/pull/10910))
+- Added a single sign-on call to action to the Cloud user management documentation. ([#10872](https://github.com/fivetran/great_expectations/pull/10872))
+
+<details>
+<summary>Maintenance</summary>
+
+- Removed the table domain key from metric domains in the new metrics API. ([#10956](https://github.com/fivetran/great_expectations/pull/10956))
+- Removed the `table` parameter from metric domains in the new metrics API. ([#10954](https://github.com/fivetran/great_expectations/pull/10954))
+
+</details>
+
+#### Contributors
+
+Thanks to @VolkovGeoPhy (first contribution).
 
 ### 1.3.7 (2025-02-19)
 
