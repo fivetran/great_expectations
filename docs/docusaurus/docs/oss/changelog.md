@@ -1028,38 +1028,82 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Better logging around and only calling cleanup when we have old BigQuery schemas ([#10824](https://github.com/great-expectations/great_expectations/pull/10824))
 * [MAINTENANCE] Add `context.validation_definitions.add_or_update` support ([#10818](https://github.com/great-expectations/great_expectations/pull/10818))
 
-### 1.3.0
-* [BUGFIX] Handle expectation description from cloud ([#10768](https://github.com/great-expectations/great_expectations/pull/10768))
-* [BUGFIX] Renderer for UnexpectedRowsExpectation ([#10758](https://github.com/great-expectations/great_expectations/pull/10758))
-* [BUGFIX] Fix format of UnexpectedRowsExpectation observed_value to be int ([#10777](https://github.com/great-expectations/great_expectations/pull/10777))
-* [BUGFIX] Metric table.column_type should properly evaluate for snowflake ([#10776](https://github.com/great-expectations/great_expectations/pull/10776))
-* [BUGFIX] Fix expectation description rendering in DataDocs ([#10789](https://github.com/great-expectations/great_expectations/pull/10789))
-* [BUGFIX] `Databricks` Fix Type Translation - `ExpectColumnValuesToBeInTypeList` and `ExpectColumnValuesToBeInType` ([#10791](https://github.com/great-expectations/great_expectations/pull/10791))
-* [BUGFIX] Metric `table.column_type` should properly evaluate for Postgres ([#10793](https://github.com/great-expectations/great_expectations/pull/10793))
-* [DOCS] Clarify Connect GX Cloud landing page ([#10761](https://github.com/great-expectations/great_expectations/pull/10761))
-* [DOCS] Remove `print(validation_results.result_url)` as it isn't supported ([#10760](https://github.com/great-expectations/great_expectations/pull/10760))
-* [DOCS] SUJ-E ([#10665](https://github.com/great-expectations/great_expectations/pull/10665))
-* [DOCS] Fix underline in links on inline code ([#10783](https://github.com/great-expectations/great_expectations/pull/10783))
-* [DOCS] Remove unnecessary escape character in Expectation for Gallery ([#10780](https://github.com/great-expectations/great_expectations/pull/10780))
-* [DOCS] Custom Actions ([#10772](https://github.com/great-expectations/great_expectations/pull/10772))
-* [DOCS] Schema change detection ([#10755](https://github.com/great-expectations/great_expectations/pull/10755))
-* [DOCS] Update public_api to include `ValidationAction` components ([#10752](https://github.com/great-expectations/great_expectations/pull/10752))
-* [MAINTENANCE] Change ci pipeline to pull_request_target with a permissions check to allow CI on forks ([#10467](https://github.com/great-expectations/great_expectations/pull/10467))
-* [MAINTENANCE] Revert "[MAINTENANCE] Change ci pipeline to pull_request_target with a permissions check to allow CI on forks" ([#10773](https://github.com/great-expectations/great_expectations/pull/10773))
-* [MAINTENANCE] Minor code clean up and refactor around column type exp… ([#10764](https://github.com/great-expectations/great_expectations/pull/10764))
-* [MAINTENANCE] Diagram on how multi-datasource test setup works ([#10766](https://github.com/great-expectations/great_expectations/pull/10766))
-* [MAINTENANCE] Add `UnexpectedRowsExpectation` observed value renderer ([#10779](https://github.com/great-expectations/great_expectations/pull/10779))
-* [MAINTENANCE] Remove `docs_link_checker.py` ([#10781](https://github.com/great-expectations/great_expectations/pull/10781))
-* [MAINTENANCE] Add ENUM for Data Quality Issues, Update Core Expectations Docstrings/Schemas ([#10759](https://github.com/great-expectations/great_expectations/pull/10759))
-* [MAINTENANCE] Adding more test cases for snowflake types ([#10786](https://github.com/great-expectations/great_expectations/pull/10786))
-* [MAINTENANCE] Update `tasks.py` to remove reference to `isort` ([#10782](https://github.com/great-expectations/great_expectations/pull/10782))
-* [MAINTENANCE] Remove GX Cloud onboarding script ([#10785](https://github.com/great-expectations/great_expectations/pull/10785))
-* [MAINTENANCE] Check filepath existence when evaluating public API report ([#10754](https://github.com/great-expectations/great_expectations/pull/10754))
-* [MAINTENANCE] Add EventBridge Scheduler service to `cloud-tests` ([#10774](https://github.com/great-expectations/great_expectations/pull/10774))
-* [MAINTENANCE] Deprecate `DataContext.add_or_update_datasource` ([#10784](https://github.com/great-expectations/great_expectations/pull/10784))
-* [MAINTENANCE] Allow `CheckpointResult` and `ActionContext` to be importable from top-level checkpoint module ([#10788](https://github.com/great-expectations/great_expectations/pull/10788))
-* [MAINTENANCE] Clean up `cloud-tests` environment variables ([#10792](https://github.com/great-expectations/great_expectations/pull/10792))
-* [MAINTENANCE] Adding `databricks` compatibility types ([#10787](https://github.com/great-expectations/great_expectations/pull/10787))
+### 1.3.0 (2024-12-19)
+
+#### Highlights
+
+- **Databricks column type expectations now evaluate correctly** — `ExpectColumnValuesToBeInType` and `ExpectColumnValuesToBeInTypeList` now translate Databricks column types correctly, so type checks against Databricks tables evaluate as expected instead of failing on unrecognized type names. ([#10791](https://github.com/fivetran/great_expectations/pull/10791), [#10787](https://github.com/fivetran/great_expectations/pull/10787))
+
+  ```python
+  import great_expectations as gx
+
+  suite.add_expectation(
+      gx.expectations.ExpectColumnValuesToBeInTypeList(
+          column="passenger_count", type_list=["BIGINT", "INT"]
+      )
+  )
+  ```
+
+- **`table.column_type` resolves correctly on Snowflake and Postgres** — Column type evaluation against Snowflake and Postgres now reports the correct type, so expectations that depend on column types produce accurate results on these backends. ([#10776](https://github.com/fivetran/great_expectations/pull/10776), [#10793](https://github.com/fivetran/great_expectations/pull/10793), [#10786](https://github.com/fivetran/great_expectations/pull/10786))
+
+- **`UnexpectedRowsExpectation` results render in Data Docs** — `UnexpectedRowsExpectation` now renders a readable summary in Data Docs, including an observed value that is reported as an integer count for consistency with other expectations. ([#10758](https://github.com/fivetran/great_expectations/pull/10758), [#10779](https://github.com/fivetran/great_expectations/pull/10779), [#10777](https://github.com/fivetran/great_expectations/pull/10777))
+
+- **Expectation descriptions display correctly in Data Docs** — Custom expectation descriptions now appear as proper table cells in Data Docs validation results rather than rendering as internal renderer keys, and descriptions supplied from GX Cloud are handled as well. ([#10789](https://github.com/fivetran/great_expectations/pull/10789), [#10768](https://github.com/fivetran/great_expectations/pull/10768))
+
+- **Simpler imports for writing custom validation actions** — `CheckpointResult` and `ActionContext` can now be imported directly from the top-level checkpoint module, and the `ValidationAction` building blocks needed to write a custom action are documented as public API alongside a new guide. ([#10788](https://github.com/fivetran/great_expectations/pull/10788), [#10752](https://github.com/fivetran/great_expectations/pull/10752), [#10772](https://github.com/fivetran/great_expectations/pull/10772))
+
+  ```python
+  from great_expectations.checkpoint import ActionContext, CheckpointResult
+  ```
+
+#### Deprecations
+
+- `DataContext.add_or_update_datasource` is deprecated. Removal in 2.0.0. ([#10784](https://github.com/fivetran/great_expectations/pull/10784))
+
+#### Changes
+
+##### Bug fixes
+
+- The `table.column_type` metric now evaluates correctly against Postgres. ([#10793](https://github.com/fivetran/great_expectations/pull/10793))
+- `ExpectColumnValuesToBeInTypeList` and `ExpectColumnValuesToBeInType` now translate column types correctly on Databricks. ([#10791](https://github.com/fivetran/great_expectations/pull/10791))
+- Expectation descriptions now render as proper cells in Data Docs validation result tables instead of exposing internal renderer keys. ([#10789](https://github.com/fivetran/great_expectations/pull/10789))
+- The `table.column_type` metric now evaluates correctly against Snowflake. ([#10776](https://github.com/fivetran/great_expectations/pull/10776))
+- The observed value for `UnexpectedRowsExpectation` is now reported as an integer, consistent with other expectations. ([#10777](https://github.com/fivetran/great_expectations/pull/10777))
+- `UnexpectedRowsExpectation` now renders a readable summary in Data Docs. ([#10758](https://github.com/fivetran/great_expectations/pull/10758))
+- Expectation descriptions supplied from GX Cloud are now handled when rendering results. ([#10768](https://github.com/fivetran/great_expectations/pull/10768))
+
+##### Docs
+
+- `ValidationAction` and the related components needed to build a custom action are now documented as part of the public API. ([#10752](https://github.com/fivetran/great_expectations/pull/10752))
+- Added documentation on detecting schema changes in your data. ([#10755](https://github.com/fivetran/great_expectations/pull/10755))
+- Added a guide for creating a custom action that runs based on validation results. ([#10772](https://github.com/fivetran/great_expectations/pull/10772))
+- Removed an unnecessary escape character from an Expectation docstring so it renders correctly in the Expectation Gallery. ([#10780](https://github.com/fivetran/great_expectations/pull/10780))
+- Fixed the underline styling of links on inline code in the documentation so they are easier to read. ([#10783](https://github.com/fivetran/great_expectations/pull/10783))
+- Reorganized and updated the core documentation for setting up and using GX. ([#10665](https://github.com/fivetran/great_expectations/pull/10665))
+- Removed a documentation tip that suggested printing `validation_results.result_url`, which is not supported. ([#10760](https://github.com/fivetran/great_expectations/pull/10760))
+- Clarified the Connect GX Cloud landing page. ([#10761](https://github.com/fivetran/great_expectations/pull/10761))
+
+<details>
+<summary>Maintenance</summary>
+
+- Added Databricks-specific type definitions so Databricks column types are recognized when evaluating expectations. ([#10787](https://github.com/fivetran/great_expectations/pull/10787))
+- Cleaned up environment variables used by the cloud test suite. ([#10792](https://github.com/fivetran/great_expectations/pull/10792))
+- `CheckpointResult` and `ActionContext` can now be imported directly from the top-level checkpoint module, simplifying custom action code. ([#10788](https://github.com/fivetran/great_expectations/pull/10788))
+- `DataContext.add_or_update_datasource` is now marked as deprecated. ([#10784](https://github.com/fivetran/great_expectations/pull/10784))
+- Added EventBridge Scheduler service coverage to the cloud test suite. ([#10774](https://github.com/fivetran/great_expectations/pull/10774))
+- The public API report tooling now verifies that referenced file paths exist. ([#10754](https://github.com/fivetran/great_expectations/pull/10754))
+- Removed the stale `isort` references from the developer task definitions now that linting is handled by `ruff`. ([#10782](https://github.com/fivetran/great_expectations/pull/10782))
+- Removed the outdated GX Cloud onboarding script. ([#10785](https://github.com/fivetran/great_expectations/pull/10785))
+- Added more test coverage for Snowflake column types. ([#10786](https://github.com/fivetran/great_expectations/pull/10786))
+- Core Expectation docstrings and schemas now use a shared set of data quality issue names, with several typos corrected. ([#10759](https://github.com/fivetran/great_expectations/pull/10759))
+- Removed the hand-rolled documentation link checker in favor of the existing Lychee-based check. ([#10781](https://github.com/fivetran/great_expectations/pull/10781))
+- Added an observed value renderer for `UnexpectedRowsExpectation`. ([#10779](https://github.com/fivetran/great_expectations/pull/10779))
+- Added a diagram explaining how the multi-datasource test setup works. ([#10766](https://github.com/fivetran/great_expectations/pull/10766))
+- Cleaned up and refactored the code behind column type expectations with no change in behavior. ([#10764](https://github.com/fivetran/great_expectations/pull/10764))
+- Reverted the continuous integration change that ran pull request workflows with elevated triggers and an actor permissions check; CI once again runs on standard pull request events, with credentialed jobs restricted to the main repository. ([#10773](https://github.com/fivetran/great_expectations/pull/10773))
+- Continuous integration workflows were changed to run on pull request targets with an actor permissions check so that CI can run on pull requests from forks; this change was reverted later in this release. ([#10467](https://github.com/fivetran/great_expectations/pull/10467))
+
+</details>
 
 ### 1.2.6 (2024-12-11)
 
