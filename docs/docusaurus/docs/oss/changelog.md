@@ -598,7 +598,7 @@ Compatibility: `zstandard` added (extra `spark-connect`)
 
 #### Contributors
 
-Thanks to @wookasz, @anxkhn (first contribution), @yuricavalcanti06 (first contribution).
+Thanks to @anxkhn (first contribution), @yuricavalcanti06 (first contribution).
 
 ### 1.18.2 (2026-06-26)
 
@@ -812,10 +812,6 @@ Compatibility: `pytest-split` added (extra `test`)
 
 </details>
 
-#### Contributors
-
-Thanks to @klavavej.
-
 ### 1.17.0 (2026-04-22)
 
 Compatibility: new extra `singlestore`
@@ -932,7 +928,7 @@ Compatibility: new extra `singlestore`
 
 #### Contributors
 
-Thanks to @gyermich, @Adeyinka1 (first contribution).
+Thanks to @Adeyinka1 (first contribution).
 
 ### 1.16.0 (2026-04-09)
 
@@ -1060,7 +1056,7 @@ Compatibility: `pact-python` added (extra `cloud`); `invoke` minimum 2.0.0 remov
 
 #### Contributors
 
-Thanks to @Julian901 (first contribution), @klavavej, @NathanFarmer.
+Thanks to @Julian901 (first contribution).
 
 ### 1.15.1 (2026-03-13)
 
@@ -1581,7 +1577,7 @@ Thanks to @leodrivera (first contribution).
 
 #### Contributors
 
-Thanks to @konnor-b (first contribution), @nicgrayson.
+Thanks to @konnor-b (first contribution).
 
 ### 1.9.2 (2025-12-03)
 
@@ -1626,10 +1622,6 @@ Thanks to @konnor-b (first contribution), @nicgrayson.
 - Creating, updating, or loading a Snowflake datasource that supplies `private_key` through `kwargs` now emits a deprecation warning, and the fluent API gained `update_snowflake` and `add_or_update_snowflake`. ([#11520](https://github.com/fivetran/great_expectations/pull/11520))
 
 </details>
-
-#### Contributors
-
-Thanks to @NathanFarmer.
 
 ### 1.9.1 (2025-11-20)
 
@@ -1869,10 +1861,6 @@ Thanks to @chay0112 (first contribution).
 
 </details>
 
-#### Contributors
-
-Thanks to @dctalbot.
-
 ### 1.7.0 (2025-10-09)
 
 Compatibility: Python `<3.13,>=3.9` → `<3.14,>=3.9`; `numpy` added (`python_version >= "3.13"`); `pandas` added (`python_version >= "3.13"`); `posthog` removed; `pandas` removed (extra `snowflake`) (`python_version >= "3.9"`)
@@ -2096,10 +2084,6 @@ Thanks to @pawel99k (first contribution).
 
 </details>
 
-#### Contributors
-
-Thanks to @klavavej.
-
 ### 1.5.10 (2025-08-27)
 
 #### Changes
@@ -2175,7 +2159,7 @@ Thanks to @klavavej.
 
 #### Contributors
 
-Thanks to @NathanFarmer, @Abdelkrim (first contribution).
+Thanks to @Abdelkrim (first contribution).
 
 ### 1.5.7 (2025-07-30)
 
@@ -2206,7 +2190,7 @@ Thanks to @NathanFarmer, @Abdelkrim (first contribution).
 
 #### Contributors
 
-Thanks to @alansk97 (first contribution), @dctalbot.
+Thanks to @alansk97 (first contribution).
 
 ### 1.5.6 (2025-07-24)
 
@@ -2307,10 +2291,6 @@ Thanks to @jmcorreia.
 
 </details>
 
-#### Contributors
-
-Thanks to @ashmortar.
-
 ### 1.5.3 (2025-06-25)
 
 #### Highlights
@@ -2342,10 +2322,6 @@ Thanks to @ashmortar.
 - Widened the supported posthog dependency range to allow versions 4 and 5. ([#11265](https://github.com/fivetran/great_expectations/pull/11265))
 
 </details>
-
-#### Contributors
-
-Thanks to @klavavej.
 
 ### 1.5.2 (2025-06-18)
 
@@ -2857,10 +2833,6 @@ Compatibility: new extra `gx-redshift`
 
 </details>
 
-#### Contributors
-
-Thanks to @gyermich.
-
 ### 1.3.14 (2025-04-08)
 
 Compatibility: `sqlalchemy` minimum set to 1.4.0 (extra `bigquery`); `sqlalchemy` minimum set to 1.4.0 (extra `gcp`)
@@ -2943,10 +2915,6 @@ Compatibility: `sqlalchemy` minimum set to 1.4.0 (extra `bigquery`); `sqlalchemy
 
 </details>
 
-#### Contributors
-
-Thanks to @NathanFarmer.
-
 ### 1.3.12 (2025-03-26)
 
 #### Changes
@@ -3020,10 +2988,6 @@ Thanks to @NathanFarmer.
 - Removed the default role applied when connecting to Snowflake. ([#11004](https://github.com/fivetran/great_expectations/pull/11004))
 
 </details>
-
-#### Contributors
-
-Thanks to @NathanFarmer.
 
 ### 1.3.10 (2025-03-12)
 
@@ -3293,10 +3257,6 @@ Thanks to @eric-brady (first contribution).
 - Expanded `row_condition` datetime test coverage for Pandas and Spark, added Spark support for `column_types` and Pandas/Spark I/O options in the Expectation testing framework, corrected handling of Spark partition filenames that contain but do not end in a file name, and documented how to run Spark tests locally. ([#10892](https://github.com/fivetran/great_expectations/pull/10892))
 
 </details>
-
-#### Contributors
-
-Thanks to @nicgrayson.
 
 ### 1.3.4 (2025-01-29)
 
@@ -4243,10 +4203,6 @@ Compatibility: Python `<3.12,>=3.8` → `<3.12,>=3.9`; `ipython` removed; `ipywi
 
 </details>
 
-#### Contributors
-
-Thanks to @Quantisan, @deborahniesz, @JessSaavedra.
-
 ### 1.0.5 (2024-09-19)
 
 Compatibility: `databricks-sql-connector` added (extra `databricks`); removed extra `databricks`; new extra `spark-connect`
@@ -4295,10 +4251,6 @@ Compatibility: `databricks-sql-connector` added (extra `databricks`); removed ex
 - Corrected the type annotations for `SQLAlchemyExecutionEngine.get_connection()` and updated column identifier tests to match fixes carried over from the 0.18.x branch. ([#10399](https://github.com/fivetran/great_expectations/pull/10399))
 
 </details>
-
-#### Contributors
-
-Thanks to @allisongx.
 
 ### 1.0.4 (2024-09-16)
 
@@ -4387,10 +4339,6 @@ Compatibility: `sqlalchemy` minimum set to 1.4.0 (extra `snowflake`)
 - Type checking now runs against SQLAlchemy 2, while both SQLAlchemy 1 and 2 remain supported at runtime. ([#10112](https://github.com/fivetran/great_expectations/pull/10112))
 
 </details>
-
-#### Contributors
-
-Thanks to @deborahniesz, @JessSaavedra, @anthonyburdi.
 
 ### 1.0.2 (2024-09-05)
 
