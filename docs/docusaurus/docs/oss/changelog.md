@@ -919,14 +919,44 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Remove `table` parameter from all Metric `Domain`s ([#10954](https://github.com/great-expectations/great_expectations/pull/10954))
 * [CONTRIB] remove table domain key ([#10956](https://github.com/great-expectations/great_expectations/pull/10956)) (thanks @VolkovGeoPhy)
 
-### 1.3.7
-* [FEATURE] BatchRowCount Metric ([#10944](https://github.com/great-expectations/great_expectations/pull/10944))
-* [BUGFIX] remove unused domain key ([#10951](https://github.com/great-expectations/great_expectations/pull/10951))
-* [DOCS] Replacing search keys with env variables ([#10940](https://github.com/great-expectations/great_expectations/pull/10940))
-* [DOCS] SSO cta ([#10872](https://github.com/great-expectations/great_expectations/pull/10872))
-* [MAINTENANCE] Make `Metric.config` un-instantiable and excluded from auto-complete ([#10938](https://github.com/great-expectations/great_expectations/pull/10938))
-* [MAINTENANCE] Drop jinja2 v2 support ([#10941](https://github.com/great-expectations/great_expectations/pull/10941))
-* [MAINTENANCE] Require `Metric.name` instead of using `name` inference ([#10953](https://github.com/great-expectations/great_expectations/pull/10953))
+### 1.3.7 (2025-02-19)
+
+Compatibility: `jinja2` minimum 2.10 → 3
+
+#### Highlights
+
+- **New batch-level row count metric** — A new `BatchRowCount` metric computes the number of rows in a batch and works against pandas, Spark, and SQL (Postgres) data sources. Its result is returned as a typed `BatchRowCountResult`, alongside a new `Batch` metric domain for metrics that compute over an entire batch. ([#10944](https://github.com/fivetran/great_expectations/pull/10944))
+
+  ```python
+  from great_expectations.metrics.batch.batch import BatchRowCount
+
+  metric = BatchRowCount(batch_id=batch.id)
+  ```
+
+- **Quieter metric resolution** — Batch and column-map expectations no longer carry an unused `table` domain key, so resolving metrics no longer emits a flood of unnecessary log messages. ([#10951](https://github.com/fivetran/great_expectations/pull/10951))
+
+#### Changes
+
+##### Features
+
+- Added the `BatchRowCount` metric and its `BatchRowCountResult`, plus a `Batch` metric domain, for computing row counts over an entire batch on pandas, Spark, and SQL data sources. ([#10944](https://github.com/fivetran/great_expectations/pull/10944))
+
+##### Bug fixes
+
+- Removed the unused `table` domain key from batch and column-map expectations, eliminating the noisy log messages it produced during metric resolution. ([#10951](https://github.com/fivetran/great_expectations/pull/10951))
+
+##### Docs
+
+- Documentation search configuration now uses environment variables in place of hardcoded search keys. ([#10940](https://github.com/fivetran/great_expectations/pull/10940))
+
+<details>
+<summary>Maintenance</summary>
+
+- Metric classes now require an explicit `name` rather than having one inferred from the class and domain names, making metric naming predictable. ([#10953](https://github.com/fivetran/great_expectations/pull/10953))
+- Dropped support for jinja2 2.x; great_expectations now requires jinja2 3 or newer. ([#10941](https://github.com/fivetran/great_expectations/pull/10941))
+- `Metric.config` can no longer be instantiated directly and is hidden from editor auto-complete. ([#10938](https://github.com/fivetran/great_expectations/pull/10938))
+
+</details>
 
 ### 1.3.6 (2025-02-14)
 
