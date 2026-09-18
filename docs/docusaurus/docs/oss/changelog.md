@@ -1002,31 +1002,75 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] CI skips xfailed quoted identifier tests ([#10857](https://github.com/great-expectations/great_expectations/pull/10857))
 * [MAINTENANCE] Enforce a minimum length of 2 for MulticolumnMapExpectation `column_list` ([#10850](https://github.com/great-expectations/great_expectations/pull/10850))
 
-### 1.3.1
-* [BUGFIX] Ensure datetime.time can be serialized to JSON ([#10795](https://github.com/great-expectations/great_expectations/pull/10795))
-* [BUGFIX] Stop overwriting template with description ([#10826](https://github.com/great-expectations/great_expectations/pull/10826))
-* [DOCS] restore Lychee link checking ([#10797](https://github.com/great-expectations/great_expectations/pull/10797))
-* [DOCS] replace `context.sources` with `context.data_sources` ([#10794](https://github.com/great-expectations/great_expectations/pull/10794))
-* [DOCS] ADR around public API docstrings ([#10798](https://github.com/great-expectations/great_expectations/pull/10798))
-* [DOCS] Change home banner buttons ([#10804](https://github.com/great-expectations/great_expectations/pull/10804))
-* [DOCS] Remove uppercase transformation for alerts' titles ([#10800](https://github.com/great-expectations/great_expectations/pull/10800))
-* [DOCS] Adding commonroom web tracking snippet ([#10805](https://github.com/great-expectations/great_expectations/pull/10805))
-* [DOCS] Adding/deleting other supported databases ([#10812](https://github.com/great-expectations/great_expectations/pull/10812))
-* [DOCS] Update Learn data pipeline tutorial page ([#10828](https://github.com/great-expectations/great_expectations/pull/10828))
-* [MAINTENANCE] Implement suite factory add_or_update ([#10796](https://github.com/great-expectations/great_expectations/pull/10796))
-* [MAINTENANCE] add expectation params to ColumnMapExpectation `mostly` field ([#10829](https://github.com/great-expectations/great_expectations/pull/10829))
-* [MAINTENANCE] Bump `posthog` to V3 ([#10814](https://github.com/great-expectations/great_expectations/pull/10814))
-* [MAINTENANCE]  Update expectations to use canonical data quality issues ([#10807](https://github.com/great-expectations/great_expectations/pull/10807))
-* [MAINTENANCE] Nightly cleanup of stray bigquery schemas ([#10815](https://github.com/great-expectations/great_expectations/pull/10815))
-* [MAINTENANCE] Enforce mandatory docstrings for public API decorated objects ([#10799](https://github.com/great-expectations/great_expectations/pull/10799))
-* [MAINTENANCE] Add bigquery requirements file to bigquery cleanup script ([#10819](https://github.com/great-expectations/great_expectations/pull/10819))
-* [MAINTENANCE] Fix cleanup script ([#10820](https://github.com/great-expectations/great_expectations/pull/10820))
-* [MAINTENANCE] Enforce comments with linter ignores ([#10817](https://github.com/great-expectations/great_expectations/pull/10817))
-* [MAINTENANCE] Add to git blame ignore rev ([#10822](https://github.com/great-expectations/great_expectations/pull/10822))
-* [MAINTENANCE] Ignore Marshmallow V4 warnings ([#10825](https://github.com/great-expectations/great_expectations/pull/10825))
-* [MAINTENANCE] Change logger warning to debug ([#10790](https://github.com/great-expectations/great_expectations/pull/10790))
-* [MAINTENANCE] Better logging around and only calling cleanup when we have old BigQuery schemas ([#10824](https://github.com/great-expectations/great_expectations/pull/10824))
-* [MAINTENANCE] Add `context.validation_definitions.add_or_update` support ([#10818](https://github.com/great-expectations/great_expectations/pull/10818))
+### 1.3.1 (2025-01-08)
+
+Compatibility: `posthog` minimum 2.1.0 removed
+
+#### Highlights
+
+- **Suite parameters in the `mostly` field** — Column map expectations now accept a suite parameter for `mostly`, so the threshold can be supplied at validation time instead of being fixed when the expectation is defined. ([#10829](https://github.com/fivetran/great_expectations/pull/10829))
+
+  ```python
+  import great_expectations as gx
+
+  expectation = gx.expectations.ExpectColumnValuesToNotBeNull(
+      column="passenger_count",
+      mostly={"$PARAMETER": "my_mostly"},
+  )
+  result = batch.validate(expectation, expectation_parameters={"my_mostly": 0.9})
+  ```
+
+- **`add_or_update` for suites and validation definitions** — You can now add a suite or a validation definition if it does not exist, or update it in place if it does, in a single call. ([#10796](https://github.com/fivetran/great_expectations/pull/10796), [#10818](https://github.com/fivetran/great_expectations/pull/10818))
+
+  ```python
+  suite = context.suites.add_or_update(suite)
+  validation_definition = context.validation_definitions.add_or_update(validation_definition)
+  ```
+
+- **Observed values render again for expectations with descriptions** — Validation results in Data Docs and GX Cloud now show the observed value for an expectation that has a description, instead of rendering the description in its place. ([#10826](https://github.com/fivetran/great_expectations/pull/10826))
+
+- **`datetime.time` values serialize to JSON** — Values of type `datetime.time` can now be serialized, and are written out as ISO-format strings rather than raising a serialization error. ([#10795](https://github.com/fivetran/great_expectations/pull/10795))
+
+#### Changes
+
+##### Features
+
+- Column map expectations accept a suite parameter for the `mostly` field, so the threshold can be provided at validation time. ([#10829](https://github.com/fivetran/great_expectations/pull/10829))
+- Added `context.suites.add_or_update`, which adds a suite or updates the existing one with the same name. ([#10796](https://github.com/fivetran/great_expectations/pull/10796))
+
+##### Bug fixes
+
+- An expectation's description no longer replaces the observed value in rendered validation results. ([#10826](https://github.com/fivetran/great_expectations/pull/10826))
+- `datetime.time` values are now serialized to JSON as ISO-format strings instead of failing. ([#10795](https://github.com/fivetran/great_expectations/pull/10795))
+
+##### Docs
+
+- Reworked the Learn data pipeline tutorial page to present it as a general guide to integrating GX into a data pipeline rather than an Airflow-specific tutorial. ([#10828](https://github.com/fivetran/great_expectations/pull/10828))
+- Updated the list of other supported databases in the documentation. ([#10812](https://github.com/fivetran/great_expectations/pull/10812))
+- Added the Common Room web tracking snippet to the documentation site. ([#10805](https://github.com/fivetran/great_expectations/pull/10805))
+- Admonition titles in the documentation are no longer forced to uppercase. ([#10800](https://github.com/fivetran/great_expectations/pull/10800))
+- Updated the buttons in the documentation home page banner. ([#10804](https://github.com/fivetran/great_expectations/pull/10804))
+- Added an architecture decision record describing the docstring requirements for public API objects. ([#10798](https://github.com/fivetran/great_expectations/pull/10798))
+- Replaced remaining references to `context.sources` with `context.data_sources` across the documentation, code comments, and error messages. ([#10794](https://github.com/fivetran/great_expectations/pull/10794))
+- Restored Lychee link checking for the documentation site. ([#10797](https://github.com/fivetran/great_expectations/pull/10797))
+
+<details>
+<summary>Maintenance</summary>
+
+- Restored `context.validation_definitions.add_or_update`, which adds a validation definition or updates the existing one. ([#10818](https://github.com/fivetran/great_expectations/pull/10818))
+- Improved logging in the BigQuery cleanup job and skipped the cleanup query when there are no stale schemas to remove. ([#10824](https://github.com/fivetran/great_expectations/pull/10824))
+- Lowered a noisy SQLAlchemy-related log message from warning to debug when validating column-type expectations. ([#10790](https://github.com/fivetran/great_expectations/pull/10790))
+- Suppressed Marshmallow V4 migration warnings. ([#10825](https://github.com/fivetran/great_expectations/pull/10825))
+- Added a recent formatting-only commit to the git blame ignore list. ([#10822](https://github.com/fivetran/great_expectations/pull/10822))
+- Added a lint check requiring an explanatory comment alongside `# type: ignore` and `# noqa:` suppressions, and annotated existing suppressions. ([#10817](https://github.com/fivetran/great_expectations/pull/10817))
+- Fixed the BigQuery test-resource cleanup script. ([#10820](https://github.com/fivetran/great_expectations/pull/10820))
+- Installed the BigQuery requirements file when running the BigQuery cleanup script. ([#10819](https://github.com/fivetran/great_expectations/pull/10819))
+- Added a check that every object marked as public API carries a docstring. ([#10799](https://github.com/fivetran/great_expectations/pull/10799))
+- Added a nightly job that cleans up stray BigQuery schemas left behind by CI. ([#10815](https://github.com/fivetran/great_expectations/pull/10815))
+- Updated the remaining expectations to reference the canonical data quality issue names. ([#10807](https://github.com/fivetran/great_expectations/pull/10807))
+- Upgraded the `posthog` analytics dependency to version 3. ([#10814](https://github.com/fivetran/great_expectations/pull/10814))
+
+</details>
 
 ### 1.3.0 (2024-12-19)
 
