@@ -1136,6 +1136,8 @@ Thanks to @Julian901 (first contribution), @klavavej, @NathanFarmer.
 
 ### 1.14.0 (2026-03-04)
 
+Identical to 1.13.1, re-published the same day as a minor version: the release above carried a deprecation, which the minor number signals. No changes beyond 1.13.1.
+
 ### 1.13.1 (2026-03-04)
 
 #### Highlights
