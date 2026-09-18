@@ -631,13 +631,37 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [DOCS] Split manage expectations page ([#11340](https://github.com/great-expectations/great_expectations/pull/11340))
 * [MAINTENANCE] Fix webpack-dev-server and form-data vulnerabilities ([#11339](https://github.com/great-expectations/great_expectations/pull/11339))
 
-### 1.5.8
-* [BUGFIX] Handle SQL parameter limit for Databricks ([#11317](https://github.com/great-expectations/great_expectations/pull/11317))
-* [DOCS] Move ingestion in diagram ([#11329](https://github.com/great-expectations/great_expectations/pull/11329))
-* [DOCS] Update configure_metadata_stores.md ([#11316](https://github.com/great-expectations/great_expectations/pull/11316)) (thanks @Abdelkrim)
-* [DOCS] User Input to Expectation Generation Retry Workflows ([#11325](https://github.com/great-expectations/great_expectations/pull/11325))
-* [MAINTENANCE] Restore Link Checker CI step ([#11327](https://github.com/great-expectations/great_expectations/pull/11327))
-* [MAINTENANCE] pre-commit autoupdate ([#11330](https://github.com/great-expectations/great_expectations/pull/11330))
+### 1.5.8 (2025-08-07)
+
+#### Highlights
+
+- **Validations against Databricks no longer fail on large bundled metric queries** — Metric queries that exceed Databricks' 256 query-parameter limit are now split into smaller batches automatically, so validating batches with many parameters against Databricks completes instead of erroring. ([#11317](https://github.com/fivetran/great_expectations/pull/11317))
+
+- **Documentation for retrying Expectation generation with your own input** — The documentation now describes the retry workflows for supplying user input when generating Expectations, so you can guide generation when the first attempt isn't what you wanted. ([#11325](https://github.com/fivetran/great_expectations/pull/11325))
+
+#### Changes
+
+##### Bug fixes
+
+- Bundled metric queries are now split into batches when they would exceed Databricks' 256 query-parameter limit, so validations no longer fail on that limit. ([#11317](https://github.com/fivetran/great_expectations/pull/11317))
+
+##### Docs
+
+- Documented the retry workflows for providing user input during Expectation generation. ([#11325](https://github.com/fivetran/great_expectations/pull/11325))
+- Corrected a typo ("retreive" to "retrieve") in the guide on configuring metadata stores. ([#11316](https://github.com/fivetran/great_expectations/pull/11316))
+- Updated the "GX Cloud in your environment" diagram to reposition data ingestion. ([#11329](https://github.com/fivetran/great_expectations/pull/11329))
+
+<details>
+<summary>Maintenance</summary>
+
+- Updated pinned development tooling, bumping the ruff pre-commit hook to v0.12.7. ([#11330](https://github.com/fivetran/great_expectations/pull/11330))
+- Restored the documentation link checker step in continuous integration. ([#11327](https://github.com/fivetran/great_expectations/pull/11327))
+
+</details>
+
+#### Contributors
+
+Thanks to @NathanFarmer, @Abdelkrim (first contribution).
 
 ### 1.5.7 (2025-07-30)
 
