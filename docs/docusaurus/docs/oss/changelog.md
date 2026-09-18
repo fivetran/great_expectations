@@ -795,13 +795,63 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Update type packaging ([#11115](https://github.com/great-expectations/great_expectations/pull/11115))
 * [MAINTENANCE] Improve `MetricErrorResult` and `Batch.compute_metrics()` API typing ([#11127](https://github.com/great-expectations/great_expectations/pull/11127))
 
-### 1.4.1
-* [FEATURE] Allow user to provide connection details to connect to Redshift ([#11105](https://github.com/great-expectations/great_expectations/pull/11105))
-* [FEATURE] Add `ColumnDescriptiveStats` metric ([#11108](https://github.com/great-expectations/great_expectations/pull/11108))
-* [BUGFIX] MicrosoftTeamsNotificationAction failing with 400 Bad Request ([#11106](https://github.com/great-expectations/great_expectations/pull/11106)) (thanks @jwalant-dattani)
-* [BUGFIX] expect_column_values_to_be_between allows both min/max values to be None or empty strings ([#11102](https://github.com/great-expectations/great_expectations/pull/11102))
-* [BUGFIX] redshift: prevent runtime TypeError ([#11112](https://github.com/great-expectations/great_expectations/pull/11112))
-* [MAINTENANCE] Cleanup metrics package ([#11109](https://github.com/great-expectations/great_expectations/pull/11109))
+### 1.4.1 (2025-04-21)
+
+#### Highlights
+
+- **New `ColumnDescriptiveStats` metric** — You can now compute a column's minimum, maximum, mean, and standard deviation in a single metric with `ColumnDescriptiveStats`, available on the pandas, SQL, and Spark backends. ([#11108](https://github.com/fivetran/great_expectations/pull/11108), [#11109](https://github.com/fivetran/great_expectations/pull/11109))
+
+  ```python
+  from great_expectations.metrics import ColumnDescriptiveStats
+
+  result = batch.compute_metrics(ColumnDescriptiveStats(column="passenger_count"))
+  print(result.value.min, result.value.max, result.value.mean, result.value.standard_deviation)
+  ```
+
+- **New `ColumnValuesNotMatchRegexCount` metric** — You can now count the values in a column that do not match a regular expression with `ColumnValuesNotMatchRegexCount`, available on the pandas, SQL, and Spark backends. ([#11103](https://github.com/fivetran/great_expectations/pull/11103))
+
+  ```python
+  from great_expectations.metrics import ColumnValuesNotMatchRegexCount
+
+  result = batch.compute_metrics(
+      ColumnValuesNotMatchRegexCount(column="vendor_id", regex="^(a|d).+")
+  )
+  print(result.value)
+  ```
+
+- **Connect to Redshift with connection details** — A Redshift data source can now be configured by supplying individual connection details instead of a full connection string. ([#11105](https://github.com/fivetran/great_expectations/pull/11105))
+
+- **Redshift schema introspection no longer raises a TypeError** — Using the `gx-redshift` extra to introspect schema information, such as computing column descriptive metrics, no longer fails with a runtime `TypeError`. ([#11112](https://github.com/fivetran/great_expectations/pull/11112))
+
+#### Changes
+
+##### Features
+
+- Added the `ColumnDescriptiveStats` metric, which returns a column's minimum, maximum, mean, and standard deviation on pandas, SQL, and Spark backends. ([#11108](https://github.com/fivetran/great_expectations/pull/11108))
+- Redshift data sources can now be configured with individual connection details in addition to a `connection_string`. ([#11105](https://github.com/fivetran/great_expectations/pull/11105))
+- Added the `ColumnValuesNotMatchRegexCount` metric, which counts column values that do not match a given regular expression on pandas, SQL, and Spark backends. ([#11103](https://github.com/fivetran/great_expectations/pull/11103))
+
+##### Bug fixes
+
+- Fixed a runtime `TypeError` when using the `gx-redshift` extra to perform schema introspection, such as computing column descriptive metrics. ([#11112](https://github.com/fivetran/great_expectations/pull/11112))
+- `ExpectColumnValuesToBeBetween` now correctly rejects configurations where both `min_value` and `max_value` are omitted, `None`, or empty strings. ([#11102](https://github.com/fivetran/great_expectations/pull/11102))
+- Fixed `MicrosoftTeamsNotificationAction` failing with a 400 Bad Request when sending notifications. ([#11106](https://github.com/fivetran/great_expectations/pull/11106))
+
+##### Docs
+
+- Temporarily disabled documentation link checking while an upstream issue is resolved. ([#11099](https://github.com/fivetran/great_expectations/pull/11099))
+
+<details>
+<summary>Maintenance</summary>
+
+- Reorganized the public metrics package so column metrics are importable from `great_expectations.metrics` under consistent module names. ([#11109](https://github.com/fivetran/great_expectations/pull/11109))
+- Fixed pageview analytics tracking and related console errors on the documentation site, and documented local environment setup for it. ([#11093](https://github.com/fivetran/great_expectations/pull/11093))
+
+</details>
+
+#### Contributors
+
+Thanks to @jwalant-dattani (first contribution).
 
 ### 1.4.0 (2025-04-15)
 
