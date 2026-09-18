@@ -928,24 +928,72 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Drop jinja2 v2 support ([#10941](https://github.com/great-expectations/great_expectations/pull/10941))
 * [MAINTENANCE] Require `Metric.name` instead of using `name` inference ([#10953](https://github.com/great-expectations/great_expectations/pull/10953))
 
-### 1.3.6
-* [BUGFIX] Quote password before passing to SnowflakeURL ([#10919](https://github.com/great-expectations/great_expectations/pull/10919))
-* [BUGFIX] Trim the unexpected rows query ([#10923](https://github.com/great-expectations/great_expectations/pull/10923))
-* [BUGFIX] Make `MetricConfiguration.id` immutable ([#10929](https://github.com/great-expectations/great_expectations/pull/10929))
-* [BUGFIX] `test_diagnostic_checklist` import error ([#10934](https://github.com/great-expectations/great_expectations/pull/10934))
-* [BUGFIX] ExpectTableRowCountToBeBetween fails validation with Runtime Parameters ([#10925](https://github.com/great-expectations/great_expectations/pull/10925)) (thanks @eric-brady)
-* [DOCS] Fix HTML entity character in API reference code blocks ([#10915](https://github.com/great-expectations/great_expectations/pull/10915))
-* [DOCS] AI-recommended Expectations ([#10913](https://github.com/great-expectations/great_expectations/pull/10913))
-* [DOCS] Fix lack of formatting in actions.py ([#10918](https://github.com/great-expectations/great_expectations/pull/10918))
-* [DOCS] Feedback form issues should have status "intake" ([#10933](https://github.com/great-expectations/great_expectations/pull/10933))
-* [DOCS] Fix sidebar highlight by deleting subpages from the sidebar ([#10903](https://github.com/great-expectations/great_expectations/pull/10903))
-* [DOCS] Added useLocation mock ([#10939](https://github.com/great-expectations/great_expectations/pull/10939))
-* [MAINTENANCE] Ensure clear error if cloud mode requested and env vars aren't found ([#10916](https://github.com/great-expectations/great_expectations/pull/10916))
-* [MAINTENANCE] Remove concurrency block from GitHub CI workflow ([#10930](https://github.com/great-expectations/great_expectations/pull/10930))
-* [MAINTENANCE] Add `Metric` and `Domain` base classes ([#10920](https://github.com/great-expectations/great_expectations/pull/10920))
-* [MAINTENANCE] Remove unreferenced docs snippets ([#10937](https://github.com/great-expectations/great_expectations/pull/10937))
-* [MAINTENANCE] Metric Result types ([#10932](https://github.com/great-expectations/great_expectations/pull/10932))
-* [MAINTENANCE] Make `Metric.config` un-instantiable and excluded from auto-complete ([#10938](https://github.com/great-expectations/great_expectations/pull/10938))
+### 1.3.6 (2025-02-14)
+
+#### Highlights
+
+- **ExpectTableRowCountToBeBetween works again with runtime parameters** — Creating or running ExpectTableRowCountToBeBetween with `min_value` or `max_value` supplied as runtime parameters no longer fails validation. Values are only compared to each other when both are concrete; a parameter dictionary is instead checked for a `$PARAMETER` key. ([#10925](https://github.com/fivetran/great_expectations/pull/10925))
+
+  ```python
+  gxe.ExpectTableRowCountToBeBetween(
+      min_value={"$PARAMETER": "min_rows"},
+      max_value={"$PARAMETER": "max_rows"},
+  )
+  ```
+
+- **Snowflake connections accept passwords with special characters** — Passwords are now URL-quoted before the Snowflake connection URL is built, so credentials containing special characters connect successfully. ([#10919](https://github.com/fivetran/great_expectations/pull/10919))
+
+- **Unexpected rows queries tolerate trailing whitespace and semicolons** — An unexpected rows query that ends with trailing whitespace or a `;` is now trimmed and accepted instead of being rejected. ([#10923](https://github.com/fivetran/great_expectations/pull/10923))
+
+  ```python
+  gxe.UnexpectedRowsExpectation(
+      unexpected_rows_query="SELECT * FROM {batch} WHERE passenger_count > 6;"
+  )
+  ```
+
+- **Clear error when cloud mode is requested without credentials** — Requesting a cloud context without the required environment variables now produces the intended, explicit error message instead of an opaque message about the Data Context being `None`. ([#10916](https://github.com/fivetran/great_expectations/pull/10916))
+
+  ```python
+  import great_expectations as gx
+
+  context = gx.get_context(mode="cloud")
+  ```
+
+- **Documentation for AI-recommended Expectations** — The GX Cloud documentation now covers AI-recommended Expectations. ([#10913](https://github.com/fivetran/great_expectations/pull/10913))
+
+#### Changes
+
+##### Bug fixes
+
+- ExpectTableRowCountToBeBetween can again be created and run when `min_value` or `max_value` is supplied as a runtime parameter; the min/max comparison is only applied when both values are concrete, and parameter dictionaries are validated for a `$PARAMETER` key. ([#10925](https://github.com/fivetran/great_expectations/pull/10925))
+- Fixed an incorrect import in the diagnostic checklist test that pulled from the test package. ([#10934](https://github.com/fivetran/great_expectations/pull/10934))
+- Metric configuration identifiers are now immutable, preventing identifiers from changing partway through metric computation. ([#10929](https://github.com/fivetran/great_expectations/pull/10929))
+- Unexpected rows queries with trailing whitespace or a trailing `;` are now trimmed and accepted. ([#10923](https://github.com/fivetran/great_expectations/pull/10923))
+- Snowflake passwords are URL-quoted when building the connection URL, so passwords containing special characters no longer prevent connecting. ([#10919](https://github.com/fivetran/great_expectations/pull/10919))
+
+##### Docs
+
+- Restored a missing test mock for the documentation site's location hook so the "Was this helpful?" component renders and tests pass again. ([#10939](https://github.com/fivetran/great_expectations/pull/10939))
+- Removed in-page subsection entries from the documentation sidebar so the correct page is highlighted when selected; the right-hand table of contents continues to provide in-page navigation. ([#10903](https://github.com/fivetran/great_expectations/pull/10903))
+- Documentation feedback submissions now create tickets that remain in "Intake" status instead of moving to "To-do". ([#10933](https://github.com/fivetran/great_expectations/pull/10933))
+- Moved code examples out of parameter descriptions in the checkpoint action API reference, so email and Slack notification action docs render with correct formatting. ([#10918](https://github.com/fivetran/great_expectations/pull/10918))
+- Added documentation for AI-recommended Expectations. ([#10913](https://github.com/fivetran/great_expectations/pull/10913))
+- Fixed `*` being rendered as an escaped HTML entity in API reference code blocks. ([#10915](https://github.com/fivetran/great_expectations/pull/10915))
+
+<details>
+<summary>Maintenance</summary>
+
+- Introduced a general set of metric result types covering the majority of commonly requested metrics. ([#10932](https://github.com/fivetran/great_expectations/pull/10932))
+- Removed documentation snippet files that were no longer referenced by any docs page. ([#10937](https://github.com/fivetran/great_expectations/pull/10937))
+- Added `Metric` and `Domain` base classes for defining and instantiating metrics, such as `ColumnValuesBetween` from `great_expectations.metrics`. ([#10920](https://github.com/fivetran/great_expectations/pull/10920))
+- Removed the concurrency block from the GitHub CI workflow that was causing jobs to be cancelled. ([#10930](https://github.com/fivetran/great_expectations/pull/10930))
+- Requesting a cloud context without the necessary environment variables now raises the intended, clear error instead of an opaque message; existing behavior for `cloud_mode` and explicit `mode` precedence is unchanged. ([#10916](https://github.com/fivetran/great_expectations/pull/10916))
+
+</details>
+
+#### Contributors
+
+Thanks to @eric-brady (first contribution).
 
 ### 1.3.5 (2025-02-03)
 
