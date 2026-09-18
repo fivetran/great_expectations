@@ -1339,35 +1339,82 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Delete misc functions from `test_utils` ([#10357](https://github.com/great-expectations/great_expectations/pull/10357))
 * [MAINTENANCE] Additional tests for `ValidationDefinition` and `Checkpoint` freshness ([#10381](https://github.com/great-expectations/great_expectations/pull/10381))
 
-### 1.0.2
-* [FEATURE] Allow setting result format when calling batch.validate ([#10281](https://github.com/great-expectations/great_expectations/pull/10281))
-* [BUGFIX] FabricPowerBIDatasource 1.0 - TypeError: _PowerBIAsset.build_batch_request() got an unexpected keyword argument 'options' ([#10318](https://github.com/great-expectations/great_expectations/pull/10318))
-* [BUGFIX] Prevent pydantic type coercion of Value Sets ([#10325](https://github.com/great-expectations/great_expectations/pull/10325))
-* [BUGFIX] B/v1 509/remove df from result ([#10338](https://github.com/great-expectations/great_expectations/pull/10338))
-* [BUGFIX] Patch `SlackRenderer` and `EmailRenderer` `active_batch_definition` issues ([#10344](https://github.com/great-expectations/great_expectations/pull/10344)) (thanks @masfworld)
-* [BUGFIX] Show FDS Asset name in DataDocs ([#9953](https://github.com/great-expectations/great_expectations/pull/9953))
-* [DOCS] Update README.md ([#10294](https://github.com/great-expectations/great_expectations/pull/10294))
-* [DOCS] Fix gx core sidebar inconsistency in version 0.18 ([#10302](https://github.com/great-expectations/great_expectations/pull/10302))
-* [DOCS] Fix GX Core failing build ([#10300](https://github.com/great-expectations/great_expectations/pull/10300))
-* [DOCS] update allow list ips ([#10308](https://github.com/great-expectations/great_expectations/pull/10308))
-* [DOCS] Corrects typo in description for ExpectColumnMaxToBeBetween's min_value arg ([#10285](https://github.com/great-expectations/great_expectations/pull/10285))
-* [DOCS] Add pathname to Docs JIRA tickets description ([#10312](https://github.com/great-expectations/great_expectations/pull/10312))
-* [DOCS] Delete legacy version 0.17 files from docs ([#10279](https://github.com/great-expectations/great_expectations/pull/10279))
-* [DOCS] Theme selector ([#10181](https://github.com/great-expectations/great_expectations/pull/10181))
-* [DOCS] Corrects description of printed Validation Results object as json instead of yaml ([#10287](https://github.com/great-expectations/great_expectations/pull/10287))
-* [DOCS] Updates Data Asset prerequisite for create a Validation Definition guide to Batch Definition ([#10288](https://github.com/great-expectations/great_expectations/pull/10288))
-* [DOCS] Updates descriptions of Data Contexts with general use cases for each. ([#10292](https://github.com/great-expectations/great_expectations/pull/10292))
-* [DOCS] Updated airflow docs for core 1.0 compatibility ([#10319](https://github.com/great-expectations/great_expectations/pull/10319))
-* [DOCS] Indicate named parameters in reference table by including the value types ([#10299](https://github.com/great-expectations/great_expectations/pull/10299))
-* [DOCS] Updates to "Connect to GX Cloud with Python" guide ([#10315](https://github.com/great-expectations/great_expectations/pull/10315))
-* [DOCS] Fix bad typo ([#10329](https://github.com/great-expectations/great_expectations/pull/10329))
-* [DOCS] Removes dead links to old docs from Expectation docstrings ([#10317](https://github.com/great-expectations/great_expectations/pull/10317))
-* [DOCS] Adds instructions on persisting environment variables in Z Shell to the configure credentials guide ([#10330](https://github.com/great-expectations/great_expectations/pull/10330))
-* [DOCS] Data quality tech doc on Missingness ([#10134](https://github.com/great-expectations/great_expectations/pull/10134))
-* [DOCS] Regenerate superscript numbers ([#10337](https://github.com/great-expectations/great_expectations/pull/10337))
-* [DOCS] Replace Slack alerts with email alerts ([#10320](https://github.com/great-expectations/great_expectations/pull/10320))
-* [MAINTENANCE] Add metadata to UnexpectedRowsExpectation ([#10311](https://github.com/great-expectations/great_expectations/pull/10311))
-* [MAINTENANCE] `UnexpectedRowsExpectation` renderer and validation improvements ([#10334](https://github.com/great-expectations/great_expectations/pull/10334))
+### 1.0.2 (2024-09-05)
+
+#### Highlights
+
+- **Choose a result format when validating a Batch** — You can now pass a result format when validating a Batch or Expectation directly, so you control how much detail comes back without changing your suite or checkpoint configuration. ([#10281](https://github.com/fivetran/great_expectations/pull/10281))
+
+  ```python
+  result = batch.validate(expectation, result_format="COMPLETE")
+  ```
+
+- **Value sets are no longer mangled into dictionaries** — Expectations that take a value set now keep lists of strings intact — a value set such as ["HI", "AK"] is no longer coerced into a dictionary like \{"H": "I", "A": "K"}. ([#10325](https://github.com/fivetran/great_expectations/pull/10325))
+
+  ```python
+  gxe.ExpectColumnValuesToBeInSet(column="state", value_set=["HI", "AK"])
+  ```
+
+- **Data Docs show the Data Asset name for fluent Data Sources** — Data Docs pages now display the Data Asset name for fluent Data Sources, making it clear which asset a set of Validation Results came from. ([#9953](https://github.com/fivetran/great_expectations/pull/9953))
+
+- **Clearer UnexpectedRowsExpectation results and rendering** — UnexpectedRowsExpectation now renders its query as a code block, reports an observed value with contextual information instead of a bare row count, and treats the \{batch} keyword in unexpected_rows_query as optional while telling you when it is missing. ([#10334](https://github.com/fivetran/great_expectations/pull/10334), [#10311](https://github.com/fivetran/great_expectations/pull/10311))
+
+  ```python
+  gxe.UnexpectedRowsExpectation(
+      unexpected_rows_query="SELECT * FROM {batch} WHERE passenger_count > 6"
+  )
+  ```
+
+- **Light and dark theme selector in the documentation site** — The documentation site now offers a theme selector so you can read the docs in light or dark mode. ([#10181](https://github.com/fivetran/great_expectations/pull/10181))
+
+#### Changes
+
+##### Features
+
+- You can now set the result format when validating a Batch, and a single result-format type and default constant are available for reuse. ([#10281](https://github.com/fivetran/great_expectations/pull/10281))
+
+##### Bug fixes
+
+- Data Docs now show the Data Asset name for fluent Data Sources. ([#9953](https://github.com/fivetran/great_expectations/pull/9953))
+- Slack and email notifications no longer fail when rendering Validation Results that have no active batch definition. ([#10344](https://github.com/fivetran/great_expectations/pull/10344))
+- Validation Results no longer carry the queried dataframe in their result payload. ([#10338](https://github.com/fivetran/great_expectations/pull/10338))
+- Value sets passed to Expectations are no longer coerced into dictionaries, so lists such as ["HI", "AK"] are preserved as given. ([#10325](https://github.com/fivetran/great_expectations/pull/10325))
+- Requesting a Batch from a Fabric Power BI Data Source no longer raises a TypeError about an unexpected 'options' keyword argument. ([#10318](https://github.com/fivetran/great_expectations/pull/10318))
+
+##### Docs
+
+- GX Cloud alerting documentation now covers email alerts instead of Slack alerts. ([#10320](https://github.com/fivetran/great_expectations/pull/10320))
+- Superscript footnote markers in the application integration support tables now render consistently. ([#10337](https://github.com/fivetran/great_expectations/pull/10337))
+- Added a data quality reference article on missingness. ([#10134](https://github.com/fivetran/great_expectations/pull/10134))
+- The configure credentials guide now explains how to persist environment variables in Z Shell. ([#10330](https://github.com/fivetran/great_expectations/pull/10330))
+- Removed dead links to older documentation from Expectation docstrings and updated the accompanying schema files. ([#10317](https://github.com/fivetran/great_expectations/pull/10317))
+- Fixed a typo in the documentation. ([#10329](https://github.com/fivetran/great_expectations/pull/10329))
+- The "Connect to GX Cloud with Python" guide now shows how to list available Data Sources and retrieve a sample Batch of data. ([#10315](https://github.com/fivetran/great_expectations/pull/10315))
+- The reference table now includes value types so named parameters are easier to identify. ([#10299](https://github.com/fivetran/great_expectations/pull/10299))
+- The Airflow tutorial now works with both GX 0.18.x and GX Core 1.0. ([#10319](https://github.com/fivetran/great_expectations/pull/10319))
+- Data Context descriptions now include general use cases for each type of Data Context. ([#10292](https://github.com/fivetran/great_expectations/pull/10292))
+- The create a Validation Definition guide now lists a Batch Definition, rather than a Data Asset, as its prerequisite. ([#10288](https://github.com/fivetran/great_expectations/pull/10288))
+- Documentation now correctly describes printed Validation Results as JSON rather than YAML. ([#10287](https://github.com/fivetran/great_expectations/pull/10287))
+- The documentation site now has a light/dark theme selector, and the navigation bar no longer uses a translucent background. ([#10181](https://github.com/fivetran/great_expectations/pull/10181))
+- Removed the legacy version 0.17 documentation files, which are now served from a standalone site. ([#10279](https://github.com/fivetran/great_expectations/pull/10279))
+- Documentation feedback tickets now record the page path the feedback came from. ([#10312](https://github.com/fivetran/great_expectations/pull/10312))
+- Corrected a typo in the description of the min_value argument for ExpectColumnMaxToBeBetween. ([#10285](https://github.com/fivetran/great_expectations/pull/10285))
+- Updated the allow-list IP addresses documented for the fully hosted GX Cloud deployment pattern. ([#10308](https://github.com/fivetran/great_expectations/pull/10308))
+- Fixed a failing GX Core documentation build. ([#10300](https://github.com/fivetran/great_expectations/pull/10300))
+- The GX Core documentation sidebar and version dropdown now stay consistent and keep the tab highlighted when switching between versions 0.18 and 1.0. ([#10302](https://github.com/fivetran/great_expectations/pull/10302))
+- Updated the project README. ([#10294](https://github.com/fivetran/great_expectations/pull/10294))
+
+<details>
+<summary>Maintenance</summary>
+
+- UnexpectedRowsExpectation renders its query as a code block, reports a descriptive observed value instead of a row count, and accepts an unexpected_rows_query without the \{batch} keyword while warning when it is missing. ([#10334](https://github.com/fivetran/great_expectations/pull/10334))
+- UnexpectedRowsExpectation carries metadata and a docstring consistent with core Expectations, and its description is now an instance attribute. ([#10311](https://github.com/fivetran/great_expectations/pull/10311))
+
+</details>
+
+#### Contributors
+
+Thanks to @masfworld (first contribution).
 
 ### 1.0.1 (2024-08-29)
 
