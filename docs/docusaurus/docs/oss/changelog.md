@@ -844,10 +844,21 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [DOCS] update coverage health screenshot ([#11057](https://github.com/great-expectations/great_expectations/pull/11057))
 * [MAINTENANCE] Use get_metric_provider internal to registry ([#11044](https://github.com/great-expectations/great_expectations/pull/11044))
 
-### 1.3.12
-* [DOCS] KL divergence gallery fix ([#11040](https://github.com/great-expectations/great_expectations/pull/11040))
-* [MAINTENANCE] Add MINORBUMP title tag. ([#10841](https://github.com/great-expectations/great_expectations/pull/10841))
-* [MAINTENANCE] Add a sqlite execution engine and 1 sqlite specific metric. ([#11042](https://github.com/great-expectations/great_expectations/pull/11042))
+### 1.3.12 (2025-03-26)
+
+#### Changes
+
+##### Docs
+
+- Corrected the documentation for ExpectColumnKLDivergenceToBeLessThan so its Expectation Gallery entry shows the details already present in the codebase. ([#11040](https://github.com/fivetran/great_expectations/pull/11040))
+
+<details>
+<summary>Maintenance</summary>
+
+- Added internal SQLite execution engine support along with one SQLite-specific metric. ([#11042](https://github.com/fivetran/great_expectations/pull/11042))
+- Accepted an additional title tag in the pull request title check for contributors. ([#10841](https://github.com/fivetran/great_expectations/pull/10841))
+
+</details>
 
 ### 1.3.11 (2025-03-19)
 
