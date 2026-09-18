@@ -1237,12 +1237,49 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Enable pact test for all expectation suites ([#10506](https://github.com/great-expectations/great_expectations/pull/10506))
 * [MAINTENANCE] Isolate `clickhouse` marker in CI ([#10512](https://github.com/great-expectations/great_expectations/pull/10512))
 
-### 1.1.2
-* [FEATURE] Add context.enable_analytics method ([#10385](https://github.com/great-expectations/great_expectations/pull/10385))
-* [BUGFIX] V1 Validator shouldn't mutate user's result format dict ([#10496](https://github.com/great-expectations/great_expectations/pull/10496))
-* [DOCS] Update min version in `_data.jsx` ([#10494](https://github.com/great-expectations/great_expectations/pull/10494))
-* [MAINTENANCE] Remove `result_url` from `CheckpointResult` ([#10493](https://github.com/great-expectations/great_expectations/pull/10493))
-* [MAINTENANCE] Deprecate context.get_datasource ([#10471](https://github.com/great-expectations/great_expectations/pull/10471))
+### 1.1.2 (2024-10-10)
+
+#### Highlights
+
+- **Turn analytics on or off per project from code** — Data Contexts now expose an `enable_analytics` method that explicitly records whether analytics are enabled in the project config. When the project config holds a value, it takes precedence over the analytics environment variable, so you can keep a global environment default and still override it for a specific project. ([#10385](https://github.com/fivetran/great_expectations/pull/10385))
+
+  ```python
+  import great_expectations as gx
+
+  context = gx.get_context()
+  context.enable_analytics(False)
+  ```
+
+- **Result format dicts are no longer mutated by the Validator** — Passing a result format dict into a Validator no longer modifies the dict you provided, so checkpoints are no longer incorrectly considered stale and their validations run as expected. ([#10496](https://github.com/fivetran/great_expectations/pull/10496))
+
+- **V0 to V1 migration guide** — The documentation now includes a guide for migrating a project from Great Expectations V0 to V1. ([#10477](https://github.com/fivetran/great_expectations/pull/10477))
+
+#### Deprecations
+
+- `context.get_datasource` is deprecated; use `context.data_sources.get`. Removal in 2.0.0. ([#10471](https://github.com/fivetran/great_expectations/pull/10471))
+
+#### Changes
+
+##### Features
+
+- Added `context.enable_analytics` to explicitly enable or disable analytics for a project; a value stored in the project config now takes precedence over the analytics environment variable. ([#10385](https://github.com/fivetran/great_expectations/pull/10385))
+
+##### Bug fixes
+
+- A result format dict passed to a Validator is no longer mutated, fixing checkpoint validations that failed because the checkpoint was treated as stale. ([#10496](https://github.com/fivetran/great_expectations/pull/10496))
+
+##### Docs
+
+- Updated the minimum supported version shown in the documentation. ([#10494](https://github.com/fivetran/great_expectations/pull/10494))
+- Added a V0 to V1 migration guide to the documentation. ([#10477](https://github.com/fivetran/great_expectations/pull/10477))
+
+<details>
+<summary>Maintenance</summary>
+
+- `context.get_datasource` is deprecated in favor of `context.data_sources.get`; it now delegates to that method while keeping its existing error behavior. ([#10471](https://github.com/fivetran/great_expectations/pull/10471))
+- Removed the unused `result_url` attribute from `CheckpointResult`. ([#10493](https://github.com/fivetran/great_expectations/pull/10493))
+
+</details>
 
 ### 1.1.1 (2024-10-08)
 
