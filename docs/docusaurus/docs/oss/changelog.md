@@ -849,21 +849,67 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Add MINORBUMP title tag. ([#10841](https://github.com/great-expectations/great_expectations/pull/10841))
 * [MAINTENANCE] Add a sqlite execution engine and 1 sqlite specific metric. ([#11042](https://github.com/great-expectations/great_expectations/pull/11042))
 
-### 1.3.11
-* [FEATURE] Add the ability to run checkpoints with cloud windowed expectations ([#11027](https://github.com/great-expectations/great_expectations/pull/11027))
-* [BUGFIX] Distinct values expectations correctly compare dates and datetimes ([#11030](https://github.com/great-expectations/great_expectations/pull/11030))
-* [DOCS] restore link checker ([#11025](https://github.com/great-expectations/great_expectations/pull/11025))
-* [DOCS] - single category for Expectations ([#11008](https://github.com/great-expectations/great_expectations/pull/11008))
-* [DOCS] fix error in filesystem data source docs ([#11019](https://github.com/great-expectations/great_expectations/pull/11019))
-* [MAINTENANCE] Remove default snowflake role ([#11004](https://github.com/great-expectations/great_expectations/pull/11004))
-* [MAINTENANCE] Add mode to props sent in analytics ([#11001](https://github.com/great-expectations/great_expectations/pull/11001))
-* [MAINTENANCE] Update ci.yml so pr targets become pr-event targets ([#11031](https://github.com/great-expectations/great_expectations/pull/11031))
-* [MAINTENANCE] Remove timber from CODEOWNERS ([#10996](https://github.com/great-expectations/great_expectations/pull/10996))
-* [MAINTENANCE] Update aws ci secret vars. ([#11035](https://github.com/great-expectations/great_expectations/pull/11035))
-* [MAINTENANCE] Revert Update aws ci secret vars. ([#11036](https://github.com/great-expectations/great_expectations/pull/11036))
-* [MAINTENANCE] Add ci aws creds. ([#11037](https://github.com/great-expectations/great_expectations/pull/11037))
-* [MAINTENANCE] Point tests to aws buckets in oss account. ([#11034](https://github.com/great-expectations/great_expectations/pull/11034))
-* [MAINTENANCE] Fix atomic diagnostic observed value renderers when used with datetime ([#11033](https://github.com/great-expectations/great_expectations/pull/11033))
+### 1.3.11 (2025-03-19)
+
+#### Highlights
+
+- **Run checkpoints that use Cloud windowed expectations** — Checkpoints can now be run against suites containing GX Cloud windowed expectations, so validations whose thresholds are derived from a window of past results execute as expected. ([#11027](https://github.com/fivetran/great_expectations/pull/11027))
+
+  ```python
+  import great_expectations as gx
+
+  context = gx.get_context(mode="cloud")
+  checkpoint = context.checkpoints.get("my_checkpoint")
+  result = checkpoint.run()
+  ```
+
+- **Distinct values expectations handle dates and datetimes correctly** — Expectations that compare a column's distinct values against a value set now compare correctly when the data holds dates or datetimes but the expectation was configured with string values. Both the validation result and the observed value shown in rendered diagnostic output now report matching values as expected instead of flagging them as unexpected. ([#11030](https://github.com/fivetran/great_expectations/pull/11030), [#11033](https://github.com/fivetran/great_expectations/pull/11033))
+
+  ```python
+  import datetime
+
+  import great_expectations as gx
+
+  expectation = gx.expectations.ExpectColumnDistinctValuesToBeInSet(
+      column="col A",
+      value_set=[str(datetime.date(2024, 11, 19)), str(datetime.date(2024, 11, 20))],
+  )
+  ```
+
+#### Changes
+
+##### Features
+
+- Checkpoints can now be run with GX Cloud windowed expectations. ([#11027](https://github.com/fivetran/great_expectations/pull/11027))
+
+##### Bug fixes
+
+- ExpectColumnDistinctValuesToContainSet, ExpectColumnDistinctValuesToBeInSet, and ExpectColumnValuesToBeInSet now validate correctly when the column holds dates or datetimes and the value set is given as strings. ([#11030](https://github.com/fivetran/great_expectations/pull/11030))
+
+##### Docs
+
+- Corrected an error in the filesystem data source documentation that led to a regex compile error when adding a batch definition path. ([#11019](https://github.com/fivetran/great_expectations/pull/11019))
+- Expectations previously listed under both Numeric and Validity are now documented under Validity only. ([#11008](https://github.com/fivetran/great_expectations/pull/11008))
+- Restored the documentation link checker after a temporary workaround. ([#11025](https://github.com/fivetran/great_expectations/pull/11025))
+
+<details>
+<summary>Maintenance</summary>
+
+- Rendered diagnostic observed values for distinct-values expectations now compare dates and datetimes correctly when the configured value set was stored as strings, so matching values are no longer shown as unexpected. ([#11033](https://github.com/fivetran/great_expectations/pull/11033))
+- Test suites now point at AWS buckets in the open-source account. ([#11034](https://github.com/fivetran/great_expectations/pull/11034))
+- Added AWS credentials to the continuous integration configuration. ([#11037](https://github.com/fivetran/great_expectations/pull/11037))
+- Reverted the continuous integration change that switched AWS credential secrets, restoring the previous secret variable names. ([#11036](https://github.com/fivetran/great_expectations/pull/11036))
+- Updated the AWS secret variable names used by continuous integration (later reverted in this same release). ([#11035](https://github.com/fivetran/great_expectations/pull/11035))
+- Removed the timber entry from CODEOWNERS. ([#10996](https://github.com/fivetran/great_expectations/pull/10996))
+- Updated the continuous integration workflow so pull request targets are treated as pull-request-event targets. ([#11031](https://github.com/fivetran/great_expectations/pull/11031))
+- The context mode is now included in the properties sent with analytics events. ([#11001](https://github.com/fivetran/great_expectations/pull/11001))
+- Removed the default role applied when connecting to Snowflake. ([#11004](https://github.com/fivetran/great_expectations/pull/11004))
+
+</details>
+
+#### Contributors
+
+Thanks to @NathanFarmer.
 
 ### 1.3.10 (2025-03-12)
 
