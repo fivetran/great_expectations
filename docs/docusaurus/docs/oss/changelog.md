@@ -475,29 +475,65 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Databricks SQLAlchemy 2.0 transaction handling and connection recovery ([#11524](https://github.com/great-expectations/great_expectations/pull/11524))
 * [MAINTENANCE] [pre-commit.ci] pre-commit autoupdate ([#11502](https://github.com/great-expectations/great_expectations/pull/11502))
 
-### 1.9.0
-* [MINORBUMP] row conditions ([#11478](https://github.com/great-expectations/great_expectations/pull/11478))
-* [MINORBUMP] Drop support for Python 3.9 ([#11501](https://github.com/great-expectations/great_expectations/pull/11501))
-* [DOCS] row conditions screenshots ([#11509](https://github.com/great-expectations/great_expectations/pull/11509))
-* [DOCS] Cloud API version for row conditions ([#11512](https://github.com/great-expectations/great_expectations/pull/11512))
-* [DOCS] minimum python version now 3.10 ([#11485](https://github.com/great-expectations/great_expectations/pull/11485))
-* [MAINTENANCE] Fix flaky validation definition test ([#11495](https://github.com/great-expectations/great_expectations/pull/11495))
-* [MAINTENANCE] Make only parameter to conditions `Column` positional ([#11497](https://github.com/great-expectations/great_expectations/pull/11497))
-* [MAINTENANCE] Add snowflake private key to ci env variables ([#11499](https://github.com/great-expectations/great_expectations/pull/11499))
-* [MAINTENANCE] Narrow iterable member types for `ComparisonCondition` with in/not in operators ([#11494](https://github.com/great-expectations/great_expectations/pull/11494))
-* [MAINTENANCE] Don't allow `bool` values in `Column.is_in( )` / `Column.is_not_in()` ([#11500](https://github.com/great-expectations/great_expectations/pull/11500))
-* [MAINTENANCE] Move Snowflake tests to key-pair auth ([#11498](https://github.com/great-expectations/great_expectations/pull/11498))
-* [MAINTENANCE] Ignore boto warning about deprecating python 3.9 support ([#11505](https://github.com/great-expectations/great_expectations/pull/11505))
-* [MAINTENANCE] Move row conditions `Column` import ([#11506](https://github.com/great-expectations/great_expectations/pull/11506))
-* [MAINTENANCE] Update root validator to always map to a Condition ([#11504](https://github.com/great-expectations/great_expectations/pull/11504))
-* [MAINTENANCE] Render multiple conditions in data docs ([#11507](https://github.com/great-expectations/great_expectations/pull/11507))
-* [MAINTENANCE] Add posthog-docusaurus plugin to enable pageview capture ([#11508](https://github.com/great-expectations/great_expectations/pull/11508))
-* [MAINTENANCE] Add Condition subclasses to public API ([#11511](https://github.com/great-expectations/great_expectations/pull/11511))
-* [MAINTENANCE] ci: add ld-dev-server ([#11510](https://github.com/great-expectations/great_expectations/pull/11510))
-* [MAINTENANCE] Delete CommonRoom script from docs - load Posthog directly ([#11514](https://github.com/great-expectations/great_expectations/pull/11514))
-* [MAINTENANCE] Update exclude list ([#11517](https://github.com/great-expectations/great_expectations/pull/11517))
-* [MAINTENANCE] Deprecate string-style `row_condition`s ([#11515](https://github.com/great-expectations/great_expectations/pull/11515))
-* [CONTRIB] Include `unexpected_index_column_names` in ExpectColumnValuesToNotBeNull results ([#11513](https://github.com/great-expectations/great_expectations/pull/11513)) (thanks @chay0112)
+### 1.9.0 (2025-11-07)
+
+Compatibility: Python `<3.14,>=3.9` → `<3.14,>=3.10`; `numpy` removed (`python_version == "3.9"`); `pandas` removed (`python_version == "3.9"`)
+
+#### Highlights
+
+- **Row conditions: documented, importable, and rendered in Data Docs** — Row conditions are now a supported way to scope an Expectation to a subset of rows. The condition classes (including `Column` and the comparison, nullity, and boolean conditions) are part of the public API and are imported from `great_expectations.expectations.row_conditions`; the previous `great_expectations.expectations.conditions` import path still works. Conditions are validated more strictly (an in/not-in parameter must be an iterable whose members share a single type, and boolean members are rejected), a bare string condition is always turned into a condition object even when no condition parser is given, and Data Docs now renders every condition when an Expectation carries more than one. New documentation pages, screenshots, and notes on the minimum GX Cloud API and agent versions required for certain row-condition features round this out. ([#11478](https://github.com/fivetran/great_expectations/pull/11478), [#11494](https://github.com/fivetran/great_expectations/pull/11494), [#11497](https://github.com/fivetran/great_expectations/pull/11497), [#11500](https://github.com/fivetran/great_expectations/pull/11500), [#11504](https://github.com/fivetran/great_expectations/pull/11504), [#11506](https://github.com/fivetran/great_expectations/pull/11506), [#11507](https://github.com/fivetran/great_expectations/pull/11507), [#11509](https://github.com/fivetran/great_expectations/pull/11509), [#11511](https://github.com/fivetran/great_expectations/pull/11511), [#11512](https://github.com/fivetran/great_expectations/pull/11512))
+
+  ```python
+  from great_expectations.expectations.row_conditions import Column
+
+  condition = Column("age") > 21
+  ```
+
+- **Python 3.10 is now the minimum supported version** — Great Expectations no longer supports Python 3.9. Install on Python 3.10 or newer; the documentation now states 3.10 as the minimum. ([#11501](https://github.com/fivetran/great_expectations/pull/11501), [#11485](https://github.com/fivetran/great_expectations/pull/11485))
+
+- **`unexpected_index_column_names` returned by ExpectColumnValuesToNotBeNull** — When you request unexpected index columns in `result_format`, ExpectColumnValuesToNotBeNull now includes `unexpected_index_column_names` in its validation result, matching the other column-value Expectations. ([#11513](https://github.com/fivetran/great_expectations/pull/11513))
+
+  ```python
+  result_format={"result_format": "COMPLETE", "unexpected_index_column_names": ["customer_id"]}
+  ```
+
+#### Changes
+
+##### Bug fixes
+
+- ExpectColumnValuesToNotBeNull now includes `unexpected_index_column_names` in its validation results when they are requested through `result_format`. ([#11513](https://github.com/fivetran/great_expectations/pull/11513))
+
+##### Docs
+
+- Documented the minimum GX Cloud API and agent versions required to use certain row-condition capabilities. ([#11512](https://github.com/fivetran/great_expectations/pull/11512))
+- Updated the documented minimum supported Python version to 3.10. ([#11485](https://github.com/fivetran/great_expectations/pull/11485))
+- Added screenshots to the row conditions documentation. ([#11509](https://github.com/fivetran/great_expectations/pull/11509))
+- Added documentation and code samples for using row conditions to scope Expectations to a subset of rows. ([#11478](https://github.com/fivetran/great_expectations/pull/11478))
+
+<details>
+<summary>Maintenance</summary>
+
+- Removed the discontinued Common Room script from the documentation site and captured documentation page views directly with PostHog. ([#11514](https://github.com/fivetran/great_expectations/pull/11514))
+- Dropped support for Python 3.9; Great Expectations now requires Python 3.10 or newer. ([#11501](https://github.com/fivetran/great_expectations/pull/11501))
+- Continuous integration now runs against a mock LaunchDarkly server instead of a live feature-flag service. ([#11510](https://github.com/fivetran/great_expectations/pull/11510))
+- The row condition subclasses are now part of the documented public API. ([#11511](https://github.com/fivetran/great_expectations/pull/11511))
+- Restored page-view capture on the documentation site so single-page navigation is tracked again. ([#11508](https://github.com/fivetran/great_expectations/pull/11508))
+- Data Docs now renders every condition when an Expectation is scoped by more than one row condition. ([#11507](https://github.com/fivetran/great_expectations/pull/11507))
+- A row condition supplied as a string is now always converted into a condition object, including when no condition parser is specified. ([#11504](https://github.com/fivetran/great_expectations/pull/11504))
+- The row conditions `Column` class and its siblings are now imported from `great_expectations.expectations.row_conditions`; the previous `great_expectations.expectations.conditions` import path continues to work. ([#11506](https://github.com/fivetran/great_expectations/pull/11506))
+- Suppressed the boto warning about the deprecation of Python 3.9 support. ([#11505](https://github.com/fivetran/great_expectations/pull/11505))
+- Snowflake tests now authenticate with key-pair authentication. ([#11498](https://github.com/fivetran/great_expectations/pull/11498))
+- Boolean values are no longer accepted as members of the parameter passed to `Column.is_in()` and `Column.is_not_in()`. ([#11500](https://github.com/fivetran/great_expectations/pull/11500))
+- Comparison conditions using the in/not-in operators now require an iterable parameter whose members are all of the same type (or all numeric), and report an error otherwise. ([#11494](https://github.com/fivetran/great_expectations/pull/11494))
+- Added the Snowflake private key to the continuous integration environment variables. ([#11499](https://github.com/fivetran/great_expectations/pull/11499))
+- The conditions `Column` class now takes its column name as a positional argument, so it can be constructed as `Column("age")`. ([#11497](https://github.com/fivetran/great_expectations/pull/11497))
+- Fixed a flaky validation definition test caused by a race between raised errors when reusing a context from other tests. ([#11495](https://github.com/fivetran/great_expectations/pull/11495))
+
+</details>
+
+#### Contributors
+
+Thanks to @chay0112 (first contribution).
 
 ### 1.8.1 (2025-10-30)
 
