@@ -409,12 +409,39 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [DOCS] RCA result format ([#11596](https://github.com/great-expectations/great_expectations/pull/11596))
 * [MAINTENANCE] Upper bound pandas to be below 3.0.0 ([#11607](https://github.com/great-expectations/great_expectations/pull/11607))
 
-### 1.11.1
-* [BUGFIX] Include Expectation ID in equality ([#11593](https://github.com/great-expectations/great_expectations/pull/11593))
-* [BUGFIX] fix CustomSQL & MultiSource row-level result population ([#11601](https://github.com/great-expectations/great_expectations/pull/11601))
-* [MAINTENANCE] Use run_fastapi.py to launch mercury v1 ([#11599](https://github.com/great-expectations/great_expectations/pull/11599))
-* [MAINTENANCE] Fix npm security vulnerabilities in docusaurus ([#11600](https://github.com/great-expectations/great_expectations/pull/11600))
-* [CONTRIB] Fix typing export for get_context ([#11578](https://github.com/great-expectations/great_expectations/pull/11578)) (thanks @ipriyankalimbad)
+### 1.11.1 (2026-01-20)
+
+#### Highlights
+
+- **Result-format levels are now respected for Custom SQL and Multi-Source Expectations** — Validation results for Custom SQL and Multi-Source Expectations no longer include row-level data at result-format levels below COMPLETE. BOOLEAN_ONLY returns only success; BASIC and SUMMARY add the observed value (Custom SQL) or unexpected count and percent (Multi-Source); unexpected and missing rows appear only with COMPLETE. Multi-Source Expectations also render correctly when the result is empty. ([#11601](https://github.com/fivetran/great_expectations/pull/11601))
+
+- **get_context is recognized as a public export by type checkers** — The top-level great_expectations module now declares its public symbols explicitly, so static type checkers such as Pyright no longer report get_context and other promoted symbols as not exported. ([#11578](https://github.com/fivetran/great_expectations/pull/11578))
+
+  ```python
+  import great_expectations as gx
+
+  context = gx.get_context()
+  ```
+
+#### Changes
+
+##### Bug fixes
+
+- Custom SQL and Multi-Source Expectation validation results now include row-level data only at the COMPLETE result format, matching the BOOLEAN_ONLY, BASIC, SUMMARY, and COMPLETE hierarchy, and Multi-Source Expectations no longer fail to render when the result is empty. ([#11601](https://github.com/fivetran/great_expectations/pull/11601))
+- Added an explicit public-symbol list to the top-level great_expectations module so static type checkers recognize get_context and other promoted symbols as exported. ([#11578](https://github.com/fivetran/great_expectations/pull/11578))
+- Expectation configuration equality now accounts for the Expectation ID, so suites containing multiple Expectations with identical kwargs and meta but different IDs no longer produce missing or duplicated validation results. ([#11593](https://github.com/fivetran/great_expectations/pull/11593))
+
+<details>
+<summary>Maintenance</summary>
+
+- Updated documentation-site dependencies to resolve reported npm security vulnerabilities in js-yaml and qs. ([#11600](https://github.com/fivetran/great_expectations/pull/11600))
+- Internal service launch now goes through the shared FastAPI runner script; no user-facing change. ([#11599](https://github.com/fivetran/great_expectations/pull/11599))
+
+</details>
+
+#### Contributors
+
+Thanks to @ipriyankalimbad (first contribution).
 
 ### 1.11.0 (2026-01-12)
 
