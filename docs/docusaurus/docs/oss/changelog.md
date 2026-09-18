@@ -681,10 +681,41 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Bump ruff to 0.12.0 ([#11263](https://github.com/great-expectations/great_expectations/pull/11263))
 * [MAINTENANCE] convert Snowflake & Databricks integration tests to parameterize_batch_for_data_sources ([#11277](https://github.com/great-expectations/great_expectations/pull/11277))
 
-### 1.5.3
-* [BUGFIX] Make ExpectTableColumnsToMatchSet case insensitive ([#11266](https://github.com/great-expectations/great_expectations/pull/11266))
-* [DOCS] ExpectColumnProportionOfNonNullValuesToBeBetween (#11245) ([#11257](https://github.com/great-expectations/great_expectations/pull/11257))
-* [MAINTENANCE] Allow posthog v4 and v5 ([#11265](https://github.com/great-expectations/great_expectations/pull/11265))
+### 1.5.3 (2025-06-25)
+
+#### Highlights
+
+- **ExpectTableColumnsToMatchSet now matches column names case-insensitively** — On SQL dialects where column names are compared case-insensitively (PostgreSQL, Databricks SQL, and Snowflake), ExpectTableColumnsToMatchSet no longer fails when the expected column set differs only by letter casing from the table's actual columns. It now behaves consistently with the other column-name expectations such as expect_table_columns_to_match_ordered_list and expect_column_to_exist. ([#11266](https://github.com/fivetran/great_expectations/pull/11266))
+
+  ```python
+  import great_expectations.expectations as gxe
+
+  # Passes against a table whose columns are PASSENGER_COUNT and TRIP_DISTANCE
+  suite.add_expectation(
+      gxe.ExpectTableColumnsToMatchSet(column_set=["passenger_count", "trip_distance"])
+  )
+  ```
+
+#### Changes
+
+##### Bug fixes
+
+- ExpectTableColumnsToMatchSet now compares column names case-insensitively on dialects that treat column names as case-insensitive, so expectations no longer fail purely because of letter casing. ([#11266](https://github.com/fivetran/great_expectations/pull/11266))
+
+##### Docs
+
+- Added documentation for the ExpectColumnProportionOfNonNullValuesToBeBetween expectation. ([#11257](https://github.com/fivetran/great_expectations/pull/11257))
+
+<details>
+<summary>Maintenance</summary>
+
+- Widened the supported posthog dependency range to allow versions 4 and 5. ([#11265](https://github.com/fivetran/great_expectations/pull/11265))
+
+</details>
+
+#### Contributors
+
+Thanks to @klavavej.
 
 ### 1.5.2 (2025-06-18)
 
