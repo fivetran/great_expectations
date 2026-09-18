@@ -127,31 +127,98 @@ Compatibility: new extra `oracle`
 
 Thanks to @siddharthgaur1 (first contribution), @Star-cloud626 (first contribution), @nanjeshramesh, @adimalkar (first contribution), @AnandkumarMall (first contribution), @Ryota-Di (first contribution), @yigitcan-ozturk (first contribution), @MannXo, @iamfeldman (first contribution).
 
-### 1.22.0
-* [BUGFIX] Give the date-part string cast a length Oracle accepts ([#12102](https://github.com/great-expectations/great_expectations/pull/12102))
-* [BUGFIX] Add an Oracle branch to the dialect-regex helper ([#12103](https://github.com/great-expectations/great_expectations/pull/12103))
-* [BUGFIX] Render the derived-table alias in the form each grammar accepts ([#12104](https://github.com/great-expectations/great_expectations/pull/12104))
-* [BUGFIX] Restore the metrics coverage MySQL, SQL Server and Redshift were silently missing ([#12107](https://github.com/great-expectations/great_expectations/pull/12107))
-* [BUGFIX] Render Data Docs pages for results whose meta has no run_id ([#12098](https://github.com/great-expectations/great_expectations/pull/12098)) (thanks @MannXo)
-* [BUGFIX] pass usedforsecurity=False on non-security md5 calls for FIPS hosts ([#12099](https://github.com/great-expectations/great_expectations/pull/12099)) (thanks @nanjeshramesh)
-* [BUGFIX] Drop the taxi test table by name instead of scanning the database ([#12119](https://github.com/great-expectations/great_expectations/pull/12119))
-* [BUGFIX] Stop add_store from crashing and truncating great_expectations.yml ([#12081](https://github.com/great-expectations/great_expectations/pull/12081))
-* [DOCS] Teach users to install, use, and remove the agent skills bundled with GX ([#12074](https://github.com/great-expectations/great_expectations/pull/12074))
-* [DOCS] Teach integer batch parameters across the documentation ([#12066](https://github.com/great-expectations/great_expectations/pull/12066))
-* [DOCS] Restructure the agent skills page for progressive disclosure ([#12106](https://github.com/great-expectations/great_expectations/pull/12106))
-* [MAINTENANCE] Add Oracle to the SQL test harness with live curated coverage ([#12085](https://github.com/great-expectations/great_expectations/pull/12085))
-* [MAINTENANCE] Make the mypy configuration mean what it says ([#12112](https://github.com/great-expectations/great_expectations/pull/12112))
-* [MAINTENANCE] Remove two structural blockers to type-checking the test tree ([#12113](https://github.com/great-expectations/great_expectations/pull/12113))
-* [MAINTENANCE] Refuse silent relaxations of the type-check configuration ([#12115](https://github.com/great-expectations/great_expectations/pull/12115))
-* [MAINTENANCE] Restore the S3 docs fixtures ([#12111](https://github.com/great-expectations/great_expectations/pull/12111))
-* [MAINTENANCE] Request the docs-creds-needed backends that are live again ([#12114](https://github.com/great-expectations/great_expectations/pull/12114))
-* [MAINTENANCE] Run the Azure Blob docs tests against live storage again ([#12117](https://github.com/great-expectations/great_expectations/pull/12117))
-* [MAINTENANCE] Bound every apt call in the SQL Server ODBC driver install ([#12079](https://github.com/great-expectations/great_expectations/pull/12079))
-* [MAINTENANCE] Add a marshmallow 4 CI lane ([#12118](https://github.com/great-expectations/great_expectations/pull/12118))
-* [CONTRIB] Mask Azure connection-string AccountKey regardless of field order ([#12094](https://github.com/great-expectations/great_expectations/pull/12094)) (thanks @dkling-it, @hemalrajput18)
-* [CONTRIB] Fix pandas column-pair validation with non-default indexes ([#12097](https://github.com/great-expectations/great_expectations/pull/12097)) (thanks @joebasrawi)
-* [CONTRIB] add explanatory message to NotImplementedError for unsupported regex dialects ([#12109](https://github.com/great-expectations/great_expectations/pull/12109)) (thanks @ArjunPakhan)
-* [CONTRIB] Support Marshmallow 4.x ([#12092](https://github.com/great-expectations/great_expectations/pull/12092)) (thanks @Dev-iL)
+### 1.22.0 (2026-08-31)
+
+Compatibility: `marshmallow` minimum 3.7.1 → 3.18.0
+
+#### Highlights
+
+- **Marshmallow 4 is now supported** — Great Expectations now installs and runs against both Marshmallow 3 and Marshmallow 4, so it can be installed alongside deployments that pin Marshmallow 4 (such as Apache Airflow 3.3). The supported range is now `marshmallow>=3.18.0` with no upper bound; the declared 3.7.1 floor was unreachable in practice, so no currently-working environment is excluded. ([#12092](https://github.com/fivetran/great_expectations/pull/12092), [#12118](https://github.com/fivetran/great_expectations/pull/12118))
+
+  ```python
+  pip install great_expectations marshmallow==4.3.1
+  ```
+
+- **Oracle is now a live-tested backend, with three Oracle defects fixed** — Oracle joins the SQL test harness with live curated coverage, and the gaps that coverage exposed are fixed: regex Expectations now execute on Oracle instead of raising, query-based Expectations such as `UnexpectedRowsExpectation` now run because the derived-table alias is rendered in the form Oracle's grammar accepts, and daily and monthly batch definitions now work because the date-part string cast carries a length Oracle accepts. No other backend's rendered SQL changes. ([#12085](https://github.com/fivetran/great_expectations/pull/12085), [#12103](https://github.com/fivetran/great_expectations/pull/12103), [#12104](https://github.com/fivetran/great_expectations/pull/12104), [#12102](https://github.com/fivetran/great_expectations/pull/12102))
+
+  ```python
+  batch_definition = asset.add_batch_definition_daily(
+      name="daily", column="event_date"
+  )
+  ```
+
+- **`add_store` no longer crashes and empties great_expectations.yml** — Calling `context.add_store()` with an existing store's name and a config containing a `store_backend` key crashed and left `great_expectations.yml` at 0 bytes, making the project unloadable. The config is now serialized before the file is opened, so a serialization failure leaves the existing file byte-for-byte intact, and the context id is written as a string that YAML can represent. ([#12081](https://github.com/fivetran/great_expectations/pull/12081))
+
+  ```python
+  current = context.config.stores[context.expectations_store_name]
+  context.add_store(
+      name=context.expectations_store_name,
+      config={
+          "class_name": current["class_name"],
+          "store_backend": dict(current["store_backend"]),
+      },
+  )
+  ```
+
+- **Clearer errors for unsupported regex dialects and masked Azure account keys** — Regex Expectations run against a SQL dialect with no regex support now report `Regex is not supported for dialect <name>` in `exception_info` instead of an empty message, and Azure connection strings are masked regardless of field order so an account key can no longer appear unmasked in a `StoreConfigurationError`. ([#12109](https://github.com/fivetran/great_expectations/pull/12109), [#12094](https://github.com/fivetran/great_expectations/pull/12094))
+
+- **Data Docs pages render for validation results with no run_id** — `context.build_data_docs()` silently dropped a validation result's page when the result's `meta` had no `"run_id"` key. Such results now render, with run name and run time shown as `__none__`. ([#12098](https://github.com/fivetran/great_expectations/pull/12098))
+
+  ```python
+  context.build_data_docs()  # renders a page for every persisted result
+  ```
+
+- **Documentation for the bundled agent skills** — A new environment-setup page teaches how to install, verify, use, upgrade, and remove the agent skills that ship inside the `great_expectations` package, including the overwrite contract and the three skills as one path. ([#12074](https://github.com/fivetran/great_expectations/pull/12074), [#12106](https://github.com/fivetran/great_expectations/pull/12106))
+
+  ```python
+  python -m great_expectations skills install
+  python -m great_expectations skills list
+  ```
+
+#### Changes
+
+##### Features
+
+- Marshmallow 4.x is now supported alongside Marshmallow 3 on every supported Python version, with the supported range narrowed to `marshmallow>=3.18.0` and the `<4.0.0` cap removed; `config_version` bounds checking behaves identically on both majors. ([#12092](https://github.com/fivetran/great_expectations/pull/12092))
+
+##### Bug fixes
+
+- `context.add_store()` no longer crashes and truncate `great_expectations.yml` to 0 bytes when re-supplying a store's own config containing a `store_backend` key; the project config is now serialized before the file is opened, the context id is persisted as a string, and an absent context id stays empty rather than becoming the string "None". ([#12081](https://github.com/fivetran/great_expectations/pull/12081))
+- The BigQuery taxi test fixtures now drop their table by name during teardown instead of enumerating every schema on the server, removing the multi-minute stalls that cancelled the docs-snippets CI job. Test infrastructure only; no shipped code path changes. ([#12119](https://github.com/fivetran/great_expectations/pull/12119))
+- Regex Expectations run against a SQL dialect without regex support (such as SQL Server) now report "Regex is not supported for dialect \<name>" in `exception_info` instead of an empty exception message, with the dialect name rendered cleanly. ([#12109](https://github.com/fivetran/great_expectations/pull/12109))
+- `ExpectColumnPairValuesToBeInSet` on pandas now returns a verdict instead of a `MetricResolutionError` when the evaluated rows do not use a zero-based consecutive index, such as after null filtering or with a custom DataFrame index. ([#12097](https://github.com/fivetran/great_expectations/pull/12097))
+- Non-security md5 calls now pass `usedforsecurity=False`, so batch identification, dataframe fingerprinting, and partitioning/sampling work on FIPS-enabled hosts. No computed digests change. ([#12099](https://github.com/fivetran/great_expectations/pull/12099))
+- Azure Blob Storage connection strings are now masked by parsing key=value pairs rather than matching one fixed field order, so a string with reordered fields or no `EndpointSuffix` no longer raises a `StoreConfigurationError` containing the raw URL and account key. ([#12094](https://github.com/fivetran/great_expectations/pull/12094))
+- `context.build_data_docs()` now renders a page for a validation result whose `meta` has no `"run_id"` key (or whose `run_id` is `None`), defaulting run name and run time to `__none__` instead of silently dropping the page. ([#12098](https://github.com/fivetran/great_expectations/pull/12098))
+- MySQL, Microsoft SQL Server, and Redshift now declare a backend tier, so they run the metrics parameterizations they were silently absent from (+56, +44, and +56 tests respectively), and a new comparison keeps the two data-source list definitions from parting again; four regex metric modules exclude SQL Server, which has no regex operator. ([#12107](https://github.com/fivetran/great_expectations/pull/12107))
+- Query-based Expectations such as `UnexpectedRowsExpectation` now execute on Oracle: the derived-table alias is rendered through one shared helper that omits `AS` only for the grammar that rejects it, and the literal-boolean predicate rewrite now also applies to Oracle. No other backend's rendered SQL changes. ([#12104](https://github.com/fivetran/great_expectations/pull/12104))
+- Regex Expectations now execute on Oracle instead of raising `NotImplementedError`, via a new Oracle branch in the dialect-regex helper that renders `REGEXP_LIKE` in both positive and negated forms. No other dialect's rendered SQL changes. ([#12103](https://github.com/fivetran/great_expectations/pull/12103))
+- `add_batch_definition_daily` and `add_batch_definition_monthly` now work on Oracle: the multi-date-part partition query's string cast supplies an explicit length for the dialect that requires one, so batch retrieval no longer fails with `ORA-00906`. Curated coverage for daily and monthly batch definitions was added for every curated backend. ([#12102](https://github.com/fivetran/great_expectations/pull/12102))
+
+##### Docs
+
+- Restructured the "Install agent skills" page for progressive disclosure — what the skills do now comes before prerequisites and install, a new "Use the skills" section follows install, maintenance detail is grouped under keeping the skills up to date, and the `--symlink` failure wording matches the installer's actual behavior. ([#12106](https://github.com/fivetran/great_expectations/pull/12106))
+- Documentation that teaches batch parameters now passes integers for numeric batch parameters uniformly across file, SQL, and directory sources, and the prose saying the accepted type depends on the asset family has been removed. ([#12066](https://github.com/fivetran/great_expectations/pull/12066))
+- Added a documentation page covering the agent skills bundled with GX: what they are, how to install and verify them with `python -m great_expectations skills install` and `skills list`, the overwrite contract, the three skills as one path, and how to upgrade and remove them. ([#12074](https://github.com/fivetran/great_expectations/pull/12074))
+
+<details>
+<summary>Maintenance</summary>
+
+- Added a CI lane that installs the Marshmallow 4.x line, asserts the resolution actually landed on 4.x, and runs the unit suite against it. ([#12118](https://github.com/fivetran/great_expectations/pull/12118))
+- The SQL Server ODBC driver install script now bounds every apt call with a timeout, restricts its index refresh to the Microsoft repository, retries a failed install once, and the docs-snippets job gained a 30-minute timeout, so the step can no longer hang indefinitely. ([#12079](https://github.com/fivetran/great_expectations/pull/12079))
+- The Azure Blob Storage docs fixtures run against live storage again, with the account URL and container read from environment variables instead of a retired hardcoded host; the Spark ABS fixtures remain off. ([#12117](https://github.com/fivetran/great_expectations/pull/12117))
+- The docs-creds-needed CI leg now requests the BigQuery, SQL Server, and Redshift backends it already installs, so seven previously-skipped docs fixtures run; Snowflake and Azure stay unrequested and one Redshift fixture stays gated by name for lack of test data. ([#12114](https://github.com/fivetran/great_expectations/pull/12114))
+- The five pandas S3 docs fixtures run again, with the bucket read from a repository variable and authentication moved from static access keys to a role assumed through GitHub's OIDC provider; the S3 Spark fixtures remain skipped. ([#12111](https://github.com/fivetran/great_expectations/pull/12111))
+- Added a guard that compares the mypy configuration's relaxation surface against a committed inventory and fails the CI type-check in both directions, so adding an exclusion or relaxing override must be made visible in review. ([#12115](https://github.com/fivetran/great_expectations/pull/12115))
+- Removed two structural blockers to type-checking the test tree: deleted an `__init__.py` under a hyphenated, unimportable directory and gave `tests/integration/test_script_runner.py` its own shell helper instead of importing one from `assets/`. ([#12113](https://github.com/fivetran/great_expectations/pull/12113))
+- Cleaned up the mypy configuration so it reflects the codebase: 41 dead exclude patterns, 3 dead overrides, the SQLAlchemy import suppression and 1.x plugin, and 6 inert third-party suppressions removed; the generated version-file exclusion is anchored and the linter-ignore script's path filter corrected. ([#12112](https://github.com/fivetran/great_expectations/pull/12112))
+- Oracle joins the SQL data-source test harness as a live-tested backend, with a thin-mode `oracledb` driver requirement for the test lane, a pinned Oracle 21c container, an `oracle` pytest marker and CI lane, and curated-tier coverage; no `great_expectations[oracle]` extra is published yet. ([#12085](https://github.com/fivetran/great_expectations/pull/12085))
+
+</details>
+
+#### Contributors
+
+Thanks to @Dev-iL (first contribution), @ArjunPakhan (first contribution), @joebasrawi (first contribution), @nanjeshramesh, @dkling-it (first contribution), @hemalrajput18 (first contribution), @MannXo (first contribution).
 
 ### 1.21.0 (2026-08-19)
 
