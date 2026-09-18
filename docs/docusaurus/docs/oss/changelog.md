@@ -598,15 +598,51 @@ This table lists every deprecated item, the version that deprecated it, and the 
 ### 1.6.1
 * [BUGFIX] Make workspaces optional for cloud_user_info ([#11378](https://github.com/great-expectations/great_expectations/pull/11378))
 
-### 1.6.0
-* [FEATURE] Make GX Context workspace aware ([#11369](https://github.com/great-expectations/great_expectations/pull/11369))
-* [BUGFIX] Fix handling of mixed case table names when computing column metadata ([#11365](https://github.com/great-expectations/great_expectations/pull/11365))
-* [BUGFIX] Make handling of quoted schema and table names more robust ([#11367](https://github.com/great-expectations/great_expectations/pull/11367))
-* [BUGFIX] Enable reading multiple pages of S3 directory by popping ContinuationToken from query_options once it is used in a S3 request ([#11361](https://github.com/great-expectations/great_expectations/pull/11361)) (thanks @pawel99k)
-* [DOCS] Update docs to reflect that custom docker images should use stable agent ([#11353](https://github.com/great-expectations/great_expectations/pull/11353))
-* [MAINTENANCE] Test `unexpected_rows` ([#11368](https://github.com/great-expectations/great_expectations/pull/11368))
-* [MAINTENANCE] Plumb in GX_CLOUD_WORKSPACE_ID into cloud-test ci step. ([#11373](https://github.com/great-expectations/great_expectations/pull/11373))
-* [MAINTENANCE] Add `workspace_id` to `store_backend` dict ([#11371](https://github.com/great-expectations/great_expectations/pull/11371))
+### 1.6.0 (2025-09-12)
+
+#### Highlights
+
+- **GX Cloud workspace awareness** — Data Contexts are now workspace aware, laying the groundwork for GX Cloud's multi-workspace support. A workspace id supplied to a Cloud context is carried through to Cloud requests and to the credentials used by its stores. ([#11369](https://github.com/fivetran/great_expectations/pull/11369), [#11371](https://github.com/fivetran/great_expectations/pull/11371), [#11373](https://github.com/fivetran/great_expectations/pull/11373))
+
+  ```python
+  # GX_CLOUD_WORKSPACE_ID is read alongside your Cloud access token and organization id
+  import great_expectations as gx
+
+  context = gx.get_context(mode="cloud")
+  ```
+
+- **S3 data assets read past the first page of results** — Listing files in an S3 directory or bucket with more results than fit in a single response now returns all of them instead of raising an error part-way through. ([#11361](https://github.com/fivetran/great_expectations/pull/11361))
+
+- **More robust handling of quoted and mixed-case SQL identifiers** — Schema and table names that are quoted, use data-source-specific quote characters, or use mixed case are now handled correctly when building queries and when collecting column metadata. ([#11367](https://github.com/fivetran/great_expectations/pull/11367), [#11365](https://github.com/fivetran/great_expectations/pull/11365))
+
+#### Changes
+
+##### Features
+
+- Data Contexts are now workspace aware, adding initial support for GX Cloud's upcoming multi-workspace feature. ([#11369](https://github.com/fivetran/great_expectations/pull/11369))
+
+##### Bug fixes
+
+- Reading an S3 directory that spans multiple pages of results no longer fails; the continuation token is no longer reused in subsequent requests. ([#11361](https://github.com/fivetran/great_expectations/pull/11361))
+- Quoted schema and table names are handled more reliably: the quote characters used by all supported SQL data sources are now recognized, and identifiers are quoted correctly when serialized. ([#11367](https://github.com/fivetran/great_expectations/pull/11367))
+- Column metadata is now computed correctly for tables whose names use mixed case. ([#11365](https://github.com/fivetran/great_expectations/pull/11365))
+
+##### Docs
+
+- Documentation for building custom agent Docker images now recommends the stable base image instead of latest. ([#11353](https://github.com/fivetran/great_expectations/pull/11353))
+
+<details>
+<summary>Maintenance</summary>
+
+- A Cloud context now passes its workspace id along with the access token and organization id in the credentials used by its stores, and requests for the data context configuration are scoped to the workspace. ([#11371](https://github.com/fivetran/great_expectations/pull/11371))
+- The Cloud test job in continuous integration now supplies a workspace id, so workspace-aware behavior is exercised in CI. ([#11373](https://github.com/fivetran/great_expectations/pull/11373))
+- Added test coverage confirming that the unexpected_rows result format option behaves consistently across the canonical column map expectations for Pandas and SQL data sources. ([#11368](https://github.com/fivetran/great_expectations/pull/11368))
+
+</details>
+
+#### Contributors
+
+Thanks to @pawel99k (first contribution).
 
 ### 1.5.11 (2025-09-04)
 
