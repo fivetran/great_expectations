@@ -665,12 +665,41 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Update docstring for Postgres flavor data sources ([#11302](https://github.com/great-expectations/great_expectations/pull/11302))
 * [MAINTENANCE] cloud-snippets under test ([#11292](https://github.com/great-expectations/great_expectations/pull/11292))
 
-### 1.5.5
-* [FEATURE] Add new Postgres "flavor" Data Source classes ([#11290](https://github.com/great-expectations/great_expectations/pull/11290))
-* [FEATURE] Add BigQuery data source class ([#11296](https://github.com/great-expectations/great_expectations/pull/11296))
-* [BUGFIX] Disable init analytics as it was not really getting entirely disabled when specified on data context config ([#11276](https://github.com/great-expectations/great_expectations/pull/11276)) (thanks @jmcorreia)
-* [DOCS] Correct forecasted range caveat ([#11295](https://github.com/great-expectations/great_expectations/pull/11295))
-* [MAINTENANCE] Bump ruff to 0.12.2 ([#11288](https://github.com/great-expectations/great_expectations/pull/11288))
+### 1.5.5 (2025-07-10)
+
+#### Highlights
+
+- **BigQuery data source** — A dedicated BigQuery data source class is now available, so BigQuery connections can be declared as their own data source type rather than as a generic SQL connection. ([#11296](https://github.com/fivetran/great_expectations/pull/11296))
+
+- **Postgres-compatible data source flavors** — New data source classes cover Postgres-compatible services — Google Cloud AlloyDB, Amazon Aurora, Citus, and Neon — so each of these backends can be selected directly when connecting to data. ([#11290](https://github.com/fivetran/great_expectations/pull/11290))
+
+- **Disabling analytics is now fully respected** — When analytics is disabled in the Data Context configuration, analytics initialization is no longer performed at all. This resolves permission-denied errors raised while looking for a user-level configuration file in restricted environments such as Databricks streaming jobs. ([#11276](https://github.com/fivetran/great_expectations/pull/11276))
+
+#### Changes
+
+##### Features
+
+- Added a BigQuery data source class for connecting to BigQuery. ([#11296](https://github.com/fivetran/great_expectations/pull/11296))
+- Added Postgres-compatible data source classes for Google Cloud AlloyDB, Amazon Aurora, Citus, and Neon. ([#11290](https://github.com/fivetran/great_expectations/pull/11290))
+
+##### Bug fixes
+
+- Analytics initialization is now skipped entirely when analytics is disabled in the Data Context configuration, avoiding permission-denied errors from looking up a user-level configuration file. ([#11276](https://github.com/fivetran/great_expectations/pull/11276))
+
+##### Docs
+
+- Corrected an inaccurate statement about forecasted ranges in the documentation. ([#11295](https://github.com/fivetran/great_expectations/pull/11295))
+
+<details>
+<summary>Maintenance</summary>
+
+- Upgraded the ruff linter and formatter used for development to 0.12.2. ([#11288](https://github.com/fivetran/great_expectations/pull/11288))
+
+</details>
+
+#### Contributors
+
+Thanks to @jmcorreia.
 
 ### 1.5.4 (2025-07-02)
 
