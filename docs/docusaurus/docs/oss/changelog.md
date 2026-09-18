@@ -1199,32 +1199,63 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Add testing support for multi-asset data sources ([#10592](https://github.com/great-expectations/great_expectations/pull/10592))
 * [MAINTENANCE] Instrument analytics for Checkpoint action creation and runs ([#10597](https://github.com/great-expectations/great_expectations/pull/10597))
 
-### 1.2.0
-* [BUGFIX] Remove `row_condition` from Expectations for which it does not apply ([#10519](https://github.com/great-expectations/great_expectations/pull/10519))
-* [BUGFIX] fix rendering performance ([#10530](https://github.com/great-expectations/great_expectations/pull/10530))
-* [BUGFIX] Ensure that file-backed domain objects are stored in JSON files ([#10523](https://github.com/great-expectations/great_expectations/pull/10523))
-* [BUGFIX] File Path Batch Definitions serialize incorrectly ([#10543](https://github.com/great-expectations/great_expectations/pull/10543))
-* [DOCS] Bump max Python version in docs ([#10522](https://github.com/great-expectations/great_expectations/pull/10522))
-* [DOCS] Fix some typos ([#10521](https://github.com/great-expectations/great_expectations/pull/10521))
-* [DOCS] Add redirects for old URLs that no longer exist ([#10516](https://github.com/great-expectations/great_expectations/pull/10516))
-* [DOCS] Update Data Doc site configuration page ([#10536](https://github.com/great-expectations/great_expectations/pull/10536))
-* [DOCS] Add base `Datasource` to Public API ([#10527](https://github.com/great-expectations/great_expectations/pull/10527))
-* [DOCS] DSB-1009: Add Learn page for GX - Airflow data pipeline tutorial ([#10534](https://github.com/great-expectations/great_expectations/pull/10534))
-* [DOCS] Change href from relative path to root in API docs (version 0.18) ([#10507](https://github.com/great-expectations/great_expectations/pull/10507))
-* [DOCS] Fixing broken links ([#10541](https://github.com/great-expectations/great_expectations/pull/10541))
-* [DOCS] Community/issues board mentions ([#10548](https://github.com/great-expectations/great_expectations/pull/10548))
-* [DOCS] Update _redirects ([#10558](https://github.com/great-expectations/great_expectations/pull/10558))
-* [MAINTENANCE] ruff 0.6.9 + mypy 0.12 ([#10525](https://github.com/great-expectations/great_expectations/pull/10525))
-* [MAINTENANCE] Bump `ruff` to `0.7.0` ([#10535](https://github.com/great-expectations/great_expectations/pull/10535))
-* [MAINTENANCE] Add `DataAsset.get_batch_definition` to public API docs ([#10533](https://github.com/great-expectations/great_expectations/pull/10533))
-* [MAINTENANCE] Remove `TRY203` Ruff violations ([#10540](https://github.com/great-expectations/great_expectations/pull/10540))
-* [MAINTENANCE] Update gx row_condition parser ([#10524](https://github.com/great-expectations/great_expectations/pull/10524))
-* [MAINTENANCE] Use python 3.12 in netlify ([#10531](https://github.com/great-expectations/great_expectations/pull/10531))
-* [MAINTENANCE] Update airflow snippet to use checkpoint name rather than id ([#10551](https://github.com/great-expectations/great_expectations/pull/10551))
-* [MAINTENANCE] Fix azure aws/spark tests ([#10550](https://github.com/great-expectations/great_expectations/pull/10550))
-* [MAINTENANCE] Remove util functions from public API ([#10557](https://github.com/great-expectations/great_expectations/pull/10557))
-* [MAINTENANCE] Basic expectation testing framework ([#10554](https://github.com/great-expectations/great_expectations/pull/10554))
-* [MAINTENANCE] Reenable xfailed e2e tests ([#10555](https://github.com/great-expectations/great_expectations/pull/10555))
+### 1.2.0 (2024-10-24)
+
+#### Highlights
+
+- **The `great_expectations` row condition parser is no longer experimental** — Row conditions written with the `great_expectations` parser are now a supported, non-experimental way to filter the rows an Expectation evaluates, and the parser now understands `==` comparisons. Documentation has been updated to match. ([#10524](https://github.com/fivetran/great_expectations/pull/10524))
+
+  ```python
+  gxe.ExpectColumnValuesToNotBeNull(
+      column="passenger_count",
+      row_condition='col("vendor_id") == 1',
+      condition_parser="great_expectations",
+  )
+  ```
+
+- **Row conditions rejected on Expectations where they have no effect** — Expectations that operate on table structure rather than rows — `ExpectColumnToExist`, `ExpectTableColumnCountToBeBetween`, `ExpectTableColumnCountToEqual`, `ExpectTableColumnsToMatchOrderedList`, `ExpectTableColumnsToMatchSet`, and `UnexpectedRowsExpectation` — no longer accept a `row_condition`, so a condition can no longer be silently ignored. `condition_parser` is now expressed as an enum of the supported parsers. ([#10519](https://github.com/fivetran/great_expectations/pull/10519))
+
+- **Faster validation result rendering** — Rendering validation results and Data Docs is noticeably faster. ([#10530](https://github.com/fivetran/great_expectations/pull/10530))
+
+- **New Learn page for running GX in an Airflow data pipeline** — The Learn documentation now includes a page pointing to the end-to-end tutorial for using GX inside an Airflow data pipeline, alongside cleaned-up tutorial landing and table-of-contents pages. ([#10534](https://github.com/fivetran/great_expectations/pull/10534))
+
+#### Changes
+
+##### Bug fixes
+
+- Fixed file path Batch Definitions so they are serialized correctly and round-trip as expected. ([#10543](https://github.com/fivetran/great_expectations/pull/10543))
+- Ensured file-backed domain objects are persisted in JSON files. ([#10523](https://github.com/fivetran/great_expectations/pull/10523))
+- Improved rendering performance of validation results. ([#10530](https://github.com/fivetran/great_expectations/pull/10530))
+- Removed `row_condition` from Expectations where it has no effect (`ExpectColumnToExist`, `ExpectTableColumnCountToBeBetween`, `ExpectTableColumnCountToEqual`, `ExpectTableColumnsToMatchOrderedList`, `ExpectTableColumnsToMatchSet`, and `UnexpectedRowsExpectation`), introduced an enum for `condition_parser`, and dropped the special-cased `pandas` default parser for three Expectations. ([#10519](https://github.com/fivetran/great_expectations/pull/10519))
+
+##### Docs
+
+- Added documentation redirects for docs subdomains. ([#10558](https://github.com/fivetran/great_expectations/pull/10558))
+- Added references to the community issues board in the Get Support and community resources docs, and removed mention of the GX-supported label from the contributing doc. ([#10548](https://github.com/fivetran/great_expectations/pull/10548))
+- Fixed broken documentation links so they point at their current URLs. ([#10541](https://github.com/fivetran/great_expectations/pull/10541))
+- Changed dynamically generated links in the 0.18 API reference from relative paths to root-based paths so they resolve correctly. ([#10507](https://github.com/fivetran/great_expectations/pull/10507))
+- Added the base `Datasource` class to the public API documentation. ([#10527](https://github.com/fivetran/great_expectations/pull/10527))
+- Added a Learn page linking to the GX-in-the-data-pipeline Airflow tutorial, plus tense and wording cleanup on the tutorial landing and table-of-contents pages. ([#10534](https://github.com/fivetran/great_expectations/pull/10534))
+- Updated the Data Docs site configuration page to reflect that GX 1.x only supports writing Data Docs sites to a local filesystem. ([#10536](https://github.com/fivetran/great_expectations/pull/10536))
+- Added redirects for retired documentation URLs so bookmarked and search-result links land on the corresponding versioned or closest-matching page instead of a 404. ([#10516](https://github.com/fivetran/great_expectations/pull/10516))
+- Fixed assorted typos in the documentation. ([#10521](https://github.com/fivetran/great_expectations/pull/10521))
+- Bumped the maximum supported Python version stated in the documentation. ([#10522](https://github.com/fivetran/great_expectations/pull/10522))
+
+<details>
+<summary>Maintenance</summary>
+
+- Added a testing framework for exercising Expectations against data sources, initially supporting pandas DataFrame data sources. ([#10554](https://github.com/fivetran/great_expectations/pull/10554))
+- Removed assorted utility functions from the documented public API surface. ([#10557](https://github.com/fivetran/great_expectations/pull/10557))
+- Enabled the AWS/Spark docs tests to run on pull requests, updated the remaining test for GX 1.x, and removed three outdated tests. ([#10550](https://github.com/fivetran/great_expectations/pull/10550))
+- Updated the Airflow documentation snippet to look up a Checkpoint by name instead of iterating over all Checkpoints. ([#10551](https://github.com/fivetran/great_expectations/pull/10551))
+- Documentation site builds on Netlify now use Python 3.12. ([#10531](https://github.com/fivetran/great_expectations/pull/10531))
+- Removed the experimental designation from the `great_expectations` row condition parser, added support for the `==` condition, and updated the related documentation. ([#10524](https://github.com/fivetran/great_expectations/pull/10524))
+- Cleaned up redundant try/except blocks flagged by the TRY203 lint rule. ([#10540](https://github.com/fivetran/great_expectations/pull/10540))
+- Added `DataAsset.get_batch_definition` to the public API documentation. ([#10533](https://github.com/fivetran/great_expectations/pull/10533))
+- Upgraded the project's ruff linter to 0.7.0 and updated the corresponding lint suppression codes. ([#10535](https://github.com/fivetran/great_expectations/pull/10535))
+- Updated static analysis tooling: ruff 0.6.8 to 0.6.9 and mypy 1.11.1 to 1.12. ([#10525](https://github.com/fivetran/great_expectations/pull/10525))
+
+</details>
 
 ### 1.1.3 (2024-10-15)
 
