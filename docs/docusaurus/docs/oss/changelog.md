@@ -608,14 +608,47 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Plumb in GX_CLOUD_WORKSPACE_ID into cloud-test ci step. ([#11373](https://github.com/great-expectations/great_expectations/pull/11373))
 * [MAINTENANCE] Add `workspace_id` to `store_backend` dict ([#11371](https://github.com/great-expectations/great_expectations/pull/11371))
 
-### 1.5.11
-* [FEATURE] Checkpoint actions notify on severity ([#11347](https://github.com/great-expectations/great_expectations/pull/11347))
-* [FEATURE] Add handling for severity to ExpectationConfiguration serialization ([#11343](https://github.com/great-expectations/great_expectations/pull/11343))
-* [FEATURE] Add new method to ExpectationSuiteValidationResult class to return highest severity failure ([#11341](https://github.com/great-expectations/great_expectations/pull/11341))
-* [BUGFIX] ensure unexpected_rows are included if requested ([#11358](https://github.com/great-expectations/great_expectations/pull/11358))
-* [BUGFIX] Preserve quoting when serializing quoted table names ([#11357](https://github.com/great-expectations/great_expectations/pull/11357))
-* [DOCS] Cloud docs for built-in actions ([#11338](https://github.com/great-expectations/great_expectations/pull/11338))
-* [MAINTENANCE] Update ports that mercury runs on ([#11351](https://github.com/great-expectations/great_expectations/pull/11351))
+### 1.5.11 (2025-09-04)
+
+#### Highlights
+
+- **Severity-aware Checkpoint notifications** — Expectations that carry a severity value can now be validated and acted on end to end: validation results expose the highest-severity failure they contain, and built-in Checkpoint actions use it to decide whether to notify. ([#11341](https://github.com/fivetran/great_expectations/pull/11341), [#11343](https://github.com/fivetran/great_expectations/pull/11343), [#11347](https://github.com/fivetran/great_expectations/pull/11347))
+
+  ```python
+  result = checkpoint.run()
+  validation_result = result.run_results[next(iter(result.run_results))]
+  max_severity = validation_result.get_max_severity_failure()
+  ```
+
+- **Quoted table names stay quoted in GX Cloud** — A table asset whose table name is quoted keeps its quoting when it is sent to and fetched back from GX Cloud, so the name continues to be treated as quoted. ([#11357](https://github.com/fivetran/great_expectations/pull/11357))
+
+#### Changes
+
+##### Features
+
+- Validation results expose a new get_max_severity_failure method that reports the highest-severity failing Expectation in the result, which is also used when deciding whether to send notifications. ([#11341](https://github.com/fivetran/great_expectations/pull/11341))
+- Expectations with a severity value set can now be validated; previously validation failed because the expectation configuration could not be serialized. ([#11343](https://github.com/fivetran/great_expectations/pull/11343))
+- Built-in Checkpoint actions now take Expectation severity into account when deciding whether to send a notification. ([#11347](https://github.com/fivetran/great_expectations/pull/11347))
+
+##### Bug fixes
+
+- Quoted table names on a table asset keep their quotes when the asset is serialized for GX Cloud, so a fetched asset is still treated as having a quoted table name. ([#11357](https://github.com/fivetran/great_expectations/pull/11357))
+- Unexpected rows are now included in validation results whenever they are requested. ([#11358](https://github.com/fivetran/great_expectations/pull/11358))
+
+##### Docs
+
+- Added GX Cloud documentation for the built-in validation actions. ([#11338](https://github.com/fivetran/great_expectations/pull/11338))
+
+<details>
+<summary>Maintenance</summary>
+
+- Updated the ports used by the Cloud test suite to match the new service ports. ([#11351](https://github.com/fivetran/great_expectations/pull/11351))
+
+</details>
+
+#### Contributors
+
+Thanks to @klavavej.
 
 ### 1.5.10 (2025-08-27)
 
