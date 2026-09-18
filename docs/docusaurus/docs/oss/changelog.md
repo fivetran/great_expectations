@@ -785,15 +785,49 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Remove test_expectations_v3_api.py ([#11098](https://github.com/great-expectations/great_expectations/pull/11098))
 * [MAINTENANCE] Revert: "Temporarily pin gx-redshift for python 3.9" ([#11151](https://github.com/great-expectations/great_expectations/pull/11151))
 
-### 1.4.2
-* [FEATURE] Changes to Redshift `connection_string` validator to support a dict type ([#11119](https://github.com/great-expectations/great_expectations/pull/11119))
-* [FEATURE] expectations: redshift support ([#11128](https://github.com/great-expectations/great_expectations/pull/11128))
-* [DOCS] make try gx core code sample match descriptive text ([#11129](https://github.com/great-expectations/great_expectations/pull/11129))
-* [DOCS] hide broken table of contents ([#11130](https://github.com/great-expectations/great_expectations/pull/11130))
-* [MAINTENANCE] Add Galina to core devs. Remove others. ([#11117](https://github.com/great-expectations/great_expectations/pull/11117))
-* [MAINTENANCE] Add metric docstrings and fix import paths ([#11118](https://github.com/great-expectations/great_expectations/pull/11118))
-* [MAINTENANCE] Update type packaging ([#11115](https://github.com/great-expectations/great_expectations/pull/11115))
-* [MAINTENANCE] Improve `MetricErrorResult` and `Batch.compute_metrics()` API typing ([#11127](https://github.com/great-expectations/great_expectations/pull/11127))
+### 1.4.2 (2025-04-24)
+
+#### Highlights
+
+- **Redshift connection strings can be supplied as a dictionary** — When adding a Redshift datasource, `connection_string` may now be given as a dictionary of connection components in addition to a string URL. ([#11119](https://github.com/fivetran/great_expectations/pull/11119))
+
+  ```python
+  import great_expectations as gx
+
+  context = gx.get_context()
+  datasource = context.data_sources.add_redshift(
+      name="my_redshift",
+      connection_string={
+          "drivername": "redshift+psycopg2",
+          "username": "my_user",
+          "password": "my_password",
+          "host": "my-cluster.redshift.amazonaws.com",
+          "port": 5439,
+          "database": "my_database",
+      },
+  )
+  ```
+
+- **Expectation coverage for Redshift assets** — Expectations running against Redshift assets are now verified to the same level as Postgres, so Redshift users can rely on the same set of expectations behaving as documented. ([#11128](https://github.com/fivetran/great_expectations/pull/11128))
+
+- **More type information shipped with the package** — The published distribution now exposes more of the library's type information, so type checkers resolve Great Expectations types in your own code more completely. ([#11115](https://github.com/fivetran/great_expectations/pull/11115))
+
+#### Changes
+
+##### Features
+
+- Expectations against Redshift assets are now covered to parity with Postgres. ([#11128](https://github.com/fivetran/great_expectations/pull/11128))
+- Redshift datasources now accept a `connection_string` provided as a dictionary in addition to a string. ([#11119](https://github.com/fivetran/great_expectations/pull/11119))
+
+<details>
+<summary>Maintenance</summary>
+
+- `Batch.compute_metrics()` is now typed to include `MetricErrorResult`, and metric error types were simplified and consolidated. ([#11127](https://github.com/fivetran/great_expectations/pull/11127))
+- More type information is now exported in the published PyPI distribution. ([#11115](https://github.com/fivetran/great_expectations/pull/11115))
+- Added docstrings for metrics and corrected metric import paths. ([#11118](https://github.com/fivetran/great_expectations/pull/11118))
+- Updated the list of core developers credited in the project. ([#11117](https://github.com/fivetran/great_expectations/pull/11117))
+
+</details>
 
 ### 1.4.1 (2025-04-21)
 
