@@ -199,29 +199,58 @@ Thanks to @siddharthgaur1 (first contribution), @Star-cloud626 (first contributi
 * [MAINTENANCE] BigQuery CI ([#12016](https://github.com/fivetran/great_expectations/pull/12016))
 * [CONTRIB] Promote ExpectColumnValuesToMatchStrftimeFormat to supported-core ([#12009](https://github.com/fivetran/great_expectations/pull/12009)) (thanks @nanjeshramesh)
 
-### 1.19.1
-* [FEATURE] Self-hosted CLA status check ([#11985](https://github.com/fivetran/great_expectations/pull/11985))
-* [BUGFIX] Pin actions/checkout to v4.3.1 across workflows ([#11988](https://github.com/fivetran/great_expectations/pull/11988))
-* [BUGFIX] Sync CLA labels directly from the CLA check, not via the status webhook ([#11992](https://github.com/fivetran/great_expectations/pull/11992))
-* [BUGFIX] Render id/pk-only unexpected indices instead of raising (fixes #11933) ([#11935](https://github.com/fivetran/great_expectations/pull/11935)) (thanks @anxkhn)
-* [MAINTENANCE] Update CLA links ([#11974](https://github.com/fivetran/great_expectations/pull/11974))
-* [MAINTENANCE] Ignore pyOpenSSL X509.get_subject deprecation warning for snowflake ([#11979](https://github.com/fivetran/great_expectations/pull/11979))
-* [MAINTENANCE] CLA Enforcement ([#11980](https://github.com/fivetran/great_expectations/pull/11980))
-* [MAINTENANCE] Update cla links ([#11982](https://github.com/fivetran/great_expectations/pull/11982))
-* [MAINTENANCE] Report CLA status on merge-queue commits ([#11983](https://github.com/fivetran/great_expectations/pull/11983))
-* [MAINTENANCE] enable redshift ci ([#11984](https://github.com/fivetran/great_expectations/pull/11984))
-* [MAINTENANCE] Bump websocket-driver from 0.7.4 to 0.7.5 in /docs/docusaurus ([#11977](https://github.com/fivetran/great_expectations/pull/11977))
-* [MAINTENANCE] Bump webpack-dev-server from 5.2.5 to 5.2.6 in /docs/docusaurus ([#11990](https://github.com/fivetran/great_expectations/pull/11990))
-* [MAINTENANCE] pre-commit autoupdate (ruff 0.15.12 -> 0.15.15) ([#11895](https://github.com/fivetran/great_expectations/pull/11895))
-* [MAINTENANCE] Assert store access in DatasourceDict just-in-time tests ([#11949](https://github.com/fivetran/great_expectations/pull/11949)) (thanks @anxkhn)
-* [MAINTENANCE] Bump brace-expansion from 1.1.13 to 1.1.16 in /docs/docusaurus ([#11991](https://github.com/fivetran/great_expectations/pull/11991))
-* [MAINTENANCE] Bump body-parser from 1.20.4 to 1.20.6 in /docs/docusaurus ([#11989](https://github.com/fivetran/great_expectations/pull/11989))
-* [MAINTENANCE] Bump svgo from 3.3.3 to 3.3.4 in /docs/docusaurus ([#11994](https://github.com/fivetran/great_expectations/pull/11994))
-* [MAINTENANCE] Bump immutable from 4.3.8 to 4.3.9 in /docs/docusaurus ([#11996](https://github.com/fivetran/great_expectations/pull/11996))
-* [MAINTENANCE] Bump fast-uri from 3.1.2 to 3.1.4 in /docs/docusaurus ([#11995](https://github.com/fivetran/great_expectations/pull/11995))
-* [MAINTENANCE] Bump dompurify from 3.4.11 to 3.4.12 in /docs/docusaurus ([#11997](https://github.com/fivetran/great_expectations/pull/11997))
-* [MAINTENANCE] Add per-metric override hooks for SqlAlchemy row-retrieval providers ([#11998](https://github.com/fivetran/great_expectations/pull/11998))
-* [CONTRIB] Update distinct values set Expectations to document observed_value contract ([#11934](https://github.com/fivetran/great_expectations/pull/11934)) (thanks @EshwarCVS)
+### 1.19.1 (2026-07-24)
+
+#### Highlights
+
+- **Data Docs no longer errors when unexpected indices contain only id/pk columns** — Validation results that report unexpected indices made up solely of the configured id/pk columns — including Spark and SQL runs and any run with unexpected values excluded — now render a count and index table in Data Docs instead of failing the result page with "No group keys passed!". ([#11935](https://github.com/fivetran/great_expectations/pull/11935))
+
+- **Contributor License Agreement checks are now run by the project itself** — The verification/cla-signed check is posted by the repository's own workflows rather than a third-party hosted app: it is reported on pull request heads and on merge-queue commits, fails closed when contributor status cannot be confirmed, leaves a single guiding comment naming any unsigned or unidentified committer, and keeps the cla-signed / cla-not-signed labels in sync with the check result. CLA signing links now point at the current forms. ([#11985](https://github.com/fivetran/great_expectations/pull/11985), [#11983](https://github.com/fivetran/great_expectations/pull/11983), [#11980](https://github.com/fivetran/great_expectations/pull/11980), [#11992](https://github.com/fivetran/great_expectations/pull/11992), [#11982](https://github.com/fivetran/great_expectations/pull/11982), [#11974](https://github.com/fivetran/great_expectations/pull/11974))
+
+- **Distinct-values set Expectations document their observed_value contract** — Documentation and JSON schemas for the distinct values set Expectations now state that observed_value is always None, and their code examples show unexpected_count and partial_unexpected_list (plus the missing-value variants) instead. ([#11934](https://github.com/fivetran/great_expectations/pull/11934))
+
+#### Changes
+
+##### Features
+
+- The verification/cla-signed check is now posted by this repository's own workflows instead of a third-party app: it enumerates a pull request's committers, fails closed when it cannot confirm them, supports re-running via an @cla-bot check comment, and posts a single guiding comment naming any unsigned or unidentified committer. ([#11985](https://github.com/fivetran/great_expectations/pull/11985))
+
+##### Bug fixes
+
+- Data Docs now renders the unexpected count and index table when unexpected-index records contain only the id/pk columns, instead of failing the result page with "No group keys passed!". ([#11935](https://github.com/fivetran/great_expectations/pull/11935))
+- CLA labels on a pull request are now updated in the same run that posts the CLA status, so a pull request no longer keeps a stale cla-not-signed label after signing. ([#11992](https://github.com/fivetran/great_expectations/pull/11992))
+- Pinned the checkout action to v4.3.1 across workflows, restoring CI runs for contributor pull requests from forks. ([#11988](https://github.com/fivetran/great_expectations/pull/11988))
+
+##### Docs
+
+- Documented that observed_value is always None for the distinct values set Expectations, refreshed their code examples to use unexpected_count and partial_unexpected_list, and synced the published JSON schemas to match. ([#11934](https://github.com/fivetran/great_expectations/pull/11934))
+
+<details>
+<summary>Maintenance</summary>
+
+- SqlAlchemy row-retrieval providers for map metrics (unexpected rows, unexpected index list, and unexpected index query) can now be overridden individually by a subclass without double-registering the metric; registration behavior for all existing map metrics is unchanged. ([#11998](https://github.com/fivetran/great_expectations/pull/11998))
+- Updated the documentation site's dompurify dependency from 3.4.11 to 3.4.12. ([#11997](https://github.com/fivetran/great_expectations/pull/11997))
+- Updated the documentation site's fast-uri dependency from 3.1.2 to 3.1.4, picking up security fixes. ([#11995](https://github.com/fivetran/great_expectations/pull/11995))
+- Updated the documentation site's immutable dependency from 4.3.8 to 4.3.9, picking up security fixes. ([#11996](https://github.com/fivetran/great_expectations/pull/11996))
+- Updated the documentation site's svgo dependency from 3.3.3 to 3.3.4, picking up a security fix. ([#11994](https://github.com/fivetran/great_expectations/pull/11994))
+- Updated the documentation site's body-parser dependency from 1.20.4 to 1.20.6, picking up a security fix. ([#11989](https://github.com/fivetran/great_expectations/pull/11989))
+- Updated the documentation site's brace-expansion dependency from 1.1.13 to 1.1.16, picking up a security fix. ([#11991](https://github.com/fivetran/great_expectations/pull/11991))
+- Strengthened the tests that verify datasource lookups read their store just in time, so they now genuinely guard that behavior. ([#11949](https://github.com/fivetran/great_expectations/pull/11949))
+- Updated the pre-commit ruff hook from 0.15.12 to 0.15.15. ([#11895](https://github.com/fivetran/great_expectations/pull/11895))
+- Updated the documentation site's webpack-dev-server dependency from 5.2.5 to 5.2.6, picking up security fixes. ([#11990](https://github.com/fivetran/great_expectations/pull/11990))
+- Updated the documentation site's websocket-driver dependency from 0.7.4 to 0.7.5. ([#11977](https://github.com/fivetran/great_expectations/pull/11977))
+- Re-enabled Redshift tests in CI. ([#11984](https://github.com/fivetran/great_expectations/pull/11984))
+- The verification/cla-signed status is now reported on merge-queue commits, so the required CLA check can be satisfied in the merge queue instead of hanging pending. ([#11983](https://github.com/fivetran/great_expectations/pull/11983))
+- Updated the Contributor License Agreement links in CLA.md and the CLA bot message to the current signing forms. ([#11982](https://github.com/fivetran/great_expectations/pull/11982))
+- Pull requests are now blocked until every committer has a valid Contributor License Agreement signature, with cla-signed / cla-not-signed labels kept in sync with the CLA status. ([#11980](https://github.com/fivetran/great_expectations/pull/11980))
+- Snowflake connection tests no longer fail on a new pyOpenSSL deprecation warning raised during the TLS handshake. ([#11979](https://github.com/fivetran/great_expectations/pull/11979))
+- Corrected the Contributor License Agreement form links in CLA.md. ([#11974](https://github.com/fivetran/great_expectations/pull/11974))
+
+</details>
+
+#### Contributors
+
+Thanks to @anxkhn, @EshwarCVS.
 
 ### 1.19.0 (2026-07-13)
 
