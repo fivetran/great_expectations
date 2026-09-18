@@ -54,8 +54,7 @@ directory instead of following this guide.
    [Creating a pull request from a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork).
 
 3. Add a meaningful title and description. Provide a detailed explanation of what you changed and why.
-   Prefix the PR title with exactly one of the following, chosen by what the change *is*, not by who
-   wrote it, how large it is, or what version it implies:
+   Prefix the PR title with one of the following labels: 
 
    - `[FEATURE]` — advances a user-facing capability or public API, whether or not that capability is
      reachable yet.
