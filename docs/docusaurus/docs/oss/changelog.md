@@ -371,30 +371,79 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Normalize SQL Server column type metrics ([#11684](https://github.com/great-expectations/great_expectations/pull/11684))
 * [MAINTENANCE] remove deprecated store backends ([#11675](https://github.com/great-expectations/great_expectations/pull/11675))
 
-### 1.12.3
-* [MINORBUMP] Add support for pd.Timestamp for datetime comparison operations ([#11637](https://github.com/great-expectations/great_expectations/pull/11637)) (thanks @subediparas5)
-* [FEATURE] Add sql server types stubs and use api in integration tests ([#11643](https://github.com/great-expectations/great_expectations/pull/11643))
-* [FEATURE] MSSQL support for UnexpectedRowsExpectation ([#11646](https://github.com/great-expectations/great_expectations/pull/11646))
-* [FEATURE] SQL Server Azure AD password authentication ([#11645](https://github.com/great-expectations/great_expectations/pull/11645))
-* [FEATURE] MSSQL schema support ([#11649](https://github.com/great-expectations/great_expectations/pull/11649))
-* [FEATURE] Support asymmetric quoted identifiers in dialect quoting ([#11652](https://github.com/great-expectations/great_expectations/pull/11652))
-* [BUGFIX] Remove table domain key from ExpectColumnToExist ([#11630](https://github.com/great-expectations/great_expectations/pull/11630))
-* [BUGFIX] Fix missing unexpected_index_query for ExpectCompoundColumnsToBeUnique on SQL ([#11639](https://github.com/great-expectations/great_expectations/pull/11639))
-* [DOCS] Agent request next steps ([#11619](https://github.com/great-expectations/great_expectations/pull/11619))
-* [DOCS] define asterisks in core result format docs ([#11631](https://github.com/great-expectations/great_expectations/pull/11631))
-* [DOCS] Fix link to expect_table_row_count_to_equal_other_table in documentation ([#11634](https://github.com/great-expectations/great_expectations/pull/11634)) (thanks @teixeirazeus)
-* [DOCS] Email alerts ([#11628](https://github.com/great-expectations/great_expectations/pull/11628))
-* [DOCS] Revise contribution guidelines and readiness criteria ([#11638](https://github.com/great-expectations/great_expectations/pull/11638)) (thanks @adeola-ak)
-* [DOCS] Add an Expectation using the GX Cloud API ([#11567](https://github.com/great-expectations/great_expectations/pull/11567))
-* [DOCS] remove info about deprecated DBFS ([#11648](https://github.com/great-expectations/great_expectations/pull/11648))
-* [MAINTENANCE] Remove duplicate flaky test ([#11623](https://github.com/great-expectations/great_expectations/pull/11623))
-* [MAINTENANCE] Bump diff from 3.5.0 to 3.5.1 in /docs/docusaurus ([#11627](https://github.com/great-expectations/great_expectations/pull/11627))
-* [MAINTENANCE] Add database-pushdown metrics for distinct values set comparisons ([#11629](https://github.com/great-expectations/great_expectations/pull/11629))
-* [MAINTENANCE] Bump webpack from 5.94.0 to 5.104.1 in /docs/docusaurus ([#11636](https://github.com/great-expectations/great_expectations/pull/11636))
-* [MAINTENANCE] `SQLServerDatasource` with SQL Server authentication ([#11640](https://github.com/great-expectations/great_expectations/pull/11640))
-* [MAINTENANCE] Add `start_period` to mercury healthcheck to prevent flaky CI failures ([#11655](https://github.com/great-expectations/great_expectations/pull/11655))
-* [MAINTENANCE] Bump docker compose timeout to 3 min ([#11659](https://github.com/great-expectations/great_expectations/pull/11659))
-* [MAINTENANCE] Dispose of mssql connections in integration tests ([#11663](https://github.com/great-expectations/great_expectations/pull/11663))
+### 1.12.3 (2026-02-13)
+
+#### Highlights
+
+- **SQL Server datasources with Azure AD password authentication** — You can now connect to SQL Server with a flat set of connection keyword arguments, including Azure Active Directory password authentication, without hand-building a connection string. ([#11645](https://github.com/fivetran/great_expectations/pull/11645), [#11640](https://github.com/fivetran/great_expectations/pull/11640), [#11643](https://github.com/fivetran/great_expectations/pull/11643))
+
+  ```python
+  context.data_sources.add_sql_server(
+      name="my_sql_server",
+      host="my-server.database.windows.net",
+      database="my_db",
+      username="user@example.com",
+      password="${MY_PASSWORD}",
+  )
+  ```
+
+- **Broader Microsoft SQL Server support** — SQL Server now works with schemas, with bracket-quoted identifiers such as [my column], and with UnexpectedRowsExpectation queries. ([#11649](https://github.com/fivetran/great_expectations/pull/11649), [#11652](https://github.com/fivetran/great_expectations/pull/11652), [#11646](https://github.com/fivetran/great_expectations/pull/11646))
+
+- **unexpected_index_query is returned for ExpectCompoundColumnsToBeUnique on SQL** — ExpectCompoundColumnsToBeUnique run against SQL data sources now returns unexpected_index_query when you request it with return_unexpected_index_query=True or use the COMPLETE result format, so you can retrieve every failing row beyond the 200-row unexpected_list limit. COMPLETE also now honors return_unexpected_index_query=False when you set it explicitly. ([#11639](https://github.com/fivetran/great_expectations/pull/11639))
+
+  ```python
+  result = batch.validate(
+      ExpectCompoundColumnsToBeUnique(column_list=["a", "b"]),
+      result_format={"result_format": "COMPLETE"},
+  )
+  print(result.result["unexpected_index_query"])
+  ```
+
+- **pandas Timestamp values accepted in datetime comparisons** — Datetime comparison expectations now handle pandas.Timestamp values correctly, checking the most specific type first so Timestamps are no longer mis-handled as plain dates. ([#11637](https://github.com/fivetran/great_expectations/pull/11637))
+
+#### Changes
+
+##### Features
+
+- Dialect quoting now supports asymmetric identifier quote characters, so SQL Server bracket-quoted identifiers such as [my column] are handled correctly (double-quoted identifiers are also accepted for SQL Server). ([#11652](https://github.com/fivetran/great_expectations/pull/11652))
+- SQL Server data sources now support schemas, including schema names that contain upper-case characters. ([#11649](https://github.com/fivetran/great_expectations/pull/11649))
+- Added SQL Server Azure AD password authentication and a flat keyword-argument style for add_sql_server, update_sql_server, and add_or_update_sql_server, with type stubs for both calling styles. ([#11645](https://github.com/fivetran/great_expectations/pull/11645))
+- UnexpectedRowsExpectation now works against SQL Server, including queries that previously relied on unsupported SQL constructs. ([#11646](https://github.com/fivetran/great_expectations/pull/11646))
+- Added SQL Server type stubs and switched the integration tests to the public SQL Server datasource API. ([#11643](https://github.com/fivetran/great_expectations/pull/11643))
+
+##### Bug fixes
+
+- Datetime comparison operations now accept pandas.Timestamp values, checking Timestamp before datetime and date so timestamps are compared correctly. ([#11637](https://github.com/fivetran/great_expectations/pull/11637))
+- ExpectCompoundColumnsToBeUnique on SQL data sources now returns unexpected_index_query when requested or when using the COMPLETE result format, and COMPLETE respects return_unexpected_index_query=False when explicitly set. ([#11639](https://github.com/fivetran/great_expectations/pull/11639))
+- Removed the vestigial, unsupported table domain key from ExpectColumnToExist. ([#11630](https://github.com/fivetran/great_expectations/pull/11630))
+
+##### Docs
+
+- Removed documentation about the deprecated DBFS support. ([#11648](https://github.com/fivetran/great_expectations/pull/11648))
+- Added documentation for adding an Expectation using the GX Cloud API. ([#11567](https://github.com/fivetran/great_expectations/pull/11567))
+- Revised the contribution guidelines to encourage pull requests for new features and to clarify the acceptance criteria for contributions. ([#11638](https://github.com/fivetran/great_expectations/pull/11638))
+- Added documentation for email alerts. ([#11628](https://github.com/fivetran/great_expectations/pull/11628))
+- Fixed a broken documentation link to expect_table_row_count_to_equal_other_table. ([#11634](https://github.com/fivetran/great_expectations/pull/11634))
+- The core result format documentation now defines the meaning of the asterisks used in its tables. ([#11631](https://github.com/fivetran/great_expectations/pull/11631))
+- Added documentation describing the next steps after an agent request. ([#11619](https://github.com/fivetran/great_expectations/pull/11619))
+
+<details>
+<summary>Maintenance</summary>
+
+- Integration tests now dispose of SQL Server connections when they finish. ([#11663](https://github.com/fivetran/great_expectations/pull/11663))
+- Raised the container startup timeout used by the test suites to three minutes to reduce flaky CI failures. ([#11659](https://github.com/fivetran/great_expectations/pull/11659))
+- Added a healthcheck start period and RabbitMQ readiness check to the local Mercury docker-compose stack to prevent flaky CI failures. ([#11655](https://github.com/fivetran/great_expectations/pull/11655))
+- Introduced a SQLServerDatasource with structured SQL Server authentication connection details, validating that connection URLs use the mssql+pyodbc scheme and supporting config-substituted passwords. ([#11640](https://github.com/fivetran/great_expectations/pull/11640))
+- Bumped webpack from 5.94.0 to 5.104.1 in the documentation site. ([#11636](https://github.com/fivetran/great_expectations/pull/11636))
+- Added database-pushdown metrics for distinct-value set comparisons (column.distinct_values.not_in_set, column.distinct_values.not_in_set.count, column.distinct_values.missing_from_column, and column.distinct_values.missing_from_column.count) that evaluate set comparisons in the database instead of fetching all distinct values into memory, with type coercion for date strings. ([#11629](https://github.com/fivetran/great_expectations/pull/11629))
+- Bumped diff from 3.5.0 to 3.5.1 in the documentation site. ([#11627](https://github.com/fivetran/great_expectations/pull/11627))
+- Removed a duplicated flaky pandas result-format test from the test suite. ([#11623](https://github.com/fivetran/great_expectations/pull/11623))
+
+</details>
+
+#### Contributors
+
+Thanks to @subediparas5, @teixeirazeus (first contribution).
 
 ### 1.11.3 (2026-01-29)
 
