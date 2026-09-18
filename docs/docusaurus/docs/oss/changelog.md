@@ -947,13 +947,28 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Metric Result types ([#10932](https://github.com/great-expectations/great_expectations/pull/10932))
 * [MAINTENANCE] Make `Metric.config` un-instantiable and excluded from auto-complete ([#10938](https://github.com/great-expectations/great_expectations/pull/10938))
 
-### 1.3.5
-* [DOCS] New icons for admonitions ([#10899](https://github.com/great-expectations/great_expectations/pull/10899))
-* [DOCS] Algolia fix ([#10907](https://github.com/great-expectations/great_expectations/pull/10907))
-* [MAINTENANCE] Add `row_condition` datetime testing for Pandas and Spark ([#10892](https://github.com/great-expectations/great_expectations/pull/10892))
-* [MAINTENANCE] Cleanup bigquery every 3 hours ([#10900](https://github.com/great-expectations/great_expectations/pull/10900))
-* [MAINTENANCE] Add `strict` to Window type ([#10906](https://github.com/great-expectations/great_expectations/pull/10906))
-* [MAINTENANCE] ensure run_id on ValidationDefinition.run ([#10909](https://github.com/great-expectations/great_expectations/pull/10909))
+### 1.3.5 (2025-02-03)
+
+#### Changes
+
+##### Docs
+
+- Fixed documentation site search behavior. ([#10907](https://github.com/fivetran/great_expectations/pull/10907))
+- Documentation admonitions (notes, tips, warnings) now display new icons. ([#10899](https://github.com/fivetran/great_expectations/pull/10899))
+
+<details>
+<summary>Maintenance</summary>
+
+- Validation results produced by running a Validation Definition now consistently carry a run identifier. ([#10909](https://github.com/fivetran/great_expectations/pull/10909))
+- The Window type now accepts a `strict` setting so it can be used with dynamic-parameter Expectations. ([#10906](https://github.com/fivetran/great_expectations/pull/10906))
+- BigQuery test resources are now cleaned up every three hours. ([#10900](https://github.com/fivetran/great_expectations/pull/10900))
+- Expanded `row_condition` datetime test coverage for Pandas and Spark, added Spark support for `column_types` and Pandas/Spark I/O options in the Expectation testing framework, corrected handling of Spark partition filenames that contain but do not end in a file name, and documented how to run Spark tests locally. ([#10892](https://github.com/fivetran/great_expectations/pull/10892))
+
+</details>
+
+#### Contributors
+
+Thanks to @nicgrayson.
 
 ### 1.3.4 (2025-01-29)
 
