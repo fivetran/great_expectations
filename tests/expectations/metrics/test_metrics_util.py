@@ -34,6 +34,7 @@ from great_expectations.expectations.metrics.util import (
     get_dbms_compatible_metric_domain_kwargs,
     get_dialect_like_pattern_expression,
     get_dialect_regex_expression,
+    get_sqlalchemy_source_table_and_schema,
     get_unexpected_indices_for_multiple_pandas_named_indices,
     get_unexpected_indices_for_single_pandas_named_index,
     sqlalchemy_select_to_sql_string,
@@ -1557,4 +1558,53 @@ def test_get_dialect_regex_expression_resolves_oracle_regex_list_not_match_famil
     compound_condition = sa.and_(*conditions)
     assert str(compound_condition.compile(compile_kwargs={"literal_binds": True})) == (
         "NOT regexp_like(a, 'foo') AND NOT regexp_like(a, 'bar')"
+    )
+
+
+@pytest.fixture
+def sqlite_engine_with_two_loaded_batches(sa) -> SqlAlchemyExecutionEngine:
+    """An execution engine holding two Batches' data, `second` loaded last.
+
+    The datasource's cached execution engine is shared by every Batch it serves, so its
+    "most recently loaded" Batch is whichever one any caller touched last.
+    """
+    from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
+
+    engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+    with engine.get_connection() as connection:
+        connection.execute(sa.text("CREATE TABLE first_table (x INTEGER)"))
+        connection.execute(sa.text("CREATE TABLE second_table (x INTEGER)"))
+    for batch_id, table_name in (("first", "first_table"), ("second", "second_table")):
+        engine.load_batch_data(
+            batch_id=batch_id,
+            batch_data=SqlAlchemyBatchData(
+                execution_engine=engine,
+                selectable=sa.table(table_name),
+                create_temp_table=False,
+                source_table_name=table_name,
+            ),
+        )
+    return engine
+
+
+@pytest.mark.unit
+def test_get_sqlalchemy_source_table_and_schema_returns_the_named_batch_table(
+    sqlite_engine_with_two_loaded_batches: SqlAlchemyExecutionEngine,
+):
+    engine = sqlite_engine_with_two_loaded_batches
+    assert engine.batch_manager.active_batch_data_id == "second"
+
+    assert get_sqlalchemy_source_table_and_schema(engine, batch_id="first").name == "first_table"
+    assert get_sqlalchemy_source_table_and_schema(engine, batch_id="second").name == "second_table"
+
+
+@pytest.mark.unit
+def test_get_sqlalchemy_source_table_and_schema_falls_back_to_the_last_loaded_batch(
+    sqlite_engine_with_two_loaded_batches: SqlAlchemyExecutionEngine,
+):
+    engine = sqlite_engine_with_two_loaded_batches
+
+    assert get_sqlalchemy_source_table_and_schema(engine).name == "second_table"
+    assert get_sqlalchemy_source_table_and_schema(engine, batch_id="never_loaded").name == (
+        "second_table"
     )

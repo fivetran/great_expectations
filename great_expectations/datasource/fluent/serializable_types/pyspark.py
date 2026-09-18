@@ -34,8 +34,25 @@ class SerializableStructType(dict):
         """If already StructType then return otherwise try to create a StructType."""
         if isinstance(fields_or_struct_type, pyspark.sql.types.StructType):
             return cls(fields_or_struct_type.fields)
-        else:
+        if isinstance(fields_or_struct_type, dict):
+            # dict is the serialized jsonValue() form written to great_expectations.yml;
+            # StructType.fromJson is its inverse (already used in sparkdf_execution_engine)
+            return cls(pyspark.sql.types.StructType.fromJson(fields_or_struct_type))
+        if isinstance(fields_or_struct_type, list):
+            if not all(
+                isinstance(field, pyspark.sql.types.StructField) for field in fields_or_struct_type
+            ):
+                raise ValueError(  # noqa: TRY003 # FIXME CoP
+                    "a spark_schema list must contain pyspark StructField values, got types "
+                    f"{[type(field).__name__ for field in fields_or_struct_type]}"
+                )
             return cls(fields_or_struct_type)
+        if fields_or_struct_type is None:
+            return cls(fields_or_struct_type)
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
+            "spark_schema must be a pyspark StructType, a list of StructField, or None;"
+            f" got {type(fields_or_struct_type).__name__}"
+        )
 
     @classmethod
     def __get_validators__(cls):

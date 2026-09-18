@@ -3,6 +3,7 @@ from __future__ import annotations
 import pathlib
 from typing import TYPE_CHECKING, Tuple
 
+import pandas as pd
 import pytest
 
 import great_expectations as gx
@@ -344,3 +345,23 @@ def test_batch_compute_metrics_multiple_metrics_error(
     assert len(metric_results) == requested_metric_count
     assert type(metric_results[0]) is MetricErrorResult
     assert type(metric_results[1]) is BatchRowCountResult
+
+
+@pytest.mark.unit
+def test_batch_columns_names_its_own_batch_rather_than_the_engine_default(mocker):
+    """Every Batch of a datasource shares its cached execution engine, whose default Batch is
+    whichever one was loaded most recently by anyone. `head()` and `compute_metrics()` already
+    name the Batch they belong to; `columns()` must too."""
+    from great_expectations.validator.metrics_calculator import MetricsCalculator
+
+    context = gx.get_context(mode="ephemeral")
+    source = context.data_sources.add_pandas(DATASOURCE_NAME)
+    batch_definition = source.add_dataframe_asset("frame").add_batch_definition_whole_dataframe(
+        "whole"
+    )
+    batch = batch_definition.get_batch({"dataframe": pd.DataFrame({"a": [1, 2, 3]})})
+    columns = mocker.spy(MetricsCalculator, "columns")
+
+    assert batch.columns() == ["a"]
+
+    assert columns.call_args.kwargs["domain_kwargs"] == {"batch_id": batch.id}

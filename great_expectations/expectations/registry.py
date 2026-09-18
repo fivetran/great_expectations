@@ -385,6 +385,15 @@ def get_metric_kwargs(
             configuration_kwargs = expectation._get_runtime_kwargs(
                 runtime_configuration=runtime_configuration
             )
+            # batch_id names the Batch a metric is computed on. An expectation whose
+            # domain_keys omit it would hand the metric batch_id=None, and the execution
+            # engine would then fall back to whichever Batch it loaded most recently, which
+            # is not necessarily the one this expectation is being validated against.
+            if (
+                "batch_id" in metric_kwargs["metric_domain_keys"]
+                and configuration_kwargs.get("batch_id") is None
+            ):
+                configuration_kwargs["batch_id"] = configuration.kwargs.get("batch_id")
             if len(metric_kwargs["metric_domain_keys"]) > 0:
                 metric_domain_kwargs = IDDict(
                     {
