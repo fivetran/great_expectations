@@ -262,14 +262,45 @@ Thanks to @siddharthgaur1 (first contribution), @Star-cloud626 (first contributi
 * [MAINTENANCE] Temporarily skip bigquery tests ([#11908](https://github.com/great-expectations/great_expectations/pull/11908))
 * [MAINTENANCE] Temporarily skip snowflake integration tests ([#11911](https://github.com/great-expectations/great_expectations/pull/11911))
 
-### 1.18.0
-* [MINORBUMP] GX Cloud shutdown: raise on CloudDataContext construction and remove cloud test suites ([#11894](https://github.com/great-expectations/great_expectations/pull/11894))
-* [MAINTENANCE] Remove dead CodeSee architecture diagram workflow ([#11886](https://github.com/great-expectations/great_expectations/pull/11886))
-* [MAINTENANCE] Accept Snowflake parameterized BINARY observed type in type-list expectation test ([#11892](https://github.com/great-expectations/great_expectations/pull/11892))
-* [MAINTENANCE] Skip Microsoft Teams webhook integration tests during CI transition ([#11893](https://github.com/great-expectations/great_expectations/pull/11893))
-* [MAINTENANCE] Pull CI Docker images directly from Docker Hub ([#11898](https://github.com/great-expectations/great_expectations/pull/11898))
-* [MAINTENANCE] Skip external warehouse backend tests during CI transition ([#11896](https://github.com/great-expectations/great_expectations/pull/11896))
-* [MAINTENANCE] Temporarily skip cloud object-store docs tests during CI transition ([#11897](https://github.com/great-expectations/great_expectations/pull/11897))
+### 1.18.0 (2026-06-02)
+
+#### Highlights
+
+- **GX Cloud paths now fail immediately with a clear explanation** — GX Cloud has been shut down. Constructing a `CloudDataContext` directly, or asking `get_context(...)` for a cloud context (via `mode="cloud"`, `cloud_mode=True`, a complete set of `cloud_*` arguments, or `GX_CLOUD_*` environment configuration), now raises a `GreatExpectationsError` right away instead of failing later with an opaque connection error. The message states that GX Cloud has been shut down and that these entry points will be removed in great_expectations 2.0. Non-cloud usage is unchanged, and the cloud classes and parameters remain importable with unchanged signatures through the 1.x line. ([#11894](https://github.com/fivetran/great_expectations/pull/11894))
+
+  ```python
+  import great_expectations as gx
+
+  # Raises GreatExpectationsError:
+  # "GX Cloud has been shut down, so this no longer functions and will be
+  #  removed in great_expectations 2.0."
+  context = gx.get_context(mode="cloud")
+
+  # Non-cloud contexts still work as before
+  context = gx.get_context(mode="file")
+  ```
+
+#### Deprecations
+
+- `CloudDataContext` and the GX Cloud branch of `get_context(...)` (including the `cloud_*` parameters, `mode="cloud"`, `cloud_mode=True`, and `GX_CLOUD_*` environment configuration) no longer function and now raise an error; the cloud-only exception, store, config, and identifier symbols remain importable only as shells. is deprecated; use Use a non-cloud context, such as `gx.get_context(mode="file")` or `gx.get_context(mode="ephemeral")`.. Removal in 2.0.0. ([#11894](https://github.com/fivetran/great_expectations/pull/11894))
+
+#### Changes
+
+##### Features
+
+- GX Cloud has been shut down: constructing a `CloudDataContext` or requesting a cloud context from `get_context(...)` now raises a `GreatExpectationsError` explaining the shutdown instead of failing with an opaque connection error. Cloud classes and parameters stay importable with unchanged signatures until they are removed in great_expectations 2.0, and non-cloud usage is unaffected. ([#11894](https://github.com/fivetran/great_expectations/pull/11894))
+
+<details>
+<summary>Maintenance</summary>
+
+- Temporarily skip the cloud object-store documentation examples (S3, GCS, and Azure Blob, plus Athena and AWS Glue) and the BigQuery, Redshift, and Snowflake documentation tests so the documentation-snippet CI job can run while that backend infrastructure is unavailable; Trino documentation tests still run. ([#11897](https://github.com/fivetran/great_expectations/pull/11897))
+- Tests marked for the Snowflake, BigQuery, Redshift, Databricks, and Athena backends are now skipped with an explicit reason while that test infrastructure is unavailable. ([#11896](https://github.com/fivetran/great_expectations/pull/11896))
+- CI service container images (Spark, Postgres, MySQL, Trino, and others) are now pulled directly from Docker Hub, and the retired ECR pull-through cache and its login steps have been removed from the workflows. ([#11898](https://github.com/fivetran/great_expectations/pull/11898))
+- The Microsoft Teams notification integration tests are skipped because the webhook endpoint they posted to has been decommissioned; the mocked unit tests for that action are unchanged. ([#11893](https://github.com/fivetran/great_expectations/pull/11893))
+- The Snowflake type-list expectation test now accepts the length-parameterized `BINARY(8388608)` observed type that the Snowflake connector reports for `VARBINARY` columns. ([#11892](https://github.com/fivetran/great_expectations/pull/11892))
+- Removed the unused CodeSee architecture diagram workflow and its documentation entry. ([#11886](https://github.com/fivetran/great_expectations/pull/11886))
+
+</details>
 
 ### 1.17.2 (2026-05-14)
 
