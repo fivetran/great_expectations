@@ -955,15 +955,38 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Add `strict` to Window type ([#10906](https://github.com/great-expectations/great_expectations/pull/10906))
 * [MAINTENANCE] ensure run_id on ValidationDefinition.run ([#10909](https://github.com/great-expectations/great_expectations/pull/10909))
 
-### 1.3.4
-* [BUGFIX] `row_condition` datetimes getting tuncated to dates ([#10891](https://github.com/great-expectations/great_expectations/pull/10891))
-* [DOCS] restore lychee ([#10889](https://github.com/great-expectations/great_expectations/pull/10889))
-* [DOCS] DOC-966: display properties in api reference as tables ([#10880](https://github.com/great-expectations/great_expectations/pull/10880))
-* [DOCS] DOC-966: display api reference methods signatures as code blocks ([#10882](https://github.com/great-expectations/great_expectations/pull/10882))
-* [DOCS] Dynamic Parameters for Completeness Expectations ([#10873](https://github.com/great-expectations/great_expectations/pull/10873))
-* [DOCS] Deleting versioned pages of 0.18 that should not be versioned ([#10893](https://github.com/great-expectations/great_expectations/pull/10893))
-* [MAINTENANCE] Allow forked PRs to run CI ([#10894](https://github.com/great-expectations/great_expectations/pull/10894))
-* [MAINTENANCE] Remove bot check on permissions checker action ([#10895](https://github.com/great-expectations/great_expectations/pull/10895))
+### 1.3.4 (2025-01-29)
+
+#### Highlights
+
+- **Datetime `row_condition` values no longer truncated to dates** — A `row_condition` that filters on a datetime column now compares the full timestamp instead of being truncated to a date, so expectations validated against Postgres `timestamp` columns filter the rows you asked for. ([#10891](https://github.com/fivetran/great_expectations/pull/10891))
+
+- **Clearer API reference pages** — API reference pages now render method signatures as Python code blocks and class properties as tables, making them easier to scan. ([#10882](https://github.com/fivetran/great_expectations/pull/10882), [#10880](https://github.com/fivetran/great_expectations/pull/10880))
+
+- **Migration guide available in the 0.18 docs** — The 0.18 documentation now includes the migration guide, so users still on 0.18 can find upgrade instructions without leaving the versioned docs. ([#10885](https://github.com/fivetran/great_expectations/pull/10885))
+
+#### Changes
+
+##### Bug fixes
+
+- Fixed `row_condition` datetime values being truncated to dates against Postgres `timestamp` columns, and expanded date-type test coverage across backends. ([#10891](https://github.com/fivetran/great_expectations/pull/10891))
+
+##### Docs
+
+- Removed incorrectly versioned 0.18 copies of the docs home page and integration support policy page, and hid the version dropdown on the Integration support policy and Get support pages. ([#10893](https://github.com/fivetran/great_expectations/pull/10893))
+- Documented dynamic parameters for completeness expectations in the expectation management docs. ([#10873](https://github.com/fivetran/great_expectations/pull/10873))
+- API reference pages now display method signatures as Python code blocks. ([#10882](https://github.com/fivetran/great_expectations/pull/10882))
+- API reference pages now display class properties as tables. ([#10880](https://github.com/fivetran/great_expectations/pull/10880))
+- Restored the lychee link check for the documentation. ([#10889](https://github.com/fivetran/great_expectations/pull/10889))
+- Added the migration guide to the 0.18 documentation. ([#10885](https://github.com/fivetran/great_expectations/pull/10885))
+
+<details>
+<summary>Maintenance</summary>
+
+- Simplified the permissions checker workflow so it fails when a user lacks permissions, without a separate bot check. ([#10895](https://github.com/fivetran/great_expectations/pull/10895))
+- Pull requests opened from forks can now run CI after a repository member retries the failed jobs. ([#10894](https://github.com/fivetran/great_expectations/pull/10894))
+
+</details>
 
 ### 1.3.3 (2025-01-22)
 
