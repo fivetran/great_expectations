@@ -583,17 +583,36 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Update databricks cleanup to clean more ([#11398](https://github.com/great-expectations/great_expectations/pull/11398))
 * [MAINTENANCE] add column.non_null_count to MetricTypes ([#11397](https://github.com/great-expectations/great_expectations/pull/11397))
 
-### 1.6.2
-* [BUGFIX] Fix ExpectColumnValuesToBeInTypeList for Trino ([#11386](https://github.com/great-expectations/great_expectations/pull/11386))
-* [DOCS] workspaces ([#11366](https://github.com/great-expectations/great_expectations/pull/11366))
-* [MAINTENANCE] Ensure pyarrow wheel on Python 3.12 Snowflake marker tests ([#11388](https://github.com/great-expectations/great_expectations/pull/11388))
+### 1.6.2 (2025-09-19)
 
-### 1.6.2
-* [BUGFIX] Fix ExpectColumnValuesToBeInTypeList for Trino ([#11386](https://github.com/great-expectations/great_expectations/pull/11386))
-* [DOCS] workspaces ([#11366](https://github.com/great-expectations/great_expectations/pull/11366))
-* [DOCS] Add severity description to Other Parameters for all Expectation types ([#11387](https://github.com/great-expectations/great_expectations/pull/11387))
-* [MAINTENANCE] Ensure pyarrow wheel on Python 3.12 Snowflake marker tests ([#11388](https://github.com/great-expectations/great_expectations/pull/11388))
-* [MAINTENANCE] fix snowlake dependency resolution in 3.10 ([#11390](https://github.com/great-expectations/great_expectations/pull/11390))
+Compatibility: `pyarrow` removed (extra `arrow`); new extra `arrow`; new extra `snowflake`; removed extra `snowflake`; `pyarrow` removed (extra `test`); new extra `test`
+
+#### Highlights
+
+- **Expectation reference documentation now describes the severity parameter** — Every Expectation type's reference documentation now lists `severity` under "Other Parameters", with a link to the severity documentation, so you can see how to set failure severity directly from the Expectation reference. ([#11387](https://github.com/fivetran/great_expectations/pull/11387))
+
+- **Type-list validation works against Trino** — `ExpectColumnValuesToBeInTypeList` now compares column types correctly when validating data through the Trino dialect, instead of misreporting matching types. ([#11386](https://github.com/fivetran/great_expectations/pull/11386))
+
+- **Documentation for workspaces** — The documentation site now covers workspaces. ([#11366](https://github.com/fivetran/great_expectations/pull/11366))
+
+#### Changes
+
+##### Bug fixes
+
+- `ExpectColumnValuesToBeInTypeList` now handles type comparisons correctly for the Trino dialect. ([#11386](https://github.com/fivetran/great_expectations/pull/11386))
+
+##### Docs
+
+- Added a `severity` description with a documentation link to the "Other Parameters" section of every Expectation type, and capitalized "Expectation" in the `FailureSeverity` description. ([#11387](https://github.com/fivetran/great_expectations/pull/11387))
+- Added documentation covering workspaces. ([#11366](https://github.com/fivetran/great_expectations/pull/11366))
+
+<details>
+<summary>Maintenance</summary>
+
+- Fixed Snowflake dependency resolution on Python 3.10 so installs with Snowflake support succeed. ([#11390](https://github.com/fivetran/great_expectations/pull/11390))
+- Pinned `pyarrow>=14` for Python 3.12 in the development arrow requirements so Snowflake marker test jobs install a prebuilt wheel instead of failing to build from source; no runtime behavior changes. ([#11388](https://github.com/fivetran/great_expectations/pull/11388))
+
+</details>
 
 ### 1.6.1 (2025-09-15)
 
