@@ -549,25 +549,62 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Add `RedshiftConnectionDetails` to type stub ([#11434](https://github.com/great-expectations/great_expectations/pull/11434))
 * [MAINTENANCE] [pre-commit.ci] pre-commit autoupdate ([#11355](https://github.com/great-expectations/great_expectations/pull/11355))
 
-### 1.7.0
-* [MINORBUMP] Remove Pandas Upper Bound Constraint ([#11423](https://github.com/great-expectations/great_expectations/pull/11423))
-* [MINORBUMP] Remove Renderer class from public API ([#10866](https://github.com/great-expectations/great_expectations/pull/10866))
-* [MINORBUMP] Add support for Python 3.13 ([#11426](https://github.com/great-expectations/great_expectations/pull/11426))
-* [BUGFIX] ensure snowflake conn str is always transformed to rich type ([#11410](https://github.com/great-expectations/great_expectations/pull/11410))
-* [BUGFIX] Validation authentication for `PandasS3Datasource` using `boto3_options` ([#11412](https://github.com/great-expectations/great_expectations/pull/11412))
-* [DOCS] make schedules opt-in ([#11408](https://github.com/great-expectations/great_expectations/pull/11408))
-* [DOCS] Completeness Anomaly Detection is opt-in ([#11406](https://github.com/great-expectations/great_expectations/pull/11406))
-* [DOCS] remove migration guide ([#11405](https://github.com/great-expectations/great_expectations/pull/11405))
-* [MAINTENANCE] Bump SQLAlchemy version on doc snippet tests ([#11411](https://github.com/great-expectations/great_expectations/pull/11411))
-* [MAINTENANCE] Fix test assertions for Numpy 2 compatibility ([#11415](https://github.com/great-expectations/great_expectations/pull/11415))
-* [MAINTENANCE] Pin pact-python due to install error on 3.12 of 3.0. ([#11418](https://github.com/great-expectations/great_expectations/pull/11418))
-* [MAINTENANCE] Skip tests for SQLA < 2 and Pandas >= 2.2 ([#11417](https://github.com/great-expectations/great_expectations/pull/11417))
-* [MAINTENANCE] Upgrade ruff ([#11421](https://github.com/great-expectations/great_expectations/pull/11421))
-* [MAINTENANCE] Upgrade mypy ([#11422](https://github.com/great-expectations/great_expectations/pull/11422))
-* [MAINTENANCE] Remove analytics ([#11420](https://github.com/great-expectations/great_expectations/pull/11420))
-* [MAINTENANCE] Emit a warning when workspace id is unset. ([#11425](https://github.com/great-expectations/great_expectations/pull/11425))
-* [MAINTENANCE] Reenable publishing pact tests ([#11427](https://github.com/great-expectations/great_expectations/pull/11427))
-* [MAINTENANCE] Add schema to Redshift ConnectionDetails ([#11431](https://github.com/great-expectations/great_expectations/pull/11431))
+### 1.7.0 (2025-10-09)
+
+Compatibility: Python `<3.13,>=3.9` → `<3.14,>=3.9`; `numpy` added (`python_version >= "3.13"`); `pandas` added (`python_version >= "3.13"`); `posthog` removed; `pandas` removed (extra `snowflake`) (`python_version >= "3.9"`)
+
+#### Highlights
+
+- **Python 3.13 support** — Great Expectations now installs and runs on Python 3.13, in addition to the previously supported 3.9 through 3.12. ([#11426](https://github.com/fivetran/great_expectations/pull/11426))
+
+- **Works with pandas 2.2 and newer** — The `<2.2` upper bound on pandas has been removed, so you can install Great Expectations alongside pandas 2.2.0 and later and pick up the newest pandas features and fixes. ([#11423](https://github.com/fivetran/great_expectations/pull/11423))
+
+  ```python
+  pip install great_expectations "pandas>=2.2"
+  ```
+
+- **Usage analytics removed** — Great Expectations no longer collects or sends usage analytics, and the `posthog` dependency is no longer installed with the library. ([#11420](https://github.com/fivetran/great_expectations/pull/11420))
+
+- **Reassigning a Snowflake connection string now works as expected** — Setting a new connection string on an existing SQL data source — including Snowflake — is now converted to the proper connection type, so the data source stays usable after the reassignment. ([#11410](https://github.com/fivetran/great_expectations/pull/11410))
+
+  ```python
+  datasource.connection_string = "snowflake://user:password@account/db/schema?warehouse=wh&role=role"
+  ```
+
+#### Changes
+
+##### Features
+
+- Added support for running Great Expectations on Python 3.13. ([#11426](https://github.com/fivetran/great_expectations/pull/11426))
+- The `Renderer` class is no longer part of the public API. ([#10866](https://github.com/fivetran/great_expectations/pull/10866))
+- Removed the `<2.2` upper bound on pandas so Great Expectations can be used with pandas 2.2.0 and above. ([#11423](https://github.com/fivetran/great_expectations/pull/11423))
+
+##### Bug fixes
+
+- Fixed AWS authentication errors at validation time when credentials were supplied to `PandasS3Datasource` through `boto3_options` rather than environment variables. ([#11412](https://github.com/fivetran/great_expectations/pull/11412))
+- Fixed an issue where assigning a new connection string to a SQL data source after creation — most visibly with Snowflake — left the value in an unusable form. ([#11410](https://github.com/fivetran/great_expectations/pull/11410))
+
+##### Docs
+
+- Removed the migration guide from the documentation. ([#11405](https://github.com/fivetran/great_expectations/pull/11405))
+- Documentation now states that Completeness Anomaly Detection is opt-in. ([#11406](https://github.com/fivetran/great_expectations/pull/11406))
+- Documentation now states that schedules are opt-in. ([#11408](https://github.com/fivetran/great_expectations/pull/11408))
+
+<details>
+<summary>Maintenance</summary>
+
+- Redshift connection details now accept a discrete `schema` field, so a schema can be supplied separately when configuring a Redshift connection. ([#11431](https://github.com/fivetran/great_expectations/pull/11431))
+- Re-enabled publishing of pact contract tests. ([#11427](https://github.com/fivetran/great_expectations/pull/11427))
+- A warning is now emitted when the workspace ID is not set. ([#11425](https://github.com/fivetran/great_expectations/pull/11425))
+- Removed usage analytics collection from the library, along with its `posthog` dependency. ([#11420](https://github.com/fivetran/great_expectations/pull/11420))
+- Upgraded the mypy version used for type checking. ([#11422](https://github.com/fivetran/great_expectations/pull/11422))
+- Upgraded the ruff version used for linting and formatting. ([#11421](https://github.com/fivetran/great_expectations/pull/11421))
+- Skipped tests that fail on the combination of SQLAlchemy below 2.0 and pandas 2.2 or newer to keep CI stable. ([#11417](https://github.com/fivetran/great_expectations/pull/11417))
+- Pinned pact-python to avoid an installation error on Python 3.12. ([#11418](https://github.com/fivetran/great_expectations/pull/11418))
+- Updated test assertions to use truthiness checks instead of identity comparisons for NumPy 2.x compatibility. ([#11415](https://github.com/fivetran/great_expectations/pull/11415))
+- Bumped the SQLAlchemy version used when testing documentation snippets. ([#11411](https://github.com/fivetran/great_expectations/pull/11411))
+
+</details>
 
 ### 1.6.4 (2025-10-01)
 
