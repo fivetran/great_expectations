@@ -396,14 +396,38 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Bump docker compose timeout to 3 min ([#11659](https://github.com/great-expectations/great_expectations/pull/11659))
 * [MAINTENANCE] Dispose of mssql connections in integration tests ([#11663](https://github.com/great-expectations/great_expectations/pull/11663))
 
-### 1.11.3
-* [BUGFIX] Fix Redshift fallback column detection for schema-qualified tables ([#11606](https://github.com/great-expectations/great_expectations/pull/11606)) (thanks @jni-bot)
-* [BUGFIX] Update isinstance check for ColumnElement in SqlAlchemyExecutionEngine ([#11612](https://github.com/great-expectations/great_expectations/pull/11612)) (thanks @subediparas5)
-* [DOCS] Update airflow provider refs ([#11621](https://github.com/great-expectations/great_expectations/pull/11621))
-* [DOCS] Atlan integration ([#11580](https://github.com/great-expectations/great_expectations/pull/11580))
-* [MAINTENANCE] Fix flaky test by removing sqlite dependency ([#11618](https://github.com/great-expectations/great_expectations/pull/11618))
-* [MAINTENANCE] Remove references to v0 api in dockerfile ([#11624](https://github.com/great-expectations/great_expectations/pull/11624))
-* [MAINTENANCE] Bump lodash from 4.17.21 to 4.17.23 in /docs/docusaurus ([#11608](https://github.com/great-expectations/great_expectations/pull/11608))
+### 1.11.3 (2026-01-29)
+
+#### Highlights
+
+- **Row conditions work again on SQLAlchemy 1.x data sources** — Validating an expectation with a `row_condition` against a SQLAlchemy 1.x data source no longer fails with `AttributeError: module 'sqlalchemy' has no attribute 'ColumnElement'`. Row conditions now work on both SQLAlchemy 1.x and 2.x. ([#11612](https://github.com/fivetran/great_expectations/pull/11612))
+
+- **Redshift column detection works for tables in non-default schemas** — Redshift assets backed by a table in a non-default schema (for example `bi_db.my_table`) no longer fail column detection with `relation "my_table" does not exist`; the fallback lookup is now schema-qualified. ([#11606](https://github.com/fivetran/great_expectations/pull/11606))
+
+#### Changes
+
+##### Bug fixes
+
+- Using a `row_condition` with a SQLAlchemy 1.x data source no longer raises `AttributeError: module 'sqlalchemy' has no attribute 'ColumnElement'`. ([#11612](https://github.com/fivetran/great_expectations/pull/11612))
+- Redshift fallback column detection now schema-qualifies its query, so tables in a non-default schema no longer fail with a "relation does not exist" error. ([#11606](https://github.com/fivetran/great_expectations/pull/11606))
+
+##### Docs
+
+- Added documentation for the Atlan integration. ([#11580](https://github.com/fivetran/great_expectations/pull/11580))
+- Updated links to the `airflow-provider-great-expectations` documentation and removed an unused CI script. ([#11621](https://github.com/fivetran/great_expectations/pull/11621))
+
+<details>
+<summary>Maintenance</summary>
+
+- Bumped the docs site's lodash dependency from 4.17.21 to 4.17.23. ([#11608](https://github.com/fivetran/great_expectations/pull/11608))
+- Removed references to the version 0 API from the Dockerfile. ([#11624](https://github.com/fivetran/great_expectations/pull/11624))
+- Removed a SQLite dependency from a test that intermittently failed with an unclosed-database resource warning. ([#11618](https://github.com/fivetran/great_expectations/pull/11618))
+
+</details>
+
+#### Contributors
+
+Thanks to @subediparas5 (first contribution).
 
 ### 1.11.2 (2026-01-22)
 
