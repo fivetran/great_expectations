@@ -818,20 +818,55 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Implement ColumnValuesNotMatchRegexValues metric ([#11096](https://github.com/great-expectations/great_expectations/pull/11096))
 * [MAINTENANCE] Run gx-sqlalchemy-redshift tests. ([#11094](https://github.com/great-expectations/great_expectations/pull/11094))
 
-### 1.3.14
-* [FEATURE] Fix ExpectColumnValuesToBeOfType bug and also work with sqla2 ([#11062](https://github.com/great-expectations/great_expectations/pull/11062))
-* [FEATURE] Add gx-redshift extra dependency ([#11063](https://github.com/great-expectations/great_expectations/pull/11063))
-* [FEATURE] Enable SQLAlchemy 2.x support for BigQuery ([#11059](https://github.com/great-expectations/great_expectations/pull/11059))
-* [BUGFIX] Add test for 8-bit character support in row conditions parser ([#11053](https://github.com/great-expectations/great_expectations/pull/11053))
-* [BUGFIX] Respect context_root_dir in get_context ([#11078](https://github.com/great-expectations/great_expectations/pull/11078))
-* [DOCS] update schedule instructions ([#11080](https://github.com/great-expectations/great_expectations/pull/11080))
-* [MAINTENANCE] update docs usage of posthog ([#11060](https://github.com/great-expectations/great_expectations/pull/11060))
-* [MAINTENANCE] Improve package autocompletion behavior ([#11070](https://github.com/great-expectations/great_expectations/pull/11070))
-* [MAINTENANCE] Add BatchColumnTypes metric ([#11069](https://github.com/great-expectations/great_expectations/pull/11069))
-* [MAINTENANCE] Implement SampleValues metric ([#11071](https://github.com/great-expectations/great_expectations/pull/11071))
-* [MAINTENANCE] Implement ColumnDistinctValuesCount ([#11075](https://github.com/great-expectations/great_expectations/pull/11075))
-* [MAINTENANCE] Implement ColumnNullCount metric ([#11073](https://github.com/great-expectations/great_expectations/pull/11073))
-* [MAINTENANCE] Revert "[FEATURE] Add gx-redshift extra dependency" ([#11079](https://github.com/great-expectations/great_expectations/pull/11079))
+### 1.3.14 (2025-04-08)
+
+Compatibility: `sqlalchemy` minimum set to 1.4.0 (extra `bigquery`); `sqlalchemy` minimum set to 1.4.0 (extra `gcp`)
+
+#### Highlights
+
+- **New `gx-redshift` extra for Redshift users** — Great Expectations can now be installed with a dedicated Redshift extra, `pip install great_expectations[gx-redshift]`, which pulls in a Redshift driver compatible with newer SQLAlchemy versions. Note that installing both `redshift` and `gx-redshift` together will fail to resolve, because their SQLAlchemy requirements do not overlap. ([#11063](https://github.com/fivetran/great_expectations/pull/11063))
+
+  ```python
+  pip install great_expectations[gx-redshift]
+  ```
+
+- **`ExpectColumnValuesToBeOfType` corrected and SQLAlchemy 2 compatible** — `ExpectColumnValuesToBeOfType` now reports the correct result and works against SQLAlchemy 2 backends. ([#11062](https://github.com/fivetran/great_expectations/pull/11062))
+
+  ```python
+  import great_expectations as gx
+
+  suite.add_expectation(
+      gx.expectations.ExpectColumnValuesToBeOfType(column="passenger_count", type_="INTEGER")
+  )
+  ```
+
+- **Cleaner autocompletion for the top-level `gx` namespace** — Importing `great_expectations as gx` no longer suggests the recursive `gx.great_expectations` attribute in IDE autocompletion, so the public API is easier to navigate. Accessing `gx.great_expectations` now raises an `AttributeError`, while `gx.get_context`, `gx.data_context`, `gx.core`, `gx.ExpectationSuite` and the rest of the intended public API remain available. ([#11070](https://github.com/fivetran/great_expectations/pull/11070))
+
+  ```python
+  import great_expectations as gx
+
+  context = gx.get_context()  # still available; gx.great_expectations is not
+  ```
+
+#### Changes
+
+##### Features
+
+- Added a `gx-redshift` extra so Redshift support can be installed with `pip install great_expectations[gx-redshift]`; installing it alongside the older `redshift` extra will fail to resolve due to non-overlapping SQLAlchemy requirements. ([#11063](https://github.com/fivetran/great_expectations/pull/11063))
+- Fixed `ExpectColumnValuesToBeOfType` and made it work with SQLAlchemy 2. ([#11062](https://github.com/fivetran/great_expectations/pull/11062))
+
+##### Bug fixes
+
+- Row conditions containing 8-bit characters such as é, ü and ï are now confirmed to parse correctly, covered by a new test. ([#11053](https://github.com/fivetran/great_expectations/pull/11053))
+
+<details>
+<summary>Maintenance</summary>
+
+- Added a `BatchColumnTypes` metric for reporting the column types of a batch. ([#11069](https://github.com/fivetran/great_expectations/pull/11069))
+- Importing `great_expectations as gx` no longer exposes a recursive `gx.great_expectations` attribute, improving IDE autocompletion; accessing it now raises an `AttributeError` while the rest of the public API is unchanged. ([#11070](https://github.com/fivetran/great_expectations/pull/11070))
+- Documentation site analytics now use the PostHog Docusaurus plugin to capture default pageviews and events. ([#11060](https://github.com/fivetran/great_expectations/pull/11060))
+
+</details>
 
 ### 1.3.13 (2025-04-03)
 
