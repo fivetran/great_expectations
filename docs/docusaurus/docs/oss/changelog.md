@@ -45,6 +45,77 @@ This table lists every deprecated item, the version that deprecated it, and the 
 | `gx-redshift` install extra (alias of `redshift`) | 1.21.0 | 2.0.0 | `great_expectations[redshift]` |
 | `CloudDataContext` and cloud mode of `get_context(...)` | 1.18.0 | 2.0.0 | `gx.get_context(mode="file")` or `mode="ephemeral"` |
 
+### 1.23.1 (2026-09-18)
+
+#### Highlights
+
+- **Spark now evaluates each regex independently with match_on="all"** — On Spark, ExpectColumnValuesToMatchRegexList with match_on="all" now checks every regex separately against each column value, so patterns anchored at different positions (such as ^A and [0-9]\{3}$) both match a value that satisfies them. This matches the behavior already seen on Pandas and SQL. ([#12198](https://github.com/fivetran/great_expectations/pull/12198))
+
+  ```python
+  gxe.ExpectColumnValuesToMatchRegexList(
+      column="id",
+      regex_list=["^A", "[0-9]{3}$"],
+      match_on="all",
+  )
+  ```
+
+- **Each Validator reports results for its own Batch when a datasource is reused** — Validators built on the same datasource no longer borrow one another's Batch. Running two validation definitions on threads, or creating two validators from one datasource on a single thread, now evaluates and reports each validator's own data, with the correct batch_id, batch_spec and batch_definition on the result. ([#12211](https://github.com/fivetran/great_expectations/pull/12211))
+
+  ```python
+  validator_a = context.get_validator(batch_request=request_a)
+  validator_b = context.get_validator(batch_request=request_b)
+  # validator_a still validates request_a's batch
+  result = validator_a.expect_table_row_count_to_equal(value=3)
+  ```
+
+- **A Spark schema saved in great_expectations.yml reloads correctly** — A persisted spark_schema is now read back through StructType.fromJson, so reopening a File Data Context round-trips the schema instead of failing inside PySpark. Values that are not an accepted schema form now raise a validation error naming the field and the accepted types. ([#12200](https://github.com/fivetran/great_expectations/pull/12200))
+
+  ```python
+  context = gx.get_context(mode="file")
+  asset = context.data_sources.get("spark_ds").get_asset("my_asset")
+  assert asset.spark_schema is not None
+  ```
+
+- **GX config files are read and written as UTF-8 regardless of locale** — config_variables.yml and great_expectations.yml, and the .gitignore read while scaffolding a project, are now opened with an explicit UTF-8 encoding. Projects containing non-ASCII values or comments can be created and reloaded on hosts with a non-UTF-8 locale, and a project YAML file that is not valid UTF-8 now raises an error naming the file instead of a bare decode error. ([#12182](https://github.com/fivetran/great_expectations/pull/12182), [#12204](https://github.com/fivetran/great_expectations/pull/12204))
+
+- **A gallery-wide test tier for data sources** — A new gallery support tier asserts a measured test result across the entire shipped expectation library — one case per registered expectation, each pairing a passing and a failing configuration — and nine data sources (pandas in-memory and filesystem CSV, SQLite, MySQL, PostgreSQL, Trino, BigQuery, Databricks and Redshift) now declare it after being measured against the full gallery. ([#12150](https://github.com/fivetran/great_expectations/pull/12150))
+
+#### Changes
+
+##### Features
+
+- Adds a gallery support tier that asserts a passing test result over the whole shipped expectation library, with nine data sources declaring it, a required CI lane per member, membership and coverage guards, and a measurement mode for evaluating new candidate backends. ([#12150](https://github.com/fivetran/great_expectations/pull/12150))
+
+##### Bug fixes
+
+- ExpectColumnValuesToMatchRegexList with match_on="all" on Spark now evaluates each regex independently, so patterns anchored at different positions no longer fail on values that satisfy them all. ([#12198](https://github.com/fivetran/great_expectations/pull/12198))
+- A Validator now keeps the identity of the Batches it loaded even when its execution engine is shared, so concurrent validations and multiple validators on one datasource each evaluate and report their own Batch; a configuration naming a batch the engine does not hold now raises instead of silently validating the most recently loaded batch. ([#12211](https://github.com/fivetran/great_expectations/pull/12211))
+- The remaining config file reads and writes in the serializable data context are pinned to UTF-8, so scaffolding a project with a non-ASCII .gitignore and reading or updating great_expectations.yml work under a non-UTF-8 locale; an unreadable project YAML now raises an error naming the file. ([#12204](https://github.com/fivetran/great_expectations/pull/12204))
+- A spark_schema persisted in great_expectations.yml is loaded back through StructType.fromJson so the schema round-trips when the context is reopened, and an unsupported value raises a validation error naming the field and the accepted types. ([#12200](https://github.com/fivetran/great_expectations/pull/12200))
+- The Spark test-connection test, which covers behavior when PySpark is unavailable, is now skipped when PySpark is installed so it no longer fails for contributors with PySpark in their environment. ([#12199](https://github.com/fivetran/great_expectations/pull/12199))
+- config_variables.yml is now read and written as UTF-8, so saving and reloading a configuration variable containing non-ASCII characters works on hosts with a non-UTF-8 locale. ([#12182](https://github.com/fivetran/great_expectations/pull/12182))
+
+##### Docs
+
+- The changelog now carries a deprecation timeline table listing every deprecated item, the version that deprecated it, and the version that removes it. ([#12224](https://github.com/fivetran/great_expectations/pull/12224))
+- Documentation fixes: the credential-configuration pages now point at gx/uncommitted/config_variables.yml, a mistagged code fence highlights again, a misspelled snippet name is corrected, and doubled words and spelling errors across the core docs, ADRs, gallery docs and contrib READMEs are fixed. ([#12177](https://github.com/fivetran/great_expectations/pull/12177))
+- Oracle is now documented on the connection-string reference (oracle+oracledb://...?service_name=...), the compatibility reference with its tested database version, and the data source method reference via add_sql. ([#12167](https://github.com/fivetran/great_expectations/pull/12167))
+
+<details>
+<summary>Maintenance</summary>
+
+- The pull request title check now requires exactly one current tag at the start of the title, and the contributor docs and template name only the four current tags. ([#12223](https://github.com/fivetran/great_expectations/pull/12223))
+- The published package metadata now includes project URLs linking to the source repository, documentation and homepage, so PyPI and dependency-tracking services can associate the package with its repository. ([#12207](https://github.com/fivetran/great_expectations/pull/12207))
+- The metric repository retriever tests are now type-checked, with concrete annotations replacing Any and the module removed from the mypy exclude list. ([#12184](https://github.com/fivetran/great_expectations/pull/12184))
+- The expectations test suite is now type-checked, including two guards that could never fail being corrected to actually test whether an optional dependency imported, and the directory-level mypy exclusion removed. ([#12185](https://github.com/fivetran/great_expectations/pull/12185))
+- Five more test modules are removed from the type-check exclusion list. ([#12178](https://github.com/fivetran/great_expectations/pull/12178))
+
+</details>
+
+#### Contributors
+
+Thanks to @lakshayxi (first contribution), @feiiiiii5 (first contribution), @ptimizeroracle (first contribution), @alibro005 (first contribution), @yigitcan-ozturk, @toyeshhm (first contribution), @nanjeshramesh, @p-mandale (first contribution).
+
 ### 1.23.0 (2026-09-10)
 
 Compatibility: new extra `oracle`
