@@ -271,13 +271,38 @@ Thanks to @siddharthgaur1 (first contribution), @Star-cloud626 (first contributi
 * [MAINTENANCE] Skip external warehouse backend tests during CI transition ([#11896](https://github.com/great-expectations/great_expectations/pull/11896))
 * [MAINTENANCE] Temporarily skip cloud object-store docs tests during CI transition ([#11897](https://github.com/great-expectations/great_expectations/pull/11897))
 
-### 1.17.2
-* [BUGFIX] Preserve boolean values passed to add_csv_asset (fixes #11206) ([#11867](https://github.com/great-expectations/great_expectations/pull/11867)) (thanks @EshwarCVS)
-* [BUGFIX] Restore SQLAlchemy 1.4 compatibility in column_values_unique (fixes #11875) ([#11876](https://github.com/great-expectations/great_expectations/pull/11876)) (thanks @ranophoenix)
-* [MAINTENANCE] [pre-commit.ci] pre-commit autoupdate ([#11864](https://github.com/great-expectations/great_expectations/pull/11864))
-* [MAINTENANCE] Bump fast-uri from 3.1.0 to 3.1.2 in /docs/docusaurus ([#11872](https://github.com/great-expectations/great_expectations/pull/11872))
-* [MAINTENANCE] Bump @babel/plugin-transform-modules-systemjs from 7.28.5 to 7.29.4 in /docs/docusaurus ([#11873](https://github.com/great-expectations/great_expectations/pull/11873))
-* [MAINTENANCE] Bump mermaid from 11.12.2 to 11.15.0 in /docs/docusaurus ([#11874](https://github.com/great-expectations/great_expectations/pull/11874))
+### 1.17.2 (2026-05-14)
+
+#### Highlights
+
+- **SQLAlchemy 1.4 users can run uniqueness expectations again** — Expectations that resolve the `column_values.unique.condition` metric no longer fail on SQLAlchemy 1.4 with `AttributeError: module 'sqlalchemy' has no attribute 'Select'`, restoring compatibility for dialects still pinned to SQLAlchemy 1.x (such as ClickHouse, Redshift, and Teradata). ([#11876](https://github.com/fivetran/great_expectations/pull/11876))
+
+- **Boolean options passed to pandas assets are preserved** — Boolean values such as `index_col=False` handed to `add_csv_asset` are kept as booleans instead of being silently converted to strings, so pandas interprets them as flags rather than column names. This applies to boolean options across the pandas asset types. ([#11867](https://github.com/fivetran/great_expectations/pull/11867))
+
+  ```python
+  data_source.add_csv_asset(name="my_asset", path="data.csv", index_col=False)
+  ```
+
+#### Changes
+
+##### Bug fixes
+
+- Fixed an `AttributeError` on SQLAlchemy 1.4 when an expectation resolved the `column_values.unique.condition` metric, restoring SQLAlchemy 1.4 compatibility for unique-value expectations. ([#11876](https://github.com/fivetran/great_expectations/pull/11876))
+- Boolean arguments passed to `add_csv_asset` and other pandas assets, such as `index_col=False`, are no longer coerced to strings and are now applied as the boolean flags pandas expects. ([#11867](https://github.com/fivetran/great_expectations/pull/11867))
+
+<details>
+<summary>Maintenance</summary>
+
+- Updated the documentation site's mermaid dependency from 11.12.2 to 11.15.0. ([#11874](https://github.com/fivetran/great_expectations/pull/11874))
+- Updated the documentation site's @babel/plugin-transform-modules-systemjs dependency from 7.28.5 to 7.29.4. ([#11873](https://github.com/fivetran/great_expectations/pull/11873))
+- Updated the documentation site's fast-uri dependency from 3.1.0 to 3.1.2, picking up upstream security fixes. ([#11872](https://github.com/fivetran/great_expectations/pull/11872))
+- Updated pre-commit hooks, moving ruff from v0.15.9 to v0.15.12. ([#11864](https://github.com/fivetran/great_expectations/pull/11864))
+
+</details>
+
+#### Contributors
+
+Thanks to @ranophoenix (first contribution), @EshwarCVS (first contribution).
 
 ### 1.17.1 (2026-05-05)
 
