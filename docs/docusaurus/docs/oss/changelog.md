@@ -429,16 +429,44 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Ignore `DeprecationWarning` emitted by deps ([#11587](https://github.com/great-expectations/great_expectations/pull/11587))
 * [MAINTENANCE] Include SUMMARY in result_format query support ([#11594](https://github.com/great-expectations/great_expectations/pull/11594))
 
-### 1.10.0
-* [FEATURE] Support query and PK columns on BOOLEAN_ONLY and BASIC ([#11563](https://github.com/great-expectations/great_expectations/pull/11563))
-* [DOCS] remove temporary severity note ([#11564](https://github.com/great-expectations/great_expectations/pull/11564))
-* [DOCS] Cloud result format ([#11558](https://github.com/great-expectations/great_expectations/pull/11558))
-* [DOCS] data health dashboard metric filters ([#11529](https://github.com/great-expectations/great_expectations/pull/11529))
-* [MAINTENANCE] Fix add_dataframe_asset docstring for spark ([#11561](https://github.com/great-expectations/great_expectations/pull/11561))
-* [MAINTENANCE] Fix flaky sqlite ResourceWarning ([#11562](https://github.com/great-expectations/great_expectations/pull/11562))
-* [MAINTENANCE] Bump ruff version ([#11568](https://github.com/great-expectations/great_expectations/pull/11568))
-* [MAINTENANCE] Don't fail CI if codecov upload fails ([#11569](https://github.com/great-expectations/great_expectations/pull/11569))
-* [MAINTENANCE] Filter out google warning about using python 3.10 ([#11572](https://github.com/great-expectations/great_expectations/pull/11572))
+### 1.10.0 (2025-12-18)
+
+#### Highlights
+
+- **Unexpected-index columns and unexpected queries on BOOLEAN_ONLY and BASIC result formats** — Result formats BOOLEAN_ONLY and BASIC now support returning primary-key/unexpected-index columns and the unexpected-rows query, so you can identify failing rows without switching to a more verbose result format. ([#11563](https://github.com/fivetran/great_expectations/pull/11563))
+
+  ```python
+  result = batch.validate(
+      expectation,
+      result_format={
+          "result_format": "BASIC",
+          "unexpected_index_column_names": ["pk_1"],
+      },
+  )
+  ```
+
+#### Changes
+
+##### Features
+
+- BOOLEAN_ONLY and BASIC result formats now support unexpected-rows queries and primary-key/unexpected-index columns. ([#11563](https://github.com/fivetran/great_expectations/pull/11563))
+
+##### Docs
+
+- Documented metric filters for the data health dashboard. ([#11529](https://github.com/fivetran/great_expectations/pull/11529))
+- Documented result format options for GX Cloud. ([#11558](https://github.com/fivetran/great_expectations/pull/11558))
+- Removed a temporary note about severity from the documentation. ([#11564](https://github.com/fivetran/great_expectations/pull/11564))
+
+<details>
+<summary>Maintenance</summary>
+
+- Suppressed a noisy Google library warning about running on Python 3.10. ([#11572](https://github.com/fivetran/great_expectations/pull/11572))
+- Continuous integration no longer fails when uploading coverage or test results to Codecov fails, reducing flaky builds. ([#11569](https://github.com/fivetran/great_expectations/pull/11569))
+- Bumped the pinned ruff linter version from 0.14.8 to 0.14.9 in development requirements and pre-commit. ([#11568](https://github.com/fivetran/great_expectations/pull/11568))
+- Fixed a flaky SQLite ResourceWarning in the test suite by closing connections deterministically during teardown. ([#11562](https://github.com/fivetran/great_expectations/pull/11562))
+- Corrected the add_dataframe_asset docstring for Spark datasources. ([#11561](https://github.com/fivetran/great_expectations/pull/11561))
+
+</details>
 
 ### 1.9.3 (2025-12-10)
 
