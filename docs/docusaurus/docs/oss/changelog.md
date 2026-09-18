@@ -265,20 +265,37 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Init singlestore db when container is created ([#11842](https://github.com/great-expectations/great_expectations/pull/11842))
 * [MAINTENANCE] Extend pact can-i-deploy retry window to 20 minutes ([#11846](https://github.com/great-expectations/great_expectations/pull/11846))
 
-### 1.16.1
-* [FEATURE] Add Pact contract tests for datasource API coverage gaps ([#11813](https://github.com/great-expectations/great_expectations/pull/11813))
-* [BUGFIX] Fix ExpectColumnValuesToMatchStrftimeFormat failing with timezone-aware formats ([#11812](https://github.com/great-expectations/great_expectations/pull/11812)) (thanks @choinhet)
-* [DOCS] Clarify Python version support in compatibility reference ([#11784](https://github.com/great-expectations/great_expectations/pull/11784)) (thanks @Adeyinka1)
-* [MAINTENANCE] Update Pact contract tests to align with Mercury API and use isolated org/workspace ([#11797](https://github.com/great-expectations/great_expectations/pull/11797))
-* [MAINTENANCE] Hardcode pact org/workspace IDs for contract test isolation ([#11808](https://github.com/great-expectations/great_expectations/pull/11808))
-* [MAINTENANCE] Fix pact branch resolution for merge_group CI events ([#11810](https://github.com/great-expectations/great_expectations/pull/11810))
-* [MAINTENANCE] Add Pact contract tests for data-context-variables GET and PUT ([#11803](https://github.com/great-expectations/great_expectations/pull/11803))
-* [MAINTENANCE] Add Pact contract tests for validation-definition update and checkpoint expectation-parameters ([#11802](https://github.com/great-expectations/great_expectations/pull/11802))
-* [MAINTENANCE] Add Pact contract tests for metric-runs POST and accounts/me GET ([#11804](https://github.com/great-expectations/great_expectations/pull/11804))
-* [MAINTENANCE] [pre-commit.ci] pre-commit autoupdate ([#11779](https://github.com/great-expectations/great_expectations/pull/11779))
-* [MAINTENANCE] Remove E2E docker-compose tests replaced by Pact contracts ([#11811](https://github.com/great-expectations/great_expectations/pull/11811))
-* [MAINTENANCE] Add Pact record-release to PyPI publish workflow ([#11816](https://github.com/great-expectations/great_expectations/pull/11816))
-* [MAINTENANCE] Bump follow-redirects from 1.15.11 to 1.16.0 in /docs/docusaurus ([#11815](https://github.com/great-expectations/great_expectations/pull/11815))
+### 1.16.1 (2026-04-15)
+
+#### Changes
+
+##### Features
+
+- Added 13 consumer-driven contract tests covering datasource API gaps, including data asset deletes, Postgres table/query assets with yearly and daily column partitioners, Snowflake DSN, connection-details and key-pair connection variants, and CSV assets with a daily file-name partitioner. ([#11813](https://github.com/fivetran/great_expectations/pull/11813))
+
+##### Docs
+
+- The compatibility reference now states explicitly that Python 3.14 and later are not currently supported, alongside the supported 3.10–3.13 range. ([#11784](https://github.com/fivetran/great_expectations/pull/11784))
+
+<details>
+<summary>Maintenance</summary>
+
+- Bumped the docs site's follow-redirects dependency from 1.15.11 to 1.16.0. ([#11815](https://github.com/fivetran/great_expectations/pull/11815))
+- The PyPI publish workflow now records each released version to PactFlow's production environment so compatibility checks gate against real releases. ([#11816](https://github.com/fivetran/great_expectations/pull/11816))
+- Removed the end-to-end docker-compose cloud tests, now superseded by contract tests, and dropped the associated Mercury startup steps from CI. ([#11811](https://github.com/fivetran/great_expectations/pull/11811))
+- Updated pre-commit hooks, moving ruff from v0.15.4 to v0.15.9. ([#11779](https://github.com/fivetran/great_expectations/pull/11779))
+- Added contract tests covering metric-run creation and the accounts/me lookup used when discovering workspaces during context initialization. ([#11804](https://github.com/fivetran/great_expectations/pull/11804))
+- Added contract tests for updating a validation definition and for fetching checkpoint expectation parameters. ([#11802](https://github.com/fivetran/great_expectations/pull/11802))
+- Added contract tests covering reading and saving data context variables. ([#11803](https://github.com/fivetran/great_expectations/pull/11803))
+- Contract publishing from merge-queue CI runs now uses the target branch name instead of the throwaway merge-queue ref. ([#11810](https://github.com/fivetran/great_expectations/pull/11810))
+- Contract tests now use fixed, isolated organization and workspace identifiers rather than environment variables, so provider verification no longer fails with authorization errors. ([#11808](https://github.com/fivetran/great_expectations/pull/11808))
+- Updated contract test fixtures to match the current cloud API, including the renamed analytics and validation-results-store configuration fields, 201 responses for datasource creation, recorded request bodies, and an isolated organization and workspace. ([#11797](https://github.com/fivetran/great_expectations/pull/11797))
+
+</details>
+
+#### Contributors
+
+Thanks to @gyermich, @Adeyinka1 (first contribution).
 
 ### 1.16.0 (2026-04-09)
 
