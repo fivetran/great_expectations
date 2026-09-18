@@ -569,11 +569,21 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Reenable publishing pact tests ([#11427](https://github.com/great-expectations/great_expectations/pull/11427))
 * [MAINTENANCE] Add schema to Redshift ConnectionDetails ([#11431](https://github.com/great-expectations/great_expectations/pull/11431))
 
-### 1.6.4
-* [DOCS] Typo fix, tense update ([#11404](https://github.com/great-expectations/great_expectations/pull/11404))
-* [DOCS] make schedules opt-in ([#11408](https://github.com/great-expectations/great_expectations/pull/11408))
-* [MAINTENANCE] Run Athena tests as a separate step ([#11401](https://github.com/great-expectations/great_expectations/pull/11401))
-* [MAINTENANCE] Remove PyAthena upper pin ([#11402](https://github.com/great-expectations/great_expectations/pull/11402))
+### 1.6.4 (2025-10-01)
+
+#### Changes
+
+##### Docs
+
+- Corrected a typo and updated verb tense in the documentation. ([#11404](https://github.com/fivetran/great_expectations/pull/11404))
+
+<details>
+<summary>Maintenance</summary>
+
+- Removed the upper version pin on PyAthena, allowing newer PyAthena releases to be installed. ([#11402](https://github.com/fivetran/great_expectations/pull/11402))
+- Athena tests now run as a separate step in continuous integration. ([#11401](https://github.com/fivetran/great_expectations/pull/11401))
+
+</details>
 
 ### 1.6.3 (2025-09-24)
 
