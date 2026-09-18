@@ -734,17 +734,46 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Update descriptions for multi-source parameter ([#11202](https://github.com/great-expectations/great_expectations/pull/11202))
 * [MAINTENANCE] Snowflake tests only run with snowflake flag ([#10605](https://github.com/great-expectations/great_expectations/pull/10605))
 
-### 1.4.5
-* [DOCS] ExpectAI for all Data Sources ([#11178](https://github.com/great-expectations/great_expectations/pull/11178))
-* [MAINTENANCE] Fix nightly data source cleanup action setup ([#11176](https://github.com/great-expectations/great_expectations/pull/11176))
-* [MAINTENANCE] pre-commit autoupdate ([#10480](https://github.com/great-expectations/great_expectations/pull/10480))
-* [MAINTENANCE] Do not fail tests on snowflake ssl connection warning. ([#11180](https://github.com/great-expectations/great_expectations/pull/11180))
-* [MAINTENANCE] Upgrade ruff ([#11182](https://github.com/great-expectations/great_expectations/pull/11182))
-* [MAINTENANCE] Update Posthog analytics events ([#11179](https://github.com/great-expectations/great_expectations/pull/11179))
-* [MAINTENANCE] Rename multi-source Expectation and parameters ([#11185](https://github.com/great-expectations/great_expectations/pull/11185))
-* [MAINTENANCE] Add single value rendering path to multi-source Expectation ([#11186](https://github.com/great-expectations/great_expectations/pull/11186))
-* [CONTRIB] use existing LRU cache for secrets store ([#11184](https://github.com/great-expectations/great_expectations/pull/11184)) (thanks @ThiloSchneider-fraport)
-* [CONTRIB] add GEOMETRY, and SUPER types to REDSHIFT_TYPES ([#11183](https://github.com/great-expectations/great_expectations/pull/11183)) (thanks @VolkovGeoPhy)
+### 1.4.5 (2025-05-22)
+
+#### Highlights
+
+- **Redshift GEOMETRY and SUPER column types supported** — Redshift data sources now recognize the GEOMETRY and SUPER column types, so assets using those columns can be used without an unsupported-type error. ([#11183](https://github.com/fivetran/great_expectations/pull/11183))
+
+- **ExpectAI documentation now covers all Data Sources** — The ExpectAI documentation has been reorganized so it applies to every supported Data Source rather than a subset. ([#11178](https://github.com/fivetran/great_expectations/pull/11178))
+
+- **Fewer secret-store lookups when resolving config secrets** — Secret substitution now reuses a cached secrets store client instead of rebuilding it on every lookup, avoiding repeated calls to the secrets backend when loading configuration. ([#11184](https://github.com/fivetran/great_expectations/pull/11184))
+
+#### Changes
+
+##### Features
+
+- Redshift data sources now support the GEOMETRY and SUPER column types. ([#11183](https://github.com/fivetran/great_expectations/pull/11183))
+
+##### Bug fixes
+
+- Secret lookups now reuse the existing cached secrets store client rather than recreating it for each substitution. ([#11184](https://github.com/fivetran/great_expectations/pull/11184))
+
+##### Docs
+
+- Updated the ExpectAI documentation to cover all Data Sources. ([#11178](https://github.com/fivetran/great_expectations/pull/11178))
+
+<details>
+<summary>Maintenance</summary>
+
+- When a multi-source query comparison produces exactly one differing record in a single column, the validation result now renders the observed and expected values as plain single values instead of a table. ([#11186](https://github.com/fivetran/great_expectations/pull/11186))
+- Renamed the multi-source Expectation to ExpectQueryResultsToMatchComparison and renamed its parameters to base_query, comparison_data_source_name, and comparison_query. ([#11185](https://github.com/fivetran/great_expectations/pull/11185))
+- Updated the Posthog analytics events emitted by the library. ([#11179](https://github.com/fivetran/great_expectations/pull/11179))
+- Upgraded the ruff linter to 0.11.8 and applied the resulting code cleanups. ([#11182](https://github.com/fivetran/great_expectations/pull/11182))
+- Test runs no longer fail on Snowflake SSL connection warnings. ([#11180](https://github.com/fivetran/great_expectations/pull/11180))
+- Updated pre-commit hooks, bumping ruff-pre-commit from v0.9.9 to v0.11.8. ([#10480](https://github.com/fivetran/great_expectations/pull/10480))
+- Fixed the setup of the nightly data source cleanup CI action. ([#11176](https://github.com/fivetran/great_expectations/pull/11176))
+
+</details>
+
+#### Contributors
+
+Thanks to @VolkovGeoPhy.
 
 ### 1.4.4 (2025-05-14)
 
