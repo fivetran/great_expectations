@@ -1308,12 +1308,31 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Fix `SQLAlchemyExectionEngine.get_connection()` typing + update column identifier tests ([#10399](https://github.com/great-expectations/great_expectations/pull/10399))
 * [MAINTENANCE] Move FabricPowerBIDatasource out of experimental dir ([#10419](https://github.com/great-expectations/great_expectations/pull/10419))
 
-### 1.0.4
-* [BUGFIX] Fix action equality ([#10393](https://github.com/great-expectations/great_expectations/pull/10393))
-* [BUGFIX] Patch additional issues with data docs page retrieval in checkpoint actions ([#10400](https://github.com/great-expectations/great_expectations/pull/10400))
-* [DOCS] Add CTAs to request a demo ([#10389](https://github.com/great-expectations/great_expectations/pull/10389))
-* [MAINTENANCE] Ensure that all nested validation definition diagnostics are emitted from a parent checkpoint ([#10386](https://github.com/great-expectations/great_expectations/pull/10386))
-* [MAINTENANCE] Fix `SQLAlchemyExectionEngine.get_connection()` typing + update column identifier tests ([#10399](https://github.com/great-expectations/great_expectations/pull/10399))
+### 1.0.4 (2024-09-16)
+
+#### Highlights
+
+- **Checkpoints with Slack and email actions run again** — Checkpoints configured with Slack or email notification actions no longer fail during setup; these actions now compare as equal when they are configured identically. ([#10393](https://github.com/fivetran/great_expectations/pull/10393))
+
+- **More reliable Data Docs links in checkpoint actions** — Checkpoint actions that reference Data Docs pages now retrieve those pages correctly in additional configurations, so notifications and updates include the expected Data Docs links. ([#10400](https://github.com/fivetran/great_expectations/pull/10400))
+
+#### Changes
+
+##### Bug fixes
+
+- Fixed additional cases where checkpoint actions failed to retrieve the correct Data Docs pages. ([#10400](https://github.com/fivetran/great_expectations/pull/10400))
+- Fixed action comparison so checkpoints using Slack or email notification actions can be run. ([#10393](https://github.com/fivetran/great_expectations/pull/10393))
+
+##### Docs
+
+- Added "request a demo" calls to action to the GX Cloud sidebar, the resources dropdown, and the Why GX Cloud and Get Support pages. ([#10389](https://github.com/fivetran/great_expectations/pull/10389))
+
+<details>
+<summary>Maintenance</summary>
+
+- Diagnostics for every nested validation definition are now emitted from the parent checkpoint run. ([#10386](https://github.com/fivetran/great_expectations/pull/10386))
+
+</details>
 
 ### 1.0.3 (2024-09-12)
 
