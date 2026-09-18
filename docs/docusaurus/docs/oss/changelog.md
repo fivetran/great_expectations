@@ -833,16 +833,41 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Implement ColumnNullCount metric ([#11073](https://github.com/great-expectations/great_expectations/pull/11073))
 * [MAINTENANCE] Revert "[FEATURE] Add gx-redshift extra dependency" ([#11079](https://github.com/great-expectations/great_expectations/pull/11079))
 
-### 1.3.13
-* [FEATURE] Add initial RedShift datasource ([#11011](https://github.com/great-expectations/great_expectations/pull/11011))
-* [BUGFIX] Prevent sqlite metric impl from overwriting default sqlalchemy ([#11055](https://github.com/great-expectations/great_expectations/pull/11055))
-* [DOCS] Add key pair authentication as a limitation of ExpectAI in manage_expectations.md ([#11047](https://github.com/great-expectations/great_expectations/pull/11047)) (thanks @adeola-ak)
-* [DOCS] reflect change on metrics page, clarify perms ([#11052](https://github.com/great-expectations/great_expectations/pull/11052))
-* [DOCS] test coverage metrics part 2 (table) ([#11046](https://github.com/great-expectations/great_expectations/pull/11046))
-* [DOCS] completeness change detection ([#11039](https://github.com/great-expectations/great_expectations/pull/11039))
-* [DOCS] ccd fast follow ([#11056](https://github.com/great-expectations/great_expectations/pull/11056))
-* [DOCS] update coverage health screenshot ([#11057](https://github.com/great-expectations/great_expectations/pull/11057))
-* [MAINTENANCE] Use get_metric_provider internal to registry ([#11044](https://github.com/great-expectations/great_expectations/pull/11044))
+### 1.3.13 (2025-04-03)
+
+#### Highlights
+
+- **Amazon Redshift data source support** — You can now connect to Amazon Redshift with a dedicated Redshift data source, alongside the existing SQL data sources. ([#11011](https://github.com/fivetran/great_expectations/pull/11011))
+
+#### Changes
+
+##### Features
+
+- Added an initial Amazon Redshift datasource so you can connect Great Expectations directly to Redshift. ([#11011](https://github.com/fivetran/great_expectations/pull/11011))
+
+##### Bug fixes
+
+- Prevented SQLite-specific metric implementations from overriding the default SQLAlchemy implementations, so metrics resolve correctly on other SQL backends. This issue was never present in a published release. ([#11055](https://github.com/fivetran/great_expectations/pull/11055))
+
+##### Docs
+
+- Updated the coverage health screenshot in the documentation. ([#11057](https://github.com/fivetran/great_expectations/pull/11057))
+- Follow-up corrections to the completeness change detection documentation. ([#11056](https://github.com/fivetran/great_expectations/pull/11056))
+- Added documentation for completeness change detection. ([#11039](https://github.com/fivetran/great_expectations/pull/11039))
+- Expanded the test coverage metrics documentation with a reference table. ([#11046](https://github.com/fivetran/great_expectations/pull/11046))
+- Clarified which roles can create Data Sources and updated the metrics page to reflect the removal of the asset info card. ([#11052](https://github.com/fivetran/great_expectations/pull/11052))
+- Documented that ExpectAI supports only Snowflake Data Sources using password authentication; key-pair authentication is not yet available. ([#11047](https://github.com/fivetran/great_expectations/pull/11047))
+
+<details>
+<summary>Maintenance</summary>
+
+- Internal metric registry now resolves metric providers through a single internal lookup path; no user-facing change. ([#11044](https://github.com/fivetran/great_expectations/pull/11044))
+
+</details>
+
+#### Contributors
+
+Thanks to @NathanFarmer.
 
 ### 1.3.12 (2025-03-26)
 
