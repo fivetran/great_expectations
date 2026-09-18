@@ -865,16 +865,33 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Point tests to aws buckets in oss account. ([#11034](https://github.com/great-expectations/great_expectations/pull/11034))
 * [MAINTENANCE] Fix atomic diagnostic observed value renderers when used with datetime ([#11033](https://github.com/great-expectations/great_expectations/pull/11033))
 
-### 1.3.10
-* [DOCS] beta badge followup ([#11015](https://github.com/great-expectations/great_expectations/pull/11015))
-* [DOCS] Test coverage metrics ([#11002](https://github.com/great-expectations/great_expectations/pull/11002))
-* [MAINTENANCE] refactor to use data_context fixture ([#10997](https://github.com/great-expectations/great_expectations/pull/10997))
-* [MAINTENANCE] Remove unneeded tests ([#11007](https://github.com/great-expectations/great_expectations/pull/11007))
-* [MAINTENANCE] remove numeric dqi from validity expectations ([#11005](https://github.com/great-expectations/great_expectations/pull/11005))
-* [MAINTENANCE] Upgrade transitive dependencies and stop using internal docusaurus functions ([#11009](https://github.com/great-expectations/great_expectations/pull/11009))
-* [MAINTENANCE] Stop over alerting on failures ([#11021](https://github.com/great-expectations/great_expectations/pull/11021))
-* [MAINTENANCE] remove outdated walkthrough modal ([#11022](https://github.com/great-expectations/great_expectations/pull/11022))
-* [MAINTENANCE] Bump mysql max_connections for tests ([#11023](https://github.com/great-expectations/great_expectations/pull/11023))
+### 1.3.10 (2025-03-12)
+
+#### Highlights
+
+- **Docs reference cards render correctly** — The cards at the top of the docs reference page no longer show stray characters, and the documentation site now builds on the latest Docusaurus with upgraded transitive dependencies that resolve reported vulnerabilities. ([#11009](https://github.com/fivetran/great_expectations/pull/11009))
+
+- **Outdated walkthrough modal removed from Data Docs** — Data Docs no longer opens a walkthrough modal that pointed to the deprecated CLI and workflows that are no longer recommended. ([#11022](https://github.com/fivetran/great_expectations/pull/11022))
+
+#### Changes
+
+##### Docs
+
+- Added documentation covering test coverage metrics. ([#11002](https://github.com/fivetran/great_expectations/pull/11002))
+- Applied the new beta badge styling to an additional documentation header. ([#11015](https://github.com/fivetran/great_expectations/pull/11015))
+
+<details>
+<summary>Maintenance</summary>
+
+- Raised the MySQL max_connections setting used by the test environment so more MySQL-backed tests can run. ([#11023](https://github.com/fivetran/great_expectations/pull/11023))
+- Removed the outdated walkthrough modal from Data Docs, which referenced the deprecated CLI and workflows that are no longer recommended. ([#11022](https://github.com/fivetran/great_expectations/pull/11022))
+- Simplified CI failure notifications so skipped jobs no longer trigger alerts. ([#11021](https://github.com/fivetran/great_expectations/pull/11021))
+- Upgraded documentation site dependencies to the latest Docusaurus, removed the unused local search plugin, and fixed stray characters rendered in the cards on the docs reference page. ([#11009](https://github.com/fivetran/great_expectations/pull/11009))
+- Removed the Numeric data quality issue tag from validity expectations, which are now categorized under Validity only. ([#11005](https://github.com/fivetran/great_expectations/pull/11005))
+- Removed redundant tests that are already covered by dedicated test files. ([#11007](https://github.com/fivetran/great_expectations/pull/11007))
+- Refactored a number of tests to share a common data context fixture. ([#10997](https://github.com/fivetran/great_expectations/pull/10997))
+
+</details>
 
 ### 1.3.9 (2025-03-05)
 
