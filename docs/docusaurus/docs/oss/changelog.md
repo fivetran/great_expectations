@@ -575,13 +575,32 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Run Athena tests as a separate step ([#11401](https://github.com/great-expectations/great_expectations/pull/11401))
 * [MAINTENANCE] Remove PyAthena upper pin ([#11402](https://github.com/great-expectations/great_expectations/pull/11402))
 
-### 1.6.3
-* [DOCS] severity tagging ([#11354](https://github.com/great-expectations/great_expectations/pull/11354))
-* [DOCS] severity screenshots ([#11394](https://github.com/great-expectations/great_expectations/pull/11394))
-* [DOCS] integration point diagrams ([#11391](https://github.com/great-expectations/great_expectations/pull/11391))
-* [DOCS] Create a tutorial for how to validate unstructured data in GX Cloud ([#11380](https://github.com/great-expectations/great_expectations/pull/11380))
-* [MAINTENANCE] Update databricks cleanup to clean more ([#11398](https://github.com/great-expectations/great_expectations/pull/11398))
-* [MAINTENANCE] add column.non_null_count to MetricTypes ([#11397](https://github.com/great-expectations/great_expectations/pull/11397))
+### 1.6.3 (2025-09-24)
+
+Compatibility: new extra `test`
+
+#### Highlights
+
+- **Tutorial for validating unstructured data in GX Cloud** — A new tutorial walks through validating unstructured data in GX Cloud end to end. ([#11380](https://github.com/fivetran/great_expectations/pull/11380))
+
+- **Documentation for severity tagging** — The GX Cloud documentation now covers severity tagging, including refreshed screenshots that match the current UI, plus new diagrams illustrating GX integration points. ([#11354](https://github.com/fivetran/great_expectations/pull/11354), [#11394](https://github.com/fivetran/great_expectations/pull/11394), [#11391](https://github.com/fivetran/great_expectations/pull/11391))
+
+#### Changes
+
+##### Docs
+
+- Added a tutorial for validating unstructured data in GX Cloud. ([#11380](https://github.com/fivetran/great_expectations/pull/11380))
+- Added diagrams illustrating GX integration points. ([#11391](https://github.com/fivetran/great_expectations/pull/11391))
+- Updated screenshots to reflect the current UI for severity tagging. ([#11394](https://github.com/fivetran/great_expectations/pull/11394))
+- Documented severity tagging for validation results. ([#11354](https://github.com/fivetran/great_expectations/pull/11354))
+
+<details>
+<summary>Maintenance</summary>
+
+- Added `column.non_null_count` to the recognized metric types. ([#11397](https://github.com/fivetran/great_expectations/pull/11397))
+- Broadened the Databricks test cleanup routine so temporary schemas created by metrics test utilities are removed. ([#11398](https://github.com/fivetran/great_expectations/pull/11398))
+
+</details>
 
 ### 1.6.2 (2025-09-19)
 
