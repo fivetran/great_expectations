@@ -15,6 +15,34 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### Deprecation timeline
+
+This table lists every deprecated item, the version that deprecated it, and the version that removes it; a row is never deleted, even after the removal ships.
+
+| Deprecated | Since | Removal | Replacement |
+| --- | --- | --- | --- |
+| String values for numeric batch parameters (`year`, `month`, `day`, …) | 1.21.0 | 2.0.0 | Pass integers |
+| `_atomic_prescriptive_template` | 0.15.43 | 1.17.1 |  |
+| `str` support for `Validator.validate` `run_id` | 0.13.0 | 1.17.0 | `RunIdentifier` or dict |
+| `ColumnMetricProvider` (and `DeprecatedMetaMetricProvider`) | 0.13.25 | 1.17.0 | `ColumnAggregateMetricProvider` |
+| `Batch` args `data_context`, `datasource_name`, `batch_parameters`, `batch_kwargs` | 0.14.0 | 1.17.0 |  |
+| `PandasDBFSDatasource` | 1.16.0 | 2.0.0 | `PandasFilesystemDatasource` |
+| `SparkDBFSDatasource` | 1.16.0 | 2.0.0 | `SparkFilesystemDatasource` |
+| `schema_name` argument of `TableAsset` / `add_table_asset` | 1.14.0 | 2.0.0 | Schema-qualified `table_name` |
+| `DatabaseStoreBackend`, `TupleStoreBackend` family, `QueryStore`, `MetricStore` | 1.0.0 | 1.13.0 |  |
+| String-style `row_condition` | 1.9.0 | 2.0.0 | `RowCondition` expression objects |
+| `RuleBasedProfiler` | 1.0.0 | 1.5.1 |  |
+| `DataContext.add_or_update_datasource` | 1.3.0 | 2.0.0 | `context.data_sources.add_*` / `update_*` |
+| `context.get_datasource` | 1.1.2 | 2.0.0 | `context.data_sources.get` |
+| `result_url` on `CheckpointResult` | 1.1.2 | 1.1.2 |  |
+| `mostly` on `ExpectColumnUniqueValueCountToBeBetween` | 1.1.0 | 1.1.0 |  |
+| `force_reuse_spark_context` argument of `SparkDFExecutionEngine` / Spark datasources | 1.0.0 | 2.0.0 | `spark_config` |
+| `get_or_create_spark_application()` | 1.0.0 | 2.0.0 | Create the Spark session outside GX |
+| `get_or_create_spark_session()` | 1.0.0 | 2.0.0 | Create the Spark session outside GX |
+| `MapMetricProvider.is_sqlalchemy_metric_selectable` | 0.16.1 | 2.0.0 |  |
+| `context.sources.delete_<type>` CRUD methods | 0.17.2 | 2.0.0 | `context.sources.delete` |
+| V2 API style custom rendering | 0.13.28 | 2.0.0 |  |
+
 ### 1.23.0
 * [BUGFIX] Cache the SQL execution engine across calls instead of rebuilding it every time ([#12148](https://github.com/great-expectations/great_expectations/pull/12148))
 * [BUGFIX] query asset SQL ending in a comment fails validation ([#12124](https://github.com/great-expectations/great_expectations/pull/12124)) (thanks @nanjeshramesh)
