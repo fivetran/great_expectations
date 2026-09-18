@@ -53,8 +53,16 @@ directory instead of following this guide.
 2. Create a pull request (PR) from your fork. See
    [Creating a pull request from a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork).
 
-3. Add a meaningful title and description. Provide a detailed explanation of what you changed and why. To
-   help identify the change, prefix the PR title with `[CONTRIB]`.
+3. Add a meaningful title and description. Provide a detailed explanation of what you changed and why.
+   Prefix the PR title with exactly one of the following, chosen by what the change *is*, not by who
+   wrote it, how large it is, or what version it implies:
+
+   - `[FEATURE]` — advances a user-facing capability or public API, whether or not that capability is
+     reachable yet.
+   - `[BUGFIX]` — corrects behavior that diverges from documented or intended behavior.
+   - `[DOCS]` — changes documentation only.
+   - `[MAINTENANCE]` — has no user-facing goal: dependencies, CI, tooling, typing, behavior-preserving
+     refactors, tests.
 
 4. In the PR description, include a description of any prior discussion or coordination on the feature —
    for example, "Closes #123", a link to a relevant [Discourse](https://discourse.greatexpectations.io/)
