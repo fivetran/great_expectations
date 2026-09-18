@@ -672,14 +672,38 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [DOCS] Correct forecasted range caveat ([#11295](https://github.com/great-expectations/great_expectations/pull/11295))
 * [MAINTENANCE] Bump ruff to 0.12.2 ([#11288](https://github.com/great-expectations/great_expectations/pull/11288))
 
-### 1.5.4
-* [BUGFIX] B/gx 1174/generalize schema expectation ([#11272](https://github.com/great-expectations/great_expectations/pull/11272))
-* [BUGFIX] Fix renderer for ExpectTableColumnsToMatchSet ([#11281](https://github.com/great-expectations/great_expectations/pull/11281))
-* [DOCS] Anomaly Detection: Expectation drawer and model ([#11234](https://github.com/great-expectations/great_expectations/pull/11234))
-* [DOCS] Clarify integration support policy page ([#11247](https://github.com/great-expectations/great_expectations/pull/11247))
-* [MAINTENANCE] Remove TableFactory from cloud e2e ([#11274](https://github.com/great-expectations/great_expectations/pull/11274))
-* [MAINTENANCE] Bump ruff to 0.12.0 ([#11263](https://github.com/great-expectations/great_expectations/pull/11263))
-* [MAINTENANCE] convert Snowflake & Databricks integration tests to parameterize_batch_for_data_sources ([#11277](https://github.com/great-expectations/great_expectations/pull/11277))
+### 1.5.4 (2025-07-02)
+
+#### Highlights
+
+- **Corrected result summary for ExpectTableColumnsToMatchSet** — Validation results for ExpectTableColumnsToMatchSet now render correctly, so the expectation's summary reads accurately wherever results are displayed. ([#11281](https://github.com/fivetran/great_expectations/pull/11281))
+
+- **New documentation for Anomaly Detection expectations** — The docs now cover the Anomaly Detection expectation drawer and its underlying model, so you can understand how anomaly detection expectations are configured and how they behave. ([#11234](https://github.com/fivetran/great_expectations/pull/11234))
+
+#### Changes
+
+##### Bug fixes
+
+- Fixed the rendering of ExpectTableColumnsToMatchSet so its results display correctly. ([#11281](https://github.com/fivetran/great_expectations/pull/11281))
+- Generalized the schema expectation so it behaves correctly across a wider range of inputs. ([#11272](https://github.com/fivetran/great_expectations/pull/11272))
+
+##### Docs
+
+- Clarified the integration support policy documentation and renamed the "resources" section to "help". ([#11247](https://github.com/fivetran/great_expectations/pull/11247))
+- Added documentation for the Anomaly Detection expectation drawer and the anomaly detection model. ([#11234](https://github.com/fivetran/great_expectations/pull/11234))
+
+<details>
+<summary>Maintenance</summary>
+
+- Snowflake and Databricks integration tests now use the shared data-source parameterization helper instead of the table factory fixture, with no change to library behavior. ([#11277](https://github.com/fivetran/great_expectations/pull/11277))
+- Upgraded the ruff linter used for development to 0.12.0. ([#11263](https://github.com/fivetran/great_expectations/pull/11263))
+- Snowflake end-to-end Cloud tests now use the shared data-source parameterization decorator for connection pooling and table setup and teardown, with no change to library behavior. ([#11274](https://github.com/fivetran/great_expectations/pull/11274))
+
+</details>
+
+#### Contributors
+
+Thanks to @ashmortar.
 
 ### 1.5.3 (2025-06-25)
 
