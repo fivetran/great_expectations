@@ -255,12 +255,38 @@ Thanks to @siddharthgaur1 (first contribution), @Star-cloud626 (first contributi
 * [MAINTENANCE] Bump webpack-dev-server from 5.2.3 to 5.2.5 in /docs/docusaurus ([#11926](https://github.com/fivetran/great_expectations/pull/11926))
 * [MAINTENANCE] Bump @babel/core from 7.28.6 to 7.29.6 in /docs/docusaurus ([#11925](https://github.com/fivetran/great_expectations/pull/11925))
 
-### 1.18.1
-* [BUGFIX] Regex angle brackets not HTML-escaped in Data Docs ([#11909](https://github.com/great-expectations/great_expectations/pull/11909))
-* [DOCS] Sync docs version label to released 1.18.0 ([#11900](https://github.com/great-expectations/great_expectations/pull/11900))
-* [DOCS] Remove gx cloud docs site ([#11906](https://github.com/great-expectations/great_expectations/pull/11906))
-* [MAINTENANCE] Temporarily skip bigquery tests ([#11908](https://github.com/great-expectations/great_expectations/pull/11908))
-* [MAINTENANCE] Temporarily skip snowflake integration tests ([#11911](https://github.com/great-expectations/great_expectations/pull/11911))
+### 1.18.1 (2026-06-11)
+
+#### Highlights
+
+- **Data Docs now renders regex and other parameter values containing `<`, `>`, or `&` correctly** — Expectation parameter values are HTML-escaped before being substituted into Data Docs render templates. Previously, a regex containing angle brackets — for example the negative lookbehind `(?<!\s)` — was emitted raw into the HTML, where the browser treated `<!` as the start of a comment and silently truncated the rendered pattern. Such values now display literally in Data Docs. The public API and serialized Expectation format are unchanged; only the HTML rendering layer is affected. ([#11909](https://github.com/fivetran/great_expectations/pull/11909))
+
+  ```python
+  gx.expectations.ExpectColumnValuesToMatchRegex(
+      column="my_column",
+      regex=r"(?<!\s)foo",
+  )
+  # The regex now appears in full in the generated Data Docs page.
+  ```
+
+#### Changes
+
+##### Bug fixes
+
+- Expectation parameter values containing `<`, `>`, or `&` — such as regexes using a negative lookbehind — are now HTML-escaped and render correctly in Data Docs instead of being truncated or hidden. ([#11909](https://github.com/fivetran/great_expectations/pull/11909))
+
+##### Docs
+
+- Remove the GX Cloud documentation site from the docs. ([#11906](https://github.com/fivetran/great_expectations/pull/11906))
+- The documentation site version label and the release version shown in docs content now read 1.18.0, matching the latest release instead of the stale 1.16.1. ([#11900](https://github.com/fivetran/great_expectations/pull/11900))
+
+<details>
+<summary>Maintenance</summary>
+
+- Temporarily skip Snowflake integration tests. ([#11911](https://github.com/fivetran/great_expectations/pull/11911))
+- Temporarily skip BigQuery tests by adding the bigquery backend to the skipped test markers. ([#11908](https://github.com/fivetran/great_expectations/pull/11908))
+
+</details>
 
 ### 1.18.0 (2026-06-02)
 
