@@ -307,19 +307,58 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Use pact regex matcher for Gx-Version header in contract tests ([#11791](https://github.com/great-expectations/great_expectations/pull/11791))
 * [MAINTENANCE] Skip pact publish on release tag CI runs ([#11796](https://github.com/great-expectations/great_expectations/pull/11796))
 
-### 1.15.2
-* [FEATURE] Refactor rest_contracts/conftest.py for client-driven Pact testing (GX-2725) ([#11753](https://github.com/great-expectations/great_expectations/pull/11753))
-* [DOCS] Small wording change ([#11715](https://github.com/great-expectations/great_expectations/pull/11715))
-* [DOCS] Add documentation for ValidationDefinition.get_unexpected_rows() ([#11712](https://github.com/great-expectations/great_expectations/pull/11712))
-* [MAINTENANCE] Add generic sql test harness ([#11718](https://github.com/great-expectations/great_expectations/pull/11718))
-* [MAINTENANCE] update schema names to be unique to prevent collision between CI runs ([#11733](https://github.com/great-expectations/great_expectations/pull/11733))
-* [MAINTENANCE] Pin localstack to 4.14.0 ([#11740](https://github.com/great-expectations/great_expectations/pull/11740))
-* [MAINTENANCE] Bump flatted from 3.3.3 to 3.4.2 in /docs/docusaurus ([#11737](https://github.com/great-expectations/great_expectations/pull/11737))
-* [MAINTENANCE] CI improvements ([#11743](https://github.com/great-expectations/great_expectations/pull/11743))
-* [MAINTENANCE] [pre-commit.ci] pre-commit autoupdate ([#11582](https://github.com/great-expectations/great_expectations/pull/11582))
-* [MAINTENANCE] Bump yaml from 1.10.2 to 1.10.3 in /docs/docusaurus ([#11746](https://github.com/great-expectations/great_expectations/pull/11746))
-* [MAINTENANCE] ci health report script ([#11751](https://github.com/great-expectations/great_expectations/pull/11751))
-* [CONTRIB] add BigQuery datasource methods to sources.pyi stub file ([#11736](https://github.com/great-expectations/great_expectations/pull/11736)) (thanks @Julian901)
+### 1.15.2 (2026-04-01)
+
+#### Highlights
+
+- **BigQuery datasource methods now surface in IDE autocomplete and type checking** — The typed stub for `context.data_sources` now declares `add_bigquery`, `update_bigquery`, `add_or_update_bigquery`, and `delete_bigquery`, so BigQuery-specific datasource methods are discoverable in editor autocomplete and recognized by type checkers instead of pushing you toward the generic `add_sql` method. ([#11736](https://github.com/fivetran/great_expectations/pull/11736))
+
+  ```python
+  datasource = context.data_sources.add_bigquery(
+      name="my_bigquery_ds",
+      connection_string="bigquery://my-project/my_dataset",
+  )
+  ```
+
+- **New how-to guide: retrieve all unexpected rows** — The documentation now includes a "Retrieve all unexpected rows" guide under Run Validations, with a runnable example showing how to get the full set of unexpected rows from a validation definition, plus cross-references from the custom SQL Expectation guide and the result format reference table. ([#11712](https://github.com/fivetran/great_expectations/pull/11712))
+
+  ```python
+  unexpected_rows = validation_definition.get_unexpected_rows(batch_parameters={})
+  ```
+
+#### Deprecations
+
+- The `run_rest_api_pact_test` REST contract test helper is deprecated; use the client-driven Pact test approach built on the `pact_cloud_context` fixture. Removal in 2.0.0. ([#11753](https://github.com/fivetran/great_expectations/pull/11753))
+
+#### Changes
+
+##### Features
+
+- REST contract testing can now be driven from the client side: a `pact_cloud_context` fixture builds a `CloudDataContext` against the Pact mock server without real cloud credentials, a shared data-context configuration response and interaction helper are available for reuse, and the older `run_rest_api_pact_test` helper is marked deprecated. ([#11753](https://github.com/fivetran/great_expectations/pull/11753))
+- BigQuery datasource methods (`add_bigquery`, `update_bigquery`, `add_or_update_bigquery`, `delete_bigquery`) and the `BigQueryDatasource` type are now declared in the datasources type stub, so they appear in IDE autocomplete and type checking instead of requiring the generic `add_sql` method. ([#11736](https://github.com/fivetran/great_expectations/pull/11736))
+
+##### Docs
+
+- Added a "Retrieve all unexpected rows" how-to guide with a runnable example script, a sidebar and landing-page entry, and cross-references from the custom SQL Expectation guide and the result format reference table. ([#11712](https://github.com/fivetran/great_expectations/pull/11712))
+- Applied a small documentation wording change based on engineering feedback. ([#11715](https://github.com/fivetran/great_expectations/pull/11715))
+
+<details>
+<summary>Maintenance</summary>
+
+- Added a script that inspects the last 28 days of scheduled CI runs and generates a markdown CI health report. ([#11751](https://github.com/fivetran/great_expectations/pull/11751))
+- Bumped the docs site `yaml` dependency from 1.10.2 to 1.10.3. ([#11746](https://github.com/fivetran/great_expectations/pull/11746))
+- Updated pre-commit hooks, moving ruff-pre-commit from v0.14.9 to v0.15.4. ([#11582](https://github.com/fivetran/great_expectations/pull/11582))
+- Fixed three CI configuration problems: a too-short timeout for cloud services, a mismatched docs matrix key, and a malformed Spark command. ([#11743](https://github.com/fivetran/great_expectations/pull/11743))
+- Bumped the docs site `flatted` dependency from 3.3.3 to 3.4.2. ([#11737](https://github.com/fivetran/great_expectations/pull/11737))
+- Pinned localstack to 4.14.0 to restore broken CI runs. ([#11740](https://github.com/fivetran/great_expectations/pull/11740))
+- Made test schema names unique so concurrent Databricks CI runs no longer clean up each other's test setup and fail with table-not-found errors. ([#11733](https://github.com/fivetran/great_expectations/pull/11733))
+- Added a generic SQL datasource test harness (`GenericSQLDatasourceTestConfig`) to make it easier to try out new SQL datasources. ([#11718](https://github.com/fivetran/great_expectations/pull/11718))
+
+</details>
+
+#### Contributors
+
+Thanks to @Julian901 (first contribution), @klavavej, @NathanFarmer.
 
 ### 1.15.1 (2026-03-13)
 
