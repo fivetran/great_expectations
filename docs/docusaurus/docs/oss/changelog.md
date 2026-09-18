@@ -770,20 +770,45 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Change DQ issue for `ExpectQueryResultsToMatchSource` ([#11174](https://github.com/great-expectations/great_expectations/pull/11174))
 * [CONTRIB] Update ruff badge ([#10905](https://github.com/great-expectations/great_expectations/pull/10905)) (thanks @esadek)
 
-### 1.4.3
-* [FEATURE] Test infra to support source to target expectations ([#11138](https://github.com/great-expectations/great_expectations/pull/11138))
-* [FEATURE] QueryDataSourceTable metric + provider ([#11149](https://github.com/great-expectations/great_expectations/pull/11149))
-* [DOCS] ExpectAI approval workflow ([#11072](https://github.com/great-expectations/great_expectations/pull/11072))
-* [DOCS] restore link checker ([#11135](https://github.com/great-expectations/great_expectations/pull/11135))
-* [DOCS] alerts for ExpectAI ([#11154](https://github.com/great-expectations/great_expectations/pull/11154))
-* [MAINTENANCE] Temporarily pin gx-redshift for python 3.9 ([#11142](https://github.com/great-expectations/great_expectations/pull/11142))
-* [MAINTENANCE] Revert "[DOCS] restore link checker" ([#11145](https://github.com/great-expectations/great_expectations/pull/11145))
-* [MAINTENANCE] Capitalize "Expectation" in mostly description ([#11147](https://github.com/great-expectations/great_expectations/pull/11147))
-* [MAINTENANCE] Add `SupportedDataSources` enum ([#11143](https://github.com/great-expectations/great_expectations/pull/11143))
-* [MAINTENANCE] Restore link checker ([#11146](https://github.com/great-expectations/great_expectations/pull/11146))
-* [MAINTENANCE] Remove slow test cases ([#11152](https://github.com/great-expectations/great_expectations/pull/11152))
-* [MAINTENANCE] Remove test_expectations_v3_api.py ([#11098](https://github.com/great-expectations/great_expectations/pull/11098))
-* [MAINTENANCE] Revert: "Temporarily pin gx-redshift for python 3.9" ([#11151](https://github.com/great-expectations/great_expectations/pull/11151))
+### 1.4.3 (2025-05-07)
+
+#### Highlights
+
+- **Redshift data source support in the public API** — Redshift data sources are now exposed through the public API decorator, and new documentation walks through connecting Great Expectations Cloud to Redshift. ([#11097](https://github.com/fivetran/great_expectations/pull/11097), [#11095](https://github.com/fivetran/great_expectations/pull/11095))
+
+- **QueryDataSourceTable metric and provider** — A new QueryDataSourceTable metric and its provider are available, enabling queries against a data source table as part of metric computation. ([#11149](https://github.com/fivetran/great_expectations/pull/11149))
+
+- **ExpectAI approval workflow documentation** — The Cloud documentation now describes the ExpectAI approval workflow for generating and approving Expectations. ([#11072](https://github.com/fivetran/great_expectations/pull/11072))
+
+#### Changes
+
+##### Features
+
+- Added a QueryDataSourceTable metric and accompanying metric provider. ([#11149](https://github.com/fivetran/great_expectations/pull/11149))
+- Added test infrastructure to support source-to-target Expectations. ([#11138](https://github.com/fivetran/great_expectations/pull/11138))
+- Added the Redshift data source to the public API surface. ([#11097](https://github.com/fivetran/great_expectations/pull/11097))
+
+##### Docs
+
+- Re-enabled the documentation broken-link checker now that the new Redshift pages are published. ([#11135](https://github.com/fivetran/great_expectations/pull/11135))
+- Documented the ExpectAI approval workflow for generating Expectations in Great Expectations Cloud. ([#11072](https://github.com/fivetran/great_expectations/pull/11072))
+- Added documentation for connecting to Redshift. ([#11095](https://github.com/fivetran/great_expectations/pull/11095))
+- Hid the table of contents on documentation pages where nested headers inside tabbed content made it unhelpful. ([#11130](https://github.com/fivetran/great_expectations/pull/11130))
+- Updated the Try GX Core code sample so it prints the validation results the surrounding text says you will see. ([#11129](https://github.com/fivetran/great_expectations/pull/11129))
+
+<details>
+<summary>Maintenance</summary>
+
+- Removed the temporary gx-sqlalchemy-redshift version pin for Python 3.9, restoring the unpinned requirement. ([#11151](https://github.com/fivetran/great_expectations/pull/11151))
+- Removed the obsolete test_expectations_v3_api.py test module. ([#11098](https://github.com/fivetran/great_expectations/pull/11098))
+- Removed slow test cases that duplicated coverage of quoted identifiers in column names, substantially shortening Databricks test runs. ([#11152](https://github.com/fivetran/great_expectations/pull/11152))
+- Restored the documentation broken-link checker in CI. ([#11146](https://github.com/fivetran/great_expectations/pull/11146))
+- Added a SupportedDataSources enum and updated Expectation references and schemas to use it. ([#11143](https://github.com/fivetran/great_expectations/pull/11143))
+- Capitalized "Expectation" in the `mostly` parameter description shown in Expectation docstrings and schemas. ([#11147](https://github.com/fivetran/great_expectations/pull/11147))
+- Temporarily disabled the documentation broken-link checker in CI while a link issue was resolved. ([#11145](https://github.com/fivetran/great_expectations/pull/11145))
+- Temporarily pinned gx-sqlalchemy-redshift for Python 3.9. ([#11142](https://github.com/fivetran/great_expectations/pull/11142))
+
+</details>
 
 ### 1.4.2 (2025-04-24)
 
