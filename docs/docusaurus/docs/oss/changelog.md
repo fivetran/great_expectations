@@ -1165,39 +1165,78 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Make PR Title Checker GH Action more secure ([#10636](https://github.com/great-expectations/great_expectations/pull/10636))
 * [MAINTENANCE] Add mssql support to testing framework ([#10634](https://github.com/great-expectations/great_expectations/pull/10634))
 
-### 1.2.1
-* [BUGFIX] Add redirect for deploy-gx-agent ([#10573](https://github.com/great-expectations/great_expectations/pull/10573))
-* [BUGFIX] Fix typing on `mostly` and `value_set` fields ([#10571](https://github.com/great-expectations/great_expectations/pull/10571))
-* [BUGFIX] `ExpectationSuite` equality should ignore expectation ordering ([#10562](https://github.com/great-expectations/great_expectations/pull/10562))
-* [BUGFIX] Get `MicrosoftTeamsNotificationAction` working with V1 ([#10593](https://github.com/great-expectations/great_expectations/pull/10593))
-* [BUGFIX] Support string substitution for EmailAction ([#10600](https://github.com/great-expectations/great_expectations/pull/10600))
-* [BUGFIX] Ensure that data docs are accessible through MS Teams action results ([#10599](https://github.com/great-expectations/great_expectations/pull/10599))
-* [BUGFIX] Incorrect row count when `UnexpectedRowsExpectation` returns more than 200 rows ([#10604](https://github.com/great-expectations/great_expectations/pull/10604))
-* [DOCS] Edit API reference internal links to prevent 404s ([#10528](https://github.com/great-expectations/great_expectations/pull/10528))
-* [DOCS] data quality distribution analysis, working draft ([#10440](https://github.com/great-expectations/great_expectations/pull/10440))
-* [DOCS] Changing broken links in changelog file and some left in reference/API ([#10588](https://github.com/great-expectations/great_expectations/pull/10588))
-* [DOCS] Fixes small friction points noticed during onboarding ([#10560](https://github.com/great-expectations/great_expectations/pull/10560))
-* [DOCS] remove duplication in GCP Secret Manager instructions ([#10591](https://github.com/great-expectations/great_expectations/pull/10591))
-* [DOCS] loose ends for python 3.12 support ([#10596](https://github.com/great-expectations/great_expectations/pull/10596))
-* [DOCS] Fixes more small issues noticed during onboarding ([#10598](https://github.com/great-expectations/great_expectations/pull/10598))
-* [DOCS] Mark `MicrosoftTeamsNotificationAction` as first-class ([#10595](https://github.com/great-expectations/great_expectations/pull/10595))
-* [DOCS] Add lychee to spot broken urls ([#10585](https://github.com/great-expectations/great_expectations/pull/10585))
-* [MAINTENANCE] PostgreSQL Expectation Tests ([#10582](https://github.com/great-expectations/great_expectations/pull/10582))
-* [MAINTENANCE] Snowflake Expectation Tests ([#10586](https://github.com/great-expectations/great_expectations/pull/10586))
-* [MAINTENANCE] Reenable xfailed e2e tests ([#10555](https://github.com/great-expectations/great_expectations/pull/10555))
-* [MAINTENANCE] Add test to public api to ensure that decorated methods have decorated parent classes ([#10529](https://github.com/great-expectations/great_expectations/pull/10529))
-* [MAINTENANCE] Bump `ruff` and `mypy` versions to `0.7.1` and `1.13.0`, respectively ([#10565](https://github.com/great-expectations/great_expectations/pull/10565))
-* [MAINTENANCE] Return informative error when saving expectation suite ([#10570](https://github.com/great-expectations/great_expectations/pull/10570))
-* [MAINTENANCE] Filesystem expectation testing ([#10556](https://github.com/great-expectations/great_expectations/pull/10556))
-* [MAINTENANCE] Update teams.yml devrel members. ([#10567](https://github.com/great-expectations/great_expectations/pull/10567))
-* [MAINTENANCE] Update 0.18.x changelog for release of 0.18.22 ([#10575](https://github.com/great-expectations/great_expectations/pull/10575))
-* [MAINTENANCE] Add more canonical expectation tests ([#10578](https://github.com/great-expectations/great_expectations/pull/10578))
-* [MAINTENANCE] Clean up misc utils ([#10581](https://github.com/great-expectations/great_expectations/pull/10581))
-* [MAINTENANCE] update docs link for configuring credentials ([#10580](https://github.com/great-expectations/great_expectations/pull/10580))
-* [MAINTENANCE] DRY up config substitution for slack notifications ([#10602](https://github.com/great-expectations/great_expectations/pull/10602))
-* [MAINTENANCE] Support config substitution for `MicrosoftTeamsNotificationAction` ([#10606](https://github.com/great-expectations/great_expectations/pull/10606))
-* [MAINTENANCE] Add testing support for multi-asset data sources ([#10592](https://github.com/great-expectations/great_expectations/pull/10592))
-* [MAINTENANCE] Instrument analytics for Checkpoint action creation and runs ([#10597](https://github.com/great-expectations/great_expectations/pull/10597))
+### 1.2.1 (2024-10-31)
+
+#### Highlights
+
+- **Microsoft Teams notifications work end to end** — The Microsoft Teams notification action is now functional and supported as a first-class Checkpoint action: notification cards render correctly, Data Docs links are reachable from the card (Teams does not support `file:///` links in buttons, so the results are shown in an expandable card instead), and configuration values such as the webhook can be supplied through config substitution the same way Slack and Email actions allow. ([#10593](https://github.com/fivetran/great_expectations/pull/10593), [#10599](https://github.com/fivetran/great_expectations/pull/10599), [#10606](https://github.com/fivetran/great_expectations/pull/10606), [#10595](https://github.com/fivetran/great_expectations/pull/10595))
+
+  ```python
+  import great_expectations as gx
+  from great_expectations.checkpoint import MicrosoftTeamsNotificationAction
+
+  context = gx.get_context()
+  action = MicrosoftTeamsNotificationAction(
+      name="teams_notification",
+      teams_webhook="${MY_TEAMS_WEBHOOK}",
+      notify_on="all",
+  )
+  ```
+
+- **Accurate unexpected row counts for UnexpectedRowsExpectation** — `UnexpectedRowsExpectation` now reports the true number of unexpected rows in its `observed_value` even when the query returns more than 200 rows, instead of capping the reported count. ([#10604](https://github.com/fivetran/great_expectations/pull/10604))
+
+- **Email action supports config substitution** — `EmailAction` configuration values now resolve string substitutions (for example `${SMTP_PASSWORD}`), so credentials can be kept out of your configuration files. ([#10600](https://github.com/fivetran/great_expectations/pull/10600), [#10602](https://github.com/fivetran/great_expectations/pull/10602))
+
+- **Expectation integration tests run against PostgreSQL and Snowflake** — The Expectation integration test framework can now exercise Expectations against PostgreSQL and Snowflake backends, broadening the backends covered by Expectation test suites. ([#10582](https://github.com/fivetran/great_expectations/pull/10582), [#10586](https://github.com/fivetran/great_expectations/pull/10586))
+
+#### Changes
+
+##### Features
+
+- Expectations can now be tested against a Snowflake backend in the Expectation integration test framework. ([#10586](https://github.com/fivetran/great_expectations/pull/10586))
+- Expectations can now be tested against a PostgreSQL backend in the Expectation integration test framework. ([#10582](https://github.com/fivetran/great_expectations/pull/10582))
+
+##### Bug fixes
+
+- `UnexpectedRowsExpectation` now reports the correct unexpected row count when the query returns more than 200 rows. ([#10604](https://github.com/fivetran/great_expectations/pull/10604))
+- Data Docs results are now accessible from Microsoft Teams notifications via an expandable card, since Teams does not support `file:///` links. ([#10599](https://github.com/fivetran/great_expectations/pull/10599))
+- `EmailAction` configuration values now support string substitution, so credentials can be referenced instead of inlined. ([#10600](https://github.com/fivetran/great_expectations/pull/10600))
+- `MicrosoftTeamsNotificationAction` now works with GX 1.x and sends a redesigned notification card. ([#10593](https://github.com/fivetran/great_expectations/pull/10593))
+- Two `ExpectationSuite` objects with the same Expectations in a different order now compare as equal, so suites no longer fail freshness checks because of ordering. ([#10562](https://github.com/fivetran/great_expectations/pull/10562))
+- Corrected the type hints for the `mostly` and `value_set` Expectation parameters so plain values such as `mostly=1` type-check cleanly while the generated schemas stay unchanged. ([#10571](https://github.com/fivetran/great_expectations/pull/10571))
+- Added a redirect so the deploy-gx-agent documentation URL resolves instead of 404ing. ([#10573](https://github.com/fivetran/great_expectations/pull/10573))
+
+##### Docs
+
+- Documentation builds now check for broken URLs with lychee. ([#10585](https://github.com/fivetran/great_expectations/pull/10585))
+- Documentation now lists `MicrosoftTeamsNotificationAction` as a first-class, supported action. ([#10595](https://github.com/fivetran/great_expectations/pull/10595))
+- Fixed additional small documentation issues found while following the getting-started material. ([#10598](https://github.com/fivetran/great_expectations/pull/10598))
+- Documentation now states Python 3.12 as the highest supported Python version. ([#10596](https://github.com/fivetran/great_expectations/pull/10596))
+- Removed duplicated content from the GCP Secret Manager instructions on the Access secrets managers page. ([#10591](https://github.com/fivetran/great_expectations/pull/10591))
+- Numerous documentation refinements: more relevant links, corrected list indentation, spelling and grammar fixes, code samples that match their surrounding prose, and clearer wording. ([#10560](https://github.com/fivetran/great_expectations/pull/10560))
+- Fixed broken links in the 0.18 changelog and in several API reference pages. ([#10588](https://github.com/fivetran/great_expectations/pull/10588))
+- Added a working draft guide on data quality distribution analysis. ([#10440](https://github.com/fivetran/great_expectations/pull/10440))
+- Internal links in the API reference now use root-relative URLs, preventing intermittent 404s. ([#10528](https://github.com/fivetran/great_expectations/pull/10528))
+
+<details>
+<summary>Maintenance</summary>
+
+- Checkpoint creation and Microsoft Teams action runs now emit analytics events. ([#10597](https://github.com/fivetran/great_expectations/pull/10597))
+- Expectation test framework supports data sources with multiple assets by accepting extra tables and their data. ([#10592](https://github.com/fivetran/great_expectations/pull/10592))
+- `MicrosoftTeamsNotificationAction` now resolves configuration substitutions, matching the Slack and Email notification actions. ([#10606](https://github.com/fivetran/great_expectations/pull/10606))
+- Consolidated the configuration-substitution handling used by Slack notifications. ([#10602](https://github.com/fivetran/great_expectations/pull/10602))
+- An in-product docs link for configuring credentials now points at the current Core documentation instead of redirecting to the 0.18 content. ([#10580](https://github.com/fivetran/great_expectations/pull/10580))
+- Cleaned up miscellaneous internal utility code. ([#10581](https://github.com/fivetran/great_expectations/pull/10581))
+- Added more canonical Expectation test coverage. ([#10578](https://github.com/fivetran/great_expectations/pull/10578))
+- Updated the 0.18.x changelog for the 0.18.22 release. ([#10575](https://github.com/fivetran/great_expectations/pull/10575))
+- Updated the devrel membership listed in `teams.yml`. ([#10567](https://github.com/fivetran/great_expectations/pull/10567))
+- Integration test framework now covers pandas filesystem CSV assets. ([#10556](https://github.com/fivetran/great_expectations/pull/10556))
+- Saving an Expectation Suite that cannot be persisted now raises a more informative error. ([#10570](https://github.com/fivetran/great_expectations/pull/10570))
+- Bumped the `ruff` and `mypy` development dependencies to 0.7.1 and 1.13.0. ([#10565](https://github.com/fivetran/great_expectations/pull/10565))
+- Added a test ensuring that public API methods only appear on classes that are themselves marked public. ([#10529](https://github.com/fivetran/great_expectations/pull/10529))
+- Re-enabled previously skipped end-to-end tests and updated them to 1.x syntax. ([#10555](https://github.com/fivetran/great_expectations/pull/10555))
+
+</details>
 
 ### 1.2.0 (2024-10-24)
 
