@@ -1106,24 +1106,63 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Test postgres type support ([#10727](https://github.com/great-expectations/great_expectations/pull/10727))
 * [CONTRIB] Handle connection error during version check ([#10720](https://github.com/great-expectations/great_expectations/pull/10720)) (thanks @stejin)
 
-### 1.2.4
-* [DOCS] ADR around not using meta fields ([#10672](https://github.com/great-expectations/great_expectations/pull/10672))
-* [DOCS] Update Expectation conditions docs ([#10661](https://github.com/great-expectations/great_expectations/pull/10661))
-* [DOCS] community contributions - November 2024 ([#10681](https://github.com/great-expectations/great_expectations/pull/10681))
-* [DOCS] Data quality on integrity ([#10583](https://github.com/great-expectations/great_expectations/pull/10583))
-* [MAINTENANCE] : standardize _atomic_diagnostic_observed_value ([#10643](https://github.com/great-expectations/great_expectations/pull/10643))
-* [MAINTENANCE] Add support to framework for spark integration testing ([#10670](https://github.com/great-expectations/great_expectations/pull/10670))
-* [MAINTENANCE] Reduce test duration of flakey test ([#10663](https://github.com/great-expectations/great_expectations/pull/10663))
-* [MAINTENANCE] DatabricksSQL expectation testing ([#10653](https://github.com/great-expectations/great_expectations/pull/10653))
-* [MAINTENANCE] Add datetime inference to test framework ([#10666](https://github.com/great-expectations/great_expectations/pull/10666))
-* [MAINTENANCE] Add bigquery to marker tests ([#10674](https://github.com/great-expectations/great_expectations/pull/10674))
-* [MAINTENANCE] Update testing framework to work with bigquery ([#10675](https://github.com/great-expectations/great_expectations/pull/10675))
-* [MAINTENANCE] Fixture to get assets for test framework ([#10673](https://github.com/great-expectations/great_expectations/pull/10673))
-* [MAINTENANCE] Update CODEOWNERS with reqs owner. ([#10684](https://github.com/great-expectations/great_expectations/pull/10684))
-* [MAINTENANCE] Remove commented out code ([#10686](https://github.com/great-expectations/great_expectations/pull/10686))
-* [MAINTENANCE] Tests to prove sqlite partitioners work ([#10676](https://github.com/great-expectations/great_expectations/pull/10676))
-* [MAINTENANCE] Condition parser typing and row conditions testing ([#10667](https://github.com/great-expectations/great_expectations/pull/10667))
-* [MAINTENANCE] Improve experience around expectation deletion with Cloud-backed suites ([#10662](https://github.com/great-expectations/great_expectations/pull/10662))
+### 1.2.4 (2024-11-20)
+
+#### Highlights
+
+- **Duplicate expectations are no longer added to a suite** — Adding an expectation that already exists in a suite no longer creates a duplicate entry: uniqueness checks now compare the expectation itself, ignoring its identifier and the volatile `notes` and `meta` fields. Suite docstrings also point to suite indexing when deleting an expectation. ([#10662](https://github.com/fivetran/great_expectations/pull/10662))
+
+  ```python
+  for _ in range(10):
+      suite.add_expectation(gxe.ExpectColumnValuesToBeBetween(column="passenger_count", min_value=0, max_value=6))
+
+  print(len(suite.expectations))  # 1
+  ```
+
+- **Expectation conditions documentation refreshed** — The Expectation conditions documentation has been rewritten with clearer language and separate, runnable examples for pandas, Spark, and SQL in every case. ([#10661](https://github.com/fivetran/great_expectations/pull/10661))
+
+- **Passing a plain string as a condition parser** — Supplying a string where the `ConditionParser` enum was previously required no longer raises a type error. ([#10667](https://github.com/fivetran/great_expectations/pull/10667))
+
+  ```python
+  gxe.ExpectColumnValuesToBeBetween(
+      column="passenger_count",
+      min_value=0,
+      row_condition='col("pickup_datetime") > "2019-01-01"',
+      condition_parser="great_expectations",
+  )
+  ```
+
+#### Changes
+
+##### Docs
+
+- Added data quality documentation covering integrity. ([#10583](https://github.com/fivetran/great_expectations/pull/10583))
+- Incorporated several community documentation contributions from November 2024. ([#10681](https://github.com/fivetran/great_expectations/pull/10681))
+- Rewrote the Expectation conditions documentation with clearer language and separate pandas, Spark, and SQL examples throughout. ([#10661](https://github.com/fivetran/great_expectations/pull/10661))
+- Documented an architecture decision record explaining why meta fields are not used. ([#10672](https://github.com/fivetran/great_expectations/pull/10672))
+
+<details>
+<summary>Maintenance</summary>
+
+- Adding an expectation that duplicates one already in a suite no longer produces a second entry, expectation equality ignores the `notes` and `meta` metadata fields, and the suite docstring now shows deleting expectations by suite index. ([#10662](https://github.com/fivetran/great_expectations/pull/10662))
+- Passing a string in place of the `ConditionParser` enum no longer raises a type error, and row condition coverage was added to the Expectation testing framework. ([#10667](https://github.com/fivetran/great_expectations/pull/10667))
+- Removed commented-out code from the codebase. ([#10686](https://github.com/fivetran/great_expectations/pull/10686))
+- Added tests confirming that SQLite partitioners behave as expected. ([#10676](https://github.com/fivetran/great_expectations/pull/10676))
+- Updated CODEOWNERS to name an owner for requirements files. ([#10684](https://github.com/fivetran/great_expectations/pull/10684))
+- Added a fixture that exposes data assets to the Expectation test framework, with an asset property on batch test setups. ([#10673](https://github.com/fivetran/great_expectations/pull/10673))
+- Extended the Expectation testing framework to run against BigQuery. ([#10675](https://github.com/fivetran/great_expectations/pull/10675))
+- Added BigQuery to the marker-based test suites. ([#10674](https://github.com/fivetran/great_expectations/pull/10674))
+- Added datetime type inference to the Expectation test framework and moved shared configuration into constants. ([#10666](https://github.com/fivetran/great_expectations/pull/10666))
+- Added Databricks SQL coverage to Expectation testing. ([#10653](https://github.com/fivetran/great_expectations/pull/10653))
+- Added Spark integration testing support to the Expectation test framework. ([#10670](https://github.com/fivetran/great_expectations/pull/10670))
+- Reduced the workload of a flaky timing test so it fails on its own assertion rather than the CI timeout. ([#10663](https://github.com/fivetran/great_expectations/pull/10663))
+- Standardized the atomic diagnostic observed-value renderer to use template strings and parameters like other atomic renderers, with better inference of the observed value's type. ([#10643](https://github.com/fivetran/great_expectations/pull/10643))
+
+</details>
+
+#### Contributors
+
+Thanks to @vovavili (first contribution), @yogabonito (first contribution).
 
 ### 1.2.3 (2024-11-14)
 
