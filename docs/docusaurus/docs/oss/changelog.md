@@ -499,23 +499,58 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Deprecate string-style `row_condition`s ([#11515](https://github.com/great-expectations/great_expectations/pull/11515))
 * [CONTRIB] Include `unexpected_index_column_names` in ExpectColumnValuesToNotBeNull results ([#11513](https://github.com/great-expectations/great_expectations/pull/11513)) (thanks @chay0112)
 
-### 1.8.1
-* [BUGFIX] Fix render_content generation with new row_condition types ([#11481](https://github.com/great-expectations/great_expectations/pull/11481))
-* [BUGFIX] Prevent unmocked HTTP requests in cloud tests ([#11492](https://github.com/great-expectations/great_expectations/pull/11492))
-* [BUGFIX] Update pytest filter to handle google.api_core Python 3.10 end-of-life warning ([#11493](https://github.com/great-expectations/great_expectations/pull/11493))
-* [DOCS] snowflake password deprecation ([#11416](https://github.com/great-expectations/great_expectations/pull/11416))
-* [DOCS] correct Snowflake private key guidance ([#11490](https://github.com/great-expectations/great_expectations/pull/11490))
-* [MAINTENANCE] Stop running python 3.12 marker tests on all PRs ([#11457](https://github.com/great-expectations/great_expectations/pull/11457))
-* [MAINTENANCE] Disable link checker ([#11477](https://github.com/great-expectations/great_expectations/pull/11477))
-* [MAINTENANCE] Transform legacy row_condition string into new Condition object ([#11474](https://github.com/great-expectations/great_expectations/pull/11474))
-* [MAINTENANCE] Keep `condition_parser` field intact for backwards compatibility ([#11484](https://github.com/great-expectations/great_expectations/pull/11484))
-* [MAINTENANCE] Replace broken bitnami image with apache image for spark ([#11444](https://github.com/great-expectations/great_expectations/pull/11444))
-* [MAINTENANCE] Ignore future warning Python 3.9 EOL ([#11486](https://github.com/great-expectations/great_expectations/pull/11486))
-* [MAINTENANCE] Add passthrough path for pandas and spark Condition parser ([#11480](https://github.com/great-expectations/great_expectations/pull/11480))
-* [MAINTENANCE] Constrain `row_condition` groups ([#11488](https://github.com/great-expectations/great_expectations/pull/11488))
-* [MAINTENANCE] Only install mssql drivers when needed ([#11489](https://github.com/great-expectations/great_expectations/pull/11489))
-* [MAINTENANCE] Use Suites v2 REST endpoints ([#11487](https://github.com/great-expectations/great_expectations/pull/11487))
-* [MAINTENANCE] Handle `None` parameter in `Condition`s ([#11491](https://github.com/great-expectations/great_expectations/pull/11491))
+### 1.8.1 (2025-10-30)
+
+#### Highlights
+
+- **Null checks in row conditions** — Row conditions now express null comparisons explicitly with `is_null()` and `is_not_null()` on a column, and passing `None` as the value of a comparison operator is rejected instead of silently producing an invalid condition. ([#11491](https://github.com/fivetran/great_expectations/pull/11491))
+
+  ```python
+  import great_expectations.expectations as gxe
+  from great_expectations.core.expectation_condition import Column
+
+  gxe.ExpectColumnValuesToBeBetween(
+      column="amount",
+      min_value=0,
+      row_condition=Column("cancelled_at").is_null(),
+  )
+  ```
+
+- **Legacy row condition strings keep working alongside condition objects** — Existing string-based `row_condition` values are accepted and converted into the new condition objects, the `condition_parser` field is preserved, pandas and Spark conditions have a passthrough path, and rendered expectation content displays the new condition types correctly. ([#11474](https://github.com/fivetran/great_expectations/pull/11474), [#11484](https://github.com/fivetran/great_expectations/pull/11484), [#11480](https://github.com/fivetran/great_expectations/pull/11480), [#11481](https://github.com/fivetran/great_expectations/pull/11481))
+
+- **Clearer limits on combining row conditions** — Nested `AndCondition`s are flattened automatically, while `OrCondition`s nested inside `AndCondition`s or other `OrCondition`s now raise an explicit error, as does supplying more than 100 conditions. ([#11488](https://github.com/fivetran/great_expectations/pull/11488))
+
+- **Updated Snowflake connection documentation** — The Snowflake documentation now covers the deprecation of password authentication and gives corrected guidance for configuring private key authentication. ([#11416](https://github.com/fivetran/great_expectations/pull/11416), [#11490](https://github.com/fivetran/great_expectations/pull/11490))
+
+#### Changes
+
+##### Bug fixes
+
+- Test runs no longer fail on the `google.api_core` Python 3.10 end-of-life warning. ([#11493](https://github.com/fivetran/great_expectations/pull/11493))
+- Cloud-marked tests can no longer reach the live API: unmocked HTTP requests are blocked, preventing accidental production calls during test runs. ([#11492](https://github.com/fivetran/great_expectations/pull/11492))
+- Rendered expectation content is generated correctly for the new row condition types. ([#11481](https://github.com/fivetran/great_expectations/pull/11481))
+
+##### Docs
+
+- Corrected the Snowflake private key authentication guidance. ([#11490](https://github.com/fivetran/great_expectations/pull/11490))
+- Documented the deprecation of Snowflake password authentication and the recommended alternatives. ([#11416](https://github.com/fivetran/great_expectations/pull/11416))
+
+<details>
+<summary>Maintenance</summary>
+
+- Passing `None` as the value of a column comparison in a row condition is now rejected; use `is_null()` or `is_not_null()` for null checks, and the comparison parameter is required. ([#11491](https://github.com/fivetran/great_expectations/pull/11491))
+- Expectation suites stored in GX Cloud are now read and written through the v2 REST endpoints. ([#11487](https://github.com/fivetran/great_expectations/pull/11487))
+- Microsoft SQL Server drivers are installed in CI only for the jobs that need them, and the installation script reports failures more clearly. ([#11489](https://github.com/fivetran/great_expectations/pull/11489))
+- Row condition groups are constrained: nested `AndCondition`s are flattened, `OrCondition`s nested inside `AndCondition`s or `OrCondition`s raise an error, and more than 100 conditions raises an error. ([#11488](https://github.com/fivetran/great_expectations/pull/11488))
+- Added a passthrough path for the pandas and Spark row condition parsers so existing condition expressions are handled directly. ([#11480](https://github.com/fivetran/great_expectations/pull/11480))
+- Test runs no longer surface the Python 3.9 end-of-life future warning. ([#11486](https://github.com/fivetran/great_expectations/pull/11486))
+- Spark test environments now use the Apache-published Spark image after the previously used Bitnami image was removed. ([#11444](https://github.com/fivetran/great_expectations/pull/11444))
+- The `condition_parser` field is retained for backwards compatibility so single-condition row conditions still convert to string syntax on older API versions. ([#11484](https://github.com/fivetran/great_expectations/pull/11484))
+- Legacy string `row_condition` values are transformed into the new condition objects. ([#11474](https://github.com/fivetran/great_expectations/pull/11474))
+- Disabled the documentation link checker, which was reporting too many false positives. ([#11477](https://github.com/fivetran/great_expectations/pull/11477))
+- Python 3.12 marker tests no longer run on every pull request; only the minimum and maximum supported Python versions are exercised for those events. ([#11457](https://github.com/fivetran/great_expectations/pull/11457))
+
+</details>
 
 ### 1.8.0 (2025-10-23)
 
