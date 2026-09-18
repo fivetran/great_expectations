@@ -1282,20 +1282,62 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Add Alena Hutchinson to core developers team ([#10459](https://github.com/great-expectations/great_expectations/pull/10459))
 * [MAINTENANCE] Remove Python 3.8 Support (EOL) ([#10441](https://github.com/great-expectations/great_expectations/pull/10441))
 
-### 1.0.6
-* [FEATURE] Add windows attribute to support experimental gx-cloud feature ([#10402](https://github.com/great-expectations/great_expectations/pull/10402))
-* [FEATURE] Descriptive error if open_data_docs called with no data docs ([#10439](https://github.com/great-expectations/great_expectations/pull/10439))
-* [BUGFIX] Ensure suite.render() is called when loading suites ([#10434](https://github.com/great-expectations/great_expectations/pull/10434))
-* [DOCS] Update docs for `UnexpectedRowsExpectation` ([#10391](https://github.com/great-expectations/great_expectations/pull/10391))
-* [DOCS] Exclude templates files from algolia search ([#10401](https://github.com/great-expectations/great_expectations/pull/10401)) (thanks @JessSaavedra)
-* [DOCS] DSB-1116: Reorganize and update GX Cloud deployment and architecture patterns into GX Cloud overview ([#10345](https://github.com/great-expectations/great_expectations/pull/10345))
-* [DOCS] Fix typo in overview docs ([#10429](https://github.com/great-expectations/great_expectations/pull/10429))
-* [DOCS] Go back to old search bar design ([#10409](https://github.com/great-expectations/great_expectations/pull/10409)) (thanks @JessSaavedra)
-* [DOCS] Fix styles for search bar ([#10436](https://github.com/great-expectations/great_expectations/pull/10436)) (thanks @deborahniesz)
-* [DOCS] Data quality tech doc on Volume ([#10362](https://github.com/great-expectations/great_expectations/pull/10362)) (thanks @Quantisan)
-* [MAINTENANCE] ruff `0.5.3` -> `0.6.8` ([#10442](https://github.com/great-expectations/great_expectations/pull/10442))
-* [MAINTENANCE] Add test showing expectation parameters being passed to… ([#10435](https://github.com/great-expectations/great_expectations/pull/10435))
-* [MAINTENANCE] Update expectation equality checks to ignore rendered content ([#10444](https://github.com/great-expectations/great_expectations/pull/10444))
+### 1.0.6 (2024-10-01)
+
+#### Highlights
+
+- **Clear error when opening Data Docs that haven't been built** — Calling `context.open_data_docs()` when no Data Docs have been built now raises a descriptive `NoDataDocsError` instead of failing opaquely. ([#10439](https://github.com/fivetran/great_expectations/pull/10439))
+
+  ```python
+  import great_expectations as gx
+
+  context = gx.get_context()
+  context.open_data_docs()  # raises NoDataDocsError if no Data Docs exist
+  ```
+
+- **Expectation windows for dynamic parameters** — Expectations accept a new optional `windows` field that describes temporal window definitions, enabling dynamic parameters. When empty, the field is omitted from dict serialization and serialized as `null` in JSON. ([#10402](https://github.com/fivetran/great_expectations/pull/10402))
+
+  ```python
+  import great_expectations.expectations as gxe
+
+  expectation = gxe.ExpectColumnValuesToNotBeNull(column="passenger_count", windows=None)
+  ```
+
+- **Suites render reliably when loaded** — Suites are now rendered when they are loaded, removing the runtime exceptions that came up when adding a validation definition for a freshly created suite or running checkpoints loaded from GX Cloud. ([#10434](https://github.com/fivetran/great_expectations/pull/10434))
+
+#### Changes
+
+##### Features
+
+- `open_data_docs()` now raises a descriptive `NoDataDocsError` when no Data Docs have been built. ([#10439](https://github.com/fivetran/great_expectations/pull/10439))
+- Expectations accept a new optional `windows` field for configuring temporal window definitions used by dynamic parameters. ([#10402](https://github.com/fivetran/great_expectations/pull/10402))
+
+##### Bug fixes
+
+- Fixed runtime errors caused by unrendered suites: suites are now rendered when loaded, so adding a validation definition for a newly created suite and running checkpoints loaded from GX Cloud no longer fail. ([#10434](https://github.com/fivetran/great_expectations/pull/10434))
+
+##### Docs
+
+- Added a data quality technical documentation page covering Volume. ([#10362](https://github.com/fivetran/great_expectations/pull/10362))
+- Improved the documentation search bar styling and added a hover border to the color mode toggle for visual consistency. ([#10436](https://github.com/fivetran/great_expectations/pull/10436))
+- Reverted the documentation search bar on desktop screens to the previous design after searches dropped with the minimalistic version. ([#10409](https://github.com/fivetran/great_expectations/pull/10409))
+- Fixed typos in the GX Cloud overview and deployment pattern documentation. ([#10429](https://github.com/fivetran/great_expectations/pull/10429))
+- Reorganized and updated the GX Cloud deployment and architecture pattern content into a single GX Cloud overview page. ([#10345](https://github.com/fivetran/great_expectations/pull/10345))
+- Excluded internal template pages from the documentation sitemap so they no longer appear in site search results. ([#10401](https://github.com/fivetran/great_expectations/pull/10401))
+- Updated the `UnexpectedRowsExpectation` documentation to clarify that subclassing is not required, that the `{batch}` keyword is optional, and to add a GX Cloud section on Custom SQL Expectations. ([#10391](https://github.com/fivetran/great_expectations/pull/10391))
+
+<details>
+<summary>Maintenance</summary>
+
+- Expectation equality comparisons ignore rendered content, so otherwise-identical expectations compare as equal regardless of whether they have been rendered. ([#10444](https://github.com/fivetran/great_expectations/pull/10444))
+- Added test coverage for expectation parameters being passed through to checkpoints. ([#10435](https://github.com/fivetran/great_expectations/pull/10435))
+- Updated the ruff linter from 0.5.3 to 0.6.8, including formatting and linting of Jupyter notebook files. ([#10442](https://github.com/fivetran/great_expectations/pull/10442))
+
+</details>
+
+#### Contributors
+
+Thanks to @Quantisan, @deborahniesz, @JessSaavedra.
 
 ### 1.0.5 (2024-09-19)
 
