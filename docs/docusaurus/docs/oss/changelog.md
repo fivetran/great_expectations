@@ -468,12 +468,28 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Bump express from 4.21.2 to 4.22.1 in /docs/docusaurus ([#11540](https://github.com/great-expectations/great_expectations/pull/11540))
 * [MAINTENANCE] pre-commit autoupdate ([#11539](https://github.com/great-expectations/great_expectations/pull/11539))
 
-### 1.9.1
-* [DOCS] clarify language on deploy the GX agent ([#11518](https://github.com/great-expectations/great_expectations/pull/11518))
-* [MAINTENANCE] Update exclude list ([#11517](https://github.com/great-expectations/great_expectations/pull/11517))
-* [MAINTENANCE] Deprecate string-style `row_condition`s ([#11515](https://github.com/great-expectations/great_expectations/pull/11515))
-* [MAINTENANCE] Databricks SQLAlchemy 2.0 transaction handling and connection recovery ([#11524](https://github.com/great-expectations/great_expectations/pull/11524))
-* [MAINTENANCE] [pre-commit.ci] pre-commit autoupdate ([#11502](https://github.com/great-expectations/great_expectations/pull/11502))
+### 1.9.1 (2025-11-20)
+
+#### Deprecations
+
+- String values for the `row_condition` parameter on expectations is deprecated; use Condition objects, such as `Column("age") > 18`. Removal in 2.0.0. ([#11515](https://github.com/fivetran/great_expectations/pull/11515))
+- The `condition_parser` parameter on expectations is deprecated; use Condition objects, such as `Column("age") > 18`. Removal in 2.0.0. ([#11515](https://github.com/fivetran/great_expectations/pull/11515))
+
+#### Changes
+
+##### Docs
+
+- Clarified the documentation on deploying the GX Agent, spelling out the limitations of agent-enabled deployments. ([#11518](https://github.com/fivetran/great_expectations/pull/11518))
+
+<details>
+<summary>Maintenance</summary>
+
+- Updated the pinned ruff pre-commit hook to v0.14.3. ([#11502](https://github.com/fivetran/great_expectations/pull/11502))
+- Improved SQLAlchemy 2.0 transaction handling for Databricks: commits are only attempted when a transaction is active, and connections left in a pending-rollback state are rolled back and retried automatically. ([#11524](https://github.com/fivetran/great_expectations/pull/11524))
+- Passing a string to `row_condition`, or supplying `condition_parser`, now raises a DeprecationWarning pointing to Condition objects (for example `Column("age") > 18`) instead. ([#11515](https://github.com/fivetran/great_expectations/pull/11515))
+- Updated the CI test exclude list so tests are required on Python 3.10, now the minimum supported version. ([#11517](https://github.com/fivetran/great_expectations/pull/11517))
+
+</details>
 
 ### 1.9.0 (2025-11-07)
 
