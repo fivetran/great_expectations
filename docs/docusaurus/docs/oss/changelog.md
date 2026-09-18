@@ -651,19 +651,39 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] Add typing extensions dependency to build ([#11323](https://github.com/great-expectations/great_expectations/pull/11323))
 * [MAINTENANCE] Update build commands ([#11324](https://github.com/great-expectations/great_expectations/pull/11324))
 
-### 1.5.6
-* [BUGFIX] Remove incompatible min/max types for some range expectations ([#11305](https://github.com/great-expectations/great_expectations/pull/11305))
-* [DOCS] generate SQL ([#11289](https://github.com/great-expectations/great_expectations/pull/11289))
-* [DOCS] Data Health ([#11294](https://github.com/great-expectations/great_expectations/pull/11294))
-* [DOCS] Add postgres flavors to expectation docstrings ([#11304](https://github.com/great-expectations/great_expectations/pull/11304))
-* [DOCS] pipeline architecture diagram ([#11298](https://github.com/great-expectations/great_expectations/pull/11298))
-* [DOCS] Standardize data source naming in docstrings ([#11306](https://github.com/great-expectations/great_expectations/pull/11306))
-* [DOCS] new Data Sources ([#11293](https://github.com/great-expectations/great_expectations/pull/11293))
-* [DOCS] restore link checker ([#11308](https://github.com/great-expectations/great_expectations/pull/11308))
-* [DOCS] Data Health screenshot ([#11307](https://github.com/great-expectations/great_expectations/pull/11307))
-* [MAINTENANCE] : Add scripts to clean up databricks and snowflake schemas ([#11297](https://github.com/great-expectations/great_expectations/pull/11297))
-* [MAINTENANCE] Update docstring for Postgres flavor data sources ([#11302](https://github.com/great-expectations/great_expectations/pull/11302))
-* [MAINTENANCE] cloud-snippets under test ([#11292](https://github.com/great-expectations/great_expectations/pull/11292))
+### 1.5.6 (2025-07-24)
+
+#### Highlights
+
+- **New documentation for Data Health, SQL generation, and pipeline architecture** — The docs now cover the Data Health dashboard (including a screenshot of it), generating SQL, the newly supported data sources, and a pipeline architecture diagram. ([#11294](https://github.com/fivetran/great_expectations/pull/11294), [#11307](https://github.com/fivetran/great_expectations/pull/11307), [#11289](https://github.com/fivetran/great_expectations/pull/11289), [#11293](https://github.com/fivetran/great_expectations/pull/11293), [#11298](https://github.com/fivetran/great_expectations/pull/11298))
+
+- **Range expectations reject incompatible date and datetime bounds** — ExpectColumnUniqueValueCountToBeBetween, ExpectColumnStdevToBeBetween, and ExpectColumnValueLengthsToBeBetween no longer accept date or datetime values for their min and max inputs, so these expectations now only allow bounds that make sense for the value they measure. ([#11305](https://github.com/fivetran/great_expectations/pull/11305))
+
+#### Changes
+
+##### Bug fixes
+
+- ExpectColumnUniqueValueCountToBeBetween, ExpectColumnStdevToBeBetween, and ExpectColumnValueLengthsToBeBetween no longer accept date or datetime values for their min and max inputs. ([#11305](https://github.com/fivetran/great_expectations/pull/11305))
+
+##### Docs
+
+- Added a screenshot of the new Data Health dashboard to the documentation. ([#11307](https://github.com/fivetran/great_expectations/pull/11307))
+- Restored the documentation link checker now that the new and renamed pages it covers have been published. ([#11308](https://github.com/fivetran/great_expectations/pull/11308))
+- Documented the newly supported data sources. ([#11293](https://github.com/fivetran/great_expectations/pull/11293))
+- Standardized data source naming across expectation docstrings and related schemas. ([#11306](https://github.com/fivetran/great_expectations/pull/11306))
+- Added a pipeline architecture diagram to the documentation. ([#11298](https://github.com/fivetran/great_expectations/pull/11298))
+- Expectation docstrings now list the supported Postgres flavors. ([#11304](https://github.com/fivetran/great_expectations/pull/11304))
+- Added documentation for the Data Health dashboard. ([#11294](https://github.com/fivetran/great_expectations/pull/11294))
+- Added documentation for generating SQL. ([#11289](https://github.com/fivetran/great_expectations/pull/11289))
+
+<details>
+<summary>Maintenance</summary>
+
+- Cloud documentation snippets are now covered by tests. ([#11292](https://github.com/fivetran/great_expectations/pull/11292))
+- Updated the docstring for Postgres flavor data sources. ([#11302](https://github.com/fivetran/great_expectations/pull/11302))
+- Added scheduled clean-up scripts for Databricks and Snowflake test schemas. ([#11297](https://github.com/fivetran/great_expectations/pull/11297))
+
+</details>
 
 ### 1.5.5 (2025-07-10)
 
