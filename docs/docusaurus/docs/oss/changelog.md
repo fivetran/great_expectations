@@ -326,19 +326,57 @@ This table lists every deprecated item, the version that deprecated it, and the 
 * [MAINTENANCE] remove nested actions format ([#11713](https://github.com/great-expectations/great_expectations/pull/11713))
 * [MAINTENANCE] increase expectation parameter timeout ([#11716](https://github.com/great-expectations/great_expectations/pull/11716))
 
-### 1.15.0
-* [MINORBUMP] SQL Server and Fabric Data Sources ([#11686](https://github.com/great-expectations/great_expectations/pull/11686))
-* [MINORBUMP] Add ValidationDefinition.get_unexpected_rows() ([#11711](https://github.com/great-expectations/great_expectations/pull/11711))
-* [BUGFIX] retry individual metrics when bulk resolution fails ([#11708](https://github.com/great-expectations/great_expectations/pull/11708))
-* [DOCS] reflect changes to Validate button ([#11691](https://github.com/great-expectations/great_expectations/pull/11691))
-* [DOCS] loose ends for new result format option ([#11705](https://github.com/great-expectations/great_expectations/pull/11705))
-* [DOCS] Set workspace ID for the agent ([#11709](https://github.com/great-expectations/great_expectations/pull/11709))
-* [DOCS] DOC-1168 - How to edit expectations using the API ([#11697](https://github.com/great-expectations/great_expectations/pull/11697))
-* [DOCS] Slack alerts ([#11681](https://github.com/great-expectations/great_expectations/pull/11681))
-* [MAINTENANCE] Bump immutable from 4.3.7 to 4.3.8 in /docs/docusaurus ([#11703](https://github.com/great-expectations/great_expectations/pull/11703))
-* [MAINTENANCE] Bump svgo from 3.3.2 to 3.3.3 in /docs/docusaurus ([#11701](https://github.com/great-expectations/great_expectations/pull/11701))
-* [MAINTENANCE] Bump dompurify from 3.3.1 to 3.3.2 in /docs/docusaurus ([#11706](https://github.com/great-expectations/great_expectations/pull/11706))
-* [MAINTENANCE] Suppress mypy assignment errors in Trino compatibility module ([#11707](https://github.com/great-expectations/great_expectations/pull/11707))
+### 1.15.0 (2026-03-11)
+
+#### Highlights
+
+- **Fetch all unexpected rows from an UnexpectedRowsExpectation** — `ValidationDefinition.get_unexpected_rows()` returns every failing row for an `UnexpectedRowsExpectation`, without the 200-row cap applied to validation results. Validation results also gained an `ExpectationValidationResult.expectation` property and an `ExpectationSuiteValidationResult.batch_parameters` property, so you can feed a failed result straight back in to retrieve its rows. ([#11711](https://github.com/fivetran/great_expectations/pull/11711))
+
+  ```python
+  result = validation_definition.run(batch_parameters={"year": 2026, "month": 3})
+
+  for evr in result.results:
+      if not evr.success:
+          rows = validation_definition.get_unexpected_rows(
+              evr.expectation,
+              batch_parameters=result.batch_parameters,
+          )
+          if rows:
+              write_to_quarantine(rows)
+  ```
+
+- **Documentation for SQL Server and Fabric data sources** — The docs now cover creating and using SQL Server and Microsoft Fabric data sources. ([#11686](https://github.com/fivetran/great_expectations/pull/11686))
+
+- **A single failing metric no longer fails the whole batch of metrics** — When bulk metric resolution hits an error, metrics are now retried individually, so one problematic metric no longer causes every metric in the run to error. ([#11708](https://github.com/fivetran/great_expectations/pull/11708))
+
+#### Changes
+
+##### Features
+
+- Added `ValidationDefinition.get_unexpected_rows()` to fetch all failing rows for an `UnexpectedRowsExpectation` without the 200-row cap, plus an `ExpectationValidationResult.expectation` property and an `ExpectationSuiteValidationResult.batch_parameters` property for post-run workflows. ([#11711](https://github.com/fivetran/great_expectations/pull/11711))
+
+##### Bug fixes
+
+- Fixed a regression where an error in a single metric caused every metric to fail; metrics are now retried individually when bulk resolution fails. ([#11708](https://github.com/fivetran/great_expectations/pull/11708))
+
+##### Docs
+
+- Added documentation for setting up Slack alerts. ([#11681](https://github.com/fivetran/great_expectations/pull/11681))
+- Added a section to the Manage Expectations documentation covering how to edit expectations using the API. ([#11697](https://github.com/fivetran/great_expectations/pull/11697))
+- Updated the agent deployment documentation to explain how to set a default workspace ID. ([#11709](https://github.com/fivetran/great_expectations/pull/11709))
+- Documented the new result format option in the Core docs as well as Cloud, including how `partial_unexpected_count` controls the number of values shown in `partial_missing_list`. ([#11705](https://github.com/fivetran/great_expectations/pull/11705))
+- Updated documentation to reflect the current Validate button behavior and removed references to the share button, which no longer exists. ([#11691](https://github.com/fivetran/great_expectations/pull/11691))
+- Documented support for SQL Server and Fabric data sources. ([#11686](https://github.com/fivetran/great_expectations/pull/11686))
+
+<details>
+<summary>Maintenance</summary>
+
+- Silenced new mypy assignment errors in the Trino compatibility module that appeared after the `trino` package began shipping type information. ([#11707](https://github.com/fivetran/great_expectations/pull/11707))
+- Bumped dompurify from 3.3.1 to 3.3.2 in the documentation site dependencies. ([#11706](https://github.com/fivetran/great_expectations/pull/11706))
+- Bumped svgo from 3.3.2 to 3.3.3 in the documentation site dependencies. ([#11701](https://github.com/fivetran/great_expectations/pull/11701))
+- Bumped immutable from 4.3.7 to 4.3.8 in the documentation site dependencies. ([#11703](https://github.com/fivetran/great_expectations/pull/11703))
+
+</details>
 
 ### 1.14.0 (2026-03-04)
 
