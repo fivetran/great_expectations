@@ -131,24 +131,30 @@ def _recursively_convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 #
 
 
 def ensure_row_condition_is_correct(row_condition_string) -> None:
-    """Ensure no quote nor \\\\n are introduced in row_condition string.
+    """Reject a row_condition that cannot be evaluated at all, before it is declared.
 
-    Otherwise it may cause an issue at the reload of the expectation.
-    An error is raised at the declaration of the expectations to ensure
-    the user is not doing a mistake. He can use double quotes for example.
+    A single-quoted string literal is the ordinary way to write a comparison
+    (``status == 'active'``), and JSON preserves a bare apostrophe, so quoting is not checked
+    here. The old rejection of every string containing ``'`` protected the v2 CLI's
+    notebook renderer, which interpolated the raw condition into generated Python source;
+    that renderer no longer exists, and nothing on this path embeds the condition in source
+    code. The declarative ``Expectation(row_condition=...)`` -> ``Batch.validate()`` path never
+    called this function at all, so the two paths disagreed about the same string.
+
+    A newline is still refused: ``DataFrame.query`` only evaluates single-line expressions,
+    and a condition that reaches it with a newline is reported as a failed Expectation with an
+    empty result and no explanation, so refusing here is the only place the user learns why.
+    The check sees the string, not the configured ``condition_parser``, so SQL backends - whose
+    grammars do allow newlines - are held to the same one-line rule.
 
     Parameters
     ----------
     row_condition_string : str
-        the pandas query string
+        the row condition to check
     """
-    if "'" in row_condition_string:
-        raise InvalidExpectationConfigurationError(  # noqa: TRY003 # FIXME CoP
-            f"{row_condition_string} cannot be serialized to json. "
-            "Do not introduce simple quotes in configuration."
-            "Use double quotes instead."
-        )
     if "\n" in row_condition_string:
         raise InvalidExpectationConfigurationError(  # noqa: TRY003 # FIXME CoP
-            f"{row_condition_string!r} cannot be serialized to json. Do not introduce \\n in configuration."  # noqa: E501 # FIXME CoP
+            f"{row_condition_string!r} is not a valid row_condition: it contains a newline. "
+            "A row_condition must be a single expression on one line; combine clauses with "
+            "`and` or `or` instead of breaking the condition across lines."
         )

@@ -1049,3 +1049,108 @@ def test_validator_with_exception_info_in_result():
             assert evr.exception_info is not None
             assert evr.exception_info[str(metric_id)].exception_traceback == exception_traceback
             assert evr.exception_info[str(metric_id)].exception_message == exception_message
+
+
+def _quoted_name_validator_and_batch() -> tuple[Validator, FluentBatch]:
+    """A Validator and a Batch over the same one-row-per-name dataframe.
+
+    Both are built from the same batch request so the two ways of evaluating an Expectation
+    can be compared against each other.
+    """
+    context = get_context(mode="ephemeral")
+    asset = context.data_sources.pandas_default.add_dataframe_asset("quoted_names")
+    batch_request = asset.build_batch_request(
+        options={
+            "dataframe": pd.DataFrame(
+                {
+                    "name": ["O'Brien", "Smith", "O'Connor", "Jones"],
+                    "score": [50, 60, 999, 5],
+                }
+            )
+        }
+    )
+    return context.get_validator(batch_request=batch_request), asset.get_batch(batch_request)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "row_condition",
+    [
+        pytest.param("name == 'Smith'", id="single-quoted literal"),
+        pytest.param('name == "Smith"', id="double-quoted literal"),
+    ],
+)
+def test_validator_expect_accepts_a_quoted_string_in_row_condition(row_condition: str):
+    """A quoted string literal is the ordinary way to write a comparison, so `Validator.expect_*`
+    must evaluate it instead of rejecting the call before the condition is ever parsed.
+    """
+    validator, _ = _quoted_name_validator_and_batch()
+
+    result = validator.expect_column_values_to_be_between(
+        column="score",
+        min_value=0,
+        max_value=100,
+        row_condition=row_condition,
+        condition_parser="pandas",
+    )
+
+    assert result.success
+    assert result.result["element_count"] == 1
+
+
+@pytest.mark.unit
+def test_row_condition_with_a_single_quote_behaves_the_same_on_both_paths():
+    """`Validator.expect_*()` used to reject a single-quoted `row_condition` that the declarative
+    `Expectation(...)` -> `Batch.validate()` path accepted, because only the former runs
+    `ensure_row_condition_is_correct`. The same string must not diverge between them.
+    """
+    validator, batch = _quoted_name_validator_and_batch()
+    row_condition = "name == 'Smith'"
+
+    via_validator = validator.expect_column_values_to_be_between(
+        column="score",
+        min_value=0,
+        max_value=100,
+        row_condition=row_condition,
+        condition_parser="pandas",
+    )
+    via_batch = batch.validate(
+        gxe.ExpectColumnValuesToBeBetween(
+            column="score",
+            min_value=0,
+            max_value=100,
+            row_condition=row_condition,
+            condition_parser="pandas",
+        )
+    )
+
+    assert via_validator.success == via_batch.success is True
+    assert via_validator.result["element_count"] == via_batch.result["element_count"] == 1
+
+
+@pytest.mark.unit
+def test_row_condition_across_two_lines_is_refused_for_the_real_reason():
+    """`DataFrame.query` only evaluates a single-line expression, and a condition that reaches it
+    with a newline comes back as a failed Expectation with an empty result, so the refusal stays -
+    but it has to name the constraint rather than claim a serialization limitation.
+    """
+    context = get_context(mode="ephemeral")
+    asset = context.data_sources.pandas_default.add_dataframe_asset("quoted_names")
+    validator = context.get_validator(
+        batch_request=asset.build_batch_request(
+            options={"dataframe": pd.DataFrame({"score": [1, 2]})}
+        )
+    )
+
+    with pytest.raises(gx_exceptions.InvalidExpectationConfigurationError) as exc_info:
+        validator.expect_column_values_to_be_between(
+            column="score",
+            min_value=0,
+            max_value=100,
+            row_condition="score > 1\nand score < 3",
+            condition_parser="pandas",
+        )
+
+    message = str(exc_info.value)
+    assert "newline" in message
+    assert "json" not in message.lower()
