@@ -209,14 +209,15 @@ class PandasDataPartitioner(DataPartitioner):
 
         subset_df = df.copy()
         for column_name in column_names:
-            value = batch_identifiers.get(column_name)
-            if not value:
+            # Existence, not truthiness: `0`, `""` and `False` are identifiers people partition
+            # on, and the single-column and SQLAlchemy partitioners accept all three.
+            if column_name not in batch_identifiers:
                 raise ValueError(  # noqa: TRY003 # FIXME CoP
                     f"In order for PandasExecution to `_partition_on_multi_column_values`, "
                     f"all values in column_names must also exist in batch_identifiers. "
                     f"{column_name} was not found in batch_identifiers."
                 )
-            subset_df = subset_df[subset_df[column_name] == value]
+            subset_df = subset_df[subset_df[column_name] == batch_identifiers[column_name]]
         return subset_df
 
     @staticmethod

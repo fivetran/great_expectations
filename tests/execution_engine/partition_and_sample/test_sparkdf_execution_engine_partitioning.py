@@ -70,6 +70,23 @@ def simple_multi_year_spark_df(spark_session):
     return spark_df
 
 
+@pytest.fixture
+def falsy_identifier_spark_df(spark_session):
+    """Same rows as the pandas fixture of the same name: 0, "" and False are real values here."""
+    spark_df_data: List[Tuple] = [
+        (2020, 1, True, "a"),
+        (2020, 0, False, ""),
+        (2019, 0, True, "a"),
+        (0, 0, False, ""),
+        (0, 2, True, "a"),
+    ]
+    spark_df: pyspark.DataFrame = spark_session.createDataFrame(
+        data=spark_df_data, schema=["y", "m", "flag", "code"]
+    )
+    assert spark_df.count() == 5
+    return spark_df
+
+
 @pytest.mark.parametrize(
     "partitioner_kwargs_year,num_values_in_df",
     [
@@ -591,6 +608,37 @@ def test_get_batch_with_partition_on_multi_column_values(
                 },
             )
         ).dataframe
+
+
+@pytest.mark.parametrize(
+    "column_names,batch_identifiers,expected_count",
+    [
+        pytest.param(["y", "m"], {"y": 2020, "m": 0}, 1, id="zero_as_second_identifier"),
+        pytest.param(["m"], {"m": 0}, 3, id="zero_as_only_identifier"),
+        pytest.param(["y"], {"y": 0}, 2, id="zero_year"),
+        pytest.param(["code"], {"code": ""}, 2, id="empty_string_identifier"),
+        pytest.param(["flag"], {"flag": False}, 2, id="false_identifier"),
+    ],
+)
+def test_get_batch_with_partition_on_multi_column_values_accepts_falsy_batch_identifiers(
+    falsy_identifier_spark_df,
+    basic_spark_df_execution_engine,
+    column_names,
+    batch_identifiers,
+    expected_count,
+):
+    """The Spark partitioner carried the same truthiness guard as the pandas one."""
+    partitioned_df = basic_spark_df_execution_engine.get_batch_data(
+        RuntimeDataBatchSpec(
+            batch_data=falsy_identifier_spark_df,
+            partitioner_method="_partition_on_multi_column_values",
+            partitioner_kwargs={
+                "column_names": column_names,
+                "batch_identifiers": batch_identifiers,
+            },
+        )
+    ).dataframe
+    assert partitioned_df.count() == expected_count
 
 
 def test_get_batch_with_partition_on_hashed_column_incorrect_hash_function_name(

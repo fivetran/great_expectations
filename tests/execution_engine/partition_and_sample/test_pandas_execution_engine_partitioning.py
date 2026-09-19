@@ -68,6 +68,19 @@ def simple_multi_year_pandas_df():
 
 
 @pytest.fixture
+def falsy_identifier_df() -> pd.DataFrame:
+    """A frame whose partitionable columns include 0, "" and False as real data values."""
+    return pd.DataFrame(
+        data={
+            "y": [2020, 2020, 2019, 0, 0],
+            "m": [1, 0, 0, 0, 2],
+            "flag": [True, False, True, False, True],
+            "code": ["a", "", "a", "", "a"],
+        }
+    )
+
+
+@pytest.fixture
 def test_s3_files(s3, s3_bucket, test_df_small_csv):
     keys: List[str] = [
         "path/A-100.csv",
@@ -446,6 +459,67 @@ def test_get_batch_with_partition_on_multi_column_values(test_df):
                 },
             )
         )
+
+
+@pytest.mark.unit
+def test_partition_on_multi_column_values_still_rejects_a_missing_batch_identifier(test_df):
+    """The guard is about keys that are absent, not about values that are falsy."""
+    with pytest.raises(ValueError, match="was not found in batch_identifiers"):
+        PandasExecutionEngine().get_batch_data(
+            RuntimeDataBatchSpec(
+                batch_data=test_df,
+                partitioner_method="_partition_on_multi_column_values",
+                partitioner_kwargs={
+                    "column_names": ["y", "m", "absent_column"],
+                    "batch_identifiers": {"y": 2020, "m": 1},
+                },
+            )
+        )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "column_names,batch_identifiers,expected_row_count",
+    [
+        pytest.param(["y", "m"], {"y": 2020, "m": 0}, 1, id="zero_as_second_identifier"),
+        pytest.param(["m"], {"m": 0}, 3, id="zero_as_only_identifier"),
+        pytest.param(["y"], {"y": 0}, 2, id="zero_year"),
+        pytest.param(["code"], {"code": ""}, 2, id="empty_string_identifier"),
+        pytest.param(["flag"], {"flag": False}, 2, id="false_identifier"),
+    ],
+)
+def test_partition_on_multi_column_values_accepts_falsy_batch_identifiers(
+    falsy_identifier_df, column_names, batch_identifiers, expected_row_count
+):
+    """`0`, `""` and `False` are identifiers a batch can legitimately carry.
+
+    ``partition_on_column_value`` and the SQLAlchemy partitioner both filter on them; only the
+    multi-column partitioner used to read a falsy value as a missing key.
+    """
+    partitioned_df = PandasExecutionEngine().get_batch_data(
+        RuntimeDataBatchSpec(
+            batch_data=falsy_identifier_df,
+            partitioner_method="_partition_on_multi_column_values",
+            partitioner_kwargs={
+                "column_names": column_names,
+                "batch_identifiers": batch_identifiers,
+            },
+        )
+    )
+    assert len(partitioned_df.dataframe) == expected_row_count
+
+
+@pytest.mark.unit
+def test_partition_on_multi_column_values_matches_single_column_for_a_falsy_identifier(
+    falsy_identifier_df,
+):
+    multi = PandasDataPartitioner.partition_on_multi_column_values(
+        df=falsy_identifier_df, column_names=["m"], batch_identifiers={"m": 0}
+    )
+    single = PandasDataPartitioner.partition_on_column_value(
+        df=falsy_identifier_df, column_name="m", batch_identifiers={"m": 0}
+    )
+    pd.testing.assert_frame_equal(multi, single)
 
 
 @pytest.mark.big
