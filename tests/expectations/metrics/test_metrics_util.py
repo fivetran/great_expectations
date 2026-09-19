@@ -29,6 +29,7 @@ from great_expectations.expectations.metrics.util import (
     column_reflection_fallback,
     get_dbms_compatible_metric_domain_kwargs,
     get_dialect_like_pattern_expression,
+    get_dialect_regex_expression,
     get_unexpected_indices_for_multiple_pandas_named_indices,
     get_unexpected_indices_for_single_pandas_named_index,
     sqlalchemy_select_to_sql_string,
@@ -791,6 +792,64 @@ def test_get_dialect_like_pattern_expression_is_resilient_to_missing_dialects(mo
 
     # assert
     assert expression is None
+
+
+class _ClickHouseDialectModule(ModuleType):
+    class ClickHouseDialect:
+        pass
+
+
+class _TrinoDialectModule(ModuleType):
+    class TrinoDialect:
+        pass
+
+
+def _compile_regex_expression(dialect: ModuleType, positive: bool) -> str:
+    expression = get_dialect_regex_expression(
+        column=sa.column("a"),
+        regex="test",
+        dialect=dialect,
+        positive=positive,
+    )
+    assert expression is not None
+    return str(expression.compile(compile_kwargs={"literal_binds": True}))
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "positive,expected_sql",
+    [
+        pytest.param(True, "match(a, 'test')", id="positive"),
+        pytest.param(False, "NOT match(a, 'test')", id="negative"),
+    ],
+)
+def test_get_dialect_regex_expression_uses_match_for_clickhouse(
+    positive: bool, expected_sql: str
+) -> None:
+    dialect = _ClickHouseDialectModule(name="clickhouse")
+
+    rendered = _compile_regex_expression(dialect, positive)
+
+    assert rendered == expected_sql
+    assert "regexp_like" not in rendered
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "positive,expected_sql",
+    [
+        pytest.param(True, "regexp_like(a, 'test')", id="positive"),
+        pytest.param(False, "NOT regexp_like(a, 'test')", id="negative"),
+    ],
+)
+def test_get_dialect_regex_expression_still_uses_regexp_like_for_trino(
+    positive: bool, expected_sql: str
+) -> None:
+    dialect = _TrinoDialectModule(name="trino")
+
+    rendered = _compile_regex_expression(dialect, positive)
+
+    assert rendered == expected_sql
 
 
 @pytest.mark.unit
