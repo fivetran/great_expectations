@@ -21,6 +21,7 @@ from great_expectations.compatibility.bigquery import (
     sqlalchemy_bigquery as BigQueryDialect,
 )
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
+from great_expectations.exceptions import InvalidExpectationConfigurationError
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from great_expectations.util import (
     get_clickhouse_sqlalchemy_potential_type,
@@ -150,9 +151,11 @@ def compare_column_type_list(
         for type_ in expected_types_list:
             types.extend(
                 _get_potential_sqlalchemy_types(
-                    execution_engine=execution_engine, expected_type=type_
+                    execution_engine=execution_engine, expected_type=type_, strict=False
                 )
             )
+        if not types:
+            raise _unresolvable_type_error(execution_engine, expected_types_list)
         success = isinstance(actual_column_type, tuple(types))
         return success, type(actual_column_type).__name__
 
@@ -160,6 +163,18 @@ def compare_column_type_list(
 # ---------------------------------------------------------------------------
 # Private helpers
 # ---------------------------------------------------------------------------
+
+
+def _unresolvable_type_error(
+    execution_engine: SqlAlchemyExecutionEngine, names: Sequence[str]
+) -> InvalidExpectationConfigurationError:
+    quoted = ", ".join(repr(name) for name in names)
+    noun = "type" if len(names) == 1 else "types"
+    return InvalidExpectationConfigurationError(
+        f"Unrecognized {noun}: {quoted} could not be resolved against the "
+        f"{execution_engine.dialect_name} dialect module or the generic sqlalchemy "
+        f"namespace. Check the spelling, or use a type name the dialect supports."
+    )
 
 
 def _compare_type_string(actual_column_type: Any, expected_type: str) -> bool:
@@ -173,9 +188,16 @@ def _compare_type_string(actual_column_type: Any, expected_type: str) -> bool:
     return str(actual_column_type).casefold() == expected_type.casefold()
 
 
-def _get_potential_sqlalchemy_types(
-    execution_engine: SqlAlchemyExecutionEngine, expected_type: str
+def _get_potential_sqlalchemy_types(  # noqa: C901
+    execution_engine: SqlAlchemyExecutionEngine, expected_type: str, *, strict: bool = True
 ) -> list:
+    """Resolve a type name to candidate SQLAlchemy classes.
+
+    With ``strict`` the name must resolve; an unresolvable name raises rather than
+    yielding an empty candidate list, which would make ``isinstance(value, ())``
+    unconditionally False. Callers handling a type list pass ``strict=False``, because
+    a list is allowed to name types belonging to other backends.
+    """
     types: list = []
     type_module = _get_dialect_type_module(execution_engine=execution_engine)
     try:
@@ -190,6 +212,9 @@ def _get_potential_sqlalchemy_types(
                 + "To install support, please run:"
                 + "  $ pip install 'sqlalchemy-bigquery[geography]'"
             )
+            # Missing optional support, not an unresolvable name: the warning above is
+            # actionable, so return empty rather than raising below.
+            return types
         elif type_module.__name__ == "pyathena.sqlalchemy_athena":
             potential_type = get_pyathena_potential_type(type_module, expected_type)
             # In the case of the PyAthena dialect we need to verify that
@@ -209,8 +234,18 @@ def _get_potential_sqlalchemy_types(
             types.append(potential_type)
     except AttributeError:
         logger.debug(f"Unrecognized type: {expected_type}")
-    if len(types) == 0:
-        logger.debug("No recognized sqlalchemy types in type_list for current dialect.")
+
+    if not types:
+        # A dialect module re-exports only the subset of generic types it chooses to.
+        # Oracle exports NUMBER and VARCHAR2 but not INTEGER, yet reflects an INTEGER
+        # column as a generic sqlalchemy.INTEGER.
+        generic_type = getattr(sa, expected_type, None)
+        if generic_type is not None:
+            types.append(generic_type)
+        elif strict:
+            raise _unresolvable_type_error(execution_engine, [expected_type])
+        else:
+            logger.debug(f"Unrecognized type: {expected_type}")
 
     return types
 

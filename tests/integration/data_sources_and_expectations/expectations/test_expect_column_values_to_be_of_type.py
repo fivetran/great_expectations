@@ -229,3 +229,23 @@ def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
     # The unexpected rows should contain all the string values
     unexpected_values = sorted(unexpected_rows_df[STRING_COLUMN].tolist())
     assert unexpected_values == ["a", "b", "c", "d", "e"]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[SqliteDatasourceTestConfig()],
+    data=DATA,
+)
+def test_unresolvable_type_name_raises_rather_than_reporting_a_mismatch(
+    batch_for_datasource: Batch,
+) -> None:
+    """An unresolvable type name is a configuration error, not a data mismatch.
+
+    The dialect-module lookup used to return an empty list, so the comparison became
+    ``isinstance(value, ())`` and a typo was indistinguishable from a real mismatch.
+    """
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="INTGER")
+    )
+    assert result.exception_info["raised_exception"] is True
+    assert "INTGER" in result.exception_info["exception_message"]
+    assert "sqlite" in result.exception_info["exception_message"]
