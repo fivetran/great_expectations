@@ -249,9 +249,9 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
             dialect, clickhouse_sqlalchemy.drivers.base.ClickHouseDialect
         ):
             if positive:
-                return sa.func.regexp_like(column, sqlalchemy.literal(regex))
+                return sa.func.match(column, sqlalchemy.literal(regex))
             else:
-                return sa.not_(sa.func.regexp_like(column, sqlalchemy.literal(regex)))
+                return sa.not_(sa.func.match(column, sqlalchemy.literal(regex)))
     except (
         AttributeError,
         TypeError,
