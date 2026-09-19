@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import itertools
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Union
+import warnings
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Sequence, Tuple, Union
 
 import pytest
 
@@ -15,6 +16,7 @@ from great_expectations.expectations.expectation import (
     ColumnPairMapExpectation,
     Expectation,
     MulticolumnMapExpectation,
+    QueryExpectation,
     _validate_dependencies_against_available_metrics,
 )
 from great_expectations.expectations.expectation_configuration import (
@@ -896,3 +898,91 @@ class TestGetSuccessKwarg:
         """_get_success_kwarg should return same values as _get_success_kwargs().get()."""
         exp = gxe.ExpectColumnValuesToBeInSet(column="status", value_set=["a", "b"], mostly=0.95)
         assert exp._get_success_kwarg(key) == exp._get_success_kwargs().get(key)
+
+
+_MISSING_DATA_ASSET_WARNING = "not be parameterized for a data asset"
+_HARD_CODED_REFERENCES_WARNING = "hard-coded references"
+
+
+class _QueryExpectationForConfigurationTests(QueryExpectation):
+    """A QueryExpectation that is never run, so only its query configuration is under test."""
+
+    metric_name = "probe.query_expectation"
+    query: str = "SELECT COUNT(*) FROM {batch}"
+    metric_dependencies: ClassVar[Tuple[str, ...]] = ("query.table",)
+    success_keys: ClassVar[Tuple[str, ...]] = ("query",)
+    domain_keys: ClassVar[Tuple[str, ...]] = ("batch_id", "row_condition", "condition_parser")
+
+    def _validate(self, metrics, runtime_configuration=None, execution_engine=None):
+        return {"success": True, "result": {"observed_value": None}}
+
+
+def _warnings_for_query(query: str) -> List[str]:
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        _QueryExpectationForConfigurationTests(query=query).validate_configuration()
+    return [str(record.message) for record in caught]
+
+
+def _warns(warning_texts: List[str], expected: str) -> bool:
+    return any(expected in text for text in warning_texts)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "query",
+    [
+        pytest.param("SELECT COUNT(*) FROM {batch}", id="space_delimited"),
+        pytest.param("SELECT COUNT(*) FROM {batch};", id="trailing_semicolon"),
+        pytest.param("SELECT COUNT(*) FROM {batch};\n", id="semicolon_and_newline"),
+        pytest.param(
+            "SELECT COUNT(*) FROM {batch}; -- reviewed by data team", id="comment_after_semicolon"
+        ),
+        pytest.param("SELECT\tCOUNT(*)\n\tFROM\t{batch}", id="tab_indentation"),
+        pytest.param("SELECT COUNT(*) FROM {batch}\r\nWHERE x = 1", id="crlf_line_ending"),
+        pytest.param("SELECT COUNT(*)\nFROM\n(\n{batch}\n)", id="newline_delimited_parens"),
+    ],
+)
+def test_validate_configuration_recognizes_a_parameterized_query_whatever_delimits_it(
+    query: str,
+) -> None:
+    """The renderer substitutes `{batch}` with `str.format`, whatever character follows it."""
+    assert not _warns(_warnings_for_query(query), _MISSING_DATA_ASSET_WARNING)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "query",
+    [
+        pytest.param("SELECT COUNT(*) FROM my_table", id="no_placeholder"),
+        pytest.param(
+            "SELECT COUNT(*) FROM my_table /* placeholder for {batch} added later */",
+            id="placeholder_only_in_block_comment",
+        ),
+        pytest.param(
+            "SELECT COUNT(*) FROM my_table\n-- switch this to {batch}\n",
+            id="placeholder_only_in_line_comment",
+        ),
+        pytest.param(
+            "SELECT COUNT(*) FROM my_table WHERE name = '{batch}'",
+            id="placeholder_only_in_string_literal",
+        ),
+        pytest.param(
+            "SELECT COUNT(*) FROM my_table /* don't {batch} */", id="apostrophe_in_block_comment"
+        ),
+        pytest.param("SELECT COUNT(*) FROM {{batch}}", id="escaped_braces_are_a_literal"),
+    ],
+)
+def test_validate_configuration_warns_when_the_placeholder_is_not_a_data_asset_reference(
+    query: str,
+) -> None:
+    assert _warns(_warnings_for_query(query), _MISSING_DATA_ASSET_WARNING)
+
+
+@pytest.mark.unit
+def test_a_recognized_data_asset_reference_does_not_silence_the_other_query_check() -> None:
+    """Recognizing the data asset reference must not silence the other query check."""
+    warning_texts = _warnings_for_query("SELECT a FROM {batch} WHERE a = 1")
+
+    assert not _warns(warning_texts, _MISSING_DATA_ASSET_WARNING)
+    assert _warns(warning_texts, _HARD_CODED_REFERENCES_WARNING)
