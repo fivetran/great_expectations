@@ -560,6 +560,108 @@ def test_sanitize_config_works_with_list():
 
 
 @pytest.mark.unit
+@pytest.mark.filterwarnings(
+    "ignore:SQLAlchemy is not installed*:UserWarning:great_expectations.data_context.util"
+)
+@pytest.mark.parametrize(
+    ("url", "expected"),
+    [
+        pytest.param(
+            "mssql+pyodbc://scott:tiger@h:1433/db?driver=ODBC+Driver+17&TrustServerCertificate=yes",
+            "mssql+pyodbc://scott:***@h:1433/db?driver=ODBC+Driver+17&TrustServerCertificate=yes",
+            id="query_string_survives_masking",
+        ),
+        pytest.param(
+            "postgresql://scott:tiger@h:5432/db?sslmode=require",
+            f"postgresql://scott:{PasswordMasker.MASKED_PASSWORD_STRING}@h:5432/db?sslmode=require",
+            id="single_query_parameter",
+        ),
+        pytest.param(
+            "postgresql://scott:tiger@h:5432/db#section",
+            "postgresql://scott:***@h:5432/db#section",
+            id="fragment_survives_masking",
+        ),
+        pytest.param(
+            "postgresql://scott:tiger@[::1]:5432/db?sslmode=require",
+            "postgresql://scott:***@[::1]:5432/db?sslmode=require",
+            id="ipv6_host_keeps_its_brackets",
+        ),
+        pytest.param(
+            "bigquery://my-project/dataset",
+            "bigquery://my-project/dataset",
+            id="url_without_credentials_is_left_alone",
+        ),
+        pytest.param(
+            "postgresql://scott@h:5432/db",
+            "postgresql://scott@h:5432/db",
+            id="username_without_password_is_not_given_a_masked_secret",
+        ),
+        pytest.param(
+            "mysql+pymysql://scott:tiger@/db?unix_socket=/tmp/mysql.sock",
+            "mysql+pymysql://scott:***@/db?unix_socket=/tmp/mysql.sock",
+            id="empty_host_stays_empty",
+        ),
+        pytest.param(
+            "oracle+cx_oracle://scott:tiger@tnsname?ssl_cert=/tmp/c.pem",
+            "oracle+cx_oracle://scott:***@tnsname?ssl_cert=/tmp/c.pem",
+            id="oracle_prefix_swap_keeps_query",
+        ),
+    ],
+)
+def test_mask_db_url_with_urlparse_preserves_everything_but_the_password(url, expected):
+    """The fallback must hide the secret and change nothing else about the URL.
+
+    Rebuilding the netloc from username/hostname/port dropped the query and fragment, rendered
+    an IPv6 host without brackets, and turned an absent username or password into "None".
+    """
+    assert PasswordMasker.mask_db_url(url, use_urlparse=True) == expected
+
+
+@pytest.mark.unit
+@pytest.mark.filterwarnings(
+    "ignore:SQLAlchemy is not installed*:UserWarning:great_expectations.data_context.util"
+)
+@pytest.mark.parametrize(
+    "url",
+    [
+        "mssql+pyodbc://scott:tiger@h:1433/db?driver=ODBC+Driver+17",
+        "postgresql://scott:tiger@[::1]:5432/db?sslmode=require",
+        "snowflake://user:pass@acct/db?role=PUBLIC",
+        "oracle+cx_oracle://scott:tiger@tnsname",
+    ],
+)
+def test_mask_db_url_with_urlparse_never_echoes_the_password(url):
+    """Masking is the one job this function has; the secret may not survive it anywhere."""
+    password = url.partition("://")[2].partition("@")[0].partition(":")[2]
+    masked = PasswordMasker.mask_db_url(url, use_urlparse=True)
+    assert password not in masked
+    assert PasswordMasker.MASKED_PASSWORD_STRING in masked
+
+
+@pytest.mark.unit
+@pytest.mark.filterwarnings(
+    "ignore:SQLAlchemy is not installed*:UserWarning:great_expectations.data_context.util"
+)
+def test_mask_db_url_with_urlparse_matches_sqlalchemy_rendering():
+    """Where SQLAlchemy can render the URL, the fallback should agree with it byte for byte.
+
+    This is the invariant `test_password_masker_mask_db_url` states in its docstring. Query
+    strings with more than one parameter are excluded on purpose: SQLAlchemy renders its own
+    normalised ordering and percent-encoding of a query dict, which the stdlib parser here
+    does not reproduce - the difference is ordering only, never a dropped or invented component.
+    """
+    sa = pytest.importorskip("sqlalchemy")
+    for url in [
+        "postgresql://scott:tiger@h:5432/db?sslmode=require",
+        "postgresql://scott:tiger@[::1]:5432/db?sslmode=require",
+        "postgresql://scott@h:5432/db",
+        "bigquery://my-project/dataset",
+        "sqlite:///foo/bar.db",
+    ]:
+        assert PasswordMasker.mask_db_url(url, use_urlparse=True) == sa.make_url(url).__repr__()
+
+
+@pytest.mark.unit
 def test_parse_substitution_variable():
     """
     What does this test and why?

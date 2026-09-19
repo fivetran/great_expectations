@@ -7,7 +7,7 @@ import pathlib
 import re
 import warnings
 from typing import Any, Optional
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
 from great_expectations.alias_types import PathStr  # noqa: TC001 # FIXME CoP
 from great_expectations.compatibility.pyparsing import (
@@ -271,11 +271,20 @@ class PasswordMasker:
         if parsed_url.scheme == "sqlite":
             return url
 
-        colon = ":" if parsed_url.port is not None else ""
-        masked_url = (
-            f"{parsed_url.scheme}://{parsed_url.username}:{cls.MASKED_PASSWORD_STRING}"
-            f"@{parsed_url.hostname}{colon}{parsed_url.port or ''}{parsed_url.path or ''}"
-        )
+        # Replace only the password inside the netloc and re-emit every other component the
+        # URL actually carried. Rebuilding the netloc from username/hostname/port drops the
+        # query and fragment, renders an IPv6 host without its brackets, and turns an absent
+        # username or password into the string "None", so the result describes a connection
+        # that was never configured.
+        userinfo, has_userinfo, host = parsed_url.netloc.rpartition("@")
+        if not has_userinfo:
+            masked_netloc = parsed_url.netloc
+        elif ":" in userinfo:
+            username = userinfo.partition(":")[0]
+            masked_netloc = f"{username}:{cls.MASKED_PASSWORD_STRING}@{host}"
+        else:
+            masked_netloc = f"{userinfo}@{host}"
+        masked_url = urlunparse(parsed_url._replace(netloc=masked_netloc))
 
         if replace_prefix is not None:
             masked_url = masked_url.replace(replace_prefix["temporary"], replace_prefix["original"])
