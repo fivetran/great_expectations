@@ -87,7 +87,9 @@ def test_success_for_type__INTEGER(batch_for_datasource: Batch) -> None:
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[ClickHouseDatasourceTestConfig()],
-    data=DATA,
+    # Avoid the shared all-NULL column, which the SQL harness types as a
+    # non-nullable INTEGER before ClickHouse's type overrides are applied.
+    data=pd.DataFrame({INTEGER_COLUMN: [1, 2, 3]}),
 )
 def test_clickhouse_nullable_type(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="Int64")

@@ -138,22 +138,29 @@ class TestClickHouseNullable:
 
         monkeypatch.setattr(type_comparison, "ch_types", _ClickHouseTypes)
 
-    def test_scalar_compares_and_reports_nested_type(self):
+    @pytest.mark.parametrize(
+        "expected_type, expected_success", [("BIGINT", True), ("VARCHAR", False)]
+    )
+    def test_scalar_compares_and_reports_nested_type(self, expected_type, expected_success):
         success, observed = compare_column_type(
-            self.engine, _NullableType(sa.types.BIGINT()), "BIGINT"
+            self.engine, _NullableType(sa.types.BIGINT()), expected_type
         )
 
-        assert success is True
+        assert success is expected_success
         assert observed == "BIGINT"
 
-    def test_list_compares_and_reports_nested_type(self):
+    @pytest.mark.parametrize(
+        "expected_types, expected_success",
+        [(["VARCHAR", "BIGINT"], True), (["VARCHAR", "BOOLEAN"], False)],
+    )
+    def test_list_compares_and_reports_nested_type(self, expected_types, expected_success):
         success, observed = compare_column_type_list(
             self.engine,
             _NullableType(sa.types.BIGINT()),
-            ["VARCHAR", "BIGINT"],
+            expected_types,
         )
 
-        assert success is True
+        assert success is expected_success
         assert observed == "BIGINT"
 
 
