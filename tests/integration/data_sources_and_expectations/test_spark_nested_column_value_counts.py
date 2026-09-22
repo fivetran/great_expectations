@@ -11,6 +11,11 @@ pytestmark = pytest.mark.spark
 
 
 def _get_batch(spark_session, rows):
+    # Bypasses @parameterize_batch_for_data_sources: its Spark config
+    # (SparkFilesystemCsvDatasourceTestConfig) round-trips data through a flat
+    # CSV file, which can't carry nested struct columns like Row(address=Row(...)).
+    # Same manual add_spark -> add_dataframe_asset chain as
+    # test_spark_nested_columns_unexpected_index.py, for the same reason.
     df = spark_session.createDataFrame(rows)
     context = gx.get_context(mode="ephemeral")
     asset = context.data_sources.add_spark(name="spark").add_dataframe_asset(name="people")
