@@ -171,6 +171,7 @@ class SiteBuilder:
         # three types of backends using the base
         # type of the configuration defined in the store_backend section
 
+        self.target_store: JsonSiteStore | HtmlSiteStore
         if cloud_mode:
             self.target_store = JsonSiteStore(
                 store_backend=store_backend, runtime_environment=runtime_environment
@@ -284,7 +285,10 @@ class SiteBuilder:
             )
 
     def clean_site(self) -> None:
-        self.target_store.clean_site()
+        # target_store is JsonSiteStore in cloud_mode, which has no clean_site() method.
+        # Unlike build()/get_resource_url(), this call has no cloud_mode guard today --
+        # pre-existing gap, not introduced by this typing pass. See review package.
+        self.target_store.clean_site()  # type: ignore[union-attr] # FIXME CoP
 
     def build(self, resource_identifiers=None, build_index: bool = True):
         """
@@ -312,7 +316,7 @@ class SiteBuilder:
         if self.cloud_mode:
             return
 
-        self.target_store.copy_static_assets()
+        self.target_store.copy_static_assets()  # type: ignore[union-attr] # FIXME CoP
 
         _, index_links_dict = self.site_index_builder.build(build_index=build_index)
         return (
@@ -332,7 +336,10 @@ class SiteBuilder:
         :return: URL (string)
         """
 
-        return self.target_store.get_url_for_resource(
+        # target_store is JsonSiteStore in cloud_mode, which has no get_url_for_resource()
+        # method. Like clean_site(), this call has no cloud_mode guard today -- pre-existing
+        # gap, not introduced by this typing pass. See review package.
+        return self.target_store.get_url_for_resource(  # type: ignore[union-attr] # FIXME CoP
             resource_identifier=resource_identifier, only_if_exists=only_if_exists
         )
 
@@ -859,8 +866,12 @@ diagnose and repair the underlying issue.  Detailed information follows:
                         validation_results_store_name=self.source_stores.get("profiling"),
                     )
 
-                    batch_kwargs = validation.meta.get("batch_kwargs", {})
-                    batch_spec = validation.meta.get("batch_spec", {})
+                    # get_validation_result() can return {} when no run_id is found; the
+                    # broad except below already relies on that dict lacking these
+                    # attributes to fall into the "not found" path, so narrowing here would
+                    # change behavior rather than just satisfy the type checker.
+                    batch_kwargs = validation.meta.get("batch_kwargs", {})  # type: ignore[union-attr] # FIXME CoP
+                    batch_spec = validation.meta.get("batch_spec", {})  # type: ignore[union-attr] # FIXME CoP
 
                     self.add_resource_info_to_index_links_dict(
                         index_links_dict=index_links_dict,
@@ -870,7 +881,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
                         run_id=profiling_result_key.run_id,
                         run_time=profiling_result_key.run_id.run_time,
                         run_name=profiling_result_key.run_id.run_name,
-                        asset_name=_resolve_asset_name(validation),
+                        asset_name=_resolve_asset_name(validation),  # type: ignore[arg-type] # FIXME CoP
                         batch_kwargs=batch_kwargs,
                         batch_spec=batch_spec,
                     )
@@ -913,9 +924,13 @@ diagnose and repair the underlying issue.  Detailed information follows:
                         validation_results_store_name=self.source_stores.get("validations"),
                     )
 
-                    validation_success = validation.success
-                    batch_kwargs = validation.meta.get("batch_kwargs", {})
-                    batch_spec = validation.meta.get("batch_spec", {})
+                    # get_validation_result() can return {} when no run_id is found; the
+                    # broad except below already relies on that dict lacking these
+                    # attributes to fall into the "not found" path, so narrowing here would
+                    # change behavior rather than just satisfy the type checker.
+                    validation_success = validation.success  # type: ignore[union-attr] # FIXME CoP
+                    batch_kwargs = validation.meta.get("batch_kwargs", {})  # type: ignore[union-attr] # FIXME CoP
+                    batch_spec = validation.meta.get("batch_spec", {})  # type: ignore[union-attr] # FIXME CoP
 
                     self.add_resource_info_to_index_links_dict(
                         index_links_dict=index_links_dict,
@@ -926,7 +941,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
                         validation_success=validation_success,
                         run_time=validation_result_key.run_id.run_time,
                         run_name=validation_result_key.run_id.run_name,
-                        asset_name=_resolve_asset_name(validation),
+                        asset_name=_resolve_asset_name(validation),  # type: ignore[arg-type] # FIXME CoP
                         batch_kwargs=batch_kwargs,
                         batch_spec=batch_spec,
                     )

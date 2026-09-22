@@ -36,14 +36,18 @@ class ContentBlockRenderer(Renderer):
 
     _default_content_block_styling: Dict[str, JSONValues] = {"classes": ["col-12"]}
 
-    _default_element_styling = {}
+    _default_element_styling: Dict[str, Any] = {}
+    # set by subclasses (e.g. "bullet_list", "table"); no sensible default at this level
+    _content_block_type: str
 
     @classmethod
     def validate_input(cls, render_object: Any) -> None:
         pass
 
     @classmethod
-    def render(cls, render_object: Any, **kwargs) -> Union[_rendered_component_type, Any, None]:
+    def render(  # type: ignore[override, explicit-override] # FIXME CoP
+        cls, render_object: Any, **kwargs
+    ) -> Union[RenderedComponentContent, Any, None]:
         cls.validate_input(render_object)
         exception_list_content_block: bool = kwargs.get("exception_list_content_block", False)
 
@@ -95,7 +99,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
         runtime_configuration: dict,
         data_docs_exception_message: str,
         kwargs: dict,
-    ) -> Optional[_rendered_component_type]:
+    ) -> Optional[RenderedComponentContent]:
         """Helper method to render list render_objects - refer to `render` for more context"""
         blocks = []
         has_failed_evr = (
@@ -134,7 +138,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
                     if isinstance(obj_, ExpectationValidationResult):
                         content_block_fn = cls._get_content_block_fn("_missing_content_block_fn")
                         expectation_config = obj_.expectation_config
-                        result = content_block_fn(
+                        result = content_block_fn(  # type: ignore[misc] # FIXME CoP
                             configuration=expectation_config,
                             result=obj_,
                             runtime_configuration=runtime_configuration,
@@ -155,7 +159,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
                         else cls._get_content_block_fn("_missing_content_block_fn")
                     )
                     expectation_config = obj_.expectation_config
-                    result = content_block_fn(
+                    result = content_block_fn(  # type: ignore[misc] # FIXME CoP
                         configuration=expectation_config,
                         result=obj_,
                         runtime_configuration=runtime_configuration,
@@ -246,7 +250,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
 
                 if isinstance(render_object, ExpectationValidationResult):
                     content_block_fn = cls._get_content_block_fn("_missing_content_block_fn")
-                    result = content_block_fn(
+                    result = content_block_fn(  # type: ignore[misc] # FIXME CoP
                         result=render_object,
                         runtime_configuration=runtime_configuration,
                         **kwargs,
@@ -265,7 +269,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
                     if exception_list_content_block
                     else cls._get_content_block_fn("_missing_content_block_fn")
                 )
-                result = content_block_fn(
+                result = content_block_fn(  # type: ignore[misc] # FIXME CoP
                     result=render_object,
                     runtime_configuration=runtime_configuration,
                     **kwargs,
@@ -305,7 +309,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
     @classmethod
     def _render_expectation_notes(
         cls, expectation_config: ExpectationConfiguration
-    ) -> CollapseContent:
+    ) -> Optional[CollapseContent]:
         notes = expectation_config.notes
         if not notes:
             return None
@@ -386,10 +390,10 @@ diagnose and repair the underlying issue.  Detailed information follows:
             if content_block_fn:
                 return content_block_fn
 
-        content_block_fn = get_renderer_impl(
+        renderer_impl = get_renderer_impl(
             object_name=expectation_type, renderer_type=LegacyRendererType.PRESCRIPTIVE
         )
-        return content_block_fn[1] if content_block_fn else None
+        return renderer_impl.renderer if renderer_impl else None
 
     @classmethod
     def _get_content_block_fn_from_expectation_description(

@@ -84,12 +84,6 @@ exclude = [
     'expectations/core/expect_table_columns_to_match_set\.py',                                             # 8
     'expectations/core/expect_table_columns_to_match_ordered_list\.py',                                    # 11
     'expectations/core/expect_table_column_count_to_equal\.py',                                            # 5
-    'render/renderer/content_block/content_block\.py',                                                     # 5
-    'render/renderer/content_block/exception_list_content_block\.py',                                      # 4
-    'render/renderer/page_renderer\.py',                                                                   # 10
-    'render/renderer/profiling_results_overview_section_renderer\.py',                                     # 2
-    'render/renderer/site_builder\.py',                                                                    # 3
-    'render/renderer/slack_renderer\.py',                                                                  # 9
     # tests
     'tests/datasource/data_connector',
     'tests/datasource/fluent/tasks\.py',
