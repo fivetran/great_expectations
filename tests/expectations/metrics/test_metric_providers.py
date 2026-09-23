@@ -547,6 +547,9 @@ def _substitute_batch_into_query(query: str) -> str:
         "SELECT rejoined_at FROM {batch}",
         "SELECT * FROM {batch} WHERE note = 'a JOIN b'",
         "SELECT * FROM {batch} WHERE note = 'it''s a join'",
+        "SELECT * FROM {batch} WHERE note = 'it\\'s a join'",
+        "SELECT * FROM {batch} WHERE note = 'say \\'join\\' twice'",
+        "SELECT * FROM {batch} WHERE path = 'C:\\' AND note = 'join'",
         'SELECT "join" FROM {batch}',
         "SELECT `join` FROM {batch}",
         "SELECT [join] FROM {batch}",
@@ -569,6 +572,8 @@ def test_get_substituted_batch_subquery__no_join_clause_is_aliased(query: str):
         "SELECT * FROM {batch} t1\nJOIN\n(SELECT a FROM t2) AS t2 ON t1.a = t2.a",
         "SELECT 'joined' AS c FROM {batch} t1 JOIN t2 ON t1.a = t2.a",
         "SELECT * FROM {batch} t1 JOIN t2 ON t1.a = 'x' -- join",
+        "SELECT * FROM {batch} t1 JOIN t2 ON t1.p = 'C:\\'",
+        "SELECT * FROM {batch} t1 JOIN t2 ON t1.a = 'it\\'s'",
     ],
 )
 def test_get_substituted_batch_subquery__join_clause_is_left_for_user_to_alias(query: str):

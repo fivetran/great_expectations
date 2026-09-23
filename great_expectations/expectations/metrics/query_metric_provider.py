@@ -125,20 +125,24 @@ class QueryParameters(TypedDict):
     columns: NotRequired[list[str]]
 
 
-_QUOTED_OR_COMMENT_SQL = re.compile(
-    r"'(?:[^']|'')*'"
+_QUOTED_IDENTIFIER_OR_COMMENT_SQL = (
     r'|"(?:[^"]|"")*"'
     r"|`[^`]*`"
     r"|\[[^\]]*\]"
     r"|--[^\n]*"
-    r"|/\*.*?\*/",
-    re.DOTALL,
+    r"|/\*.*?\*/"
+)
+# Whether a backslash escapes the next character depends on the dialect (it does on MySQL, it does
+# not on SQL Server or PostgreSQL), so a query only has a JOIN if it does under both readings.
+_QUOTED_OR_COMMENT_SQL = (
+    re.compile(r"'(?:[^']|'')*'" + _QUOTED_IDENTIFIER_OR_COMMENT_SQL, re.DOTALL),
+    re.compile(r"'(?:[^'\\]|\\.|'')*'" + _QUOTED_IDENTIFIER_OR_COMMENT_SQL, re.DOTALL),
 )
 _JOIN_KEYWORD = re.compile(r"\bJOIN\b", re.IGNORECASE)
 
 
 def _query_has_join_clause(query: str) -> bool:
-    return bool(_JOIN_KEYWORD.search(_QUOTED_OR_COMMENT_SQL.sub(" ", query)))
+    return all(_JOIN_KEYWORD.search(masking.sub(" ", query)) for masking in _QUOTED_OR_COMMENT_SQL)
 
 
 class QueryMetricProvider(MetricProvider):
