@@ -625,20 +625,11 @@ three are settled by count alone, independent of cause: ClickHouse fails six cas
 and SQL Server fails five, and the ceiling is two per tier. None is a candidate for
 membership-by-exclusion.
 
-- **ClickHouse fails six cases.** Two are a genuine case-vocabulary mismatch — unlike
-  Oracle's two, which fail on a name that does match. `expect_column_values_to_be_of_type` and `expect_column_values_to_be_in_type_list` declare their
-  passing configuration using `INTEGER`/`VARCHAR`, and ClickHouse spells its integer and string types
-  differently, so the declared type name never matches and the case reports a clean, non-raising
-  failure. The other four are the regex family —
-  `expect_column_values_to_match_regex`, `expect_column_values_to_match_regex_list`,
-  `expect_column_values_to_not_match_regex`, and `expect_column_values_to_not_match_regex_list` — and
-  these are the one disposition here that genuinely is a data-source property: this backend's own
-  configuration already carries a curated-tier exclusion for the same case family, with the reason on
-  record that ClickHouse has no `regexp_like` SQL function and the dialect's regex-matching path calls
-  it, so the server rejects the query. The crash observed here matches that documented cause exactly.
-  Six exceeds the ceiling of two regardless of how the four regex cases are classified, so the count
-  alone would have excluded ClickHouse from this tier even before that subsidiary note about the regex
-  family's cause.
+- **ClickHouse fails two cases.** Both are a genuine case-vocabulary mismatch — unlike
+  Oracle's two, which fail on a name that does match. `expect_column_values_to_be_of_type` and
+  `expect_column_values_to_be_in_type_list` declare their passing configuration using
+  `INTEGER`/`VARCHAR`, and ClickHouse spells its integer and string types differently, so the
+  declared type name never matches and the case reports a clean, non-raising failure.
 - **Spark fails four cases, and all four are root-caused**, not merely observed:
   `expect_column_values_to_be_increasing` and `expect_column_values_to_be_decreasing` fail from
   nondeterministic row order in Spark's parallel CSV read — repeated runs of the same case produced
