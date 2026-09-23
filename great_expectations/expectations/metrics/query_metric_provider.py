@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Sequence, Union
 
 from typing_extensions import NotRequired, TypedDict
@@ -86,6 +87,12 @@ def strip_top_level_order_by(query: str) -> str:
         return query
 
     return query[:pos].rstrip()
+
+
+def has_unquoted_join(query: str) -> bool:
+    """Check if query contains JOIN outside of string literals and matching word boundaries."""
+    query_without_literals = re.sub(r"'(?:[^']|'')*'", "", query)
+    return bool(re.search(r"\bJOIN\b", query_without_literals, flags=re.IGNORECASE))
 
 
 def render_derived_table_alias(subquery: str, alias: str, dialect_name: Optional[str]) -> str:
@@ -199,7 +206,7 @@ class QueryMetricProvider(MetricProvider):
                 dialect=execution_engine.engine.dialect, compile_kwargs={"literal_binds": True}
             )
             # all join queries require the user to have taken care of aliasing themselves
-            if "JOIN" in query.upper():
+            if has_unquoted_join(query):
                 query = query.format(batch=f"({batch})", **parameters)
             else:
                 query = query.format(

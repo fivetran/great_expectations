@@ -549,3 +549,23 @@ def test_get_sqlalchemy_records_from_query_and_batch_selectable__record_count(
         execution_engine=mock_sqlalchemy_execution_engine,
     )
     mock_sqlalchemy_fetchmany.assert_called_with(MAX_RESULT_RECORDS)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "query,expected",
+    [
+        ("SELECT * FROM table JOIN other_table ON a = b", True),
+        ("SELECT * FROM table join other_table on a = b", True),
+        ("SELECT * FROM table WHERE column = 'some_join_string'", False),
+        ("SELECT * FROM table WHERE column = 'some_join_string' JOIN another_table ON x=y", True),
+        ("SELECT * FROM table WHERE name = 'John O''Connor' AND type = 'join'", False),
+        ("SELECT * FROM table WHERE name = 'John O''Connor' JOIN another ON a=b", True),
+        ("SELECT join_date FROM table", False),
+        ("SELECT a.join_date FROM table a JOIN table b", True),
+    ],
+)
+def test_has_unquoted_join(query: str, expected: bool):
+    from great_expectations.expectations.metrics.query_metric_provider import has_unquoted_join
+
+    assert has_unquoted_join(query) == expected
