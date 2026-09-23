@@ -8,8 +8,6 @@ import pytest
 
 import great_expectations as gx
 import great_expectations.expectations as gxe
-from great_expectations.compatibility import pyspark
-from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.compatibility.pyspark import functions as F
 
 if TYPE_CHECKING:
@@ -18,10 +16,6 @@ if TYPE_CHECKING:
     )
 
 pytestmark = pytest.mark.spark
-
-_RUNS_ON_PYSPARK_4 = bool(pyspark.pyspark) and is_version_greater_or_equal(
-    pyspark.pyspark.__version__, "4.0.0"
-)
 
 
 @pytest.fixture
@@ -53,10 +47,6 @@ def test_spark_unexpected_index_query_is_valid_python(cities_df) -> None:
     compile(query, "<unexpected_index_query>", "eval")
 
 
-@pytest.mark.skipif(
-    _RUNS_ON_PYSPARK_4,
-    reason="Spark 4 renders the condition in a function-prefix grammar that F.expr cannot parse",
-)
 def test_spark_unexpected_index_query_returns_the_unexpected_rows(cities_df) -> None:
     """Evaluating the rendered query returns exactly the rows counted in unexpected_count."""
     result = _validate_city_lengths(cities_df)

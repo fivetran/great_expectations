@@ -727,6 +727,8 @@ def test_spark_single_column_complete_result_format(
     result_dict = convert_to_json_serializable(result.result)
     unexpected_index_query = result_dict.pop("unexpected_index_query")
     assert unexpected_index_query.startswith("df.filter(F.expr(")
+    assert "animals" in unexpected_index_query
+    assert all(value in unexpected_index_query for value in ("cat", "fish", "dog"))
     compile(unexpected_index_query, "<unexpected_index_query>", "eval")
     assert result_dict == {
         "element_count": 6,
@@ -790,6 +792,8 @@ def test_spark_single_column_complete_result_format_with_id_pk(
     result_dict = convert_to_json_serializable(result.result)
     unexpected_index_query = result_dict.pop("unexpected_index_query")
     assert unexpected_index_query.startswith("df.filter(F.expr(")
+    assert "animals" in unexpected_index_query
+    assert all(value in unexpected_index_query for value in ("cat", "fish", "dog"))
     compile(unexpected_index_query, "<unexpected_index_query>", "eval")
     assert result_dict == {
         "element_count": 6,

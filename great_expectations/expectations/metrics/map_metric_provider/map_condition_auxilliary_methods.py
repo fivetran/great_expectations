@@ -824,8 +824,9 @@ def _spark_map_condition_query(
     Returns query that will return all rows which do not meet an expected Expectation condition for instances
     of ColumnMapExpectation.
 
-    Converts unexpected_condition into a string that can be rendered in DataDocs and evaluated
-    as Python against the DataFrame the Expectation ran on.
+    Converts unexpected_condition into a string that can be rendered in DataDocs and is valid
+    Python syntax. Spark renders string and regex literals inside the condition unquoted, so
+    evaluating the returned query against the DataFrame can still fail for those conditions.
 
     Output will look like:
 

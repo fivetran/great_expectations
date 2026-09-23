@@ -728,6 +728,8 @@ def test_spark_unexpected_index_query_metric_with_id_pk(
     )
     for val in results.values():
         assert val.startswith("df.filter(F.expr(")
+        assert "animals" in val
+        assert all(value in val for value in ("cat", "fish", "dog"))
         compile(val, "<unexpected_index_query>", "eval")
 
 
@@ -768,4 +770,6 @@ def test_spark_unexpected_index_query_metric_without_id_pk(
     )
     for val in results.values():
         assert val.startswith("df.filter(F.expr(")
+        assert "animals" in val
+        assert all(value in val for value in ("cat", "fish", "dog"))
         compile(val, "<unexpected_index_query>", "eval")
