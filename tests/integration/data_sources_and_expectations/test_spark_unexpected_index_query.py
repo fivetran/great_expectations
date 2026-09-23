@@ -55,3 +55,21 @@ def test_spark_unexpected_index_query_returns_the_unexpected_rows(cities_df) -> 
 
     unexpected_rows = eval(query, {"df": cities_df, "F": F})
     assert unexpected_rows.count() == result.result["unexpected_count"] == 1
+
+
+def test_spark_unexpected_index_query_quotes_string_literals(cities_df) -> None:
+    """String literals in the condition are quoted, so an in-set query evaluates too."""
+    context = gx.get_context(mode="ephemeral")
+    asset = context.data_sources.add_spark(name="spark").add_dataframe_asset(name="cities")
+    batch = asset.add_batch_definition_whole_dataframe(name="cities_bd").get_batch(
+        batch_parameters={"dataframe": cities_df}
+    )
+    result = batch.validate(
+        gxe.ExpectColumnValuesToBeInSet(column="city", value_set=["nyc", "sf"]),
+        result_format="COMPLETE",
+    )
+
+    query = result.result["unexpected_index_query"]
+
+    unexpected_rows = eval(query, {"df": cities_df, "F": F})
+    assert unexpected_rows.count() == result.result["unexpected_count"] == 2

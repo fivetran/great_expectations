@@ -825,8 +825,10 @@ def _spark_map_condition_query(
     of ColumnMapExpectation.
 
     Converts unexpected_condition into a string that can be rendered in DataDocs and is valid
-    Python syntax. Spark renders string and regex literals inside the condition unquoted, so
-    evaluating the returned query against the DataFrame can still fail for those conditions.
+    Python syntax. Where Spark can resolve the condition against the domain DataFrame, the
+    condition is rendered as Spark SQL, so evaluating the returned query against that DataFrame
+    returns the unexpected rows. Otherwise (e.g. Spark Connect, or window-function conditions)
+    it falls back to the Column's display string, which may not evaluate.
 
     Output will look like:
 
@@ -843,10 +845,54 @@ def _spark_map_condition_query(
 
     (
         unexpected_condition,
-        _,
-        _,
+        compute_domain_kwargs,
+        accessor_domain_kwargs,
     ) = metrics.get("unexpected_condition", (None, None, None))
 
+    unexpected_condition_filtered = _spark_condition_as_sql(
+        execution_engine=execution_engine,
+        unexpected_condition=unexpected_condition,
+        domain_kwargs=dict(**(compute_domain_kwargs or {}), **(accessor_domain_kwargs or {})),
+    )
+    if unexpected_condition_filtered is None:
+        unexpected_condition_filtered = _spark_condition_display_string(unexpected_condition)
+    # Spark wraps the whole condition in one extra outer paren pair; strip it so the
+    # rendered query matches the historical output. The Spark 4 prefix grammar starts
+    # with a function name (never "("), so this leaves it untouched. This assumes the
+    # top-level expression is fully parenthesized as a single group (true for the
+    # conditions GX builds); it is a harmless display-only heuristic.
+    if unexpected_condition_filtered.startswith("(") and unexpected_condition_filtered.endswith(
+        ")"
+    ):
+        unexpected_condition_filtered = unexpected_condition_filtered[1:-1]
+    return f"df.filter(F.expr({unexpected_condition_filtered!r}))"
+
+
+def _spark_condition_as_sql(
+    execution_engine: SparkDFExecutionEngine,
+    unexpected_condition: Any,
+    domain_kwargs: dict,
+) -> Optional[str]:
+    """Render unexpected_condition as Spark SQL that F.expr can parse, or None if Spark can't.
+
+    A Column's display string is not SQL: Spark 3 leaves literals unquoted (``IN (a, b)``)
+    and Spark 4 uses a function-prefix grammar (``and(isnotnull(x), ...)``). Resolving the
+    condition as a filter on the domain DataFrame and reading back Catalyst's ``sql`` gives
+    parseable SQL with quoted literals on both. That needs the classic JVM-backed DataFrame,
+    and fails analysis for conditions a filter can't hold (e.g. window functions), in which
+    case None is returned.
+    """
+    try:
+        df = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
+        plan = df.filter(unexpected_condition)._jdf.queryExecution().analyzed()
+        if plan.getClass().getSimpleName() != "Filter":
+            return None
+        return plan.condition().sql()
+    except Exception:
+        return None
+
+
+def _spark_condition_display_string(unexpected_condition: Any) -> str:
     # unexpected_condition is a Column object whose str representation is wrapped in
     # Column<'...'> syntax, e.g. Column<'[unexpected_expression]'>.
     # Strip that wrapper generically. Spark renders the inner expression differently
@@ -859,16 +905,7 @@ def _spark_map_condition_query(
         unexpected_condition_filtered = unexpected_condition_filtered[len("Column<'") :]
     if unexpected_condition_filtered.endswith("'>"):
         unexpected_condition_filtered = unexpected_condition_filtered[:-2]
-    # Spark 3 wraps the whole condition in one extra outer paren pair; strip it so the
-    # rendered query matches the historical output. The Spark 4 prefix grammar starts
-    # with a function name (never "("), so this leaves it untouched. This assumes the
-    # top-level expression is fully parenthesized as a single group (true for the
-    # conditions GX builds); it is a harmless display-only heuristic.
-    if unexpected_condition_filtered.startswith("(") and unexpected_condition_filtered.endswith(
-        ")"
-    ):
-        unexpected_condition_filtered = unexpected_condition_filtered[1:-1]
-    return f"df.filter(F.expr({unexpected_condition_filtered!r}))"
+    return unexpected_condition_filtered
 
 
 def _generate_temp_table(
