@@ -80,7 +80,7 @@ class ValidationResultsPageRenderer(Renderer):
         # meta is typed as ExpectationSuiteValidationResultMeta | dict | None, so
         # .get() widens to `object`; in practice these entries are always dicts.
         batch_kwargs = cast(
-            Dict[str, Any],
+            "Dict[str, Any]",
             validation_results.meta.get("batch_kwargs", {})
             or validation_results.meta.get("batch_spec", {})
             or {},
