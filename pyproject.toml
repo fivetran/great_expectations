@@ -91,9 +91,6 @@ exclude = [
     'render/renderer/site_builder\.py',                                                                    # 3
     'render/renderer/slack_renderer\.py',                                                                  # 9
     # tests
-    'tests/datasource/data_connector',
-    'tests/datasource/fluent/tasks\.py',
-    'tests/datasource/test_datasource_dict\.py',
 ]
 
 [[tool.mypy.overrides]]

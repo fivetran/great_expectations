@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Any, Callable, cast
+from great_expectations.compatibility.typing_extensions import override
 
 import pytest
 
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
 
 
 class DatasourceStoreSpy(DatasourceStore):
-    def __init__(self, datasource_configs: list[dict] | None = None) -> None:
+    def __init__(self, datasource_configs: list[Any] | None = None) -> None:
         self.list_keys_count = 0
         self.get_all_count = 0
         self.has_key_count = 0
@@ -40,26 +41,32 @@ class DatasourceStoreSpy(DatasourceStore):
         self.get_count = 0
         self.remove_key_count = 0
 
+    @override
     def get(self, key):
         self.get_count += 1
         return super().get(key)
 
+    @override
     def get_all(self):
         self.get_all_count += 1
         return super().get_all()
 
+    @override
     def set(self, key, value, **kwargs):
         self.set_count += 1
         return super().set(key, value, **kwargs)
 
+    @override
     def list_keys(self):
         self.list_keys_count += 1
         return super().list_keys()
 
+    @override
     def has_key(self, key) -> bool:
         self.has_key_count += 1
         return super().has_key(key)
 
+    @override
     def remove_key(self, key):
         self.remove_key_count += 1
         return super().remove_key(key)
@@ -70,7 +77,7 @@ def build_datasource_dict_with_store_spy(
     in_memory_runtime_context: EphemeralDataContext,
 ) -> Callable:
     def _build_datasource_dict_with_store_spy(
-        datasource_configs: list[dict] | None = None,
+        datasource_configs: list[Any] | None = None,
     ) -> DatasourceDict:
         return DatasourceDict(
             context=in_memory_runtime_context,
@@ -101,7 +108,7 @@ def pandas_fds(pandas_fds_name: str) -> PandasDatasource:
 def test_datasource_dict_data_property_requests_store_just_in_time(
     empty_datasource_dict: DatasourceDict,
 ):
-    store = empty_datasource_dict._datasource_store
+    store = cast(DatasourceStoreSpy, empty_datasource_dict._datasource_store)
 
     assert store.get_all_count == 0
     _ = empty_datasource_dict.data
@@ -112,7 +119,7 @@ def test_datasource_dict_data_property_requests_store_just_in_time(
 def test_datasource_dict___contains___requests_store_just_in_time(
     empty_datasource_dict: DatasourceDict,
 ):
-    store = empty_datasource_dict._datasource_store
+    store = cast(DatasourceStoreSpy, empty_datasource_dict._datasource_store)
 
     assert store.get_all_count == 0
     _ = "foo" in empty_datasource_dict.data
@@ -123,7 +130,7 @@ def test_datasource_dict___contains___requests_store_just_in_time(
 def test_datasource_dict___setitem___(
     empty_datasource_dict: DatasourceDict, pandas_fds: PandasDatasource
 ):
-    store = empty_datasource_dict._datasource_store
+    store = cast(DatasourceStoreSpy, empty_datasource_dict._datasource_store)
     assert store.set_count == 0
 
     empty_datasource_dict[pandas_fds.name] = pandas_fds
@@ -134,7 +141,7 @@ def test_datasource_dict___setitem___(
 def test_datasource_dict___delitem__raises_key_error_on_store_miss(
     empty_datasource_dict: DatasourceDict,
 ):
-    store = empty_datasource_dict._datasource_store
+    store = cast(DatasourceStoreSpy, empty_datasource_dict._datasource_store)
     assert store.remove_key_count == 0
 
     with pytest.raises(KeyError):
@@ -159,7 +166,7 @@ def test_datasource_dict___getitem___(
     build_datasource_dict_with_store_spy: Callable, pandas_fds: PandasDatasource
 ):
     datasource_dict = build_datasource_dict_with_store_spy(datasource_configs=[pandas_fds])
-    store = datasource_dict._datasource_store
+    store = cast(DatasourceStoreSpy, datasource_dict._datasource_store)
     assert store.get_count == 0
 
     retrieved_fds = datasource_dict[pandas_fds.name]
@@ -172,7 +179,7 @@ def build_cacheable_datasource_dict_with_store_spy(
     in_memory_runtime_context: EphemeralDataContext,
 ) -> Callable:
     def _build_cacheable_datasource_dict_with_store_spy(
-        datasource_configs: list[dict] | None = None,
+        datasource_configs: list[Any] | None = None,
         populate_cache: bool = True,
     ) -> CacheableDatasourceDict:
         datasource_dict = CacheableDatasourceDict(
@@ -183,7 +190,7 @@ def build_cacheable_datasource_dict_with_store_spy(
         # Populate cache
         if populate_cache and datasource_configs:
             for ds in datasource_configs:
-                datasource_dict.data[ds.name] = ds
+                datasource_dict.data[ds.name] = ds  # type: ignore[assignment]
 
         return datasource_dict
 
@@ -212,7 +219,7 @@ def cacheable_datasource_dict_with_fds(
 def test_cacheable_datasource_dict___contains___uses_cache(
     cacheable_datasource_dict_with_fds: CacheableDatasourceDict, pandas_fds_name: str
 ):
-    store = cacheable_datasource_dict_with_fds._datasource_store
+    store = cast(DatasourceStoreSpy, cacheable_datasource_dict_with_fds._datasource_store)
 
     assert store.get_count == 0
     # Lookup will not check store due to presence in cache
@@ -224,7 +231,7 @@ def test_cacheable_datasource_dict___contains___uses_cache(
 def test_cacheable_datasource_dict___contains___requests_store_upon_cache_miss(
     cacheable_datasource_dict_with_fds: CacheableDatasourceDict,
 ):
-    store = cacheable_datasource_dict_with_fds._datasource_store
+    store = cast(DatasourceStoreSpy, cacheable_datasource_dict_with_fds._datasource_store)
 
     assert store.get_count == 0
     assert store.has_key_count == 0
@@ -240,7 +247,7 @@ def test_cacheable_datasource_dict___setitem___(
     empty_cacheable_datasource_dict: CacheableDatasourceDict,
     pandas_fds: PandasDatasource,
 ):
-    store = empty_cacheable_datasource_dict._datasource_store
+    store = cast(DatasourceStoreSpy, empty_cacheable_datasource_dict._datasource_store)
     assert store.set_count == 0
 
     # FDS are not persisted with stores (only cache)
@@ -252,7 +259,7 @@ def test_cacheable_datasource_dict___setitem___(
 def test_cacheable_datasource_dict___delitem__raises_key_error_on_store_miss(
     empty_cacheable_datasource_dict: CacheableDatasourceDict,
 ):
-    store = empty_cacheable_datasource_dict._datasource_store
+    store = cast(DatasourceStoreSpy, empty_cacheable_datasource_dict._datasource_store)
     assert store.remove_key_count == 0
 
     with pytest.raises(KeyError):
@@ -281,7 +288,7 @@ def test_cacheable_datasource_dict___getitem___with_fds(
         datasource_configs=[pandas_fds],
         populate_cache=False,
     )
-    store = datasource_dict._datasource_store
+    store = cast(DatasourceStoreSpy, datasource_dict._datasource_store)
     assert store.get_count == 0
 
     retrieved_fds = datasource_dict[pandas_fds.name]
