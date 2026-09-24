@@ -1378,8 +1378,8 @@ def test_get_dialect_regex_expression_stubs_are_mutually_exclusive() -> None:
         pytest.param("bigquery", False, "NOT REGEXP_CONTAINS(a, 'test')", id="bigquery-negative"),
         pytest.param("trino", True, "regexp_like(a, 'test')", id="trino-positive"),
         pytest.param("trino", False, "NOT regexp_like(a, 'test')", id="trino-negative"),
-        pytest.param("clickhouse", True, "regexp_like(a, 'test')", id="clickhouse-positive"),
-        pytest.param("clickhouse", False, "NOT regexp_like(a, 'test')", id="clickhouse-negative"),
+        pytest.param("clickhouse", True, "match(a, 'test')", id="clickhouse-positive"),
+        pytest.param("clickhouse", False, "NOT match(a, 'test')", id="clickhouse-negative"),
         pytest.param("dremio", True, "REGEXP_MATCHES(a, 'test')", id="dremio-positive"),
         pytest.param("dremio", False, "NOT REGEXP_MATCHES(a, 'test')", id="dremio-negative"),
         pytest.param(
