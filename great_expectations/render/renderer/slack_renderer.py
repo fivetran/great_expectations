@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 
 class SlackRenderer(Renderer):
-    def render(
+    def render(  # type: ignore[override, explicit-override] # FIXME CoP
         self,
         validation_result: ExpectationSuiteValidationResult,
         data_docs_pages: dict[ValidationResultIdentifier, dict[str, str]] | None = None,
@@ -113,9 +113,8 @@ class SlackRenderer(Renderer):
         }
 
     def _build_run_time_block(self, run_id: RunIdentifier) -> dict:
-        if run_id is not None:
-            run_time = datetime.fromisoformat(str(run_id.run_time))
-            formatted_run_time = run_time.strftime("%Y/%m/%d %I:%M %p")
+        run_time = datetime.fromisoformat(str(run_id.run_time))
+        formatted_run_time = run_time.strftime("%Y/%m/%d %I:%M %p")
         return {
             "type": "section",
             "text": {"type": "plain_text", "text": f"Runtime: {formatted_run_time}"},
@@ -164,7 +163,7 @@ class SlackRenderer(Renderer):
                     link used to generate the docs link is: {docs_link} and is of type: {type(docs_link)}.
                     Error: {e}"""  # noqa: E501 # FIXME CoP
                 )
-                return
+                return None
         else:
             logger.warning("No docs link found. Skipping data docs link in Slack message.")
         return report_element

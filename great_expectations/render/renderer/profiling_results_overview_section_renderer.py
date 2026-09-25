@@ -17,7 +17,7 @@ from great_expectations.render.renderer.renderer import Renderer
 
 class ProfilingResultsOverviewSectionRenderer(Renderer):
     @classmethod
-    def render(cls, evrs, section_name=None):
+    def render(cls, evrs, section_name=None):  # type: ignore[explicit-override] # FIXME CoP
         content_blocks = []
         # NOTE: I don't love the way this builds content_blocks as a side effect.
         # The top-level API is clean and scannable, but the function internals are counterintutitive and hard to test.  # noqa: E501 # FIXME CoP
@@ -137,12 +137,12 @@ class ProfilingResultsOverviewSectionRenderer(Renderer):
 
     @classmethod
     def _render_expectation_types(cls, evrs, content_blocks) -> None:
-        type_counts = defaultdict(int)
+        type_counts: defaultdict[str, int] = defaultdict(int)
 
         for evr in evrs.results:
             type_counts[evr.expectation_config.type] += 1
 
-        bullet_list_items = sorted(type_counts.items(), key=lambda kv: -1 * kv[1])
+        type_count_pairs = sorted(type_counts.items(), key=lambda kv: -1 * kv[1])
 
         bullet_list_items = [
             RenderedStringTemplateContent(
@@ -173,7 +173,7 @@ class ProfilingResultsOverviewSectionRenderer(Renderer):
                 },
                 styling={"parent": {"styles": {"list-style-type": "none"}}},
             )
-            for tr in bullet_list_items
+            for tr in type_count_pairs
         ]
 
         bullet_list = RenderedBulletListContent(

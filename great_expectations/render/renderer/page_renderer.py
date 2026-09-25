@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import os
 from collections import OrderedDict, defaultdict
-from typing import TYPE_CHECKING, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Union, cast
 
 from dateutil.parser import parse
 
@@ -69,7 +69,7 @@ class ValidationResultsPageRenderer(Renderer):
         self._data_context = data_context
 
     # TODO: deprecate dual batch api support in 0.14
-    def render(
+    def render(  # type: ignore[override, explicit-override] # FIXME CoP
         self,
         validation_results: ExpectationSuiteValidationResult,
         suite_parameters=None,
@@ -77,10 +77,13 @@ class ValidationResultsPageRenderer(Renderer):
         # Gather run identifiers
         run_name, run_time = self._parse_run_values(validation_results)
         expectation_suite_name = validation_results.suite_name
-        batch_kwargs = (
+        # meta is typed as ExpectationSuiteValidationResultMeta | dict | None, so
+        # .get() widens to `object`; in practice these entries are always dicts.
+        batch_kwargs = cast(
+            "Dict[str, Any]",
             validation_results.meta.get("batch_kwargs", {})
             or validation_results.meta.get("batch_spec", {})
-            or {}
+            or {},
         )
 
         # Add datasource key to batch_kwargs if missing
@@ -152,7 +155,7 @@ class ValidationResultsPageRenderer(Renderer):
 
         return run_name, run_time
 
-    def _group_evrs_by_column(
+    def _group_evrs_by_column(  # type: ignore[override, explicit-override] # FIXME CoP
         self,
         validation_results: ExpectationSuiteValidationResult,
         expectation_suite_name: str,
@@ -168,6 +171,8 @@ class ValidationResultsPageRenderer(Renderer):
             suite_meta = None
         meta_properties_to_render = self._get_meta_properties_notes(suite_meta)
         for evr in validation_results.results:
+            # A validation result's EVRs always carry the config that produced them.
+            assert evr.expectation_config is not None
             if meta_properties_to_render is not None:
                 evr.expectation_config.kwargs["meta_properties_to_render"] = (
                     meta_properties_to_render
@@ -644,7 +649,7 @@ class ExpectationSuitePageRenderer(Renderer):
 
         return expectations_by_column, sorted_columns
 
-    def render(self, expectations):
+    def render(self, expectations):  # type: ignore[explicit-override] # FIXME CoP
         if isinstance(expectations, dict):
             expectations = ExpectationSuite(**expectations, data_context=None)
         (
@@ -856,7 +861,7 @@ class ProfilingResultsPageRenderer(Renderer):
                 class_name=column_section_renderer["class_name"],
             )
 
-    def render(self, validation_results):  # noqa: C901, PLR0912 # FIXME CoP
+    def render(self, validation_results):  # type: ignore[explicit-override] # noqa: C901, PLR0912 # FIXME CoP
         run_id = validation_results.meta.get("run_id")
         run_name = run_time = "__none__"
         if isinstance(run_id, str):
