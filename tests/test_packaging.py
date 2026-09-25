@@ -193,7 +193,7 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
     )
 
     # Polish and ratchet this number down as low as possible
-    assert len(sorted_packages_with_pins_or_upper_bounds) == 35
+    assert len(sorted_packages_with_pins_or_upper_bounds) == 38
     assert set(sorted_packages_with_pins_or_upper_bounds) == {
         (
             "requirements-dev-api-docs-test.txt",
@@ -207,6 +207,9 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         ("requirements-dev-excel.txt", "xlrd", (("<", "2.0.0"), (">=", "1.1.0"))),
         ("requirements-dev-lite.txt", "moto", (("<", "5.0"), (">=", "4.2.13"))),
         ("requirements-dev-lite.txt", "pact-python", (("<", "4"), (">=", "3.1.0"))),
+        # SQLAlchemy 2.1 is capped until GX and its dialects support it; drop these three
+        # entries when the cap is lifted.
+        ("requirements-dev-lite.txt", "sqlalchemy", (("<", "2.1"), (">=", "1.4.0"))),
         ("requirements-dev-pagerduty.txt", "pypd", (("==", "1.1.0"),)),
         (
             "requirements-dev-spark.txt",
@@ -227,6 +230,7 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
             (("==", "17.0.0.5"),),
         ),
         ("requirements-dev-sqlalchemy1.txt", "sqlalchemy", (("<", "2.0.0"),)),
+        ("requirements-dev-sqlalchemy2.txt", "sqlalchemy", (("<", "2.1"), (">=", "2.0"))),
         (
             "requirements-dev-teradata.txt",
             "teradatasqlalchemy",
@@ -237,6 +241,7 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         ("requirements-dev-test.txt", "docstring-parser", (("==", "0.16"),)),
         ("requirements-dev-test.txt", "moto", (("<", "5.0"), (">=", "4.2.13"))),
         ("requirements-dev-test.txt", "pact-python", (("<", "4"), (">=", "3.1.0"))),
+        ("requirements-dev-test.txt", "sqlalchemy", (("<", "2.1"), (">=", "1.4.0"))),
         ("requirements-dev.txt", "adr-tools-python", (("==", "1.0.3"),)),
         ("requirements-dev.txt", "altair", (("<", "7.0.0"), (">=", "5.0.0"))),
         ("requirements-dev.txt", "docstring-parser", (("==", "0.16"),)),
