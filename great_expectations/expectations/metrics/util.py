@@ -52,6 +52,12 @@ except (ImportError, KeyError):
     sqlalchemy_psycopg2 = None  # type: ignore[assignment] # FIXME CoP
 
 try:
+    # The dialect module for psycopg (3); importing it does not import psycopg itself.
+    import sqlalchemy.dialects.postgresql.psycopg as sqlalchemy_psycopg  # noqa: TID251 # dialect only
+except (ImportError, KeyError):
+    sqlalchemy_psycopg = None  # type: ignore[assignment] # absent before SQLAlchemy 2.0
+
+try:
     import snowflake
 except ImportError:
     snowflake = None
@@ -193,16 +199,11 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
             dialect.dialect,  # type: ignore[union-attr] # FIXME CoP
             snowflake.sqlalchemy.snowdialect.SnowflakeDialect,
         ):
+            match_count = sa.func.REGEXP_COUNT(column, sqlalchemy.literal(regex))
             if positive:
-                return sqlalchemy.BinaryExpression(
-                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("REGEXP")
-                )
+                return match_count > 0
             else:
-                return sqlalchemy.BinaryExpression(
-                    column,
-                    sqlalchemy.literal(regex),
-                    sqlalchemy.custom_op("NOT REGEXP"),
-                )
+                return match_count == 0
     except (
         AttributeError,
         TypeError,
@@ -323,7 +324,13 @@ def attempt_allowing_relative_error(dialect):
         actual_sql_engine_dialect=dialect,
         candidate_sql_engine_dialect=sqlalchemy_psycopg2.PGDialect_psycopg2,
     )
-    return detected_redshift or detected_psycopg2
+    # psycopg (3) is what a driverless postgresql:// URL selects from SQLAlchemy 2.1 on, so it
+    # has to behave like psycopg2 here for that URL to behave the same across versions.
+    detected_psycopg: bool = sqlalchemy_psycopg is not None and check_sql_engine_dialect(
+        actual_sql_engine_dialect=dialect,
+        candidate_sql_engine_dialect=sqlalchemy_psycopg.PGDialect_psycopg,
+    )
+    return detected_redshift or detected_psycopg2 or detected_psycopg
 
 
 class CaseInsensitiveString(str):
@@ -470,10 +477,15 @@ def _get_columns_from_selectable(
         if not is_quoted_name:
             logger.warning("unexpected table_selectable type")
 
-        return inspector.get_columns(
-            table_name=table_selectable if is_quoted_name else str(table_selectable),
-            schema=schema_name,
-        )
+        table_name = table_selectable if is_quoted_name else str(table_selectable)
+        if inspector.dialect.name == GXSqlDialect.SQL_SERVER:
+            # SQL Server matches object names by the database collation, not by quoting, so
+            # quoting adds nothing to reflection there. It does break it on SQLAlchemy 2.1,
+            # which maps the server's spelling of a table name back to the caller's with
+            # `.lower()`: a quoted name does not lower-case, so one whose case differs from
+            # the stored name is reported as missing.
+            table_name = str(table_name)
+        return inspector.get_columns(table_name=table_name, schema=schema_name)
     except (KeyError, AttributeError, sa.exc.NoSuchTableError, sa.exc.ProgrammingError) as exc:
         logger.debug(f"{type(exc).__name__} while introspecting columns", exc_info=exc)
         logger.info(f"While introspecting columns {exc!r}; attempting reflection fallback")

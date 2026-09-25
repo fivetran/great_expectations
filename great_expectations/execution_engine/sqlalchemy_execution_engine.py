@@ -36,6 +36,7 @@ __version__ = get_versions()["version"]  # isort:skip
 from great_expectations._docs_decorators import new_method_or_class
 from great_expectations.compatibility import snowflake, sqlalchemy
 from great_expectations.compatibility.not_imported import is_version_greater_or_equal
+from great_expectations.compatibility.postgresql import resolve_postgresql_driver
 from great_expectations.compatibility.sqlalchemy import (
     ColumnElement,
     DatabaseError,
@@ -511,19 +512,25 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                 connection_string=connection_string, credentials=credentials, url=url
             ):
                 self.engine = sa.create_engine(
-                    connection_string, **kwargs, poolclass=sqlalchemy.StaticPool
+                    resolve_postgresql_driver(connection_string),
+                    **kwargs,
+                    poolclass=sqlalchemy.StaticPool,
                 )
             else:
-                self.engine = sa.create_engine(connection_string, **kwargs)
+                self.engine = sa.create_engine(
+                    resolve_postgresql_driver(connection_string), **kwargs
+                )
         elif url is not None:
             parsed_url = make_url(url)
             self.drivername = parsed_url.drivername
             if _dialect_requires_persisted_connection(
                 connection_string=connection_string, credentials=credentials, url=url
             ):
-                self.engine = sa.create_engine(url, **kwargs, poolclass=sqlalchemy.StaticPool)
+                self.engine = sa.create_engine(
+                    resolve_postgresql_driver(url), **kwargs, poolclass=sqlalchemy.StaticPool
+                )
             else:
-                self.engine = sa.create_engine(url, **kwargs)
+                self.engine = sa.create_engine(resolve_postgresql_driver(url), **kwargs)
         else:
             raise InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 "Credentials or an engine are required for a SqlAlchemyExecutionEngine."
@@ -584,10 +591,12 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
         self.drivername = drivername
         if _dialect_requires_persisted_connection(credentials=credentials):
             engine = sa.create_engine(
-                options, **create_engine_kwargs, poolclass=sqlalchemy.StaticPool
+                resolve_postgresql_driver(options),
+                **create_engine_kwargs,
+                poolclass=sqlalchemy.StaticPool,
             )
         else:
-            engine = sa.create_engine(options, **create_engine_kwargs)
+            engine = sa.create_engine(resolve_postgresql_driver(options), **create_engine_kwargs)
 
         return engine
 

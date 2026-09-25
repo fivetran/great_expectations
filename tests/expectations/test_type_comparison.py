@@ -678,6 +678,47 @@ class TestSQLiteList:
 
 
 # ===========================================================================
+# "Numeric" matches floating-point columns on every SQLAlchemy version
+# ===========================================================================
+
+# Floating-point types as reflection returns them. SQLAlchemy 2.1 made Float a sibling of
+# Numeric instead of a subclass; before 2.1 each of these is an instance of Numeric.
+_FLOATING_POINT_TYPES = [
+    sa.types.Float(),
+    sa.types.FLOAT(),
+    sa.types.REAL(),
+    sa.dialects.postgresql.DOUBLE_PRECISION(),
+    sa.dialects.mysql.DOUBLE(),
+]
+
+
+class TestNumericMatchesFloatingPoint:
+    engine = _StubEngine("sqlite", dialect_module=sa)
+
+    @pytest.mark.parametrize("actual_type", _FLOATING_POINT_TYPES)
+    def test_scalar(self, actual_type):
+        success, observed = compare_column_type(self.engine, actual_type, "Numeric")
+        assert success is True
+        assert observed == type(actual_type).__name__
+
+    @pytest.mark.parametrize("actual_type", _FLOATING_POINT_TYPES)
+    def test_list(self, actual_type):
+        success, _obs = compare_column_type_list(self.engine, actual_type, ["__WRONG__", "Numeric"])
+        assert success is True
+
+    @pytest.mark.parametrize(
+        "actual_type", [sa.types.INTEGER(), sa.types.VARCHAR(), sa.types.DATE()]
+    )
+    def test_non_numeric_types_still_do_not_match(self, actual_type):
+        success, _obs = compare_column_type(self.engine, actual_type, "Numeric")
+        assert success is False
+
+    def test_float_does_not_match_a_fixed_point_column(self):
+        success, _obs = compare_column_type(self.engine, sa.types.NUMERIC(), "Float")
+        assert success is False
+
+
+# ===========================================================================
 # MySQL (isinstance path)
 # ===========================================================================
 
