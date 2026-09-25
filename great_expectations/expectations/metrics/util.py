@@ -470,10 +470,15 @@ def _get_columns_from_selectable(
         if not is_quoted_name:
             logger.warning("unexpected table_selectable type")
 
-        return inspector.get_columns(
-            table_name=table_selectable if is_quoted_name else str(table_selectable),
-            schema=schema_name,
-        )
+        table_name = table_selectable if is_quoted_name else str(table_selectable)
+        if inspector.dialect.name == GXSqlDialect.SQL_SERVER:
+            # SQL Server matches object names by the database collation, not by quoting, so
+            # quoting adds nothing to reflection there. It does break it on SQLAlchemy 2.1,
+            # which maps the server's spelling of a table name back to the caller's with
+            # `.lower()`: a quoted name does not lower-case, so one whose case differs from
+            # the stored name is reported as missing.
+            table_name = str(table_name)
+        return inspector.get_columns(table_name=table_name, schema=schema_name)
     except (KeyError, AttributeError, sa.exc.NoSuchTableError, sa.exc.ProgrammingError) as exc:
         logger.debug(f"{type(exc).__name__} while introspecting columns", exc_info=exc)
         logger.info(f"While introspecting columns {exc!r}; attempting reflection fallback")
