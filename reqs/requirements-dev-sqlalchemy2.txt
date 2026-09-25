@@ -13,5 +13,5 @@
 # Tempory pins for type checking step
 # TODO: update these pins in their respective requirements files and remove from here
 snowflake-sqlalchemy>=1.6,!=1.7.0  # min version required for sqlalchemy 2.0
-sqlalchemy>=2.0,<2.1 # capped with requirements-dev-lite.txt
+sqlalchemy>=2.0
 sqlalchemy-bigquery>=1.11.0 # min version required for sqlalchemy 2.0
