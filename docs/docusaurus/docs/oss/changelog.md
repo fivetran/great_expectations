@@ -45,6 +45,68 @@ This table lists every deprecated item, the version that deprecated it, and the 
 | `gx-redshift` install extra (alias of `redshift`) | 1.21.0 | 2.0.0 | `great_expectations[redshift]` |
 | `CloudDataContext` and cloud mode of `get_context(...)` | 1.18.0 | 2.0.0 | `gx.get_context(mode="file")` or `mode="ephemeral"` |
 
+### 1.23.2 (2026-09-25)
+
+#### Highlights
+
+- **SQLAlchemy 2.1 support** — Great Expectations now runs on SQLAlchemy 2.1 for every backend whose dialect supports it, and the library-wide `<2.1` cap is lifted. On Python 3.11+, the `postgresql`, `mysql`, `bigquery`, `sql-server`/`fabric`, `oracle`, `trino`, `redshift`, `athena` and other SQL extras resolve SQLAlchemy 2.1; the `snowflake` and `databricks` extras stay below 2.1 until their dialects support it. A driverless `postgresql://` URL uses psycopg when installed and falls back to psycopg2 otherwise, so the `postgresql` extra still needs no new dependency; BigQuery renders SQLAlchemy's `Double` as `FLOAT64`; SQL Server reflects mixed-case and upper-case tables correctly; and `expect_column_values_to_be_of_type(type_="Numeric")` keeps matching float columns. ([#12269](https://github.com/fivetran/great_expectations/pull/12269))
+
+  ```python
+  pip install 'great_expectations[postgresql]'  # resolves SQLAlchemy 2.1 on Python 3.11+
+  ```
+
+- **Regex Expectations work on ClickHouse** — The four regex Expectations now run on ClickHouse, which does not support `regexp_like()`. ClickHouse is covered by integration tests for these Expectations, and the curated backend exclusion has been removed. ([#12222](https://github.com/fivetran/great_expectations/pull/12222))
+
+  ```python
+  gx.expectations.ExpectColumnValuesToMatchRegex(column="name", regex="^A")
+  ```
+
+- **Correct substring matching for regex Expectations on Snowflake** — Snowflake's `REGEXP` operator anchors patterns to the whole value, so unanchored patterns behaved differently there than on other backends. Regex Expectations on Snowflake now use substring semantics that match every other GX backend, while preserving the user's pattern. ([#12221](https://github.com/fivetran/great_expectations/pull/12221))
+
+  ```python
+  gx.expectations.ExpectColumnValuesToMatchRegex(column="name", regex="ell")
+  ```
+
+- **Nested struct columns supported in Spark value-counts Expectations** — On the Spark engine, Expectations that rely on the `column.value_counts` metric — including `ExpectColumnMostCommonValueToBeInSet` and `ExpectColumnKLDivergenceToBeLessThan` — now work for dotted nested struct paths such as `address.city`, instead of returning an empty result with an unresolved-column error. ([#12231](https://github.com/fivetran/great_expectations/pull/12231))
+
+  ```python
+  gx.expectations.ExpectColumnMostCommonValueToBeInSet(column="address.city", value_set=["Springfield"])
+  ```
+
+- **The changelog is now fully in the structured format** — Every release entry from 1.0.0 onward is written in the structured shape: a dated heading, a compatibility line, Highlights with runnable snippets, a categorized ledger of every merged pull request, Deprecations where they apply, and a contributors line. The 1.13.1 release, previously missing from the page, now has its own entry. ([#12227](https://github.com/fivetran/great_expectations/pull/12227), [#12225](https://github.com/fivetran/great_expectations/pull/12225))
+
+#### Changes
+
+##### Features
+
+- Great Expectations now supports SQLAlchemy 2.1 across every backend whose dialect supports it: the library-wide `<2.1` cap is lifted, only the `snowflake` and `databricks` extras remain pinned below 2.1, driverless `postgresql://` URLs fall back to psycopg2 when psycopg is unavailable, BigQuery renders `Double` as `FLOAT64`, SQL Server reflects mixed-case tables, the `Numeric` type name matches float columns, database URL masking keeps the database and query string verbatim, and a broken snowflake-sqlalchemy install no longer prevents `import great_expectations`. ([#12269](https://github.com/fivetran/great_expectations/pull/12269))
+
+##### Bug fixes
+
+- Validation results containing an infinite `Decimal` value — for example the maximum, mean or sum of a PostgreSQL `numeric` column or a pandas column of `Decimal` values — now serialize as float infinity instead of raising `decimal.InvalidOperation`. ([#12254](https://github.com/fivetran/great_expectations/pull/12254))
+- Regex Expectations on Snowflake now match substrings, consistent with other backends, rather than requiring the pattern to match the entire column value. ([#12221](https://github.com/fivetran/great_expectations/pull/12221))
+- `UnexpectedRowsExpectation` no longer misreads a query as containing a JOIN when the letters appear inside a string literal, a column name such as `join_date`, a quoted identifier or a comment; such queries are aliased correctly again and no longer fail with a syntax error on MySQL and SQL Server. ([#12249](https://github.com/fivetran/great_expectations/pull/12249))
+- Building validators on multiple threads no longer serializes or deadlocks on Python 3.10 and 3.11: concurrent validator construction now proceeds independently per instance while still building each validator only once. ([#12232](https://github.com/fivetran/great_expectations/pull/12232))
+- Regex Expectations now work on ClickHouse, which lacks `regexp_like()`; other SQL dialects are unchanged. ([#12222](https://github.com/fivetran/great_expectations/pull/12222))
+- Type Expectations on ClickHouse now compare and report the underlying SQL type for nullable columns instead of the `Nullable(T)` wrapper, so `ExpectColumnValuesToBeOfType` and `ExpectColumnValuesToBeInTypeList` behave as expected. ([#12219](https://github.com/fivetran/great_expectations/pull/12219))
+- The Spark `column.value_counts` metric now resolves nested struct columns such as `address.city`, so Expectations built on it return results instead of an unresolved-column error. ([#12231](https://github.com/fivetran/great_expectations/pull/12231))
+
+##### Docs
+
+- The changelog entries for releases 1.0.0 through 1.17.0 are rewritten in the structured format, and the previously missing 1.13.1 release now has its own entry. ([#12227](https://github.com/fivetran/great_expectations/pull/12227))
+- The changelog entries for releases 1.17.1 through 1.23.0 are rewritten in the structured format, and the deprecation timeline gains rows for the `gx-redshift` extra alias and for `CloudDataContext` / cloud mode of `get_context`. ([#12225](https://github.com/fivetran/great_expectations/pull/12225))
+
+<details>
+<summary>Maintenance</summary>
+
+- Redshift CI jobs are capped to three concurrent runs against the shared cluster, and test teardown now drops every test schema with retries so failed runs no longer leak schemas. No user-visible change. ([#12257](https://github.com/fivetran/great_expectations/pull/12257))
+
+</details>
+
+#### Contributors
+
+Thanks to @adimalkar, @Rayan-and-beyond (first contribution), @nanjeshramesh, @feiiiiii5, @alibro005, @pentaoa (first contribution).
+
 ### 1.23.1 (2026-09-18)
 
 #### Highlights
