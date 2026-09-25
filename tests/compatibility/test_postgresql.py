@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import os
+import pathlib
+import sys
+import types
 
 import pytest
 
@@ -86,6 +89,35 @@ def test_a_driverless_url_falls_back_to_psycopg2_when_only_psycopg2_is_installed
         5433,
     )
     assert (resolved.database, dict(resolved.query)) == ("db", {"sslmode": "require"})
+
+
+@pytest.mark.unit
+def test_a_module_that_is_installed_but_fails_to_import_is_not_importable(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (tmp_path / "gx_broken_driver.py").write_text('raise ImportError("no pq wrapper available")\n')
+    monkeypatch.syspath_prepend(str(tmp_path))
+
+    assert postgresql_compatibility._is_importable("gx_broken_driver") is False
+    assert postgresql_compatibility._is_importable("gx_no_such_driver") is False
+    assert postgresql_compatibility._is_importable("json") is True
+
+
+@pytest.mark.unit
+@default_is_not_psycopg2
+def test_a_driverless_url_falls_back_to_psycopg2_when_its_default_driver_fails_to_import(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # psycopg (3) installed without its binary extra, on a host with no libpq.
+    (tmp_path / "psycopg.py").write_text('raise ImportError("no pq wrapper available")\n')
+    monkeypatch.syspath_prepend(str(tmp_path))
+    monkeypatch.delitem(sys.modules, "psycopg", raising=False)
+    monkeypatch.setitem(sys.modules, "psycopg2", types.ModuleType("psycopg2"))
+
+    resolved = resolve_postgresql_driver("postgresql://user@host/db")
+
+    assert isinstance(resolved, sa.engine.URL)
+    assert resolved.drivername == "postgresql+psycopg2"
 
 
 @pytest.mark.unit

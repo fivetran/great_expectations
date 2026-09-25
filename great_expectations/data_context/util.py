@@ -11,6 +11,7 @@ from typing import Any, Optional
 from urllib.parse import urlparse
 
 from great_expectations.alias_types import PathStr  # noqa: TC001 # FIXME CoP
+from great_expectations.compatibility.postgresql import resolve_postgresql_driver
 from great_expectations.compatibility.pyparsing import (
     ParseException,
     Word,
@@ -204,8 +205,13 @@ class PasswordMasker:
             return url
         elif sa is not None and use_urlparse is False:
             try:
-                engine = sa.create_engine(url, **kwargs)
-                return cls._render_masked_url(engine.url)
+                resolved_url = resolve_postgresql_driver(url)
+                engine = sa.create_engine(resolved_url, **kwargs)
+                masked_url = engine.url
+                if resolved_url is not url:
+                    # Describe the URL as configured, not the driver it fell back to.
+                    masked_url = masked_url.set(drivername="postgresql")
+                return cls._render_masked_url(masked_url)
             # Account for the edge case where we have SQLAlchemy in our env but haven't installed the appropriate dialect to match the input URL  # noqa: E501 # FIXME CoP
             except Exception as e:
                 logger.warning(

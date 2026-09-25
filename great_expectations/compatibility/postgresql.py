@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import importlib.util
+import importlib
 from typing import TYPE_CHECKING, Union
 
 from great_expectations.compatibility.not_imported import NotImported
@@ -15,7 +15,13 @@ POSTGRESQL_NOT_IMPORTED = NotImported(
 
 
 def _is_importable(module_name: str) -> bool:
-    return importlib.util.find_spec(module_name) is not None
+    # Import rather than only look the module up: an installed driver can still fail to import,
+    # as psycopg (3) does without its binary extra on a host with no libpq.
+    try:
+        importlib.import_module(module_name)
+    except ImportError:
+        return False
+    return True
 
 
 def resolve_postgresql_driver(url: Union[str, URL]) -> Union[str, URL]:
