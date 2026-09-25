@@ -30,6 +30,15 @@ DATA = pd.DataFrame(
     }
 )
 
+ID_COLUMN = "ID"
+
+DATA_WITH_A_NULL = pd.DataFrame(
+    {
+        ID_COLUMN: [1, 2],
+        COLUMN_WITH_DOT: ["2024-01-01", None],
+    }
+)
+
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[SparkFilesystemCsvDatasourceTestConfig()],
@@ -47,3 +56,29 @@ def test_spark_column_with_dot_in_name_is_recognized(batch_for_datasource: Batch
         gxe.ExpectColumnValuesToNotBeNull(column=COLUMN_WITH_DOT)
     )
     assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[SparkFilesystemCsvDatasourceTestConfig()],
+    data=DATA_WITH_A_NULL,
+)
+def test_spark_column_with_dot_in_name_returns_unexpected_index_list(
+    batch_for_datasource: Batch,
+) -> None:
+    """A dotted domain column must not empty the result when index columns are requested.
+
+    Reported in community issue #12196: with a flat dotted column plus
+    ``unexpected_index_column_names``, the column-name normalizer hands the
+    index path the backtick-quoted name, which never matches the bare names
+    in ``DataFrame.columns``, raising an error that empties the result dict.
+    """
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToNotBeNull(column=COLUMN_WITH_DOT),
+        result_format={
+            "result_format": "COMPLETE",
+            "unexpected_index_column_names": [ID_COLUMN],
+        },
+    )
+    assert result.result, result.exception_info  # empty when a metric raised
+    assert result.result["unexpected_count"] == 1
+    assert result.result["unexpected_index_list"] == [{ID_COLUMN: 2, COLUMN_WITH_DOT: None}]
