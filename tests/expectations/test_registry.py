@@ -37,25 +37,29 @@ def test_registry_raises_error_when_invalid_expectation_requested():
 
 
 def test_get_metric_provider_for_sqlalchemy_engine_subclass():
-    # This is a regression test to show that we can register a metric for
-    # a sqlalchemy engine subclass and it doesn't overwrite the default metric.
+    # Regression test: a SqliteExecutionEngine (a SqlAlchemyExecutionEngine subclass with no
+    # provider registered under its own name) must resolve metrics through the MRO fallback to
+    # the provider registered for SqlAlchemyExecutionEngine, without disturbing the default.
     metric_name = "column.standard_deviation.aggregate_fn"
 
     sa_metric_provider, sa_metric_provider_fn = get_sqlalchemy_metric_provider(
         metric_name,
     )
 
-    # get the sqlite metric provider
+    # get the metric provider resolved for the sqlite engine subclass
     sqlite_metric_provider, sqlite_metric_provider_fn = get_metric_provider(
         metric_name,
         SqliteExecutionEngine(engine=sqlalchemy.create_engine("sqlite://")),
     )
     assert sa_metric_provider is not None
     assert sqlite_metric_provider is not None
-    assert sa_metric_provider != sqlite_metric_provider
+    # Both resolve to the same shared sqlalchemy provider: the sqlite dialect branch lives in
+    # the base provider, so it also covers plain engines built over sqlite connections
+    # (e.g. context.data_sources.add_sql("sqlite:///...")).
+    assert sa_metric_provider == sqlite_metric_provider
     assert sa_metric_provider_fn is not None
     assert sqlite_metric_provider_fn is not None
-    assert sa_metric_provider_fn != sqlite_metric_provider_fn
+    assert sa_metric_provider_fn == sqlite_metric_provider_fn
 
 
 @pytest.mark.parametrize(
