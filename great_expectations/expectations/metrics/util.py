@@ -52,10 +52,10 @@ except (ImportError, KeyError):
     sqlalchemy_psycopg2 = None  # type: ignore[assignment] # FIXME CoP
 
 try:
-    import psycopg  # noqa: F401 # psycopg 3; SQLAlchemy 2.1's default PostgreSQL driver
+    # The dialect module for psycopg (3); importing it does not import psycopg itself.
     import sqlalchemy.dialects.postgresql.psycopg as sqlalchemy_psycopg  # noqa: TID251 # dialect only
 except (ImportError, KeyError):
-    sqlalchemy_psycopg = None  # type: ignore[assignment] # absent before SQLAlchemy 2.0 or without psycopg
+    sqlalchemy_psycopg = None  # type: ignore[assignment] # absent before SQLAlchemy 2.0
 
 try:
     import snowflake

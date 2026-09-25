@@ -1,10 +1,49 @@
 from __future__ import annotations
 
+import importlib.util
+from typing import TYPE_CHECKING, Union
+
 from great_expectations.compatibility.not_imported import NotImported
+from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine import URL
 
 POSTGRESQL_NOT_IMPORTED = NotImported(
     "postgresql connection components are not installed, please 'pip install psycopg2'"
 )
+
+
+def _is_importable(module_name: str) -> bool:
+    return importlib.util.find_spec(module_name) is not None
+
+
+def resolve_postgresql_driver(url: Union[str, URL]) -> Union[str, URL]:
+    """Return the URL to hand `create_engine`, falling back to psycopg2 when a driverless
+    PostgreSQL URL's default driver is not installed.
+
+    SQLAlchemy 2.1 changed the driver a `postgresql://` URL with no driver selects from psycopg2
+    to psycopg (3). The `postgresql` extra installs psycopg2, so without this such a URL would fail
+    to import its driver on 2.1 even though a working one is installed. The URL is returned
+    unchanged when it names a driver, is not a PostgreSQL URL, or its default driver is
+    importable, so SQLAlchemy's own choice always wins when it can run.
+    """
+    if not sa:
+        return url
+    try:
+        parsed = sa.engine.make_url(url)
+    except sa.exc.ArgumentError:
+        return url  # not a URL; let create_engine report it
+    if parsed.drivername != "postgresql":
+        return url
+    # Loading the dialect class does not import its DBAPI.
+    default_driver = parsed.get_dialect().driver
+    if default_driver == "psycopg2" or _is_importable(default_driver):
+        return url
+    if not _is_importable("psycopg2"):
+        return url
+    return parsed.set(drivername="postgresql+psycopg2")
+
 
 try:
     import psycopg2  # noqa: F401 # FIXME CoP

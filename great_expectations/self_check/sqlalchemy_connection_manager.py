@@ -5,6 +5,7 @@ import threading
 from typing import Dict
 
 from great_expectations.compatibility import sqlalchemy
+from great_expectations.compatibility.postgresql import resolve_postgresql_driver
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
@@ -25,7 +26,7 @@ class SqlAlchemyConnectionManager:
             with self.lock:
                 if connection_string not in self._connections:
                     try:
-                        engine = sa.create_engine(connection_string)
+                        engine = sa.create_engine(resolve_postgresql_driver(connection_string))
                         conn = engine.connect()
                         self._connections[connection_string] = conn
                     except (ImportError, SQLAlchemyError) as e:
@@ -53,7 +54,9 @@ class LockingConnectionCheck:
         with self.lock:
             if self._is_valid is None:
                 try:
-                    engine = self.sa.create_engine(self.connection_string)
+                    engine = self.sa.create_engine(
+                        resolve_postgresql_driver(self.connection_string)
+                    )
                     try:
                         conn = engine.connect()
                         conn.close()

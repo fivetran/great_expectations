@@ -1611,14 +1611,13 @@ def test_get_sqlalchemy_source_table_and_schema_falls_back_to_the_last_loaded_ba
     )
 
 
-# Marked `postgresql`, not `unit`: the unit lane installs neither driver, so there this test
-# could only skip. The postgresql lane installs both.
+# Marked `postgresql`, not `unit`: recognising psycopg2 needs psycopg2 installed, which only the
+# postgresql lane does. psycopg (3) is recognised from SQLAlchemy's dialect module alone.
 @pytest.mark.postgresql
 @pytest.mark.parametrize("driver", ["psycopg2", "psycopg"])
 def test_attempt_allowing_relative_error_recognises_both_postgres_drivers(driver: str) -> None:
     """A driverless postgresql:// URL selects psycopg2 before SQLAlchemy 2.1 and psycopg after,
     so the approximate-quantile fallback has to accept either for that URL to behave the same."""
-    importlib.import_module(driver)
     dialect_module = importlib.import_module(f"sqlalchemy.dialects.postgresql.{driver}")
 
     assert metrics_util.attempt_allowing_relative_error(dialect_module.dialect())

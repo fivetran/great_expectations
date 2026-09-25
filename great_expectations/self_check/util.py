@@ -40,6 +40,7 @@ from great_expectations.compatibility import aws, pyspark, snowflake, sqlalchemy
 from great_expectations.compatibility.pandas_compatibility import (
     execute_pandas_to_datetime,
 )
+from great_expectations.compatibility.postgresql import resolve_postgresql_driver
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
@@ -752,7 +753,7 @@ def build_pandas_validator_with_data(
 
 
 def drop_table(table_name: str, connection_string: str) -> None:
-    engine = sa.create_engine(connection_string)
+    engine = sa.create_engine(resolve_postgresql_driver(connection_string))
     with engine.connect() as conn:
         conn.execute(sa.text(f"DROP TABLE IF EXISTS {table_name}"))
         conn.commit()
@@ -845,7 +846,7 @@ def build_sa_validator_with_data(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIX
         engine = sa.create_engine(connection_string)
     elif sa_engine_name == "postgresql":
         connection_string = f"postgresql://postgres@{db_hostname}/test_ci"
-        engine = sa.create_engine(connection_string)
+        engine = sa.create_engine(resolve_postgresql_driver(connection_string))
     elif sa_engine_name == "mysql":
         connection_string = f"mysql+pymysql://root@{db_hostname}/test_ci"
         engine = sa.create_engine(connection_string)
