@@ -52,6 +52,12 @@ except (ImportError, KeyError):
     sqlalchemy_psycopg2 = None  # type: ignore[assignment] # FIXME CoP
 
 try:
+    import psycopg  # noqa: F401 # psycopg 3; SQLAlchemy 2.1's default PostgreSQL driver
+    import sqlalchemy.dialects.postgresql.psycopg as sqlalchemy_psycopg  # noqa: TID251 # dialect only
+except (ImportError, KeyError):
+    sqlalchemy_psycopg = None  # type: ignore[assignment] # absent before SQLAlchemy 2.0 or without psycopg
+
+try:
     import snowflake
 except ImportError:
     snowflake = None
@@ -323,7 +329,13 @@ def attempt_allowing_relative_error(dialect):
         actual_sql_engine_dialect=dialect,
         candidate_sql_engine_dialect=sqlalchemy_psycopg2.PGDialect_psycopg2,
     )
-    return detected_redshift or detected_psycopg2
+    # psycopg (3) is what a driverless postgresql:// URL selects from SQLAlchemy 2.1 on, so it
+    # has to behave like psycopg2 here for that URL to behave the same across versions.
+    detected_psycopg: bool = sqlalchemy_psycopg is not None and check_sql_engine_dialect(
+        actual_sql_engine_dialect=dialect,
+        candidate_sql_engine_dialect=sqlalchemy_psycopg.PGDialect_psycopg,
+    )
+    return detected_redshift or detected_psycopg2 or detected_psycopg
 
 
 class CaseInsensitiveString(str):

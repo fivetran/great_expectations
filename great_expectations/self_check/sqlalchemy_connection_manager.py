@@ -54,8 +54,14 @@ class LockingConnectionCheck:
             if self._is_valid is None:
                 try:
                     engine = self.sa.create_engine(self.connection_string)
-                    conn = engine.connect()
-                    conn.close()
+                    try:
+                        conn = engine.connect()
+                        conn.close()
+                    finally:
+                        # Close the pooled connection now rather than whenever the engine is
+                        # garbage collected; a probe runs once per generated test, and
+                        # connections that wait for collection exhaust the server's limit.
+                        engine.dispose()
                     self._is_valid = True
                 except (ImportError, self.sa.exc.SQLAlchemyError) as e:
                     print(f"{e!s}")

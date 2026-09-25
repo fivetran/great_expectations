@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import importlib
 import random
 from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, Callable, Final, List, Union
@@ -1608,3 +1609,23 @@ def test_get_sqlalchemy_source_table_and_schema_falls_back_to_the_last_loaded_ba
     assert get_sqlalchemy_source_table_and_schema(engine, batch_id="never_loaded").name == (
         "second_table"
     )
+
+
+# Marked `postgresql`, not `unit`: the unit lane installs neither driver, so there this test
+# could only skip. The postgresql lane installs both.
+@pytest.mark.postgresql
+@pytest.mark.parametrize("driver", ["psycopg2", "psycopg"])
+def test_attempt_allowing_relative_error_recognises_both_postgres_drivers(driver: str) -> None:
+    """A driverless postgresql:// URL selects psycopg2 before SQLAlchemy 2.1 and psycopg after,
+    so the approximate-quantile fallback has to accept either for that URL to behave the same."""
+    importlib.import_module(driver)
+    dialect_module = importlib.import_module(f"sqlalchemy.dialects.postgresql.{driver}")
+
+    assert metrics_util.attempt_allowing_relative_error(dialect_module.dialect())
+
+
+@pytest.mark.unit
+def test_attempt_allowing_relative_error_rejects_other_dialects() -> None:
+    import sqlalchemy.dialects.sqlite
+
+    assert not metrics_util.attempt_allowing_relative_error(sqlalchemy.dialects.sqlite.dialect())

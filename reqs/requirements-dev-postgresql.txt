@@ -1,1 +1,5 @@
 psycopg2-binary>=2.7.6
+# From SQLAlchemy 2.1, a driverless postgresql:// URL selects psycopg (3) instead of psycopg2.
+# Installing both keeps such URLs working on every supported SQLAlchemy version, and
+# explicit postgresql+psycopg2:// URLs keep working as before. 3.0.2 is SQLAlchemy's minimum.
+psycopg[binary]>=3.0.2

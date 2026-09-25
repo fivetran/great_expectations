@@ -786,7 +786,10 @@ def build_sa_validator_with_data(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIX
         pass
 
     try:
-        dialect_classes["postgresql"] = postgresqltypes.dialect
+        # The driver-neutral base class: `postgresqltypes.dialect` is only the default
+        # driver's dialect (psycopg2 before SQLAlchemy 2.1, psycopg after), so an engine
+        # on the other driver would not be recognised and its schema would be skipped.
+        dialect_classes["postgresql"] = postgresqltypes.base.PGDialect
         dialect_types["postgresql"] = POSTGRESQL_TYPES  # type: ignore[assignment] # FIXME CoP
     except AttributeError:
         pass
