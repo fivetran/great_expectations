@@ -681,9 +681,33 @@ jobs:
         env:
           SHARD: ${{ matrix.shard }}
 
+  # Assigns this run one of a fixed number of Redshift slots. A concurrency group admits one
+  # running job, so spreading runs over REDSHIFT_SLOTS groups caps how many hit the shared
+  # cluster at once while still letting several run together. Computed in a job because
+  # workflow expressions have no modulo operator.
+  redshift-slot:
+    runs-on: ubuntu-latest
+    outputs:
+      slot: ${{ steps.slot.outputs.slot }}
+    steps:
+      - id: slot
+        env:
+          REDSHIFT_SLOTS: 3
+          KEY: ${{ github.event.pull_request.number || github.run_id }}
+        run: echo "slot=$(( KEY % REDSHIFT_SLOTS ))" >> "$GITHUB_OUTPUT"
+
   redshift:
-    needs: [unit-tests, static-analysis, check-actor-permissions]
+    needs: [unit-tests, static-analysis, check-actor-permissions, redshift-slot]
     if: github.event.pull_request.draft == false
+    # All runs share one Redshift cluster. When many PRs run this job at once, the cluster
+    # drops connections mid-query ("SSL connection has been closed unexpectedly"), failing
+    # tests and leaking schemas. Cap concurrent runs at the number of slots (see
+    # `redshift-slot`); `queue: max` keeps waiting runs pending instead of cancelling all but
+    # the newest.
+    concurrency:
+      group: redshift-cluster-${{ needs.redshift-slot.outputs.slot }}
+      cancel-in-progress: false
+      queue: max
     env:
       # aws-redshift
       REDSHIFT_USERNAME: ${{secrets.REDSHIFT_USERNAME}}
@@ -733,7 +757,7 @@ jobs:
   # install/services exactly as `marker-tests` does. Each cell's wall-clock, measured unsharded,
   # is well inside the 20-minute per-cell budget stated below, so no cell is split across shards.
   gallery:
-    needs: [unit-tests, static-analysis, check-actor-permissions]
+    needs: [unit-tests, static-analysis, check-actor-permissions, redshift-slot]
     if: github.event.pull_request.draft == false
     env:
       GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
@@ -766,6 +790,13 @@ jobs:
     # warehouses (or spin up local services), so a hang must fail in minutes, not at the
     # repository-wide default.
     timeout-minutes: 30
+    # The redshift cell shares one Redshift cluster across all runs; cap it with the same slots
+    # as the `redshift` job. Every other cell gets a group of its own per run, so it is never
+    # held back.
+    concurrency:
+      group: ${{ matrix.markers == 'redshift' && format('redshift-cluster-gallery-{0}', needs.redshift-slot.outputs.slot) || format('gallery-{0}-{1}-{2}', github.run_id, github.run_attempt, matrix.markers) }}
+      cancel-in-progress: false
+      queue: max
     strategy:
       fail-fast: false
       matrix:

@@ -132,13 +132,6 @@ class TestClickHouseRegexAndLikePatterns:
             context=get_context(mode="ephemeral"),
         )
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="ClickHouse has no `regexp_like` SQL function; the dialect's regex-matching path "
-        "(`get_dialect_regex_expression`'s ClickHouse branch) calls it anyway, and the server "
-        "rejects the query with `DB::Exception: Function with name 'regexp_like' does not "
-        "exist`. ClickHouse's actual regex-matching function is `match(haystack, pattern)`.",
-    )
     def test_match_regex(self) -> None:
         with self._batch_setup().batch_test_context() as batch:
             result = batch.validate(
@@ -146,13 +139,6 @@ class TestClickHouseRegexAndLikePatterns:
             )
         assert result.success
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="ClickHouse has no `regexp_like` SQL function; the dialect's regex-matching path "
-        "(`get_dialect_regex_expression`'s ClickHouse branch) calls it anyway, and the server "
-        "rejects the query with `DB::Exception: Function with name 'regexp_like' does not "
-        "exist`. ClickHouse's actual regex-matching function is `match(haystack, pattern)`.",
-    )
     def test_not_match_regex(self) -> None:
         with self._batch_setup().batch_test_context() as batch:
             result = batch.validate(

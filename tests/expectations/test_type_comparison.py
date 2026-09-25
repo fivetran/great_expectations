@@ -12,6 +12,7 @@ import pytest
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
+from great_expectations.expectations import type_comparison
 from great_expectations.expectations.metrics.util import CaseInsensitiveString
 from great_expectations.expectations.type_comparison import (
     CASE_INSENSITIVE_DIALECTS,
@@ -109,9 +110,58 @@ class _NonStringType:
 _NonStringType.__name__ = "INTEGER"
 
 
+class _NullableType:
+    def __init__(self, nested_type):
+        self.nested_type = nested_type
+
+
+_NullableType.__name__ = "Nullable"
+
+
 def _ci(s: str) -> CaseInsensitiveString:
     """Shorthand for constructing a CaseInsensitiveString."""
     return CaseInsensitiveString(s)
+
+
+# ===========================================================================
+# ClickHouse (isinstance path with Nullable wrapper)
+# ===========================================================================
+
+
+class TestClickHouseNullable:
+    engine = _StubEngine(GXSqlDialect.CLICKHOUSE, dialect_module=sa)
+
+    @pytest.fixture(autouse=True)
+    def _stub_clickhouse_types(self, monkeypatch):
+        class _ClickHouseTypes:
+            Nullable = _NullableType
+
+        monkeypatch.setattr(type_comparison, "ch_types", _ClickHouseTypes)
+
+    @pytest.mark.parametrize(
+        "expected_type, expected_success", [("BIGINT", True), ("VARCHAR", False)]
+    )
+    def test_scalar_compares_and_reports_nested_type(self, expected_type, expected_success):
+        success, observed = compare_column_type(
+            self.engine, _NullableType(sa.types.BIGINT()), expected_type
+        )
+
+        assert success is expected_success
+        assert observed == "BIGINT"
+
+    @pytest.mark.parametrize(
+        "expected_types, expected_success",
+        [(["VARCHAR", "BIGINT"], True), (["VARCHAR", "BOOLEAN"], False)],
+    )
+    def test_list_compares_and_reports_nested_type(self, expected_types, expected_success):
+        success, observed = compare_column_type_list(
+            self.engine,
+            _NullableType(sa.types.BIGINT()),
+            expected_types,
+        )
+
+        assert success is expected_success
+        assert observed == "BIGINT"
 
 
 # ===========================================================================
@@ -624,6 +674,47 @@ class TestSQLiteList:
             actual_type,
             ["__WRONG__", "__ALSO_WRONG__"],
         )
+        assert success is False
+
+
+# ===========================================================================
+# "Numeric" matches floating-point columns on every SQLAlchemy version
+# ===========================================================================
+
+# Floating-point types as reflection returns them. SQLAlchemy 2.1 made Float a sibling of
+# Numeric instead of a subclass; before 2.1 each of these is an instance of Numeric.
+_FLOATING_POINT_TYPES = [
+    sa.types.Float(),
+    sa.types.FLOAT(),
+    sa.types.REAL(),
+    sa.dialects.postgresql.DOUBLE_PRECISION(),
+    sa.dialects.mysql.DOUBLE(),
+]
+
+
+class TestNumericMatchesFloatingPoint:
+    engine = _StubEngine("sqlite", dialect_module=sa)
+
+    @pytest.mark.parametrize("actual_type", _FLOATING_POINT_TYPES)
+    def test_scalar(self, actual_type):
+        success, observed = compare_column_type(self.engine, actual_type, "Numeric")
+        assert success is True
+        assert observed == type(actual_type).__name__
+
+    @pytest.mark.parametrize("actual_type", _FLOATING_POINT_TYPES)
+    def test_list(self, actual_type):
+        success, _obs = compare_column_type_list(self.engine, actual_type, ["__WRONG__", "Numeric"])
+        assert success is True
+
+    @pytest.mark.parametrize(
+        "actual_type", [sa.types.INTEGER(), sa.types.VARCHAR(), sa.types.DATE()]
+    )
+    def test_non_numeric_types_still_do_not_match(self, actual_type):
+        success, _obs = compare_column_type(self.engine, actual_type, "Numeric")
+        assert success is False
+
+    def test_float_does_not_match_a_fixed_point_column(self):
+        success, _obs = compare_column_type(self.engine, sa.types.NUMERIC(), "Float")
         assert success is False
 
 
