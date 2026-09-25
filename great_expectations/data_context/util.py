@@ -5,6 +5,7 @@ import inspect
 import logging
 import pathlib
 import re
+import uuid
 import warnings
 from typing import Any, Optional
 from urllib.parse import urlparse
@@ -204,7 +205,7 @@ class PasswordMasker:
         elif sa is not None and use_urlparse is False:
             try:
                 engine = sa.create_engine(url, **kwargs)
-                return engine.url.__repr__()
+                return cls._render_masked_url(engine.url)
             # Account for the edge case where we have SQLAlchemy in our env but haven't installed the appropriate dialect to match the input URL  # noqa: E501 # FIXME CoP
             except Exception as e:
                 logger.warning(
@@ -215,6 +216,20 @@ class PasswordMasker:
                 "SQLAlchemy is not installed, using urlparse to mask database url password which ignores **kwargs."  # noqa: E501 # FIXME CoP
             )
         return cls._mask_db_url_no_sa(url=url)
+
+    @staticmethod
+    def _render_masked_url(url: Any) -> str:
+        """Render a SQLAlchemy URL with its password masked and its database verbatim.
+
+        SQLAlchemy 2.1 percent-encodes the database when rendering a URL, which turns a
+        Windows SQLite path such as C:\\path\\to\\foo.db into C%3A%5Cpath%5Cto%5Cfoo.db.
+        Earlier versions render the database as given. Render with an alphanumeric
+        placeholder, which no version encodes, and put the database back in its place.
+        """
+        if url.database is None:
+            return repr(url)
+        placeholder = uuid.uuid4().hex
+        return repr(url.set(database=placeholder)).replace(placeholder, url.database, 1)
 
     @classmethod
     def _obfuscate_azure_blobstore_connection_string(cls, url: str) -> str:
