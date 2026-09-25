@@ -20,6 +20,7 @@ class DatasourceDictWithSpy(DatasourceDict):
 class CacheableDatasourceDictWithSpy(CacheableDatasourceDict):
     _datasource_store: DatasourceStoreSpy
 
+
 if TYPE_CHECKING:
     from great_expectations.data_context.data_context.ephemeral_data_context import (
         EphemeralDataContext,
@@ -88,7 +89,7 @@ def build_datasource_dict_with_store_spy(
         datasource_configs: list[PandasDatasource] | None = None,
     ) -> DatasourceDictWithSpy:
         return cast(
-            DatasourceDictWithSpy,
+            "DatasourceDictWithSpy",
             DatasourceDict(
                 context=in_memory_runtime_context,
                 datasource_store=DatasourceStoreSpy(datasource_configs=datasource_configs),
@@ -102,7 +103,7 @@ def build_datasource_dict_with_store_spy(
 def empty_datasource_dict(
     build_datasource_dict_with_store_spy: Callable,
 ) -> DatasourceDictWithSpy:
-    return cast(DatasourceDictWithSpy, build_datasource_dict_with_store_spy())
+    return cast("DatasourceDictWithSpy", build_datasource_dict_with_store_spy())
 
 
 @pytest.fixture
@@ -194,7 +195,7 @@ def build_cacheable_datasource_dict_with_store_spy(
         populate_cache: bool = True,
     ) -> CacheableDatasourceDictWithSpy:
         datasource_dict = cast(
-            CacheableDatasourceDictWithSpy,
+            "CacheableDatasourceDictWithSpy",
             CacheableDatasourceDict(
                 context=in_memory_runtime_context,
                 datasource_store=DatasourceStoreSpy(datasource_configs=datasource_configs),
@@ -215,7 +216,7 @@ def build_cacheable_datasource_dict_with_store_spy(
 def empty_cacheable_datasource_dict(
     build_cacheable_datasource_dict_with_store_spy: Callable,
 ) -> CacheableDatasourceDictWithSpy:
-    return cast(CacheableDatasourceDictWithSpy, build_cacheable_datasource_dict_with_store_spy())
+    return cast("CacheableDatasourceDictWithSpy", build_cacheable_datasource_dict_with_store_spy())
 
 
 @pytest.fixture
@@ -226,7 +227,7 @@ def cacheable_datasource_dict_with_fds(
     datasource_dict = build_cacheable_datasource_dict_with_store_spy(
         datasource_configs=[pandas_fds]
     )
-    return cast(CacheableDatasourceDictWithSpy, datasource_dict)
+    return cast("CacheableDatasourceDictWithSpy", datasource_dict)
 
 
 @pytest.mark.unit
