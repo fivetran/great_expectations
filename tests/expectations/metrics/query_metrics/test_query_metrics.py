@@ -11,6 +11,7 @@ from great_expectations.compatibility.sqlalchemy import (
 from great_expectations.expectations.metrics.query_metric_provider import (
     QueryMetricProvider,
     QueryParameters,
+    UnsubstitutableQueryBraceError,
     find_last_top_level_order_by,
     has_top_level_token,
     render_derived_table_alias,
@@ -1184,3 +1185,94 @@ class TestLiteralBooleanReplacementDialectInvariance:
             )
         )
         assert result == "SELECT * FROM my_table WHERE true"
+
+
+class TestUserQueryBraceSubstitution:
+    """`{batch}` is substituted through `str.format`, which reads *every* brace in the query as a
+    field name. Braces that are SQL rather than a placeholder -- a Postgres array or JSON literal,
+    a `LIKE '{%'` pattern -- therefore fail inside `str.format`, and the stdlib error it raises
+    names neither the query nor the escaping rule that resolves it.
+    """
+
+    @pytest.mark.unit
+    def test_named_brace_that_is_not_a_placeholder_is_reported(
+        self,
+        mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        with pytest.raises(UnsubstitutableQueryBraceError) as exc_info:
+            QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
+                query="SELECT * FROM {batch} WHERE tags @> '{active}'",
+                batch_selectable=batch_selectable,
+                execution_engine=mock_sqlalchemy_execution_engine,
+            )
+
+        message = str(exc_info.value)
+        assert "active" in message
+        assert "{{" in message
+        assert isinstance(exc_info.value.__cause__, KeyError)
+
+    @pytest.mark.unit
+    def test_unpaired_brace_is_reported(
+        self,
+        mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        with pytest.raises(UnsubstitutableQueryBraceError) as exc_info:
+            QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
+                query="SELECT * FROM {batch} WHERE name LIKE '{%'",
+                batch_selectable=batch_selectable,
+                execution_engine=mock_sqlalchemy_execution_engine,
+            )
+
+        assert isinstance(exc_info.value.__cause__, ValueError)
+
+    @pytest.mark.unit
+    def test_brace_error_is_also_reported_for_the_row_condition_branch(
+        self,
+        mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        """A `row_condition` binds the batch as a `Select`, which is formatted through its own
+        call; the report must not be limited to the plain-table branch.
+        """
+        with pytest.raises(UnsubstitutableQueryBraceError):
+            QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
+                query="SELECT * FROM {batch} WHERE tags @> '{active}'",
+                batch_selectable=sa.select(batch_selectable),
+                execution_engine=mock_sqlalchemy_execution_engine,
+            )
+
+    @pytest.mark.unit
+    def test_escaped_braces_still_render_as_literals(
+        self,
+        mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        """The doubling rule the reported error points at must actually work -- it is the only
+        way to express a literal brace, so the error would be advice the code does not honor.
+        """
+        result = (
+            QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
+                query="SELECT * FROM {batch} WHERE tags @> '{{active}}'",
+                batch_selectable=batch_selectable,
+                execution_engine=mock_sqlalchemy_execution_engine,
+            )
+        )
+        assert result == "SELECT * FROM my_table WHERE tags @> '{active}'"
+
+    @pytest.mark.unit
+    def test_declared_query_parameter_still_substitutes(
+        self,
+        mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
+        batch_selectable: sa.Table,
+    ) -> None:
+        result = (
+            QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
+                query="SELECT * FROM {batch} WHERE {column_A} > 7",
+                batch_selectable=batch_selectable,
+                execution_engine=mock_sqlalchemy_execution_engine,
+                query_parameters={"column_A": "passenger_count"},
+            )
+        )
+        assert result == "SELECT * FROM my_table WHERE passenger_count > 7"
