@@ -153,6 +153,40 @@ class TestClickHouseRegexAndLikePatterns:
             )
         assert result.success
 
+    def test_match_like_pattern_with_escape(self) -> None:
+        """ClickHouse accepts the ESCAPE clause the `escape` parameter emits.
+
+        `get_dialect_like_pattern_expression` lets this dialect through to
+        `column.like(..., escape=...)` unguarded, on the strength of ClickHouse documenting
+        `haystack LIKE pattern [ESCAPE 'escape_character']`. This is the only one of the
+        four dialects reached that way -- Trino, Dremio and Teradata being the others --
+        that has a data source test config here to check that against a real server.
+
+        Only `a_c` contains a literal underscore, so with the escape honored `abc` is the one
+        unexpected value. Each way this could go wrong reports something else: were the
+        escape dropped, `!` would be an ordinary character and both values would be
+        unexpected; were the clause rejected by the server, the metric would raise and there
+        would be no unexpected list at all. Its own data rather than `DATA`, which holds no
+        underscore and so cannot tell an escaped `_` from a dropped one.
+        """
+        batch_setup = ClickHouseBatchTestSetup(
+            config=ClickHouseDatasourceTestConfig(
+                column_types={self.COL: clickhouse_types.Nullable(clickhouse_types.String)}
+            ),
+            data=pd.DataFrame({self.COL: ["a_c", "abc"]}),
+            extra_data={},
+            context=get_context(mode="ephemeral"),
+        )
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(
+                gxe.ExpectColumnValuesToMatchLikePattern(
+                    column=self.COL, like_pattern="a!_c", escape="!"
+                ),
+                result_format=ResultFormat.COMPLETE,
+            )
+        assert result.exception_info.get("raised_exception") is False, result.exception_info
+        assert result.result["unexpected_list"] == ["abc"]
+
 
 class TestClickHouseNullBearingData:
     """Insert real nulls into a string, an integer, a float and a date column -- each column

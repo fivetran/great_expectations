@@ -13,7 +13,12 @@ from great_expectations.expectations.metadata_types import DataQualityIssues, Su
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     FAILURE_SEVERITY_DESCRIPTION,
+    LIKE_PATTERN_ESCAPE_DESCRIPTION,
     MOSTLY_DESCRIPTION,
+)
+from great_expectations.expectations.model_field_types import (
+    LikePatternEscapeField,
+    validate_like_pattern_escape,
 )
 from great_expectations.render.components import (
     LegacyRendererType,
@@ -83,6 +88,8 @@ class ExpectColumnValuesToMatchLikePatternList(ColumnMapExpectation):
             {MATCH_ON_DESCRIPTION}
 
     Other Parameters:
+        escape (str or None): \
+            {LIKE_PATTERN_ESCAPE_DESCRIPTION}
         mostly (None or a float between 0 and 1): \
             {MOSTLY_DESCRIPTION} \
             For more detail, see [mostly](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#mostly). Default 1.
@@ -204,6 +211,9 @@ class ExpectColumnValuesToMatchLikePatternList(ColumnMapExpectation):
     match_on: Union[Literal["any", "all"], SuiteParameterDict] = pydantic.Field(
         default="any", description=MATCH_ON_DESCRIPTION
     )
+    escape: LikePatternEscapeField = None
+
+    _validate_escape = pydantic.validator("escape", allow_reuse=True)(validate_like_pattern_escape)
 
     @pydantic.validator("like_pattern_list")
     def validate_like_pattern_list(
@@ -227,7 +237,7 @@ class ExpectColumnValuesToMatchLikePatternList(ColumnMapExpectation):
     _library_metadata = library_metadata
 
     map_metric = "column_values.match_like_pattern_list"
-    success_keys = ("mostly", "like_pattern_list", "match_on")
+    success_keys = ("mostly", "like_pattern_list", "match_on", "escape")
     args_keys = (
         "column",
         "like_pattern_list",
@@ -275,6 +285,7 @@ class ExpectColumnValuesToMatchLikePatternList(ColumnMapExpectation):
             ("column", RendererValueType.STRING),
             ("like_pattern_list", RendererValueType.ARRAY),
             ("match_on", RendererValueType.STRING),
+            ("escape", RendererValueType.STRING),
             ("mostly", RendererValueType.NUMBER),
         )
         for name, param_type in add_param_args:
@@ -306,6 +317,11 @@ class ExpectColumnValuesToMatchLikePatternList(ColumnMapExpectation):
                 renderer_configuration=renderer_configuration,
             )
 
+        # Without this the escaped and unescaped Expectations render identically, and a
+        # reader takes the wildcards in the patterns at face value.
+        if params.escape:
+            template_str += ", escaping wildcards with $escape"
+
         if params.mostly and params.mostly.value < 1.0:
             renderer_configuration = cls._add_mostly_pct_param(
                 renderer_configuration=renderer_configuration
@@ -331,7 +347,7 @@ class ExpectColumnValuesToMatchLikePatternList(ColumnMapExpectation):
 
         params = substitute_none_for_missing(
             configuration.kwargs,
-            ["column", "like_pattern_list", "mostly"],
+            ["column", "like_pattern_list", "escape", "mostly"],
         )
         if params["mostly"] is not None:
             params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
@@ -346,6 +362,9 @@ class ExpectColumnValuesToMatchLikePatternList(ColumnMapExpectation):
             )
 
         template_str = "Values must match the following like patterns: " + values_string
+
+        if params.get("escape") is not None:
+            template_str += ", escaping wildcards with $escape"
 
         if params["mostly"] is not None:
             if isinstance(params["mostly"], (int, float)) and params["mostly"] < 1.0:
