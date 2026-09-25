@@ -19,4 +19,9 @@ pytest-xdist>=3.6.1
 requirements-parser>=0.9.0
 responses>=0.23.1,!=0.25.5 # requests mocking - pinning due to https://github.com/getsentry/responses/issues/751
 setuptools>=70.0.0 # required for python 3.12
-sqlalchemy>=1.4.0
+# SQLAlchemy 2.1 is capped until GX and its dialects support it: under 2.1,
+# snowflake-sqlalchemy fails to import (it subclasses a class 2.1 made private),
+# a bare postgresql:// URL selects psycopg v3 instead of psycopg2, and tuple-subclass
+# result rows (databricks-sql-connector) are rejected. Keep the cap in sync with
+# requirements-dev-sqlalchemy2.txt.
+sqlalchemy>=1.4.0,<2.1
