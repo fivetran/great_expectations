@@ -10,7 +10,7 @@ from __future__ import annotations
 import inspect
 import logging
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Sequence
+from typing import TYPE_CHECKING, Any, NamedTuple, Sequence
 
 from great_expectations.compatibility import aws, trino
 from great_expectations.compatibility.bigquery import (
@@ -21,6 +21,7 @@ from great_expectations.compatibility.bigquery import (
     sqlalchemy_bigquery as BigQueryDialect,
 )
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
+from great_expectations.exceptions import InvalidExpectationConfigurationError
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from great_expectations.util import (
     get_clickhouse_sqlalchemy_potential_type,
@@ -114,10 +115,12 @@ def compare_column_type(
         success = _compare_type_string(actual_column_type, expected_type)
         return success, actual_column_type
     else:
-        types = _get_potential_sqlalchemy_types(
+        resolution = _resolve_type_name(
             execution_engine=execution_engine, expected_type=expected_type
         )
-        success = isinstance(actual_column_type, tuple(types))
+        if not resolution.types and resolution.conclusive:
+            raise _unresolvable_type_error(execution_engine, [expected_type])
+        success = isinstance(actual_column_type, tuple(resolution.types))
         return success, type(actual_column_type).__name__
 
 
@@ -154,13 +157,18 @@ def compare_column_type_list(
             )
             return success, ret_type
     else:
-        types = []
+        types: list = []
+        conclusive = True
         for type_ in expected_types_list:
-            types.extend(
-                _get_potential_sqlalchemy_types(
-                    execution_engine=execution_engine, expected_type=type_
-                )
-            )
+            resolution = _resolve_type_name(execution_engine=execution_engine, expected_type=type_)
+            types.extend(resolution.types)
+            conclusive = conclusive and resolution.conclusive
+        # A type list is routinely written to span backends, so one name this dialect
+        # cannot resolve is normal. Only a list that resolves to nothing at all, and
+        # whose every name the dialect could speak to, is a configuration error. An
+        # empty list names nothing to report, and keeps reporting a failed match.
+        if expected_types_list and not types and conclusive:
+            raise _unresolvable_type_error(execution_engine, expected_types_list)
         success = isinstance(actual_column_type, tuple(types))
         return success, type(actual_column_type).__name__
 
@@ -183,6 +191,18 @@ def _unwrap_clickhouse_nullable_type(
     return actual_column_type
 
 
+def _unresolvable_type_error(
+    execution_engine: SqlAlchemyExecutionEngine, names: Sequence[str]
+) -> InvalidExpectationConfigurationError:
+    quoted = ", ".join(repr(name) for name in names)
+    noun = "type" if len(names) == 1 else "types"
+    return InvalidExpectationConfigurationError(
+        f"Unrecognized {noun}: {quoted} could not be resolved against the "
+        f"{execution_engine.dialect_name} dialect module or the generic sqlalchemy "
+        f"namespace. Check the spelling, or use a type name the dialect supports."
+    )
+
+
 def _compare_type_string(actual_column_type: Any, expected_type: str) -> bool:
     """Case-insensitive single-type comparison for CASE_INSENSITIVE_DIALECTS."""
     if isinstance(actual_column_type, str):
@@ -194,46 +214,103 @@ def _compare_type_string(actual_column_type: Any, expected_type: str) -> bool:
     return str(actual_column_type).casefold() == expected_type.casefold()
 
 
-def _get_potential_sqlalchemy_types(
+class _Resolution(NamedTuple):
+    """The outcome of resolving one type name against a dialect.
+
+    ``conclusive`` is False where the dialect cannot tell an unknown name from a name
+    it simply does not carry, so an empty ``types`` there is not evidence of a typo.
+    """
+
+    types: list
+    conclusive: bool = True
+
+
+_INCONCLUSIVE = _Resolution(types=[], conclusive=False)
+
+
+def _resolve_type_name(
     execution_engine: SqlAlchemyExecutionEngine, expected_type: str
-) -> list:
-    types: list = []
+) -> _Resolution:
+    """Resolve a type name to candidate SQLAlchemy type classes."""
+    if _is_bigquery_geography_without_support(execution_engine, expected_type):
+        logger.warning(
+            "BigQuery GEOGRAPHY type is not supported by default. "
+            + "To install support, please run:"
+            + "  $ pip install 'sqlalchemy-bigquery[geography]'"
+        )
+        # The warning names the real cause, so the empty result that follows must not
+        # be reported back to the user as a misspelled type name.
+        return _INCONCLUSIVE
+
     type_module = _get_dialect_type_module(execution_engine=execution_engine)
+    # Without a dialect module there is no dialect vocabulary to check the name
+    # against, only the generic namespace that _get_dialect_type_module has just
+    # fallen back to. Athena, Hive and Vertica reach the comparison this way.
+    conclusive = execution_engine.dialect_module is not None
+
+    types = _dialect_candidates(type_module, expected_type) if conclusive else []
+    if not types:
+        # A dialect module re-exports only the subset of generic types it chooses to.
+        # Oracle exports NUMBER and VARCHAR2 but not INTEGER, yet reflects an INTEGER
+        # column as a generic sqlalchemy.INTEGER.
+        types = _generic_candidates(expected_type)
+    if not types:
+        logger.debug(f"Unrecognized type: {expected_type}")
+    return _Resolution(types=types, conclusive=conclusive)
+
+
+def _is_bigquery_geography_without_support(
+    execution_engine: SqlAlchemyExecutionEngine, expected_type: str
+) -> bool:
+    """Whether GEOGRAPHY was asked for on BigQuery without the optional extra."""
+    return (
+        expected_type.lower() == "geography"
+        and execution_engine.engine.dialect.name.lower() == GXSqlDialect.BIGQUERY
+        and not BIGQUERY_GEO_SUPPORT
+    )
+
+
+def _dialect_candidates(type_module: ModuleType, expected_type: str) -> list:
+    """Resolve a type name against the dialect's own type module."""
     try:
-        # bigquery geography requires installing an extra package
-        if (
-            expected_type.lower() == "geography"
-            and execution_engine.engine.dialect.name.lower() == GXSqlDialect.BIGQUERY
-            and not BIGQUERY_GEO_SUPPORT
-        ):
-            logger.warning(
-                "BigQuery GEOGRAPHY type is not supported by default. "
-                + "To install support, please run:"
-                + "  $ pip install 'sqlalchemy-bigquery[geography]'"
-            )
-        elif type_module.__name__ == "pyathena.sqlalchemy_athena":
-            potential_type = get_pyathena_potential_type(type_module, expected_type)
+        if type_module.__name__ == "pyathena.sqlalchemy_athena":
+            athena_type = get_pyathena_potential_type(type_module, expected_type)
             # In the case of the PyAthena dialect we need to verify that
             # the type returned is indeed a type and not an instance.
-            if not inspect.isclass(potential_type):
-                real_type = type(potential_type)
+            if not inspect.isclass(athena_type):
+                real_type = type(athena_type)
             else:
-                real_type = potential_type
-            types.append(real_type)
-        elif type_module.__name__ == "clickhouse_sqlalchemy.drivers.base":
+                real_type = athena_type
+            return [real_type]
+        if type_module.__name__ == "clickhouse_sqlalchemy.drivers.base":
             potential_type = get_clickhouse_sqlalchemy_potential_type(type_module, expected_type)
-            types.append(potential_type)
-        elif type_module.__name__ == "sqlalchemy_redshift.dialect":
-            types.extend(_get_redshift_sqlalchemy_types(type_module, expected_type))
-        else:
-            potential_type = getattr(type_module, expected_type)
-            types.append(potential_type)
+            if potential_type is sa.types.NullType:
+                # What ClickHouseDialect._get_column_type returns for a spec it does
+                # not recognize, alongside its own "Did not recognize type" warning.
+                # Keeping it would leave the comparison an isinstance against
+                # NullType, which is the silent failure this module is trying to lose.
+                return []
+            return [potential_type]
+        if type_module.__name__ == "sqlalchemy_redshift.dialect":
+            return _get_redshift_sqlalchemy_types(type_module, expected_type)
+        potential_type = getattr(type_module, expected_type)
     except AttributeError:
-        logger.debug(f"Unrecognized type: {expected_type}")
-    if len(types) == 0:
-        logger.debug("No recognized sqlalchemy types in type_list for current dialect.")
+        return []
+    # A module namespace holds more than types, and a non-class candidate would make
+    # isinstance() raise TypeError rather than compare anything.
+    return [potential_type] if isinstance(potential_type, type) else []
 
-    return types
+
+def _generic_candidates(expected_type: str) -> list:
+    """Resolve a type name against the top-level sqlalchemy namespace.
+
+    That namespace is far wider than its types, so a name colliding with one of its
+    functions (``text``, ``cast``, ``select``) must not become a candidate.
+    """
+    generic_type = getattr(sa, expected_type, None)
+    if isinstance(generic_type, type) and issubclass(generic_type, sa.types.TypeEngine):
+        return [generic_type]
+    return []
 
 
 def _get_redshift_sqlalchemy_types(type_module: ModuleType, expected_type: Any) -> list:
