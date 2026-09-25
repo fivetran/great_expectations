@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Dict, List, Tuple, Union
 
 from dateutil.parser import parse
 
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core import ExpectationSuite
 from great_expectations.core.run_identifier import RunIdentifier
 from great_expectations.data_context.util import instantiate_class_from_config
@@ -69,6 +70,7 @@ class ValidationResultsPageRenderer(Renderer):
         self._data_context = data_context
 
     # TODO: deprecate dual batch api support in 0.14
+    @override
     def render(
         self,
         validation_results: ExpectationSuiteValidationResult,
@@ -152,6 +154,7 @@ class ValidationResultsPageRenderer(Renderer):
 
         return run_name, run_time
 
+    @override
     def _group_evrs_by_column(
         self,
         validation_results: ExpectationSuiteValidationResult,
@@ -644,6 +647,7 @@ class ExpectationSuitePageRenderer(Renderer):
 
         return expectations_by_column, sorted_columns
 
+    @override
     def render(self, expectations):
         if isinstance(expectations, dict):
             expectations = ExpectationSuite(**expectations, data_context=None)
@@ -856,6 +860,7 @@ class ProfilingResultsPageRenderer(Renderer):
                 class_name=column_section_renderer["class_name"],
             )
 
+    @override
     def render(self, validation_results):  # noqa: C901, PLR0912 # FIXME CoP
         run_id = validation_results.meta.get("run_id")
         run_name = run_time = "__none__"

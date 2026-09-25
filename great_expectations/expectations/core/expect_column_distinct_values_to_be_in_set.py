@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.constants import MAX_DISTINCT_VALUES
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
@@ -257,6 +258,7 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         return value_set
 
     @classmethod
+    @override
     def _prescriptive_template(
         cls,
         renderer_configuration: RendererConfiguration,
@@ -303,6 +305,7 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
     @classmethod
     @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
     @render_suite_parameter_string
+    @override
     def _prescriptive_renderer(
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
@@ -372,6 +375,7 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         # The expectation now only returns unexpected values, not full value counts
         return None
 
+    @override
     def _validate(
         self,
         metrics: Dict,
@@ -411,6 +415,7 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
 
     @classmethod
     @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
+    @override
     def _atomic_diagnostic_observed_value(
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
