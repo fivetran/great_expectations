@@ -47,15 +47,17 @@ This table lists every deprecated item, the version that deprecated it, and the 
 
 ### 1.23.2 (2026-09-25)
 
+Compatibility: `sqlalchemy` now `<2.1` (extras `snowflake`, `databricks`)
+
 #### Highlights
 
-- **SQLAlchemy 2.1 support** — Great Expectations now runs on SQLAlchemy 2.1 for every backend whose dialect supports it, and the library-wide `<2.1` cap is lifted. On Python 3.11+, the `postgresql`, `mysql`, `bigquery`, `sql-server`/`fabric`, `oracle`, `trino`, `redshift`, `athena` and other SQL extras resolve SQLAlchemy 2.1; the `snowflake` and `databricks` extras stay below 2.1 until their dialects support it. A driverless `postgresql://` URL uses psycopg when installed and falls back to psycopg2 otherwise, so the `postgresql` extra still needs no new dependency; BigQuery renders SQLAlchemy's `Double` as `FLOAT64`; SQL Server reflects mixed-case and upper-case tables correctly; and `expect_column_values_to_be_of_type(type_="Numeric")` keeps matching float columns. ([#12269](https://github.com/fivetran/great_expectations/pull/12269))
+- **Fixes GX on SQLAlchemy 2.1** — SQLAlchemy 2.1.0, released 2026-09-24, broke GX 1.23.1 and earlier on Python 3.11+, where every SQL extra resolves it by default. Depending on the backend, `import great_expectations` failed whenever snowflake-sqlalchemy was installed, every Databricks query failed, driverless `postgresql://` URLs could not load a driver, BigQuery queries comparing against a float failed, SQL Server reported mixed-case and upper-case tables as missing, and `expect_column_values_to_be_of_type(type_="Numeric")` failed on float columns. 1.23.2 fixes all of these: the `snowflake` and `databricks` extras stay below SQLAlchemy 2.1 until their dialects support it, and every other SQL extra runs on 2.1. Python 3.10 is unaffected, since SQLAlchemy 2.1 requires Python 3.11. If you can't upgrade yet, pin `sqlalchemy<2.1`; do the same if you install snowflake-sqlalchemy or databricks-sqlalchemy outside GX's extras. ([#12269](https://github.com/fivetran/great_expectations/pull/12269))
 
   ```python
-  pip install 'great_expectations[postgresql]'  # resolves SQLAlchemy 2.1 on Python 3.11+
+  pip install --upgrade 'great_expectations[snowflake]'  # include your extras so the SQLAlchemy cap applies
   ```
 
-- **Regex Expectations work on ClickHouse** — The four regex Expectations now run on ClickHouse, which does not support `regexp_like()`. ClickHouse is covered by integration tests for these Expectations, and the curated backend exclusion has been removed. ([#12222](https://github.com/fivetran/great_expectations/pull/12222))
+- **Regex Expectations work on ClickHouse** — The four regex Expectations now run on ClickHouse, which does not support `regexp_like()`. ClickHouse is covered by integration tests for these Expectations. ([#12222](https://github.com/fivetran/great_expectations/pull/12222))
 
   ```python
   gx.expectations.ExpectColumnValuesToMatchRegex(column="name", regex="^A")
@@ -73,16 +75,11 @@ This table lists every deprecated item, the version that deprecated it, and the 
   gx.expectations.ExpectColumnMostCommonValueToBeInSet(column="address.city", value_set=["Springfield"])
   ```
 
-- **The changelog is now fully in the structured format** — Every release entry from 1.0.0 onward is written in the structured shape: a dated heading, a compatibility line, Highlights with runnable snippets, a categorized ledger of every merged pull request, Deprecations where they apply, and a contributors line. The 1.13.1 release, previously missing from the page, now has its own entry. ([#12227](https://github.com/fivetran/great_expectations/pull/12227), [#12225](https://github.com/fivetran/great_expectations/pull/12225))
-
 #### Changes
-
-##### Features
-
-- Great Expectations now supports SQLAlchemy 2.1 across every backend whose dialect supports it: the library-wide `<2.1` cap is lifted, only the `snowflake` and `databricks` extras remain pinned below 2.1, driverless `postgresql://` URLs fall back to psycopg2 when psycopg is unavailable, BigQuery renders `Double` as `FLOAT64`, SQL Server reflects mixed-case tables, the `Numeric` type name matches float columns, database URL masking keeps the database and query string verbatim, and a broken snowflake-sqlalchemy install no longer prevents `import great_expectations`. ([#12269](https://github.com/fivetran/great_expectations/pull/12269))
 
 ##### Bug fixes
 
+- GX works on SQLAlchemy 2.1, which broke 1.23.1 on several backends: the `snowflake` and `databricks` extras are capped below 2.1, a broken snowflake-sqlalchemy install no longer prevents `import great_expectations`, driverless `postgresql://` URLs fall back to psycopg2 when psycopg is unavailable, BigQuery renders `Double` as `FLOAT64`, SQL Server reflects mixed-case tables, the `Numeric` type name matches float columns again, and database URL masking keeps the database and query string verbatim. ([#12269](https://github.com/fivetran/great_expectations/pull/12269))
 - Validation results containing an infinite `Decimal` value — for example the maximum, mean or sum of a PostgreSQL `numeric` column or a pandas column of `Decimal` values — now serialize as float infinity instead of raising `decimal.InvalidOperation`. ([#12254](https://github.com/fivetran/great_expectations/pull/12254))
 - Regex Expectations on Snowflake now match substrings, consistent with other backends, rather than requiring the pattern to match the entire column value. ([#12221](https://github.com/fivetran/great_expectations/pull/12221))
 - `UnexpectedRowsExpectation` no longer misreads a query as containing a JOIN when the letters appear inside a string literal, a column name such as `join_date`, a quoted identifier or a comment; such queries are aliased correctly again and no longer fail with a syntax error on MySQL and SQL Server. ([#12249](https://github.com/fivetran/great_expectations/pull/12249))
@@ -108,6 +105,8 @@ This table lists every deprecated item, the version that deprecated it, and the 
 Thanks to @adimalkar, @Rayan-and-beyond (first contribution), @nanjeshramesh, @feiiiiii5, @alibro005, @pentaoa (first contribution).
 
 ### 1.23.1 (2026-09-18)
+
+**Known issue:** on Python 3.11+, this release resolves SQLAlchemy 2.1 (released 2026-09-24), which it does not support. Upgrade to 1.23.2, or pin `sqlalchemy<2.1`.
 
 #### Highlights
 
