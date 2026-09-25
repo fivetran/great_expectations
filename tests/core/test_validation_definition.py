@@ -1039,16 +1039,16 @@ class TestConcurrentValidationRuns:
     Validators exist before either builds its metric graph (or assembles its result). A
     barrier makes it deterministic; it does not create the shared state.
 
-    Where the sync points sit matters on Python 3.10 and 3.11. The wrapped Validator is built
-    under ``V1Validator._wrapped_validator``, a ``functools.cached_property`` whose ``__get__``
-    holds one class-wide lock while it computes on those versions (3.12 removed the lock). A
-    thread that waits for the other thread *inside* that computation holds the lock the other
-    thread needs to build its own Validator, and both hang. So a wait for the other thread's
-    Validator goes at ``graph_validate``, the first call after the property has been computed,
-    or earlier still at ``_validate_expectation_configs``, before the property is touched at
-    all. Neither placement ever sits inside ``__init__``: a wait there would itself be holding
-    the lock the other thread needs to build its own Validator, which is exactly the deadlock
-    this design avoids.
+    Where the sync points sit is worth stating because it once mattered on Python 3.10 and
+    3.11. The wrapped Validator is built under ``V1Validator._wrapped_validator``, which caches
+    per instance; it used to be a ``functools.cached_property``, whose ``__get__`` held one
+    class-wide lock while computing on those versions (3.12 removed the lock,
+    python/cpython#87634). A thread that waited for the other thread *inside* that computation
+    held the lock the other thread needed to build its own Validator, and both hung. The
+    placements below do not depend on that history: a wait for the other thread's Validator
+    goes at ``graph_validate``, the first call after the property has been computed, or earlier
+    still at ``_validate_expectation_configs``, before the property is touched at all. Neither
+    placement ever sits inside ``__init__``, so no wait runs while another build is in flight.
     """
 
     @staticmethod
@@ -1128,9 +1128,9 @@ class TestConcurrentValidationRuns:
         original_validate_expectation_configs = V1Validator._validate_expectation_configs
 
         def big_waits_for_small_before_building_its_validator(self, *args, **kwargs):
-            # Waits before "big" ever touches `_wrapped_validator`, so this wait never holds
-            # the cached-property lock: "small"'s Validator already exists (and the lock is
-            # already released) by the time this returns.
+            # Waits before "big" ever touches `_wrapped_validator`, keeping this wait out of
+            # another Validator's build. It also pins the ordering the test asserts: "small"'s
+            # Validator already exists by the time this returns.
             if threading.current_thread().name == "big":
                 assert small_resolved.wait(timeout=_CONCURRENT_RUN_WAIT_SECONDS)
             return original_validate_expectation_configs(self, *args, **kwargs)

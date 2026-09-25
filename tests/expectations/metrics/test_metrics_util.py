@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import importlib
 import random
 from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, Callable, Final, List, Union
@@ -1378,8 +1379,8 @@ def test_get_dialect_regex_expression_stubs_are_mutually_exclusive() -> None:
         pytest.param("bigquery", False, "NOT REGEXP_CONTAINS(a, 'test')", id="bigquery-negative"),
         pytest.param("trino", True, "regexp_like(a, 'test')", id="trino-positive"),
         pytest.param("trino", False, "NOT regexp_like(a, 'test')", id="trino-negative"),
-        pytest.param("clickhouse", True, "regexp_like(a, 'test')", id="clickhouse-positive"),
-        pytest.param("clickhouse", False, "NOT regexp_like(a, 'test')", id="clickhouse-negative"),
+        pytest.param("clickhouse", True, "match(a, 'test')", id="clickhouse-positive"),
+        pytest.param("clickhouse", False, "NOT match(a, 'test')", id="clickhouse-negative"),
         pytest.param("dremio", True, "REGEXP_MATCHES(a, 'test')", id="dremio-positive"),
         pytest.param("dremio", False, "NOT REGEXP_MATCHES(a, 'test')", id="dremio-negative"),
         pytest.param(
@@ -1608,3 +1609,22 @@ def test_get_sqlalchemy_source_table_and_schema_falls_back_to_the_last_loaded_ba
     assert get_sqlalchemy_source_table_and_schema(engine, batch_id="never_loaded").name == (
         "second_table"
     )
+
+
+# Marked `postgresql`, not `unit`: recognising psycopg2 needs psycopg2 installed, which only the
+# postgresql lane does. psycopg (3) is recognised from SQLAlchemy's dialect module alone.
+@pytest.mark.postgresql
+@pytest.mark.parametrize("driver", ["psycopg2", "psycopg"])
+def test_attempt_allowing_relative_error_recognises_both_postgres_drivers(driver: str) -> None:
+    """A driverless postgresql:// URL selects psycopg2 before SQLAlchemy 2.1 and psycopg after,
+    so the approximate-quantile fallback has to accept either for that URL to behave the same."""
+    dialect_module = importlib.import_module(f"sqlalchemy.dialects.postgresql.{driver}")
+
+    assert metrics_util.attempt_allowing_relative_error(dialect_module.dialect())
+
+
+@pytest.mark.unit
+def test_attempt_allowing_relative_error_rejects_other_dialects() -> None:
+    import sqlalchemy.dialects.sqlite
+
+    assert not metrics_util.attempt_allowing_relative_error(sqlalchemy.dialects.sqlite.dialect())

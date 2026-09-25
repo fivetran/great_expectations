@@ -34,6 +34,7 @@ from typing_extensions import Annotated, Never, Self
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import deprecated_argument, public_api
 from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.postgresql import resolve_postgresql_driver
 from great_expectations.compatibility.pydantic import Field
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
@@ -1514,7 +1515,7 @@ class SQLDatasource(Datasource):
         if self.__class__.__name__ == "SQLDatasource":
             _warn_for_more_specific_datasource_type(connection_string)
         kwargs = model_dict.pop("kwargs", {})
-        return sa.create_engine(connection_string, **kwargs)
+        return sa.create_engine(resolve_postgresql_driver(connection_string), **kwargs)
 
     @override
     def get_execution_engine(self) -> SqlAlchemyExecutionEngine:

@@ -11,6 +11,7 @@ from tests.integration.data_sources_and_expectations.data_source_lists import (
     JUST_PANDAS_DATA_SOURCES,
 )
 from tests.integration.test_utils.data_source_config import (
+    ClickHouseDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
     DataSourceTestConfig,
     GenericSQLDatasourceTestConfig,
@@ -39,6 +40,7 @@ SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     PandasDataFrameDatasourceTestConfig(),
     PandasFilesystemCsvDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
+    ClickHouseDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
