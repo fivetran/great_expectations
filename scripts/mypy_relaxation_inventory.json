@@ -57,10 +57,7 @@
     "render/renderer/page_renderer\\.py",
     "render/renderer/profiling_results_overview_section_renderer\\.py",
     "render/renderer/site_builder\\.py",
-    "render/renderer/slack_renderer\\.py",
-    "tests/datasource/data_connector",
-    "tests/datasource/fluent/tasks\\.py",
-    "tests/datasource/test_datasource_dict\\.py"
+    "render/renderer/slack_renderer\\.py"
   ],
   "files": [
     "docs",
