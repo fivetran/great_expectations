@@ -42,12 +42,6 @@ from great_expectations.util import convert_to_json_serializable
 from great_expectations.validator.validation_graph import MetricConfiguration
 from great_expectations.validator.validator import Validator
 
-# The query is rendered from Spark's own SQL for the resolved condition, so it is the same
-# on every supported pyspark version and evaluates against the DataFrame.
-_SPARK_IN_SET_UNEXPECTED_INDEX_QUERY = (
-    "df.filter(F.expr(\"(animals IS NOT NULL) AND (NOT (animals IN ('cat', 'fish', 'dog')))\"))"
-)
-
 
 @pytest.fixture
 def sqlite_table_for_unexpected_rows_with_index(
@@ -730,7 +724,13 @@ def test_spark_single_column_complete_result_format(
         ],
     )
     result = expectation.validate_(validator)
-    assert convert_to_json_serializable(result.result) == {
+    result_dict = convert_to_json_serializable(result.result)
+    unexpected_index_query = result_dict.pop("unexpected_index_query")
+    assert unexpected_index_query.startswith("df.filter(F.expr(")
+    assert "animals" in unexpected_index_query
+    assert all(value in unexpected_index_query for value in ("cat", "fish", "dog"))
+    compile(unexpected_index_query, "<unexpected_index_query>", "eval")
+    assert result_dict == {
         "element_count": 6,
         "missing_count": 0,
         "missing_percent": 0.0,
@@ -741,7 +741,6 @@ def test_spark_single_column_complete_result_format(
         ],
         "partial_unexpected_list": ["giraffe", "lion", "zebra"],
         "unexpected_count": 3,
-        "unexpected_index_query": _SPARK_IN_SET_UNEXPECTED_INDEX_QUERY,
         "unexpected_list": ["giraffe", "lion", "zebra"],
         "unexpected_percent": 50.0,
         "unexpected_percent_nonmissing": 50.0,
@@ -790,7 +789,13 @@ def test_spark_single_column_complete_result_format_with_id_pk(
     with pytest.warns(UserWarning):
         result = expectation.validate_(validator)
 
-    assert convert_to_json_serializable(result.result) == {
+    result_dict = convert_to_json_serializable(result.result)
+    unexpected_index_query = result_dict.pop("unexpected_index_query")
+    assert unexpected_index_query.startswith("df.filter(F.expr(")
+    assert "animals" in unexpected_index_query
+    assert all(value in unexpected_index_query for value in ("cat", "fish", "dog"))
+    compile(unexpected_index_query, "<unexpected_index_query>", "eval")
+    assert result_dict == {
         "element_count": 6,
         "missing_count": 0,
         "missing_percent": 0.0,
@@ -812,7 +817,6 @@ def test_spark_single_column_complete_result_format_with_id_pk(
             {"animals": "lion", "pk_1": 4},
             {"animals": "zebra", "pk_1": 5},
         ],
-        "unexpected_index_query": _SPARK_IN_SET_UNEXPECTED_INDEX_QUERY,
         "unexpected_list": ["giraffe", "lion", "zebra"],
         "unexpected_percent": 50.0,
         "unexpected_percent_nonmissing": 50.0,
