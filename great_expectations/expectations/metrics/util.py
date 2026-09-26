@@ -199,16 +199,11 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
             dialect.dialect,  # type: ignore[union-attr] # FIXME CoP
             snowflake.sqlalchemy.snowdialect.SnowflakeDialect,
         ):
+            match_count = sa.func.REGEXP_COUNT(column, sqlalchemy.literal(regex))
             if positive:
-                return sqlalchemy.BinaryExpression(
-                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("REGEXP")
-                )
+                return match_count > 0
             else:
-                return sqlalchemy.BinaryExpression(
-                    column,
-                    sqlalchemy.literal(regex),
-                    sqlalchemy.custom_op("NOT REGEXP"),
-                )
+                return match_count == 0
     except (
         AttributeError,
         TypeError,
