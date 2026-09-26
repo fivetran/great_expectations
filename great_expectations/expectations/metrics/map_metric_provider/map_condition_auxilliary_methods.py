@@ -855,7 +855,18 @@ def _spark_map_condition_query(
         domain_kwargs=dict(**(compute_domain_kwargs or {}), **(accessor_domain_kwargs or {})),
     )
     if unexpected_condition_filtered is None:
-        unexpected_condition_filtered = _spark_condition_display_string(unexpected_condition)
+        # unexpected_condition is a Column object whose str representation is wrapped in
+        # Column<'...'> syntax, e.g. Column<'[unexpected_expression]'>.
+        # Strip that wrapper generically. Spark renders the inner expression differently
+        # across versions (Spark 3 uses infix, e.g. "(a AND b)"; Spark 4 uses a
+        # function-prefix grammar, e.g. "and(a, b)"), so we cannot assume the leading
+        # "Column<'" is followed by a "(".
+        unexpected_condition_as_string: str = str(unexpected_condition)
+        unexpected_condition_filtered = unexpected_condition_as_string
+        if unexpected_condition_filtered.startswith("Column<'"):
+            unexpected_condition_filtered = unexpected_condition_filtered[len("Column<'") :]
+        if unexpected_condition_filtered.endswith("'>"):
+            unexpected_condition_filtered = unexpected_condition_filtered[:-2]
     # Spark wraps the whole condition in one extra outer paren pair; strip it so the
     # rendered query matches the historical output. The Spark 4 prefix grammar starts
     # with a function name (never "("), so this leaves it untouched. This assumes the
@@ -890,22 +901,6 @@ def _spark_condition_as_sql(
         return plan.condition().sql()
     except Exception:
         return None
-
-
-def _spark_condition_display_string(unexpected_condition: Any) -> str:
-    # unexpected_condition is a Column object whose str representation is wrapped in
-    # Column<'...'> syntax, e.g. Column<'[unexpected_expression]'>.
-    # Strip that wrapper generically. Spark renders the inner expression differently
-    # across versions (Spark 3 uses infix, e.g. "(a AND b)"; Spark 4 uses a
-    # function-prefix grammar, e.g. "and(a, b)"), so we cannot assume the leading
-    # "Column<'" is followed by a "(".
-    unexpected_condition_as_string: str = str(unexpected_condition)
-    unexpected_condition_filtered: str = unexpected_condition_as_string
-    if unexpected_condition_filtered.startswith("Column<'"):
-        unexpected_condition_filtered = unexpected_condition_filtered[len("Column<'") :]
-    if unexpected_condition_filtered.endswith("'>"):
-        unexpected_condition_filtered = unexpected_condition_filtered[:-2]
-    return unexpected_condition_filtered
 
 
 def _generate_temp_table(
