@@ -59,6 +59,35 @@ def test_mask_db_url__does_not_mask_config_strings():
     assert output == config_str
 
 
+@pytest.mark.unit
+@pytest.mark.filterwarnings(
+    "ignore:SQLAlchemy is not installed*:UserWarning:great_expectations.data_context.util"
+)
+@pytest.mark.parametrize(
+    ("url", "expected"),
+    [
+        (
+            "mssql+pyodbc://scott:tiger@host:1433/db?driver=ODBC+Driver+17&TrustServerCertificate=yes",
+            "mssql+pyodbc://scott:***@host:1433/db?driver=ODBC+Driver+17&TrustServerCertificate=yes",
+        ),
+        (
+            "postgresql://scott:tiger@[::1]:5432/db?sslmode=require#section",
+            "postgresql://scott:***@[::1]:5432/db?sslmode=require#section",
+        ),
+        ("bigquery://my-project/dataset", "bigquery://my-project/dataset"),
+        ("postgresql://scott@host:5432/db", "postgresql://scott@host:5432/db"),
+        (
+            "mysql+pymysql://scott:tiger@/db?unix_socket=/tmp/mysql.sock",
+            "mysql+pymysql://scott:***@/db?unix_socket=/tmp/mysql.sock",
+        ),
+    ],
+)
+def test_mask_db_url_with_urlparse_preserves_non_password_components(
+    url: str, expected: str
+) -> None:
+    assert PasswordMasker.mask_db_url(url, use_urlparse=True) == expected
+
+
 @pytest.mark.postgresql
 def test_mask_db_url__driverless_postgresql_url_with_only_psycopg2_installed(
     monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
