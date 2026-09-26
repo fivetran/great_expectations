@@ -825,10 +825,8 @@ def _spark_map_condition_query(
     of ColumnMapExpectation.
 
     Converts unexpected_condition into a string that can be rendered in DataDocs and is valid
-    Python syntax. Where Spark can resolve the condition against the domain DataFrame, the
-    condition is rendered as Spark SQL, so evaluating the returned query against that DataFrame
-    returns the unexpected rows. Otherwise (e.g. Spark Connect, or window-function conditions)
-    it falls back to the Column's display string, which may not evaluate.
+    Python. The condition is rendered as Spark SQL where Spark can resolve it, so the query
+    evaluates; otherwise it falls back to the Column's display string.
 
     Output will look like:
 
@@ -849,25 +847,26 @@ def _spark_map_condition_query(
         accessor_domain_kwargs,
     ) = metrics.get("unexpected_condition", (None, None, None))
 
-    unexpected_condition_filtered = _spark_condition_as_sql(
+    # unexpected_condition is a Column object whose str representation is wrapped in
+    # Column<'...'> syntax, e.g. Column<'[unexpected_expression]'>.
+    # Strip that wrapper generically. Spark renders the inner expression differently
+    # across versions (Spark 3 uses infix, e.g. "(a AND b)"; Spark 4 uses a
+    # function-prefix grammar, e.g. "and(a, b)"), so we cannot assume the leading
+    # "Column<'" is followed by a "(".
+    unexpected_condition_as_string: str = str(unexpected_condition)
+    unexpected_condition_filtered: str = unexpected_condition_as_string
+    if unexpected_condition_filtered.startswith("Column<'"):
+        unexpected_condition_filtered = unexpected_condition_filtered[len("Column<'") :]
+    if unexpected_condition_filtered.endswith("'>"):
+        unexpected_condition_filtered = unexpected_condition_filtered[:-2]
+    condition_sql = _spark_condition_as_sql(
         execution_engine=execution_engine,
         unexpected_condition=unexpected_condition,
         domain_kwargs=dict(**(compute_domain_kwargs or {}), **(accessor_domain_kwargs or {})),
     )
-    if unexpected_condition_filtered is None:
-        # unexpected_condition is a Column object whose str representation is wrapped in
-        # Column<'...'> syntax, e.g. Column<'[unexpected_expression]'>.
-        # Strip that wrapper generically. Spark renders the inner expression differently
-        # across versions (Spark 3 uses infix, e.g. "(a AND b)"; Spark 4 uses a
-        # function-prefix grammar, e.g. "and(a, b)"), so we cannot assume the leading
-        # "Column<'" is followed by a "(".
-        unexpected_condition_as_string: str = str(unexpected_condition)
-        unexpected_condition_filtered = unexpected_condition_as_string
-        if unexpected_condition_filtered.startswith("Column<'"):
-            unexpected_condition_filtered = unexpected_condition_filtered[len("Column<'") :]
-        if unexpected_condition_filtered.endswith("'>"):
-            unexpected_condition_filtered = unexpected_condition_filtered[:-2]
-    # Spark wraps the whole condition in one extra outer paren pair; strip it so the
+    if condition_sql is not None:
+        unexpected_condition_filtered = condition_sql
+    # Spark 3 wraps the whole condition in one extra outer paren pair; strip it so the
     # rendered query matches the historical output. The Spark 4 prefix grammar starts
     # with a function name (never "("), so this leaves it untouched. This assumes the
     # top-level expression is fully parenthesized as a single group (true for the
@@ -884,14 +883,9 @@ def _spark_condition_as_sql(
     unexpected_condition: Any,
     domain_kwargs: dict,
 ) -> Optional[str]:
-    """Render unexpected_condition as Spark SQL that F.expr can parse, or None if Spark can't.
+    """Render the condition as Spark SQL via Catalyst, which F.expr can parse on Spark 3 and 4.
 
-    A Column's display string is not SQL: Spark 3 leaves literals unquoted (``IN (a, b)``)
-    and Spark 4 uses a function-prefix grammar (``and(isnotnull(x), ...)``). Resolving the
-    condition as a filter on the domain DataFrame and reading back Catalyst's ``sql`` gives
-    parseable SQL with quoted literals on both. That needs the classic JVM-backed DataFrame,
-    and fails analysis for conditions a filter can't hold (e.g. window functions), in which
-    case None is returned.
+    Returns None where Spark can't resolve it (Spark Connect, window functions).
     """
     try:
         df = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
