@@ -30,7 +30,7 @@ var DESCRIPTION_MAX_LENGTH = 140;
 // status, or a request to it errors, for a login that is in fact signed --
 // observed as a load/quota blip, not a per-login failure. Retry a few times
 // with backoff before giving up and failing the job closed.
-var MAX_ATTEMPTS = 3;
+var MAX_ATTEMPTS = 5;
 var RETRY_BASE_DELAY_MS = 500;
 
 function defaultSleep(ms) {
