@@ -168,6 +168,35 @@ def test_nan_decimal_converts_without_raising(value):
     assert math.isnan(converted[1])
 
 
+@pytest.mark.unit
+def test_decimal_series_non_default_index_preserved_out_of_place():
+    """convert_pandas_series_decimal_to_float_dtype must preserve the original index.
+
+    A Series with a non-contiguous index (e.g. after row-condition filtering) previously
+    lost its values when update() aligned by label against a fresh 0-based index.
+    Fixes https://github.com/great-expectations/great_expectations/issues/12253
+    """
+    series = pd.Series(
+        [Decimal("5"), Decimal("1"), Decimal("2")], index=[10, 11, 12]
+    )
+    converted = convert_pandas_series_decimal_to_float_dtype(data=series)
+    assert converted is not None
+    assert list(converted.index) == [10, 11, 12]
+    assert converted.tolist() == [5.0, 1.0, 2.0]
+
+
+@pytest.mark.unit
+def test_decimal_series_non_default_index_preserved_inplace():
+    """In-place conversion must preserve values at their original index positions."""
+    series = pd.Series(
+        [Decimal("5"), Decimal("1"), Decimal("2")], index=[10, 11, 12]
+    )
+    result = convert_pandas_series_decimal_to_float_dtype(data=series, inplace=True)
+    assert result is None
+    assert list(series.index) == [10, 11, 12]
+    assert series.tolist() == [5.0, 1.0, 2.0]
+
+
 # TODO add unittests for convert_to_json_serializable() and ensure_json_serializable()
 @pytest.mark.spark
 def test_serialization_of_spark_df(spark_session):
