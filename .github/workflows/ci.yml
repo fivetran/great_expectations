@@ -397,14 +397,14 @@ jobs:
         run: invoke docs-snippet-tests '${{ matrix.doc-step }}' --up-services --verbose
 
   unit-tests:
-    needs: [check-actor-permissions, detect-changes]
+    needs: [check-actor-permissions, detect-changes, python-versions]
     if: needs.detect-changes.outputs.docs_only != 'true'
     env:
       GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ${{ fromJSON(needs.python-versions.outputs.all) }}
 
     runs-on: ${{ matrix.os }}
 
@@ -559,10 +559,10 @@ jobs:
           invoke ci-tests 'integration' --verbose
 
   marker-tests:
-    needs: [unit-tests, static-analysis, check-actor-permissions]
+    needs: [unit-tests, static-analysis, check-actor-permissions, python-versions]
     if: github.event.pull_request.draft == false
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
       # google
       GE_TEST_GCP_CREDENTIALS: ${{secrets.GE_TEST_GCP_CREDENTIALS}}
       GE_TEST_GCP_PROJECT: ${{secrets.GE_TEST_GCP_PROJECT}}
@@ -608,20 +608,15 @@ jobs:
           - clickhouse
           - singlestore
           - oracle
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
-        exclude:
-          # TODO: would like to adopt `actionlint` pre-commit hook
-          # but false positive here and inability to do an inline ignore
-          # prevents this https://github.com/rhysd/actionlint/issues/237
-          - python-version: ${{ github.event_name == 'pull_request_target' && '3.10' }}
-          - python-version: ${{ github.event_name == 'pull_request_target' && '3.11' }}
-          - python-version: ${{ github.event_name == 'pull_request_target' && '3.12' }}
-          - python-version: ${{ github.event_name == 'merge_group' && '3.10' }}
-          - python-version: ${{ github.event_name == 'merge_group' && '3.11' }}
-          - python-version: ${{ github.event_name == 'merge_group' && '3.12' }}
-          - python-version: ${{ github.event_name == 'workflow_dispatch' && '3.10' }}
-          - python-version: ${{ github.event_name == 'workflow_dispatch' && '3.11' }}
-          - python-version: ${{ github.event_name == 'workflow_dispatch' && '3.12' }}
+        python-version: ${{ fromJSON(needs.python-versions.outputs.reduced) }}
+        # ---- Exclusion register ----------------------------------------------------
+        # A lane is held on an older Python when its driver has no release for the
+        # latest one. A hold is one `exclude` (the lane's cell on the latest Python)
+        # plus one `include` (the held cell), so the lane keeps its coverage on the
+        # older interpreter. Each entry names the upstream release that lifts it.
+        # A hold implemented outside this job is listed here with a pointer to where
+        # it lives. No lane is held today.
+        exclude: []
 
     steps:
       - name: Checkout
@@ -679,10 +674,10 @@ jobs:
           invoke ci-tests '${{ matrix.markers }}' --up-services --verbose $FLAGS
 
   pyspark4-marker-tests:
-    needs: [unit-tests, static-analysis, check-actor-permissions]
+    needs: [unit-tests, static-analysis, check-actor-permissions, python-versions]
     if: github.event.pull_request.draft == false
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
       # Compose override, matched to the 4.1.x pip client installed below. No official
       # client<->server cross-version guarantee exists for Spark Connect, so the image
       # tag is kept in lockstep with the lane's pyspark constraint.
@@ -705,10 +700,10 @@ jobs:
         with:
           version: latest
 
-      - name: Set up Python 3.13
+      - name: Set up Python ${{ needs.python-versions.outputs.latest }}
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: ${{ needs.python-versions.outputs.latest }}
           cache: "pip"
           cache-dependency-path: |
             reqs/requirements-dev-test.txt
@@ -738,10 +733,10 @@ jobs:
         run: invoke ci-tests '${{ matrix.markers }}' --up-services --verbose --reports
 
   marker-tests-snowflake:
-    needs: [unit-tests, static-analysis, check-actor-permissions]
+    needs: [unit-tests, static-analysis, check-actor-permissions, python-versions]
     if: github.event.pull_request.draft == false
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
       # snowflake
       SNOWFLAKE_ACCOUNT: ${{secrets.SNOWFLAKE_ACCOUNT}}
       SNOWFLAKE_USER: ${{secrets.SNOWFLAKE_USER}}
@@ -764,17 +759,7 @@ jobs:
       fail-fast: false
       matrix:
         shard: ["1/3", "2/3", "3/3"]
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
-        exclude:
-          - python-version: ${{ github.event_name == 'pull_request_target' && '3.10' }}
-          - python-version: ${{ github.event_name == 'pull_request_target' && '3.11' }}
-          - python-version: ${{ github.event_name == 'pull_request_target' && '3.12' }}
-          - python-version: ${{ github.event_name == 'merge_group' && '3.10' }}
-          - python-version: ${{ github.event_name == 'merge_group' && '3.11' }}
-          - python-version: ${{ github.event_name == 'merge_group' && '3.12' }}
-          - python-version: ${{ github.event_name == 'workflow_dispatch' && '3.10' }}
-          - python-version: ${{ github.event_name == 'workflow_dispatch' && '3.11' }}
-          - python-version: ${{ github.event_name == 'workflow_dispatch' && '3.12' }}
+        python-version: ${{ fromJSON(needs.python-versions.outputs.reduced) }}
 
     steps:
       - name: Checkout
@@ -821,7 +806,7 @@ jobs:
         run: echo "slot=$(( KEY % REDSHIFT_SLOTS ))" >> "$GITHUB_OUTPUT"
 
   redshift:
-    needs: [unit-tests, static-analysis, check-actor-permissions, redshift-slot]
+    needs: [unit-tests, static-analysis, check-actor-permissions, redshift-slot, python-versions]
     if: github.event.pull_request.draft == false
     # All runs share one Redshift cluster. When many PRs run this job at once, the cluster
     # drops connections mid-query ("SSL connection has been closed unexpectedly"), failing
@@ -849,7 +834,7 @@ jobs:
       matrix:
         markers:
           - redshift
-        python-version: ["3.13"]
+        python-version: ${{ fromJSON(needs.python-versions.outputs.latest_only) }}
 
     steps:
       - name: Checkout
@@ -881,10 +866,10 @@ jobs:
   # install/services exactly as `marker-tests` does. Each cell's wall-clock, measured unsharded,
   # is well inside the 20-minute per-cell budget stated below, so no cell is split across shards.
   gallery:
-    needs: [unit-tests, static-analysis, check-actor-permissions, redshift-slot]
+    needs: [unit-tests, static-analysis, check-actor-permissions, redshift-slot, python-versions]
     if: github.event.pull_request.draft == false
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
       # google
       GE_TEST_GCP_CREDENTIALS: ${{secrets.GE_TEST_GCP_CREDENTIALS}}
       GE_TEST_GCP_PROJECT: ${{secrets.GE_TEST_GCP_PROJECT}}
@@ -958,7 +943,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: ${{ needs.python-versions.outputs.latest }}
           cache: "pip"
           cache-dependency-path: |
             reqs/requirements-dev-test.txt
@@ -1185,19 +1170,14 @@ jobs:
         run: sh ci/checks/check_min_airflow_dependency_compatibility.sh
 
   import_gx:
-    needs: [static-analysis, check-actor-permissions]
+    needs: [static-analysis, check-actor-permissions, python-versions]
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     env:
       GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
-        exclude:
-          - python-version: ${{ github.event_name == 'pull_request_target' && '3.11' }}
-          - python-version: ${{ github.event_name == 'pull_request_target' && '3.12' }}
-          - python-version: ${{ github.event_name == 'workflow_dispatch' && '3.11' }}
-          - python-version: ${{ github.event_name == 'workflow_dispatch' && '3.12' }}
+        python-version: ${{ fromJSON(needs.python-versions.outputs.reduced_with_floor) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4.3.1
