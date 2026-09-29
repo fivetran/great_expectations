@@ -29,6 +29,130 @@ on:
       - "[0-9]+.[0-9]+.[0-9]+rc[0-9]+"
 
 jobs:
+  # The single place the supported Python versions are defined. Every job that fans out over
+  # interpreters reads a shape derived from this list instead of restating it, so moving the
+  # supported range means editing PYTHON_VERSIONS below (plus adding the matching
+  # ci/constraints-test/py<XY>-min-install.txt file for the new interpreter) and nothing else.
+  #
+  # PYTHON_VERSIONS must be a non-empty JSON array of "X.Y" strings in ascending order: the first
+  # element is the floor, the last is the latest. The derive step fails the job, naming the
+  # offending value, if it is not; every consumer needs this job, so a broken definition fails
+  # the run before any test job starts.
+  python-versions:
+    runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSIONS: '["3.10", "3.11", "3.12", "3.13"]'
+    outputs:
+      all: ${{ steps.derive.outputs.all }}
+      floor: ${{ steps.derive.outputs.floor }}
+      latest: ${{ steps.derive.outputs.latest }}
+      latest_only: ${{ steps.derive.outputs.latest_only }}
+      reduced: ${{ steps.derive.outputs.reduced }}
+      reduced_with_floor: ${{ steps.derive.outputs.reduced_with_floor }}
+      min_versions_matrix: ${{ steps.derive.outputs.min_versions_matrix }}
+    steps:
+      - name: Derive the interpreter sets
+        id: derive
+        # Outputs:
+        #   all                  every supported interpreter (JSON list)
+        #   floor                first element (string)
+        #   latest               last element (string)
+        #   latest_only          [latest] (JSON list)
+        #   reduced              the list a lane runs on: see the table below (JSON list)
+        #   reduced_with_floor   the list for lanes that also cover the floor (JSON list)
+        #   min_versions_matrix  {"include": [{"python-version": ..., "tag": "py<XY>"}, ...]},
+        #                        one entry per interpreter in all
+        #
+        # Which interpreters a run covers depends on the event that started it:
+        #
+        #   event                 reduced       reduced_with_floor
+        #   schedule              all           all
+        #   push (release tag)    all           all
+        #   merge_group           [latest]      all
+        #   pull_request_target   [latest]      [floor, latest]
+        #   workflow_dispatch     [latest]      [floor, latest]
+        #   any other event       [latest]      [floor, latest]   (logged; the safe default)
+        #
+        # This body must stay free of workflow expressions (dollar-brace-brace): it reads only
+        # PYTHON_VERSIONS, GITHUB_EVENT_NAME and GITHUB_OUTPUT, so it can be extracted and run
+        # outside Actions under each event name to check the table above. It uses nothing
+        # newer than jq 1.6.
+        run: |
+          set -euo pipefail
+
+          if [ -z "${PYTHON_VERSIONS:-}" ]; then
+            echo "PYTHON_VERSIONS is not set or is empty" >&2
+            exit 1
+          fi
+          if ! parsed=$(printf '%s' "$PYTHON_VERSIONS" | jq -c . 2>/dev/null) || [ -z "$parsed" ]; then
+            echo "PYTHON_VERSIONS is not valid JSON: $PYTHON_VERSIONS" >&2
+            exit 1
+          fi
+
+          # Prints nothing when the list is a non-empty array of "X.Y" strings in strictly
+          # ascending numeric order (3.10 sorts after 3.9); otherwise prints what is wrong.
+          problem=$(printf '%s' "$parsed" | jq -r '
+            def is_version: type == "string" and test("^[0-9]+\\.[0-9]+$");
+            def vkey: split(".") | map(tonumber);
+            if type != "array" or length == 0 then
+              "not a non-empty JSON array: \(tojson)"
+            elif any(.[]; is_version | not) then
+              "entry is not an \"X.Y\" version string: \([.[] | select(is_version | not)][0] | tojson)"
+            else
+              ([range(1; length) as $i | select((.[$i - 1] | vkey) >= (.[$i] | vkey)) | .[$i]][0]) as $out_of_order
+              | if $out_of_order != null then
+                  "not in strictly ascending order at \($out_of_order | tojson)"
+                else empty end
+            end
+          ')
+          if [ -n "$problem" ]; then
+            echo "PYTHON_VERSIONS must be a non-empty ascending JSON array of \"X.Y\" strings; $problem (got: $PYTHON_VERSIONS)" >&2
+            exit 1
+          fi
+
+          # Compact JSON with a space after each comma and colon, e.g. ["3.10", "3.13"].
+          # Safe because validated values contain neither character.
+          fmt() { jq -c . | sed -e 's/,/, /g' -e 's/":/": /g'; }
+
+          all=$(printf '%s' "$parsed" | fmt)
+          floor=$(printf '%s' "$parsed" | jq -r '.[0]')
+          latest=$(printf '%s' "$parsed" | jq -r '.[-1]')
+          latest_only=$(printf '%s' "$parsed" | jq -c '[.[-1]]' | fmt)
+          floor_and_latest=$(printf '%s' "$parsed" | jq -c 'if length == 1 then . else [.[0], .[-1]] end' | fmt)
+          min_versions_matrix=$(printf '%s' "$parsed" | jq -c '{include: map({"python-version": ., tag: ("py" + (split(".") | join("")))})}' | fmt)
+
+          event="${GITHUB_EVENT_NAME:-}"
+          case "$event" in
+            schedule|push)
+              reduced="$all"
+              reduced_with_floor="$all"
+              ;;
+            merge_group)
+              reduced="$latest_only"
+              reduced_with_floor="$all"
+              ;;
+            pull_request_target|workflow_dispatch)
+              reduced="$latest_only"
+              reduced_with_floor="$floor_and_latest"
+              ;;
+            *)
+              echo "Unrecognized event '$event'; treating it as a reduced event" >&2
+              reduced="$latest_only"
+              reduced_with_floor="$floor_and_latest"
+              ;;
+          esac
+
+          {
+            echo "all=$all"
+            echo "floor=$floor"
+            echo "latest=$latest"
+            echo "latest_only=$latest_only"
+            echo "reduced=$reduced"
+            echo "reduced_with_floor=$reduced_with_floor"
+            echo "min_versions_matrix=$min_versions_matrix"
+          } >> "$GITHUB_OUTPUT"
+          echo "event=$event all=$all reduced=$reduced reduced_with_floor=$reduced_with_floor" >&2
+
   detect-changes:
     runs-on: ubuntu-latest
     permissions:
