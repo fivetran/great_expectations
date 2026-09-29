@@ -400,23 +400,12 @@ if TYPE_CHECKING:
 
 
 def _raised_exception(exception_info: Mapping[str, object]) -> bool:
-    """Whether `exception_info` records a raised exception, in either shape
-    `ExpectationValidationResult.exception_info` takes.
+    """Whether `exception_info` records a raised exception.
 
-    The documented, ordinary shape is flat: `{"raised_exception": bool, ...}`. But when metric
-    *resolution* itself fails -- for instance, a column that does not exist in the batch -- GX
-    instead reports a dict keyed by metric-configuration-id, each value itself the same flat
-    shape. `exception_info.get("raised_exception")` alone silently reads `None` (falsy) for that
-    second shape, which would let a case whose configuration crashed pass this suite's "neither
-    validation raised" assertion instead of failing it.
+    `ExpectationValidationResult.exception_info` is a flat dict:
+    `{"raised_exception": bool, "exception_traceback": ..., "exception_message": ...}`.
     """
-    direct = exception_info.get("raised_exception")
-    if isinstance(direct, bool):
-        return direct
-    return any(
-        isinstance(value, Mapping) and bool(value.get("raised_exception"))
-        for value in exception_info.values()
-    )
+    return bool(exception_info.get("raised_exception"))
 
 
 def _describe_observed_value(result: _ExpectationValidationResult) -> str:
