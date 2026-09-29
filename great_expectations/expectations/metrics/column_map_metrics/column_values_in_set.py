@@ -48,6 +48,13 @@ class ColumnValuesInSet(ColumnMapMetricProvider):
             # vacuously true
             return True
 
+        # `column IN (..., NULL)` never evaluates to TRUE and neither does its
+        # negation, so a None in value_set would make every non-matching row
+        # count as expected. NULL rows are excluded before this condition
+        # runs, so dropping None matches the pandas behavior. GH #12273.
+        if None in value_set:
+            value_set = [value for value in value_set if value is not None]
+
         if len(value_set) == 0:
             return False
 
