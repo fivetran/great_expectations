@@ -980,81 +980,16 @@ jobs:
         run: |
           invoke ci-tests '${{ matrix.markers }}' --up-services --verbose --suite=gallery
 
-  py310-min-versions:
-    needs: [unit-tests, static-analysis, check-actor-permissions]
-    if: github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4.3.1
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-          cache: "pip"
-          cache-dependency-path: reqs/requirements-dev-test.txt
-
-      - name: Install dependencies
-        run: pip install . -c ci/constraints-test/py310-min-install.txt -r reqs/requirements-dev-test.txt
-
-      - name: Run the tests
-        run: invoke ci-tests -m unit --xdist --slowest=10  --timeout=2.0
-
-  py311-min-versions:
-    needs: [unit-tests, static-analysis, check-actor-permissions]
-    if: github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4.3.1
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
-          cache-dependency-path: reqs/requirements-dev-test.txt
-
-      - name: Install dependencies
-        run: pip install . -c ci/constraints-test/py311-min-install.txt -r reqs/requirements-dev-test.txt
-
-      - name: Run the tests
-        run: invoke ci-tests -m unit --xdist --slowest=10  --timeout=2.0
-
-  py312-min-versions:
-    needs: [unit-tests, static-analysis, check-actor-permissions]
-    if: github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4.3.1
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: "pip"
-          cache-dependency-path: reqs/requirements-dev-test.txt
-
-      - name: Install dependencies
-        run: pip install . -c ci/constraints-test/py312-min-install.txt -r reqs/requirements-dev-test.txt
-
-      - name: Run the tests
-        run: invoke ci-tests -m unit --xdist --slowest=10  --timeout=2.0
-
-  py313-min-versions:
-    needs: [unit-tests, static-analysis, check-actor-permissions]
+  min-versions:
+    name: ${{ matrix.tag }}-min-versions
+    needs: [python-versions, unit-tests, static-analysis, check-actor-permissions]
     env:
       GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.python-versions.outputs.min_versions_matrix) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4.3.1
@@ -1064,12 +999,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: ${{ matrix.python-version }}
           cache: "pip"
           cache-dependency-path: reqs/requirements-dev-test.txt
 
       - name: Install dependencies
-        run: pip install . -c ci/constraints-test/py313-min-install.txt -r reqs/requirements-dev-test.txt
+        run: pip install . -c ci/constraints-test/${{ matrix.tag }}-min-install.txt -r reqs/requirements-dev-test.txt
 
       - name: Run the tests
         run: invoke ci-tests -m unit --xdist --slowest=10  --timeout=2.0
@@ -1220,15 +1155,13 @@ jobs:
       - marker-tests-snowflake
       - redshift
       - gallery
-      - py310-min-versions
-      - py311-min-versions
-      - py312-min-versions
-      - py313-min-versions
+      - min-versions
       - pydantic-v1
       - pandas2-test
       - marshmallow4-test
       - airflow-min-versions
       - import_gx
+      - python-versions
     runs-on: ubuntu-latest
     steps:
       - name: Evaluate CI results
@@ -1265,10 +1198,7 @@ jobs:
         marker-tests,
         pyspark4-marker-tests,
         marker-tests-snowflake,
-        py310-min-versions,
-        py311-min-versions,
-        py312-min-versions,
-        py313-min-versions,
+        min-versions,
         pydantic-v1,
         pandas2-test,
         marshmallow4-test,
@@ -1318,10 +1248,7 @@ jobs:
         marker-tests,
         pyspark4-marker-tests,
         marker-tests-snowflake,
-        py310-min-versions,
-        py311-min-versions,
-        py312-min-versions,
-        py313-min-versions,
+        min-versions,
         pydantic-v1,
         pandas2-test,
         marshmallow4-test,
