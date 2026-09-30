@@ -47,14 +47,21 @@ def test_sqlalchemy_impl_not_bigquery_bool(dialect: ModuleType, value_set: List[
     column: sqlalchemy.ColumnClause = sqlalchemy.column(column_name)
     kwargs = _make_sqlalchemy_kwargs(column_name, dialect)
     predicate = ColumnValuesInSet._sqlalchemy_impl(column, value_set, **kwargs)
-    expected_predicates = ", ".join(
-        ["null" if value is None else str(value) for value in value_set]
-    ).lower()
-    # We expect the predicate to look similar to "column_name in (true, false, null)"
-    assert (
-        str(predicate.compile(compile_kwargs={"literal_binds": True})).lower()
-        == f"{column_name} in ({expected_predicates})"
-    )
+    # A None in value_set must not render a NULL literal in the IN list: the
+    # negation of `column IN (..., NULL)` is NULL (not TRUE), so every
+    # non-matching row would count as expected. NULL rows never reach this
+    # condition, so dropping None is semantically identical. GH #12273.
+    non_null_values = [value for value in value_set if value is not None]
+    if non_null_values:
+        expected_predicates = ", ".join(str(value) for value in non_null_values).lower()
+        expected = f"{column_name} in ({expected_predicates})"
+    else:
+        # An all-None value_set compiles to the dialect's empty-set expression,
+        # which never matches. SQLAlchemy renders these deterministically.
+        expected = {
+            "sqlite": f"{column_name} in (select 1 from (select 1) where 1!=1)",
+        }.get(dialect.__name__, f"{column_name} in (null) and (1 != 1)")
+    assert str(predicate.compile(compile_kwargs={"literal_binds": True})).lower() == expected
 
 
 def _make_sqlalchemy_kwargs(column_name, dialect):
