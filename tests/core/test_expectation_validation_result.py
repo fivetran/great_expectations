@@ -1011,3 +1011,27 @@ class TestGetMaxSeverityFailure:
 
         # Test that the method returns None when all severities are invalid
         assert result.get_max_severity_failure() is None
+
+
+@pytest.mark.unit
+def test_results_with_an_unloadable_expectation_config_are_not_equal_to_a_loadable_one():
+    """A dict config that cannot be loaded as an ExpectationConfiguration is not equivalent to
+    one that can; comparing them must not read `NotImplemented` as a truth value (which made
+    them equal through Python 3.13)."""
+    loadable = ExpectationValidationResult(
+        success=True,
+        expectation_config=ExpectationConfiguration(
+            type="expect_column_to_exist", kwargs={"column": "a"}
+        ),
+    )
+    unloadable = ExpectationValidationResult(
+        success=True,
+        expectation_config={  # type: ignore[arg-type]
+            "expectation_type": "expect_column_values_to_be_unique",
+            "kwargs": {"column": "b"},
+            "meta": {},
+        },
+    )
+
+    assert (loadable == unloadable) is False
+    assert loadable != unloadable
