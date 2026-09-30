@@ -432,9 +432,6 @@ filterwarnings = [
     # Example Actual Warning: RuntimeWarning: divide by zero encountered in divide, RuntimeWarning: divide by zero encountered in true_divide
     # Found in test_atomic_prescriptive_summary_expect_column_kl_divergence_to_be_less_than, test_case_runner_v2_api
     'ignore: divide by zero encountered:RuntimeWarning',
-    # Example Actual Warning: Found running tests/test_definitions/test_expectations_v3_api.py
-    # DeprecationWarning: NotImplemented should not be used in a boolean context
-    'ignore: NotImplemented should not be used in a boolean context:DeprecationWarning',
 
     # python 3.10
     # Example Actual Warning: Found in tests/datasource/fluent/data_asset/data_connector/test_s3_data_connector.py
