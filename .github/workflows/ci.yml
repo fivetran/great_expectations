@@ -29,18 +29,24 @@ on:
       - "[0-9]+.[0-9]+.[0-9]+rc[0-9]+"
 
 jobs:
-  # The single place the supported Python versions are defined. Every job that fans out over
-  # interpreters reads a shape derived from this list instead of restating it, so supporting a
-  # newer interpreter means appending it to PYTHON_VERSIONS below, adding the matching
-  # ci/constraints-test/py<XY>-min-install.txt file, and holding any marker-tests lane whose
-  # driver does not support it yet in the exclusion register there. Jobs that deliberately run
-  # on the floor interpreter only (static-analysis, the docs jobs, pydantic-v1 and the like)
-  # keep their own "3.10" and move only when the floor itself moves.
+  # The single place CI defines the Python versions it tests. Every job that fans out over
+  # interpreters, or runs on the latest one, reads a shape derived from this list instead of
+  # restating it. Adding an interpreter to CI means editing PYTHON_VERSIONS below, adding the
+  # matching ci/constraints-test/py<XY>-min-install.txt file, and holding any lane whose
+  # dependencies cannot run on it yet (see the exclusion register in marker-tests).
+  #
+  # This list is what CI tests, not what the package declares. The package's supported range is
+  # SUPPORTED_PYTHON and the classifiers in setup.py, also stated in README.md and the docs, and
+  # it has to move together with this list: the test jobs set GX_PYTHON_EXPERIMENTAL, which lifts
+  # the python_requires ceiling, so a green run on an interpreter does not mean users can install
+  # on it.
   #
   # PYTHON_VERSIONS must be a non-empty JSON array of "X.Y" strings in ascending order: the first
   # element is the floor, the last is the latest. The derive step fails the job, naming the
-  # offending value, if it is not; every consumer needs this job, so a broken definition fails
-  # the run before any test job starts.
+  # offending value, if it is not. Every job that reads these outputs needs this job, so a broken
+  # definition skips all of them and fails ci-required; jobs that read none of them, such as
+  # static-analysis and the docs jobs, still run. tests/test_ci_python_versions.py executes the
+  # derive step under each event and checks how the other jobs are wired to it.
   python-versions:
     runs-on: ubuntu-latest
     env:
@@ -618,7 +624,10 @@ jobs:
         # plus one `include` (the held cell), so the lane keeps its coverage on the
         # older interpreter. Each entry names the upstream release that lifts it.
         # A hold implemented outside this job is listed here with a pointer to where
-        # it lives.
+        # it lives. pyspark4-marker-tests and gallery have no python-version axis and
+        # follow the latest Python directly, so a new latest moves them too; holding
+        # either one means replacing its needs.python-versions.outputs.latest with a
+        # literal older version and listing it here.
         #
         # Held today: spark and spark_connect, on 3.13. The pyspark that default dev and CI
         # installs resolve to (pyspark<4.0, constraints-dev.txt) does not run on 3.14. Both
@@ -720,6 +729,7 @@ jobs:
         with:
           version: latest
 
+      # Follows the latest supported Python; see the exclusion register in marker-tests to hold it.
       - name: Set up Python ${{ needs.python-versions.outputs.latest }}
         uses: actions/setup-python@v5
         with:
@@ -960,6 +970,7 @@ jobs:
         with:
           version: latest
 
+      # Follows the latest supported Python; see the exclusion register in marker-tests to hold it.
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
