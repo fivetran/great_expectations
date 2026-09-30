@@ -21,9 +21,7 @@ def test_exception_info__eq__and__ne__(exception_info: ExceptionInfo) -> None:
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize(
-    "other", [None, "x", 5, object()], ids=["none", "str", "int", "object"]
-)
+@pytest.mark.parametrize("other", [None, "x", 5, object()], ids=["none", "str", "int", "object"])
 def test_exception_info_is_unequal_to_a_non_exception_info(
     exception_info: ExceptionInfo, other: object
 ) -> None:
@@ -31,7 +29,7 @@ def test_exception_info_is_unequal_to_a_non_exception_info(
 
     Through Python 3.13 `!=` reported such an operand as equal; Python 3.14 raises.
     """
-    assert not (exception_info == other)
+    assert (exception_info == other) is False
     assert exception_info != other
 
 

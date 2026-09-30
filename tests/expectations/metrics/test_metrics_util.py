@@ -654,7 +654,7 @@ def test_case_insensitive_string_is_not_equal_to_a_non_string(other: object) -> 
     """
     name = CaseInsensitiveString("a")
 
-    assert not (name == other)
+    assert (name == other) is False
     assert name != other
     assert name not in [other]
     assert name in [other, "A"]
