@@ -551,6 +551,14 @@ filterwarnings = [
     # Example Actual Warning:
     # pytest.PytestUnraisableExceptionWarning: Exception ignored in: <socket.socket fd=-1, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=6>
     "ignore: Exception ignored in:UserWarning",
+    # Python 3.14 rewords the unraisable-exception message for a sqlite3 connection that is
+    # finalized while still open, so the entry above no longer matches it. CPython's sqlite3 emits
+    # the ResourceWarning when the engine that holds the connection is garbage collected without
+    # having been disposed; the same leak exists on Python 3.10-3.13, where the entry above hides
+    # it. No fixed release: the fix is disposing the engines, not a dependency upgrade.
+    # Example Actual Warning:
+    # pytest.PytestUnraisableExceptionWarning: Exception ignored while finalizing database connection <sqlite3.Connection object at 0x10c2a1d20>: None
+    "ignore: Exception ignored while finalizing database connection:pytest.PytestUnraisableExceptionWarning",
     # jsonschema (altair dependency)
     # Example Actual Warning:
     # DeprecationWarning: jsonschema.RefResolver is deprecated as of v4.18.0, in favor of the
