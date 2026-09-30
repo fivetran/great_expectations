@@ -357,8 +357,11 @@ class CaseInsensitiveString(str):
 
         # Handle mock ANY or similar objects that would claim equality with anything
         # Only for non-CaseInsensitiveString objects to avoid recursion
-        if hasattr(other, "__eq__") and not isinstance(other, str) and other.__eq__(self):
-            return True
+        # `NotImplemented` (an ordinary object declining the comparison) is not a claim of equality.
+        if hasattr(other, "__eq__") and not isinstance(other, str):
+            reflected = other.__eq__(self)
+            if reflected is not NotImplemented and reflected:
+                return True
 
         if self.is_quoted():
             return self._original == str(other)
