@@ -510,6 +510,15 @@ filterwarnings = [
     # Example Actual Warning:
     # ResourceWarning: unclosed <socket.socket fd=231, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=6, laddr=('127.0.0.1', 60004), raddr=('127.0.0.1', 46627)>
     "ignore: unclosed <socket.socket:ResourceWarning",
+    # The same for TLS sockets: the Databricks integration tests let connections to the workspace be
+    # garbage collected before they are closed, and the leak is silent until finalization. Python
+    # 3.14 rewords the unraisable-exception message ("Exception ignored while finalizing socket
+    # ..."), so the "Exception ignored in" entry below no longer hides the leak and whichever test
+    # happens to trigger collection fails. Filtering the ResourceWarning itself does not depend on
+    # that wording.
+    # Example Actual Warning:
+    # ResourceWarning: unclosed <ssl.SSLSocket fd=165, family=2, type=1, proto=6, laddr=('10.1.0.239', 46228), raddr=('3.237.73.237', 443)>
+    "ignore: unclosed <ssl.SSLSocket:ResourceWarning",
     # pymysql
     # Example Actual Warning: pymysql.err.Warning: (1292, "Truncated incorrect DOUBLE value: 'cat'")
     # Found in tests/test_definitions/test_expectations_v2_api.py, if not found in v3 api remove this ignore directive with the v2 api code.
