@@ -1026,7 +1026,7 @@ def test_results_with_an_unloadable_expectation_config_are_not_equal_to_a_loadab
     )
     unloadable = ExpectationValidationResult(
         success=True,
-        expectation_config={  # type: ignore[arg-type]
+        expectation_config={
             "expectation_type": "expect_column_values_to_be_unique",
             "kwargs": {"column": "b"},
             "meta": {},
