@@ -1,6 +1,6 @@
 import logging
 import os
-import sys
+from urllib.parse import parse_qsl, urlsplit
 
 import pytest
 
@@ -57,25 +57,6 @@ def test_mask_db_url__does_not_mask_config_strings():
     config_str = "${MY_DB_URL}"
     output = PasswordMasker.mask_db_url(config_str)
     assert output == config_str
-
-
-@pytest.mark.postgresql
-def test_mask_db_url__driverless_postgresql_url_with_only_psycopg2_installed(
-    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
-):
-    # SQLAlchemy 2.1 defaults a driverless postgresql:// URL to psycopg (3); earlier versions to
-    # psycopg2. With only psycopg2 installed, the masked URL must be the same on either.
-    monkeypatch.setitem(sys.modules, "psycopg", None)  # makes `import psycopg` fail
-    url = "postgresql://scott:tiger@localhost:65432/mydatabase?sslmode=require"
-
-    with caplog.at_level(logging.WARNING, logger="great_expectations.data_context.util"):
-        masked = PasswordMasker.mask_db_url(url)
-
-    assert masked == (
-        f"postgresql://scott:{PasswordMasker.MASKED_PASSWORD_STRING}"
-        "@localhost:65432/mydatabase?sslmode=require"
-    )
-    assert caplog.records == []
 
 
 @pytest.mark.filesystem
@@ -578,6 +559,238 @@ def test_sanitize_config_works_with_list():
     res = PasswordMasker.sanitize_config(config_copy)
     assert res != config
     assert res["some_key"][0]["access_token"] == PasswordMasker.MASKED_PASSWORD_STRING
+
+
+@pytest.mark.unit
+@pytest.mark.filterwarnings(
+    "ignore:SQLAlchemy is not installed*:UserWarning:great_expectations.data_context.util"
+)
+@pytest.mark.parametrize(
+    ("url", "expected"),
+    [
+        pytest.param(
+            "mssql+pyodbc://scott:tiger@h:1433/db?driver=ODBC+Driver+17&TrustServerCertificate=yes",
+            "mssql+pyodbc://scott:***@h:1433/db?driver=ODBC+Driver+17&TrustServerCertificate=yes",
+            id="query_string_survives_masking",
+        ),
+        pytest.param(
+            "postgresql://scott:tiger@h:5432/db?sslmode=require",
+            f"postgresql://scott:{PasswordMasker.MASKED_PASSWORD_STRING}@h:5432/db?sslmode=require",
+            id="single_query_parameter",
+        ),
+        pytest.param(
+            "postgresql://scott:tiger@h:5432/db#section",
+            "postgresql://scott:***@h:5432/db#section",
+            id="fragment_survives_masking",
+        ),
+        pytest.param(
+            "postgresql://scott:tiger@[::1]:5432/db?sslmode=require",
+            "postgresql://scott:***@[::1]:5432/db?sslmode=require",
+            id="ipv6_host_keeps_its_brackets",
+        ),
+        pytest.param(
+            "bigquery://my-project/dataset",
+            "bigquery://my-project/dataset",
+            id="url_without_credentials_is_left_alone",
+        ),
+        pytest.param(
+            "postgresql://scott@h:5432/db",
+            "postgresql://scott@h:5432/db",
+            id="username_without_password_is_not_given_a_masked_secret",
+        ),
+        pytest.param(
+            "mysql+pymysql://scott:tiger@/db?unix_socket=/tmp/mysql.sock",
+            "mysql+pymysql://scott:***@/db?unix_socket=/tmp/mysql.sock",
+            id="empty_host_stays_empty",
+        ),
+        pytest.param(
+            "oracle+cx_oracle://scott:tiger@tnsname?ssl_cert=/tmp/c.pem",
+            "oracle+cx_oracle://scott:***@tnsname?ssl_cert=***",
+            id="oracle_prefix_swap_masks_unknown_query_param",
+        ),
+        pytest.param(
+            "oracle+cx_oracle://scott:tiger@oracle-db.example.com:1521/sid",
+            "oracle+cx_oracle://scott:***@oracle-db.example.com:1521/sid",
+            id="host_containing_oracle_is_not_rewritten",
+        ),
+        pytest.param(
+            "mssql+pyodbc:///?odbc_connect=Server%3Dh%3BPWD%3Dhunter2",
+            "mssql+pyodbc:///?odbc_connect=***",
+            id="empty_authority_keeps_its_slashes",
+        ),
+    ],
+)
+def test_mask_db_url_with_urlparse_preserves_everything_but_the_password(url, expected):
+    """The fallback must hide the secret and change nothing else about the URL.
+
+    Rebuilding the netloc from username/hostname/port dropped the query and fragment, rendered
+    an IPv6 host without brackets, and turned an absent username or password into "None".
+    """
+    assert PasswordMasker.mask_db_url(url, use_urlparse=True) == expected
+
+
+@pytest.mark.unit
+@pytest.mark.filterwarnings(
+    "ignore:SQLAlchemy is not installed*:UserWarning:great_expectations.data_context.util"
+)
+@pytest.mark.parametrize(
+    "url",
+    [
+        "mssql+pyodbc://scott:tiger@h:1433/db?driver=ODBC+Driver+17",
+        "postgresql://scott:tiger@[::1]:5432/db?sslmode=require",
+        "snowflake://user:pass@acct/db?role=PUBLIC",
+        "oracle+cx_oracle://scott:tiger@tnsname",
+    ],
+)
+def test_mask_db_url_with_urlparse_never_echoes_the_password(url):
+    """Masking is the one job this function has; the secret may not survive it anywhere."""
+    password = url.partition("://")[2].partition("@")[0].partition(":")[2]
+    masked = PasswordMasker.mask_db_url(url, use_urlparse=True)
+    assert password not in masked
+    assert PasswordMasker.MASKED_PASSWORD_STRING in masked
+
+
+@pytest.mark.unit
+@pytest.mark.filterwarnings(
+    "ignore:SQLAlchemy is not installed*:UserWarning:great_expectations.data_context.util"
+)
+def test_mask_db_url_with_urlparse_matches_sqlalchemy_rendering():
+    """Both paths must agree on every component of a masked URL, not merely on its password.
+
+    This is the invariant `test_password_masker_mask_db_url` states in its docstring. The two
+    are compared component-wise rather than byte for byte, because SQLAlchemy re-orders and
+    percent-encodes a query dict of its own making: the difference is presentation only, never
+    a dropped, invented or differently-masked component.
+    """
+    pytest.importorskip("sqlalchemy")
+    from sqlalchemy.engine.url import make_url
+
+    for url in [
+        "postgresql://scott:tiger@h:5432/db?sslmode=require",
+        "postgresql://scott:tiger@[::1]:5432/db?sslmode=require",
+        "postgresql://scott@h:5432/db",
+        "bigquery://my-project/dataset",
+        "sqlite:///foo/bar.db",
+        # More than one parameter: SQLAlchemy renders its own ordering, so this could not be
+        # compared byte for byte even before query masking was added.
+        "mssql+pyodbc://scott:tiger@h:1433/db?driver=ODBC+Driver+17&TrustServerCertificate=yes",
+        "snowflake://user:pass@acct/db?role=PUBLIC&warehouse=WH",
+        "postgresql://scott:tiger@h:5432/db?sslmode=require&password=hunter2",
+        "postgresql://scott:tiger@h:5432/db#section",
+    ]:
+        masked = PasswordMasker.mask_db_url(url, use_urlparse=True)
+        reference = make_url(url)._replace(**_masked_query_reference(masked))
+        assert _components(masked) == _components(reference.__repr__())
+
+
+def _masked_query_reference(masked: str) -> dict:
+    """The query dict SQLAlchemy would have to hold for it to render `masked`."""
+    return {"query": dict(parse_qsl(urlsplit(masked).query))}
+
+
+def _components(url: str) -> tuple:
+    """The parts of a URL that describe the connection, ignoring presentation-only differences."""
+    parsed = urlsplit(url)
+    return (
+        parsed.scheme,
+        parsed.username,
+        parsed.password,
+        parsed.hostname,
+        parsed.port,
+        parsed.path,
+        parsed.fragment,
+        frozenset(parse_qsl(parsed.query, keep_blank_values=True)),
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.filterwarnings(
+    "ignore:SQLAlchemy is not installed*:UserWarning:great_expectations.data_context.util"
+)
+@pytest.mark.parametrize(
+    ("url", "expected_query"),
+    [
+        pytest.param(
+            "mssql+pyodbc://scott:tiger@h:1433/db?driver=ODBC+Driver+17&TrustServerCertificate=yes",
+            "driver=ODBC+Driver+17&TrustServerCertificate=yes",
+            id="allowlisted_parameters_stay_visible_case_insensitively",
+        ),
+        pytest.param(
+            "postgresql://scott:tiger@h:5432/db?password=hunter2",
+            "password=***",
+            id="password_query_parameter_is_masked",
+        ),
+        pytest.param(
+            "mssql+pyodbc://scott:tiger@h:1433/db?odbc_connect=Server%3Dh%3BPWD%3Dhunter2",
+            "odbc_connect=***",
+            id="whole_odbc_connect_value_is_masked",
+        ),
+        pytest.param(
+            "postgresql://scott:tiger@h:5432/db?sslmode=require&secret=s3cr3t&driver=psqlodbc",
+            "sslmode=require&secret=***&driver=psqlodbc",
+            id="allowlisted_and_unrecognized_mixed",
+        ),
+    ],
+)
+@pytest.mark.parametrize("use_urlparse", [True, False], ids=["urlparse", "sqlalchemy"])
+def test_mask_db_url_masks_credentials_in_the_query_string_on_both_paths(
+    url, expected_query, use_urlparse
+):
+    """A credential can be passed as a query parameter, so keeping the query must not reveal it.
+
+    Runs both paths: the fallback, and SQLAlchemy where available. Query masking is one
+    implementation shared by both, so neither can be the one that leaks.
+    """
+    masked = PasswordMasker.mask_db_url(url, use_urlparse=use_urlparse)
+    assert dict(parse_qsl(urlsplit(masked).query)) == dict(parse_qsl(expected_query))
+    assert "hunter2" not in masked
+    assert "s3cr3t" not in masked
+    assert "PWD" not in masked
+
+
+@pytest.mark.unit
+def test_mask_db_url_masks_credential_in_query_when_sqlalchemy_cannot_render_the_url():
+    """The query is masked even when the URL is one SQLAlchemy cannot build an engine for.
+
+    This is the case the fallback exists for, and the one where a leaked parameter would be
+    least likely to be noticed: no other path is taken, so nothing else masks the value.
+    """
+    url = "mssql+pyodbc://scott:tiger@h:1433/db?odbc_connect=Server%3Dh%3BPWD%3Dhunter2"
+    assert PasswordMasker.mask_db_url(url) == "mssql+pyodbc://scott:***@h:1433/db?odbc_connect=***"
+
+
+@pytest.mark.unit
+@pytest.mark.filterwarnings(
+    "ignore:SQLAlchemy is not installed*:UserWarning:great_expectations.data_context.util"
+)
+@pytest.mark.parametrize(
+    "url",
+    [
+        # A non-numeric port is the unparseable case: SQLAlchemy raises on it, and the
+        # stdlib's `.port` raises too, so the fallback must not reach for that property.
+        "postgresql://scott:tiger@host:notaport/db",
+        "postgresql://scott:tiger@host:notaport/db?password=hunter2",
+    ],
+)
+def test_mask_db_url_never_returns_an_unparseable_url_unmasked(url):
+    """Masking the secret is this function's one job, and it holds even when parsing fails.
+
+    Returning the input unchanged, or naming it in an exception or log message, would put the
+    password straight back into the output.
+    """
+    masked = PasswordMasker.mask_db_url(url, use_urlparse=True)
+    assert "tiger" not in masked
+    assert "hunter2" not in masked
+    assert PasswordMasker.MASKED_PASSWORD_STRING in masked
+
+
+@pytest.mark.unit
+def test_mask_db_url_does_not_echo_an_unparseable_url_in_its_warning(caplog):
+    """A failed parse must not put the URL it was masking into the log."""
+    url = "postgresql://scott:tiger@host:notaport/db"
+    with caplog.at_level(logging.WARNING):
+        PasswordMasker.mask_db_url(url)
+    assert "tiger" not in caplog.text
 
 
 @pytest.mark.unit

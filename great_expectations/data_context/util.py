@@ -8,7 +8,7 @@ import re
 import uuid
 import warnings
 from typing import Any, Optional
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
 from great_expectations.alias_types import PathStr  # noqa: TC001 # FIXME CoP
 from great_expectations.compatibility.postgresql import resolve_postgresql_driver
@@ -156,6 +156,11 @@ def parse_substitution_variable(substitution_variable: str) -> Optional[str]:
         return None
 
 
+# RFC 3986: scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ). urlparse() rejects anything
+# else, so a scheme carrying "_" - "oracle+cx_oracle" - is parsed as if the URL had no scheme.
+_RFC_3986_SCHEME_RE = re.compile(r"[a-zA-Z][a-zA-Z0-9+.\-]*")
+
+
 class PasswordMasker:
     """
     Used to mask passwords in Datasources. Does not mask sqlite urls.
@@ -180,6 +185,29 @@ class PasswordMasker:
     # string stays a faithful description of what was configured, while a field we do not
     # recognize - including one Azure adds later - is never revealed by default.
     AZURE_SAFE_TO_DISPLAY_FIELDS = {"DefaultEndpointsProtocol", "AccountName", "EndpointSuffix"}
+
+    # Query parameters whose values are known not to carry a credential, and so may be shown in
+    # cleartext. Matched case-insensitively, because drivers disagree on capitalisation
+    # (`TrustServerCertificate` vs `trustservercertificate`). Every other parameter keeps its
+    # name but has its value replaced with cls.MASKED_PASSWORD_STRING, following
+    # AZURE_SAFE_TO_DISPLAY_FIELDS: a credential can be passed as a query parameter - a bare
+    # `password=`, or a whole `odbc_connect=` connection string - so keeping the query must not
+    # reveal it, while the masked string still describes what was actually configured.
+    URL_SAFE_TO_DISPLAY_QUERY_PARAMS = {
+        "application_name",
+        "charset",
+        "connect_timeout",
+        "database",
+        "driver",
+        "encoding",
+        "encrypt",
+        "role",
+        "schema",
+        "sslmode",
+        "trustservercertificate",
+        "unix_socket",
+        "warehouse",
+    }
 
     @classmethod
     def mask_db_url(cls, url: str, use_urlparse: bool = False, **kwargs) -> str:
@@ -211,7 +239,11 @@ class PasswordMasker:
                 if resolved_url is not url:
                     # Describe the URL as configured, not the driver it fell back to.
                     masked_url = masked_url.set(drivername="postgresql")
-                return cls._render_masked_url(masked_url)
+                # Mask the rendered URL rather than returning it as-is: SQLAlchemy masks the
+                # password but copies the query string through verbatim, and a credential can
+                # be passed as a query parameter. Routing both paths through the same masking
+                # is also what keeps the two renderings equivalent.
+                return cls._mask_url(cls._render_masked_url(masked_url))
             # Account for the edge case where we have SQLAlchemy in our env but haven't installed the appropriate dialect to match the input URL  # noqa: E501 # FIXME CoP
             except Exception as e:
                 logger.warning(
@@ -221,7 +253,7 @@ class PasswordMasker:
             warnings.warn(
                 "SQLAlchemy is not installed, using urlparse to mask database url password which ignores **kwargs."  # noqa: E501 # FIXME CoP
             )
-        return cls._mask_db_url_no_sa(url=url)
+        return cls._mask_url(url=url)
 
     @staticmethod
     def _render_masked_url(url: Any) -> str:
@@ -279,29 +311,71 @@ class PasswordMasker:
         )
 
     @classmethod
-    def _mask_db_url_no_sa(cls, url: str) -> str:
-        # oracle+cx_oracle does not parse well using urlparse, parse as oracle then swap back
-        replace_prefix = None
-        if url.startswith("oracle+cx_oracle"):
-            replace_prefix = {"original": "oracle+cx_oracle", "temporary": "oracle"}
-            url = url.replace(replace_prefix["original"], replace_prefix["temporary"])
+    def _mask_url(cls, url: str) -> str:
+        """Mask the password in the userinfo and every unsafe query value, changing nothing else.
 
-        parsed_url = urlparse(url)
+        Both branches of mask_db_url() go through here, so a URL that carries a credential in
+        its query string is masked the same way whether or not SQLAlchemy could parse it.
+        """
+        # urlparse() rejects "_" in a scheme, so "oracle+cx_oracle://..." parses as if it carried
+        # no scheme at all, dropping the whole URL - query string included - into `path`, where
+        # nothing masks it. Parse those as plain "oracle" and put the real scheme back on the
+        # parsed object. Swapping the string back afterwards instead also rewrites an "oracle"
+        # that happens to appear in the host or the path.
+        scheme, separator, _ = url.partition(":")
+        if separator and not _RFC_3986_SCHEME_RE.fullmatch(scheme):
+            remainder = url[len(scheme) + 1 :]
+            parsed_url = urlparse(f"oracle:{remainder}")._replace(scheme=scheme)
+        else:
+            parsed_url = urlparse(url)
 
         # Do not parse sqlite
         if parsed_url.scheme == "sqlite":
             return url
 
-        colon = ":" if parsed_url.port is not None else ""
-        masked_url = (
-            f"{parsed_url.scheme}://{parsed_url.username}:{cls.MASKED_PASSWORD_STRING}"
-            f"@{parsed_url.hostname}{colon}{parsed_url.port or ''}{parsed_url.path or ''}"
+        # Replace only the password inside the netloc and re-emit every other component the
+        # URL actually carried. Rebuilding the netloc from username/hostname/port drops the
+        # query and fragment, renders an IPv6 host without its brackets, and turns an absent
+        # username or password into the string "None", so the result describes a connection
+        # that was never configured.
+        userinfo, has_userinfo, host = parsed_url.netloc.rpartition("@")
+        if not has_userinfo:
+            masked_netloc = parsed_url.netloc
+        elif ":" in userinfo:
+            masked_netloc = f"{userinfo.partition(':')[0]}:{cls.MASKED_PASSWORD_STRING}@{host}"
+        else:
+            masked_netloc = f"{userinfo}@{host}"
+
+        masked_url = urlunparse(
+            parsed_url._replace(
+                netloc=masked_netloc,
+                query=cls._mask_query_string(parsed_url.query),
+            )
         )
 
-        if replace_prefix is not None:
-            masked_url = masked_url.replace(replace_prefix["temporary"], replace_prefix["original"])
+        # urlunparse() drops an empty authority, so "mssql+pyodbc:///?odbc_connect=..." comes
+        # back as "mssql+pyodbc:/?odbc_connect=..." - the "//" the input carried, missing from
+        # the output, leaving something that no longer parses as the URL that was configured.
+        if not parsed_url.netloc and url.startswith(f"{parsed_url.scheme}://"):
+            masked_url = masked_url.replace(f"{parsed_url.scheme}:", f"{parsed_url.scheme}://", 1)
 
         return masked_url
+
+    @classmethod
+    def _mask_query_string(cls, query: str) -> str:
+        """Replace the value of every query parameter not known to be safe to display.
+
+        Every name is kept: dropping a parameter would describe a connection that was never
+        configured. A parameter written without a value is masked too, so that an unrecognized
+        one fails closed.
+        """
+        return "&".join(
+            f"{name}={value}"
+            if name.lower() in cls.URL_SAFE_TO_DISPLAY_QUERY_PARAMS
+            else f"{name}={cls.MASKED_PASSWORD_STRING}"
+            for name, _, value in (param.partition("=") for param in query.split("&"))
+            if name
+        )
 
     @classmethod
     def sanitize_config(cls, config: dict) -> dict:  # noqa: C901 #  too complex
