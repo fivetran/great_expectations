@@ -1035,3 +1035,21 @@ def test_results_with_an_unloadable_expectation_config_are_not_equal_to_a_loadab
 
     assert (loadable == unloadable) is False
     assert loadable != unloadable
+
+
+@pytest.mark.unit
+def test_a_result_with_a_config_is_not_equal_to_one_without() -> None:
+    """Through Python 3.13 the configured side's `isEquivalentTo(None)` answered `NotImplemented`,
+    which is truthy, so `configured == unconfigured` held in that direction only."""
+    configured = ExpectationValidationResult(
+        success=True,
+        expectation_config=ExpectationConfiguration(
+            type="expect_column_to_exist", kwargs={"column": "a"}
+        ),
+    )
+    unconfigured = ExpectationValidationResult(success=True, expectation_config=None)
+
+    assert (configured == unconfigured) is False
+    assert (unconfigured == configured) is False
+    assert configured != unconfigured
+    assert unconfigured != configured

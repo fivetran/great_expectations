@@ -627,7 +627,9 @@ jobs:
         # it lives. pyspark4-marker-tests and gallery have no python-version axis and
         # follow the latest Python directly, so a new latest moves them too; holding
         # either one means replacing its needs.python-versions.outputs.latest with a
-        # literal older version and listing it here.
+        # literal older version and listing it here. tests/test_ci_python_versions.py
+        # checks these entries against its EXPECTED_HOLDS table and against the latest
+        # entry of PYTHON_VERSIONS, so a hold changes there too.
         #
         # Held today: spark and spark_connect, on 3.13. The pyspark that default dev and CI
         # installs resolve to (pyspark<4.0, constraints-dev.txt) does not run on 3.14. Both

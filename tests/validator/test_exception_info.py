@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 
 from great_expectations.validator.exception_info import ExceptionInfo
@@ -44,6 +46,38 @@ def test_exception_info_is_not_unequal_to_an_identical_exception_info(
     )
     assert exception_info == same
     assert not (exception_info != same)
+
+
+# `ExpectationValidationResult.exception_info` defaults to a plain dict, and results built by the
+# validator carry `ExceptionInfo` values, so the library compares the two. `ExceptionInfo` declines
+# a plain dict, and Python then defers to `dict` comparison, which compares contents.
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("traceback", "expected_equal"),
+    [
+        pytest.param("my exception traceback", True, id="same-contents"),
+        pytest.param("another traceback", False, id="different-contents"),
+    ],
+)
+def test_exception_info_compares_with_a_plain_dict_by_contents(
+    exception_info: ExceptionInfo, traceback: str, expected_equal: bool
+) -> None:
+    plain = {
+        "exception_traceback": traceback,
+        "exception_message": "my exception message",
+        "raised_exception": True,
+    }
+
+    assert (exception_info == plain) is expected_equal
+    assert (exception_info != plain) is not expected_equal
+
+
+@pytest.mark.unit
+def test_exception_info_defers_to_an_operand_that_equals_anything(
+    exception_info: ExceptionInfo,
+) -> None:
+    assert exception_info == mock.ANY
+    assert not (exception_info != mock.ANY)
 
 
 @pytest.mark.unit

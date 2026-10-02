@@ -517,6 +517,8 @@ filterwarnings = [
     # unraisable-exception message ("Exception ignored while finalizing socket ..."), so the
     # "Exception ignored in" entry below no longer hides the leak and whichever test happens to
     # trigger collection fails. Filtering the ResourceWarning itself does not depend on that wording.
+    # Like the plain-socket entry above, it applies to the whole suite, not only to the Databricks
+    # tests: an unclosed TLS socket from any test is hidden while it is here.
     # Example Actual Warning:
     # ResourceWarning: unclosed <ssl.SSLSocket fd=165, family=2, type=1, proto=6, laddr=..., raddr=(..., 443)>
     "ignore: unclosed <ssl.SSLSocket:ResourceWarning",
