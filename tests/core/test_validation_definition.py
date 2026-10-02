@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import json
+import threading
 import uuid
 from typing import TYPE_CHECKING, Type
 from unittest import mock
@@ -53,6 +54,7 @@ from great_expectations.execution_engine.execution_engine import ExecutionEngine
 from great_expectations.validator.v1_validator import (
     OldValidator,
 )
+from great_expectations.validator.v1_validator import Validator as V1Validator
 
 if TYPE_CHECKING:
     from unittest.mock import MagicMock  # noqa: TID251 # FIXME CoP
@@ -127,6 +129,27 @@ def dataframe_validation_definition(
 
 
 @pytest.fixture
+def two_dataframe_validation_definitions(
+    ephemeral_context: EphemeralDataContext,
+) -> dict[str, tuple[ValidationDefinition, pd.DataFrame]]:
+    """Two assets on one pandas datasource, each with a row-count suite matching its frame."""
+    context = ephemeral_context
+    datasource = context.data_sources.add_pandas(DATA_SOURCE_NAME)
+    out = {}
+    for name, rows in (("small", 3), ("big", 10)):
+        batch_definition = datasource.add_dataframe_asset(
+            name
+        ).add_batch_definition_whole_dataframe("whole")
+        suite = context.suites.add(ExpectationSuite(name=f"suite-{name}"))
+        suite.add_expectation(gxe.ExpectTableRowCountToEqual(value=rows))
+        validation_definition = context.validation_definitions.add(
+            ValidationDefinition(name=f"vd-{name}", data=batch_definition, suite=suite)
+        )
+        out[name] = (validation_definition, pd.DataFrame({"x": range(rows)}))
+    return out
+
+
+@pytest.fixture
 def postgres_validation_definition(
     ephemeral_context: EphemeralDataContext,
 ) -> ValidationDefinition:
@@ -169,16 +192,18 @@ class TestValidationRun:
         with mock.patch.object(ProjectManager, "get_validator") as mock_get_validator:
             with mock.patch.object(OldValidator, "graph_validate"):
                 gx.get_context(mode="ephemeral")
-                mock_execution_engine = mocker.MagicMock(
-                    spec=ExecutionEngine,
-                    batch_manager=mocker.MagicMock(
-                        active_batch_id=BATCH_ID,
-                        active_batch_spec=ACTIVE_BATCH_SPEC,
-                        active_batch_definition=ACTIVE_BATCH_DEFINITION,
-                        active_batch_markers=BATCH_MARKERS,
-                    ),
+                mock_execution_engine = mocker.MagicMock(spec=ExecutionEngine)
+                # The Validator reports the identity of the Batch it loaded, not whatever
+                # the shared execution engine last saw, so the identity lives on the Batch.
+                mock_batch = mocker.MagicMock(
+                    id=BATCH_ID,
+                    batch_spec=ACTIVE_BATCH_SPEC,
+                    batch_definition=ACTIVE_BATCH_DEFINITION,
+                    batch_markers=BATCH_MARKERS,
                 )
-                mock_validator = OldValidator(execution_engine=mock_execution_engine)
+                mock_validator = OldValidator(
+                    execution_engine=mock_execution_engine, batches=[mock_batch]
+                )
                 mock_get_validator.return_value = mock_validator
 
                 yield mock_validator
@@ -1000,3 +1025,136 @@ def test_is_fresh_raises_error_when_child_deps_not_found(in_memory_runtime_conte
     assert len(diagnostics.errors) == 2
     assert isinstance(diagnostics.errors[0], BatchDefinitionNotFoundError)
     assert isinstance(diagnostics.errors[1], ExpectationSuiteNotFoundError)
+
+
+# Shorter than the per-test timeout the suite runs under, so a thread that never gets its
+# turn unwinds and reports inside its own test instead of being left behind for the next one.
+_CONCURRENT_RUN_WAIT_SECONDS = 1.0
+
+
+class TestConcurrentValidationRuns:
+    """Two ValidationDefinitions on one datasource share its cached execution engine.
+
+    The interleaving these tests force is the one a thread pool produces on its own: both
+    Validators exist before either builds its metric graph (or assembles its result). A
+    barrier makes it deterministic; it does not create the shared state.
+
+    Where the sync points sit is worth stating because it once mattered on Python 3.10 and
+    3.11. The wrapped Validator is built under ``V1Validator._wrapped_validator``, which caches
+    per instance; it used to be a ``functools.cached_property``, whose ``__get__`` held one
+    class-wide lock while computing on those versions (3.12 removed the lock,
+    python/cpython#87634). A thread that waited for the other thread *inside* that computation
+    held the lock the other thread needed to build its own Validator, and both hung. The
+    placements below do not depend on that history: a wait for the other thread's Validator
+    goes at ``graph_validate``, the first call after the property has been computed, or earlier
+    still at ``_validate_expectation_configs``, before the property is touched at all. Neither
+    placement ever sits inside ``__init__``, so no wait runs while another build is in flight.
+    """
+
+    @staticmethod
+    def _run_on_threads(
+        validation_definitions: dict[str, tuple[ValidationDefinition, pd.DataFrame]],
+    ) -> dict[str, ExpectationSuiteValidationResult]:
+        results: dict[str, ExpectationSuiteValidationResult] = {}
+        errors: dict[str, BaseException] = {}
+
+        def run(name: str) -> None:
+            validation_definition, dataframe = validation_definitions[name]
+            try:
+                results[name] = validation_definition.run(batch_parameters={"dataframe": dataframe})
+            except BaseException as e:  # re-raised on the main thread below
+                errors[name] = e
+
+        threads = [
+            threading.Thread(target=run, args=(name,), name=name, daemon=True)
+            for name in validation_definitions
+        ]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join(timeout=_CONCURRENT_RUN_WAIT_SECONDS + 0.5)
+        stuck = [thread.name for thread in threads if thread.is_alive()]
+        assert not stuck, f"threads still running after the wait budget: {stuck}"
+        assert not errors, errors
+        assert set(results) == set(validation_definitions)
+        return results
+
+    @staticmethod
+    def _assert_each_result_is_its_own(
+        results: dict[str, ExpectationSuiteValidationResult],
+    ) -> None:
+        for name, rows in (("small", 3), ("big", 10)):
+            result = results[name]
+            assert result.success is True, (name, result.results[0].result)
+            assert result.results[0].result["observed_value"] == rows
+            assert result.batch_id == f"{DATA_SOURCE_NAME}-{name}"
+            assert result.meta["active_batch_definition"]["data_asset_name"] == name
+
+    @pytest.mark.unit
+    def test_runs_that_build_their_validators_together_each_validate_their_own_batch(
+        self,
+        two_dataframe_validation_definitions: dict[str, tuple[ValidationDefinition, pd.DataFrame]],
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        both_built = threading.Barrier(2)
+        original_graph_validate = OldValidator.graph_validate
+
+        def wait_for_the_other_validator_then_build_the_graph(self, *args, **kwargs):
+            # This thread's Validator exists by the time it gets here; the barrier holds its
+            # graph build until the other thread's Validator exists too.
+            both_built.wait(timeout=_CONCURRENT_RUN_WAIT_SECONDS)
+            return original_graph_validate(self, *args, **kwargs)
+
+        monkeypatch.setattr(
+            OldValidator, "graph_validate", wait_for_the_other_validator_then_build_the_graph
+        )
+
+        results = self._run_on_threads(two_dataframe_validation_definitions)
+
+        self._assert_each_result_is_its_own(results)
+
+    @pytest.mark.unit
+    def test_run_whose_metrics_finish_while_another_validator_is_built_reports_its_own_batch(
+        self,
+        two_dataframe_validation_definitions: dict[str, tuple[ValidationDefinition, pd.DataFrame]],
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """The other Validator is built after this run's metrics resolve and before it
+        assembles its result, which is where the result's batch identity is read."""
+        small_resolved = threading.Event()
+        big_built = threading.Event()
+        original_init = OldValidator.__init__
+        original_graph_validate = OldValidator.graph_validate
+        original_validate_expectation_configs = V1Validator._validate_expectation_configs
+
+        def big_waits_for_small_before_building_its_validator(self, *args, **kwargs):
+            # Waits before "big" ever touches `_wrapped_validator`, keeping this wait out of
+            # another Validator's build. It also pins the ordering the test asserts: "small"'s
+            # Validator already exists by the time this returns.
+            if threading.current_thread().name == "big":
+                assert small_resolved.wait(timeout=_CONCURRENT_RUN_WAIT_SECONDS)
+            return original_validate_expectation_configs(self, *args, **kwargs)
+
+        def set_big_built_after_init(self, *args, **kwargs) -> None:
+            original_init(self, *args, **kwargs)
+            if threading.current_thread().name == "big":
+                big_built.set()
+
+        def small_waits_for_big_before_returning(self, *args, **kwargs):
+            result = original_graph_validate(self, *args, **kwargs)
+            if threading.current_thread().name == "small":
+                small_resolved.set()
+                assert big_built.wait(timeout=_CONCURRENT_RUN_WAIT_SECONDS)
+            return result
+
+        monkeypatch.setattr(
+            V1Validator,
+            "_validate_expectation_configs",
+            big_waits_for_small_before_building_its_validator,
+        )
+        monkeypatch.setattr(OldValidator, "__init__", set_big_built_after_init)
+        monkeypatch.setattr(OldValidator, "graph_validate", small_waits_for_big_before_returning)
+
+        results = self._run_on_threads(two_dataframe_validation_definitions)
+
+        self._assert_each_result_is_its_own(results)

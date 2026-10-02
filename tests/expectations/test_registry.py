@@ -9,6 +9,7 @@ from great_expectations.expectations.expectation_configuration import (
 )
 from great_expectations.expectations.registry import (
     get_expectation_impl,
+    get_metric_kwargs,
     get_metric_provider,
     get_sqlalchemy_metric_provider,
 )
@@ -55,3 +56,45 @@ def test_get_metric_provider_for_sqlalchemy_engine_subclass():
     assert sa_metric_provider_fn is not None
     assert sqlite_metric_provider_fn is not None
     assert sa_metric_provider_fn != sqlite_metric_provider_fn
+
+
+@pytest.mark.parametrize(
+    "expectation_type, kwargs",
+    [
+        # domain_keys omit batch_id on these; the metric must still learn which Batch.
+        pytest.param("expect_table_row_count_to_equal", {"value": 3}, id="table_row_count"),
+        pytest.param(
+            "expect_column_values_to_be_null", {"column": "x"}, id="column_values_to_be_null"
+        ),
+        # and the base-class domain_keys, which carry batch_id already
+        pytest.param(
+            "expect_column_max_to_be_between",
+            {"column": "x", "max_value": 1},
+            id="column_max_to_be_between",
+        ),
+    ],
+)
+def test_get_metric_kwargs_carries_the_configuration_batch_id_to_the_metric_domain(
+    expectation_type: str, kwargs: dict
+):
+    configuration = ExpectationConfiguration(
+        type=expectation_type, kwargs={**kwargs, "batch_id": "my_datasource-my_asset"}
+    )
+    expectation = configuration.to_domain_obj()
+
+    dependencies = expectation.get_validation_dependencies()
+
+    metric_configurations = dependencies.get_metric_configurations()
+    assert metric_configurations
+    for metric_configuration in metric_configurations:
+        assert metric_configuration.metric_domain_kwargs["batch_id"] == "my_datasource-my_asset"
+
+
+def test_get_metric_kwargs_leaves_batch_id_unset_when_the_configuration_has_none():
+    configuration = ExpectationConfiguration(
+        type="expect_table_row_count_to_equal", kwargs={"value": 3}
+    )
+
+    metric_kwargs = get_metric_kwargs("table.row_count", configuration=configuration)
+
+    assert metric_kwargs["metric_domain_kwargs"]["batch_id"] is None

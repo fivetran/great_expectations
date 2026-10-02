@@ -106,6 +106,10 @@ def compare_column_type(
         for case-insensitive dialects (typically a CaseInsensitiveString) or
         type(actual_column_type).__name__ for the isinstance path.
     """
+    actual_column_type = _unwrap_clickhouse_nullable_type(
+        execution_engine=execution_engine, actual_column_type=actual_column_type
+    )
+
     if execution_engine.dialect_name in CASE_INSENSITIVE_DIALECTS:
         success = _compare_type_string(actual_column_type, expected_type)
         return success, actual_column_type
@@ -131,6 +135,10 @@ def compare_column_type_list(
     Returns:
         (success, observed_value) where observed_value is the type string representation.
     """
+    actual_column_type = _unwrap_clickhouse_nullable_type(
+        execution_engine=execution_engine, actual_column_type=actual_column_type
+    )
+
     if execution_engine.dialect_name in CASE_INSENSITIVE_DIALECTS:
         if isinstance(actual_column_type, str):
             success = any(
@@ -160,6 +168,19 @@ def compare_column_type_list(
 # ---------------------------------------------------------------------------
 # Private helpers
 # ---------------------------------------------------------------------------
+
+
+def _unwrap_clickhouse_nullable_type(
+    execution_engine: SqlAlchemyExecutionEngine, actual_column_type: Any
+) -> Any:
+    """Return the nested type represented by ClickHouse ``Nullable(T)``."""
+    if (
+        execution_engine.dialect_name == GXSqlDialect.CLICKHOUSE
+        and ch_types is not None
+        and isinstance(actual_column_type, ch_types.Nullable)
+    ):
+        return actual_column_type.nested_type
+    return actual_column_type
 
 
 def _compare_type_string(actual_column_type: Any, expected_type: str) -> bool:
@@ -212,6 +233,19 @@ def _get_potential_sqlalchemy_types(
     if len(types) == 0:
         logger.debug("No recognized sqlalchemy types in type_list for current dialect.")
 
+    return _include_floating_point_in_numeric(types)
+
+
+def _include_floating_point_in_numeric(types: list) -> list:
+    """Let an expected "Numeric" match floating-point columns on every SQLAlchemy version.
+
+    SQLAlchemy 2.1 moved Float, and with it every dialect's floating-point type, out from
+    under Numeric. Before 2.1 a floating-point column is an instance of Numeric, so an
+    expectation naming "Numeric" matched it; adding Float keeps that result on 2.1 and
+    changes nothing earlier, where Float is already a Numeric.
+    """
+    if sa.Numeric in types and sa.Float not in types:
+        return [*types, sa.Float]
     return types
 
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import importlib
 import random
 from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, Callable, Final, List, Union
@@ -34,6 +35,7 @@ from great_expectations.expectations.metrics.util import (
     get_dbms_compatible_metric_domain_kwargs,
     get_dialect_like_pattern_expression,
     get_dialect_regex_expression,
+    get_sqlalchemy_source_table_and_schema,
     get_unexpected_indices_for_multiple_pandas_named_indices,
     get_unexpected_indices_for_single_pandas_named_index,
     sqlalchemy_select_to_sql_string,
@@ -1371,14 +1373,14 @@ def test_get_dialect_regex_expression_stubs_are_mutually_exclusive() -> None:
         pytest.param("redshift", False, "a !~ 'test'", id="redshift-negative"),
         pytest.param("mysql", True, "a REGEXP 'test'", id="mysql-positive"),
         pytest.param("mysql", False, "a NOT REGEXP 'test'", id="mysql-negative"),
-        pytest.param("snowflake", True, "a REGEXP 'test'", id="snowflake-positive"),
-        pytest.param("snowflake", False, "a NOT REGEXP 'test'", id="snowflake-negative"),
+        pytest.param("snowflake", True, "REGEXP_COUNT(a, 'test') > 0", id="snowflake-positive"),
+        pytest.param("snowflake", False, "REGEXP_COUNT(a, 'test') = 0", id="snowflake-negative"),
         pytest.param("bigquery", True, "REGEXP_CONTAINS(a, 'test')", id="bigquery-positive"),
         pytest.param("bigquery", False, "NOT REGEXP_CONTAINS(a, 'test')", id="bigquery-negative"),
         pytest.param("trino", True, "regexp_like(a, 'test')", id="trino-positive"),
         pytest.param("trino", False, "NOT regexp_like(a, 'test')", id="trino-negative"),
-        pytest.param("clickhouse", True, "regexp_like(a, 'test')", id="clickhouse-positive"),
-        pytest.param("clickhouse", False, "NOT regexp_like(a, 'test')", id="clickhouse-negative"),
+        pytest.param("clickhouse", True, "match(a, 'test')", id="clickhouse-positive"),
+        pytest.param("clickhouse", False, "NOT match(a, 'test')", id="clickhouse-negative"),
         pytest.param("dremio", True, "REGEXP_MATCHES(a, 'test')", id="dremio-positive"),
         pytest.param("dremio", False, "NOT REGEXP_MATCHES(a, 'test')", id="dremio-negative"),
         pytest.param(
@@ -1558,3 +1560,71 @@ def test_get_dialect_regex_expression_resolves_oracle_regex_list_not_match_famil
     assert str(compound_condition.compile(compile_kwargs={"literal_binds": True})) == (
         "NOT regexp_like(a, 'foo') AND NOT regexp_like(a, 'bar')"
     )
+
+
+@pytest.fixture
+def sqlite_engine_with_two_loaded_batches(sa) -> SqlAlchemyExecutionEngine:
+    """An execution engine holding two Batches' data, `second` loaded last.
+
+    The datasource's cached execution engine is shared by every Batch it serves, so its
+    "most recently loaded" Batch is whichever one any caller touched last.
+    """
+    from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
+
+    engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+    with engine.get_connection() as connection:
+        connection.execute(sa.text("CREATE TABLE first_table (x INTEGER)"))
+        connection.execute(sa.text("CREATE TABLE second_table (x INTEGER)"))
+    for batch_id, table_name in (("first", "first_table"), ("second", "second_table")):
+        engine.load_batch_data(
+            batch_id=batch_id,
+            batch_data=SqlAlchemyBatchData(
+                execution_engine=engine,
+                selectable=sa.table(table_name),
+                create_temp_table=False,
+                source_table_name=table_name,
+            ),
+        )
+    return engine
+
+
+@pytest.mark.unit
+def test_get_sqlalchemy_source_table_and_schema_returns_the_named_batch_table(
+    sqlite_engine_with_two_loaded_batches: SqlAlchemyExecutionEngine,
+):
+    engine = sqlite_engine_with_two_loaded_batches
+    assert engine.batch_manager.active_batch_data_id == "second"
+
+    assert get_sqlalchemy_source_table_and_schema(engine, batch_id="first").name == "first_table"
+    assert get_sqlalchemy_source_table_and_schema(engine, batch_id="second").name == "second_table"
+
+
+@pytest.mark.unit
+def test_get_sqlalchemy_source_table_and_schema_falls_back_to_the_last_loaded_batch(
+    sqlite_engine_with_two_loaded_batches: SqlAlchemyExecutionEngine,
+):
+    engine = sqlite_engine_with_two_loaded_batches
+
+    assert get_sqlalchemy_source_table_and_schema(engine).name == "second_table"
+    assert get_sqlalchemy_source_table_and_schema(engine, batch_id="never_loaded").name == (
+        "second_table"
+    )
+
+
+# Marked `postgresql`, not `unit`: recognising psycopg2 needs psycopg2 installed, which only the
+# postgresql lane does. psycopg (3) is recognised from SQLAlchemy's dialect module alone.
+@pytest.mark.postgresql
+@pytest.mark.parametrize("driver", ["psycopg2", "psycopg"])
+def test_attempt_allowing_relative_error_recognises_both_postgres_drivers(driver: str) -> None:
+    """A driverless postgresql:// URL selects psycopg2 before SQLAlchemy 2.1 and psycopg after,
+    so the approximate-quantile fallback has to accept either for that URL to behave the same."""
+    dialect_module = importlib.import_module(f"sqlalchemy.dialects.postgresql.{driver}")
+
+    assert metrics_util.attempt_allowing_relative_error(dialect_module.dialect())
+
+
+@pytest.mark.unit
+def test_attempt_allowing_relative_error_rejects_other_dialects() -> None:
+    import sqlalchemy.dialects.sqlite
+
+    assert not metrics_util.attempt_allowing_relative_error(sqlalchemy.dialects.sqlite.dialect())

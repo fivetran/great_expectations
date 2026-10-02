@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 import shutil
 from typing import TYPE_CHECKING
@@ -24,6 +25,7 @@ from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
 )
 from great_expectations.data_context.util import file_relative_path
+from great_expectations.datasource.fluent.interfaces import Batch as FluentBatch
 from great_expectations.execution_engine import PandasExecutionEngine
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
@@ -135,6 +137,199 @@ def yellow_trip_pandas_data_context(
     assert context.root_directory == context_path
 
     return context
+
+
+@pytest.fixture
+def two_validators_on_one_engine(
+    basic_datasource: PandasDatasource,
+) -> tuple[Validator, Validator]:
+    """Two Validators over two assets of one datasource, built in order.
+
+    Every Validator built on a datasource shares that datasource's cached execution engine,
+    whose BatchManager keeps a single "active" slot that the most recent load overwrites.
+    Building the second Validator is therefore exactly the event that used to redirect the
+    first one onto the second's Batch.
+    """
+    context = basic_datasource.data_context
+    assert context is not None
+    validators = []
+    for name, rows in (("small", 3), ("big", 10)):
+        asset = basic_datasource.add_dataframe_asset(name)
+        batch_definition = asset.add_batch_definition_whole_dataframe("whole")
+        batch_request = batch_definition.build_batch_request(
+            {"dataframe": pd.DataFrame({"x": range(rows)})}
+        )
+        validators.append(context.get_validator(batch_request=batch_request))
+    small, big = validators
+    assert small.execution_engine is big.execution_engine, "precondition: the engine is shared"
+    return small, big
+
+
+@pytest.mark.unit
+def test_validator_keeps_its_own_batch_when_another_validator_shares_the_engine(
+    two_validators_on_one_engine: tuple[Validator, Validator],
+):
+    small, big = two_validators_on_one_engine
+
+    assert small.active_batch_id == "my_datasource-small"
+    assert big.active_batch_id == "my_datasource-big"
+    assert isinstance(small.active_batch, FluentBatch)
+    assert small.active_batch.data_asset.name == "small"
+    assert small.active_batch_definition is not None
+    assert small.active_batch_definition.data_asset_name == "small"
+    assert small.loaded_batch_ids == ["my_datasource-small"]
+    assert list(small.batch_cache) == ["my_datasource-small"]
+    assert small.active_batch_data is small.active_batch.data
+
+
+@pytest.mark.unit
+def test_validator_validates_its_own_batch_when_another_validator_shares_the_engine(
+    two_validators_on_one_engine: tuple[Validator, Validator],
+):
+    small, _big = two_validators_on_one_engine
+
+    # expect_table_row_count_to_equal is one of the expectations whose domain_keys omit
+    # batch_id, so its metric only reaches the right Batch if the Validator supplies it.
+    result = small.graph_validate(
+        configurations=[
+            ExpectationConfiguration(type="expect_table_row_count_to_equal", kwargs={"value": 3})
+        ]
+    )[0]
+
+    assert result.success is True
+    assert result.result["observed_value"] == 3
+    assert result.expectation_config is not None
+    assert result.expectation_config.kwargs["batch_id"] == "my_datasource-small"
+
+
+@pytest.mark.unit
+def test_validator_columns_and_head_read_its_own_batch_when_the_engine_is_shared(
+    two_validators_on_one_engine: tuple[Validator, Validator],
+):
+    small, _big = two_validators_on_one_engine
+
+    assert small.columns() == ["x"]
+    assert len(small.head(fetch_all=True)) == 3
+
+
+@pytest.mark.unit
+def test_validator_load_batch_list_makes_the_last_loaded_batch_active(
+    basic_datasource: PandasDatasource,
+):
+    context = basic_datasource.data_context
+    assert context is not None
+    batches = []
+    for name in ("first", "second"):
+        asset = basic_datasource.add_dataframe_asset(name)
+        batch_definition = asset.add_batch_definition_whole_dataframe("whole")
+        batches.append(batch_definition.get_batch({"dataframe": pd.DataFrame({"x": [1]})}))
+    first, second = batches
+
+    validator = Validator(execution_engine=PandasExecutionEngine(), batches=[first])
+    assert validator.active_batch_id == first.id
+
+    validator.load_batch_list([second])
+    assert validator.active_batch_id == second.id
+    assert validator.loaded_batch_ids == [first.id, second.id]
+    assert validator.batch_cache == {first.id: first, second.id: second}
+
+
+@pytest.mark.unit
+def test_building_a_validator_leaves_its_siblings_batches_in_the_shared_engine(
+    two_validators_on_one_engine: tuple[Validator, Validator],
+    caplog: pytest.LogCaptureFixture,
+):
+    """A Validator's construction does not clear the engine's Batch cache.
+
+    The engine is shared, so a reset in the constructor wiped every sibling Validator's Batch
+    out of the engine's cache and left the engine's active Batch id at None while its active
+    BatchData id still named a Batch, the divergence ``BatchManager.active_batch_id`` warns
+    about on every read. ``table.head``'s empty-table fallback builds exactly such a bare
+    Validator inside a metric, mid-validation of the Validator that asked for the metric.
+    """
+    small, big = two_validators_on_one_engine
+    batch_manager = small.execution_engine.batch_manager
+    assert list(batch_manager.batch_cache) == [small.active_batch_id, big.active_batch_id]
+
+    with caplog.at_level(logging.WARNING, logger="great_expectations.core.batch_manager"):
+        Validator(execution_engine=small.execution_engine)
+
+        assert list(batch_manager.batch_cache) == [small.active_batch_id, big.active_batch_id]
+        assert batch_manager.active_batch_id == big.active_batch_id
+    assert not [record for record in caplog.records if "differ" in record.getMessage()]
+
+
+@pytest.fixture
+def two_validators_on_one_sqlite_engine(sa, tmp_path) -> tuple[Validator, Validator]:
+    """Two Validators over two tables of one SQLite datasource, built in order.
+
+    The SQL counterpart of ``two_validators_on_one_engine``: ``small`` is built first, so the
+    engine's most recently loaded Batch is ``big``'s.
+    """
+    db_path = tmp_path / "two_tables.db"
+    sqlite_engine = sa.create_engine(f"sqlite:///{db_path}")
+    with sqlite_engine.begin() as connection:
+        for name, rows in (("small", 3), ("big", 10)):
+            connection.execute(sa.text(f"CREATE TABLE {name}_table (id INTEGER, x INTEGER)"))
+            connection.execute(
+                sa.text(
+                    f"INSERT INTO {name}_table VALUES "
+                    + ", ".join(f"({i}, {i})" for i in range(rows))
+                )
+            )
+    sqlite_engine.dispose()
+
+    context = get_context(mode="ephemeral")
+    datasource = context.data_sources.add_sqlite(
+        DATASOURCE_NAME, connection_string=f"sqlite:///{db_path}"
+    )
+    validators = []
+    for name in ("small", "big"):
+        asset = datasource.add_table_asset(name, table_name=f"{name}_table")
+        batch_definition = asset.add_batch_definition_whole_table("whole")
+        validators.append(
+            context.get_validator(batch_request=batch_definition.build_batch_request())
+        )
+    small, big = validators
+    assert small.execution_engine is big.execution_engine, "precondition: the engine is shared"
+    return small, big
+
+
+@pytest.mark.sqlite
+def test_validator_unexpected_index_query_names_its_own_table_when_the_engine_is_shared(
+    two_validators_on_one_sqlite_engine: tuple[Validator, Validator],
+):
+    """The unexpected_index_query of a map expectation selects from the Validator's own table.
+
+    The query's condition comes from the metric's domain (keyed by batch_id), but its source
+    table is looked up separately, from the engine; without the batch_id that lookup falls
+    back to the engine's most recently loaded Batch, which here is the other Validator's.
+    """
+    small, _big = two_validators_on_one_sqlite_engine
+
+    # expect_column_values_to_be_in_set is one of the expectations whose domain_keys omit
+    # batch_id, so the query's source table only names this Batch if the id is carried through.
+    result = small.graph_validate(
+        configurations=[
+            ExpectationConfiguration(
+                type="expect_column_values_to_be_in_set", kwargs={"column": "x", "value_set": [0]}
+            )
+        ],
+        runtime_configuration={
+            "result_format": {
+                "result_format": "COMPLETE",
+                "unexpected_index_column_names": ["id"],
+                "return_unexpected_index_query": True,
+            }
+        },
+    )[0]
+
+    assert result.success is False
+    assert result.result["element_count"] == 3
+    assert result.result["unexpected_index_list"] == [{"id": 1, "x": 1}, {"id": 2, "x": 2}]
+    unexpected_index_query = result.result["unexpected_index_query"]
+    assert "FROM small_table" in unexpected_index_query, unexpected_index_query
+    assert "big_table" not in unexpected_index_query
 
 
 @pytest.mark.big

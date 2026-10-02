@@ -1,21 +1,24 @@
 from __future__ import annotations
 
+import logging
+import time
 from typing import TYPE_CHECKING, Mapping, Optional
 from urllib.parse import urlencode
 
 from great_expectations.compatibility.pydantic import BaseSettings
+from great_expectations.compatibility.sqlalchemy import OperationalError, TextClause
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.redshift_datasource import RedshiftDsn
 from tests.integration.test_utils.data_source_config.backend_spec import SqlBackendSpec
 from tests.integration.test_utils.data_source_config.data_source_spec import (
     CiLaneRef,
     DataSourceProvisioning,
-    ExecutionEngineKind,
     SupportTier,
 )
 from tests.integration.test_utils.data_source_config.registry import register_sql_config
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
+from tests.integration.test_utils.execution_engine_kind import ExecutionEngineKind
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -25,6 +28,8 @@ if TYPE_CHECKING:
     from great_expectations.datasource.fluent.sql_datasource import TableAsset
     from tests.integration.sql_session_manager import SessionSQLEngineManager
     from tests.integration.test_utils.data_source_config.base import BatchTestSetup
+
+logger = logging.getLogger(__name__)
 
 
 class RedshiftConnectionConfig(BaseSettings):
@@ -59,7 +64,9 @@ class RedshiftDatasourceTestConfig(SqlDatasourceTestConfig):
         # the job is named explicitly here rather than being the shared matrix job.
         ci_lane=CiLaneRef(workflow_job="redshift", marker_token="redshift"),
         uses_schema=True,
-        tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API}),
+        tiers=frozenset(
+            {SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API, SupportTier.GALLERY}
+        ),
         dev_requirements_file="reqs/requirements-dev-redshift.txt",
         task_runner_marker="redshift",
     )
@@ -116,3 +123,34 @@ class RedshiftBatchTestSetup(SQLBatchTestSetup[RedshiftDatasourceTestConfig]):
             name=self._random_resource_name(),
             table_name=self.table_name,
         )
+
+    @override
+    def teardown(self) -> None:
+        """Drop the whole schema in one statement, retrying dropped connections.
+
+        A schema left behind here is never reclaimed, and each one slows every later catalog
+        query on the shared cluster. Under concurrent load the cluster drops connections, so a
+        single attempt, or dropping table by table (which fails outright for a table a failed
+        setup never created), leaks schemas.
+        """
+        if not self.schema:
+            super().teardown()
+            return
+        attempts = 4
+        for attempt in range(1, attempts + 1):
+            engine, cleanup = self._get_engine()
+            try:
+                with engine.connect() as conn:
+                    logger.info(f"DROPPING SCHEMA {self.schema}")
+                    conn.execute(TextClause(f"DROP SCHEMA IF EXISTS {self.schema} CASCADE"))
+                    self._safe_commit(conn)
+                return
+            except OperationalError:
+                if attempt == attempts:
+                    raise
+                logger.warning(
+                    f"Dropping schema {self.schema} failed (attempt {attempt}/{attempts}); retrying"
+                )
+                time.sleep(2**attempt)
+            finally:
+                cleanup()

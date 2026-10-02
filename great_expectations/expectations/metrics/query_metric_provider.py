@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Sequence, Union
 
 from typing_extensions import NotRequired, TypedDict
@@ -124,6 +125,26 @@ class QueryParameters(TypedDict):
     columns: NotRequired[list[str]]
 
 
+_QUOTED_IDENTIFIER_OR_COMMENT_SQL = (
+    r'|"(?:[^"]|"")*"'
+    r"|`[^`]*`"
+    r"|\[[^\]]*\]"
+    r"|--[^\n]*"
+    r"|/\*.*?\*/"
+)
+# Whether a backslash escapes the next character depends on the dialect (it does on MySQL, it does
+# not on SQL Server or PostgreSQL), so a query only has a JOIN if it does under both readings.
+_QUOTED_OR_COMMENT_SQL = (
+    re.compile(r"'(?:[^']|'')*'" + _QUOTED_IDENTIFIER_OR_COMMENT_SQL, re.DOTALL),
+    re.compile(r"'(?:[^'\\]|\\.|'')*'" + _QUOTED_IDENTIFIER_OR_COMMENT_SQL, re.DOTALL),
+)
+_JOIN_KEYWORD = re.compile(r"\bJOIN\b", re.IGNORECASE)
+
+
+def _query_has_join_clause(query: str) -> bool:
+    return all(_JOIN_KEYWORD.search(masking.sub(" ", query)) for masking in _QUOTED_OR_COMMENT_SQL)
+
+
 class QueryMetricProvider(MetricProvider):
     """Base class for all Query Metrics, which define metrics to construct SQL queries.
 
@@ -199,7 +220,7 @@ class QueryMetricProvider(MetricProvider):
                 dialect=execution_engine.engine.dialect, compile_kwargs={"literal_binds": True}
             )
             # all join queries require the user to have taken care of aliasing themselves
-            if "JOIN" in query.upper():
+            if _query_has_join_clause(query):
                 query = query.format(batch=f"({batch})", **parameters)
             else:
                 query = query.format(

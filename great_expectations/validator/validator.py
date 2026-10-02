@@ -8,7 +8,7 @@ import json
 import logging
 import traceback
 import warnings
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from dataclasses import dataclass, field
 from typing import (
     TYPE_CHECKING,
@@ -163,8 +163,16 @@ class Validator:
             execution_engine=execution_engine,
             show_progress_bars=self._determine_progress_bars(),
         )
-        execution_engine.batch_manager.reset_batch_cache()
         self._execution_engine: ExecutionEngine = execution_engine
+
+        # The Validator owns the identity of the Batches it validates. The execution engine
+        # is shared by every Validator built on the same datasource, and its BatchManager
+        # keeps one "active" slot that the most recent load anywhere overwrites; reading
+        # identity from that slot let another Validator's construction redirect this one
+        # onto its Batch. Batch *data* still lives in the engine, keyed by batch_id, which
+        # is how metric resolution finds it.
+        self._batch_cache: Dict[str, AnyBatch] = OrderedDict()
+        self._active_batch_id: Optional[str] = None
 
         if batches:
             self.load_batch_list(batch_list=batches)
@@ -215,18 +223,21 @@ class Validator:
 
     @property
     def loaded_batch_ids(self) -> List[str]:
-        """Getter for IDs of loaded Batch objects (convenience property)"""
-        return self._execution_engine.batch_manager.loaded_batch_ids
+        """Getter for IDs of the Batch objects loaded into this Validator."""
+        return list(self._batch_cache.keys())
 
     @property
     def active_batch_data(self) -> Optional[BatchDataUnion]:
-        """Getter for BatchData object from the currently-active Batch object (convenience property)."""  # noqa: E501 # FIXME CoP
-        return self._execution_engine.batch_manager.active_batch_data
+        """Getter for the BatchData object of this Validator's active Batch."""
+        if self._active_batch_id is None:
+            return None
+
+        return self._execution_engine.batch_manager.batch_data_cache.get(self._active_batch_id)
 
     @property
     def batch_cache(self) -> Dict[str, AnyBatch]:
-        """Getter for dictionary of Batch objects (convenience property)"""
-        return self._execution_engine.batch_manager.batch_cache
+        """Getter for dictionary of the Batch objects loaded into this Validator."""
+        return self._batch_cache
 
     @property
     def batches(self) -> Dict[str, AnyBatch]:
@@ -235,28 +246,34 @@ class Validator:
 
     @property
     def active_batch_id(self) -> Optional[str]:
-        """Getter for batch_id of active Batch (convenience property)"""
-        return self._execution_engine.batch_manager.active_batch_id
+        """Getter for batch_id of this Validator's active Batch: the last one it loaded."""
+        return self._active_batch_id
 
     @property
     def active_batch(self) -> Optional[AnyBatch]:
-        """Getter for active Batch (convenience property)"""
-        return self._execution_engine.batch_manager.active_batch
+        """Getter for this Validator's active Batch."""
+        if self._active_batch_id is None:
+            return None
+
+        return self._batch_cache.get(self._active_batch_id)
 
     @property
     def active_batch_spec(self) -> Optional[BatchSpec]:
-        """Getter for batch_spec of active Batch (convenience property)"""
-        return self._execution_engine.batch_manager.active_batch_spec
+        """Getter for batch_spec of this Validator's active Batch."""
+        active_batch = self.active_batch
+        return active_batch.batch_spec if active_batch else None
 
     @property
     def active_batch_markers(self) -> Optional[BatchMarkers]:
-        """Getter for batch_markers of active Batch (convenience property)"""
-        return self._execution_engine.batch_manager.active_batch_markers
+        """Getter for batch_markers of this Validator's active Batch."""
+        active_batch = self.active_batch
+        return active_batch.batch_markers if active_batch else None
 
     @property
     def active_batch_definition(self) -> Optional[LegacyBatchDefinition]:
-        """Getter for batch_definition of active Batch (convenience property)"""
-        return self._execution_engine.batch_manager.active_batch_definition
+        """Getter for batch_definition of this Validator's active Batch."""
+        active_batch = self.active_batch
+        return active_batch.batch_definition if active_batch else None
 
     @property
     def expectation_suite(self) -> ExpectationSuite:
@@ -280,7 +297,11 @@ class Validator:
         self._expectation_suite.name = name
 
     def load_batch_list(self, batch_list: Sequence[Batch | FluentBatch]) -> None:
+        """Load Batches into the execution engine and make the last one this Validator's active Batch."""  # noqa: E501
         self._execution_engine.batch_manager.load_batch_list(batch_list=batch_list)
+        for batch in batch_list:
+            self._batch_cache[batch.id] = batch
+            self._active_batch_id = batch.id
 
     def get_metric(
         self,
@@ -346,7 +367,9 @@ class Validator:
         Returns:
             The list of Batch columns.
         """
-        return self._metrics_calculator.columns(domain_kwargs=domain_kwargs)
+        return self._metrics_calculator.columns(
+            domain_kwargs=self._domain_kwargs_for_active_batch(domain_kwargs)
+        )
 
     def head(
         self,
@@ -365,8 +388,19 @@ class Validator:
             A Pandas DataFrame containing the records' data.
         """
         return self._metrics_calculator.head(
-            n_rows=n_rows, domain_kwargs=domain_kwargs, fetch_all=fetch_all
+            n_rows=n_rows,
+            domain_kwargs=self._domain_kwargs_for_active_batch(domain_kwargs),
+            fetch_all=fetch_all,
         )
+
+    def _domain_kwargs_for_active_batch(
+        self, domain_kwargs: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """Fill in this Validator's active batch_id when the caller did not name a Batch."""
+        domain_kwargs = dict(domain_kwargs) if domain_kwargs else {}
+        if domain_kwargs.get("batch_id") is None and self._active_batch_id is not None:
+            domain_kwargs["batch_id"] = self._active_batch_id
+        return domain_kwargs
 
     @override
     def __dir__(self) -> List[str]:
