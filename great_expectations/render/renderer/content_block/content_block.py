@@ -38,7 +38,7 @@ class ContentBlockRenderer(Renderer):
     _default_content_block_styling: Dict[str, JSONValues] = {"classes": ["col-12"]}
 
     _default_element_styling: Dict[str, Any] = {}
-    # set by subclasses (e.g. "bullet_list", "table"); no sensible default at this level
+    # set by each subclass
     _content_block_type: str
 
     @classmethod
@@ -136,9 +136,9 @@ diagnose and repair the underlying issue.  Detailed information follows:
                     logger.error(exception_message)  # noqa: TRY400 # FIXME CoP
 
                     if isinstance(obj_, ExpectationValidationResult):
-                        content_block_fn = cls._get_content_block_fn("_missing_content_block_fn")
+                        content_block_fn = cls._get_missing_evr_content_block_fn()
                         expectation_config = obj_.expectation_config
-                        result = content_block_fn(  # type: ignore[misc] # FIXME CoP
+                        result = content_block_fn(
                             configuration=expectation_config,
                             result=obj_,
                             runtime_configuration=runtime_configuration,
@@ -156,10 +156,10 @@ diagnose and repair the underlying issue.  Detailed information follows:
                     content_block_fn = (
                         cls._missing_content_block_fn
                         if exception_list_content_block
-                        else cls._get_content_block_fn("_missing_content_block_fn")
+                        else cls._get_missing_evr_content_block_fn()
                     )
                     expectation_config = obj_.expectation_config
-                    result = content_block_fn(  # type: ignore[misc] # FIXME CoP
+                    result = content_block_fn(
                         configuration=expectation_config,
                         result=obj_,
                         runtime_configuration=runtime_configuration,
@@ -249,8 +249,8 @@ diagnose and repair the underlying issue.  Detailed information follows:
                 logger.error(exception_message)  # noqa: TRY400 # FIXME CoP
 
                 if isinstance(render_object, ExpectationValidationResult):
-                    content_block_fn = cls._get_content_block_fn("_missing_content_block_fn")
-                    result = content_block_fn(  # type: ignore[misc] # FIXME CoP
+                    content_block_fn = cls._get_missing_evr_content_block_fn()
+                    result = content_block_fn(
                         result=render_object,
                         runtime_configuration=runtime_configuration,
                         **kwargs,
@@ -267,9 +267,9 @@ diagnose and repair the underlying issue.  Detailed information follows:
                 content_block_fn = (
                     cls._missing_content_block_fn
                     if exception_list_content_block
-                    else cls._get_content_block_fn("_missing_content_block_fn")
+                    else cls._get_missing_evr_content_block_fn()
                 )
-                result = content_block_fn(  # type: ignore[misc] # FIXME CoP
+                result = content_block_fn(
                     result=render_object,
                     runtime_configuration=runtime_configuration,
                     **kwargs,
@@ -413,6 +413,12 @@ diagnose and repair the underlying issue.  Detailed information follows:
             if object_name.startswith("expect_")
         ]
         return expectations
+
+    @classmethod
+    def _get_missing_evr_content_block_fn(cls) -> Callable:
+        return (
+            cls._get_content_block_fn("_missing_content_block_fn") or cls._missing_content_block_fn
+        )
 
     @classmethod
     def _missing_content_block_fn(
