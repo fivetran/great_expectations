@@ -4,6 +4,8 @@ import logging
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
+from great_expectations.compatibility.typing_extensions import override
+
 logger = logging.getLogger(__name__)
 
 from great_expectations.render.renderer.renderer import Renderer
@@ -19,7 +21,8 @@ if TYPE_CHECKING:
 
 
 class SlackRenderer(Renderer):
-    def render(  # type: ignore[override, explicit-override] # FIXME CoP
+    @override
+    def render(
         self,
         validation_result: ExpectationSuiteValidationResult,
         data_docs_pages: dict[ValidationResultIdentifier, dict[str, str]] | None = None,

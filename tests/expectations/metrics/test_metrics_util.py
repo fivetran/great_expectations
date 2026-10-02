@@ -5,6 +5,7 @@ import importlib
 import random
 from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, Callable, Final, List, Union
+from unittest import mock
 from unittest.mock import create_autospec, patch
 
 import pytest
@@ -639,6 +640,30 @@ class TestCaseInsensitiveString:
         else:
             assert input_case_insensitive != other_case_insensitive
             assert input_case_insensitive != other
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "other", [None, 5, 1.5, object(), b"a"], ids=["none", "int", "float", "object", "bytes"]
+)
+def test_case_insensitive_string_is_not_equal_to_a_non_string(other: object) -> None:
+    """Comparing with a non-string is a plain inequality on every supported Python.
+
+    `NotImplemented` from the other operand's reflected `__eq__` must not be read as a truth
+    value: through Python 3.13 that made the string equal to anything, and Python 3.14 raises.
+    """
+    name = CaseInsensitiveString("a")
+
+    assert (name == other) is False
+    assert name != other
+    assert name not in [other]
+    assert name in [other, "A"]
+
+
+@pytest.mark.unit
+def test_case_insensitive_string_is_equal_to_an_object_that_claims_equality_with_anything() -> None:
+    assert CaseInsensitiveString("a") == mock.ANY
+    assert CaseInsensitiveString('"a"') == mock.ANY
 
 
 @pytest.mark.unit
@@ -1373,8 +1398,8 @@ def test_get_dialect_regex_expression_stubs_are_mutually_exclusive() -> None:
         pytest.param("redshift", False, "a !~ 'test'", id="redshift-negative"),
         pytest.param("mysql", True, "a REGEXP 'test'", id="mysql-positive"),
         pytest.param("mysql", False, "a NOT REGEXP 'test'", id="mysql-negative"),
-        pytest.param("snowflake", True, "a REGEXP 'test'", id="snowflake-positive"),
-        pytest.param("snowflake", False, "a NOT REGEXP 'test'", id="snowflake-negative"),
+        pytest.param("snowflake", True, "REGEXP_COUNT(a, 'test') > 0", id="snowflake-positive"),
+        pytest.param("snowflake", False, "REGEXP_COUNT(a, 'test') = 0", id="snowflake-negative"),
         pytest.param("bigquery", True, "REGEXP_CONTAINS(a, 'test')", id="bigquery-positive"),
         pytest.param("bigquery", False, "NOT REGEXP_CONTAINS(a, 'test')", id="bigquery-negative"),
         pytest.param("trino", True, "regexp_like(a, 'test')", id="trino-positive"),

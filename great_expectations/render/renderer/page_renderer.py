@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Union, cast
 
 from dateutil.parser import parse
 
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core import ExpectationSuite
 from great_expectations.core.run_identifier import RunIdentifier
 from great_expectations.data_context.util import instantiate_class_from_config
@@ -69,7 +70,8 @@ class ValidationResultsPageRenderer(Renderer):
         self._data_context = data_context
 
     # TODO: deprecate dual batch api support in 0.14
-    def render(  # type: ignore[override, explicit-override] # FIXME CoP
+    @override
+    def render(
         self,
         validation_results: ExpectationSuiteValidationResult,
         suite_parameters=None,
@@ -155,7 +157,8 @@ class ValidationResultsPageRenderer(Renderer):
 
         return run_name, run_time
 
-    def _group_evrs_by_column(  # type: ignore[override, explicit-override] # FIXME CoP
+    @override
+    def _group_evrs_by_column(
         self,
         validation_results: ExpectationSuiteValidationResult,
         expectation_suite_name: str,
@@ -649,7 +652,8 @@ class ExpectationSuitePageRenderer(Renderer):
 
         return expectations_by_column, sorted_columns
 
-    def render(self, expectations):  # type: ignore[explicit-override] # FIXME CoP
+    @override
+    def render(self, expectations):
         if isinstance(expectations, dict):
             expectations = ExpectationSuite(**expectations, data_context=None)
         (
@@ -861,7 +865,8 @@ class ProfilingResultsPageRenderer(Renderer):
                 class_name=column_section_renderer["class_name"],
             )
 
-    def render(self, validation_results):  # type: ignore[explicit-override] # noqa: C901, PLR0912 # FIXME CoP
+    @override
+    def render(self, validation_results):  # noqa: C901, PLR0912 # FIXME CoP
         run_id = validation_results.meta.get("run_id")
         run_name = run_time = "__none__"
         if isinstance(run_id, str):

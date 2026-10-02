@@ -4,6 +4,7 @@ import logging
 import traceback
 from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Type, Union
 
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core import (
     ExpectationValidationResult,
 )
@@ -45,9 +46,8 @@ class ContentBlockRenderer(Renderer):
         pass
 
     @classmethod
-    def render(  # type: ignore[override, explicit-override] # FIXME CoP
-        cls, render_object: Any, **kwargs
-    ) -> Union[RenderedComponentContent, Any, None]:
+    @override
+    def render(cls, render_object: Any, **kwargs) -> Union[RenderedComponentContent, Any, None]:
         cls.validate_input(render_object)
         exception_list_content_block: bool = kwargs.get("exception_list_content_block", False)
 

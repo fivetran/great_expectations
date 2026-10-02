@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.render import (
     RenderedBulletListContent,
     RenderedStringTemplateContent,
@@ -60,11 +61,13 @@ class ExceptionListContentBlockRenderer(ContentBlockRenderer):
     }
 
     @classmethod
-    def render(cls, render_object, **kwargs):  # type: ignore[explicit-override] # FIXME CoP
+    @override
+    def render(cls, render_object, **kwargs):
         return super().render(render_object=render_object, exception_list_content_block=True)
 
     @classmethod
-    def _missing_content_block_fn(  # type: ignore[explicit-override] # FIXME CoP
+    @override
+    def _missing_content_block_fn(
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
