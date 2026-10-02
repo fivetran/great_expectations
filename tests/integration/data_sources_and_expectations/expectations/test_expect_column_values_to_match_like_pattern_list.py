@@ -13,8 +13,10 @@ from tests.integration.test_utils.data_source_config import (
     DataSourceTestConfig,
     GenericSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
+    OracleDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     RedshiftDatasourceTestConfig,
+    SingleStoreDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SqliteDatasourceTestConfig,
     SQLServerDatasourceTestConfig,
@@ -44,6 +46,8 @@ SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     RedshiftDatasourceTestConfig(),
     GenericSQLDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
+    OracleDatasourceTestConfig(),
+    SingleStoreDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
 ]
 
