@@ -107,6 +107,17 @@ def apply_dateutil_parse(column):
     return column.withColumn(col_name, _udf(col_name))
 
 
+def _quote_spark_identifier(identifier: str) -> str:
+    """Wrap a column name in backticks for use inside a Spark SQL expression.
+
+    Names arriving already backticked (dotted names are backticked upstream)
+    pass through untouched; embedded backticks are doubled.
+    """
+    if identifier.startswith("`") and identifier.endswith("`") and len(identifier) >= 2:  # noqa: PLR2004
+        return identifier
+    return "`" + identifier.replace("`", "``") + "`"
+
+
 @deprecated_argument(
     argument_name="force_reuse_spark_context",
     version="1.0",
@@ -876,14 +887,14 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
         if filter_null:
             filter_conditions.append(
                 RowCondition(
-                    condition=f"{column} IS NOT NULL",
+                    condition=f"{_quote_spark_identifier(column)} IS NOT NULL",
                     condition_type=RowConditionParserType.SPARK_SQL,
                 )
             )
         if filter_nan:
             filter_conditions.append(
                 RowCondition(
-                    condition=f"NOT isnan({column})",
+                    condition=f"NOT isnan({_quote_spark_identifier(column)})",
                     condition_type=RowConditionParserType.SPARK_SQL,
                 )
             )
@@ -982,13 +993,14 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
         if op in (Operator.IN, Operator.NOT_IN):
             values = ", ".join(map(repr, val))
             connector = "IN" if op == Operator.IN else "NOT IN"
-            return f"{col} {connector} ({values})"
-        return f"{col} {op} {val!r}"
+            return f"{_quote_spark_identifier(col)} {connector} ({values})"
+        return f"{_quote_spark_identifier(col)} {op} {val!r}"
 
     @override
     def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> str:
         col = condition.column.name
-        return f"{col} IS NULL" if condition.is_null else f"{col} IS NOT NULL"
+        quoted_col = _quote_spark_identifier(col)
+        return f"{quoted_col} IS NULL" if condition.is_null else f"{quoted_col} IS NOT NULL"
 
     @override
     def _and_condition_to_filter_clause(self, condition: AndCondition) -> str:
