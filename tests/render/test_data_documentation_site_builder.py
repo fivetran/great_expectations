@@ -111,7 +111,6 @@ def test_site_builder_renders_a_page_per_validation_result(tmp_path):
     assert len(pages) == len(results)
 
 
-@pytest.mark.unit
 @pytest.mark.parametrize("flag", ["cloud_mode", "ge_cloud_mode"])
 def test_site_builder_refuses_cloud_mode(flag):
     from great_expectations.data_context.data_context.cloud_data_context import SHUTDOWN_MESSAGE
@@ -122,7 +121,6 @@ def test_site_builder_refuses_cloud_mode(flag):
         SiteBuilder(data_context=None, store_backend={}, **{flag: True})
 
 
-@pytest.mark.filesystem
 def test_site_index_skips_a_validation_result_the_context_cannot_find(
     tmp_path, monkeypatch, caplog
 ):
