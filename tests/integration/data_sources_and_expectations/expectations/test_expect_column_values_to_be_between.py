@@ -225,9 +225,8 @@ class TestColumnValuesBetweenAgainstInvalidColumn:
             max_value=1,
         )
         result = batch_for_datasource.validate(expect=expect)
-        exception_info = list(result.exception_info.values())
-        assert len(exception_info) == 1
-        assert self.EXPECTED_ERROR in exception_info[0]["exception_message"]
+        assert result.exception_info["raised_exception"] is True
+        assert self.EXPECTED_ERROR in result.exception_info["exception_message"]
 
     @parameterize_batch_for_data_sources(
         data_source_configs=SQL_DATA_SOURCES,
@@ -263,9 +262,7 @@ class TestColumnValuesBetweenAgainstInvalidColumn:
             if result.exception_info.get("raised_exception") is not False
         ]
         assert len(results_with_errors) == 1
-        exception_info = list(results_with_errors[0].exception_info.values())
-        assert len(exception_info) == 1
-        assert self.EXPECTED_ERROR in exception_info[0]["exception_message"]
+        assert self.EXPECTED_ERROR in results_with_errors[0].exception_info["exception_message"]
 
 
 _INVALID_COLUMN_TYPE_ERROR = "ColumnValuesBetween metrics cannot be computed on column of type"
