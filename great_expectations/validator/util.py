@@ -142,12 +142,6 @@ def ensure_row_condition_is_correct(row_condition_string) -> None:
     row_condition_string : str
         the pandas query string
     """
-    if "'" in row_condition_string:
-        raise InvalidExpectationConfigurationError(  # noqa: TRY003 # FIXME CoP
-            f"{row_condition_string} cannot be serialized to json. "
-            "Do not introduce simple quotes in configuration."
-            "Use double quotes instead."
-        )
     if "\n" in row_condition_string:
         raise InvalidExpectationConfigurationError(  # noqa: TRY003 # FIXME CoP
             f"{row_condition_string!r} cannot be serialized to json. Do not introduce \\n in configuration."  # noqa: E501 # FIXME CoP
