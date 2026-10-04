@@ -474,7 +474,10 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
         # We want to match the expected columns with the actual columns. We first break up the
         # expected columns into 2 sets, the quoted columns which must match exactly and the unquoted
         # columns, which we case insensitive match.
-        expected_column_set = set(self._get_success_kwargs().get("column_set"))
+        expected_column_list = self._get_success_kwargs().get("column_set")
+        expected_column_set = (
+            set(expected_column_list) if expected_column_list is not None else set()
+        )
         quoted_expected_column_set = set()
         unquoted_expected_column_set = set()
         for col in expected_column_set:

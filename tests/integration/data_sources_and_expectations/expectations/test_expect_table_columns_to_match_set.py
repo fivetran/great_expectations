@@ -392,3 +392,39 @@ def test_unquoted_and_quoted_with_quoted_failure(batch_for_datasource: Batch) ->
     )
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+
+
+# Regression tests for https://github.com/fivetran/great_expectations/issues/12288:
+# column_set=None must behave identically on every backend. The non-SQL path
+# treats None as an empty set; the SQLAlchemy path used to raise
+# "'NoneType' object is not iterable".
+PANDAS_AND_SQLITE_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
+    *JUST_PANDAS_DATA_SOURCES,
+    SqliteDatasourceTestConfig(),
+]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=PANDAS_AND_SQLITE_DATA_SOURCES,
+    data=DATA,
+)
+def test_none_column_set_exact_match_fails_without_exception(
+    batch_for_datasource: Batch,
+) -> None:
+    expectation = gxe.ExpectTableColumnsToMatchSet(column_set=None)
+    result = batch_for_datasource.validate(expectation)
+    assert result.exception_info["raised_exception"] is False
+    assert not result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=PANDAS_AND_SQLITE_DATA_SOURCES,
+    data=DATA,
+)
+def test_none_column_set_non_exact_match_succeeds_without_exception(
+    batch_for_datasource: Batch,
+) -> None:
+    expectation = gxe.ExpectTableColumnsToMatchSet(column_set=None, exact_match=False)
+    result = batch_for_datasource.validate(expectation)
+    assert result.exception_info["raised_exception"] is False
+    assert result.success
