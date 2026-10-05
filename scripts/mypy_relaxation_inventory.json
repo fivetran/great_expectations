@@ -52,12 +52,6 @@
     "expectations/core/expect_table_columns_to_match_ordered_list\\.py",
     "expectations/core/expect_table_columns_to_match_set\\.py",
     "great_expectations/_version\\.py",
-    "render/renderer/content_block/content_block\\.py",
-    "render/renderer/content_block/exception_list_content_block\\.py",
-    "render/renderer/page_renderer\\.py",
-    "render/renderer/profiling_results_overview_section_renderer\\.py",
-    "render/renderer/site_builder\\.py",
-    "render/renderer/slack_renderer\\.py",
     "tests/datasource/data_connector",
     "tests/datasource/fluent/tasks\\.py",
     "tests/datasource/test_datasource_dict\\.py"
