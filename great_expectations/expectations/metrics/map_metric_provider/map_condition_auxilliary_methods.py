@@ -889,6 +889,7 @@ def _spark_condition_as_sql(
     """
     try:
         df = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
+        # Private API on purpose: no public Column-to-SQL exists, and str() fails F.expr on Spark 4.
         plan = df.filter(unexpected_condition)._jdf.queryExecution().analyzed()
         if plan.getClass().getSimpleName() != "Filter":
             return None
