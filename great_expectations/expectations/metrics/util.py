@@ -199,16 +199,11 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
             dialect.dialect,  # type: ignore[union-attr] # FIXME CoP
             snowflake.sqlalchemy.snowdialect.SnowflakeDialect,
         ):
+            match_count = sa.func.REGEXP_COUNT(column, sqlalchemy.literal(regex))
             if positive:
-                return sqlalchemy.BinaryExpression(
-                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("REGEXP")
-                )
+                return match_count > 0
             else:
-                return sqlalchemy.BinaryExpression(
-                    column,
-                    sqlalchemy.literal(regex),
-                    sqlalchemy.custom_op("NOT REGEXP"),
-                )
+                return match_count == 0
     except (
         AttributeError,
         TypeError,
@@ -362,8 +357,11 @@ class CaseInsensitiveString(str):
 
         # Handle mock ANY or similar objects that would claim equality with anything
         # Only for non-CaseInsensitiveString objects to avoid recursion
-        if hasattr(other, "__eq__") and not isinstance(other, str) and other.__eq__(self):
-            return True
+        # `NotImplemented` (an ordinary object declining the comparison) is not a claim of equality.
+        if hasattr(other, "__eq__") and not isinstance(other, str):
+            reflected = other.__eq__(self)
+            if reflected is not NotImplemented and reflected:
+                return True
 
         if self.is_quoted():
             return self._original == str(other)

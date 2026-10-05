@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 import numpy as np
 import pandas as pd
 
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     _style_row_condition,
@@ -247,6 +248,7 @@ class ExpectColumnValuesToNotBeInSet(ColumnMapExpectation):
             )
 
     @classmethod
+    @override
     def _prescriptive_template(
         cls,
         renderer_configuration: RendererConfiguration,
@@ -295,6 +297,7 @@ class ExpectColumnValuesToNotBeInSet(ColumnMapExpectation):
     @classmethod
     @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
     @render_suite_parameter_string
+    @override
     def _prescriptive_renderer(
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
