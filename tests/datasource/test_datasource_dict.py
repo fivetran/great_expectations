@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, cast
+from typing import TYPE_CHECKING, Callable
 
 import pytest
 
@@ -11,15 +11,6 @@ from great_expectations.datasource.datasource_dict import (
     DatasourceDict,
 )
 from great_expectations.datasource.fluent import PandasDatasource
-
-
-class DatasourceDictWithSpy(DatasourceDict):
-    _datasource_store: DatasourceStoreSpy
-
-
-class CacheableDatasourceDictWithSpy(CacheableDatasourceDict):
-    _datasource_store: DatasourceStoreSpy
-
 
 if TYPE_CHECKING:
     from great_expectations.data_context.data_context.ephemeral_data_context import (
@@ -81,6 +72,14 @@ class DatasourceStoreSpy(DatasourceStore):
         return super().remove_key(key)
 
 
+class DatasourceDictWithSpy(DatasourceDict):
+    _datasource_store: DatasourceStoreSpy
+
+
+class CacheableDatasourceDictWithSpy(CacheableDatasourceDict):
+    _datasource_store: DatasourceStoreSpy
+
+
 @pytest.fixture
 def build_datasource_dict_with_store_spy(
     in_memory_runtime_context: EphemeralDataContext,
@@ -88,12 +87,9 @@ def build_datasource_dict_with_store_spy(
     def _build_datasource_dict_with_store_spy(
         datasource_configs: list[PandasDatasource] | None = None,
     ) -> DatasourceDictWithSpy:
-        return cast(
-            "DatasourceDictWithSpy",
-            DatasourceDict(
-                context=in_memory_runtime_context,
-                datasource_store=DatasourceStoreSpy(datasource_configs=datasource_configs),
-            ),
+        return DatasourceDictWithSpy(
+            context=in_memory_runtime_context,
+            datasource_store=DatasourceStoreSpy(datasource_configs=datasource_configs),
         )
 
     return _build_datasource_dict_with_store_spy
@@ -103,7 +99,7 @@ def build_datasource_dict_with_store_spy(
 def empty_datasource_dict(
     build_datasource_dict_with_store_spy: Callable,
 ) -> DatasourceDictWithSpy:
-    return cast("DatasourceDictWithSpy", build_datasource_dict_with_store_spy())
+    return build_datasource_dict_with_store_spy()
 
 
 @pytest.fixture
@@ -194,12 +190,9 @@ def build_cacheable_datasource_dict_with_store_spy(
         datasource_configs: list[PandasDatasource] | None = None,
         populate_cache: bool = True,
     ) -> CacheableDatasourceDictWithSpy:
-        datasource_dict = cast(
-            "CacheableDatasourceDictWithSpy",
-            CacheableDatasourceDict(
-                context=in_memory_runtime_context,
-                datasource_store=DatasourceStoreSpy(datasource_configs=datasource_configs),
-            ),
+        datasource_dict = CacheableDatasourceDictWithSpy(
+            context=in_memory_runtime_context,
+            datasource_store=DatasourceStoreSpy(datasource_configs=datasource_configs),
         )
 
         # Populate cache
@@ -216,7 +209,7 @@ def build_cacheable_datasource_dict_with_store_spy(
 def empty_cacheable_datasource_dict(
     build_cacheable_datasource_dict_with_store_spy: Callable,
 ) -> CacheableDatasourceDictWithSpy:
-    return cast("CacheableDatasourceDictWithSpy", build_cacheable_datasource_dict_with_store_spy())
+    return build_cacheable_datasource_dict_with_store_spy()
 
 
 @pytest.fixture
@@ -227,7 +220,7 @@ def cacheable_datasource_dict_with_fds(
     datasource_dict = build_cacheable_datasource_dict_with_store_spy(
         datasource_configs=[pandas_fds]
     )
-    return cast("CacheableDatasourceDictWithSpy", datasource_dict)
+    return datasource_dict
 
 
 @pytest.mark.unit
