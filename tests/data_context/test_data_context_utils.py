@@ -1,4 +1,6 @@
+import logging
 import os
+import sys
 
 import pytest
 
@@ -55,6 +57,25 @@ def test_mask_db_url__does_not_mask_config_strings():
     config_str = "${MY_DB_URL}"
     output = PasswordMasker.mask_db_url(config_str)
     assert output == config_str
+
+
+@pytest.mark.postgresql
+def test_mask_db_url__driverless_postgresql_url_with_only_psycopg2_installed(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+):
+    # SQLAlchemy 2.1 defaults a driverless postgresql:// URL to psycopg (3); earlier versions to
+    # psycopg2. With only psycopg2 installed, the masked URL must be the same on either.
+    monkeypatch.setitem(sys.modules, "psycopg", None)  # makes `import psycopg` fail
+    url = "postgresql://scott:tiger@localhost:65432/mydatabase?sslmode=require"
+
+    with caplog.at_level(logging.WARNING, logger="great_expectations.data_context.util"):
+        masked = PasswordMasker.mask_db_url(url)
+
+    assert masked == (
+        f"postgresql://scott:{PasswordMasker.MASKED_PASSWORD_STRING}"
+        "@localhost:65432/mydatabase?sslmode=require"
+    )
+    assert caplog.records == []
 
 
 @pytest.mark.filesystem

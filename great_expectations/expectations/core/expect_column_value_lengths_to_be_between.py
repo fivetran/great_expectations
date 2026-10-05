@@ -6,6 +6,7 @@ from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pydantic import (
     root_validator,
 )
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )
@@ -308,6 +309,7 @@ class ExpectColumnValueLengthsToBeBetween(ColumnMapExpectation):
         return values
 
     @classmethod
+    @override
     def _prescriptive_template(  # noqa: C901, PLR0912 # FIXME CoP
         cls,
         renderer_configuration: RendererConfiguration,
@@ -371,6 +373,7 @@ class ExpectColumnValueLengthsToBeBetween(ColumnMapExpectation):
     @classmethod
     @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
     @render_suite_parameter_string
+    @override
     def _prescriptive_renderer(  # noqa: PLR0912, C901 #  too complex
         cls,
         configuration: Optional[ExpectationConfiguration] = None,

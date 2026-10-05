@@ -109,19 +109,6 @@ class ClickHouseDatasourceTestConfig(SqlDatasourceTestConfig):
         tiers=frozenset({SupportTier.CURATED_SQL, SupportTier.FLUENT_API}),
         tier_case_exclusions={
             SupportTier.CURATED_SQL: {
-                # Same root cause already recorded on this backend's scoped module's
-                # `test_match_regex`/`test_not_match_regex`: the dialect's regex-matching path
-                # calls a SQL function this dialect does not have. ClickHouse has no
-                # `regexp_like` function; the server rejects the query with
-                # `DB::Exception: Function with name 'regexp_like' does not exist`. An issue
-                # still needs to be filed for this defect; this reason will be updated with its
-                # link once one exists.
-                "regex_match": (
-                    "ClickHouse has no `regexp_like` SQL function; the dialect's regex-matching "
-                    "path calls it and the server rejects the query with `DB::Exception: "
-                    "Function with name 'regexp_like' does not exist`. An issue still needs to "
-                    "be filed for this defect."
-                ),
                 # A driver defect, not a dialect gap: this dialect's SQLAlchemy layer inserts
                 # rows through an executemany path that keys each row by the sanitized
                 # bind-parameter name (for example `user_name`) rather than the real column name

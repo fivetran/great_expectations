@@ -257,6 +257,7 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
             )
 
     @classmethod
+    @override
     def _prescriptive_template(
         cls,
         renderer_configuration: RendererConfiguration,
@@ -302,6 +303,7 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
     @classmethod
     @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
     @render_suite_parameter_string
+    @override
     def _prescriptive_renderer(
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
@@ -438,6 +440,7 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
             value_type="StringValueType",
         )
 
+    @override
     def _validate(
         self,
         metrics: Dict,

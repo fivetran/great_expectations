@@ -19,6 +19,7 @@ from tests.integration.data_sources_and_expectations.data_source_lists import (
 )
 from tests.integration.test_utils.data_source_config import (
     ALL_DATA_SOURCES,
+    ClickHouseDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
@@ -85,6 +86,20 @@ def test_success_complete_pandas(batch_for_datasource: Batch) -> None:
     result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
 
     assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[ClickHouseDatasourceTestConfig()],
+    data=DATA,
+)
+def test_clickhouse_nullable_type(batch_for_datasource: Batch) -> None:
+    expectation = gxe.ExpectColumnValuesToBeInTypeList(
+        column=INTEGER_COLUMN, type_list=["String", "Int64"]
+    )
+    result = batch_for_datasource.validate(expectation)
+
+    assert result.success
+    assert result.result["observed_value"] == "Int64"
 
 
 @pytest.mark.parametrize(

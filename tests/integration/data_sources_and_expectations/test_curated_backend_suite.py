@@ -312,7 +312,7 @@ def test_case_accessor_results_match_the_pinned_pre_attribution_values() -> None
         BATCH_DEFINITION: ["clickhouse", "oracle", "singlestore", "trino"],
         NUMERIC_AGGREGATION: ["clickhouse", "oracle", "singlestore", "trino"],
         QUOTED_IDENTIFIERS: ["oracle", "singlestore", "trino"],
-        REGEX_MATCH: ["oracle", "singlestore", "trino"],
+        REGEX_MATCH: ["clickhouse", "oracle", "singlestore", "trino"],
         ROW_CONDITION: ["clickhouse", "oracle", "singlestore", "trino"],
         ROW_COUNT: ["clickhouse", "oracle", "singlestore", "trino"],
         UNEXPECTED_ROWS_QUERY: ["clickhouse", "oracle", "singlestore", "trino"],
@@ -364,7 +364,7 @@ def test_case_accessor_matches_the_curated_list_minus_declared_exclusions() -> N
 
     Earlier this asserted the accessor always returns the full curated list, which was true only
     because no backend declared an exclusion yet; the first real one (ClickHouse, on
-    `regex_match` and `quoted_identifiers`) would have falsified that assumption while leaving the
+    `quoted_identifiers`) would have falsified that assumption while leaving the
     accessor itself correct. Deriving the expected result from each member's declaration instead
     of the full list keeps this a genuine invariant — one that holds whether zero, one, or several
     members exclude a given case — rather than a coincidental snapshot of today's zero-exclusion
