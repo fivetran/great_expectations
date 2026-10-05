@@ -984,31 +984,24 @@ def get_dialect_like_pattern_expression(  # noqa: C901, PLR0912, PLR0915 # FIXME
     rejects ``ESCAPE '\\'`` outright -- which is why the character is the caller's to choose
     rather than fixed.
 
-    BigQuery is the exception: GoogleSQL has no ``ESCAPE`` clause and escapes wildcards with
-    a backslash inside the pattern, so passing ``escape`` for that dialect raises.
+    BigQuery and ClickHouse are the exceptions: neither has an ``ESCAPE`` clause, and both
+    escape wildcards with a backslash inside the pattern, so passing ``escape`` for either
+    dialect raises.
     """
     dialect_supported: bool = False
-    is_bigquery: bool = False
+    # The name of the matched dialect when it has no ESCAPE clause, for the error message.
+    escape_unsupported_by: str | None = None
 
     try:
         # Bigquery
         if hasattr(dialect, "BigQueryDialect"):
             dialect_supported = True
-            is_bigquery = True
+            escape_unsupported_by = "BigQuery"
     except (
         AttributeError,
         TypeError,
     ):  # TypeError can occur if the driver was not installed and so is None
         pass
-
-    if escape is not None and is_bigquery:
-        # GoogleSQL has no ESCAPE clause; it escapes wildcards with a backslash inside the
-        # pattern itself. Emitting one would be a syntax error, so say so plainly rather
-        # than letting the database reject generated SQL the user never wrote.
-        raise ValueError(  # noqa: TRY003 # FIXME CoP
-            "BigQuery does not support an ESCAPE clause. Escape the '_' and '%' wildcards "
-            "with a backslash inside like_pattern instead (for example 'a\\_b')."
-        )
 
     if hasattr(dialect, "dialect"):
         try:
@@ -1062,6 +1055,7 @@ def get_dialect_like_pattern_expression(  # noqa: C901, PLR0912, PLR0915 # FIXME
             dialect, clickhouse_sqlalchemy.drivers.base.ClickHouseDialect
         ):
             dialect_supported = True
+            escape_unsupported_by = "ClickHouse"
     except (AttributeError, TypeError):
         pass
     try:
@@ -1081,6 +1075,15 @@ def get_dialect_like_pattern_expression(  # noqa: C901, PLR0912, PLR0915 # FIXME
             dialect_supported = True
     except (AttributeError, TypeError):
         pass
+
+    if escape is not None and escape_unsupported_by is not None:
+        # Neither dialect has an ESCAPE clause; both escape wildcards with a backslash inside
+        # the pattern itself. Emitting one would be a syntax error, so say so plainly rather
+        # than letting the database reject generated SQL the user never wrote.
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
+            f"{escape_unsupported_by} does not support an ESCAPE clause. Escape the '_' and "
+            "'%' wildcards with a backslash inside like_pattern instead (for example 'a\\_b')."
+        )
 
     if dialect_supported:
         try:

@@ -129,14 +129,18 @@ ATOMIC_SUMMARY_TEMPLATES: dict[type, tuple[str, str]] = {
 
 
 def _render(expectation: Any, renderer_type: str) -> dict[str, Any]:
-    renderer = get_renderer_impl(
+    renderer_impl = get_renderer_impl(
         object_name=expectation.expectation_type, renderer_type=renderer_type
-    )[1]
-    rendered = renderer(configuration=expectation.configuration)
+    )
+    assert renderer_impl is not None
+    rendered = renderer_impl[1](configuration=expectation.configuration)
     if isinstance(rendered, list):  # the legacy renderer returns a list of content blocks
         (rendered,) = rendered
-        return rendered.to_json_dict()["string_template"]
-    return rendered.to_json_dict()["value"]
+        template = rendered.to_json_dict()["string_template"]
+    else:
+        template = rendered.to_json_dict()["value"]
+    assert isinstance(template, dict)
+    return template
 
 
 @pytest.mark.unit

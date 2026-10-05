@@ -153,23 +153,10 @@ class TestClickHouseRegexAndLikePatterns:
             )
         assert result.success
 
-    def test_match_like_pattern_with_escape(self) -> None:
-        """ClickHouse accepts the ESCAPE clause the `escape` parameter emits.
-
-        `get_dialect_like_pattern_expression` lets this dialect through to
-        `column.like(..., escape=...)` unguarded, on the strength of ClickHouse documenting
-        `haystack LIKE pattern [ESCAPE 'escape_character']`. This is the only one of the
-        four dialects reached that way -- Trino, Dremio and Teradata being the others --
-        that has a data source test config here to check that against a real server.
-
-        Only `a_c` contains a literal underscore, so with the escape honored `abc` is the one
-        unexpected value. Each way this could go wrong reports something else: were the
-        escape dropped, `!` would be an ordinary character and both values would be
-        unexpected; were the clause rejected by the server, the metric would raise and there
-        would be no unexpected list at all. Its own data rather than `DATA`, which holds no
-        underscore and so cannot tell an escaped `_` from a dropped one.
-        """
-        batch_setup = ClickHouseBatchTestSetup(
+    def _wildcard_literal_batch_setup(self) -> ClickHouseBatchTestSetup:
+        """Only `a_c` contains a literal underscore, unlike `DATA`, which holds none and so
+        cannot tell a literally matched `_` from a wildcard one."""
+        return ClickHouseBatchTestSetup(
             config=ClickHouseDatasourceTestConfig(
                 column_types={self.COL: clickhouse_types.Nullable(clickhouse_types.String)}
             ),
@@ -177,11 +164,31 @@ class TestClickHouseRegexAndLikePatterns:
             extra_data={},
             context=get_context(mode="ephemeral"),
         )
-        with batch_setup.batch_test_context() as batch:
+
+    def test_match_like_pattern_with_escape_is_refused(self) -> None:
+        """ClickHouse has no ESCAPE clause, so asking for one must fail with a usable message.
+
+        The server rejects `LIKE 'a!_c' ESCAPE '!'` as a syntax error, so emitting the clause
+        would surface a database error about SQL the user never wrote.
+        """
+        with self._wildcard_literal_batch_setup().batch_test_context() as batch:
             result = batch.validate(
                 gxe.ExpectColumnValuesToMatchLikePattern(
                     column=self.COL, like_pattern="a!_c", escape="!"
-                ),
+                )
+            )
+        assert not result.success
+        assert "ClickHouse does not support an ESCAPE clause" in str(result.exception_info)
+
+    def test_match_like_pattern_with_backslash_in_pattern(self) -> None:
+        """A backslash inside the pattern escapes a wildcard, as the refusal above advises.
+
+        With the backslash honored `abc` is the one unexpected value; were it taken as an
+        ordinary character neither value would match, and both would be unexpected.
+        """
+        with self._wildcard_literal_batch_setup().batch_test_context() as batch:
+            result = batch.validate(
+                gxe.ExpectColumnValuesToMatchLikePattern(column=self.COL, like_pattern="a\\_c"),
                 result_format=ResultFormat.COMPLETE,
             )
         assert result.exception_info.get("raised_exception") is False, result.exception_info
