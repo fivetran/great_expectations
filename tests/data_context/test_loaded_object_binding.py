@@ -1,13 +1,14 @@
 """A store-loaded object resolves its references through the Data Context that holds it (#12209).
 
 A Validation Definition read back from a Data Context's store names a suite and a batch
-definition. They are looked up in that same context, whatever context is current, and the object
-that comes back belongs to it. An object built directly, outside any store, still resolves through
-the current context.
+definition, and a Checkpoint names Validation Definitions. They are looked up in that same
+context, whatever context is current, and the object that comes back belongs to it. An object
+built directly, outside any store, still resolves through the current context.
 """
 
 from __future__ import annotations
 
+import json
 import logging
 import pathlib
 from collections.abc import Iterator
@@ -17,6 +18,7 @@ import pytest
 
 import great_expectations as gx
 import great_expectations.expectations as gxe
+from great_expectations.checkpoint.checkpoint import Checkpoint
 from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.expectation_suite import ExpectationSuite
@@ -28,8 +30,11 @@ from great_expectations.data_context.data_context.context_factory import (
     set_context,
 )
 from great_expectations.data_context.data_context.file_data_context import FileDataContext
-from great_expectations.data_context.store import ValidationDefinitionStore
+from great_expectations.data_context.store import CheckpointStore, ValidationDefinitionStore
 from great_expectations.exceptions import DataContextRequiredError
+from great_expectations.exceptions.resource_freshness import (
+    CheckpointRelatedResourcesFreshnessError,
+)
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
@@ -432,3 +437,346 @@ class TestObjectsBuiltOutsideAStoreResolveThroughTheCurrentContext:
         c1 = gx.get_context(mode="ephemeral")
 
         assert c1.validation_definition_store.data_context is c1
+
+
+def _add_checkpoint(
+    context: AbstractDataContext, name: str, definition_names: tuple[str, ...] = ("vd",)
+) -> Checkpoint:
+    """Add the named validation definitions to `context`, then a checkpoint that runs them."""
+    definitions = [_add_validation_definition(context, n)[0] for n in definition_names]
+    return context.checkpoints.add(Checkpoint(name=name, validation_definitions=definitions))
+
+
+def _assert_bound_to(checkpoint: Checkpoint, context: AbstractDataContext, count: int) -> None:
+    assert len(checkpoint.validation_definitions) == count
+    for definition in checkpoint.validation_definitions:
+        assert owner_from_batch_definition(definition.data) is context
+        assert definition.suite._owner is context
+
+
+def _checkpoint_record(context: AbstractDataContext, name: str) -> dict[str, Any]:
+    record: dict[str, Any] = json.loads(
+        context.checkpoint_store.serialize(context.checkpoints.get(name))
+    )
+    return record
+
+
+MISSING_DEFINITION_TEXT = (
+    "Unable to retrieve validation definition name='gone' id='nope' from store"
+)
+A_DEFINITION_THAT_IS_NOT_STORED = {"name": "gone", "id": "nope"}
+
+
+class TestCheckpointStoreResolvesThroughItsContext:
+    @both_context_kinds
+    def test_get_returns_a_checkpoint_whose_chain_reaches_its_context(
+        self, c1: AbstractDataContext, make_c2: Callable[[], AbstractDataContext]
+    ) -> None:
+        _add_checkpoint(c1, "cp", ("first", "second"))
+        make_c2()
+
+        loaded = c1.checkpoints.get("cp")
+
+        _assert_bound_to(loaded, c1, count=2)
+        assert [vd.name for vd in loaded.validation_definitions] == ["first", "second"]
+
+    @both_context_kinds
+    def test_all_returns_every_stored_checkpoint(
+        self, c1: AbstractDataContext, make_c2: Callable[[], AbstractDataContext]
+    ) -> None:
+        _add_checkpoint(c1, "first_cp", ("first",))
+        _add_checkpoint(c1, "second_cp", ("second",))
+        make_c2()
+
+        checkpoints = list(c1.checkpoints.all())
+
+        assert len(checkpoints) == 2
+        assert {cp.name for cp in checkpoints} == {"first_cp", "second_cp"}
+        for checkpoint in checkpoints:
+            _assert_bound_to(checkpoint, c1, count=1)
+
+    @pytest.mark.xfail(
+        raises=CheckpointRelatedResourcesFreshnessError,
+        strict=True,
+        reason=(
+            "Adding serializes the checkpoint, which checks each validation definition's data "
+            "source through the current Data Context, and C2 is current here (#12209)."
+        ),
+    )
+    @both_context_kinds
+    def test_add_returns_a_checkpoint_bound_to_its_context(
+        self, c1: AbstractDataContext, make_c2: Callable[[], AbstractDataContext]
+    ) -> None:
+        definitions = [_add_validation_definition(c1, n)[0] for n in ("first", "second")]
+        make_c2()
+
+        added = c1.checkpoints.add(Checkpoint(name="cp", validation_definitions=definitions))
+
+        _assert_bound_to(added, c1, count=2)
+
+    @both_context_kinds
+    def test_a_missing_definition_raises_the_plain_error_of_the_validator(
+        self, c1: AbstractDataContext, make_c2: Callable[[], AbstractDataContext]
+    ) -> None:
+        _add_checkpoint(c1, "cp", ("kept", "dropped"))
+        c1.validation_definitions.delete("dropped")
+        make_c2()
+
+        with pytest.raises(ValidationError) as exc_info:
+            c1.checkpoints.get("cp")
+
+        # The lookup went through the context that holds the record, not the current one, so a
+        # note that it did would be false.
+        assert exc_info.value.model is Checkpoint
+        assert [error["loc"] for error in exc_info.value.errors()] == [("validation_definitions",)]
+        message = str(exc_info.value)
+        assert message.startswith(
+            "1 validation error for Checkpoint\nvalidation_definitions\n"
+            "  Unable to retrieve validation definition name='dropped' id='"
+        )
+        assert message.endswith("' from store (type=value_error)")
+        assert AMBIENT_NOTE not in message
+        assert CURRENT_CONTEXT_WORDING not in message
+
+    @both_context_kinds
+    def test_a_definition_that_cannot_resolve_its_own_references_raises_its_error(
+        self, c1: AbstractDataContext, make_c2: Callable[[], AbstractDataContext]
+    ) -> None:
+        _add_checkpoint(c1, "vd")
+        _break_reference(c1, "vd", "batch_definition")
+        make_c2()
+
+        with pytest.raises(ValidationError) as exc_info:
+            c1.checkpoints.get("vd")
+
+        assert exc_info.value.model is Checkpoint
+        assert [error["loc"] for error in exc_info.value.errors()] == [
+            ("validation_definitions", "data")
+        ]
+        assert PLAIN_MISS_TEXT["batch_definition"] in str(exc_info.value)
+        assert AMBIENT_NOTE not in str(exc_info.value)
+        assert CURRENT_CONTEXT_WORDING not in str(exc_info.value)
+
+    @both_context_kinds
+    def test_all_skips_an_unresolvable_checkpoint_with_the_existing_warning(
+        self,
+        c1: AbstractDataContext,
+        make_c2: Callable[[], AbstractDataContext],
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        _add_checkpoint(c1, "kept_cp", ("kept",))
+        _add_checkpoint(c1, "dropped_cp", ("dropped",))
+        c1.validation_definitions.delete("dropped")
+        make_c2()
+
+        with caplog.at_level(logging.WARNING):
+            checkpoints = list(c1.checkpoints.all())
+
+        assert [cp.name for cp in checkpoints] == ["kept_cp"]
+        assert "Skipping Bad Configs" in caplog.text
+        assert "dropped_cp" in caplog.text
+
+
+class TestACheckpointRecordIsParsedAsPydanticParsesIt:
+    """In a program with one context, the store raises what parsing the record raises."""
+
+    @pytest.fixture
+    def only_context(
+        self, tmp_path: pathlib.Path, restore_current_context: None
+    ) -> AbstractDataContext:
+        context = gx.get_context(mode="file", project_root_dir=tmp_path / "only")
+        _add_checkpoint(context, "cp")
+        return context
+
+    @staticmethod
+    def _errors_of(parse: Callable[[], object]) -> tuple[type, list[Any], str]:
+        with pytest.raises(ValidationError) as exc_info:
+            parse()
+        return exc_info.value.model, exc_info.value.errors(), str(exc_info.value)
+
+    @pytest.mark.filesystem
+    @pytest.mark.parametrize(
+        ("change", "locations"),
+        [
+            pytest.param(
+                {"validation_definitions": [{"name": "vd", "id": "x"}, 5]},
+                [("validation_definitions",)],
+                id="an entry that is not a mapping",
+            ),
+            pytest.param(
+                {"validation_definitions": [{"id": "x"}]},
+                [("validation_definitions", "name")],
+                id="an entry without a name",
+            ),
+            pytest.param(
+                {"extra": 1, "result_format": "BOGUS"},
+                [("result_format",), ("result_format",), ("result_format",), ("extra",)],
+                id="other fields",
+            ),
+        ],
+    )
+    def test_a_record_that_fails_without_a_missing_definition_matches_pydantic(
+        self,
+        only_context: AbstractDataContext,
+        change: dict[str, Any],
+        locations: list[tuple[str, ...]],
+    ) -> None:
+        record = {**_checkpoint_record(only_context, "cp"), **change}
+        store = only_context.checkpoint_store
+
+        from_store = self._errors_of(lambda: store.deserialize(json.dumps(record)))
+        from_pydantic = self._errors_of(lambda: Checkpoint.parse_obj(record))
+
+        assert from_store == from_pydantic
+        assert [error["loc"] for error in from_store[1]] == locations
+
+    @pytest.mark.filesystem
+    @pytest.mark.parametrize(
+        ("change", "locations"),
+        [
+            pytest.param({}, [("validation_definitions",)], id="alone"),
+            pytest.param(
+                {"name": None},
+                [("name",), ("validation_definitions",)],
+                id="after a missing name",
+            ),
+            pytest.param(
+                {"id": [1], "extra": 1},
+                [("validation_definitions",), ("id",), ("extra",)],
+                id="before a bad id and an extra field",
+            ),
+        ],
+    )
+    def test_a_missing_definition_is_reported_in_field_order_with_the_other_failures(
+        self,
+        only_context: AbstractDataContext,
+        change: dict[str, Any],
+        locations: list[tuple[str, ...]],
+    ) -> None:
+        record = {
+            **_checkpoint_record(only_context, "cp"),
+            **change,
+            "validation_definitions": [A_DEFINITION_THAT_IS_NOT_STORED],
+        }
+        record = {k: v for k, v in record.items() if v is not None}
+        store = only_context.checkpoint_store
+
+        model, errors, message = self._errors_of(lambda: store.deserialize(json.dumps(record)))
+        _, expected_errors, expected_message = self._errors_of(lambda: Checkpoint.parse_obj(record))
+
+        assert model is Checkpoint
+        assert [error["loc"] for error in errors] == locations
+        # The current context is the one holding the record, so pydantic's lookup misses too; the
+        # only difference is the note it appends to say the lookup was a current-context one.
+        assert [e["loc"] for e in expected_errors] == locations
+        assert MISSING_DEFINITION_TEXT + " (type=value_error)" in message
+        assert AMBIENT_NOTE in expected_message
+        assert AMBIENT_NOTE not in message
+
+    @pytest.mark.filesystem
+    @pytest.mark.parametrize("content", ["[1]", "null", '"text"', "7", "not json", "{}", "[]"])
+    def test_a_record_that_is_not_a_checkpoint_matches_pydantic(
+        self, only_context: AbstractDataContext, content: str
+    ) -> None:
+        store = only_context.checkpoint_store
+
+        from_store = self._errors_of(lambda: store.deserialize(content))
+        from_pydantic = self._errors_of(lambda: Checkpoint.parse_raw(content))
+
+        assert from_store == from_pydantic
+
+    @pytest.mark.filesystem
+    @pytest.mark.parametrize("content", ["[1]", "null", '"text"', "7"])
+    def test_all_skips_a_record_that_is_not_an_object(
+        self,
+        tmp_path: pathlib.Path,
+        restore_current_context: None,
+        caplog: pytest.LogCaptureFixture,
+        content: str,
+    ) -> None:
+        c1 = gx.get_context(mode="file", project_root_dir=tmp_path / "one")
+        _add_checkpoint(c1, "kept_cp", ("kept",))
+        _add_checkpoint(c1, "broken_cp", ("broken",))
+        _record_path(c1, "checkpoints", "broken_cp").write_text(content)
+        gx.get_context(mode="file", project_root_dir=tmp_path / "two")
+
+        with pytest.raises(ValidationError) as exc_info:
+            c1.checkpoints.get("broken_cp")
+        with caplog.at_level(logging.WARNING):
+            checkpoints = list(c1.checkpoints.all())
+
+        assert exc_info.value.model is Checkpoint
+        assert [cp.name for cp in checkpoints] == ["kept_cp"]
+        assert "Skipping Bad Configs" in caplog.text
+
+
+class TestACloudCheckpointRecordThatIsNotAnObject:
+    @pytest.mark.unit
+    def test_it_raises_the_validation_error_pydantic_raises(
+        self, restore_current_context: None, mocker: MockerFixture
+    ) -> None:
+        c1 = gx.get_context(mode="ephemeral")
+        store = c1.checkpoint_store
+        mocker.patch.object(
+            type(store), "cloud_mode", new_callable=mocker.PropertyMock
+        ).return_value = True
+        assert store.cloud_mode is True
+
+        with pytest.raises(ValidationError) as exc_info:
+            store.deserialize([1])
+        with pytest.raises(ValidationError) as expected:
+            Checkpoint.parse_obj([1])
+
+        assert exc_info.value.model is Checkpoint
+        assert exc_info.value.errors() == expected.value.errors()
+        assert [error["loc"] for error in exc_info.value.errors()] == [("__root__",)]
+
+
+class TestCheckpointsBuiltOutsideAStoreResolveThroughTheCurrentContext:
+    @pytest.mark.unit
+    def test_parse_obj_still_resolves_through_a_mock_current_context(
+        self, mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        definition = ValidationDefinition(
+            name="vd",
+            data=BatchDefinition(name="batch_definition"),
+            suite=ExpectationSuite(name="s"),
+        )
+        context = mocker.Mock(spec=AbstractDataContext)
+        context.validation_definition_store.get.return_value = definition
+        monkeypatch.setattr(project_manager, "_ProjectManager__project", context)
+
+        loaded = Checkpoint.parse_obj(
+            {"name": "cp", "validation_definitions": [{"name": "vd", "id": "vd-id"}]}
+        )
+
+        assert [vd.name for vd in loaded.validation_definitions] == ["vd"]
+        context.validation_definition_store.get_key.assert_called_once_with(name="vd", id="vd-id")
+        context.validation_definition_store.get.assert_called_once()
+
+    @pytest.mark.unit
+    def test_a_direct_miss_names_the_current_context(self, restore_current_context: None) -> None:
+        context = gx.get_context(mode="ephemeral")
+
+        with pytest.raises(ValidationError) as exc_info:
+            Checkpoint.parse_obj(
+                {"name": "cp", "validation_definitions": [A_DEFINITION_THAT_IS_NOT_STORED]}
+            )
+
+        assert MISSING_DEFINITION_TEXT in str(exc_info.value)
+        assert AMBIENT_NOTE in str(exc_info.value)
+        assert project_manager.get_current_project() is context
+
+    @pytest.mark.unit
+    def test_a_store_built_directly_has_no_context(self) -> None:
+        store = CheckpointStore()
+
+        assert store.data_context is None
+
+    @pytest.mark.unit
+    def test_a_store_built_by_a_context_has_that_context(
+        self, restore_current_context: None
+    ) -> None:
+        c1 = gx.get_context(mode="ephemeral")
+
+        assert c1.checkpoint_store.data_context is c1

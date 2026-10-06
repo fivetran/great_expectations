@@ -4,9 +4,10 @@ import json
 import logging
 import os
 import uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import great_expectations.exceptions as gx_exceptions
+from great_expectations.compatibility.pydantic import ErrorWrapper, ValidationError
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.data_context_key import DataContextKey, StringKey
 from great_expectations.data_context.cloud_constants import GXCloudRESTResource
@@ -19,6 +20,9 @@ from great_expectations.data_context.types.resource_identifiers import (
 
 if TYPE_CHECKING:
     from great_expectations.checkpoint.checkpoint import Checkpoint
+    from great_expectations.data_context.data_context.abstract_data_context import (
+        AbstractDataContext,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +35,9 @@ class CheckpointStore(Store):
         store_backend: dict | None = None,
         runtime_environment: dict | None = None,
         store_name: str = "no_store_name",
+        data_context: AbstractDataContext | None = None,
     ) -> None:
+        self._data_context = data_context
         store_backend_class = self._determine_store_backend_class(store_backend)
         if store_backend and issubclass(store_backend_class, TupleStoreBackend):
             store_backend["filepath_suffix"] = store_backend.get("filepath_suffix", ".json")
@@ -41,6 +47,11 @@ class CheckpointStore(Store):
             runtime_environment=runtime_environment,
             store_name=store_name,
         )
+
+    @property
+    def data_context(self) -> AbstractDataContext | None:
+        """The Data Context that built this store, or None for a directly constructed store."""
+        return self._data_context
 
     def get_key(self, name: str, id: str | None = None) -> GXCloudIdentifier | StringKey:
         """Given a name and optional ID, build the correct key for use in the CheckpointStore."""
@@ -90,10 +101,84 @@ class CheckpointStore(Store):
     def deserialize(self, value):
         from great_expectations.checkpoint.checkpoint import Checkpoint
 
-        if self.cloud_mode:
-            return Checkpoint.parse_obj(value)
+        if self._data_context is None:
+            if self.cloud_mode:
+                return Checkpoint.parse_obj(value)
 
-        return Checkpoint.parse_raw(value)
+            return Checkpoint.parse_raw(value)
+
+        # A store built by a Data Context resolves the validation definitions a record names
+        # through that context, not through whichever context is current (#12209).
+        data = self._load_record(value)
+        if not isinstance(data, dict):
+            # Not a record at all: let pydantic raise the error it always has.
+            return Checkpoint.parse_obj(data)
+
+        definitions = data.get("validation_definitions")
+        if not (isinstance(definitions, list) and definitions and isinstance(definitions[0], dict)):
+            return Checkpoint.parse_obj(data)
+
+        try:
+            data["validation_definitions"] = self._resolve_validation_definitions(definitions)
+        except (ValueError, TypeError, AssertionError) as e:
+            # Pydantic validators wrap these three; so does this seam, so callers and
+            # Store.get_all see the error they always have.
+            raise self._validation_error(data, ErrorWrapper(e, loc="validation_definitions")) from e
+        return Checkpoint.parse_obj(data)
+
+    def _load_record(self, value):
+        from great_expectations.checkpoint.checkpoint import Checkpoint
+
+        if self.cloud_mode:
+            return dict(value) if isinstance(value, dict) else value
+        try:
+            return json.loads(value)
+        except (ValueError, TypeError) as e:
+            raise ValidationError([ErrorWrapper(e, loc="__root__")], Checkpoint) from e
+
+    def _resolve_validation_definitions(self, definitions: list) -> list:
+        """Load each validation definition the record names from this context's store.
+
+        The store's own context resolves each one's suite and batch definition in turn, so the
+        whole nested load goes through one context. A miss keeps the plain message: the lookup
+        did not go through the current context.
+        """
+        from great_expectations.checkpoint.checkpoint import Checkpoint, _IdentifierBundle
+
+        assert self._data_context is not None
+        identifier_bundles = [_IdentifierBundle(**v) for v in definitions]
+        return Checkpoint._deserialize_identifier_bundles_to_validation_definitions(
+            identifier_bundles=identifier_bundles,
+            store=self._data_context.validation_definition_store,
+        )
+
+    @staticmethod
+    def _validation_error(data: dict, resolution_error: ErrorWrapper) -> ValidationError:
+        """The error parsing `data` raises when its validation definitions cannot be resolved.
+
+        Pydantic reports every failed field, in field order. The fields other than the
+        validation definitions are checked by parsing the record without them.
+        """
+        from great_expectations.checkpoint.checkpoint import Checkpoint
+
+        field_names = list(Checkpoint.__fields__)
+
+        def position(raw_error: Any) -> int:
+            while isinstance(raw_error, (list, tuple)):
+                raw_error = raw_error[0]
+            name = raw_error.loc_tuple()[0]
+            return field_names.index(name) if name in field_names else len(field_names)
+
+        try:
+            Checkpoint.parse_obj({**data, "validation_definitions": []})
+        except ValidationError as other:
+            raw_errors = list(other.raw_errors)
+        else:
+            raw_errors = []
+        at = field_names.index("validation_definitions")
+        before = [e for e in raw_errors if position(e) < at]
+        after = [e for e in raw_errors if position(e) > at]
+        return ValidationError([*before, resolution_error, *after], Checkpoint)
 
     @override
     def _add(self, key: DataContextKey, value: Checkpoint, **kwargs):
