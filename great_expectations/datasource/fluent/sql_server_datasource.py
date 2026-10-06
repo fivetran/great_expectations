@@ -18,9 +18,6 @@ from great_expectations.datasource.fluent.sql_datasource import (
     FluentBaseModel,
     SQLDatasource,
 )
-from great_expectations.execution_engine.sqlalchemy_engine_lifecycle import (
-    close_connections_when_collected,
-)
 
 if TYPE_CHECKING:
     from great_expectations.compatibility import sqlalchemy
@@ -259,7 +256,7 @@ class SQLServerDatasource(SQLDatasource):
             cached_execution_engine_kwargs = dict(current_execution_engine_kwargs)
             engine_kwargs = current_execution_engine_kwargs.pop("kwargs", {})
             current_execution_engine_kwargs.pop("connection_string", None)
-            engine = close_connections_when_collected(self._create_engine())
+            engine = self._create_engine()
             self._execution_engine = self._execution_engine_type()(
                 engine=engine,
                 **current_execution_engine_kwargs,

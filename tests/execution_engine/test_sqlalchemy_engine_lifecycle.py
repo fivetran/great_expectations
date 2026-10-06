@@ -2,6 +2,10 @@ from __future__ import annotations
 
 import gc
 import sqlite3
+import subprocess
+import sys
+import textwrap
+import threading
 import weakref
 from typing import TYPE_CHECKING, Any, Callable, Iterator
 
@@ -11,6 +15,7 @@ from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.datasource.fluent import SqliteDatasource
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 from great_expectations.execution_engine.sqlalchemy_engine_lifecycle import (
+    _close_quietly,
     _close_with_its_pool,
     close_connections_when_collected,
 )
@@ -109,6 +114,89 @@ def test_pool_recreated_by_dispose_is_covered(opened_dbapi_connections: list[Any
     assert engine_ref() is None
     assert len(opened_dbapi_connections) == 2
     assert all(_is_closed(c) for c in opened_dbapi_connections)
+
+
+def test_reconnecting_a_pool_record_keeps_one_finalizer_for_it(tmp_path):
+    # A file database gets a QueuePool, which hands the same record back after invalidation.
+    engine = close_connections_when_collected(sa.create_engine(f"sqlite:///{tmp_path}/db.sqlite"))
+    records: list[Any] = []
+    sa.event.listen(engine, "connect", lambda _, record: records.append(record))
+    for _ in range(3):
+        with engine.connect() as connection:
+            connection.execute(sa.text("select 1"))
+            # Closes the DB-API connection; the next checkout reconnects on the same record.
+            connection.invalidate()
+
+    assert len(records) == 3
+    assert len({id(record) for record in records}) == 1
+    finalizers = [
+        obj
+        for obj in gc.get_objects()
+        if isinstance(obj, weakref.finalize) and obj.alive and obj.peek()[0] is records[0]
+    ]
+    # One per reconnect would pin every connection the pool already closed, for as long as the
+    # engine lives.
+    assert len(finalizers) == 1
+    engine.dispose()
+
+
+def test_connection_of_a_reachable_engine_is_still_open_in_an_exit_handler():
+    # The exit handler is registered before anything can create a `weakref.finalize`, whose
+    # own exit hook would then run ahead of it.
+    script = textwrap.dedent(
+        """
+        import atexit
+
+        def use_engine_at_exit():
+            with engine.connect() as connection:
+                connection.execute(sa.text("select * from t"))
+            print("connection usable at exit")
+
+        atexit.register(use_engine_at_exit)
+
+        from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
+        from great_expectations.execution_engine.sqlalchemy_engine_lifecycle import (
+            close_connections_when_collected,
+        )
+
+        engine = close_connections_when_collected(sa.create_engine("sqlite://"))
+        with engine.connect() as connection:
+            connection.execute(sa.text("create table t (x int)"))
+        """
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", script], capture_output=True, text=True, check=True, timeout=120
+    )
+
+    assert "connection usable at exit" in result.stdout, result.stderr
+
+
+def test_a_close_that_raises_is_swallowed():
+    # sqlite3 refuses to close a connection from a thread other than the one that opened it,
+    # which is where the garbage collector can run the finalizer.
+    opened: list[sqlite3.Connection] = []
+    opener = threading.Thread(target=lambda: opened.append(sqlite3.connect(":memory:")))
+    opener.start()
+    opener.join()
+    (dbapi_connection,) = opened
+    with pytest.raises(sqlite3.ProgrammingError):
+        dbapi_connection.close()
+
+    _close_quietly(dbapi_connection)
+
+    closer = threading.Thread(target=dbapi_connection.close)
+    closer.start()
+    closer.join()
+
+
+def test_leaves_an_engine_of_another_dialect_alone(mocker: MockerFixture):
+    # Closing from the collector would run a network driver's close I/O on whatever thread
+    # triggered the collection.
+    engine = sa.create_engine("sqlite://")
+    mocker.patch.object(engine.dialect, "name", "snowflake")
+
+    assert close_connections_when_collected(engine) is engine
+    assert not sa.event.contains(engine, "connect", _close_with_its_pool)
 
 
 def test_is_idempotent(mocker: MockerFixture):

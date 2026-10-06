@@ -45,9 +45,6 @@ from great_expectations.datasource.fluent.sql_datasource import (
     TestConnectionError,
     to_lower_if_not_quoted,
 )
-from great_expectations.execution_engine.sqlalchemy_engine_lifecycle import (
-    close_connections_when_collected,
-)
 
 if TYPE_CHECKING:
     from great_expectations.compatibility import sqlalchemy
@@ -789,16 +786,12 @@ class SnowflakeDatasource(SQLDatasource):
                     url = url.update_query_dict(
                         query_parameters={"application": self._get_snowflake_partner_application()}
                     )
-                    self._engine = close_connections_when_collected(
-                        self._build_engine_with_connect_args(url=url, **kwargs)
-                    )
+                    self._engine = self._build_engine_with_connect_args(url=url, **kwargs)
                 else:
-                    self._engine = close_connections_when_collected(
-                        self._build_engine_with_connect_args(
-                            application=self._get_snowflake_partner_application(),
-                            **connection_string,
-                            **kwargs,
-                        )
+                    self._engine = self._build_engine_with_connect_args(
+                        application=self._get_snowflake_partner_application(),
+                        **connection_string,
+                        **kwargs,
                     )
 
             except Exception as e:
