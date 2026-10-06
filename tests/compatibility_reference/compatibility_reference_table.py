@@ -499,7 +499,7 @@ an HTML comment is a parse error rather than a comment."""
 
 COLUMN_HEADERS: Final = ("Data source", "Support tier", "Criteria met", "Notes")
 PARTIAL_SUFFIX: Final = " (with exceptions)"
-NO_CRITERIA: Final = "None"
+NO_CRITERIA: Final = "No criteria met"
 CELL_LINE_SEPARATOR: Final = "<br/>"
 """Joins the entries of one cell. Written directly, never passed through ``_escape_cell``: it is
 the one piece of markup the table emits on purpose, and it is a fixed string, not dynamic."""
@@ -514,8 +514,11 @@ def _escape_cell(text: str) -> str:
     Each character that Markdown or MDX would read as markup, an expression, a tag, a link, an
     entity or a cell boundary is preceded by a backslash, which renders it literally: the
     backslash itself, the backtick, ``*``, ``_``, ``~``, the square brackets, the angle
-    brackets, the braces, the pipe and the ampersand. Every other character is left alone, so a
-    name or a reason prints as it was declared.
+    brackets, the braces, the pipe and the ampersand. Every other character is left alone.
+    Escaping prevents markup injection and a failed documentation build; it does not stop GitHub
+    Flavored Markdown from autolinking a ``http://`` address, a ``www.`` address or an email
+    address in free text, so a URL or an email address in a name or a reason may still render as
+    a link.
 
     Raises ValueError on a line break, which no escaping can make safe in a table row.
     """

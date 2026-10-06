@@ -2279,7 +2279,9 @@ ORACLE_LINE = (
     "| Oracle | Tested | Expectation suite<br/>Datasource API contract | "
     "Tested against Oracle 21c. 19c expected, not verified in CI. |"
 )
-FABRIC_LINE = f"| Microsoft Fabric | Best effort | None | {COVERED_NOTE}<br/>{MANAGED_NOTE} |"
+FABRIC_LINE = (
+    f"| Microsoft Fabric | Best effort | No criteria met | {COVERED_NOTE}<br/>{MANAGED_NOTE} |"
+)
 CLICKHOUSE_LINE = (
     "| ClickHouse | Tested | Expectation suite (with exceptions)<br/>Datasource API contract | "
     "Expectation suite: not run for column names that need quoting. Recorded reason: This "
@@ -2335,8 +2337,8 @@ def test_the_notice_is_not_an_html_comment_and_the_output_holds_no_html_comment(
 
 
 def test_the_notice_quotes_the_one_command_string():
-    # The notice, the drift check and the maintainer documentation share one string, so the
-    # notice has to be built from it rather than from its own copy.
+    # Catches a notice that disagrees with the constant (a stale or retyped command). It cannot
+    # tell whether the notice is built from the constant or merely happens to equal it.
     assert REGENERATION_COMMAND in GENERATED_NOTICE
     assert GENERATED_NOTICE.count(REGENERATION_COMMAND) == 1
 
@@ -2369,7 +2371,7 @@ def test_every_tier_label_is_printed_as_declared():
     )
     rows = [_cells(line) for line in _table_lines(render_table(facts))[2:]]
     assert rows == [
-        ("Low", "Best effort", "None", ""),
+        ("Low", "Best effort", "No criteria met", ""),
         ("Middle", "Tested", "Expectation suite", ""),
         ("Top", "Fully supported", ALL_CRITERIA_CELL, ""),
     ]
@@ -2394,7 +2396,7 @@ def test_every_tier_label_is_printed_as_declared():
             "Every shipped expectation<br/>Datasource API contract",
         ),
         (ALL_THREE, ALL_CRITERIA_CELL),
-        (frozenset(), "None"),
+        (frozenset(), "No criteria met"),
     ],
     ids=["gallery", "suite", "api", "gallery+suite", "suite+api", "gallery+api", "all", "none"],
 )
@@ -2431,6 +2433,21 @@ def test_the_criteria_cell_lists_the_met_criteria_in_one_fixed_order(tiers, expe
 def test_a_partial_criterion_is_marked_where_it_stands_and_only_there(tier, case, expected):
     facts = _facts(_record("a", "Only", tiers=ALL_THREE, exclusions={tier: {case: REASON}}))
     assert _cells(_table_lines(render_table(facts))[2])[2] == expected
+
+
+@WITH_CASE_DESCRIPTIONS
+def test_a_row_whose_single_met_criterion_is_partial_carries_the_suffix():
+    facts = _facts(
+        _record(
+            "a",
+            "Only",
+            tiers=frozenset({SupportTier.GALLERY}),
+            exclusions={SupportTier.GALLERY: {"gallery_case": REASON}},
+        )
+    )
+    assert _cells(_table_lines(render_table(facts))[2])[2] == (
+        "Every shipped expectation (with exceptions)"
+    )
 
 
 def test_several_notes_share_one_cell_joined_by_a_line_break_in_their_fixed_order(monkeypatch):
