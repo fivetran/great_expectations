@@ -524,3 +524,158 @@ class TestASuiteWithoutAHolderUsesTheCurrentContext:
 
         assert _columns(c2) == ["added", "original"]
         assert _columns(c1) == ["original"]
+
+
+class TestAddOrUpdateWritesThroughTheFactorysOwnStore:
+    """``add_or_update`` of an existing name writes to the context whose factory it was called on.
+
+    The caller's suite was built by hand, so it belongs to no context; the write must not fall
+    back to whichever context happens to be current (#12209).
+    """
+
+    @staticmethod
+    def _changed(context: AbstractDataContext) -> ExpectationSuite:
+        """A hand-built suite of the shared name, with an expectation the stored one lacks."""
+        return ExpectationSuite(
+            name="shared_name",
+            id=context.suites.get("shared_name").id,
+            expectations=[
+                gxe.ExpectColumnValuesToNotBeNull(column="original"),
+                gxe.ExpectColumnValuesToNotBeNull(column="added"),
+            ],
+        )
+
+    @pytest.mark.unit
+    def test_the_change_lands_in_the_factorys_context_and_not_the_current_one(
+        self, c1_and_c2: tuple[AbstractDataContext, AbstractDataContext]
+    ) -> None:
+        c1, c2 = c1_and_c2
+        _suite_with_one_expectation(c1)
+        _suite_with_one_expectation(c2)
+        changed = self._changed(c1)
+        assert changed._owner is None
+
+        c1.suites.add_or_update(changed)
+
+        assert _columns(c1) == ["added", "original"]
+        assert _columns(c2) == ["original"]
+
+    @pytest.mark.unit
+    def test_the_returned_suite_and_the_callers_suite_are_owned_by_the_factorys_context(
+        self, c1_and_c2: tuple[AbstractDataContext, AbstractDataContext]
+    ) -> None:
+        c1, c2 = c1_and_c2
+        _suite_with_one_expectation(c1)
+        _suite_with_one_expectation(c2)
+        changed = self._changed(c1)
+
+        returned = c1.suites.add_or_update(changed)
+
+        assert returned._owner is c1
+        assert changed._owner is c1
+
+    @pytest.mark.unit
+    def test_the_call_succeeds_when_the_current_context_lacks_the_name(
+        self, c1_and_c2: tuple[AbstractDataContext, AbstractDataContext]
+    ) -> None:
+        c1, c2 = c1_and_c2
+        _suite_with_one_expectation(c1)
+        changed = self._changed(c1)
+        assert [s.name for s in c2.suites.all()] == []
+
+        returned = c1.suites.add_or_update(changed)
+
+        assert returned._owner is c1
+        assert _columns(c1) == ["added", "original"]
+        assert [s.name for s in c2.suites.all()] == []
+
+    @pytest.mark.unit
+    def test_a_single_context_update_persists_by_value(
+        self, single_context: AbstractDataContext
+    ) -> None:
+        _suite_with_one_expectation(single_context)
+        changed = self._changed(single_context)
+        changed.notes = "updated"
+
+        returned = single_context.suites.add_or_update(changed)
+
+        stored = single_context.suites.get("shared_name")
+        assert _columns(single_context) == ["added", "original"]
+        assert stored.notes == "updated"
+        assert stored.id == returned.id == changed.id
+        assert returned._owner is single_context
+
+    @pytest.mark.unit
+    def test_a_suite_without_an_id_takes_the_stored_suites_id(
+        self, single_context: AbstractDataContext
+    ) -> None:
+        original = _suite_with_one_expectation(single_context)
+        changed = self._changed(single_context)
+        changed.id = None
+
+        returned = single_context.suites.add_or_update(changed)
+
+        assert changed.id == original.id
+        assert returned.id == original.id
+        assert single_context.suites.get("shared_name").id == original.id
+
+    @pytest.mark.unit
+    def test_the_write_is_keyed_by_the_stored_suites_name_and_id(
+        self, single_context: AbstractDataContext, mocker: MockerFixture
+    ) -> None:
+        original = _suite_with_one_expectation(single_context)
+        changed = self._changed(single_context)
+        changed.id = None
+        get_key = mocker.spy(single_context.expectations_store, "get_key")
+
+        single_context.suites.add_or_update(changed)
+
+        assert mocker.call(name="shared_name", id=original.id) in get_key.call_args_list
+
+    @pytest.mark.unit
+    def test_a_suite_owned_by_another_context_is_written_to_the_factorys_context(
+        self, c1_and_c2: tuple[AbstractDataContext, AbstractDataContext]
+    ) -> None:
+        c1, c2 = c1_and_c2
+        _suite_with_one_expectation(c1)
+        _suite_with_one_expectation(c2)
+        foreign = c2.suites.get("shared_name")
+        foreign.notes = "changed elsewhere"
+        foreign.id = c1.suites.get("shared_name").id
+        assert foreign._owner is c2
+
+        returned = c1.suites.add_or_update(foreign)
+
+        assert c1.suites.get("shared_name").notes == "changed elsewhere"
+        assert c2.suites.get("shared_name").notes is None
+        assert returned._owner is c1
+        assert foreign._owner is c1
+
+    @pytest.mark.unit
+    def test_the_write_is_rendered_when_the_context_asks_for_rendered_content(
+        self,
+        single_context: AbstractDataContext,
+        mocker: MockerFixture,
+    ) -> None:
+        _suite_with_one_expectation(single_context)
+        changed = self._changed(single_context)
+        mocker.patch.object(project_manager, "is_using_cloud", return_value=True)
+        render = mocker.spy(ExpectationSuite, "render")
+
+        single_context.suites.add_or_update(changed)
+
+        assert [c.args[0] for c in render.call_args_list if c.args[0] is changed] == [changed]
+
+    @pytest.mark.unit
+    def test_the_write_is_not_rendered_otherwise(
+        self,
+        single_context: AbstractDataContext,
+        mocker: MockerFixture,
+    ) -> None:
+        _suite_with_one_expectation(single_context)
+        changed = self._changed(single_context)
+        render = mocker.spy(ExpectationSuite, "render")
+
+        single_context.suites.add_or_update(changed)
+
+        assert [c for c in render.call_args_list if c.args[0] is changed] == []
