@@ -32,9 +32,6 @@ from great_expectations.data_context.data_context.context_factory import (
 from great_expectations.data_context.data_context.file_data_context import FileDataContext
 from great_expectations.data_context.store import CheckpointStore, ValidationDefinitionStore
 from great_expectations.exceptions import DataContextRequiredError
-from great_expectations.exceptions.resource_freshness import (
-    CheckpointRelatedResourcesFreshnessError,
-)
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
@@ -69,9 +66,7 @@ def c1(
 def make_c2(tmp_path: pathlib.Path, c1: AbstractDataContext) -> Callable[[], AbstractDataContext]:
     """Create a second context of the same kind, which makes it the current context.
 
-    A test calls it after building its resources in C1. Adding a validation definition
-    serializes it, which resolves its batch definition's data source in the current context; so
-    resources are added to C1 before C2 is created, and the assertions run with C2 current.
+    A test calls it after building its resources in C1, and the assertions run with C2 current.
     """
 
     def _make() -> AbstractDataContext:
@@ -625,14 +620,6 @@ class TestCheckpointStoreResolvesThroughItsContext:
         for checkpoint in checkpoints:
             _assert_bound_to(checkpoint, c1, count=1)
 
-    @pytest.mark.xfail(
-        raises=CheckpointRelatedResourcesFreshnessError,
-        strict=True,
-        reason=(
-            "Adding serializes the checkpoint, which checks each validation definition's data "
-            "source through the current Data Context, and C2 is current here (#12209)."
-        ),
-    )
     @both_context_kinds
     def test_add_returns_a_checkpoint_bound_to_its_context(
         self, c1: AbstractDataContext, make_c2: Callable[[], AbstractDataContext]

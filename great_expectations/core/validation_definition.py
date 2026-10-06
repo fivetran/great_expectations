@@ -1,7 +1,15 @@
 from __future__ import annotations
 
 import datetime
-from typing import TYPE_CHECKING, Optional, Union
+from typing import (
+    TYPE_CHECKING,
+    AbstractSet,
+    Any,
+    Callable,
+    Mapping,
+    Optional,
+    Union,
+)
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
@@ -11,6 +19,7 @@ from great_expectations.compatibility.pydantic import (
     ValidationError,
     validator,
 )
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.constants import DATAFRAME_REPLACEMENT_STR
 from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.expectation_suite import (
@@ -158,19 +167,28 @@ class ValidationDefinition(BaseModel):
     def data_source(self) -> Datasource:
         return self.asset.datasource
 
+    def _record_suite_owner(self) -> None:
+        """Give a held suite that has no owner the Data Context this validation definition has.
+
+        A suite held by a validation definition that belongs to a context belongs to that
+        context too, unless a store has already said otherwise (GX issue #12209). This never
+        reads the current context.
+        """
+        owner = owner_from_batch_definition(self.data)
+        if owner is not None and getattr(self.suite, "_owner", False) is None:
+            self.suite._owner = owner
+
     def _resolve_context(self) -> ResolvedContext:
-        resolved = resolve_context(owner_from_batch_definition(self.data))
-        if resolved.bound and getattr(self.suite, "_owner", False) is None:
-            # A suite held by a validation definition that belongs to a context belongs to
-            # that context too, unless a store has already said otherwise (GX issue #12209).
-            self.suite._owner = resolved.context
-        return resolved
+        self._record_suite_owner()
+        return resolve_context(owner_from_batch_definition(self.data))
 
     @property
     def _validation_results_store(self) -> ValidationResultsStore:
-        return project_manager.get_validation_results_store()
+        return self._resolve_context().context.validation_results_store
 
     def is_fresh(self) -> ValidationDefinitionFreshnessDiagnostics:
+        # Record the suite's owner first, before any read of the suite.
+        self._record_suite_owner()
         validation_definition_diagnostics = ValidationDefinitionFreshnessDiagnostics(
             errors=[] if self.id else [ValidationDefinitionNotAddedError(name=self.name)]
         )
@@ -181,7 +199,8 @@ class ValidationDefinition(BaseModel):
         if not validation_definition_diagnostics.success:
             return validation_definition_diagnostics
 
-        store = project_manager.get_validation_definition_store()
+        resolved = self._resolve_context()
+        store = resolved.context.validation_definition_store
         key = store.get_key(name=self.name, id=self.id)
 
         try:
@@ -190,7 +209,6 @@ class ValidationDefinition(BaseModel):
             StoreBackendError,  # Generic error from stores
             InvalidKeyError,  # Ephemeral context error
         ):
-            resolved = self._resolve_context()
             note = None if resolved.bound else unbound_resolution_note(resolved.context)
             return ValidationDefinitionFreshnessDiagnostics(
                 errors=[ValidationDefinitionNotFoundError(name=self.name, note=note)]
@@ -424,6 +442,40 @@ class ValidationDefinition(BaseModel):
             )
             return expectation_suite_identifier, validation_result_id
 
+    @override
+    def json(  # noqa: PLR0913
+        self,
+        *,
+        include: AbstractSet[int | str] | Mapping[int | str, Any] | None = None,
+        exclude: AbstractSet[int | str] | Mapping[int | str, Any] | None = None,
+        by_alias: bool = False,
+        skip_defaults: bool | None = None,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        encoder: Callable[[Any], Any] | None = None,
+        models_as_dict: bool = True,
+        **dumps_kwargs: Any,
+    ) -> str:
+        """Serialize as the base model does, after recording the held suite's owner.
+
+        Encoding the suite as an identifier bundle reads the suite's store, so a suite held
+        without an owner must take this validation definition's context before that read.
+        """
+        self._record_suite_owner()
+        return super().json(
+            include=include,
+            exclude=exclude,
+            by_alias=by_alias,
+            skip_defaults=skip_defaults,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none,
+            encoder=encoder,
+            models_as_dict=models_as_dict,
+            **dumps_kwargs,
+        )
+
     def identifier_bundle(self) -> _IdentifierBundle:
         # Utilized as a custom json_encoder
         diagnostics = self.is_fresh()
@@ -434,7 +486,7 @@ class ValidationDefinition(BaseModel):
     @public_api
     def save(self) -> None:
         """Save the current state of this ValidationDefinition."""
-        store = project_manager.get_validation_definition_store()
+        store = self._resolve_context().context.validation_definition_store
         key = store.get_key(name=self.name, id=self.id)
 
         store.update(key=key, value=self)
@@ -507,7 +559,7 @@ class ValidationDefinition(BaseModel):
 
         We need to persist a validation_definition before it can be run. If user calls runs but
         hasn't persisted it we add it for them."""
-        store = project_manager.get_validation_definition_store()
+        store = self._resolve_context().context.validation_definition_store
         key = store.get_key(name=self.name, id=self.id)
 
         store.add(key=key, value=self)

@@ -426,6 +426,7 @@ class TestBatchDefinitionMiss:
     ) -> None:
         owner = gx.get_context(mode="ephemeral")
         batch_definition = _bound_batch_definition(owner)
+        owner.data_sources.delete("my_datasource")
         other = gx.get_context(mode="ephemeral")
         assert project_manager.get_current_project() is other
         assert "my_datasource" not in other.data_sources.all()
@@ -465,7 +466,9 @@ class TestBatchDefinitionMiss:
 
     @pytest.mark.unit
     def test_bound_asset_miss_keeps_todays_message(self, restore_current_context: None) -> None:
-        batch_definition = _bound_batch_definition(gx.get_context(mode="ephemeral"))
+        owner = gx.get_context(mode="ephemeral")
+        batch_definition = _bound_batch_definition(owner)
+        owner.data_sources.get("my_datasource").delete_asset("my_asset")
         self._current_context_with(asset=False)
         assert batch_definition._resolve_context().bound is True
 
@@ -494,7 +497,10 @@ class TestBatchDefinitionMiss:
     def test_bound_batch_definition_miss_carries_no_note(
         self, restore_current_context: None
     ) -> None:
-        batch_definition = _bound_batch_definition(gx.get_context(mode="ephemeral"))
+        owner = gx.get_context(mode="ephemeral")
+        added = _bound_batch_definition(owner)
+        batch_definition = BatchDefinition(name="other_batch_definition")
+        batch_definition.set_data_asset(added.data_asset)
         self._current_context_with(asset=True)
         assert batch_definition._resolve_context().bound is True
 
@@ -504,7 +510,7 @@ class TestBatchDefinitionMiss:
         assert [(type(e), str(e)) for e in diagnostics.errors] == [
             (
                 BatchDefinitionNotFoundError,
-                "BatchDefinition 'my_batch_definition' not found."
+                "BatchDefinition 'other_batch_definition' not found."
                 " Please check the name and try again.",
             )
         ]

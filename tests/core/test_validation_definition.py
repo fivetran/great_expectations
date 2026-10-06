@@ -764,16 +764,22 @@ def test_identifier_bundle_no_id_raises_error(validation_definition: ValidationD
 
 
 @pytest.mark.unit
-def test_save_success(mocker: MockerFixture, validation_definition: ValidationDefinition):
+def test_save_success(
+    mocker: MockerFixture,
+    validation_definition: ValidationDefinition,
+    ephemeral_context: EphemeralDataContext,
+):
     context = mocker.Mock(spec=AbstractDataContext)
     set_context(project=context)
 
-    store_key = context.validation_definition_store.get_key.return_value
+    # The validation definition belongs to the ephemeral context, so it saves there.
+    owner_store = ephemeral_context.validation_definition_store
+    update = mocker.patch.object(owner_store, "update")
+    store_key = owner_store.get_key(name=validation_definition.name, id=validation_definition.id)
     validation_definition.save()
 
-    context.validation_definition_store.update.assert_called_once_with(
-        key=store_key, value=validation_definition
-    )
+    update.assert_called_once_with(key=store_key, value=validation_definition)
+    context.validation_definition_store.update.assert_not_called()
 
 
 @pytest.mark.parametrize(

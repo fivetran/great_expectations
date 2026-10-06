@@ -411,8 +411,8 @@ class TestAHeldSuiteTakesItsHoldersContext:
         stored = c1.suites.add(ExpectationSuite(name="held_suite"))
         held = ExpectationSuite(name="held_suite", id=stored.id)
         assert held._owner is None
-        validation_definition = c1.validation_definitions.add(
-            ValidationDefinition(name="my_vd", data=batch_definition, suite=held)
+        validation_definition = ValidationDefinition(
+            name="my_vd", data=batch_definition, suite=held
         )
         assert validation_definition.suite._owner is None
 

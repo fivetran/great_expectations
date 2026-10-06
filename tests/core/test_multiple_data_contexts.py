@@ -7,21 +7,33 @@ resolves through the current one.
 
 from __future__ import annotations
 
+import copy
+import gc
 import pathlib
+import weakref
 from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
+import pandas as pd
 import pytest
 
 import great_expectations as gx
 import great_expectations.expectations as gxe
 from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.expectation_suite import ExpectationSuite
+from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context.data_context.context_factory import (
     project_manager,
     set_context,
 )
 from great_expectations.exceptions import DataContextRequiredError
+from great_expectations.exceptions.resource_freshness import (
+    BatchDefinitionNotAddedError,
+    ExpectationSuiteNotAddedError,
+    ResourceFreshnessAggregateError,
+    ValidationDefinitionNotAddedError,
+    ValidationDefinitionRelatedResourcesFreshnessError,
+)
 from great_expectations.validator.v1_validator import Validator as V1Validator
 
 if TYPE_CHECKING:
@@ -107,3 +119,252 @@ def test_batch_definition_without_an_owner_validates_through_the_current_context
     current_spy.assert_called_once()
     other_spy.assert_not_called()
     assert built is current_spy.return_value
+
+
+SUITE_NAME = "max_is_three"
+
+
+def _max_is_three_suite() -> ExpectationSuite:
+    return ExpectationSuite(
+        name=SUITE_NAME,
+        expectations=[gxe.ExpectColumnMaxToBeBetween(column="a", min_value=3, max_value=3)],
+    )
+
+
+def _add_validation_definition(context: AbstractDataContext) -> ValidationDefinition:
+    """Add a data source, asset, batch definition, suite and validation definition to `context`."""
+    batch_definition = (
+        context.data_sources.add_pandas("source")
+        .add_dataframe_asset("asset")
+        .add_batch_definition_whole_dataframe("whole")
+    )
+    return context.validation_definitions.add(
+        ValidationDefinition(
+            name="validation",
+            data=batch_definition,
+            suite=context.suites.add(_max_is_three_suite()),
+        )
+    )
+
+
+def _run(validation_definition: ValidationDefinition) -> tuple[bool, object]:
+    """Run over a dataframe whose maximum is three; return the outcome and observed value."""
+    result = validation_definition.run(
+        batch_parameters={"dataframe": pd.DataFrame({"a": [1, 2, 3]})}
+    )
+    return result.success, result.results[0].result["observed_value"]
+
+
+@pytest.mark.unit
+def test_validation_definition_runs_after_another_context_is_created(
+    restore_current_context: None,
+) -> None:
+    c1 = gx.get_context(mode="ephemeral")
+    validation_definition = _add_validation_definition(c1)
+    outcome_alone = _run(validation_definition)
+    assert outcome_alone == (True, 3)
+
+    c2 = gx.get_context(mode="ephemeral")
+    assert project_manager.get_current_project() is c2
+
+    assert _run(validation_definition) == outcome_alone
+
+
+@pytest.mark.unit
+def test_validation_definition_runs_after_the_other_context_is_collected(
+    restore_current_context: None,
+) -> None:
+    c1 = gx.get_context(mode="ephemeral")
+    validation_definition = _add_validation_definition(c1)
+    c2 = gx.get_context(mode="ephemeral")
+    collected = weakref.ref(c2)
+    c3 = gx.get_context(mode="ephemeral")  # the current context no longer refers to C2
+    assert project_manager.get_current_project() is c3
+
+    del c2
+    gc.collect()
+
+    assert collected() is None
+    assert _run(validation_definition) == (True, 3)
+
+
+@pytest.mark.unit
+def test_validation_definition_runs_after_set_context_selects_the_other_context(
+    restore_current_context: None,
+) -> None:
+    c2 = gx.get_context(mode="ephemeral")
+    c1 = gx.get_context(mode="ephemeral")
+    validation_definition = _add_validation_definition(c1)
+    assert project_manager.get_current_project() is c1
+
+    set_context(c2)  # the stimulus: the other context becomes current
+
+    assert project_manager.get_current_project() is c2
+    assert _run(validation_definition) == (True, 3)
+
+
+@pytest.mark.unit
+def test_validation_definition_keeps_its_stores_while_the_current_context_changes(
+    restore_current_context: None,
+) -> None:
+    c2 = gx.get_context(mode="ephemeral")
+    c1 = gx.get_context(mode="ephemeral")
+    validation_definition = _add_validation_definition(c1)
+    assert project_manager.get_current_project() is c1
+
+    def stores() -> tuple[object, ...]:
+        return (
+            validation_definition._validation_results_store,
+            validation_definition.suite._store,
+            validation_definition._resolve_context().context.validation_definition_store,
+        )
+
+    before = stores()
+    assert before == (
+        c1.validation_results_store,
+        c1.expectations_store,
+        c1.validation_definition_store,
+    )
+
+    set_context(c2)  # the stimulus: the other context becomes current
+    assert project_manager.get_current_project() is c2
+    after_selected = stores()
+    c3 = gx.get_context(mode="ephemeral")
+    assert project_manager.get_current_project() is c3
+    after_created = stores()
+
+    for after in (after_selected, after_created):
+        assert [id(store) for store in after] == [id(store) for store in before]
+    assert c2.validation_results_store is not before[0]
+
+
+@pytest.mark.unit
+def test_validation_definition_added_while_another_context_is_current_is_bound(
+    restore_current_context: None,
+) -> None:
+    c1 = gx.get_context(mode="ephemeral")
+    batch_definition = (
+        c1.data_sources.add_pandas("source")
+        .add_dataframe_asset("asset")
+        .add_batch_definition_whole_dataframe("whole")
+    )
+    suite = c1.suites.add(_max_is_three_suite())
+    c2 = gx.get_context(mode="ephemeral")
+    assert project_manager.get_current_project() is c2
+
+    added = c1.validation_definitions.add(
+        ValidationDefinition(name="validation", data=batch_definition, suite=suite)
+    )
+
+    resolved = added._resolve_context()
+    assert resolved.bound is True
+    assert resolved.context is c1
+    assert [v.name for v in c1.validation_definitions.all()] == ["validation"]
+    assert c2.validation_definitions.all() == []
+    assert _run(added) == (True, 3)
+
+
+@pytest.mark.unit
+def test_suite_copy_held_by_a_bound_validation_definition_resolves_through_its_context(
+    restore_current_context: None,
+) -> None:
+    c1 = gx.get_context(mode="ephemeral")
+    validation_definition = _add_validation_definition(c1)
+    suite_copy = copy.deepcopy(validation_definition.suite)
+    assert suite_copy._owner is None
+    validation_definition.suite = suite_copy
+    c2 = gx.get_context(mode="ephemeral")
+    assert project_manager.get_current_project() is c2
+
+    assert _run(validation_definition) == (True, 3)
+
+    assert suite_copy._owner is c1
+
+
+@pytest.mark.unit
+def test_suite_copy_added_to_a_validation_definition_while_another_context_is_current(
+    restore_current_context: None,
+) -> None:
+    c1 = gx.get_context(mode="ephemeral")
+    batch_definition = (
+        c1.data_sources.add_pandas("source")
+        .add_dataframe_asset("asset")
+        .add_batch_definition_whole_dataframe("whole")
+    )
+    suite_copy = copy.deepcopy(c1.suites.add(_max_is_three_suite()))
+    assert suite_copy._owner is None
+    c2 = gx.get_context(mode="ephemeral")
+    assert project_manager.get_current_project() is c2
+
+    added = c1.validation_definitions.add(
+        ValidationDefinition(name="validation", data=batch_definition, suite=suite_copy)
+    )
+
+    assert suite_copy._owner is c1
+    assert _run(added) == (True, 3)
+
+
+@pytest.mark.unit
+def test_running_an_unadded_validation_definition_adds_it_to_its_own_context(
+    restore_current_context: None,
+) -> None:
+    c1 = gx.get_context(mode="ephemeral")
+    batch_definition = (
+        c1.data_sources.add_pandas("source")
+        .add_dataframe_asset("asset")
+        .add_batch_definition_whole_dataframe("whole")
+    )
+    unadded = ValidationDefinition(
+        name="validation", data=batch_definition, suite=c1.suites.add(_max_is_three_suite())
+    )
+    c2 = gx.get_context(mode="ephemeral")
+    assert project_manager.get_current_project() is c2
+
+    assert _run(unadded) == (True, 3)
+
+    assert [v.name for v in c1.validation_definitions.all()] == ["validation"]
+    assert c2.validation_definitions.all() == []
+
+
+@pytest.mark.unit
+def test_batch_definition_saves_to_its_own_context_while_another_is_current(
+    restore_current_context: None,
+) -> None:
+    c1 = gx.get_context(mode="ephemeral")
+    batch_definition = (
+        c1.data_sources.add_pandas("source")
+        .add_dataframe_asset("asset")
+        .add_batch_definition_whole_dataframe("whole")
+    )
+    c2 = gx.get_context(mode="ephemeral")
+    assert project_manager.get_current_project() is c2
+    assert "source" not in c2.data_sources.all()
+
+    batch_definition.save()
+
+    assert "source" in c1.data_sources.all()
+    assert "source" not in c2.data_sources.all()
+
+
+@pytest.mark.unit
+def test_hand_built_validation_definition_reports_freshness_without_a_current_context(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    batch_definition = BatchDefinition(name="hand_assembled")
+    validation_definition = ValidationDefinition(
+        name="validation", data=batch_definition, suite=_max_is_three_suite()
+    )
+    monkeypatch.setattr(project_manager, "_ProjectManager__project", None)
+
+    diagnostics = validation_definition.is_fresh()
+
+    assert diagnostics.success is False
+    assert {type(e) for e in diagnostics.errors} == {
+        BatchDefinitionNotAddedError,
+        ExpectationSuiteNotAddedError,
+        ValidationDefinitionNotAddedError,
+    }
+    with pytest.raises(ResourceFreshnessAggregateError):
+        validation_definition.json()
+    with pytest.raises(ValidationDefinitionRelatedResourcesFreshnessError):
+        validation_definition.run()
