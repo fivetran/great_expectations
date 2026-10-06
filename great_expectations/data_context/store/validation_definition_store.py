@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from great_expectations.compatibility.pydantic import ErrorWrapper, ValidationError
 from great_expectations.compatibility.typing_extensions import override
@@ -147,7 +147,40 @@ class ValidationDefinitionStore(Store):
                 # Store.get_all see the error they always have.
                 errors.append(ErrorWrapper(e, loc=field))
         if errors:
-            raise ValidationError(errors, ValidationDefinition)
+            raise self._validation_error(data, errors)
+
+    @staticmethod
+    def _validation_error(data: dict, resolution_errors: list[ErrorWrapper]) -> ValidationError:
+        """The error parsing `data` raises when its suite or batch definition cannot be resolved.
+
+        Pydantic reports every failed field, in field order. The fields that failed to resolve
+        are left out of the record, the rest are parsed to collect their errors, and pydantic's
+        "field required" errors at the omitted fields are dropped in favour of the resolution
+        errors.
+        """
+        from great_expectations.core.validation_definition import ValidationDefinition
+
+        field_names = list(ValidationDefinition.__fields__)
+
+        def field_of(raw_error: Any) -> str:
+            while isinstance(raw_error, (list, tuple)):
+                raw_error = raw_error[0]
+            return str(raw_error.loc_tuple()[0])
+
+        def position(raw_error: Any) -> int:
+            name = field_of(raw_error)
+            return field_names.index(name) if name in field_names else len(field_names)
+
+        failed = {field_of(error) for error in resolution_errors}
+        try:
+            ValidationDefinition.parse_obj({k: v for k, v in data.items() if k not in failed})
+        except ValidationError as other:
+            raw_errors = [e for e in other.raw_errors if field_of(e) not in failed]
+        else:
+            raw_errors = []
+        return ValidationError(
+            sorted([*raw_errors, *resolution_errors], key=position), ValidationDefinition
+        )
 
     @override
     def _add(self, key: DataContextKey, value: ValidationDefinition, **kwargs):

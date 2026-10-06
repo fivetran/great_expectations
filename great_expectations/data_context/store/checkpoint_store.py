@@ -156,29 +156,31 @@ class CheckpointStore(Store):
     def _validation_error(data: dict, resolution_error: ErrorWrapper) -> ValidationError:
         """The error parsing `data` raises when its validation definitions cannot be resolved.
 
-        Pydantic reports every failed field, in field order. The fields other than the
-        validation definitions are checked by parsing the record without them.
+        Pydantic reports every failed field, in field order. The field that failed to resolve
+        is left out of the record, the rest are parsed to collect their errors, and pydantic's
+        "field required" error at the omitted field is dropped in favour of the resolution error.
         """
         from great_expectations.checkpoint.checkpoint import Checkpoint
 
         field_names = list(Checkpoint.__fields__)
 
-        def position(raw_error: Any) -> int:
+        def field_of(raw_error: Any) -> str:
             while isinstance(raw_error, (list, tuple)):
                 raw_error = raw_error[0]
-            name = raw_error.loc_tuple()[0]
+            return str(raw_error.loc_tuple()[0])
+
+        def position(raw_error: Any) -> int:
+            name = field_of(raw_error)
             return field_names.index(name) if name in field_names else len(field_names)
 
+        failed = field_of(resolution_error)
         try:
-            Checkpoint.parse_obj({**data, "validation_definitions": []})
+            Checkpoint.parse_obj({k: v for k, v in data.items() if k != failed})
         except ValidationError as other:
-            raw_errors = list(other.raw_errors)
+            raw_errors = [e for e in other.raw_errors if field_of(e) != failed]
         else:
             raw_errors = []
-        at = field_names.index("validation_definitions")
-        before = [e for e in raw_errors if position(e) < at]
-        after = [e for e in raw_errors if position(e) > at]
-        return ValidationError([*before, resolution_error, *after], Checkpoint)
+        return ValidationError(sorted([*raw_errors, resolution_error], key=position), Checkpoint)
 
     @override
     def _add(self, key: DataContextKey, value: Checkpoint, **kwargs):

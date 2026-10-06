@@ -296,6 +296,136 @@ class TestValidationDefinitionStoreResolvesThroughItsContext:
         assert "dropped" in caplog.text
 
 
+class TestARecordWithSeveralFailuresReportsThemAllInFieldOrder:
+    """The text below is what parsing such a record raised before the store resolved it itself."""
+
+    @pytest.fixture
+    def context(self, tmp_path: pathlib.Path, restore_current_context: None) -> AbstractDataContext:
+        context = gx.get_context(mode="file", project_root_dir=tmp_path / "only")
+        batch_definition = (
+            context.data_sources.add_pandas("d")
+            .add_dataframe_asset("a")
+            .add_batch_definition_whole_dataframe("b")
+        )
+        suite = context.suites.add(ExpectationSuite(name="s"))
+        context.validation_definitions.add(
+            ValidationDefinition(name="vd", data=batch_definition, suite=suite)
+        )
+        return context
+
+    @pytest.fixture
+    def record(self, context: AbstractDataContext) -> dict[str, Any]:
+        store = context.validation_definition_store
+        record: dict[str, Any] = json.loads(
+            store.serialize(context.validation_definitions.get("vd"))
+        )
+        return record
+
+    @staticmethod
+    def _deserialize(context: AbstractDataContext, record: dict[str, Any]) -> ValidationError:
+        with pytest.raises(ValidationError) as exc_info:
+            context.validation_definition_store.deserialize(json.dumps(record))
+        return exc_info.value
+
+    @pytest.mark.filesystem
+    def test_a_missing_name_and_suite_and_an_extra_key(
+        self, context: AbstractDataContext, record: dict[str, Any]
+    ) -> None:
+        del record["name"]
+        record["suite"] = {"name": "gone", "id": "x"}
+        record["zzz"] = 1
+
+        error = self._deserialize(context, record)
+
+        assert error.model is ValidationDefinition
+        assert [(e["loc"], e["msg"]) for e in error.errors()] == [
+            (("name",), "field required"),
+            (("suite",), "Could not find suite with name: gone and id: x"),
+            (("zzz",), "extra fields not permitted"),
+        ]
+        assert str(error) == (
+            "3 validation errors for ValidationDefinition\n"
+            "name\n"
+            "  field required (type=value_error.missing)\n"
+            "suite\n"
+            "  Could not find suite with name: gone and id: x (type=value_error)\n"
+            "zzz\n"
+            "  extra fields not permitted (type=value_error.extra)"
+        )
+
+    @pytest.mark.filesystem
+    def test_a_missing_name_and_batch_definition(
+        self, context: AbstractDataContext, record: dict[str, Any]
+    ) -> None:
+        del record["name"]
+        record["data"]["batch_definition"] = {"name": "gone", "id": "x"}
+
+        error = self._deserialize(context, record)
+
+        assert [e["loc"] for e in error.errors()] == [("name",), ("data",)]
+        assert str(error) == (
+            "2 validation errors for ValidationDefinition\n"
+            "name\n"
+            "  field required (type=value_error.missing)\n"
+            "data\n"
+            "  Could not find batch definition named 'gone' within 'a' asset and 'd' "
+            "datasource. (type=value_error)"
+        )
+
+    @pytest.mark.filesystem
+    def test_both_references_missing_with_a_bad_id_after_them(
+        self, context: AbstractDataContext, record: dict[str, Any]
+    ) -> None:
+        record["data"]["batch_definition"] = {"name": "gone", "id": "x"}
+        record["suite"] = {"name": "gone", "id": "x"}
+        record["id"] = [1]
+
+        error = self._deserialize(context, record)
+
+        assert [e["loc"] for e in error.errors()] == [("data",), ("suite",), ("id",)]
+
+
+class TestCollectingTheOtherErrorsDoesNotLookThroughTheCurrentContext:
+    @both_context_kinds
+    def test_a_validation_definition_that_failed_to_resolve_is_not_looked_up_again(
+        self,
+        c1: AbstractDataContext,
+        make_c2: Callable[[], AbstractDataContext],
+        mocker: MockerFixture,
+    ) -> None:
+        _, batch_definition = _add_validation_definition(c1, "vd")
+        _remove_batch_definition(c1, "vd", batch_definition)
+        c1.suites.delete("vd_suite")
+        make_c2()
+        suites = mocker.spy(project_manager, "get_expectations_store")
+        data_sources = mocker.spy(project_manager, "get_datasources")
+
+        with pytest.raises(ValidationError) as exc_info:
+            c1.validation_definitions.get("vd")
+
+        assert [e["loc"] for e in exc_info.value.errors()] == [("data",), ("suite",)]
+        suites.assert_not_called()
+        data_sources.assert_not_called()
+
+    @both_context_kinds
+    def test_a_checkpoint_whose_definitions_failed_to_resolve_is_not_looked_up_again(
+        self,
+        c1: AbstractDataContext,
+        make_c2: Callable[[], AbstractDataContext],
+        mocker: MockerFixture,
+    ) -> None:
+        _add_checkpoint(c1, "cp", ("dropped",))
+        c1.validation_definitions.delete("dropped")
+        make_c2()
+        definitions = mocker.spy(project_manager, "get_validation_definition_store")
+
+        with pytest.raises(ValidationError) as exc_info:
+            c1.checkpoints.get("cp")
+
+        assert [e["loc"] for e in exc_info.value.errors()] == [("validation_definitions",)]
+        definitions.assert_not_called()
+
+
 class TestAnUnreadableRecordIsSkippedNotRaised:
     @pytest.mark.filesystem
     @pytest.mark.parametrize("content", ["[1]", "null", '"text"', "7"])
