@@ -14,6 +14,7 @@ import pathlib
 from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any, Callable
 
+import pandas as pd
 import pytest
 
 import great_expectations as gx
@@ -989,3 +990,38 @@ class TestFactoriesStayInsideTheContextOfTheirStore:
 
         current_spy.assert_called_once()
         other_spy.assert_not_called()
+
+
+class TestObjectsLoadedFromAReopenedContextRunThroughIt:
+    """A file-backed context reopened from disk owns what it loads, whichever context is current."""
+
+    @pytest.mark.filesystem
+    def test_loaded_definition_and_checkpoint_run_and_write_to_the_reopened_context(
+        self, tmp_path: pathlib.Path, restore_current_context: None
+    ) -> None:
+        project = tmp_path / "project"
+        original = gx.get_context(mode="file", project_root_dir=project)
+        added, _ = _add_validation_definition(original, "vd")
+        original.checkpoints.add(Checkpoint(name="cp", validation_definitions=[added]))
+
+        # Reopen the project, then create a second context so that it, not the reopened one,
+        # is current while the loaded objects run.
+        reopened = gx.get_context(mode="file", project_root_dir=project)
+        c2 = gx.get_context(mode="ephemeral")
+        assert reopened is not original
+        assert project_manager.get_current_project() is c2
+
+        definition = reopened.validation_definitions.get("vd")
+        checkpoint = reopened.checkpoints.get("cp")
+        assert definition.suite._owner is reopened
+        assert owner_from_batch_definition(definition.data) is reopened
+
+        batch_parameters = {"dataframe": pd.DataFrame({"a": [1, 2, 3]})}
+        reopened_results_before = len(reopened.validation_results_store.list_keys())
+        c2_results_before = len(c2.validation_results_store.list_keys())
+
+        assert definition.run(batch_parameters=batch_parameters).success is True
+        assert len(reopened.validation_results_store.list_keys()) == reopened_results_before + 1
+        assert checkpoint.run(batch_parameters=batch_parameters).success is True
+        assert len(reopened.validation_results_store.list_keys()) == reopened_results_before + 2
+        assert len(c2.validation_results_store.list_keys()) == c2_results_before

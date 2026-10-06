@@ -10,6 +10,7 @@ from __future__ import annotations
 import copy
 import gc
 import pathlib
+import threading
 import weakref
 from collections.abc import Iterator
 from typing import TYPE_CHECKING, Optional
@@ -773,3 +774,47 @@ def test_hand_built_checkpoint_reports_freshness_without_a_current_context(
         checkpoint.save()
     with pytest.raises(DataContextRequiredError):
         checkpoint._add_to_store()
+
+
+@pytest.mark.unit
+def test_two_threads_each_run_their_own_context_objects_while_the_other_is_current(
+    restore_current_context: None,
+) -> None:
+    """Two worker threads, each with its own context, run their own checkpoint at the same time.
+
+    Each worker obtains its context through `get_context()` and registers its data source,
+    suite, validation definition and checkpoint while holding a lock, so no two registrations
+    overlap and the last-created context is current when both workers pass the barrier. Only the
+    two `run()` calls overlap. No call selects a context.
+
+    This does not exercise registering resources from two threads at once, because the
+    registration path is not what an object's resolution through its owning context changes.
+    The test makes no claim about it.
+    """
+    registration_lock = threading.Lock()
+    both_registered = threading.Barrier(2, timeout=60)
+    registration_order: list[int] = []
+    outcomes: dict[int, tuple[bool, object]] = {}
+    errors: list[BaseException] = []
+
+    def worker(index: int) -> None:
+        try:
+            with registration_lock:
+                _, _, checkpoint = _build_pandas_resources(str(index))
+                registration_order.append(index)
+            both_registered.wait()
+            outcomes[index] = _run_checkpoint(checkpoint)
+        except BaseException as e:  # collected so the test can assert on it
+            errors.append(e)
+            both_registered.abort()
+
+    threads = [threading.Thread(target=worker, args=(i,)) for i in (1, 2)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=120)
+
+    assert not any(thread.is_alive() for thread in threads)
+    assert errors == []
+    assert sorted(registration_order) == [1, 2]
+    assert outcomes == {1: (True, 3), 2: (True, 3)}
