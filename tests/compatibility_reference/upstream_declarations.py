@@ -41,11 +41,16 @@ from tests.datasource.fluent.crud_contract import (
     case_exclusions_by_type,
 )
 from tests.integration.test_utils.data_source_config import (
-    DataSourceSpec,
-    iter_data_source_specs,
+    DataSourceProvisioning as DataSourceProvisioning,  # noqa: PLC0414 # the alias marks a deliberate re-export (F401)
+)
+from tests.integration.test_utils.data_source_config import (
+    DataSourceSpec as DataSourceSpec,  # noqa: PLC0414 # the alias marks a deliberate re-export (F401)
 )
 from tests.integration.test_utils.data_source_config import (
     SupportTier as SupportTier,  # noqa: PLC0414 # the alias marks a deliberate re-export (F401)
+)
+from tests.integration.test_utils.data_source_config import (
+    iter_data_source_specs,
 )
 
 

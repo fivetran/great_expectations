@@ -50,16 +50,14 @@ from tests.compatibility_reference import upstream_declarations
 from tests.compatibility_reference.upstream_declarations import (
     CASE_DESCRIPTIONS,
     CONNECTION_PATH_DESCRIPTIONS,
+    DataSourceProvisioning,
     SupportTier,
     UpstreamDeclarationError,
     UpstreamFacts,
 )
-from tests.integration.test_utils.data_source_config.data_source_spec import (
-    DataSourceProvisioning,
-)
 
 if TYPE_CHECKING:
-    from tests.integration.test_utils.data_source_config import DataSourceSpec
+    from tests.compatibility_reference.upstream_declarations import DataSourceSpec
 
 
 class PublicTier(Enum):
