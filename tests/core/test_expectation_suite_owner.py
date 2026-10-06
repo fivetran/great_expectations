@@ -29,6 +29,7 @@ from great_expectations.exceptions import (
     DataContextError,
     DataContextRequiredError,
     ExpectationSuiteNotAddedError,
+    ExpectationSuiteNotFoundError,
 )
 
 if TYPE_CHECKING:
@@ -679,3 +680,33 @@ class TestAddOrUpdateWritesThroughTheFactorysOwnStore:
         single_context.suites.add_or_update(changed)
 
         assert [c for c in render.call_args_list if c.args[0] is changed] == []
+
+
+class TestAnOwnedSuitesMissIsReportedPlainly:
+    """A miss on a suite that belongs to a context was looked up in that context, so it says so.
+
+    The cause-naming note is for a lookup that went through the current context because the
+    suite belongs to none; an owned suite's miss carries the plain text.
+    """
+
+    @pytest.mark.unit
+    def test_a_miss_in_the_owning_context_carries_no_current_context_note(
+        self, c1_and_c2: tuple[AbstractDataContext, AbstractDataContext]
+    ) -> None:
+        c1, c2 = c1_and_c2
+        suite = c1.suites.add(ExpectationSuite(name="shared_name"))
+        c2.suites.add(ExpectationSuite(name="shared_name"))
+        c1.suites.delete("shared_name")
+        assert [s.name for s in c1.suites.all()] == []
+        assert [s.name for s in c2.suites.all()] == ["shared_name"]
+        assert project_manager.get_current_project() is c2
+
+        diagnostics = suite.is_fresh()
+
+        assert diagnostics.success is False
+        assert len(diagnostics.errors) == 1
+        error = diagnostics.errors[0]
+        assert isinstance(error, ExpectationSuiteNotFoundError)
+        assert str(error) == (
+            "ExpectationSuite 'shared_name' not found. Please check the name and try again."
+        )
