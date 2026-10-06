@@ -30,6 +30,7 @@ Principles the declarations below encode:
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, replace
 from enum import Enum
 from typing import (
@@ -482,3 +483,81 @@ def row_notes(row: PublishedRow, facts: UpstreamFacts) -> Tuple[str, ...]:
         *managed_service_notes(row, facts),
         *version_bound_notes(row, facts),
     )
+
+
+# --- rendering --------------------------------------------------------------------------------
+
+REGENERATION_COMMAND: Final = "invoke docs-tables --sync"
+"""The one command that rewrites the generated table. The notice, the drift check's failure
+message and the maintainer documentation all quote this string, so it is spelled once."""
+
+GENERATED_NOTICE: Final = (
+    f"{{/* Generated file. Do not edit by hand. Regenerate with: {REGENERATION_COMMAND} */}}"
+)
+"""An MDX expression comment. The documentation site compiles every Markdown file as MDX, where
+an HTML comment is a parse error rather than a comment."""
+
+COLUMN_HEADERS: Final = ("Data source", "Support tier", "Criteria met", "Notes")
+PARTIAL_SUFFIX: Final = " (with exceptions)"
+NO_CRITERIA: Final = "None"
+CELL_LINE_SEPARATOR: Final = "<br/>"
+"""Joins the entries of one cell. Written directly, never passed through ``_escape_cell``: it is
+the one piece of markup the table emits on purpose, and it is a fixed string, not dynamic."""
+
+_MARKUP_CHARACTERS: Final = "\\`*_~[]<>{}|&"
+_MARKUP_PATTERN: Final = re.compile("[" + re.escape(_MARKUP_CHARACTERS) + "]")
+
+
+def _escape_cell(text: str) -> str:
+    """Make one dynamic string safe inside an MDX table cell.
+
+    Each character that Markdown or MDX would read as markup, an expression, a tag, a link, an
+    entity or a cell boundary is preceded by a backslash, which renders it literally: the
+    backslash itself, the backtick, ``*``, ``_``, ``~``, the square brackets, the angle
+    brackets, the braces, the pipe and the ampersand. Every other character is left alone, so a
+    name or a reason prints as it was declared.
+
+    Raises ValueError on a line break, which no escaping can make safe in a table row.
+    """
+    _single_line(text, "A string printed in the table")
+    return _MARKUP_PATTERN.sub(lambda match: "\\" + match.group(0), text)
+
+
+def _criteria_cell(row: PublishedRow) -> str:
+    entries = [
+        _escape_cell(
+            criterion.label + (PARTIAL_SUFFIX if criterion.key in row.criteria_partial else "")
+        )
+        for criterion in CRITERIA
+        if criterion.key in row.criteria_met
+    ]
+    return CELL_LINE_SEPARATOR.join(entries) if entries else _escape_cell(NO_CRITERIA)
+
+
+def _row_line(row: PublishedRow) -> str:
+    cells = (
+        _escape_cell(row.public_name),
+        _escape_cell(row.tier.value),
+        _criteria_cell(row),
+        CELL_LINE_SEPARATOR.join(_escape_cell(note) for note in row.notes),
+    )
+    return "| " + " | ".join(cells) + " |"
+
+
+def render_table(facts: UpstreamFacts) -> str:
+    """The complete partial: notice, blank line, table, footnote, trailing newline.
+
+    The output is a pure function of ``facts``: columns, criteria and notes have a fixed order
+    and rows are ordered by public name, so identical declarations give identical bytes. The
+    footnote is printed once, below the table, and omitted when no connection path is uncovered.
+    """
+    lines = [
+        "| " + " | ".join(COLUMN_HEADERS) + " |",
+        "| " + " | ".join("---" for _ in COLUMN_HEADERS) + " |",
+        *(_row_line(row) for row in assemble_rows(facts)),
+    ]
+    blocks = [GENERATED_NOTICE, "\n".join(lines)]
+    footnote = uncovered_connection_paths_note(facts)
+    if footnote is not None:
+        blocks.append(_escape_cell(footnote))
+    return "\n\n".join(blocks) + "\n"

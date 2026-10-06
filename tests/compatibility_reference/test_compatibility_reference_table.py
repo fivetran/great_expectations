@@ -8,6 +8,7 @@ fail.
 from __future__ import annotations
 
 import importlib.util
+import re
 import sys
 from dataclasses import replace
 from enum import Enum
@@ -20,11 +21,15 @@ from tests.compatibility_reference import compatibility_reference_table as table
 from tests.compatibility_reference import upstream_declarations
 from tests.compatibility_reference.compatibility_reference_table import (
     CRITERIA,
+    GENERATED_NOTICE,
+    REGENERATION_COMMAND,
     PublicTier,
     PublishedRow,
+    _escape_cell,
     assemble_rows,
     criteria_met_by,
     recorded_exclusion_notes,
+    render_table,
     tier_for,
     uncovered_connection_paths_note,
 )
@@ -2228,3 +2233,579 @@ def test_the_notes_every_real_row_carries_are_exactly_these():
             "configuration can be observed to have replaced anything.",
         ),
     }
+
+
+# ---------------------------------------------------------------------------------------------
+# Rendering the table.
+#
+# Expected text is written out by hand. Rendering it with the code under test could not fail.
+# ---------------------------------------------------------------------------------------------
+
+NOTICE = "{/* Generated file. Do not edit by hand. Regenerate with: invoke docs-tables --sync */}"
+HEADER = "| Data source | Support tier | Criteria met | Notes |"
+SEPARATOR = "| --- | --- | --- | --- |"
+FOOTNOTE = (
+    "Connection paths GX ships that no row above covers: Databricks File System paths read "
+    "with Spark; Databricks File System paths read with pandas; Power BI semantic models; "
+    "Spark in-memory DataFrames."
+)
+ALL_CRITERIA_CELL = "Every shipped expectation<br/>Expectation suite<br/>Datasource API contract"
+LIVE_ROWS = (
+    ("AlloyDB", "Best effort"),
+    ("Amazon Aurora PostgreSQL", "Best effort"),
+    ("Amazon S3", "Best effort"),
+    ("Azure Blob Storage", "Best effort"),
+    ("BigQuery", "Fully supported"),
+    ("Citus", "Best effort"),
+    ("ClickHouse", "Tested"),
+    ("Databricks (SQL)", "Fully supported"),
+    ("Google Cloud Storage", "Best effort"),
+    ("Microsoft Fabric", "Best effort"),
+    ("MySQL", "Fully supported"),
+    ("Neon", "Best effort"),
+    ("Oracle", "Tested"),
+    ("Pandas", "Fully supported"),
+    ("PostgreSQL", "Fully supported"),
+    ("Redshift", "Fully supported"),
+    ("SingleStore", "Tested"),
+    ("Snowflake", "Tested"),
+    ("Spark", "Tested"),
+    ("SQL Server", "Tested"),
+    ("SQLite", "Fully supported"),
+    ("Trino", "Fully supported"),
+)
+BIGQUERY_LINE = f"| BigQuery | Fully supported | {ALL_CRITERIA_CELL} |  |"
+ORACLE_LINE = (
+    "| Oracle | Tested | Expectation suite<br/>Datasource API contract | "
+    "Tested against Oracle 21c. 19c expected, not verified in CI. |"
+)
+FABRIC_LINE = f"| Microsoft Fabric | Best effort | None | {COVERED_NOTE}<br/>{MANAGED_NOTE} |"
+CLICKHOUSE_LINE = (
+    "| ClickHouse | Tested | Expectation suite (with exceptions)<br/>Datasource API contract | "
+    "Expectation suite: not run for column names that need quoting. Recorded reason: This "
+    "dialect's SQLAlchemy/driver insert path keys each row by the sanitized bind-parameter "
+    "name instead of the real column name for identifiers requiring quoting, raising a "
+    "\\`KeyError\\` at insert time and leaving the table empty. An issue still needs to be "
+    "filed for this defect. |"
+)
+PANDAS_LINE = (
+    "| Pandas | Fully supported | Every shipped expectation<br/>Expectation suite<br/>"
+    "Datasource API contract (with exceptions) | Datasource API contract, "
+    f"{PANDAS_DESCRIPTION}: not run for keeping a single saved entry after create-or-update, "
+    "replacing an existing datasource on create-or-update and replacing a datasource's "
+    "configuration on update. Recorded reason: PandasDatasource declares no field beyond "
+    "name, type, identifier and assets, so no update of its configuration can be observed "
+    "to have replaced anything. |"
+)
+
+
+def _table_lines(rendered: str) -> Tuple[str, ...]:
+    return tuple(line for line in rendered.split("\n") if line.startswith("|"))
+
+
+def _cells(line: str) -> Tuple[str, ...]:
+    assert line.startswith("| ") and line.endswith(" |"), line
+    return tuple(line[2:-2].split(" | "))
+
+
+def _simple_facts(*names: str, **kwargs) -> UpstreamFacts:
+    return _facts(
+        *(_record(f"label-{i}", name, tiers=ALL_THREE) for i, name in enumerate(names)), **kwargs
+    )
+
+
+# --- the generated-file notice ---------------------------------------------------------------
+
+
+def test_the_notice_is_the_documentation_builds_comment_form_naming_the_command():
+    assert GENERATED_NOTICE == NOTICE
+    assert REGENERATION_COMMAND == "invoke docs-tables --sync"
+
+
+def test_the_notice_leads_the_output_and_is_followed_by_one_blank_line():
+    rendered = render_table(_simple_facts("Only"))
+    assert rendered.split("\n")[:3] == [NOTICE, "", HEADER]
+
+
+def test_the_notice_is_not_an_html_comment_and_the_output_holds_no_html_comment():
+    rendered = render_table(_simple_facts("Only"))
+    assert "<!--" not in rendered
+    assert "-->" not in rendered
+    assert rendered.count(NOTICE) == 1
+
+
+def test_the_notice_quotes_the_one_command_string():
+    # The notice, the drift check and the maintainer documentation share one string, so the
+    # notice has to be built from it rather than from its own copy.
+    assert REGENERATION_COMMAND in GENERATED_NOTICE
+    assert GENERATED_NOTICE.count(REGENERATION_COMMAND) == 1
+
+
+# --- columns -----------------------------------------------------------------------------------
+
+
+def test_the_header_and_separator_are_exactly_the_four_columns_in_order():
+    lines = _table_lines(render_table(_simple_facts("Only")))
+    assert lines[0] == HEADER
+    assert lines[1] == SEPARATOR
+
+
+def test_a_row_prints_name_tier_criteria_and_notes_in_that_order():
+    rendered = render_table(_simple_facts("Only"))
+    assert _table_lines(rendered)[2] == f"| Only | Fully supported | {ALL_CRITERIA_CELL} |  |"
+    assert _cells(_table_lines(rendered)[2]) == (
+        "Only",
+        "Fully supported",
+        ALL_CRITERIA_CELL,
+        "",
+    )
+
+
+def test_every_tier_label_is_printed_as_declared():
+    facts = _facts(
+        _record("a", "Top", tiers=ALL_THREE),
+        _record("b", "Middle", tiers=frozenset({SupportTier.CANONICAL_EXPECTATIONS})),
+        _record("c", "Low", tiers=frozenset()),
+    )
+    rows = [_cells(line) for line in _table_lines(render_table(facts))[2:]]
+    assert rows == [
+        ("Low", "Best effort", "None", ""),
+        ("Middle", "Tested", "Expectation suite", ""),
+        ("Top", "Fully supported", ALL_CRITERIA_CELL, ""),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("tiers", "expected"),
+    [
+        (frozenset({SupportTier.GALLERY}), "Every shipped expectation"),
+        (frozenset({SupportTier.CANONICAL_EXPECTATIONS}), "Expectation suite"),
+        (frozenset({SupportTier.FLUENT_API}), "Datasource API contract"),
+        (
+            frozenset({SupportTier.GALLERY, SupportTier.CANONICAL_EXPECTATIONS}),
+            "Every shipped expectation<br/>Expectation suite",
+        ),
+        (
+            frozenset({SupportTier.CANONICAL_EXPECTATIONS, SupportTier.FLUENT_API}),
+            "Expectation suite<br/>Datasource API contract",
+        ),
+        (
+            frozenset({SupportTier.GALLERY, SupportTier.FLUENT_API}),
+            "Every shipped expectation<br/>Datasource API contract",
+        ),
+        (ALL_THREE, ALL_CRITERIA_CELL),
+        (frozenset(), "None"),
+    ],
+    ids=["gallery", "suite", "api", "gallery+suite", "suite+api", "gallery+api", "all", "none"],
+)
+def test_the_criteria_cell_lists_the_met_criteria_in_one_fixed_order(tiers, expected):
+    facts = _facts(_record("a", "Only", tiers=tiers))
+    assert _cells(_table_lines(render_table(facts))[2])[2] == expected
+
+
+@WITH_CASE_DESCRIPTIONS
+@pytest.mark.parametrize(
+    ("tier", "case", "expected"),
+    [
+        (
+            SupportTier.GALLERY,
+            "gallery_case",
+            "Every shipped expectation (with exceptions)<br/>Expectation suite"
+            "<br/>Datasource API contract",
+        ),
+        (
+            SupportTier.CANONICAL_EXPECTATIONS,
+            "suite_case",
+            "Every shipped expectation<br/>Expectation suite (with exceptions)"
+            "<br/>Datasource API contract",
+        ),
+        (
+            SupportTier.FLUENT_API,
+            "api_case",
+            "Every shipped expectation<br/>Expectation suite"
+            "<br/>Datasource API contract (with exceptions)",
+        ),
+    ],
+    ids=["first", "middle", "last"],
+)
+def test_a_partial_criterion_is_marked_where_it_stands_and_only_there(tier, case, expected):
+    facts = _facts(_record("a", "Only", tiers=ALL_THREE, exclusions={tier: {case: REASON}}))
+    assert _cells(_table_lines(render_table(facts))[2])[2] == expected
+
+
+def test_several_notes_share_one_cell_joined_by_a_line_break_in_their_fixed_order(monkeypatch):
+    notes = ("first note", "second note", "third note")
+    row = PublishedRow(
+        public_name="Only",
+        specs=(),
+        criteria_met=frozenset(),
+        criteria_partial=frozenset(),
+        tier=PublicTier.BEST_EFFORT,
+        notes=notes,
+    )
+    monkeypatch.setattr(table, "assemble_rows", lambda facts: (row,))
+    cells = _cells(_table_lines(render_table(_simple_facts("Only")))[2])
+    assert cells[3] == "first note<br/>second note<br/>third note"
+
+
+def test_a_single_note_has_no_separator_and_no_notes_leaves_the_cell_empty():
+    facts = _facts(_record("a", "Only", tiers=ALL_THREE, lane=None), covered=frozenset({"a"}))
+    cells = _cells(_table_lines(render_table(facts))[2])
+    assert cells[3] == COVERED_NOTE  # one note, nothing appended
+    assert "<br/>" not in cells[3]
+    assert _cells(_table_lines(render_table(_simple_facts("Only")))[2])[3] == ""
+
+
+# --- names, order and positions -------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("declared", "printed"),
+    [
+        ("dBase (Legacy)", "dBase (Legacy)"),
+        ("iPhone-DB", "iPhone-DB"),
+        ("d  Base", "d  Base"),
+        ("ÉCOLE db", "ÉCOLE db"),
+        ("lower", "lower"),
+        ("UPPER", "UPPER"),
+        ("Foo|Bar & <Baz>", "Foo\\|Bar \\& \\<Baz\\>"),
+    ],
+    ids=["mixed-case", "hyphen", "inner-spaces", "accents", "lower", "upper", "markup"],
+)
+def test_a_name_prints_as_declared_with_only_the_escaping_the_site_needs(declared, printed):
+    facts = _facts(_record("a", declared, tiers=ALL_THREE))
+    assert _cells(_table_lines(render_table(facts))[2])[0] == printed
+
+
+def test_rows_are_ordered_by_public_name_ignoring_case_whatever_order_records_arrive_in():
+    names = ("b", "Zed", "A", "c", "a1")
+    for order in (names, tuple(reversed(names)), names[2:] + names[:2]):
+        rendered = render_table(_simple_facts(*order))
+        assert [_cells(line)[0] for line in _table_lines(rendered)[2:]] == [
+            "A",
+            "a1",
+            "b",
+            "c",
+            "Zed",
+        ]
+
+
+@pytest.mark.parametrize("position", [0, 1, 2], ids=["first", "middle", "last"])
+def test_every_row_has_its_markup_neutralized_wherever_it_sorts(position):
+    names = ["alpha", "beta", "gamma"]
+    names[position] = "a<b>{c}"
+    facts = _simple_facts(*names)
+    rendered = _table_lines(render_table(facts))[2:]
+    assert [_cells(line)[0] for line in rendered] == sorted(
+        [n.replace("a<b>{c}", "a\\<b\\>\\{c\\}") for n in names], key=str.casefold
+    )
+
+
+# --- escaping ---------------------------------------------------------------------------------
+
+MARKUP = {
+    "\\": "\\\\",
+    "`": "\\`",
+    "*": "\\*",
+    "_": "\\_",
+    "~": "\\~",
+    "[": "\\[",
+    "]": "\\]",
+    "<": "\\<",
+    ">": "\\>",
+    "{": "\\{",
+    "}": "\\}",
+    "|": "\\|",
+    "&": "\\&",
+}
+SHAPES = pytest.mark.parametrize(
+    "shape",
+    ["{c}ab", "a{c}b", "ab{c}", "{c}", "a{c}b{c}c{c}"],
+    ids=["first", "middle", "last", "alone", "repeated"],
+)
+
+
+@pytest.mark.parametrize("character", list(MARKUP), ids=[f"U+{ord(c):04X}" for c in MARKUP])
+@SHAPES
+def test_the_escape_helper_neutralizes_each_markup_character_wherever_it_stands(character, shape):
+    escaped = MARKUP[character]
+    assert _escape_cell(shape.format(c=character)) == shape.format(c=escaped)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "plain words",
+        "Digits 0123456789",
+        ".,;:!?#$%^()+-=/'\" @",
+        "naïve — “quoted” ✓",
+        "",
+    ],
+    ids=["words", "digits", "punctuation", "unicode", "empty"],
+)
+def test_the_escape_helper_leaves_text_that_is_not_markup_unchanged(text):
+    assert _escape_cell(text) == text
+
+
+def test_the_escape_helper_escapes_a_backslash_before_the_markup_it_precedes():
+    # A backslash already in the text must not combine with the one added for the next character.
+    assert _escape_cell("\\<") == "\\\\\\<"
+    assert _escape_cell("a\\\\b") == "a\\\\\\\\b"
+
+
+def test_the_escape_helper_covers_every_character_the_table_documents():
+    assert set(MARKUP) == set(table._MARKUP_CHARACTERS)
+
+
+BREAK_SHAPES = pytest.mark.parametrize(
+    "shape", ["{c}ab", "a{c}b", "ab{c}"], ids=["first", "middle", "last"]
+)
+
+
+@LINE_BREAKS
+@BREAK_SHAPES
+def test_the_escape_helper_rejects_a_line_break_wherever_it_stands(character, shape):
+    with pytest.raises(ValueError) as raised:
+        _escape_cell(shape.format(c=character))
+    assert type(raised.value) is ValueError
+    assert "contains a line break" in str(raised.value)
+
+
+@pytest.mark.parametrize("character", ["\t", " ", "\x00"], ids=["tab", "space", "nul"])
+def test_the_escape_helper_does_not_reject_what_is_not_a_line_break(character):
+    assert _escape_cell(f"a{character}b") == f"a{character}b"
+
+
+def _crafted_row(
+    *,
+    criteria_met: FrozenSet[str] = frozenset(),
+    notes: Tuple[str, ...] = (),
+) -> PublishedRow:
+    return PublishedRow(
+        public_name="Only",
+        specs=(),
+        criteria_met=criteria_met,
+        criteria_partial=frozenset(),
+        tier=PublicTier.BEST_EFFORT,
+        notes=notes,
+    )
+
+
+def test_the_tier_label_is_escaped(monkeypatch):
+    monkeypatch.setattr(PublicTier.BEST_EFFORT, "_value_", "Best <effort>")
+    facts = _simple_facts("Only")
+    monkeypatch.setattr(table, "assemble_rows", lambda facts: (_crafted_row(),))
+    assert _cells(_table_lines(render_table(facts))[2])[1] == "Best \\<effort\\>"
+
+
+@pytest.mark.parametrize("position", [0, 1, 2], ids=["first", "middle", "last"])
+def test_a_criterion_label_is_escaped_wherever_it_stands(monkeypatch, position):
+    labels = [criterion.label for criterion in CRITERIA]
+    labels[position] = "A {label}"
+    patched = tuple(replace(c, label=label) for c, label in zip(CRITERIA, labels, strict=True))
+    monkeypatch.setattr(table, "CRITERIA", patched)
+    row = _crafted_row(criteria_met=frozenset(c.key for c in patched))
+    monkeypatch.setattr(table, "assemble_rows", lambda facts: (row,))
+    expected = [c.label for c in CRITERIA]
+    expected[position] = "A \\{label\\}"
+    cells = _cells(_table_lines(render_table(_simple_facts("Only")))[2])
+    assert cells[2] == "<br/>".join(expected)
+
+
+@pytest.mark.parametrize("position", [0, 1, 2], ids=["first", "middle", "last"])
+def test_a_note_is_escaped_wherever_it_stands(monkeypatch, position):
+    notes = ["note one", "note two", "note three"]
+    notes[position] = "a <b> {c} | `d`"
+    monkeypatch.setattr(table, "assemble_rows", lambda facts: (_crafted_row(notes=tuple(notes)),))
+    cells = _cells(_table_lines(render_table(_simple_facts("Only")))[2])
+    expected = list(notes)
+    expected[position] = "a \\<b\\> \\{c\\} \\| \\`d\\`"
+    assert cells[3] == "<br/>".join(expected)
+
+
+@WITH_CASE_DESCRIPTIONS
+def test_a_recorded_reason_with_markup_reaches_the_table_escaped():
+    reason = "Uses <T> and {x}, a|b, `c`, *d*, _e_, [f](g), &amp;, ~h~ and \\i"
+    facts = _facts(
+        _record(
+            "a", "Only", tiers=ALL_THREE, exclusions={SupportTier.GALLERY: {"gallery_case": reason}}
+        )
+    )
+    (line,) = _table_lines(render_table(facts))[2:]
+    assert _cells(line)[3] == (
+        "Every shipped expectation: not run for the gallery check. "
+        "Recorded reason: Uses \\<T\\> and \\{x\\}, a\\|b, \\`c\\`, \\*d\\*, \\_e\\_, "
+        "\\[f\\](g), \\&amp;, \\~h\\~ and \\\\i"
+    )
+
+
+@WITH_CASE_DESCRIPTIONS
+@LINE_BREAKS
+def test_a_line_break_in_a_recorded_reason_fails_rendering(character):
+    facts = _facts(
+        _record(
+            "a",
+            "Only",
+            tiers=ALL_THREE,
+            exclusions={SupportTier.GALLERY: {"gallery_case": f"one{character}two"}},
+        )
+    )
+    with pytest.raises(ValueError):
+        render_table(facts)
+
+
+@LINE_BREAKS
+def test_a_line_break_in_a_public_name_fails_rendering(character):
+    with pytest.raises(ValueError) as raised:
+        render_table(_simple_facts(f"One{character}Two"))
+    assert type(raised.value) is ValueError
+    assert "contains a line break" in str(raised.value)
+
+
+def test_an_empty_registry_fails_rendering_rather_than_printing_an_empty_table():
+    with pytest.raises(ValueError, match="no record"):
+        render_table(_facts())
+
+
+# --- the footnote -----------------------------------------------------------------------------
+
+
+def test_the_footnote_follows_the_table_after_one_blank_line_and_ends_the_output():
+    facts = _simple_facts("Only", uncovered_paths=frozenset({"spark"}))
+    assert render_table(facts) == (
+        f"{NOTICE}\n\n{HEADER}\n{SEPARATOR}\n"
+        f"| Only | Fully supported | {ALL_CRITERIA_CELL} |  |\n\n"
+        "Connection paths GX ships that no row above covers: Spark in-memory DataFrames.\n"
+    )
+
+
+@pytest.mark.parametrize("rows", [1, 3, 8], ids=["one-row", "three-rows", "eight-rows"])
+def test_the_footnote_is_printed_once_however_many_rows_there_are(rows):
+    names = [f"Source {chr(ord('A') + i)}" for i in range(rows)]
+    rendered = render_table(_simple_facts(*names, uncovered_paths=frozenset({"spark"})))
+    assert rendered.count("Connection paths GX ships") == 1
+    assert rendered.count("Spark in-memory DataFrames") == 1
+    assert rendered.rstrip("\n").split("\n")[-1].startswith("Connection paths GX ships")
+
+
+def test_no_footnote_is_printed_when_every_path_is_covered():
+    rendered = render_table(_simple_facts("Only"))
+    assert "Connection paths" not in rendered
+    assert rendered == (
+        f"{NOTICE}\n\n{HEADER}\n{SEPARATOR}\n| Only | Fully supported | {ALL_CRITERIA_CELL} |  |\n"
+    )
+
+
+def test_the_footnote_is_escaped(monkeypatch):
+    monkeypatch.setitem(upstream_declarations.CONNECTION_PATH_DESCRIPTIONS, "spark", "a <b> {c}")
+    rendered = render_table(_simple_facts("Only", uncovered_paths=frozenset({"spark"})))
+    assert rendered.endswith(
+        "Connection paths GX ships that no row above covers: a \\<b\\> \\{c\\}.\n"
+    )
+
+
+def test_an_undescribed_uncovered_path_fails_rendering_and_names_the_path():
+    with pytest.raises(UpstreamDeclarationError, match="no_such_path"):
+        render_table(_simple_facts("Only", uncovered_paths=frozenset({"no_such_path"})))
+
+
+# --- one trailing newline ---------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("with_footnote", [False, True], ids=["no-footnote", "footnote"])
+def test_the_output_ends_in_exactly_one_newline(with_footnote):
+    paths = frozenset({"spark"}) if with_footnote else frozenset()
+    rendered = render_table(_simple_facts("Only", uncovered_paths=paths))
+    assert rendered.endswith("\n")
+    assert not rendered.endswith("\n\n")
+    assert not rendered.endswith(" \n")
+
+
+def test_the_output_has_no_carriage_return_and_no_blank_line_inside_the_table():
+    rendered = render_table(_simple_facts("A", "B", "C", uncovered_paths=frozenset({"spark"})))
+    assert "\r" not in rendered
+    lines = rendered.split("\n")
+    first, last = (
+        lines.index(HEADER),
+        max(i for i, line in enumerate(lines) if line.startswith("|")),
+    )
+    assert all(lines[i].startswith("|") for i in range(first, last + 1))
+
+
+# --- determinism ------------------------------------------------------------------------------
+
+
+def test_rendering_twice_gives_identical_text_with_throwaway_records():
+    facts = _simple_facts("b", "a", uncovered_paths=frozenset({"spark"}))
+    first = render_table(facts)
+    assert first != ""
+    assert render_table(facts) == first
+
+
+def test_rendering_the_real_declarations_twice_gives_identical_text():
+    first = render_table(load_upstream_facts())
+    assert len(_table_lines(first)) == 2 + len(LIVE_ROWS)
+    assert render_table(load_upstream_facts()) == first
+
+
+def _permutations(specs: Tuple[DataSourceSpec, ...]):
+    rotated = specs[7:] + specs[:7]
+    by_label_descending = tuple(sorted(specs, key=lambda spec: spec.label, reverse=True))
+    interleaved = specs[::2] + specs[1::2]
+    return {
+        "reversed": tuple(reversed(specs)),
+        "rotated": rotated,
+        "label-descending": by_label_descending,
+        "interleaved": interleaved,
+    }
+
+
+@pytest.mark.parametrize("order", ["reversed", "rotated", "label-descending", "interleaved"])
+def test_the_order_the_registry_returns_records_in_does_not_change_the_output(order):
+    facts = load_upstream_facts()
+    baseline = render_table(facts)
+    assert len(_table_lines(baseline)) == 2 + len(LIVE_ROWS)
+    permuted = _permutations(facts.specs)[order]
+    assert permuted != facts.specs
+    assert render_table(replace(facts, specs=permuted)) == baseline
+
+
+def test_the_order_records_of_one_row_are_listed_in_does_not_change_the_output():
+    variants = _three_variants(1)
+    baseline = render_table(_facts(*variants))
+    for order in ((2, 1, 0), (1, 2, 0), (2, 0, 1)):
+        assert render_table(_facts(*(variants[i] for i in order))) == baseline
+
+
+# --- the real declarations ------------------------------------------------------------------
+
+
+def test_the_real_registry_renders_the_notice_one_row_per_data_source_and_the_footnote():
+    rendered = render_table(load_upstream_facts())
+    lines = rendered.split("\n")
+    assert lines[0] == NOTICE
+    assert lines[1] == ""
+    table_lines = _table_lines(rendered)
+    assert table_lines[0] == HEADER
+    assert table_lines[1] == SEPARATOR
+    assert [(_cells(line)[0], _cells(line)[1]) for line in table_lines[2:]] == list(LIVE_ROWS)
+    assert len(LIVE_ROWS) == 22
+    assert lines[-3:] == ["", FOOTNOTE, ""]
+
+
+@pytest.mark.parametrize(
+    "line",
+    [BIGQUERY_LINE, ORACLE_LINE, FABRIC_LINE, CLICKHOUSE_LINE, PANDAS_LINE],
+    ids=["bigquery", "oracle", "fabric", "clickhouse", "pandas"],
+)
+def test_representative_real_rows_render_exactly_this_text(line):
+    assert line in _table_lines(render_table(load_upstream_facts()))
+
+
+def test_the_real_rendering_has_no_unescaped_markup_in_any_cell():
+    for line in _table_lines(render_table(load_upstream_facts()))[2:]:
+        for cell in _cells(line):
+            stripped = cell.replace("<br/>", "")
+            for character in "<>{}":
+                assert re.search(rf"(?<!\\){re.escape(character)}", stripped) is None, line
+            assert re.search(r"(?<!\\)`", stripped) is None, line
