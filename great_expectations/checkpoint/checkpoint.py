@@ -435,6 +435,8 @@ class Checkpoint(BaseModel):
         action_context = ActionContext()
         sorted_actions = self._sort_actions()
         for action in sorted_actions:
+            # An action runs against the Data Context this Checkpoint resolves through.
+            action._data_context = self._resolve_context().context
             action_result = action.run(
                 checkpoint_result=checkpoint_result,
                 action_context=action_context,
