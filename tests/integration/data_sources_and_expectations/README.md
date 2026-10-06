@@ -990,17 +990,21 @@ the result of that validation is matched into Data Docs rendering. Each criterio
 - *Datasource API contract* proves the first link exists: a data source can be created, updated
   and persisted through the fluent API.
 - *Expectation suite* and *Every shipped expectation* prove the second: validation against that
-  data source returns the right results, for a core set and for every expectation GX ships.
+  data source returns the right results, for a core set, and for one case per shipped expectation,
+  each with a passing and a failing configuration, run only where that case applies to the data
+  source's engine (some expectations have no implementation on an engine, and some cases check
+  something only SQL engines have).
 - A planned criterion would prove the third: that a validation result produced against a live
   backend renders into Data Docs. No suite, declaration or lane exists for it yet.
 
-The public page describes it as planned, as a third criterion for the top tier, and says it affects
-no data source's tier until it exists. The derivation likewise places nothing by it, and **no
-declaration should be added in anticipation of it**. A declaration with nothing behind it is exactly
-the unbacked claim the declarations are meant to prevent. Activating it takes four steps: add its
-declaration, add an entry in `CRITERIA`, add its key to the top-tier condition in `tier_for` (today
-that condition is the every-shipped-expectation criterion together with the datasource API
-criterion), and change the page's description of it from planned to active.
+The public page describes it as planned, as an additional criterion for the top tier, beyond the two
+it requires today, and says it affects no data source's tier until it exists. The derivation
+likewise places nothing by it, and **no declaration should be added in anticipation of it**. A
+declaration with nothing behind it is exactly the unbacked claim the declarations are meant to
+prevent. Activating it takes four steps: add its declaration, add an entry in `CRITERIA`, add its
+key to the top-tier condition in `tier_for` (today that condition is the every-shipped-expectation
+criterion together with the datasource API criterion), and change the page's description of it from
+planned to active.
 
 Once the new key joins the top-tier condition in `tier_for`, any Fully supported row whose records
 do not all declare the new criterion's member moves down to the Tested tier, and the regenerated table's
@@ -1015,11 +1019,11 @@ rather than a rule with no reason.
 
 1. **The page prints declared names verbatim.** A row's name is the `public_name` its records
    declare, with no override map on the page side. A page-side map would be a second vocabulary to
-   keep in step with the records, and the names the page prints are the ones expectations already
-   print when they declare which backends they support. A reader who knows a data source by another
-   name is told why the page differs. *Revisit when* a declared name reads wrongly to users in a way
-   a prose note cannot fix. The fix then belongs in the declaration, which changes every place the
-   name is used, not in a mapping on the page.
+   keep in step with the records, and where an expectation lists the data sources it supports, it
+   uses the same names as the page (some rows have no such member, so the match is not universal). A
+   reader who knows a data source by another name is told why the page differs. *Revisit when* a
+   declared name reads wrongly to users in a way a prose note cannot fix. The fix then belongs in
+   the declaration, which changes every place the name is used, not in a mapping on the page.
 2. **Records covered by the fluent suite but unable to claim its tier.** The records listed in
    `RECORDS_COVERED_BUT_UNABLE_TO_CLAIM` are exercised by the datasource API suite, but each declares
    no marker and no CI lane, and a tier claim obliges both. They are placed by what they declare,
@@ -1054,15 +1058,18 @@ rather than a rule with no reason.
    managed service exists. The condition can then key on that field and drop the free-text
    dependency.
 6. **The seven names beneath the table are an observation, not a claim.** The previous page named
-   Athena, AWS Glue, Databricks (Spark), Dremio, EMR Spark, Teradata and Vertica as seen to work but
-   not tested here. No record names them, and a record would be a claim this repository has no
-   suite to back, which is why they cannot be rows. They are kept in a sentence written by hand in
-   the page's own prose, beneath the generated table, and marked as an observation. Generation
-   never reads or writes it. *Revisit when* one of them gains a record whose suite can back a claim:
-   it then appears in the table, and its name leaves the sentence in the same change.
+   Athena, AWS Glue, Databricks (Spark), Dremio, EMR Spark, Teradata and Vertica as seen to work,
+   but none is tested against a running instance in this repository's continuous integration. No
+   record names them, and a record would be a claim this repository has no suite to back, which is
+   why they cannot be rows. They are kept in a sentence written by hand in the page's own prose,
+   beneath the generated table, and marked as an observation. Generation never reads or writes it.
+   *Revisit when* one of them gains a record whose suite can back a claim: it then appears in the
+   table, and its name leaves the sentence in the same change.
 7. **No support-tier member names a public tier.** Every `SupportTier` member names what its suite
-   exercises: `SupportTier.GALLERY` is the declaration that a data source passes the full-gallery
-   expectation suite, and the others are named the same way. None names a public tier, and none
+   exercises: `SupportTier.GALLERY` is the declaration that a data source passes each gallery-suite
+   case it participates in (one case per shipped expectation, each with a passing and a failing
+   configuration, run only where the case applies to the data source's engine), and the others are
+   named the same way. None names a public tier, and none
    should, because the top public tier is a conjunction of criteria and no single declaration can
    name a conjunction. *Revisit when* someone proposes a member named for a public tier or a level,
    or the criteria that define the top tier change.
