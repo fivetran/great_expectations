@@ -15,6 +15,11 @@ the declarations it describes so it cannot silently go stale:
   variant to a reader. Loading fails if a record declares a type the map does not describe, or if
   the pinned list of uncovered paths names one it does not describe, rather than printing an
   identifier.
+* ``CASE_DESCRIPTIONS`` -- a user-facing phrase for every case a declaration excludes from a
+  suite. A case key is a harness identifier, so it is never printed. Loading fails if a
+  declared exclusion, from either source, names a case the map does not describe, and equally if
+  the map describes a case no declaration excludes, so the map follows the exclusions in both
+  directions.
 * ``TESTED_VERSION_NOTES`` -- the version of a data source a continuous-integration lane attests
   to. No record field carries that. Loading fails if a key names no published row, or names a data
   source whose records do not all declare a lane: a version claim with no lane behind it is a
@@ -105,6 +110,21 @@ CONNECTION_PATH_DESCRIPTIONS: Final[Mapping[str, str]] = {
 }
 
 
+CASE_DESCRIPTIONS: Final[Mapping[str, str]] = {
+    # Record-level exclusions from the curated SQL suite. This one case covers four assertions
+    # that share the quoted-identifier code path: spaced, reserved-word and mixed-case column
+    # names, and uniqueness over a quoted column.
+    "quoted_identifiers": "column names that need quoting",
+    # Exclusions the fluent suite records for a type whose model has no field an update could
+    # change, so no update can be observed to replace anything.
+    "update_replaces_configuration": "replacing a datasource's configuration on update",
+    "create_or_update_replaces_when_present": (
+        "replacing an existing datasource on create-or-update"
+    ),
+    "create_or_update_persists_one_entry": "keeping a single saved entry after create-or-update",
+}
+
+
 TESTED_VERSION_NOTES: Final[Mapping[str, str]] = {
     "Oracle": "Tested against Oracle 21c. 19c expected, not verified in CI.",
 }
@@ -135,6 +155,40 @@ def check_connection_path_descriptions(
             f"The pinned list of connection paths no record names includes {missing_for_paths}, "
             f"which CONNECTION_PATH_DESCRIPTIONS does not describe. Add a user-facing "
             f"description for each in tests/compatibility_reference/upstream_declarations.py."
+        )
+
+
+def check_case_descriptions(
+    specs: Iterable[DataSourceSpec],
+    fluent_case_exclusions: Mapping[str, Mapping[str, str]],
+    descriptions: Mapping[str, str],
+) -> None:
+    """Fail unless the described cases are exactly the cases some declaration excludes.
+
+    Exclusions come from two sources: each record's per-tier exclusions and the fluent suite's
+    per-type exclusions. A case excluded by either needs a description, and a description no
+    exclusion needs is stale.
+
+    Raises:
+        UpstreamDeclarationError: naming each case with no description, or each description for
+            a case nothing excludes.
+    """
+    excluded = {
+        case for spec in specs for cases in spec.tier_case_exclusions.values() for case in cases
+    } | {case for cases in fluent_case_exclusions.values() for case in cases}
+    undescribed = sorted(excluded - descriptions.keys())
+    if undescribed:
+        raise UpstreamDeclarationError(
+            f"A declaration excludes case(s) {undescribed} from a suite, but CASE_DESCRIPTIONS "
+            f"does not describe them. Add a user-facing description for each in "
+            f"tests/compatibility_reference/upstream_declarations.py; a case key must not be "
+            f"printed in its place."
+        )
+    stale = sorted(descriptions.keys() - excluded)
+    if stale:
+        raise UpstreamDeclarationError(
+            f"CASE_DESCRIPTIONS describes case(s) {stale} that no declaration excludes. Remove "
+            f"each description, or restore the exclusion it describes."
         )
 
 
@@ -173,16 +227,19 @@ def load_upstream_facts() -> UpstreamFacts:
     Raises:
         UpstreamDeclarationError: if a record declares a fluent type, or the uncovered-path
             literal names a path, that ``CONNECTION_PATH_DESCRIPTIONS`` does not describe; or if
-            ``TESTED_VERSION_NOTES`` names no published row or a data source with no lane.
+            ``TESTED_VERSION_NOTES`` names no published row or a data source with no lane; or if
+            ``CASE_DESCRIPTIONS`` and the declared case exclusions disagree in either direction.
     """
     specs = iter_data_source_specs()
     check_connection_path_descriptions(
         specs, FLUENT_TYPES_NAMED_BY_NO_RECORD, CONNECTION_PATH_DESCRIPTIONS
     )
     check_version_notes(specs, TESTED_VERSION_NOTES)
+    fluent_case_exclusions = case_exclusions_by_type()
+    check_case_descriptions(specs, fluent_case_exclusions, CASE_DESCRIPTIONS)
     return UpstreamFacts(
         specs=specs,
         covered_but_unable_to_claim=RECORDS_COVERED_BUT_UNABLE_TO_CLAIM,
         fluent_types_named_by_no_record=FLUENT_TYPES_NAMED_BY_NO_RECORD,
-        fluent_case_exclusions=case_exclusions_by_type(),
+        fluent_case_exclusions=fluent_case_exclusions,
     )

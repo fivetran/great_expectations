@@ -30,15 +30,30 @@ Principles the declarations below encode:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, Final, FrozenSet, Iterable, List, Tuple
+from typing import (
+    TYPE_CHECKING,
+    Dict,
+    Final,
+    FrozenSet,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+)
 
+from tests.compatibility_reference import upstream_declarations
 from tests.compatibility_reference.upstream_declarations import (
+    CASE_DESCRIPTIONS,
     CONNECTION_PATH_DESCRIPTIONS,
     SupportTier,
     UpstreamDeclarationError,
     UpstreamFacts,
+)
+from tests.integration.test_utils.data_source_config.data_source_spec import (
+    DataSourceProvisioning,
 )
 
 if TYPE_CHECKING:
@@ -210,9 +225,16 @@ def _assemble_row(
                         f"Give the records distinct fluent types, or declare the criterion "
                         f"consistently across them."
                     )
-            variants = "; ".join(sorted({_variant_description(spec) for spec in short}))
+            described = {
+                _single_line(
+                    _variant_description(spec),
+                    f"The variant description in a disagreement note for {public_name!r}",
+                )
+                for spec in short
+            }
+            variants = "; ".join(sorted(described))
             notes.append(f"{criterion.label}: not met for {variants}.")
-    return PublishedRow(
+    row = PublishedRow(
         public_name=public_name,
         specs=ordered,
         criteria_met=met,
@@ -220,6 +242,8 @@ def _assemble_row(
         tier=tier_for(met),
         notes=tuple(notes),
     )
+    # Derived qualifications go after the disagreement notes, never in place of them.
+    return replace(row, notes=row.notes + row_notes(row, facts))
 
 
 def assemble_rows(facts: UpstreamFacts) -> Tuple[PublishedRow, ...]:
@@ -261,4 +285,200 @@ def assemble_rows(facts: UpstreamFacts) -> Tuple[PublishedRow, ...]:
     return tuple(
         _assemble_row(name, by_name[name], facts)
         for name in sorted(by_name, key=lambda name: (name.casefold(), name))
+    )
+
+
+_LINE_BREAKS: Final = ("\n", "\r", "\x0b", "\x0c", "\x85", "\u2028", "\u2029")
+
+
+def _single_line(text: str, what: str) -> str:
+    """Return ``text`` unchanged, or fail if it spans more than one line.
+
+    A line break inside a table cell breaks the row, and no escaping can repair that, so a
+    declared string containing one is a failure to fix at its source rather than a row to mangle.
+    """
+    if any(character in text for character in _LINE_BREAKS):
+        raise ValueError(
+            f"{what} contains a line break, which would break the table row it is printed in. "
+            f"Rewrite it as a single line where it is declared: {text!r}"
+        )
+    return text
+
+
+def covered_but_unable_to_claim_notes(row: PublishedRow, facts: UpstreamFacts) -> Tuple[str, ...]:
+    """Say, for a record the fluent suite covers but whose declaration cannot claim a tier, both
+    what the suite verifies and that what is missing is a declaration.
+
+    A reader told only that the criterion is not shown as met would infer the suite does not
+    cover the data source, which is false: the suite runs, and the record just declares no lane
+    for it.
+    """
+    if not any(spec.label in facts.covered_but_unable_to_claim for spec in row.specs):
+        return ()
+    return (
+        "The datasource API contract is verified for this data source, but that criterion is "
+        "not shown as met because no continuous-integration lane is declared for it; what is "
+        "missing is that declaration, not test evidence.",
+    )
+
+
+def _describe_type(fluent_type: str) -> str:
+    try:
+        return CONNECTION_PATH_DESCRIPTIONS[fluent_type]
+    except KeyError:
+        raise UpstreamDeclarationError(
+            f"The fluent datasource type {fluent_type!r} carries a recorded case exclusion but "
+            f"CONNECTION_PATH_DESCRIPTIONS does not describe it; an internal identifier must not "
+            f"be printed in its place."
+        ) from None
+
+
+def _describe_case(case: str) -> str:
+    try:
+        return CASE_DESCRIPTIONS[case]
+    except KeyError:
+        raise UpstreamDeclarationError(
+            f"The case {case!r} carries a recorded exclusion but CASE_DESCRIPTIONS does not "
+            f"describe it; a case key must not be printed in its place."
+        ) from None
+
+
+def _exclusions_of_criterion(
+    row: PublishedRow, criterion: Criterion, facts: UpstreamFacts
+) -> Iterator[Tuple[str, str, str]]:
+    """Each ``(scope, case, reason)`` recorded inside one criterion's suite for the row.
+
+    When a row has several records, or a record several types, each exclusion is scoped to the
+    variant it belongs to: one variant's exclusion must not read as the whole data source's.
+    """
+    several = len(row.specs) > 1
+    for spec in row.specs:
+        scope = _variant_description(spec) if several else ""
+        for tier, cases in spec.tier_case_exclusions.items():
+            if tier in criterion.declarations:
+                for case, reason in cases.items():
+                    yield scope, case, reason
+        if criterion.key != DATASOURCE_API_KEY:
+            continue
+        for fluent_type in sorted(spec.fluent_types):
+            scoped = several or len(spec.fluent_types) > 1
+            typed_scope = _describe_type(fluent_type) if scoped else ""
+            for case, reason in facts.fluent_case_exclusions.get(fluent_type, {}).items():
+                yield typed_scope, case, reason
+
+
+def recorded_exclusion_notes(row: PublishedRow, facts: UpstreamFacts) -> Tuple[str, ...]:
+    """Name each case a criterion's suite does not run for the row, with the recorded reason.
+
+    Only criteria the row meets and that assembly marked partial are described, so a criterion
+    the row does not claim carries no note about a suite it does not claim. Cases sharing a
+    scope and a reason are named together.
+
+    A case is named by its user-facing description, never by its key. Groups are ordered by the
+    smallest case key in each, and the cases within a group are listed in key order, so rewording
+    a description never reorders a note.
+    """
+    found: Dict[Tuple[int, str, str], Dict[str, str]] = {}
+    for position, criterion in enumerate(CRITERIA):
+        if criterion.key not in row.criteria_partial:
+            continue
+        for scope, case, reason in _exclusions_of_criterion(row, criterion, facts):
+            if scope:
+                _single_line(scope, f"The variant description for {row.public_name!r}")
+            description = _single_line(
+                _describe_case(case), f"The description of case {case!r} for {row.public_name!r}"
+            )
+            _single_line(reason, f"The recorded reason for case {case!r} of {row.public_name!r}")
+            found.setdefault((position, scope, reason), {})[case] = description
+    notes = []
+    for (position, scope, reason), cases in sorted(
+        found.items(), key=lambda item: (item[0][0], item[0][1], min(item[1]), item[0][2])
+    ):
+        described = [cases[case] for case in sorted(cases)]
+        heading = CRITERIA[position].label + (f", {scope}" if scope else "")
+        if len(described) == 1:
+            named = f"not run for {described[0]}"
+        else:
+            named = f"not run for {', '.join(described[:-1])} and {described[-1]}"
+        notes.append(f"{heading}: {named}. Recorded reason: {reason}")
+    return tuple(notes)
+
+
+def uncovered_connection_paths_note(facts: UpstreamFacts) -> Optional[str]:
+    """The footnote naming connection paths that ship but that no row covers, printed once.
+
+    Returns None when there are none. Fails, naming the path, if a path has no user-facing
+    description: printing the raw type literal would put an internal identifier on a public
+    page, and omitting it would recreate the invisible gap this footnote exists to show.
+    """
+    if not facts.fluent_types_named_by_no_record:
+        return None
+    missing = sorted(facts.fluent_types_named_by_no_record - CONNECTION_PATH_DESCRIPTIONS.keys())
+    if missing:
+        raise UpstreamDeclarationError(
+            f"The connection paths no record names include {missing}, which "
+            f"CONNECTION_PATH_DESCRIPTIONS does not describe. Add a user-facing description "
+            f"for each; an internal identifier must not be printed in its place."
+        )
+    described = sorted(
+        CONNECTION_PATH_DESCRIPTIONS[t] for t in facts.fluent_types_named_by_no_record
+    )
+    return _single_line(
+        "Connection paths GX ships that no row above covers: " + "; ".join(described) + ".",
+        "The uncovered connection paths footnote",
+    )
+
+
+def managed_service_notes(row: PublishedRow, facts: UpstreamFacts) -> Tuple[str, ...]:
+    """Say no lane exercises the real service, for a data source reachable only with credentials.
+
+    Keyed on external-credential provisioning together with a recorded provisioning note.
+    Provisioning alone is wrong: some credential-gated data sources do have lanes against the
+    real service. The note alone is wrong too: the field is free text upstream and also holds,
+    for example, the cost of running a local container.
+
+    Known residual: an externally provisioned record that carries no recorded provisioning note
+    gets no managed-service note, even though reaching it needs credentials this repository does
+    not hold. The count is deliberately not stated here, since it would go stale; it follows from
+    the declarations. The remedy lies upstream: a provisioning note on each such record, or a
+    field that marks a managed service. When the record's owner adds either, the record is
+    covered here, or this producer can key on the field and drop the free-text condition.
+    """
+    if not any(
+        spec.provisioning is DataSourceProvisioning.EXTERNAL_CREDENTIALS
+        and (spec.provisioning_note or "").strip()
+        for spec in row.specs
+    ):
+        return ()
+    return (
+        "No continuous-integration lane exercises the real service: reaching it needs "
+        "credentials this repository does not provision.",
+    )
+
+
+def version_bound_notes(row: PublishedRow, facts: UpstreamFacts) -> Tuple[str, ...]:
+    """The version a lane attests to, taken verbatim from the declared map.
+
+    This is the one note not derived from a declaration, because no record field carries the
+    version a lane runs against.
+
+    The note can go stale: if the database version a lane runs against changes, nothing here
+    notices. Of the two guards that check the map, one fires on a key that has no published row
+    and the other on a data source with no lane; neither catches a version change. The remedy is
+    a field on the data source record carrying the version a lane runs against, filled in by
+    whoever owns the lane. At that point this note becomes derivable and the map can go.
+    """
+    note = upstream_declarations.TESTED_VERSION_NOTES.get(row.public_name)
+    if note is None:
+        return ()
+    return (_single_line(note, f"The version note for {row.public_name!r}"),)
+
+
+def row_notes(row: PublishedRow, facts: UpstreamFacts) -> Tuple[str, ...]:
+    """Every derived qualification for a row, in a fixed order."""
+    return (
+        *covered_but_unable_to_claim_notes(row, facts),
+        *recorded_exclusion_notes(row, facts),
+        *managed_service_notes(row, facts),
+        *version_bound_notes(row, facts),
     )
