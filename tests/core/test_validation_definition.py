@@ -25,7 +25,6 @@ from great_expectations.core.result_format import ResultFormat
 from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
 from great_expectations.data_context.data_context.context_factory import (
-    ProjectManager,
     set_context,
 )
 from great_expectations.data_context.store.validation_results_store import ValidationResultsStore
@@ -188,8 +187,8 @@ def test_validation_definition_data_properties(validation_definition: Validation
 class TestValidationRun:
     @pytest.fixture
     def mock_validator(self, mocker: MockerFixture):
-        """Set up our ProjectManager to return a mock Validator"""
-        with mock.patch.object(ProjectManager, "get_validator") as mock_get_validator:
+        """Set up the Data Context to return a mock Validator"""
+        with mock.patch.object(AbstractDataContext, "get_validator") as mock_get_validator:
             with mock.patch.object(OldValidator, "graph_validate"):
                 gx.get_context(mode="ephemeral")
                 mock_execution_engine = mocker.MagicMock(spec=ExecutionEngine)
