@@ -787,9 +787,9 @@ def test_two_threads_each_run_their_own_context_objects_while_the_other_is_curre
     overlap and the last-created context is current when both workers pass the barrier. Only the
     two `run()` calls overlap. No call selects a context.
 
-    This does not exercise registering resources from two threads at once, because the
-    registration path is not what an object's resolution through its owning context changes.
-    The test makes no claim about it.
+    This does not exercise registering resources from two threads at once: resolving an object
+    through its owning context makes no concurrency guarantee, and this test makes no claim
+    about concurrent registration.
     """
     registration_lock = threading.Lock()
     both_registered = threading.Barrier(2, timeout=60)

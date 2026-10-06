@@ -248,7 +248,7 @@ class ValidationDefinition(BaseModel):
     ) -> ExpectationSuite:
         # Take in raw JSON, ensure it contains appropriate identifiers, and use them to retrieve the actual suite.  # noqa: E501 # FIXME CoP
         # An explicit context is the one the caller already resolved: the lookup goes through it,
-        # a miss states today's plain message, and the suite is built by its store so it is
+        # a miss states the plain message, and the suite is built by its store so it is
         # stamped. Without one, the current context is read and a miss names that fact (#12209).
         try:
             suite_identifiers = _IdentifierBundle.parse_obj(suite_dict)
