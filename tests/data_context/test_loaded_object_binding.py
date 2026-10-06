@@ -22,6 +22,10 @@ from great_expectations.checkpoint.checkpoint import Checkpoint
 from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.expectation_suite import ExpectationSuite
+from great_expectations.core.factory.checkpoint_factory import CheckpointFactory
+from great_expectations.core.factory.validation_definition_factory import (
+    ValidationDefinitionFactory,
+)
 from great_expectations.core.owner_resolution import owner_from_batch_definition
 from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context import AbstractDataContext
@@ -897,3 +901,91 @@ class TestCheckpointsBuiltOutsideAStoreResolveThroughTheCurrentContext:
         c1 = gx.get_context(mode="ephemeral")
 
         assert c1.checkpoint_store.data_context is c1
+
+
+def _replace_suite_with_a_wider_one(definition: ValidationDefinition) -> None:
+    """Give `definition` a suite of the same name with one more expectation than is stored."""
+    definition.suite = ExpectationSuite(
+        name=definition.suite.name,
+        expectations=[
+            gxe.ExpectColumnValuesToNotBeNull(column="a"),
+            gxe.ExpectColumnValuesToBeInSet(column="a", value_set=[1, 2]),
+        ],
+    )
+
+
+class TestFactoriesStayInsideTheContextOfTheirStore:
+    """A factory writes the objects it adds through the context that owns its store.
+
+    The suite behind a Validation Definition and the Validation Definitions behind a Checkpoint
+    are written by the factory that belongs to the same context as the store being written to,
+    whichever context is current.
+    """
+
+    @both_context_kinds
+    def test_a_validation_definition_persists_its_suite_in_its_own_context(
+        self, c1: AbstractDataContext, make_c2: Callable[[], AbstractDataContext]
+    ) -> None:
+        definition, _ = _add_validation_definition(c1, "vd")
+        _replace_suite_with_a_wider_one(definition)
+        assert len(c1.suites.get("vd_suite").expectations) == 1
+        c2 = make_c2()
+
+        c1.validation_definitions.add_or_update(definition)
+
+        assert len(c1.suites.get("vd_suite").expectations) == 2
+        assert [suite.name for suite in c2.suites.all()] == []
+        assert [vd.name for vd in c2.validation_definitions.all()] == []
+
+    @both_context_kinds
+    def test_a_checkpoint_persists_its_validation_definitions_in_its_own_context(
+        self, c1: AbstractDataContext, make_c2: Callable[[], AbstractDataContext]
+    ) -> None:
+        checkpoint = _add_checkpoint(c1, "cp")
+        _replace_suite_with_a_wider_one(checkpoint.validation_definitions[0])
+        assert len(c1.suites.get("vd_suite").expectations) == 1
+        c2 = make_c2()
+
+        c1.checkpoints.add_or_update(checkpoint)
+
+        assert len(c1.suites.get("vd_suite").expectations) == 2
+        assert [vd.name for vd in c1.validation_definitions.all()] == ["vd"]
+        assert [suite.name for suite in c2.suites.all()] == []
+        assert [vd.name for vd in c2.validation_definitions.all()] == []
+        assert [cp.name for cp in c2.checkpoints.all()] == []
+
+    @pytest.mark.unit
+    def test_a_validation_definition_factory_with_no_context_uses_the_current_one(
+        self, mocker: MockerFixture, restore_current_context: None
+    ) -> None:
+        other = gx.get_context(mode="ephemeral")
+        current = gx.get_context(mode="ephemeral")
+        assert project_manager.get_current_project() is current
+        definition, _ = _add_validation_definition(current, "vd")
+        factory = ValidationDefinitionFactory(store=ValidationDefinitionStore())
+        assert factory._store.data_context is None
+        other_spy = mocker.spy(other.suites, "add_or_update")
+        current_spy = mocker.spy(current.suites, "add_or_update")
+
+        factory.add_or_update(definition)
+
+        current_spy.assert_called_once()
+        other_spy.assert_not_called()
+
+    @pytest.mark.unit
+    def test_a_checkpoint_factory_with_no_context_uses_the_current_one(
+        self, mocker: MockerFixture, restore_current_context: None
+    ) -> None:
+        other = gx.get_context(mode="ephemeral")
+        current = gx.get_context(mode="ephemeral")
+        assert project_manager.get_current_project() is current
+        definition, _ = _add_validation_definition(current, "vd")
+        factory = CheckpointFactory(store=CheckpointStore())
+        assert factory._store.data_context is None
+        other_spy = mocker.spy(other.validation_definitions, "add_or_update")
+        current_spy = mocker.spy(current.validation_definitions, "add_or_update")
+
+        factory.add_or_update(Checkpoint(name="cp", validation_definitions=[definition]))
+
+        current_spy.assert_called_once()
+        other_spy.assert_not_called()
