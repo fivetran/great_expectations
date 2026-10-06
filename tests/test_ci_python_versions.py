@@ -5,7 +5,8 @@ list and derives, in a shell step, every shape the other jobs read: the full lis
 latest, and the per-event reductions. Pull requests run the base branch's copy of the workflow, so
 an edit to that job or to the jobs that read it gets no in-PR exercise of the workflow itself. This
 module is the pre-merge signal instead: it reads the checked-out copy of `ci.yml`, executes the
-derive step's shell body once per event name, and checks the wiring the workflow depends on.
+derive step's shell body once per event name, and checks the wiring the workflow depends on,
+including the exclusion register in `marker-tests` that holds a lane on an older interpreter.
 
 The event policy is pinned against a synthetic version list written out by hand below, not
 against the real one, so the expected values are independent of the step's own logic and do not
@@ -303,3 +304,50 @@ def test_every_definition_output_is_declared() -> None:
 )
 def test_aggregators_depend_on_the_derived_jobs(aggregator: str, required: Set[str]) -> None:
     assert required <= set(_needs(_jobs()[aggregator]))
+
+
+# The exclusion register in `marker-tests`: the lanes held on an older interpreter because their
+# driver has no release for the latest one, and the interpreter each is held on. Lifting or adding
+# a hold means editing this table along with the register.
+MARKER_TESTS_JOB: Final = "marker-tests"
+EXPECTED_HOLDS: Final = {
+    "spark": "3.13",
+    "spark_connect": "3.13",
+}
+
+
+def _marker_tests_matrix() -> Dict[str, Any]:
+    return _jobs()[MARKER_TESTS_JOB]["strategy"]["matrix"]
+
+
+def _cells(entries: Any) -> List[Dict[str, str]]:
+    return [dict(entry) for entry in entries or []]
+
+
+def test_the_register_holds_exactly_the_expected_lanes() -> None:
+    # A hold is one exclude of the lane's cell on the latest interpreter plus one include of the
+    # held cell. The exclude is written as a literal version, so it is compared against the
+    # committed definition's latest: appending a newer interpreter fails this until the register
+    # moves with it.
+    versions = json.loads(_python_versions())
+    matrix = _marker_tests_matrix()
+
+    assert sorted(_cells(matrix.get("exclude")), key=lambda cell: cell["markers"]) == [
+        {"markers": lane, "python-version": versions[-1]} for lane in sorted(EXPECTED_HOLDS)
+    ]
+    assert sorted(_cells(matrix.get("include")), key=lambda cell: cell["markers"]) == [
+        {"markers": lane, "python-version": EXPECTED_HOLDS[lane]} for lane in sorted(EXPECTED_HOLDS)
+    ]
+
+
+def test_every_held_lane_and_interpreter_exists_in_the_matrix() -> None:
+    # An include that names an unknown marker or interpreter does not fail the workflow: it adds a
+    # new cell of its own, so a typo would run a lane that does not exist instead of the held one.
+    versions = json.loads(_python_versions())
+    markers = _marker_tests_matrix()["markers"]
+
+    assert set(EXPECTED_HOLDS) <= set(markers)
+    for lane, held in EXPECTED_HOLDS.items():
+        assert held in versions[:-1], (
+            f"{lane} is held on {held}, which is not an older entry of PYTHON_VERSIONS"
+        )

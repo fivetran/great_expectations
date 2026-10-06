@@ -50,7 +50,7 @@ jobs:
   python-versions:
     runs-on: ubuntu-latest
     env:
-      PYTHON_VERSIONS: '["3.10", "3.11", "3.12", "3.13"]'
+      PYTHON_VERSIONS: '["3.10", "3.11", "3.12", "3.13", "3.14"]'
     outputs:
       all: ${{ steps.derive.outputs.all }}
       floor: ${{ steps.derive.outputs.floor }}
@@ -409,7 +409,7 @@ jobs:
     needs: [check-actor-permissions, detect-changes, python-versions]
     if: needs.detect-changes.outputs.docs_only != 'true'
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.15+
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -571,7 +571,7 @@ jobs:
     needs: [unit-tests, static-analysis, check-actor-permissions, python-versions]
     if: github.event.pull_request.draft == false
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.15+
       # google
       GE_TEST_GCP_CREDENTIALS: ${{secrets.GE_TEST_GCP_CREDENTIALS}}
       GE_TEST_GCP_PROJECT: ${{secrets.GE_TEST_GCP_PROJECT}}
@@ -627,8 +627,27 @@ jobs:
         # it lives. pyspark4-marker-tests and gallery have no python-version axis and
         # follow the latest Python directly, so a new latest moves them too; holding
         # either one means replacing its needs.python-versions.outputs.latest with a
-        # literal older version and listing it here. No lane is held today.
-        exclude: []
+        # literal older version and listing it here. tests/test_ci_python_versions.py
+        # checks these entries against its EXPECTED_HOLDS table and against the latest
+        # entry of PYTHON_VERSIONS, so a hold changes there too.
+        #
+        # Held today: spark and spark_connect, on 3.13. The pyspark that default dev and CI
+        # installs resolve to (pyspark<4.0, constraints-dev.txt) does not run on 3.14. Both
+        # holds lift at pyspark 4.1.0, which the pyspark4-marker-tests job already runs on the
+        # latest Python.
+        exclude:
+          - markers: spark
+            python-version: "3.14"
+          - markers: spark_connect
+            python-version: "3.14"
+        # The held cells, added back so each lane keeps its coverage on the older interpreter.
+        # On events that run every interpreter each of these matches an existing cell and adds
+        # nothing; on events that run only the latest interpreter it is what keeps the lane.
+        include:
+          - markers: spark
+            python-version: "3.13"
+          - markers: spark_connect
+            python-version: "3.13"
 
     steps:
       - name: Checkout
@@ -689,7 +708,7 @@ jobs:
     needs: [unit-tests, static-analysis, check-actor-permissions, python-versions]
     if: github.event.pull_request.draft == false
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.15+
       # Compose override, matched to the 4.1.x pip client installed below. No official
       # client<->server cross-version guarantee exists for Spark Connect, so the image
       # tag is kept in lockstep with the lane's pyspark constraint.
@@ -749,7 +768,7 @@ jobs:
     needs: [unit-tests, static-analysis, check-actor-permissions, python-versions]
     if: github.event.pull_request.draft == false
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.15+
       # snowflake
       SNOWFLAKE_ACCOUNT: ${{secrets.SNOWFLAKE_ACCOUNT}}
       SNOWFLAKE_USER: ${{secrets.SNOWFLAKE_USER}}
@@ -882,7 +901,7 @@ jobs:
     needs: [unit-tests, static-analysis, check-actor-permissions, redshift-slot, python-versions]
     if: github.event.pull_request.draft == false
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.15+
       # google
       GE_TEST_GCP_CREDENTIALS: ${{secrets.GE_TEST_GCP_CREDENTIALS}}
       GE_TEST_GCP_PROJECT: ${{secrets.GE_TEST_GCP_PROJECT}}
@@ -998,7 +1017,7 @@ jobs:
     name: ${{ matrix.tag }}-min-versions
     needs: [python-versions, unit-tests, static-analysis, check-actor-permissions]
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.15+
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     strategy:
@@ -1123,7 +1142,7 @@ jobs:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.15+
     strategy:
       matrix:
         python-version: ${{ fromJSON(needs.python-versions.outputs.reduced_with_floor) }}

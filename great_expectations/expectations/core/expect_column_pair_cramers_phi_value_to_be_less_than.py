@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
@@ -69,6 +70,7 @@ class ExpectColumnPairCramersPhiValueToBeLessThan(BatchExpectation):
     )
 
     @classmethod
+    @override
     def _prescriptive_template(
         cls,
         renderer_configuration: RendererConfiguration,
@@ -94,6 +96,7 @@ class ExpectColumnPairCramersPhiValueToBeLessThan(BatchExpectation):
     @classmethod
     @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
     @render_suite_parameter_string
+    @override
     def _prescriptive_renderer(
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
@@ -123,6 +126,7 @@ class ExpectColumnPairCramersPhiValueToBeLessThan(BatchExpectation):
 
     @classmethod
     @renderer(renderer_type=LegacyDiagnosticRendererType.OBSERVED_VALUE)
+    @override
     def _diagnostic_observed_value_renderer(
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
