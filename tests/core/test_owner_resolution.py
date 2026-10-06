@@ -9,6 +9,7 @@ import pytest
 
 import great_expectations as gx
 from great_expectations.core.batch_definition import BatchDefinition
+from great_expectations.core.expectation_suite import ExpectationSuite, ExpectationSuiteSchema
 from great_expectations.core.owner_resolution import (
     ResolvedContext,
     owner_from_batch_definition,
@@ -18,7 +19,6 @@ from great_expectations.core.owner_resolution import (
 from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.data_context.data_context.context_factory import (
-    ProjectManager,
     project_manager,
     set_context,
 )
@@ -128,6 +128,15 @@ def restore_current_context() -> Iterator[None]:
         previous = None
     yield
     set_context(previous)
+
+
+@pytest.fixture
+def no_current_context(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Empty the shared project manager itself, so every module that reads it sees no context.
+
+    monkeypatch puts the previous current context back at teardown.
+    """
+    monkeypatch.setattr(project_manager, "_ProjectManager__project", None)
 
 
 def _bound_batch_definition(context: AbstractDataContext) -> BatchDefinition[Any]:
@@ -245,13 +254,8 @@ class TestResolveContext:
 
     @pytest.mark.unit
     def test_no_owner_and_no_current_context_raises_the_required_error(
-        self, monkeypatch: pytest.MonkeyPatch
+        self, no_current_context: None
     ) -> None:
-        # A fresh manager stands in for a process that never created a context.
-        monkeypatch.setattr(
-            "great_expectations.core.owner_resolution.project_manager", ProjectManager()
-        )
-
         with pytest.raises(DataContextRequiredError) as exc_info:
             resolve_context(None)
 
@@ -262,12 +266,10 @@ class TestResolveContext:
 
     @pytest.mark.unit
     def test_owner_resolves_without_any_current_context(
-        self, monkeypatch: pytest.MonkeyPatch, restore_current_context: None
+        self, restore_current_context: None, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         owner = gx.get_context(mode="ephemeral")
-        monkeypatch.setattr(
-            "great_expectations.core.owner_resolution.project_manager", ProjectManager()
-        )
+        monkeypatch.setattr(project_manager, "_ProjectManager__project", None)
 
         assert resolve_context(owner) == ResolvedContext(context=owner, bound=True)
 
@@ -305,4 +307,70 @@ class TestUnboundResolutionNote:
             " This object is not bound to a Data Context,"
             f" so the lookup went through the current file Data Context at '{root_directory}'"
             f" (id {context_id})."
+        )
+
+
+class TestExpectationSuiteMiss:
+    """A suite that belongs to no Data Context says which context the lookup went through."""
+
+    @pytest.mark.unit
+    def test_owner_slot_is_not_part_of_the_serialized_keys(self) -> None:
+        assert sorted(ExpectationSuite(name="s").to_dict()) == sorted(
+            ExpectationSuiteSchema().fields
+        )
+
+    @pytest.mark.unit
+    def test_unbound_suite_miss_names_the_ephemeral_context_consulted(
+        self, restore_current_context: None
+    ) -> None:
+        context = gx.get_context(mode="ephemeral")
+        suite = ExpectationSuite(name="never_added", id="a-suite-id")
+
+        diagnostics = suite.is_fresh()
+
+        assert diagnostics.success is False
+        assert len(diagnostics.errors) == 1
+        error = diagnostics.errors[0]
+        assert isinstance(error, ExpectationSuiteNotFoundError)
+        assert str(error) == (
+            "ExpectationSuite 'never_added' not found. Please check the name and try again."
+            + unbound_resolution_note(context)
+        )
+        assert "This object is not bound to a Data Context" in str(error)
+        assert "the current ephemeral Data Context." in str(error)
+
+    @pytest.mark.filesystem
+    def test_unbound_suite_miss_names_the_file_context_consulted(
+        self, tmp_path: pathlib.Path, restore_current_context: None
+    ) -> None:
+        context = gx.get_context(mode="file", project_root_dir=tmp_path)
+        root_directory = str(tmp_path / "gx")
+        context_id = str(context.data_context_id)
+        assert context_id != "None"
+        suite = ExpectationSuite(name="never_added", id="a-suite-id")
+
+        diagnostics = suite.is_fresh()
+
+        assert len(diagnostics.errors) == 1
+        error = diagnostics.errors[0]
+        assert isinstance(error, ExpectationSuiteNotFoundError)
+        assert str(error) == (
+            "ExpectationSuite 'never_added' not found. Please check the name and try again."
+            " This object is not bound to a Data Context,"
+            f" so the lookup went through the current file Data Context at '{root_directory}'"
+            f" (id {context_id})."
+        )
+
+    @pytest.mark.unit
+    def test_unbound_suite_lookup_without_a_current_context_requires_one(
+        self, no_current_context: None
+    ) -> None:
+        suite = ExpectationSuite(name="never_added", id="a-suite-id")
+
+        with pytest.raises(DataContextRequiredError) as exc_info:
+            suite.is_fresh()
+
+        assert str(exc_info.value) == (
+            "This action requires an active data context. "
+            "Please call `great_expectations.get_context()` first, then try your action again."
         )
