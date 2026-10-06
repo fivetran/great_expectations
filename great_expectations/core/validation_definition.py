@@ -59,6 +59,9 @@ if TYPE_CHECKING:
     )
     from great_expectations.core.result_format import ResultFormatUnion
     from great_expectations.core.suite_parameters import SuiteParameterDict
+    from great_expectations.data_context.data_context.abstract_data_context import (
+        AbstractDataContext,
+    )
     from great_expectations.data_context.store.validation_results_store import (
         ValidationResultsStore,
     )
@@ -222,8 +225,13 @@ class ValidationDefinition(BaseModel):
         )
 
     @classmethod
-    def _decode_suite(cls, suite_dict: dict) -> ExpectationSuite:
+    def _decode_suite(
+        cls, suite_dict: dict, context: AbstractDataContext | None = None
+    ) -> ExpectationSuite:
         # Take in raw JSON, ensure it contains appropriate identifiers, and use them to retrieve the actual suite.  # noqa: E501 # FIXME CoP
+        # An explicit context is the one the caller already resolved: the lookup goes through it,
+        # a miss states today's plain message, and the suite is built by its store so it is
+        # stamped. Without one, the current context is read and a miss names that fact (#12209).
         try:
             suite_identifiers = _IdentifierBundle.parse_obj(suite_dict)
         except ValidationError as e:
@@ -232,16 +240,23 @@ class ValidationDefinition(BaseModel):
         name = suite_identifiers.name
         id = suite_identifiers.id
 
-        expectation_store = project_manager.get_expectations_store()
+        expectation_store = (
+            context.expectations_store
+            if context is not None
+            else project_manager.get_expectations_store()
+        )
         key = expectation_store.get_key(name=name, id=id)
 
         try:
             config: dict = expectation_store.get(key)
         except gx_exceptions.InvalidKeyError as e:
+            note = "" if context is not None else _ambient_note(ends_sentence=False)
             raise ValueError(  # noqa: TRY003 # FIXME CoP
-                f"Could not find suite with name: {name} and id: {id}"
-                f"{_ambient_note(ends_sentence=False)}"
+                f"Could not find suite with name: {name} and id: {id}{note}"
             ) from e
+
+        if context is not None:
+            return expectation_store.deserialize_suite_dict(config)
 
         suite = ExpectationSuite(**config)
         if suite._include_rendered_content:
@@ -249,7 +264,9 @@ class ValidationDefinition(BaseModel):
         return suite
 
     @classmethod
-    def _decode_data(cls, data_dict: dict) -> BatchDefinition:
+    def _decode_data(
+        cls, data_dict: dict, context: AbstractDataContext | None = None
+    ) -> BatchDefinition:
         # Take in raw JSON, ensure it contains appropriate identifiers, and use them to retrieve the actual data.  # noqa: E501 # FIXME CoP
         try:
             data_identifiers = _EncodedValidationData.parse_obj(data_dict)
@@ -260,12 +277,16 @@ class ValidationDefinition(BaseModel):
         asset_name = data_identifiers.asset.name
         batch_definition_name = data_identifiers.batch_definition.name
 
-        datasource_dict = project_manager.get_datasources()
+        # As in _decode_suite: an explicit context is searched and its misses carry no note.
+        datasource_dict = (
+            context.data_sources.all() if context is not None else project_manager.get_datasources()
+        )
         try:
             ds = datasource_dict[ds_name]
         except KeyError as e:
+            note = "" if context is not None else _ambient_note()
             raise ValueError(  # noqa: TRY003 # FIXME CoP
-                f"Could not find datasource named '{ds_name}'.{_ambient_note()}"
+                f"Could not find datasource named '{ds_name}'.{note}"
             ) from e
 
         try:
@@ -273,7 +294,7 @@ class ValidationDefinition(BaseModel):
         except LookupError as e:
             raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"Could not find asset named '{asset_name}' within '{ds_name}' datasource."
-                f"{_ambient_note()}"
+                f"{'' if context is not None else _ambient_note()}"
             ) from e
 
         try:
@@ -281,7 +302,7 @@ class ValidationDefinition(BaseModel):
         except KeyError as e:
             raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"Could not find batch definition named '{batch_definition_name}' within '{asset_name}' asset and '{ds_name}' datasource."  # noqa: E501 # FIXME CoP
-                f"{_ambient_note()}"
+                f"{'' if context is not None else _ambient_note()}"
             ) from e
 
         return batch_definition
