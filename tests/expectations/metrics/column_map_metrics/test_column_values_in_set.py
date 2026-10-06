@@ -55,13 +55,20 @@ def test_sqlalchemy_impl_not_bigquery_bool(dialect: ModuleType, value_set: List[
     if non_null_values:
         expected_predicates = ", ".join(str(value) for value in non_null_values).lower()
         expected = f"{column_name} in ({expected_predicates})"
+        actual = str(predicate.compile(compile_kwargs={"literal_binds": True})).lower()
     else:
-        # An all-None value_set compiles to the dialect's empty-set expression,
-        # which never matches. SQLAlchemy renders these deterministically.
-        expected = {
-            "sqlite": f"{column_name} in (select 1 from (select 1) where 1!=1)",
-        }.get(dialect.__name__, f"{column_name} in (null) and (1 != 1)")
-    assert str(predicate.compile(compile_kwargs={"literal_binds": True})).lower() == expected
+        # An all-None value_set must compile to the dialect's own empty-set
+        # expression, which never matches. Compile both sides with the real
+        # dialect so the check is dialect-specific and does not depend on a
+        # hard-coded string tied to one SQLAlchemy version's rendering.
+        dialect_instance = dialect.dialect()
+        expected = str(
+            column.in_([]).compile(dialect=dialect_instance, compile_kwargs={"literal_binds": True})
+        ).lower()
+        actual = str(
+            predicate.compile(dialect=dialect_instance, compile_kwargs={"literal_binds": True})
+        ).lower()
+    assert actual == expected
 
 
 def _make_sqlalchemy_kwargs(column_name, dialect):
