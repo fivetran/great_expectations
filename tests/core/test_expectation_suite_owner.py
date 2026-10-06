@@ -16,12 +16,15 @@ from typing import TYPE_CHECKING
 import pytest
 
 import great_expectations as gx
+import great_expectations.expectations as gxe
 from great_expectations.core.expectation_suite import ExpectationSuite, ExpectationSuiteSchema
+from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context.data_context.context_factory import (
     project_manager,
     set_context,
 )
 from great_expectations.data_context.store import ExpectationsStore
+from great_expectations.datasource.fluent import PandasDatasource
 from great_expectations.exceptions import (
     DataContextError,
     DataContextRequiredError,
@@ -29,6 +32,9 @@ from great_expectations.exceptions import (
 )
 
 if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
+    from great_expectations.core.batch_definition import BatchDefinition
     from great_expectations.data_context import AbstractDataContext
 
 SCHEMA_FIELDS = set(ExpectationSuiteSchema().fields)
@@ -188,11 +194,10 @@ class TestStoreStampsTheSuitesItHandsOut:
 
     @pytest.mark.unit
     def test_a_later_set_context_does_not_change_the_owner(
-        self, c1_and_c2: tuple[AbstractDataContext, AbstractDataContext]
+        self, restore_current_context: None
     ) -> None:
-        c1, c2 = c1_and_c2
-        # Make C1 current for the add, so that selecting C2 afterwards is a real change.
-        set_context(c1)
+        c2 = gx.get_context(mode="ephemeral")
+        c1 = gx.get_context(mode="ephemeral")
         assert project_manager.get_current_project() is c1
         owned = c1.suites.add(ExpectationSuite(name="my_suite"))
         unowned = copy.deepcopy(owned)
@@ -294,3 +299,228 @@ class TestCopiesBelongToNoContext:
         pickle.loads(pickle.dumps(owned))
 
         assert owned._owner is owner
+
+
+def _suite_with_one_expectation(context: AbstractDataContext) -> ExpectationSuite:
+    suite = ExpectationSuite(
+        name="shared_name",
+        expectations=[gxe.ExpectColumnValuesToNotBeNull(column="original")],
+    )
+    return context.suites.add(suite)
+
+
+def _columns(context: AbstractDataContext) -> list[str]:
+    return sorted(
+        e.configuration.kwargs["column"] for e in context.suites.get("shared_name").expectations
+    )
+
+
+class TestChangesToASuiteLandInItsOwnContext:
+    """A suite changed while another context is current writes to the context it came from.
+
+    C1 and C2 are distinct projects that both hold a suite named ``shared_name``, so a write
+    that went to the wrong context would show up as a change in C2.
+    """
+
+    @pytest.fixture
+    def held(
+        self, c1_and_c2: tuple[AbstractDataContext, AbstractDataContext]
+    ) -> tuple[AbstractDataContext, AbstractDataContext, ExpectationSuite]:
+        c1, c2 = c1_and_c2
+        _suite_with_one_expectation(c1)
+        _suite_with_one_expectation(c2)
+        suite = c1.suites.get("shared_name")
+        assert project_manager.get_current_project() is c2
+        return c1, c2, suite
+
+    @pytest.mark.unit
+    def test_add_expectation(
+        self, held: tuple[AbstractDataContext, AbstractDataContext, ExpectationSuite]
+    ) -> None:
+        c1, c2, suite = held
+
+        suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="added"))
+
+        assert _columns(c1) == ["added", "original"]
+        assert _columns(c2) == ["original"]
+
+    @pytest.mark.unit
+    def test_delete_expectation(
+        self, held: tuple[AbstractDataContext, AbstractDataContext, ExpectationSuite]
+    ) -> None:
+        c1, c2, suite = held
+
+        suite.delete_expectation(suite.expectations[0])
+
+        assert _columns(c1) == []
+        assert _columns(c2) == ["original"]
+
+    @pytest.mark.unit
+    def test_save(
+        self, held: tuple[AbstractDataContext, AbstractDataContext, ExpectationSuite]
+    ) -> None:
+        c1, c2, suite = held
+        suite.notes = "changed in the owner"
+
+        suite.save()
+
+        assert c1.suites.get("shared_name").notes == "changed in the owner"
+        assert c2.suites.get("shared_name").notes is None
+
+    @pytest.mark.unit
+    def test_save_on_one_of_its_expectations(
+        self, held: tuple[AbstractDataContext, AbstractDataContext, ExpectationSuite]
+    ) -> None:
+        c1, c2, suite = held
+        expectation = suite.expectations[0]
+        assert isinstance(expectation, gxe.ExpectColumnValuesToNotBeNull)
+        expectation.column = "edited"
+
+        expectation.save()
+
+        assert _columns(c1) == ["edited"]
+        assert _columns(c2) == ["original"]
+
+    @pytest.mark.unit
+    def test_the_context_that_lacks_the_name_is_left_without_it(
+        self, c1_and_c2: tuple[AbstractDataContext, AbstractDataContext]
+    ) -> None:
+        c1, c2 = c1_and_c2
+        suite = _suite_with_one_expectation(c1)
+
+        suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="added"))
+
+        assert _columns(c1) == ["added", "original"]
+        assert [s.name for s in c2.suites.all()] == []
+
+
+def _batch_definition_in(context: AbstractDataContext) -> BatchDefinition:
+    asset = context.data_sources.add_pandas("source").add_dataframe_asset("asset")
+    return asset.add_batch_definition_whole_dataframe("batch_definition")
+
+
+class TestAHeldSuiteTakesItsHoldersContext:
+    @pytest.mark.unit
+    def test_a_bound_validation_definition_records_its_suites_owner(
+        self, restore_current_context: None
+    ) -> None:
+        c2 = gx.get_context(mode="ephemeral")
+        c1 = gx.get_context(mode="ephemeral")
+        assert project_manager.get_current_project() is c1
+        batch_definition = _batch_definition_in(c1)
+        stored = c1.suites.add(ExpectationSuite(name="held_suite"))
+        held = ExpectationSuite(name="held_suite", id=stored.id)
+        assert held._owner is None
+        validation_definition = c1.validation_definitions.add(
+            ValidationDefinition(name="my_vd", data=batch_definition, suite=held)
+        )
+        assert validation_definition.suite._owner is None
+
+        set_context(c2)
+
+        assert project_manager.get_current_project() is c2
+
+        resolved = validation_definition._resolve_context()
+
+        assert resolved.context is c1
+        assert resolved.bound is True
+        assert validation_definition.suite._owner is c1
+
+    @pytest.mark.unit
+    def test_the_recorded_owner_routes_the_suites_reads_and_writes(
+        self, c1_and_c2: tuple[AbstractDataContext, AbstractDataContext]
+    ) -> None:
+        c1, c2 = c1_and_c2
+        batch_definition = _batch_definition_in(c1)
+        stored = _suite_with_one_expectation(c1)
+        _suite_with_one_expectation(c2)
+        validation_definition = ValidationDefinition(
+            name="my_vd",
+            data=batch_definition,
+            suite=ExpectationSuite(
+                name="shared_name",
+                id=stored.id,
+                expectations=[gxe.ExpectColumnValuesToNotBeNull(column="original")],
+            ),
+        )
+        validation_definition._resolve_context()
+
+        validation_definition.suite.add_expectation(
+            gxe.ExpectColumnValuesToNotBeNull(column="added")
+        )
+
+        assert _columns(c1) == ["added", "original"]
+        assert _columns(c2) == ["original"]
+
+    @pytest.mark.unit
+    def test_a_suite_without_an_owner_attribute_does_not_stop_resolution(
+        self,
+        c1_and_c2: tuple[AbstractDataContext, AbstractDataContext],
+        mocker: MockerFixture,
+    ) -> None:
+        c1, _ = c1_and_c2
+        batch_definition = _batch_definition_in(c1)
+        suite = mocker.Mock(spec=ExpectationSuite)
+        validation_definition = ValidationDefinition.construct(
+            name="my_vd", data=batch_definition, suite=suite
+        )
+
+        resolved = validation_definition._resolve_context()
+
+        assert resolved.context is c1
+        assert resolved.bound is True
+
+    @pytest.mark.unit
+    def test_a_suite_that_already_has_an_owner_keeps_it(
+        self, c1_and_c2: tuple[AbstractDataContext, AbstractDataContext]
+    ) -> None:
+        c1, c2 = c1_and_c2
+        batch_definition = _batch_definition_in(c1)
+        owned_by_c2 = c2.suites.add(ExpectationSuite(name="held_suite"))
+        validation_definition = ValidationDefinition(
+            name="my_vd", data=batch_definition, suite=owned_by_c2
+        )
+
+        validation_definition._resolve_context()
+
+        assert validation_definition.suite._owner is c2
+
+    @pytest.mark.unit
+    def test_an_unbound_validation_definition_leaves_its_suite_unowned(
+        self, c1_and_c2: tuple[AbstractDataContext, AbstractDataContext]
+    ) -> None:
+        del c1_and_c2  # two contexts exist; the batch definition belongs to neither
+        batch_definition = (
+            PandasDatasource(name="source")
+            .add_dataframe_asset("asset")
+            .add_batch_definition_whole_dataframe("batch_definition")
+        )
+        suite = ExpectationSuite(name="held_suite")
+        validation_definition = ValidationDefinition(
+            name="my_vd", data=batch_definition, suite=suite
+        )
+        assert validation_definition._resolve_context().bound is False
+
+        assert validation_definition.suite._owner is None
+
+
+class TestASuiteWithoutAHolderUsesTheCurrentContext:
+    @pytest.mark.unit
+    def test_an_unowned_suite_reads_and_writes_through_the_current_context(
+        self, c1_and_c2: tuple[AbstractDataContext, AbstractDataContext]
+    ) -> None:
+        c1, c2 = c1_and_c2
+        _suite_with_one_expectation(c1)
+        _suite_with_one_expectation(c2)
+        unowned = ExpectationSuite(
+            name="shared_name",
+            id=c2.suites.get("shared_name").id,
+            expectations=[gxe.ExpectColumnValuesToNotBeNull(column="original")],
+        )
+        assert unowned._owner is None
+        assert unowned._store is c2.expectations_store
+
+        unowned.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="added"))
+
+        assert _columns(c2) == ["added", "original"]
+        assert _columns(c1) == ["original"]

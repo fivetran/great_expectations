@@ -126,7 +126,7 @@ class ExpectationSuite(SerializableDictDot):
 
     @property
     def _store(self) -> ExpectationsStore:
-        return project_manager.get_expectations_store()
+        return self._resolve_context().context.expectations_store
 
     @property
     def _include_rendered_content(self) -> bool:

@@ -156,7 +156,12 @@ class ValidationDefinition(BaseModel):
         return self.asset.datasource
 
     def _resolve_context(self) -> ResolvedContext:
-        return resolve_context(owner_from_batch_definition(self.data))
+        resolved = resolve_context(owner_from_batch_definition(self.data))
+        if resolved.bound and getattr(self.suite, "_owner", False) is None:
+            # A suite held by a validation definition that belongs to a context belongs to
+            # that context too, unless a store has already said otherwise (GX issue #12209).
+            self.suite._owner = resolved.context
+        return resolved
 
     @property
     def _validation_results_store(self) -> ValidationResultsStore:
