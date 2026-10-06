@@ -2,7 +2,8 @@
 
 The data-source records, the fluent suite's per-type case exclusions and its two published
 coverage literals are owned by other modules. This one imports them, resolves them, and returns
-them; it decides nothing about what a declaration means, so a reader auditing an upstream
+them (``SupportTier``, the enumeration of declarations a record can make, is re-exported for the
+same reason); it decides nothing about what a declaration means, so a reader auditing an upstream
 contract reads this file and no other.
 
 Two things are declared here because no upstream field carries them, and each is checked against
@@ -37,6 +38,9 @@ from tests.datasource.fluent.crud_contract import (
 from tests.integration.test_utils.data_source_config import (
     DataSourceSpec,
     iter_data_source_specs,
+)
+from tests.integration.test_utils.data_source_config import (
+    SupportTier as SupportTier,  # noqa: PLC0414 # the alias marks a deliberate re-export (F401)
 )
 
 
@@ -122,15 +126,15 @@ def check_connection_path_descriptions(
         raise UpstreamDeclarationError(
             f"Record(s) declare fluent datasource type(s) {missing_for_records} that "
             f"CONNECTION_PATH_DESCRIPTIONS does not describe. Add a user-facing description for "
-            f"each in tests/docs/upstream_declarations.py; an internal identifier must not be "
-            f"printed in its place."
+            f"each in tests/compatibility_reference/upstream_declarations.py; an internal "
+            f"identifier must not be printed in its place."
         )
     missing_for_paths = sorted(set(uncovered_paths) - descriptions.keys())
     if missing_for_paths:
         raise UpstreamDeclarationError(
             f"The pinned list of connection paths no record names includes {missing_for_paths}, "
             f"which CONNECTION_PATH_DESCRIPTIONS does not describe. Add a user-facing "
-            f"description for each in tests/docs/upstream_declarations.py."
+            f"description for each in tests/compatibility_reference/upstream_declarations.py."
         )
 
 
