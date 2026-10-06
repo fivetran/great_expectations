@@ -33,6 +33,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, replace
 from enum import Enum
+from pathlib import PurePosixPath
 from typing import (
     TYPE_CHECKING,
     Dict,
@@ -490,6 +491,13 @@ def row_notes(row: PublishedRow, facts: UpstreamFacts) -> Tuple[str, ...]:
 REGENERATION_COMMAND: Final = "invoke docs-tables --sync"
 """The one command that rewrites the generated table. The notice, the drift check's failure
 message and the maintainer documentation all quote this string, so it is spelled once."""
+
+GENERATED_PARTIAL_PATH: Final = PurePosixPath(
+    "docs/docusaurus/docs/help/_data_source_support_table.md"
+)
+"""The one file the command above writes, relative to the repository root. The task runner and the
+drift check both take the path from here, so the command and the check cannot name different
+files."""
 
 GENERATED_NOTICE: Final = (
     f"{{/* Generated file. Do not edit by hand. Regenerate with: {REGENERATION_COMMAND} */}}"

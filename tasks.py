@@ -825,12 +825,13 @@ def docs_tables(ctx: Context, sync: bool = False) -> None:
     """
     # Imported here so that every other invocation of the task runner does not
     # pay for loading the test harness and the data source registry.
-    from tests.compatibility_reference.compatibility_reference_table import render_table
+    from tests.compatibility_reference.compatibility_reference_table import (
+        GENERATED_PARTIAL_PATH,
+        render_table,
+    )
     from tests.compatibility_reference.upstream_declarations import load_upstream_facts
 
-    partial_path: Final[pathlib.Path] = (
-        GX_ROOT_DIR / "docs" / "docusaurus" / "docs" / "help" / "_data_source_support_table.md"
-    )
+    partial_path: Final[pathlib.Path] = GX_ROOT_DIR / GENERATED_PARTIAL_PATH
     rendered = render_table(load_upstream_facts())
 
     if not sync:

@@ -8,12 +8,14 @@ fail.
 from __future__ import annotations
 
 import importlib.util
+import os
 import re
 import sys
 from dataclasses import replace
 from enum import Enum
-from itertools import chain, combinations
-from typing import Any, FrozenSet, Mapping, Optional, Tuple
+from itertools import chain, combinations, zip_longest
+from pathlib import Path
+from typing import AbstractSet, Any, Callable, FrozenSet, Mapping, Optional, Tuple
 
 import pytest
 
@@ -22,6 +24,7 @@ from tests.compatibility_reference import upstream_declarations
 from tests.compatibility_reference.compatibility_reference_table import (
     CRITERIA,
     GENERATED_NOTICE,
+    GENERATED_PARTIAL_PATH,
     REGENERATION_COMMAND,
     PublicTier,
     PublishedRow,
@@ -38,6 +41,10 @@ from tests.compatibility_reference.upstream_declarations import (
     UpstreamDeclarationError,
     UpstreamFacts,
     load_upstream_facts,
+)
+from tests.datasource.fluent.crud_contract import (
+    FLUENT_TYPES_NAMED_BY_NO_RECORD,
+    RECORDS_COVERED_BUT_UNABLE_TO_CLAIM,
 )
 from tests.integration.test_utils.data_source_config import (
     ClickHouseDatasourceTestConfig,
@@ -2826,3 +2833,512 @@ def test_the_real_rendering_has_no_unescaped_markup_in_any_cell():
             for character in "<>{}":
                 assert re.search(rf"(?<!\\){re.escape(character)}", stripped) is None, line
             assert re.search(r"(?<!\\)`", stripped) is None, line
+
+
+# --- the drift check ---------------------------------------------------------------------------
+#
+# The checked-in partial is generated, so a hand edit, or a declaration changing without a
+# regeneration, leaves the published page stale. These tests regenerate the table in-process and
+# compare it with the file. The comparison is content equality whose failure message is computed:
+# a bare equality assertion would have pytest print a character-level diff of the whole artifact.
+# Every test that makes the check fail does so on an altered copy of its input, never on the
+# checked-in file, so the file itself is never touched. Every name in this section starts with
+# `drift` so the one continuous-integration step that repeats the check can select it by name.
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+CHECKED_IN_PARTIAL = REPO_ROOT / GENERATED_PARTIAL_PATH
+END_OF_FILE = "<end of file>"
+EMPTY_REGISTRY_MESSAGE = "The registry yields no record"
+EMPTY_ARTIFACT_MESSAGE = "is empty"
+FEWER_ROWS_MESSAGE = "fewer rows"
+
+
+def _first_difference(rendered: str, checked_in: str) -> Optional[Tuple[int, str, str]]:
+    """Line number (from 1) and both lines at the first divergence, or None.
+
+    A side that ends first is shown as `<end of file>`, so a missing final newline or a missing
+    trailing line is a difference rather than being padded away.
+    """
+    for number, (generated, existing) in enumerate(
+        zip_longest(rendered.split("\n"), checked_in.split("\n"), fillvalue=END_OF_FILE), start=1
+    ):
+        if generated != existing:
+            return number, generated, existing
+    return None
+
+
+def _row_count(text: str) -> int:
+    return max(len(_table_lines(text)) - 2, 0)
+
+
+def _drift_failure(
+    facts: UpstreamFacts, checked_in: str, render: Callable[[UpstreamFacts], str] = render_table
+) -> Optional[str]:
+    """The message the check fails with, or None when the file is what the registry derives.
+
+    The vacuity guards come first, because an empty registry would have nothing to render and
+    an empty file would differ from anything: each failure says what is empty rather than
+    reporting a difference.
+    """
+    if not facts.specs:
+        return f"{EMPTY_REGISTRY_MESSAGE}, so there is nothing to compare the file against."
+    if not checked_in.strip():
+        return (
+            f"{GENERATED_PARTIAL_PATH} {EMPTY_ARTIFACT_MESSAGE}. "
+            f"Regenerate it: {REGENERATION_COMMAND}"
+        )
+    rendered = render(facts)
+    distinct = len({spec.public_name for spec in facts.specs})
+    if _row_count(rendered) < distinct:
+        return (
+            f"The rendering has {_row_count(rendered)} rows, {FEWER_ROWS_MESSAGE} than the "
+            f"{distinct} distinct public names the registry declares."
+        )
+    difference = _first_difference(rendered, checked_in)
+    if difference is None:
+        return None
+    number, generated, existing = difference
+    return (
+        f"{GENERATED_PARTIAL_PATH} does not match what the registry's declarations derive.\n"
+        f"Regenerate it with: {REGENERATION_COMMAND}\n"
+        f"First difference at line {number}:\n"
+        f"  generated:  {generated}\n"
+        f"  checked in: {existing}"
+    )
+
+
+def _read_checked_in() -> str:
+    # Byte-exact: text mode would translate line endings and hide a CRLF-converted file, and a
+    # normalising read would hide a missing or extra final newline.
+    return CHECKED_IN_PARTIAL.read_bytes().decode("utf-8")
+
+
+def _baseline() -> str:
+    """What the registry derives, rendered in-process.
+
+    Every test but the core check starts from this rather than from the checked-in file, so a
+    file that really drifted fails exactly the core check and not every proof built on it.
+    """
+    return render_table(load_upstream_facts())
+
+
+def _drift_failure_for_the_live_registry() -> Optional[str]:
+    return _drift_failure(load_upstream_facts(), _read_checked_in())
+
+
+def _fail_on(message: Optional[str]) -> None:
+    if message is not None:
+        pytest.fail(message, pytrace=False)
+
+
+def test_drift_the_checked_in_partial_is_what_the_registry_derives():
+    _fail_on(_drift_failure_for_the_live_registry())
+
+
+def test_drift_the_partial_is_read_from_the_one_path_the_command_writes():
+    assert str(GENERATED_PARTIAL_PATH) == "docs/docusaurus/docs/help/_data_source_support_table.md"
+    assert CHECKED_IN_PARTIAL == REPO_ROOT / "docs" / "docusaurus" / "docs" / "help" / (
+        "_data_source_support_table.md"
+    )
+    assert CHECKED_IN_PARTIAL.is_file()
+    assert (REPO_ROOT / "tasks.py").is_file()
+
+
+def test_drift_the_regeneration_command_runs_a_task_that_writes_that_path(capsys):
+    import invoke
+    import tasks
+
+    assert REGENERATION_COMMAND == "invoke docs-tables --sync"
+    assert tasks.docs_tables.name == "docs_tables"
+    assert "docs-table" in tasks.docs_tables.aliases
+    tasks.docs_tables(invoke.Context())
+    announced = capsys.readouterr().out.split("\n", 1)[0]
+    assert announced == f"Would write {GENERATED_PARTIAL_PATH}:"
+
+
+def test_drift_the_task_runner_loads_no_test_module():
+    import subprocess
+
+    code = (
+        "import sys, tasks; "
+        "print([m for m in sys.modules if m == 'tests' or m.startswith('tests.')])"
+    )
+    result = subprocess.run(
+        [sys.executable, "-B", "-c", code],
+        cwd=REPO_ROOT,
+        env={**os.environ, "PYTHONPATH": str(REPO_ROOT)},
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert result.stdout.strip() == "[]"
+
+
+# --- the difference helper ---
+
+
+@pytest.mark.parametrize(
+    ("rendered", "checked_in", "expected"),
+    [
+        ("a\nb\nc\n", "a\nb\nc\n", None),
+        ("", "", None),
+        ("X\nb\nc\n", "a\nb\nc\n", (1, "X", "a")),
+        ("a\nX\nc\n", "a\nb\nc\n", (2, "X", "b")),
+        ("a\nb\nX\n", "a\nb\nc\n", (3, "X", "c")),
+        ("a\nb\nc\n", "a\nb\nc", (4, "", END_OF_FILE)),
+        ("a\nb\nc", "a\nb\nc\n", (4, END_OF_FILE, "")),
+        ("a\nb\n", "a\nb\nc\n", (3, "", "c")),
+        ("a\nb\nc\n", "a\nb\n", (3, "c", "")),
+        ("a\nb \n", "a\nb\n", (2, "b ", "b")),
+    ],
+    ids=[
+        "equal",
+        "both-empty",
+        "first-line",
+        "middle-line",
+        "last-line",
+        "checked-in-lacks-final-newline",
+        "rendering-lacks-final-newline",
+        "checked-in-has-an-extra-line",
+        "rendering-has-an-extra-line",
+        "trailing-space",
+    ],
+)
+def test_drift_the_difference_helper_locates_the_first_divergence(rendered, checked_in, expected):
+    assert _first_difference(rendered, checked_in) == expected
+
+
+def test_drift_the_live_read_is_byte_exact(tmp_path, monkeypatch):
+    for text in ("a\nb\n", "a\nb", "a\nb\n\n\n", "a\r\nb\r\n"):
+        copy = tmp_path / "partial.md"
+        copy.write_bytes(text.encode("utf-8"))
+        monkeypatch.setattr(sys.modules[__name__], "CHECKED_IN_PARTIAL", copy)
+        assert _read_checked_in() == text
+
+
+def test_drift_a_converted_line_ending_in_the_file_is_a_difference():
+    baseline = _baseline()
+    converted = baseline.replace("\n", "\r\n")
+    assert _first_difference(baseline, converted) is not None
+    assert REGENERATION_COMMAND in (_drift_failure(load_upstream_facts(), converted) or "")
+
+
+def test_drift_the_difference_helper_reports_the_first_of_several_divergences():
+    assert _first_difference("a\nX\nc\nY\n", "a\nb\nc\nd\n") == (2, "X", "b")
+
+
+def _artifact_lines() -> list:
+    return _baseline().split("\n")
+
+
+def _altered_copy(index: int) -> str:
+    lines = _artifact_lines()
+    lines[index] = lines[index] + " ALTERED"
+    return "\n".join(lines)
+
+
+def _positions() -> Tuple[int, int, int]:
+    last_real_line = len(_artifact_lines()) - 2  # the file ends with a newline
+    return 0, last_real_line // 2, last_real_line
+
+
+@pytest.mark.parametrize("which", [0, 1, 2], ids=["first", "middle", "last"])
+def test_drift_an_altered_copy_of_the_artifact_is_located_at_the_altered_line(which):
+    index = _positions()[which]
+    original = _artifact_lines()[index]
+    assert original  # the notice, a table row and the footnote: never a blank line
+    found = _first_difference(_baseline(), _altered_copy(index))
+    assert found == (index + 1, original, original + " ALTERED")
+
+
+@pytest.mark.parametrize("which", [0, 1, 2], ids=["first", "middle", "last"])
+def test_drift_the_failure_names_the_file_the_command_and_the_first_differing_line(which):
+    index = _positions()[which]
+    original = _artifact_lines()[index]
+    message = _drift_failure(load_upstream_facts(), _altered_copy(index))
+    assert message == (
+        "docs/docusaurus/docs/help/_data_source_support_table.md does not match what the "
+        "registry's declarations derive.\n"
+        "Regenerate it with: invoke docs-tables --sync\n"
+        f"First difference at line {index + 1}:\n"
+        f"  generated:  {original}\n"
+        f"  checked in: {original} ALTERED"
+    )
+
+
+def test_drift_the_failure_does_not_print_a_diff_of_the_artifact():
+    middle = _positions()[1]
+    message = _drift_failure(load_upstream_facts(), _altered_copy(middle))
+    assert message is not None
+    others = [line for i, line in enumerate(_artifact_lines()) if i != middle and len(line) > 30]
+    assert len(others) > 10
+    assert [line for line in others if line in message] == []
+    with pytest.raises(pytest.fail.Exception) as raised:
+        _fail_on(message)
+    assert raised.value.msg == message
+
+
+def test_drift_a_trailing_newline_is_part_of_the_comparison():
+    stripped = _baseline().rstrip("\n")
+    message = _drift_failure(load_upstream_facts(), stripped)
+    assert message is not None
+    assert f"First difference at line {len(stripped.split(chr(10))) + 1}:" in message
+
+
+# --- the check reads the live registry, not a snapshot ---
+
+
+def test_drift_a_throwaway_record_registered_in_the_seam_changes_the_rendering():
+    throwaway = _record("throwaway-drift-label", "Zzz Throwaway")
+    expected_row = "| Zzz Throwaway | Best effort | No criteria met |  |"
+    with isolated_registry():
+        register_real_records_the_loader_checks_against()
+        before_facts = load_upstream_facts()
+        before = render_table(before_facts)
+        register_data_source(throwaway)
+        after_facts = load_upstream_facts()
+        after = render_table(after_facts)
+        failure = _drift_failure(after_facts, before)
+    assert expected_row not in before.split("\n")
+    assert after != before
+    assert set(after.split("\n")) - set(before.split("\n")) == {expected_row}
+    assert set(before.split("\n")) - set(after.split("\n")) == set()
+    assert failure is not None and REGENERATION_COMMAND in failure
+
+
+# --- a declaration changing without a regeneration ---
+
+_LIVE_SPECS = iter_data_source_specs()
+_WITH_TIERS = [i for i, spec in enumerate(_LIVE_SPECS) if spec.tiers]
+_WITHOUT_TIERS = [i for i, spec in enumerate(_LIVE_SPECS) if not spec.tiers]
+_THREE = lambda indexes: [indexes[0], indexes[len(indexes) // 2], indexes[-1]]  # noqa: E731
+
+
+def _facts_with(specs: Tuple[DataSourceSpec, ...]) -> UpstreamFacts:
+    return replace(load_upstream_facts(), specs=specs)
+
+
+@pytest.mark.parametrize(
+    "index", _THREE(list(range(len(_LIVE_SPECS)))), ids=["first", "middle", "last"]
+)
+def test_drift_a_record_removed_without_regenerating_fails(index):
+    specs = _LIVE_SPECS[:index] + _LIVE_SPECS[index + 1 :]
+    message = _drift_failure(_facts_with(specs), _baseline())
+    assert message is not None and REGENERATION_COMMAND in message
+
+
+@pytest.mark.parametrize("index", _THREE(_WITH_TIERS), ids=["first", "middle", "last"])
+def test_drift_a_record_losing_its_tiers_without_regenerating_fails(index):
+    specs = list(_LIVE_SPECS)
+    specs[index] = replace(specs[index], tiers=frozenset())
+    message = _drift_failure(_facts_with(tuple(specs)), _baseline())
+    assert message is not None and REGENERATION_COMMAND in message
+
+
+@pytest.mark.parametrize("index", _THREE(_WITHOUT_TIERS), ids=["first", "middle", "last"])
+def test_drift_a_record_gaining_tiers_without_regenerating_fails(index):
+    specs = list(_LIVE_SPECS)
+    specs[index] = replace(specs[index], tiers=ALL_THREE)
+    message = _drift_failure(_facts_with(tuple(specs)), _baseline())
+    assert message is not None and REGENERATION_COMMAND in message
+
+
+def test_drift_a_record_added_without_regenerating_fails():
+    added = _record("throwaway-drift-label", "Zzz Throwaway")
+    message = _drift_failure(_facts_with(_LIVE_SPECS + (added,)), _baseline())
+    assert message is not None and "Zzz Throwaway" in message
+
+
+# --- the two pinned literals ---
+
+_UNCOVERED = sorted(FLUENT_TYPES_NAMED_BY_NO_RECORD)
+_COVERED = sorted(RECORDS_COVERED_BUT_UNABLE_TO_CLAIM)
+_CONTROL_LABEL = next(spec.label for spec in _LIVE_SPECS if spec.label not in _COVERED)
+_CONTROL_PATH = next(
+    t for t in sorted(upstream_declarations.CONNECTION_PATH_DESCRIPTIONS) if t not in _UNCOVERED
+)
+
+
+def _assert_the_literal_change_is_caught(monkeypatch, name: str, changed: FrozenSet[str]) -> None:
+    baseline = _baseline()
+    # The control: before the change nothing differs from the baseline.
+    assert _drift_failure(load_upstream_facts(), baseline) is None
+    monkeypatch.setattr(upstream_declarations, name, changed)
+    facts = load_upstream_facts()
+    assert _first_difference(render_table(facts), baseline) is not None
+    message = _drift_failure(facts, baseline)
+    assert message is not None and REGENERATION_COMMAND in message
+
+
+@pytest.mark.parametrize("removed", _UNCOVERED)
+def test_drift_each_uncovered_path_dropped_from_its_literal_without_regenerating_fails(
+    monkeypatch, removed
+):
+    changed = frozenset(FLUENT_TYPES_NAMED_BY_NO_RECORD - {removed})
+    assert changed != FLUENT_TYPES_NAMED_BY_NO_RECORD
+    _assert_the_literal_change_is_caught(monkeypatch, "FLUENT_TYPES_NAMED_BY_NO_RECORD", changed)
+
+
+def test_drift_an_uncovered_path_added_to_its_literal_without_regenerating_fails(monkeypatch):
+    changed = frozenset(FLUENT_TYPES_NAMED_BY_NO_RECORD | {_CONTROL_PATH})
+    _assert_the_literal_change_is_caught(monkeypatch, "FLUENT_TYPES_NAMED_BY_NO_RECORD", changed)
+
+
+@pytest.mark.parametrize("removed", _COVERED)
+def test_drift_each_covered_label_dropped_from_its_literal_without_regenerating_fails(
+    monkeypatch, removed
+):
+    changed = frozenset(RECORDS_COVERED_BUT_UNABLE_TO_CLAIM - {removed})
+    assert changed != RECORDS_COVERED_BUT_UNABLE_TO_CLAIM
+    _assert_the_literal_change_is_caught(
+        monkeypatch, "RECORDS_COVERED_BUT_UNABLE_TO_CLAIM", changed
+    )
+
+
+def test_drift_a_covered_label_added_to_its_literal_without_regenerating_fails(monkeypatch):
+    changed = frozenset(RECORDS_COVERED_BUT_UNABLE_TO_CLAIM | {_CONTROL_LABEL})
+    _assert_the_literal_change_is_caught(
+        monkeypatch, "RECORDS_COVERED_BUT_UNABLE_TO_CLAIM", changed
+    )
+
+
+# --- the check cannot pass by comparing nothing ---
+
+
+def test_drift_an_empty_registry_fails_rather_than_passing():
+    message = _drift_failure(_facts(), _baseline())
+    assert message is not None and EMPTY_REGISTRY_MESSAGE in message
+
+
+def test_drift_an_empty_registry_stops_the_live_check_before_any_comparison():
+    with isolated_registry():
+        assert iter_data_source_specs() == ()
+        with pytest.raises(UpstreamDeclarationError):
+            _drift_failure_for_the_live_registry()
+
+
+def test_drift_an_empty_artifact_fails_rather_than_passing(monkeypatch):
+    monkeypatch.setattr(sys.modules[__name__], "_read_checked_in", lambda: "")
+    message = _drift_failure_for_the_live_registry()
+    assert message is not None
+    assert message.startswith(f"{GENERATED_PARTIAL_PATH} {EMPTY_ARTIFACT_MESSAGE}")
+    assert REGENERATION_COMMAND in message
+
+
+@pytest.mark.parametrize("blank", ["\n", "  \n\n"], ids=["newline", "whitespace"])
+def test_drift_an_artifact_of_only_whitespace_is_empty_too(blank):
+    message = _drift_failure(load_upstream_facts(), blank)
+    assert message is not None and EMPTY_ARTIFACT_MESSAGE in message
+
+
+@pytest.mark.parametrize("which", [0, 1, 2], ids=["first", "middle", "last"])
+def test_drift_a_rendering_with_fewer_rows_than_public_names_fails(which):
+    facts = load_upstream_facts()
+    names = len({spec.public_name for spec in facts.specs})
+    lines = render_table(facts).split("\n")
+    row_positions = [i for i, line in enumerate(lines) if line.startswith("|")][2:]
+    assert len(row_positions) == names
+    dropped = row_positions[(0, len(row_positions) // 2, len(row_positions) - 1)[which]]
+
+    def render_without_a_row(_facts: UpstreamFacts) -> str:
+        return "\n".join(line for i, line in enumerate(lines) if i != dropped)
+
+    # The checked-in file is compared only after the guard, so give it the short rendering too:
+    # the guard, not the comparison, must be what stops the check.
+    short = render_without_a_row(facts)
+    message = _drift_failure(facts, short, render=render_without_a_row)
+    assert message is not None
+    assert (
+        f"{names - 1} rows, {FEWER_ROWS_MESSAGE} than the {names} distinct public names" in message
+    )
+
+
+def test_drift_a_rendering_with_exactly_one_row_per_public_name_is_not_stopped_by_the_guard():
+    facts = load_upstream_facts()
+    assert _drift_failure(facts, render_table(facts)) is None
+
+
+# --- the description map and the declarations agree in both directions ---
+
+
+def _description_map_failure(
+    specs: Tuple[DataSourceSpec, ...],
+    uncovered_paths: AbstractSet[str],
+    descriptions: Mapping[str, str],
+) -> Optional[str]:
+    declared = {fluent_type for spec in specs for fluent_type in spec.fluent_types}
+    undescribed = sorted(declared - descriptions.keys())
+    if undescribed:
+        return (
+            f"A record declares fluent type(s) {undescribed} the description map does not describe."
+        )
+    unnamed = sorted(set(uncovered_paths) - descriptions.keys())
+    if unnamed:
+        return f"The pinned literal names path(s) {unnamed} the description map does not describe."
+    stale = sorted(descriptions.keys() - declared - set(uncovered_paths))
+    if stale:
+        return (
+            f"The description map describes {stale}, which no record declares and the pinned "
+            f"literal does not name."
+        )
+    return None
+
+
+def _live_description_map_failure(descriptions: Mapping[str, str]) -> Optional[str]:
+    facts = load_upstream_facts()
+    return _description_map_failure(
+        facts.specs, facts.fluent_types_named_by_no_record, descriptions
+    )
+
+
+def test_drift_the_description_map_describes_exactly_the_types_the_declarations_name():
+    _fail_on(_live_description_map_failure(upstream_declarations.CONNECTION_PATH_DESCRIPTIONS))
+
+
+def test_drift_a_described_type_that_nothing_declares_or_names_fails():
+    extra = {**upstream_declarations.CONNECTION_PATH_DESCRIPTIONS, "not_a_real_type": "x"}
+    message = _live_description_map_failure(extra)
+    assert message is not None and "['not_a_real_type']" in message
+    assert "no record declares" in message
+
+
+def test_drift_a_type_only_the_pinned_literal_names_is_not_a_stale_description():
+    for path in sorted(FLUENT_TYPES_NAMED_BY_NO_RECORD):
+        assert path in upstream_declarations.CONNECTION_PATH_DESCRIPTIONS
+    assert _live_description_map_failure(upstream_declarations.CONNECTION_PATH_DESCRIPTIONS) is None
+
+
+_DECLARED_BY_RECORDS = sorted({t for spec in _LIVE_SPECS for t in spec.fluent_types})
+
+
+@pytest.mark.parametrize("which", [0, 1, 2], ids=["first", "middle", "last"])
+def test_drift_a_declared_type_the_map_does_not_describe_fails_in_the_check_and_the_loader(
+    monkeypatch, which
+):
+    removed = _THREE(_DECLARED_BY_RECORDS)[which]
+    shrunk = {
+        key: value
+        for key, value in upstream_declarations.CONNECTION_PATH_DESCRIPTIONS.items()
+        if key != removed
+    }
+    message = _live_description_map_failure(shrunk)
+    assert message is not None and f"['{removed}']" in message
+    monkeypatch.setattr(upstream_declarations, "CONNECTION_PATH_DESCRIPTIONS", shrunk)
+    with pytest.raises(UpstreamDeclarationError, match=removed):
+        load_upstream_facts()
+
+
+@pytest.mark.parametrize("removed", _UNCOVERED)
+def test_drift_a_pinned_path_the_map_does_not_describe_fails_in_the_check_and_the_loader(
+    monkeypatch, removed
+):
+    shrunk = {
+        key: value
+        for key, value in upstream_declarations.CONNECTION_PATH_DESCRIPTIONS.items()
+        if key != removed
+    }
+    message = _live_description_map_failure(shrunk)
+    assert message is not None and f"['{removed}']" in message and "pinned literal" in message
+    monkeypatch.setattr(upstream_declarations, "CONNECTION_PATH_DESCRIPTIONS", shrunk)
+    with pytest.raises(UpstreamDeclarationError, match=removed):
+        load_upstream_facts()
