@@ -12,7 +12,7 @@ import gc
 import pathlib
 import weakref
 from collections.abc import Iterator
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import pandas as pd
 import pytest
@@ -26,6 +26,7 @@ from great_expectations.data_context.data_context.context_factory import (
     project_manager,
     set_context,
 )
+from great_expectations.datasource.fluent import PandasFilesystemDatasource
 from great_expectations.exceptions import DataContextRequiredError
 from great_expectations.exceptions.resource_freshness import (
     BatchDefinitionNotAddedError,
@@ -39,6 +40,10 @@ from great_expectations.validator.v1_validator import Validator as V1Validator
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
+    from great_expectations.core.expectation_validation_result import (
+        ExpectationSuiteValidationResult,
+    )
+    from great_expectations.core.suite_parameters import SuiteParameterDict
     from great_expectations.data_context import AbstractDataContext
 
 DATA_SOURCE_NAME = "shared_name"
@@ -124,9 +129,9 @@ def test_batch_definition_without_an_owner_validates_through_the_current_context
 SUITE_NAME = "max_is_three"
 
 
-def _max_is_three_suite() -> ExpectationSuite:
+def _max_is_three_suite(name: str = SUITE_NAME) -> ExpectationSuite:
     return ExpectationSuite(
-        name=SUITE_NAME,
+        name=name,
         expectations=[gxe.ExpectColumnMaxToBeBetween(column="a", min_value=3, max_value=3)],
     )
 
@@ -368,3 +373,150 @@ def test_hand_built_validation_definition_reports_freshness_without_a_current_co
         validation_definition.json()
     with pytest.raises(ValidationDefinitionRelatedResourcesFreshnessError):
         validation_definition.run()
+
+
+C1_ROWS = "a\n1\n2\n3\n"
+C2_ROWS = "a\n10\n20\n30\n"
+
+
+def _add_csv_validation_definition(
+    context: AbstractDataContext, directory: pathlib.Path, contents: str
+) -> ValidationDefinition:
+    """Add a CSV-backed data source, batch definition, suite and validation definition."""
+    batch_definition = _add_csv_batch_definition(context, directory, contents)
+    return context.validation_definitions.add(
+        ValidationDefinition(
+            name="validation",
+            data=batch_definition,
+            suite=context.suites.add(_max_is_three_suite()),
+        )
+    )
+
+
+def _result_count(context: AbstractDataContext) -> int:
+    return len(context.validation_results_store.list_keys())
+
+
+@pytest.mark.filesystem
+def test_validation_definition_saves_to_its_own_context_while_another_is_current(
+    tmp_path: pathlib.Path, restore_current_context: None
+) -> None:
+    c1 = gx.get_context(mode="ephemeral")
+    validation_definition = _add_csv_validation_definition(c1, tmp_path / "c1", C1_ROWS)
+    validation_definition.suite = c1.suites.add(_max_is_three_suite("replacement"))
+    c2 = gx.get_context(mode="ephemeral")
+    assert project_manager.get_current_project() is c2
+    assert c2.data_sources.all() == {}
+    assert c2.validation_definitions.all() == []
+    assert c1.validation_definitions.get("validation").suite.name == SUITE_NAME
+
+    validation_definition.save()
+
+    assert c1.validation_definitions.get("validation").suite.name == "replacement"
+    assert c2.validation_definitions.all() == []
+    assert c2.data_sources.all() == {}
+
+
+@pytest.mark.filesystem
+def test_batch_definition_save_leaves_a_same_named_data_source_in_the_other_context_alone(
+    tmp_path: pathlib.Path, mocker: MockerFixture, restore_current_context: None
+) -> None:
+    c1 = gx.get_context(mode="ephemeral")
+    batch_definition = _add_csv_batch_definition(c1, tmp_path / "c1", C1_ROWS)
+    c2 = gx.get_context(mode="ephemeral")
+    c2_batch_definition = _add_csv_batch_definition(c2, tmp_path / "c2", C2_ROWS)
+    c2_data_source = c2.data_sources.get(DATA_SOURCE_NAME)
+    c1_data_source = c1.data_sources.get(DATA_SOURCE_NAME)
+    assert project_manager.get_current_project() is c2
+    set_datasource = mocker.spy(type(c1.data_sources.all()), "set_datasource")
+
+    batch_definition.save()
+
+    # The save is a write to C1's data sources; the C2-side assertions show it left C2 alone.
+    set_datasource.assert_called_once_with(
+        c1.data_sources.all(), name=DATA_SOURCE_NAME, ds=c1_data_source
+    )
+    assert set_datasource.call_args.args[0] is c1.data_sources.all()
+
+    assert c2.data_sources.get(DATA_SOURCE_NAME) is c2_data_source
+    assert c2_batch_definition.data_asset.datasource is c2_data_source
+    assert isinstance(c1_data_source, PandasFilesystemDatasource)
+    assert isinstance(c2_data_source, PandasFilesystemDatasource)
+    assert c1_data_source.base_directory == tmp_path / "c1"
+    assert c2_data_source.base_directory == tmp_path / "c2"
+
+
+@pytest.mark.filesystem
+def test_run_validates_the_batch_of_its_own_context_when_another_holds_the_same_names(
+    tmp_path: pathlib.Path, restore_current_context: None
+) -> None:
+    c1 = gx.get_context(mode="ephemeral")
+    c1_data = tmp_path / "c1"
+    validation_definition = _add_csv_validation_definition(c1, c1_data, C1_ROWS)
+    c1_fingerprint = validation_definition.batch_definition.get_batch().batch_markers[
+        "pandas_data_fingerprint"
+    ]
+
+    # C2 becomes current and holds a data source and asset of the same names over other data.
+    c2 = gx.get_context(mode="ephemeral")
+    c2_data = tmp_path / "c2"
+    c2_batch_definition = _add_csv_batch_definition(c2, c2_data, C2_ROWS)
+    assert project_manager.get_current_project() is c2
+    c2_fingerprint = c2_batch_definition.get_batch().batch_markers["pandas_data_fingerprint"]
+    assert c2_fingerprint != c1_fingerprint
+
+    result = validation_definition.run()
+
+    # The batch identity is the same in both contexts; the file and its content tell them apart.
+    assert result.success is True
+    assert result.results[0].result["observed_value"] == 3
+    assert result.meta["batch_spec"]["path"] == str(c1_data / FILE_NAME)
+    assert result.meta["batch_markers"]["pandas_data_fingerprint"] == c1_fingerprint
+
+
+@pytest.mark.filesystem
+def test_run_writes_its_result_to_its_own_context_while_another_is_current(
+    tmp_path: pathlib.Path, restore_current_context: None
+) -> None:
+    c1 = gx.get_context(mode="ephemeral")
+    validation_definition = _add_csv_validation_definition(c1, tmp_path / "c1", C1_ROWS)
+    c2 = gx.get_context(mode="ephemeral")
+    assert project_manager.get_current_project() is c2
+    assert (_result_count(c1), _result_count(c2)) == (0, 0)
+
+    result = validation_definition.run()
+
+    assert (result.success, result.results[0].result["observed_value"]) == (True, 3)
+    assert (_result_count(c1), _result_count(c2)) == (1, 0)
+
+
+@pytest.mark.filesystem
+def test_result_lands_in_its_own_context_when_the_current_context_changes_mid_run(
+    tmp_path: pathlib.Path, mocker: MockerFixture, restore_current_context: None
+) -> None:
+    c1 = gx.get_context(mode="ephemeral")
+    validation_definition = _add_csv_validation_definition(c1, tmp_path / "c1", C1_ROWS)
+    c3 = gx.get_context(mode="ephemeral")
+    c2 = gx.get_context(mode="ephemeral")
+    assert project_manager.get_current_project() is c2
+    validate_expectation_suite = V1Validator.validate_expectation_suite
+    switched: list[AbstractDataContext] = []
+
+    def switch_then_validate(
+        validator: V1Validator,
+        expectation_suite: ExpectationSuite,
+        expectation_parameters: Optional[SuiteParameterDict] = None,
+    ) -> ExpectationSuiteValidationResult:
+        # The freshness check has passed; the stimulus changes the current context before the
+        # result is written.
+        set_context(c3)
+        switched.append(project_manager.get_current_project())
+        return validate_expectation_suite(validator, expectation_suite, expectation_parameters)
+
+    mocker.patch.object(V1Validator, "validate_expectation_suite", switch_then_validate)
+
+    result = validation_definition.run()
+
+    assert (result.success, result.results[0].result["observed_value"]) == (True, 3)
+    assert switched == [c3]
+    assert (_result_count(c1), _result_count(c2), _result_count(c3)) == (1, 0, 0)
