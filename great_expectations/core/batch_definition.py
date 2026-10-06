@@ -143,6 +143,18 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
     def _resolve_context(self) -> ResolvedContext:
         return resolve_context(owner_from_batch_definition(self))
 
+    def _ambient_miss_note(self, *, ends_sentence: bool = False) -> str:
+        """The note for a miss, empty when this batch definition belongs to a Data Context.
+
+        Computed on the miss path only. ``ends_sentence`` is False when the message being
+        extended has no closing period.
+        """
+        resolved = self._resolve_context()
+        if resolved.bound:
+            return ""
+        note = unbound_resolution_note(resolved.context)
+        return note if ends_sentence else "." + note
+
     def _is_fresh(self) -> BatchDefinitionFreshnessDiagnostics:
         datasource_dict = project_manager.get_datasources()
 
@@ -152,12 +164,11 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
         except KeyError:
             datasource = None
         if not datasource:
-            resolved = self._resolve_context()
-            note = "" if resolved.bound else "." + unbound_resolution_note(resolved.context)
             return BatchDefinitionFreshnessDiagnostics(
                 errors=[
                     DatasourceNotFoundError(
-                        f"Could not find datasource '{self.data_asset.datasource.name}'{note}"
+                        f"Could not find datasource '{self.data_asset.datasource.name}'"
+                        f"{self._ambient_miss_note()}"
                     )
                 ]
             )
@@ -168,7 +179,11 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
             asset = None
         if not asset:
             return BatchDefinitionFreshnessDiagnostics(
-                errors=[DataAssetNotFoundError(f"Could not find asset '{self.data_asset.name}'")]
+                errors=[
+                    DataAssetNotFoundError(
+                        f"Could not find asset '{self.data_asset.name}'{self._ambient_miss_note()}"
+                    )
+                ]
             )
 
         batch_def: BatchDefinition | None
@@ -178,7 +193,11 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
             batch_def = None
         if not batch_def:
             return BatchDefinitionFreshnessDiagnostics(
-                errors=[BatchDefinitionNotFoundError(name=self.name)]
+                errors=[
+                    BatchDefinitionNotFoundError(
+                        name=self.name, note=self._ambient_miss_note(ends_sentence=True) or None
+                    )
+                ]
             )
 
         return BatchDefinitionFreshnessDiagnostics(

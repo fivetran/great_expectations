@@ -29,6 +29,7 @@ from great_expectations.datasource.fluent import PandasDatasource
 from great_expectations.exceptions.exceptions import (
     BatchDefinitionNotFoundError,
     CheckpointNotFoundError,
+    DataAssetNotFoundError,
     DataContextRequiredError,
     DatasourceNotFoundError,
     ExpectationSuiteNotFoundError,
@@ -453,15 +454,69 @@ class TestBatchDefinitionMiss:
             )
         ]
 
+    @staticmethod
+    def _current_context_with(*, asset: bool) -> AbstractDataContext:
+        """A new current context holding the datasource, and optionally its asset."""
+        context = gx.get_context(mode="ephemeral")
+        datasource = context.data_sources.add_pandas("my_datasource")
+        if asset:
+            datasource.add_dataframe_asset("my_asset")
+        return context
+
     @pytest.mark.unit
-    def test_batch_definition_miss_does_not_nest_a_sentence_in_the_name(
+    def test_bound_asset_miss_keeps_todays_message(self, restore_current_context: None) -> None:
+        batch_definition = _bound_batch_definition(gx.get_context(mode="ephemeral"))
+        self._current_context_with(asset=False)
+        assert batch_definition._resolve_context().bound is True
+
+        diagnostics = batch_definition._is_fresh()
+
+        assert [(type(e), str(e)) for e in diagnostics.errors] == [
+            (DataAssetNotFoundError, "Could not find asset 'my_asset'")
+        ]
+
+    @pytest.mark.unit
+    def test_unbound_asset_miss_names_the_context_consulted(
         self, restore_current_context: None
     ) -> None:
-        context = gx.get_context(mode="ephemeral")
-        stored = _bound_batch_definition(context)
-        missing = _ownerless_copy_of(stored)
+        batch_definition = _ownerless_copy_of(
+            _bound_batch_definition(gx.get_context(mode="ephemeral"))
+        )
+        self._current_context_with(asset=False)
+
+        diagnostics = batch_definition._is_fresh()
+
+        assert [(type(e), str(e)) for e in diagnostics.errors] == [
+            (DataAssetNotFoundError, "Could not find asset 'my_asset'. " + EPHEMERAL_NOTE)
+        ]
+
+    @pytest.mark.unit
+    def test_bound_batch_definition_miss_carries_no_note(
+        self, restore_current_context: None
+    ) -> None:
+        batch_definition = _bound_batch_definition(gx.get_context(mode="ephemeral"))
+        self._current_context_with(asset=True)
+        assert batch_definition._resolve_context().bound is True
+
+        diagnostics = batch_definition._is_fresh()
+
+        # The wording is the unfixed tree's, minus the sentence it nested inside the name.
+        assert [(type(e), str(e)) for e in diagnostics.errors] == [
+            (
+                BatchDefinitionNotFoundError,
+                "BatchDefinition 'my_batch_definition' not found."
+                " Please check the name and try again.",
+            )
+        ]
+
+    @pytest.mark.unit
+    def test_unbound_batch_definition_miss_does_not_nest_a_sentence_in_the_name(
+        self, restore_current_context: None
+    ) -> None:
+        missing = _ownerless_copy_of(_bound_batch_definition(gx.get_context(mode="ephemeral")))
         missing.name = "other_batch_definition"
         missing.id = "an-id"
+        self._current_context_with(asset=True)
 
         diagnostics = missing._is_fresh()
 
@@ -469,7 +524,7 @@ class TestBatchDefinitionMiss:
             (
                 BatchDefinitionNotFoundError,
                 "BatchDefinition 'other_batch_definition' not found."
-                " Please check the name and try again.",
+                " Please check the name and try again." + " " + EPHEMERAL_NOTE,
             )
         ]
 
