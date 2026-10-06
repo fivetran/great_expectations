@@ -13,6 +13,7 @@ import contextlib
 import weakref
 from typing import TYPE_CHECKING, Any
 
+from great_expectations.compatibility.sqlalchemy import Engine
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 
 if TYPE_CHECKING:
@@ -45,7 +46,8 @@ def close_connections_when_collected(engine: sqlalchemy.Engine) -> sqlalchemy.En
     Returns:
         The same engine, so a call can wrap the expression that creates it.
     """
-    if not isinstance(engine, sa.engine.Engine):
+    # Engine is bound at import, so a test that patches `sqlalchemy.engine` doesn't swap it out.
+    if not isinstance(engine, Engine):
         return engine
     if not sa.event.contains(engine, "connect", _close_with_its_pool):
         sa.event.listen(engine, "connect", _close_with_its_pool)
