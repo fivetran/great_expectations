@@ -51,10 +51,7 @@
     "expectations/core/expect_table_column_count_to_equal\\.py",
     "expectations/core/expect_table_columns_to_match_ordered_list\\.py",
     "expectations/core/expect_table_columns_to_match_set\\.py",
-    "great_expectations/_version\\.py",
-    "tests/datasource/data_connector",
-    "tests/datasource/fluent/tasks\\.py",
-    "tests/datasource/test_datasource_dict\\.py"
+    "great_expectations/_version\\.py"
   ],
   "files": [
     "docs",

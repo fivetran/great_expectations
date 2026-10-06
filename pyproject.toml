@@ -84,10 +84,6 @@ exclude = [
     'expectations/core/expect_table_columns_to_match_set\.py',                                             # 8
     'expectations/core/expect_table_columns_to_match_ordered_list\.py',                                    # 11
     'expectations/core/expect_table_column_count_to_equal\.py',                                            # 5
-    # tests
-    'tests/datasource/data_connector',
-    'tests/datasource/fluent/tasks\.py',
-    'tests/datasource/test_datasource_dict\.py',
 ]
 
 [[tool.mypy.overrides]]
