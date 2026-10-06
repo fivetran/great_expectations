@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 import great_expectations as gx
+from great_expectations.checkpoint.checkpoint import Checkpoint
+from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.expectation_suite import ExpectationSuite, ExpectationSuiteSchema
 from great_expectations.core.owner_resolution import (
@@ -16,6 +18,7 @@ from great_expectations.core.owner_resolution import (
     resolve_context,
     unbound_resolution_note,
 )
+from great_expectations.core.serdes import _IdentifierBundle
 from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.data_context.data_context.context_factory import (
@@ -27,6 +30,7 @@ from great_expectations.exceptions.exceptions import (
     BatchDefinitionNotFoundError,
     CheckpointNotFoundError,
     DataContextRequiredError,
+    DatasourceNotFoundError,
     ExpectationSuiteNotFoundError,
     ValidationDefinitionNotFoundError,
 )
@@ -373,4 +377,357 @@ class TestExpectationSuiteMiss:
         assert str(exc_info.value) == (
             "This action requires an active data context. "
             "Please call `great_expectations.get_context()` first, then try your action again."
+        )
+
+
+NOT_BOUND = "This object is not bound to a Data Context, so the lookup went through the current "
+EPHEMERAL_NOTE = NOT_BOUND + "ephemeral Data Context."
+
+
+def _chain_in(context: AbstractDataContext) -> tuple[BatchDefinition[Any], ExpectationSuite]:
+    """A datasource, asset, batch definition and suite, all added to ``context``."""
+    batch_definition = _bound_batch_definition(context)
+    suite = context.suites.add(ExpectationSuite(name="my_suite"))
+    return batch_definition, suite
+
+
+def _ownerless_copy_of(batch_definition: BatchDefinition[Any]) -> BatchDefinition[Any]:
+    """The same batch definition, rebuilt on a datasource that belongs to no Data Context."""
+    datasource = PandasDatasource(name="my_datasource")
+    asset = datasource.add_dataframe_asset("my_asset")
+    copy = asset.add_batch_definition_whole_dataframe("my_batch_definition")
+    copy.id = batch_definition.id
+    assert owner_from_batch_definition(copy) is None
+    return copy
+
+
+class TestBatchDefinitionMiss:
+    """A batch definition's miss names the current context only when the lookup used it."""
+
+    @pytest.mark.unit
+    def test_resolves_to_its_owner(self, restore_current_context: None) -> None:
+        owner = gx.get_context(mode="ephemeral")
+        batch_definition = _bound_batch_definition(owner)
+        gx.get_context(mode="ephemeral")
+
+        assert batch_definition._resolve_context() == ResolvedContext(context=owner, bound=True)
+
+    @pytest.mark.unit
+    def test_ownerless_resolves_to_the_current_context(self, restore_current_context: None) -> None:
+        current = gx.get_context(mode="ephemeral")
+        batch_definition = _ownerless_copy_of(_bound_batch_definition(current))
+
+        assert batch_definition._resolve_context() == ResolvedContext(context=current, bound=False)
+
+    @pytest.mark.unit
+    def test_bound_datasource_miss_keeps_todays_message(
+        self, restore_current_context: None
+    ) -> None:
+        owner = gx.get_context(mode="ephemeral")
+        batch_definition = _bound_batch_definition(owner)
+        other = gx.get_context(mode="ephemeral")
+        assert project_manager.get_current_project() is other
+        assert "my_datasource" not in other.data_sources.all()
+
+        diagnostics = batch_definition._is_fresh()
+
+        assert [(type(e), str(e)) for e in diagnostics.errors] == [
+            (DatasourceNotFoundError, "Could not find datasource 'my_datasource'")
+        ]
+
+    @pytest.mark.unit
+    def test_unbound_datasource_miss_names_the_context_consulted(
+        self, restore_current_context: None
+    ) -> None:
+        elsewhere = gx.get_context(mode="ephemeral")
+        batch_definition = _ownerless_copy_of(_bound_batch_definition(elsewhere))
+        current = gx.get_context(mode="ephemeral")
+        assert "my_datasource" not in current.data_sources.all()
+
+        diagnostics = batch_definition._is_fresh()
+
+        assert [(type(e), str(e)) for e in diagnostics.errors] == [
+            (
+                DatasourceNotFoundError,
+                "Could not find datasource 'my_datasource'. " + EPHEMERAL_NOTE,
+            )
+        ]
+
+    @pytest.mark.unit
+    def test_batch_definition_miss_does_not_nest_a_sentence_in_the_name(
+        self, restore_current_context: None
+    ) -> None:
+        context = gx.get_context(mode="ephemeral")
+        stored = _bound_batch_definition(context)
+        missing = _ownerless_copy_of(stored)
+        missing.name = "other_batch_definition"
+        missing.id = "an-id"
+
+        diagnostics = missing._is_fresh()
+
+        assert [(type(e), str(e)) for e in diagnostics.errors] == [
+            (
+                BatchDefinitionNotFoundError,
+                "BatchDefinition 'other_batch_definition' not found."
+                " Please check the name and try again.",
+            )
+        ]
+
+
+class TestValidationDefinitionMiss:
+    """A validation definition's miss names the current context only when the lookup used it."""
+
+    @pytest.mark.unit
+    def test_resolves_through_its_batch_definitions_owner(
+        self, restore_current_context: None
+    ) -> None:
+        owner = gx.get_context(mode="ephemeral")
+        batch_definition, suite = _chain_in(owner)
+        validation_definition = ValidationDefinition(
+            name="my_vd", data=batch_definition, suite=suite
+        )
+        gx.get_context(mode="ephemeral")
+
+        assert validation_definition._resolve_context() == ResolvedContext(
+            context=owner, bound=True
+        )
+
+    @pytest.mark.unit
+    def test_bound_miss_keeps_todays_class_and_message(self, restore_current_context: None) -> None:
+        # Reads still go through the current context, so the owner is made current too: the
+        # lookup then reaches the store and misses there, while the chain still resolves bound.
+        context = gx.get_context(mode="ephemeral")
+        batch_definition, suite = _chain_in(context)
+        validation_definition = ValidationDefinition(
+            name="my_vd", data=batch_definition, suite=suite, id="not-in-the-store"
+        )
+        assert validation_definition._resolve_context().bound is True
+
+        diagnostics = validation_definition.is_fresh()
+
+        # The literal is what the unfixed tree raises for the same scenario.
+        assert [(type(e), str(e)) for e in diagnostics.errors] == [
+            (
+                ValidationDefinitionNotFoundError,
+                "ValidationDefinition 'my_vd' not found. Please check the name and try again.",
+            )
+        ]
+
+    @pytest.mark.unit
+    def test_unbound_miss_names_the_context_consulted(self, restore_current_context: None) -> None:
+        context = gx.get_context(mode="ephemeral")
+        batch_definition, suite = _chain_in(context)
+        validation_definition = ValidationDefinition(
+            name="my_vd",
+            data=_ownerless_copy_of(batch_definition),
+            suite=suite,
+            id="not-in-the-store",
+        )
+        assert validation_definition._resolve_context().bound is False
+
+        diagnostics = validation_definition.is_fresh()
+
+        assert [(type(e), str(e)) for e in diagnostics.errors] == [
+            (
+                ValidationDefinitionNotFoundError,
+                "ValidationDefinition 'my_vd' not found. Please check the name and try again."
+                " " + EPHEMERAL_NOTE,
+            )
+        ]
+
+    @pytest.mark.unit
+    def test_direct_parse_miss_raises_validation_error_naming_the_context(
+        self, restore_current_context: None
+    ) -> None:
+        gx.get_context(mode="ephemeral")
+        serialized = {
+            "name": "my_vd",
+            "data": {
+                "datasource": {"name": "no_such_datasource", "id": None},
+                "asset": {"name": "my_asset", "id": None},
+                "batch_definition": {"name": "my_batch_definition", "id": None},
+            },
+            "suite": {"name": "no_such_suite", "id": "no-such-id"},
+            "id": "an-id",
+        }
+
+        with pytest.raises(ValidationError) as exc_info:
+            ValidationDefinition.parse_obj(serialized)
+
+        message = str(exc_info.value)
+        assert "Could not find datasource named 'no_such_datasource'. " + EPHEMERAL_NOTE in message
+        assert (
+            "Could not find suite with name: no_such_suite and id: no-such-id. " + EPHEMERAL_NOTE
+            in message
+        )
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "asset_name, batch_definition_name, expected",
+        [
+            pytest.param(
+                "no_such_asset",
+                "my_batch_definition",
+                "Could not find asset named 'no_such_asset' within 'my_datasource' datasource. ",
+                id="asset",
+            ),
+            pytest.param(
+                "my_asset",
+                "no_such_batch_definition",
+                "Could not find batch definition named 'no_such_batch_definition'"
+                " within 'my_asset' asset and 'my_datasource' datasource. ",
+                id="batch_definition",
+            ),
+        ],
+    )
+    def test_direct_parse_miss_below_the_datasource_names_the_context(
+        self,
+        asset_name: str,
+        batch_definition_name: str,
+        expected: str,
+        restore_current_context: None,
+    ) -> None:
+        context = gx.get_context(mode="ephemeral")
+        _, suite = _chain_in(context)
+        serialized = {
+            "name": "my_vd",
+            "data": {
+                "datasource": {"name": "my_datasource", "id": None},
+                "asset": {"name": asset_name, "id": None},
+                "batch_definition": {"name": batch_definition_name, "id": None},
+            },
+            "suite": {"name": suite.name, "id": suite.id},
+            "id": "an-id",
+        }
+
+        with pytest.raises(ValidationError) as exc_info:
+            ValidationDefinition.parse_obj(serialized)
+
+        assert expected + EPHEMERAL_NOTE in str(exc_info.value)
+
+
+class TestCheckpointMiss:
+    """A checkpoint's miss names the current context only when the lookup used it."""
+
+    @staticmethod
+    def _stored_validation_definition(
+        context: AbstractDataContext,
+    ) -> tuple[BatchDefinition[Any], ValidationDefinition]:
+        batch_definition, suite = _chain_in(context)
+        context.validation_definitions.add(
+            ValidationDefinition(name="stored_vd", data=batch_definition, suite=suite)
+        )
+        return batch_definition, context.validation_definitions.get("stored_vd")
+
+    @pytest.mark.unit
+    def test_empty_validation_definitions_resolve_to_the_current_context(
+        self, restore_current_context: None
+    ) -> None:
+        current = gx.get_context(mode="ephemeral")
+
+        checkpoint = Checkpoint(name="my_cp", validation_definitions=[])
+
+        assert checkpoint._resolve_context() == ResolvedContext(context=current, bound=False)
+
+    @pytest.mark.unit
+    def test_validation_definition_mock_resolves_to_the_current_context(
+        self, mocker: MockerFixture, restore_current_context: None
+    ) -> None:
+        current = gx.get_context(mode="ephemeral")
+        checkpoint = Checkpoint(
+            name="my_cp", validation_definitions=[mocker.Mock(spec=ValidationDefinition)]
+        )
+
+        assert checkpoint._resolve_context() == ResolvedContext(context=current, bound=False)
+
+    @pytest.mark.unit
+    def test_resolves_through_its_first_validation_definitions_owner(
+        self, restore_current_context: None
+    ) -> None:
+        owner = gx.get_context(mode="ephemeral")
+        _, stored = self._stored_validation_definition(owner)
+        checkpoint = Checkpoint(name="my_cp", validation_definitions=[stored])
+        gx.get_context(mode="ephemeral")
+
+        assert checkpoint._resolve_context() == ResolvedContext(context=owner, bound=True)
+
+    @pytest.mark.unit
+    def test_bound_miss_keeps_todays_class_and_message(self, restore_current_context: None) -> None:
+        context = gx.get_context(mode="ephemeral")
+        _, stored = self._stored_validation_definition(context)
+        checkpoint = Checkpoint(name="my_cp", validation_definitions=[stored], id="not-in-store")
+        assert checkpoint._resolve_context().bound is True
+
+        diagnostics = checkpoint.is_fresh()
+
+        # The literal is what the unfixed tree raises for the same scenario.
+        assert [(type(e), str(e)) for e in diagnostics.errors] == [
+            (
+                CheckpointNotFoundError,
+                "Checkpoint 'my_cp' not found. Please check the name and try again.",
+            )
+        ]
+
+    @pytest.mark.unit
+    def test_unbound_miss_names_the_context_consulted(self, restore_current_context: None) -> None:
+        context = gx.get_context(mode="ephemeral")
+        batch_definition, stored = self._stored_validation_definition(context)
+        ownerless = ValidationDefinition(
+            name=stored.name,
+            data=_ownerless_copy_of(batch_definition),
+            suite=stored.suite,
+            id=stored.id,
+        )
+        checkpoint = Checkpoint(name="my_cp", validation_definitions=[ownerless], id="not-in-store")
+        assert checkpoint._resolve_context().bound is False
+
+        diagnostics = checkpoint.is_fresh()
+
+        assert [(type(e), str(e)) for e in diagnostics.errors] == [
+            (
+                CheckpointNotFoundError,
+                "Checkpoint 'my_cp' not found. Please check the name and try again."
+                " " + EPHEMERAL_NOTE,
+            )
+        ]
+
+    @pytest.mark.unit
+    def test_direct_parse_miss_raises_validation_error_naming_the_context(
+        self, restore_current_context: None
+    ) -> None:
+        gx.get_context(mode="ephemeral")
+        serialized = {
+            "name": "my_cp",
+            "validation_definitions": [{"name": "i_do_not_exist", "id": "an-id"}],
+            "actions": [],
+            "id": "a-checkpoint-id",
+        }
+
+        with pytest.raises(ValidationError) as exc_info:
+            Checkpoint.parse_obj(serialized)
+
+        assert (
+            "Unable to retrieve validation definition name='i_do_not_exist' id='an-id' from store. "
+            + EPHEMERAL_NOTE
+            in str(exc_info.value)
+        )
+
+    @pytest.mark.unit
+    def test_deserializer_miss_through_a_handed_in_store_keeps_the_plain_text(
+        self, restore_current_context: None
+    ) -> None:
+        # The store belongs to another context than the current one, so the lookup did not go
+        # through the current context and the text must not say it did.
+        owner = gx.get_context(mode="ephemeral")
+        other = gx.get_context(mode="ephemeral")
+        assert project_manager.get_current_project() is other
+        bundle = _IdentifierBundle(name="i_do_not_exist", id="an-id")
+
+        with pytest.raises(ValueError) as exc_info:
+            Checkpoint._deserialize_identifier_bundles_to_validation_definitions(
+                identifier_bundles=[bundle], store=owner.validation_definition_store
+            )
+
+        assert str(exc_info.value) == (
+            "Unable to retrieve validation definition name='i_do_not_exist' id='an-id' from store"
         )

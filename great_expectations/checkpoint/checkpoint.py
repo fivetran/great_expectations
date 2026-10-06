@@ -36,11 +36,17 @@ from great_expectations.core.expectation_validation_result import (
     ExpectationSuiteValidationResult,
 )
 from great_expectations.core.freshness_diagnostics import CheckpointFreshnessDiagnostics
+from great_expectations.core.owner_resolution import (
+    ResolvedContext,
+    owner_from_batch_definition,
+    resolve_context,
+    unbound_resolution_note,
+)
 from great_expectations.core.result_format import DEFAULT_RESULT_FORMAT, ResultFormatUnion
 from great_expectations.core.run_identifier import RunIdentifier
 from great_expectations.core.serdes import _IdentifierBundle
 from great_expectations.core.suite_parameters import SuiteParameterDict
-from great_expectations.core.validation_definition import ValidationDefinition
+from great_expectations.core.validation_definition import ValidationDefinition, _ambient_note
 from great_expectations.data_context.data_context.context_factory import project_manager
 from great_expectations.data_context.types.resource_identifiers import (
     ExpectationSuiteIdentifier,
@@ -260,15 +266,23 @@ class Checkpoint(BaseModel):
                 for v in validation_definitions
             ]
             return cls._deserialize_identifier_bundles_to_validation_definitions(
-                identifier_bundles=identifier_bundles, store=validation_definition_store
+                identifier_bundles=identifier_bundles,
+                store=validation_definition_store,
+                ambient=True,
             )
 
         return cast("List[ValidationDefinition]", validation_definitions)
 
     @classmethod
     def _deserialize_identifier_bundles_to_validation_definitions(
-        cls, identifier_bundles: list[_IdentifierBundle], store: ValidationDefinitionStore
+        cls,
+        identifier_bundles: list[_IdentifierBundle],
+        store: ValidationDefinitionStore,
+        *,
+        ambient: bool = False,
     ) -> list[ValidationDefinition]:
+        # ``ambient`` is True only when ``store`` was read from the current Data Context; a miss
+        # then names that context. A store handed in by a caller keeps the plain message.
         validation_definitions: list[ValidationDefinition] = []
         for id_bundle in identifier_bundles:
             key = store.get_key(name=id_bundle.name, id=id_bundle.id)
@@ -276,7 +290,10 @@ class Checkpoint(BaseModel):
             try:
                 validation_definition = store.get(key=key)
             except (KeyError, gx_exceptions.InvalidKeyError):
-                raise ValueError(f"Unable to retrieve validation definition {id_bundle} from store")  # noqa: TRY003 # FIXME CoP
+                raise ValueError(  # noqa: TRY003 # FIXME CoP
+                    f"Unable to retrieve validation definition {id_bundle} from store"
+                    f"{_ambient_note(ends_sentence=False) if ambient else ''}"
+                )
 
             if not validation_definition:
                 raise ValueError(  # noqa: TRY003 # FIXME CoP
@@ -339,6 +356,16 @@ class Checkpoint(BaseModel):
         self._run_actions(checkpoint_result=checkpoint_result)
 
         return checkpoint_result
+
+    def _resolve_context(self) -> ResolvedContext:
+        owner = None
+        if self.validation_definitions:
+            try:
+                data = self.validation_definitions[0].data
+            except AttributeError:  # e.g. Mock(spec=ValidationDefinition) has no `data`
+                data = None
+            owner = owner_from_batch_definition(data)
+        return resolve_context(owner)
 
     def _prepare_checkpoint_run_for_context(
         self,
@@ -450,7 +477,11 @@ class Checkpoint(BaseModel):
             StoreBackendError,  # Generic error from stores
             InvalidKeyError,  # Ephemeral context error
         ):
-            return CheckpointFreshnessDiagnostics(errors=[CheckpointNotFoundError(name=self.name)])
+            resolved = self._resolve_context()
+            note = None if resolved.bound else unbound_resolution_note(resolved.context)
+            return CheckpointFreshnessDiagnostics(
+                errors=[CheckpointNotFoundError(name=self.name, note=note)]
+            )
 
         return CheckpointFreshnessDiagnostics(
             errors=[] if checkpoint == self else [CheckpointNotFreshError(name=self.name)]

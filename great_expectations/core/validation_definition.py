@@ -19,6 +19,12 @@ from great_expectations.core.expectation_suite import (
 from great_expectations.core.freshness_diagnostics import (
     ValidationDefinitionFreshnessDiagnostics,
 )
+from great_expectations.core.owner_resolution import (
+    ResolvedContext,
+    owner_from_batch_definition,
+    resolve_context,
+    unbound_resolution_note,
+)
 from great_expectations.core.result_format import DEFAULT_RESULT_FORMAT
 from great_expectations.core.run_identifier import RunIdentifier
 from great_expectations.core.serdes import _EncodedValidationData, _IdentifierBundle
@@ -59,6 +65,16 @@ if TYPE_CHECKING:
     from great_expectations.datasource.fluent.batch_request import BatchParameters
     from great_expectations.datasource.fluent.interfaces import DataAsset, Datasource
     from great_expectations.expectations.expectation import Expectation
+
+
+def _ambient_note(*, ends_sentence: bool = True) -> str:
+    """The note for a miss on the ambient branch, where the lookup read the current context.
+
+    Call it only after that read has succeeded and only on a miss. ``ends_sentence`` is False
+    when the message being extended has no closing period.
+    """
+    note = unbound_resolution_note(resolve_context(None).context)
+    return note if ends_sentence else "." + note
 
 
 @public_api
@@ -139,6 +155,9 @@ class ValidationDefinition(BaseModel):
     def data_source(self) -> Datasource:
         return self.asset.datasource
 
+    def _resolve_context(self) -> ResolvedContext:
+        return resolve_context(owner_from_batch_definition(self.data))
+
     @property
     def _validation_results_store(self) -> ValidationResultsStore:
         return project_manager.get_validation_results_store()
@@ -163,8 +182,10 @@ class ValidationDefinition(BaseModel):
             StoreBackendError,  # Generic error from stores
             InvalidKeyError,  # Ephemeral context error
         ):
+            resolved = self._resolve_context()
+            note = None if resolved.bound else unbound_resolution_note(resolved.context)
             return ValidationDefinitionFreshnessDiagnostics(
-                errors=[ValidationDefinitionNotFoundError(name=self.name)]
+                errors=[ValidationDefinitionNotFoundError(name=self.name, note=note)]
             )
 
         return ValidationDefinitionFreshnessDiagnostics(
@@ -212,7 +233,10 @@ class ValidationDefinition(BaseModel):
         try:
             config: dict = expectation_store.get(key)
         except gx_exceptions.InvalidKeyError as e:
-            raise ValueError(f"Could not find suite with name: {name} and id: {id}") from e  # noqa: TRY003 # FIXME CoP
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                f"Could not find suite with name: {name} and id: {id}"
+                f"{_ambient_note(ends_sentence=False)}"
+            ) from e
 
         suite = ExpectationSuite(**config)
         if suite._include_rendered_content:
@@ -235,13 +259,16 @@ class ValidationDefinition(BaseModel):
         try:
             ds = datasource_dict[ds_name]
         except KeyError as e:
-            raise ValueError(f"Could not find datasource named '{ds_name}'.") from e  # noqa: TRY003 # FIXME CoP
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                f"Could not find datasource named '{ds_name}'.{_ambient_note()}"
+            ) from e
 
         try:
             asset = ds.get_asset(asset_name)
         except LookupError as e:
             raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"Could not find asset named '{asset_name}' within '{ds_name}' datasource."
+                f"{_ambient_note()}"
             ) from e
 
         try:
@@ -249,6 +276,7 @@ class ValidationDefinition(BaseModel):
         except KeyError as e:
             raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"Could not find batch definition named '{batch_definition_name}' within '{asset_name}' asset and '{ds_name}' datasource."  # noqa: E501 # FIXME CoP
+                f"{_ambient_note()}"
             ) from e
 
         return batch_definition

@@ -10,6 +10,12 @@ from great_expectations.compatibility import pydantic
 from great_expectations.core.freshness_diagnostics import (
     BatchDefinitionFreshnessDiagnostics,
 )
+from great_expectations.core.owner_resolution import (
+    ResolvedContext,
+    owner_from_batch_definition,
+    resolve_context,
+    unbound_resolution_note,
+)
 from great_expectations.core.partitioners import ColumnPartitioner, FileNamePartitioner
 from great_expectations.core.serdes import _EncodedValidationData, _IdentifierBundle
 from great_expectations.data_context.data_context.context_factory import project_manager
@@ -134,6 +140,9 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
             errors=[] if self.id else [BatchDefinitionNotAddedError(name=self.name)]
         )
 
+    def _resolve_context(self) -> ResolvedContext:
+        return resolve_context(owner_from_batch_definition(self))
+
     def _is_fresh(self) -> BatchDefinitionFreshnessDiagnostics:
         datasource_dict = project_manager.get_datasources()
 
@@ -143,10 +152,12 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
         except KeyError:
             datasource = None
         if not datasource:
+            resolved = self._resolve_context()
+            note = "" if resolved.bound else "." + unbound_resolution_note(resolved.context)
             return BatchDefinitionFreshnessDiagnostics(
                 errors=[
                     DatasourceNotFoundError(
-                        f"Could not find datasource '{self.data_asset.datasource.name}'"
+                        f"Could not find datasource '{self.data_asset.datasource.name}'{note}"
                     )
                 ]
             )
@@ -167,9 +178,7 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
             batch_def = None
         if not batch_def:
             return BatchDefinitionFreshnessDiagnostics(
-                errors=[
-                    BatchDefinitionNotFoundError(f"Could not find batch definition '{self.name}'")
-                ]
+                errors=[BatchDefinitionNotFoundError(name=self.name)]
             )
 
         return BatchDefinitionFreshnessDiagnostics(
