@@ -2,9 +2,6 @@ from __future__ import annotations
 
 import gc
 import sqlite3
-import subprocess
-import sys
-import textwrap
 import threading
 import weakref
 from typing import TYPE_CHECKING, Any, Callable, Iterator
@@ -53,6 +50,16 @@ def _is_closed(dbapi_connection: sqlite3.Connection) -> bool:
     except sqlite3.ProgrammingError:
         return True
     return False
+
+
+def _live_finalizers_of(obj: Any) -> list[weakref.finalize]:
+    return [
+        candidate
+        for candidate in gc.get_objects()
+        if isinstance(candidate, weakref.finalize)
+        and candidate.alive
+        and (candidate.peek() or (None,))[0] is obj
+    ]
 
 
 def _use_and_drop(make_engine: Callable[[], sa.engine.Engine]) -> weakref.ref:
@@ -129,46 +136,25 @@ def test_reconnecting_a_pool_record_keeps_one_finalizer_for_it(tmp_path):
 
     assert len(records) == 3
     assert len({id(record) for record in records}) == 1
-    finalizers = [
-        obj
-        for obj in gc.get_objects()
-        if isinstance(obj, weakref.finalize) and obj.alive and obj.peek()[0] is records[0]
-    ]
     # One per reconnect would pin every connection the pool already closed, for as long as the
     # engine lives.
-    assert len(finalizers) == 1
+    assert len(_live_finalizers_of(records[0])) == 1
     engine.dispose()
 
 
-def test_connection_of_a_reachable_engine_is_still_open_in_an_exit_handler():
-    # The exit handler is registered before anything can create a `weakref.finalize`, whose
-    # own exit hook would then run ahead of it.
-    script = textwrap.dedent(
-        """
-        import atexit
+def test_finalizer_does_not_run_at_interpreter_exit():
+    # At exit an engine can still be reachable, and its connection in use by an exit handler
+    # or a daemon thread; only collection proves nobody can use the connection any more.
+    engine = close_connections_when_collected(sa.create_engine("sqlite://"))
+    records: list[Any] = []
+    sa.event.listen(engine, "connect", lambda _, record: records.append(record))
+    with engine.connect() as connection:
+        connection.execute(sa.text("select 1"))
 
-        def use_engine_at_exit():
-            with engine.connect() as connection:
-                connection.execute(sa.text("select * from t"))
-            print("connection usable at exit")
-
-        atexit.register(use_engine_at_exit)
-
-        from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
-        from great_expectations.execution_engine.sqlalchemy_engine_lifecycle import (
-            close_connections_when_collected,
-        )
-
-        engine = close_connections_when_collected(sa.create_engine("sqlite://"))
-        with engine.connect() as connection:
-            connection.execute(sa.text("create table t (x int)"))
-        """
-    )
-    result = subprocess.run(
-        [sys.executable, "-c", script], capture_output=True, text=True, check=True, timeout=120
-    )
-
-    assert "connection usable at exit" in result.stdout, result.stderr
+    (record,) = records
+    (finalizer,) = _live_finalizers_of(record)
+    assert finalizer.atexit is False
+    engine.dispose()
 
 
 def test_a_close_that_raises_is_swallowed():
