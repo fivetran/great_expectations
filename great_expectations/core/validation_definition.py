@@ -59,6 +59,9 @@ if TYPE_CHECKING:
     )
     from great_expectations.core.result_format import ResultFormatUnion
     from great_expectations.core.suite_parameters import SuiteParameterDict
+    from great_expectations.data_context.data_context.abstract_data_context import (
+        AbstractDataContext,
+    )
     from great_expectations.data_context.store.validation_results_store import (
         ValidationResultsStore,
     )
@@ -156,12 +159,15 @@ class ValidationDefinition(BaseModel):
         return self.asset.datasource
 
     def _resolve_context(self) -> ResolvedContext:
-        resolved = resolve_context(owner_from_batch_definition(self.data))
-        if resolved.bound and getattr(self.suite, "_owner", False) is None:
+        owner = owner_from_batch_definition(self.data)
+        self._record_suite_owner(owner)
+        return resolve_context(owner)
+
+    def _record_suite_owner(self, owner: AbstractDataContext | None) -> None:
+        if owner is not None and getattr(self.suite, "_owner", False) is None:
             # A suite held by a validation definition that belongs to a context belongs to
             # that context too, unless a store has already said otherwise (GX issue #12209).
-            self.suite._owner = resolved.context
-        return resolved
+            self.suite._owner = owner
 
     @property
     def _validation_results_store(self) -> ValidationResultsStore:
@@ -171,6 +177,9 @@ class ValidationDefinition(BaseModel):
         validation_definition_diagnostics = ValidationDefinitionFreshnessDiagnostics(
             errors=[] if self.id else [ValidationDefinitionNotAddedError(name=self.name)]
         )
+        # Record the held suite's owner before checking the suite, so that the check below
+        # and every later one resolve the suite through the same Data Context.
+        self._record_suite_owner(owner_from_batch_definition(self.data))
         suite_diagnostics = self.suite.is_fresh()
         data_diagnostics = self.data.is_fresh()
         validation_definition_diagnostics.update_with_children(suite_diagnostics, data_diagnostics)
