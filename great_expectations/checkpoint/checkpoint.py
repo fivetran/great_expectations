@@ -372,7 +372,7 @@ class Checkpoint(BaseModel):
         batch_parameters: Dict[str, Any],
         expectation_parameters: SuiteParameterDict,
     ) -> None:
-        context = self.validation_definitions[0].data.data_asset.datasource.data_context
+        context = self._resolve_context().context
         context.prepare_checkpoint_run(self, batch_parameters, expectation_parameters)
 
     def _run_validation_definitions(
@@ -435,6 +435,8 @@ class Checkpoint(BaseModel):
         action_context = ActionContext()
         sorted_actions = self._sort_actions()
         for action in sorted_actions:
+            # An action runs against the Data Context this Checkpoint resolves through.
+            action._data_context = self._resolve_context().context
             action_result = action.run(
                 checkpoint_result=checkpoint_result,
                 action_context=action_context,
@@ -468,7 +470,8 @@ class Checkpoint(BaseModel):
         if not checkpoint_diagnostics.success:
             return checkpoint_diagnostics
 
-        store = project_manager.get_checkpoints_store()
+        resolved = self._resolve_context()
+        store = resolved.context.checkpoint_store
         key = store.get_key(name=self.name, id=self.id)
 
         try:
@@ -477,7 +480,6 @@ class Checkpoint(BaseModel):
             StoreBackendError,  # Generic error from stores
             InvalidKeyError,  # Ephemeral context error
         ):
-            resolved = self._resolve_context()
             note = None if resolved.bound else unbound_resolution_note(resolved.context)
             return CheckpointFreshnessDiagnostics(
                 errors=[CheckpointNotFoundError(name=self.name, note=note)]
@@ -490,7 +492,7 @@ class Checkpoint(BaseModel):
     @public_api
     def save(self) -> None:
         """Save the current state of this Checkpoint."""
-        store = project_manager.get_checkpoints_store()
+        store = self._resolve_context().context.checkpoint_store
         key = store.get_key(name=self.name, id=self.id)
 
         store.update(key=key, value=self)
@@ -501,7 +503,7 @@ class Checkpoint(BaseModel):
         We need to persist a checkpoint before it can be run. If user calls runs but hasn't
         persisted it we add it for them.
         """
-        store = project_manager.get_checkpoints_store()
+        store = self._resolve_context().context.checkpoint_store
         key = store.get_key(name=self.name, id=self.id)
 
         store.add(key=key, value=self)

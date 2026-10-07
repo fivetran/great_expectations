@@ -18,7 +18,6 @@ from great_expectations.core.owner_resolution import (
 )
 from great_expectations.core.partitioners import ColumnPartitioner, FileNamePartitioner
 from great_expectations.core.serdes import _EncodedValidationData, _IdentifierBundle
-from great_expectations.data_context.data_context.context_factory import project_manager
 from great_expectations.exceptions import (
     BatchDefinitionNotAddedError,
     BatchDefinitionNotFoundError,
@@ -87,7 +86,7 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
         """
         Save the batch definition to the underlying data context.
         """
-        project_datasources = project_manager.get_datasources()
+        project_datasources = self._resolve_context().context.data_sources.all()
         data_source = self.data_asset.datasource
         project_datasources.set_datasource(name=data_source.name, ds=data_source)
 
@@ -156,7 +155,7 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
         return note if ends_sentence else "." + note
 
     def _is_fresh(self) -> BatchDefinitionFreshnessDiagnostics:
-        datasource_dict = project_manager.get_datasources()
+        datasource_dict = self._resolve_context().context.data_sources.all()
 
         datasource: Datasource | None
         try:

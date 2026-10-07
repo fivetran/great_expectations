@@ -6,12 +6,10 @@ import uuid
 from copy import deepcopy
 from typing import (
     TYPE_CHECKING,
-    ClassVar,
     Dict,
     List,
     Optional,
     Sequence,
-    Set,
     TypeVar,
     Union,
 )
@@ -77,8 +75,9 @@ class ExpectationSuite(SerializableDictDot):
         id: Great Expectations Cloud id for this Expectation Suite.
     """
 
-    # The owner is private bookkeeping, not part of the suite's serialized form.
-    exclude_field_names: ClassVar[Set[str]] = {"owner"}
+    # The owner lives in a slot, outside the instance __dict__, so the suite's mapping surface
+    # (keys(), len(), items(), ``ExpectationSuite(**suite)``) and serialized form never see it.
+    __slots__ = ("_owner",)
 
     def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
@@ -126,7 +125,7 @@ class ExpectationSuite(SerializableDictDot):
 
     @property
     def _store(self) -> ExpectationsStore:
-        return project_manager.get_expectations_store()
+        return self._resolve_context().context.expectations_store
 
     @property
     def _include_rendered_content(self) -> bool:
@@ -376,10 +375,8 @@ class ExpectationSuite(SerializableDictDot):
 
     def __getstate__(self) -> dict:
         # Pickle and copy.copy: a copy belongs to no Data Context, and a context is not
-        # picklable.
-        state = dict(self.__dict__)
-        state.pop("_owner", None)
-        return state
+        # picklable. Returning only __dict__ leaves the owner slot out of the state.
+        return dict(self.__dict__)
 
     def __setstate__(self, state: dict) -> None:
         self.__dict__.update(state)

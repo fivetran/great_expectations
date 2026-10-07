@@ -57,13 +57,29 @@ def resolve_context(owner: AbstractDataContext | None) -> ResolvedContext:
     return ResolvedContext(context=project_manager.get_current_project(), bound=False)
 
 
-def unbound_resolution_note(context: AbstractDataContext) -> str:
-    """One sentence, with a leading space, saying the object is not bound to a Data Context
-    and naming the context consulted: its mode always, its root directory and id when set.
-    """
+def _describe_current(context: AbstractDataContext) -> str:
     consulted = f"the current {context.mode} Data Context"
     if context.root_directory:
         consulted += f" at '{context.root_directory}'"
     if context.data_context_id:
         consulted += f" (id {context.data_context_id})"
-    return f" This object is not bound to a Data Context, so the lookup went through {consulted}."
+    return consulted
+
+
+def unbound_resolution_note(context: AbstractDataContext) -> str:
+    """One sentence, with a leading space, saying the object is not bound to a Data Context
+    and naming the context consulted: its mode always, its root directory and id when set.
+    """
+    return (
+        " This object is not bound to a Data Context, so the lookup went through"
+        f" {_describe_current(context)}."
+    )
+
+
+def consulted_context_note(context: AbstractDataContext) -> str:
+    """One sentence, with a leading space, naming the context a lookup went through.
+
+    For a lookup that cannot tell whether the object it serves is bound: a serialized record
+    being parsed may have been read from any context's store.
+    """
+    return f" The lookup went through {_describe_current(context)}."
