@@ -21,6 +21,7 @@ from great_expectations.core.freshness_diagnostics import (
 )
 from great_expectations.core.owner_resolution import (
     ResolvedContext,
+    consulted_context_note,
     owner_from_batch_definition,
     resolve_context,
     unbound_resolution_note,
@@ -71,9 +72,10 @@ def _ambient_note(*, ends_sentence: bool = True) -> str:
     """The note for a miss on the ambient branch, where the lookup read the current context.
 
     Call it only after that read has succeeded and only on a miss. ``ends_sentence`` is False
-    when the message being extended has no closing period.
+    when the message being extended has no closing period. It does not say the object is
+    unbound: the record being parsed may have been read from any context's store.
     """
-    note = unbound_resolution_note(resolve_context(None).context)
+    note = consulted_context_note(resolve_context(None).context)
     return note if ends_sentence else "." + note
 
 
