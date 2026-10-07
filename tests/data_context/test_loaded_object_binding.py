@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 # The wording a miss carries when the lookup went through the current context.
-AMBIENT_NOTE = "not bound to a Data Context"
+AMBIENT_NOTE = "The lookup went through the current"
 CURRENT_CONTEXT_WORDING = "current Data Context"
 
 

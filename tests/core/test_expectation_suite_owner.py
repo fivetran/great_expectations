@@ -17,7 +17,9 @@ import pytest
 
 import great_expectations as gx
 import great_expectations.expectations as gxe
+from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.expectation_suite import ExpectationSuite, ExpectationSuiteSchema
+from great_expectations.core.freshness_diagnostics import BatchDefinitionFreshnessDiagnostics
 from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context.data_context.context_factory import (
     project_manager,
@@ -29,13 +31,15 @@ from great_expectations.exceptions import (
     DataContextError,
     DataContextRequiredError,
     ExpectationSuiteNotAddedError,
+)
+from great_expectations.exceptions.exceptions import (
     ExpectationSuiteNotFoundError,
+    ValidationDefinitionNotFoundError,
 )
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
-    from great_expectations.core.batch_definition import BatchDefinition
     from great_expectations.data_context import AbstractDataContext
 
 SCHEMA_FIELDS = set(ExpectationSuiteSchema().fields)
@@ -503,6 +507,59 @@ class TestAHeldSuiteTakesItsHoldersContext:
         assert validation_definition._resolve_context().bound is False
 
         assert validation_definition.suite._owner is None
+
+
+class TestFreshnessChecksAHeldSuiteThroughItsHoldersContext:
+    """``is_fresh()`` records the held suite's owner before it checks the suite.
+
+    The batch definition's own freshness check is stubbed to succeed: these tests are about
+    the order of the suite check and the validation definition's own lookup.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _fresh_batch_definition(self, mocker: MockerFixture) -> None:
+        mocker.patch.object(
+            BatchDefinition,
+            "is_fresh",
+            return_value=BatchDefinitionFreshnessDiagnostics(errors=[]),
+        )
+
+    @staticmethod
+    def _held(context: AbstractDataContext) -> ExpectationSuite:
+        suite = copy.deepcopy(context.suites.add(ExpectationSuite(name="held_suite")))
+        assert suite._owner is None
+        return suite
+
+    @staticmethod
+    def _error_types(validation_definition: ValidationDefinition) -> list[type]:
+        return [type(error) for error in validation_definition.is_fresh().errors]
+
+    @pytest.mark.unit
+    def test_the_first_check_reads_the_suite_through_the_holders_context(
+        self, c1_and_c2: tuple[AbstractDataContext, AbstractDataContext]
+    ) -> None:
+        c1, _ = c1_and_c2
+        validation_definition = ValidationDefinition(
+            name="my_vd", data=_batch_definition_in(c1), suite=self._held(c1), id="my_vd_id"
+        )
+
+        assert self._error_types(validation_definition) == [ValidationDefinitionNotFoundError]
+        assert validation_definition.suite._owner is c1
+
+    @pytest.mark.unit
+    def test_consecutive_checks_on_an_unchanged_object_agree(
+        self, c1_and_c2: tuple[AbstractDataContext, AbstractDataContext]
+    ) -> None:
+        c1, c2 = c1_and_c2
+        validation_definition = ValidationDefinition(
+            name="my_vd", data=_batch_definition_in(c1), suite=self._held(c2), id="my_vd_id"
+        )
+
+        first = self._error_types(validation_definition)
+        second = self._error_types(validation_definition)
+
+        assert first == second == [ExpectationSuiteNotFoundError]
+        assert validation_definition.suite._owner is c1
 
 
 class TestASuiteWithoutAHolderUsesTheCurrentContext:
