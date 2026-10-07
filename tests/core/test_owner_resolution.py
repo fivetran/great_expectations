@@ -787,22 +787,22 @@ class TestValidationDefinitionMiss:
     def test_load_from_a_non_current_contexts_store_does_not_claim_the_object_is_unbound(
         self, restore_current_context: None
     ) -> None:
-        # The record comes from the owner's own store; parsing it consults the current context,
-        # which lacks the datasource and the suite.
+        # The record comes from the owner's own store, which resolves it through the owner; the
+        # owner lacks the datasource, so the miss is the owner's, not the current context's.
         owner = gx.get_context(mode="ephemeral")
         batch_definition, suite = _chain_in(owner)
         owner.validation_definitions.add(
             ValidationDefinition(name="my_vd", data=batch_definition, suite=suite)
         )
+        owner.data_sources.delete("my_datasource")
         gx.get_context(mode="ephemeral")
 
         with pytest.raises(ValidationError) as exc_info:
             owner.validation_definitions.get("my_vd")
 
         message = str(exc_info.value)
-        assert "Could not find datasource named 'my_datasource'. " + CONSULTED_EPHEMERAL_NOTE in (
-            message
-        )
+        assert "Could not find datasource named 'my_datasource'." in message
+        assert CONSULTED_EPHEMERAL_NOTE not in message
         assert "not bound" not in message
 
 
@@ -939,6 +939,9 @@ class TestCheckpointMiss:
         owner = gx.get_context(mode="ephemeral")
         _, stored = self._stored_validation_definition(owner)
         owner.checkpoints.add(Checkpoint(name="my_cp", validation_definitions=[stored]))
+        # The owner's own store resolves the record through the owner, so the miss must be the
+        # owner's: remove the validation definition from it.
+        owner.validation_definitions.delete("stored_vd")
         gx.get_context(mode="ephemeral")
 
         with pytest.raises(ValidationError) as exc_info:
@@ -947,6 +950,7 @@ class TestCheckpointMiss:
         message = str(exc_info.value)
         assert (
             f"Unable to retrieve validation definition name='stored_vd' id='{stored.id}'"
-            " from store. " + CONSULTED_EPHEMERAL_NOTE in message
+            " from store (type=value_error)" in message
         )
+        assert CONSULTED_EPHEMERAL_NOTE not in message
         assert "not bound" not in message
