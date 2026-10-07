@@ -124,8 +124,11 @@ def test_pool_recreated_by_dispose_is_covered(opened_dbapi_connections: list[Any
 
 
 def test_reconnecting_a_pool_record_keeps_one_finalizer_for_it(tmp_path):
-    # A file database gets a QueuePool, which hands the same record back after invalidation.
-    engine = close_connections_when_collected(sa.create_engine(f"sqlite:///{tmp_path}/db.sqlite"))
+    # A QueuePool hands the same record back after invalidation. It is named because SQLAlchemy
+    # 1.4 gives a file database a NullPool, which makes a new record for every connection.
+    engine = close_connections_when_collected(
+        sa.create_engine(f"sqlite:///{tmp_path}/db.sqlite", poolclass=sa.pool.QueuePool)
+    )
     records: list[Any] = []
     sa.event.listen(engine, "connect", lambda _, record: records.append(record))
     for _ in range(3):
