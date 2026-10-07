@@ -161,18 +161,29 @@ def test_a_close_that_raises_is_swallowed():
     # sqlite3 refuses to close a connection from a thread other than the one that opened it,
     # which is where the garbage collector can run the finalizer.
     opened: list[sqlite3.Connection] = []
-    opener = threading.Thread(target=lambda: opened.append(sqlite3.connect(":memory:")))
-    opener.start()
-    opener.join()
-    (dbapi_connection,) = opened
-    with pytest.raises(sqlite3.ProgrammingError):
-        dbapi_connection.close()
+    ready, release = threading.Event(), threading.Event()
 
-    _close_quietly(dbapi_connection)
+    def own_a_connection() -> None:
+        # Stays alive until the test is done: sqlite3 compares thread ids, and a finished
+        # thread's id can be handed to the next one.
+        connection = sqlite3.connect(":memory:")
+        opened.append(connection)
+        ready.set()
+        release.wait()
+        connection.close()
 
-    closer = threading.Thread(target=dbapi_connection.close)
-    closer.start()
-    closer.join()
+    owner = threading.Thread(target=own_a_connection)
+    owner.start()
+    try:
+        assert ready.wait(timeout=1)
+        (dbapi_connection,) = opened
+        with pytest.raises(sqlite3.ProgrammingError):
+            dbapi_connection.close()
+
+        _close_quietly(dbapi_connection)
+    finally:
+        release.set()
+        owner.join()
 
 
 def test_leaves_an_engine_of_another_dialect_alone(mocker: MockerFixture):
