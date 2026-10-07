@@ -30,6 +30,7 @@ from great_expectations.core.freshness_diagnostics import (
 )
 from great_expectations.core.owner_resolution import (
     ResolvedContext,
+    consulted_context_note,
     owner_from_batch_definition,
     resolve_context,
     unbound_resolution_note,
@@ -83,9 +84,10 @@ def _ambient_note(*, ends_sentence: bool = True) -> str:
     """The note for a miss on the ambient branch, where the lookup read the current context.
 
     Call it only after that read has succeeded and only on a miss. ``ends_sentence`` is False
-    when the message being extended has no closing period.
+    when the message being extended has no closing period. It does not say the object is
+    unbound: the record being parsed may have been read from any context's store.
     """
-    note = unbound_resolution_note(resolve_context(None).context)
+    note = consulted_context_note(resolve_context(None).context)
     return note if ends_sentence else "." + note
 
 
@@ -167,31 +169,28 @@ class ValidationDefinition(BaseModel):
     def data_source(self) -> Datasource:
         return self.asset.datasource
 
-    def _record_suite_owner(self) -> None:
-        """Give a held suite that has no owner the Data Context this validation definition has.
-
-        A suite held by a validation definition that belongs to a context belongs to that
-        context too, unless a store has already said otherwise (GX issue #12209). This never
-        reads the current context.
-        """
-        owner = owner_from_batch_definition(self.data)
-        if owner is not None and getattr(self.suite, "_owner", False) is None:
-            self.suite._owner = owner
-
     def _resolve_context(self) -> ResolvedContext:
-        self._record_suite_owner()
-        return resolve_context(owner_from_batch_definition(self.data))
+        owner = owner_from_batch_definition(self.data)
+        self._record_suite_owner(owner)
+        return resolve_context(owner)
+
+    def _record_suite_owner(self, owner: AbstractDataContext | None) -> None:
+        if owner is not None and getattr(self.suite, "_owner", False) is None:
+            # A suite held by a validation definition that belongs to a context belongs to
+            # that context too, unless a store has already said otherwise (GX issue #12209).
+            self.suite._owner = owner
 
     @property
     def _validation_results_store(self) -> ValidationResultsStore:
         return self._resolve_context().context.validation_results_store
 
     def is_fresh(self) -> ValidationDefinitionFreshnessDiagnostics:
-        # Record the suite's owner first, before any read of the suite.
-        self._record_suite_owner()
         validation_definition_diagnostics = ValidationDefinitionFreshnessDiagnostics(
             errors=[] if self.id else [ValidationDefinitionNotAddedError(name=self.name)]
         )
+        # Record the held suite's owner before checking the suite, so that the check below
+        # and every later one resolve the suite through the same Data Context.
+        self._record_suite_owner(owner_from_batch_definition(self.data))
         suite_diagnostics = self.suite.is_fresh()
         data_diagnostics = self.data.is_fresh()
         validation_definition_diagnostics.update_with_children(suite_diagnostics, data_diagnostics)
@@ -462,7 +461,7 @@ class ValidationDefinition(BaseModel):
         Encoding the suite as an identifier bundle reads the suite's store, so a suite held
         without an owner must take this validation definition's context before that read.
         """
-        self._record_suite_owner()
+        self._record_suite_owner(owner_from_batch_definition(self.data))
         return super().json(
             include=include,
             exclude=exclude,

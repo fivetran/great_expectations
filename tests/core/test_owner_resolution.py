@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import copy
 import dataclasses
 import pathlib
+import pickle
 from collections.abc import Callable, Iterator
 from typing import TYPE_CHECKING, Any
 
@@ -14,6 +16,7 @@ from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.expectation_suite import ExpectationSuite, ExpectationSuiteSchema
 from great_expectations.core.owner_resolution import (
     ResolvedContext,
+    consulted_context_note,
     owner_from_batch_definition,
     resolve_context,
     unbound_resolution_note,
@@ -315,14 +318,121 @@ class TestUnboundResolutionNote:
         )
 
 
-class TestExpectationSuiteMiss:
-    """A suite that belongs to no Data Context says which context the lookup went through."""
+class TestConsultedContextNote:
+    """A lookup that cannot tell whether its object is bound names only the context consulted."""
 
     @pytest.mark.unit
-    def test_owner_slot_is_not_part_of_the_serialized_keys(self) -> None:
-        assert sorted(ExpectationSuite(name="s").to_dict()) == sorted(
-            ExpectationSuiteSchema().fields
+    def test_ephemeral_context_is_named_by_mode_alone(self, restore_current_context: None) -> None:
+        context = gx.get_context(mode="ephemeral")
+
+        assert consulted_context_note(context) == (
+            " The lookup went through the current ephemeral Data Context."
         )
+
+    @pytest.mark.filesystem
+    def test_file_context_is_named_by_mode_directory_and_id(
+        self, tmp_path: pathlib.Path, restore_current_context: None
+    ) -> None:
+        context = gx.get_context(mode="file", project_root_dir=tmp_path)
+        root_directory = str(tmp_path / "gx")
+        context_id = str(context.data_context_id)
+        assert context_id != "None"
+
+        assert consulted_context_note(context) == (
+            f" The lookup went through the current file Data Context at '{root_directory}'"
+            f" (id {context_id})."
+        )
+
+
+class TestExpectationSuiteOwnerSlot:
+    """The owner is bookkeeping: no mapping view, serialized form, comparison or copy carries it."""
+
+    @staticmethod
+    def _owned_suite(context: AbstractDataContext) -> ExpectationSuite:
+        suite = context.suites.add(ExpectationSuite(name="my_suite"))
+        suite._owner = context  # nothing sets the owner yet, so the test does
+        return suite
+
+    @pytest.mark.unit
+    def test_owner_is_not_a_mapping_key(self, restore_current_context: None) -> None:
+        suite = self._owned_suite(gx.get_context(mode="ephemeral"))
+
+        assert sorted(suite.keys()) == sorted(ExpectationSuiteSchema().fields)
+        assert len(suite) == len(ExpectationSuiteSchema().fields)
+        assert "_owner" not in dict(suite.items())
+
+    @pytest.mark.unit
+    def test_suite_rebuilds_from_its_own_mapping(self, restore_current_context: None) -> None:
+        suite = self._owned_suite(gx.get_context(mode="ephemeral"))
+
+        assert ExpectationSuite(**suite) == suite
+        assert ExpectationSuite(**dict(suite)) == suite
+
+    @pytest.mark.unit
+    def test_owner_is_not_part_of_the_serialized_form_or_comparisons(
+        self, restore_current_context: None
+    ) -> None:
+        suite = self._owned_suite(gx.get_context(mode="ephemeral"))
+        unowned = ExpectationSuite(name=suite.name, id=suite.id, meta=suite.meta)
+
+        assert sorted(suite.to_dict()) == sorted(ExpectationSuiteSchema().fields)
+        assert suite.to_dict() == unowned.to_dict()
+        assert suite.to_json_dict() == unowned.to_json_dict()
+        assert suite == unowned
+        assert hash(suite) == hash(unowned)
+        assert repr(suite) == repr(unowned)
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "make_copy",
+        [
+            pytest.param(copy.deepcopy, id="deepcopy"),
+            pytest.param(copy.copy, id="copy"),
+            pytest.param(lambda suite: pickle.loads(pickle.dumps(suite)), id="pickle"),
+        ],
+    )
+    def test_a_copy_belongs_to_no_context(
+        self,
+        make_copy: Callable[[ExpectationSuite], ExpectationSuite],
+        restore_current_context: None,
+    ) -> None:
+        context = gx.get_context(mode="ephemeral")
+        suite = self._owned_suite(context)
+
+        copied = make_copy(suite)
+
+        assert copied._owner is None
+        assert copied == suite
+        assert sorted(copied.to_dict()) == sorted(ExpectationSuiteSchema().fields)
+        assert suite._owner is context
+
+    @pytest.mark.unit
+    def test_owned_suite_resolves_to_its_owner(self, restore_current_context: None) -> None:
+        owner = gx.get_context(mode="ephemeral")
+        suite = self._owned_suite(owner)
+        gx.get_context(mode="ephemeral")
+
+        assert suite._resolve_context() == ResolvedContext(context=owner, bound=True)
+
+    @pytest.mark.unit
+    def test_owned_suite_miss_carries_no_note(self, restore_current_context: None) -> None:
+        context = gx.get_context(mode="ephemeral")
+        suite = ExpectationSuite(name="never_added", id="a-suite-id")
+        suite._owner = context
+
+        diagnostics = suite.is_fresh()
+
+        # The literal is what the unfixed tree reports for the same suite.
+        assert [(type(e), str(e)) for e in diagnostics.errors] == [
+            (
+                ExpectationSuiteNotFoundError,
+                "ExpectationSuite 'never_added' not found. Please check the name and try again.",
+            )
+        ]
+
+
+class TestExpectationSuiteMiss:
+    """A suite that belongs to no Data Context says which context the lookup went through."""
 
     @pytest.mark.unit
     def test_unbound_suite_miss_names_the_ephemeral_context_consulted(
@@ -383,6 +493,9 @@ class TestExpectationSuiteMiss:
 
 NOT_BOUND = "This object is not bound to a Data Context, so the lookup went through the current "
 EPHEMERAL_NOTE = NOT_BOUND + "ephemeral Data Context."
+# Parsing a record cannot tell whether it was read from the current context's store or another's,
+# so a parse-time miss names the context consulted without saying the object is unbound.
+CONSULTED_EPHEMERAL_NOTE = "The lookup went through the current ephemeral Data Context."
 
 
 def _chain_in(context: AbstractDataContext) -> tuple[BatchDefinition[Any], ExpectationSuite]:
@@ -616,9 +729,13 @@ class TestValidationDefinitionMiss:
             ValidationDefinition.parse_obj(serialized)
 
         message = str(exc_info.value)
-        assert "Could not find datasource named 'no_such_datasource'. " + EPHEMERAL_NOTE in message
         assert (
-            "Could not find suite with name: no_such_suite and id: no-such-id. " + EPHEMERAL_NOTE
+            "Could not find datasource named 'no_such_datasource'. " + CONSULTED_EPHEMERAL_NOTE
+            in message
+        )
+        assert (
+            "Could not find suite with name: no_such_suite and id: no-such-id. "
+            + CONSULTED_EPHEMERAL_NOTE
             in message
         )
 
@@ -664,7 +781,29 @@ class TestValidationDefinitionMiss:
         with pytest.raises(ValidationError) as exc_info:
             ValidationDefinition.parse_obj(serialized)
 
-        assert expected + EPHEMERAL_NOTE in str(exc_info.value)
+        assert expected + CONSULTED_EPHEMERAL_NOTE in str(exc_info.value)
+
+    @pytest.mark.unit
+    def test_load_from_a_non_current_contexts_store_does_not_claim_the_object_is_unbound(
+        self, restore_current_context: None
+    ) -> None:
+        # The record comes from the owner's own store; parsing it consults the current context,
+        # which lacks the datasource and the suite.
+        owner = gx.get_context(mode="ephemeral")
+        batch_definition, suite = _chain_in(owner)
+        owner.validation_definitions.add(
+            ValidationDefinition(name="my_vd", data=batch_definition, suite=suite)
+        )
+        gx.get_context(mode="ephemeral")
+
+        with pytest.raises(ValidationError) as exc_info:
+            owner.validation_definitions.get("my_vd")
+
+        message = str(exc_info.value)
+        assert "Could not find datasource named 'my_datasource'. " + CONSULTED_EPHEMERAL_NOTE in (
+            message
+        )
+        assert "not bound" not in message
 
 
 class TestCheckpointMiss:
@@ -769,7 +908,7 @@ class TestCheckpointMiss:
 
         assert (
             "Unable to retrieve validation definition name='i_do_not_exist' id='an-id' from store. "
-            + EPHEMERAL_NOTE
+            + CONSULTED_EPHEMERAL_NOTE
             in str(exc_info.value)
         )
 
@@ -792,3 +931,22 @@ class TestCheckpointMiss:
         assert str(exc_info.value) == (
             "Unable to retrieve validation definition name='i_do_not_exist' id='an-id' from store"
         )
+
+    @pytest.mark.unit
+    def test_load_from_a_non_current_contexts_store_does_not_claim_the_object_is_unbound(
+        self, restore_current_context: None
+    ) -> None:
+        owner = gx.get_context(mode="ephemeral")
+        _, stored = self._stored_validation_definition(owner)
+        owner.checkpoints.add(Checkpoint(name="my_cp", validation_definitions=[stored]))
+        gx.get_context(mode="ephemeral")
+
+        with pytest.raises(ValidationError) as exc_info:
+            owner.checkpoints.get("my_cp")
+
+        message = str(exc_info.value)
+        assert (
+            f"Unable to retrieve validation definition name='stored_vd' id='{stored.id}'"
+            " from store. " + CONSULTED_EPHEMERAL_NOTE in message
+        )
+        assert "not bound" not in message
