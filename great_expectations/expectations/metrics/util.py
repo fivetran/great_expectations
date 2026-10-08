@@ -406,10 +406,10 @@ def get_sqlalchemy_column_metadata(
         inspector = execution_engine.get_inspector()
 
         # Determine selectable type once
-        is_text_clause = sqlalchemy.TextClause and isinstance(  # type: ignore[truthy-function]
+        is_text_clause = sqlalchemy.TextClause and isinstance(  # type: ignore[truthy-function] # Optional imports can be falsy.
             table_selectable, sqlalchemy.TextClause
         )
-        is_quoted_name = sqlalchemy.quoted_name and isinstance(  # type: ignore[truthy-function]
+        is_quoted_name = sqlalchemy.quoted_name and isinstance(  # type: ignore[truthy-function] # Optional imports can be falsy.
             table_selectable, sqlalchemy.quoted_name
         )
         table_name = str(table_selectable)
@@ -923,7 +923,7 @@ def _verify_column_names_exist_and_get_normalized_typed_column_names_map(  # noq
                 isinstance(typed_column_name_cursor, str)
                 and typed_column_name_cursor.startswith("`")
                 and typed_column_name_cursor.endswith("`")
-                and len(typed_column_name_cursor) >= 2  # noqa: PLR2004
+                and len(typed_column_name_cursor) >= 2  # noqa: PLR2004 # Two backticks surround the name.
                 and column_name.casefold() == typed_column_name_cursor[1:-1].casefold()
             ):
                 return column_name, typed_column_name_cursor
@@ -984,9 +984,8 @@ def get_dialect_like_pattern_expression(  # noqa: C901, PLR0912, PLR0915 # FIXME
     rejects ``ESCAPE '\\'`` outright -- which is why the character is the caller's to choose
     rather than fixed.
 
-    BigQuery and ClickHouse are the exceptions: neither has an ``ESCAPE`` clause, and both
-    escape wildcards with a backslash inside the pattern, so passing ``escape`` for either
-    dialect raises.
+    BigQuery, ClickHouse and SingleStore have no ``ESCAPE`` clause. They escape wildcards
+    with a backslash inside the pattern, so passing ``escape`` for these dialects raises.
     """
     dialect_supported: bool = False
     # The name of the matched dialect when it has no ESCAPE clause, for the error message.
@@ -1015,8 +1014,18 @@ def get_dialect_like_pattern_expression(  # noqa: C901, PLR0912, PLR0915 # FIXME
         except AttributeError:
             pass
         try:
-            if issubclass(dialect.dialect, sa.dialects.mysql.dialect):
+            if issubclass(
+                dialect.dialect,
+                sa.dialects.oracle.base.OracleDialect,  # type: ignore[attr-defined] # Dynamic dialect export.
+            ):
                 dialect_supported = True
+        except AttributeError:
+            pass
+        try:
+            if issubclass(dialect.dialect, sa.dialects.mysql.base.MySQLDialect):
+                dialect_supported = True
+                if dialect.dialect.name == "singlestoredb":
+                    escape_unsupported_by = "SingleStore"
         except AttributeError:
             pass
         try:
@@ -1077,7 +1086,7 @@ def get_dialect_like_pattern_expression(  # noqa: C901, PLR0912, PLR0915 # FIXME
         pass
 
     if escape is not None and escape_unsupported_by is not None:
-        # Neither dialect has an ESCAPE clause; both escape wildcards with a backslash inside
+        # These dialects have no ESCAPE clause; they escape wildcards with a backslash inside
         # the pattern itself. Emitting one would be a syntax error, so say so plainly rather
         # than letting the database reject generated SQL the user never wrote.
         raise ValueError(  # noqa: TRY003 # FIXME CoP

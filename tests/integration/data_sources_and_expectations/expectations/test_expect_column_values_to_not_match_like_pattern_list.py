@@ -10,8 +10,10 @@ from tests.integration.test_utils.data_source_config import (
     DataSourceTestConfig,
     GenericSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
+    OracleDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     RedshiftDatasourceTestConfig,
+    SingleStoreDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SqliteDatasourceTestConfig,
     SQLServerDatasourceTestConfig,
@@ -33,6 +35,8 @@ REGULAR_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
+    OracleDatasourceTestConfig(),
+    SingleStoreDatasourceTestConfig(),
     GenericSQLDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
@@ -190,7 +194,15 @@ class TestSQLServer:
         assert not result.success
 
 
-@parameterize_batch_for_data_sources(data_source_configs=REGULAR_DATA_SOURCES, data=DATA)
+# SingleStore supports LIKE, but has no ESCAPE clause.
+ESCAPE_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
+    config
+    for config in REGULAR_DATA_SOURCES
+    if not isinstance(config, SingleStoreDatasourceTestConfig)
+]
+
+
+@parameterize_batch_for_data_sources(data_source_configs=ESCAPE_DATA_SOURCES, data=DATA)
 def test_escape_makes_underscore_literal(batch_for_datasource: Batch) -> None:
     """The escape character must reach every pattern of a NOT LIKE list.
 
