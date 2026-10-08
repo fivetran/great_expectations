@@ -5,12 +5,13 @@ import logging
 from great_expectations.execution_engine.sqlalchemy_execution_engine import (
     SqlAlchemyExecutionEngine,
 )
+from great_expectations.expectations.metrics.like_pattern import (
+    get_dialect_display_name,
+    get_dialect_like_pattern_expression,
+)
 from great_expectations.expectations.metrics.map_metric_provider import (
     ColumnMapMetricProvider,
     column_condition_partial,
-)
-from great_expectations.expectations.metrics.util import (
-    get_dialect_like_pattern_expression,
 )
 
 logger = logging.getLogger(__name__)
@@ -29,7 +30,10 @@ class ColumnValuesNotMatchLikePattern(ColumnMapMetricProvider):
             column, _dialect, like_pattern, positive=False, escape=escape
         )
         if like_pattern_expression is None:
-            logger.warning(f"Like patterns are not supported for dialect {_dialect.name!s}")
-            raise NotImplementedError
+            dialect_name = get_dialect_display_name(_dialect)
+            logger.warning(f"Like patterns are not supported for dialect {dialect_name}")
+            raise NotImplementedError(
+                f"Like patterns are not supported for dialect {dialect_name}"
+            )
 
         return like_pattern_expression
