@@ -434,6 +434,9 @@ jobs:
       - name: Install dependencies
         run: pip install . -c constraints-dev.txt -r reqs/requirements-dev-test.txt
 
+      - name: Debug - show datasource helper location
+        run: echo "checking great_expectations/core/util.py"
+
       - name: Run the unit tests
         # TODO: revert the timeout back to 1.5 or lower after resolving arc issues
         run: invoke ci-tests -m "unit" --xdist --slowest=10 --timeout=2.0

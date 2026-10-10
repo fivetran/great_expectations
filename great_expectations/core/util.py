@@ -444,3 +444,19 @@ def get_sql_dialect_floating_point_infinity_value(schema: str, negative: bool = 
             return res["NegativeInfinity"]
         else:
             return res["PositiveInfinity"]
+
+
+def normalize_datasource_name(name: str) -> str:
+    """Normalize a datasource name for case-insensitive lookups.
+
+    Lowercases the name so that ``"MyDatasource"`` and ``"mydatasource"``
+    resolve to the same key. A name that is already lowercase is returned
+    unchanged.
+
+    Args:
+        name: The datasource name to normalize.
+
+    Returns:
+        The normalized name.
+    """
+    return name.strip().lower()

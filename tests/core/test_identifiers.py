@@ -5,6 +5,7 @@ import pytest
 from great_expectations.core.run_identifier import RunIdentifier
 
 
+# A timestamp-shaped run name round-trips through run_time.
 @pytest.mark.unit
 def test_run_identifier_parses_datetime_run_name():
     time = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
