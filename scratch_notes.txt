@@ -1,0 +1,3 @@
+notes while poking at datasource names
+- try normalize on " Foo " and "foo"
+- TODO remove before pushing
