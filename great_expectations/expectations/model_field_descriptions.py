@@ -23,6 +23,6 @@ LIKE_PATTERN_ESCAPE_DESCRIPTION = (
     "not portable. Prefer a character other than a backslash: several dialects also treat "
     "a backslash specially inside string literals, before the pattern reaches LIKE, and "
     "Redshift rejects `ESCAPE '\\'` outright. Omit it to emit no `ESCAPE` clause. Not "
-    "supported on BigQuery or ClickHouse, neither of which has an `ESCAPE` clause: escape "
+    "supported on BigQuery, ClickHouse or SingleStore, which have no `ESCAPE` clause: escape "
     "wildcards with a backslash inside the pattern there instead."
 )

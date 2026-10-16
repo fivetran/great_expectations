@@ -13,8 +13,10 @@ from tests.integration.test_utils.data_source_config import (
     DataSourceTestConfig,
     GenericSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
+    OracleDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     RedshiftDatasourceTestConfig,
+    SingleStoreDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SqliteDatasourceTestConfig,
     SQLServerDatasourceTestConfig,
@@ -47,6 +49,8 @@ SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     RedshiftDatasourceTestConfig(),
     GenericSQLDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
+    OracleDatasourceTestConfig(),
+    SingleStoreDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
 ]
 
@@ -237,16 +241,15 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     assert "ghi" in unexpected_rows_str
 
 
-# BigQuery is excluded: GoogleSQL has no ESCAPE clause, which is asserted separately as a
-# unit test over the dialect helper.
+# BigQuery and SingleStore have no ESCAPE clause; their rejection is tested separately.
 ESCAPE_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     config
     for config in SUPPORTED_DATA_SOURCES
-    if not isinstance(config, BigQueryDatasourceTestConfig)
+    if not isinstance(config, (BigQueryDatasourceTestConfig, SingleStoreDatasourceTestConfig))
 ]
 
 
-@parameterize_batch_for_data_sources(data_source_configs=ESCAPE_DATA_SOURCES, data=DATA)
+@parameterize_batch_for_data_sources(data_source_configs=SUPPORTED_DATA_SOURCES, data=DATA)
 def test_unescaped_wildcards_still_match_anything(batch_for_datasource: Batch) -> None:
     """Baseline: without an escape, '_' matches any character, so all three rows match.
 
