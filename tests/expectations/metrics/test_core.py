@@ -24,6 +24,9 @@ from great_expectations.execution_engine import (
     PandasExecutionEngine,
     SparkDFExecutionEngine,
 )
+from great_expectations.execution_engine.sqlalchemy_engine_lifecycle import (
+    close_connections_when_collected,
+)
 from great_expectations.execution_engine.sqlalchemy_execution_engine import (
     SqlAlchemyBatchData,
     SqlAlchemyExecutionEngine,
@@ -1928,7 +1931,7 @@ def test_map_value_set_sa(sa):
 
 @pytest.mark.sqlite
 def test_map_of_type_sa(sa):
-    eng = sa.create_engine("sqlite://")
+    eng = close_connections_when_collected(sa.create_engine("sqlite://"))
     df = pd.DataFrame({"a": [1, 2, 3, 3, None]})
     add_dataframe_to_db(df=df, name="test", con=eng, index=False)
     batch_data = SqlAlchemyBatchData(
@@ -3614,7 +3617,9 @@ def test_map_column_pairs_equal_metric_pd():  # noqa: PLR0915 # FIXME CoP
         )
     )
     assert len(metrics[unexpected_rows_metric.id].columns) == 4
-    pd.testing.assert_index_equal(metrics[unexpected_rows_metric.id].index, pd.Index([0, 1, 3]))
+    pd.testing.assert_index_equal(
+        metrics[unexpected_rows_metric.id].index, pd.Index([0, 1, 3]), exact="equiv"
+    )
 
     unexpected_values_metric = MetricConfiguration(
         metric_name=unexpected_values_metric_name,
@@ -5615,7 +5620,9 @@ def test_map_multicolumn_sum_equal_pd():  # noqa: PLR0915 # FIXME CoP
         pd.DataFrame(data={"a": [2], "b": [3], "c": [1], "d": [9]}, index=[2])
     )
     assert len(metrics[unexpected_rows_metric.id].columns) == 4
-    pd.testing.assert_index_equal(metrics[unexpected_rows_metric.id].index, pd.Index([2]))
+    pd.testing.assert_index_equal(
+        metrics[unexpected_rows_metric.id].index, pd.Index([2]), exact="equiv"
+    )
 
     unexpected_values_metric = MetricConfiguration(
         metric_name=unexpected_values_metric_name,
@@ -6277,7 +6284,9 @@ def test_map_compound_columns_unique_pd():  # noqa: PLR0915 # FIXME CoP
         pd.DataFrame(data={"a": [1, 1], "b": [2, 3], "c": [2, 2]}, index=[1, 2])
     )
     assert len(metrics[unexpected_rows_metric.id].columns) == 3
-    pd.testing.assert_index_equal(metrics[unexpected_rows_metric.id].index, pd.Index([1, 2]))
+    pd.testing.assert_index_equal(
+        metrics[unexpected_rows_metric.id].index, pd.Index([1, 2]), exact="equiv"
+    )
 
     unexpected_values_metric = MetricConfiguration(
         metric_name=unexpected_values_metric_name,
@@ -6830,7 +6839,9 @@ def test_map_select_column_values_unique_within_record_pd():  # noqa: PLR0915 # 
         )
     )
     assert len(metrics[unexpected_rows_metric.id].columns) == 3
-    pd.testing.assert_index_equal(metrics[unexpected_rows_metric.id].index, pd.Index([0, 4, 6]))
+    pd.testing.assert_index_equal(
+        metrics[unexpected_rows_metric.id].index, pd.Index([0, 4, 6]), exact="equiv"
+    )
 
     unexpected_values_metric = MetricConfiguration(
         metric_name=unexpected_values_metric_name,
@@ -6934,7 +6945,9 @@ def test_map_select_column_values_unique_within_record_pd():  # noqa: PLR0915 # 
         pd.DataFrame(data={"a": [1.0, 4.0], "b": [1.0, 4.0], "c": [2.0, 4.0]}, index=[0, 4])
     )
     assert len(metrics[unexpected_rows_metric.id].columns) == 3
-    pd.testing.assert_index_equal(metrics[unexpected_rows_metric.id].index, pd.Index([0, 4]))
+    pd.testing.assert_index_equal(
+        metrics[unexpected_rows_metric.id].index, pd.Index([0, 4]), exact="equiv"
+    )
 
     unexpected_values_metric = MetricConfiguration(
         metric_name=unexpected_values_metric_name,
