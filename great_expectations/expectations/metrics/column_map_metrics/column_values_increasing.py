@@ -35,7 +35,10 @@ class ColumnValuesIncreasing(ColumnMapMetricProvider):
         # wraps for unsigned integer dtypes (3 - 2 on uint8 is 255) and can also
         # overflow at the int64 boundaries, which makes decreasing values look
         # increasing.  A comparison cannot overflow.
-        previous = column.shift(1)
+        # ``shift`` without a fill value promotes integers to float64 to hold the
+        # leading NaN, which rounds int64/uint64 values above 2**53 before the
+        # comparison; seed the shift with the first value to keep the dtype.
+        previous = column.shift(1, fill_value=column.iloc[0]) if len(column) else column
 
         strictly: bool = kwargs.get("strictly") or False
         if strictly:
@@ -45,7 +48,10 @@ class ColumnValuesIncreasing(ColumnMapMetricProvider):
 
         # The first element has no predecessor, so it gets a bye and is always
         # treated as True.
-        return in_order | previous.isnull()
+        in_order = in_order | previous.isnull()
+        if len(in_order):
+            in_order.iloc[0] = True
+        return in_order
 
     @metric_partial(
         engine=SparkDFExecutionEngine,
