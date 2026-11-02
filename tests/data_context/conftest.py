@@ -4,9 +4,7 @@ import json
 import os
 import pathlib
 import shutil
-import unittest.mock
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Union, cast
-from unittest.mock import Mock  # noqa: TID251 # FIXME CoP
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Union
 
 import pytest
 import requests
@@ -238,11 +236,6 @@ def datasource_name() -> str:
 
 
 @pytest.fixture
-def datasource_store_name() -> str:
-    return "datasource_store"
-
-
-@pytest.fixture
 def fake_datasource_id() -> str:
     return "aaa7cfdd-4aa4-4f3d-a979-fe2ea5203cbf"
 
@@ -324,33 +317,6 @@ def basic_fluent_datasource() -> Datasource:
 @pytest.fixture
 def fluent_datasource_config() -> dict:
     return basic_fluent_datasource_config()
-
-
-@pytest.fixture
-def mock_http_unavailable(mock_response_factory: Callable):
-    """Mock all request http calls to return a 503 Unavailable response."""
-
-    def mocked_response(*args, **kwargs):
-        return MockResponse(
-            {"code": 503, "detail": "API is unavailable"},
-            503,
-        )
-
-    # should have been able to do this by mocking `requests.request` but this didn't work
-    with unittest.mock.patch.multiple(
-        "requests.Session",
-        autospec=True,
-        get=unittest.mock.DEFAULT,
-        post=unittest.mock.DEFAULT,
-        put=unittest.mock.DEFAULT,
-        patch=unittest.mock.DEFAULT,
-        delete=unittest.mock.DEFAULT,
-    ) as mock_requests:
-        for name, mock in cast("Dict[str, Mock]", mock_requests).items():
-            mock.side_effect = mocked_response
-            print(f"Mocking `requests.{name}` with `{mocked_response.__name__}()`")
-
-        yield mock_requests
 
 
 @pytest.fixture

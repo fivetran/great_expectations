@@ -8,7 +8,6 @@ import pathlib
 import random
 import shutil
 import string
-import urllib.parse
 import uuid
 import warnings
 from dataclasses import dataclass
@@ -81,8 +80,8 @@ from great_expectations.validator.validator import Validator
 
 # GX Cloud has been shut down, so the fake-cloud-API helper that previously hosted these
 # placeholder credential values no longer exists. The values are retained here only so the
-# surviving store-backend and config tests (which exercise cloud store/config classes without
-# constructing a cloud context) keep working; nothing here builds a live cloud context.
+# surviving config tests (which exercise cloud config classes without constructing a cloud
+# context) keep working; nothing here builds a live cloud context.
 GX_CLOUD_MOCK_BASE_URL: Final[str] = "https://app.greatexpectations.fake.io/"
 DUMMY_JWT_TOKEN: Final[str] = (
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
@@ -1451,11 +1450,6 @@ def ge_cloud_id():
 @pytest.fixture
 def ge_cloud_base_url() -> str:
     return GX_CLOUD_MOCK_BASE_URL
-
-
-@pytest.fixture
-def v1_cloud_base_url(ge_cloud_base_url: str) -> str:
-    return urllib.parse.urljoin(ge_cloud_base_url, "api/v1/")
 
 
 @pytest.fixture
