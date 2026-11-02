@@ -981,6 +981,28 @@ def _warning_kinds(query: str) -> Tuple[str, ...]:
         pytest.param(
             "-- don't\nSELECT * FROM {batch} WHERE a = 'x'", id="apostrophe_inside_line_comment"
         ),
+        # What is a comment or a string depends on a dialect the check cannot see, so each query
+        # below is code in the dialect named and must not be blanked by another dialect's reading.
+        pytest.param(
+            "SELECT COUNT(*) FROM #ids i JOIN {batch} b ON i.id = b.id",
+            id="sql_server_hash_prefixes_a_temp_table",
+        ),
+        pytest.param("SELECT a # b AS x FROM {batch}", id="postgres_hash_is_xor"),
+        pytest.param(
+            "--don't count nulls\nSELECT COUNT(*) FROM {batch} WHERE a = 'x'",
+            id="postgres_double_dash_comment_needs_no_space",
+        ),
+        pytest.param(
+            r"SELECT COUNT(*) FROM t WHERE p = 'C:\' "
+            "UNION ALL SELECT COUNT(*) FROM {batch} WHERE q = 'x'",
+            id="standard_sql_backslash_is_not_an_escape",
+        ),
+        pytest.param(
+            'SELECT COUNT(*) FROM t WHERE p = "C:\\" UNION ALL SELECT COUNT(*) FROM {batch} '
+            'WHERE q = "x"',
+            id="standard_sql_backslash_is_not_an_escape_in_double_quotes",
+        ),
+        pytest.param("SELECT a$$ FROM {batch} WHERE b$$ = 1", id="mysql_dollar_is_an_identifier"),
     ],
 )
 def test_validate_configuration_recognizes_a_parameterized_query_whatever_delimits_it(
@@ -1028,6 +1050,17 @@ def test_validate_configuration_warns_when_the_placeholder_is_not_a_data_asset_r
 ) -> None:
     """A placeholder that no code path reads is reported as a missing data asset."""
     assert _warning_kinds(query) == ("missing-data-asset",)
+
+
+@pytest.mark.unit
+def test_validate_configuration_does_not_guess_a_dialect_for_an_unspaced_double_dash() -> None:
+    """`--x {batch}` is a comment in PostgreSQL but not in MySQL, so the check stays silent.
+
+    The dialect is not known here, and the text alone cannot tell this from `a--1`, which is valid
+    MySQL and is pinned above. A missed warning costs less than a false one on a query that is
+    correct in the dialect it runs against.
+    """
+    assert "missing-data-asset" not in _warning_kinds("SELECT COUNT(*) FROM my_table --x {batch}")
 
 
 @pytest.mark.unit
