@@ -11,9 +11,6 @@ from typing import Optional
 from zipfile import ZipFile, is_zipfile
 
 from great_expectations.core.data_context_key import DataContextKey
-from great_expectations.data_context.store.gx_cloud_store_backend import (
-    GXCloudStoreBackend,
-)
 from great_expectations.data_context.store.tuple_store_backend import TupleStoreBackend
 from great_expectations.data_context.types.resource_identifiers import (
     ExpectationSuiteIdentifier,
@@ -105,9 +102,7 @@ class HtmlSiteStore:
 
     _key_class = SiteSectionIdentifier
 
-    def __init__(  # noqa: C901 #  11
-        self, store_backend=None, runtime_environment=None
-    ) -> None:
+    def __init__(self, store_backend=None, runtime_environment=None) -> None:
         store_backend_module_name = store_backend.get(
             "module_name", "great_expectations.data_context.store"
         )
@@ -116,9 +111,9 @@ class HtmlSiteStore:
         store_class = load_class(store_backend_class_name, store_backend_module_name)
 
         # Store Class was loaded successfully; verify that it is of a correct subclass.
-        if not issubclass(store_class, (TupleStoreBackend, GXCloudStoreBackend)):
+        if not issubclass(store_class, TupleStoreBackend):
             raise DataContextError(  # noqa: TRY003 # FIXME CoP
-                f"Invalid configuration: HtmlSiteStore needs a {TupleStoreBackend.__name__} or {GXCloudStoreBackend.__name__}"  # noqa: E501 # FIXME CoP
+                f"Invalid configuration: HtmlSiteStore needs a {TupleStoreBackend.__name__}"
             )
         if "filepath_template" in store_backend or (
             "fixed_length_key" in store_backend and store_backend["fixed_length_key"] is True
@@ -132,18 +127,12 @@ class HtmlSiteStore:
         # If several types are being written to overlapping directories, we could get collisions.
         module_name = "great_expectations.data_context.store"
         filepath_suffix = ".html"
-        is_gx_cloud_store = store_backend["class_name"] == GXCloudStoreBackend.__name__
         expectation_config_defaults = {
             "module_name": module_name,
             "filepath_prefix": "expectations",
             "filepath_suffix": filepath_suffix,
             "suppress_store_backend_id": True,
         }
-        if is_gx_cloud_store:
-            expectation_config_defaults = {
-                "module_name": module_name,
-                "suppress_store_backend_id": True,
-            }
         expectation_suite_identifier_obj = instantiate_class_from_config(
             config=store_backend,
             runtime_environment=runtime_environment,
@@ -162,11 +151,6 @@ class HtmlSiteStore:
             "filepath_suffix": filepath_suffix,
             "suppress_store_backend_id": True,
         }
-        if is_gx_cloud_store:
-            validation_result_config_defaults = {
-                "module_name": module_name,
-                "suppress_store_backend_id": True,
-            }
 
         validation_result_idendifier_obj = instantiate_class_from_config(
             config=store_backend,
@@ -186,11 +170,6 @@ class HtmlSiteStore:
             "filepath_template": filepath_template,
             "suppress_store_backend_id": True,
         }
-        if is_gx_cloud_store:
-            index_page_config_defaults = {
-                "module_name": module_name,
-                "suppress_store_backend_id": True,
-            }
 
         index_page_obj = instantiate_class_from_config(
             config=store_backend,
@@ -209,11 +188,6 @@ class HtmlSiteStore:
             "filepath_template": None,
             "suppress_store_backend_id": True,
         }
-        if is_gx_cloud_store:
-            static_assets_config_defaults = {
-                "module_name": module_name,
-                "suppress_store_backend_id": True,
-            }
         static_assets_obj = instantiate_class_from_config(
             config=store_backend,
             runtime_environment=runtime_environment,
@@ -425,13 +399,12 @@ class HtmlSiteStore:
                             )
                             content_type = "text/html; charset=utf8"
 
-                    if not isinstance(self.store_backends["static_assets"], GXCloudStoreBackend):
-                        self.store_backends["static_assets"].set(
-                            store_key,
-                            f.read(),
-                            content_encoding=content_encoding,
-                            content_type=content_type,
-                        )
+                    self.store_backends["static_assets"].set(
+                        store_key,
+                        f.read(),
+                        content_encoding=content_encoding,
+                        content_type=content_type,
+                    )
 
     def _unzip_assets(self, assets_full_path: str, unzip_directory: str) -> bool:
         """
