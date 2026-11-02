@@ -103,6 +103,8 @@ def compare_column_type(
     Dispatches based on dialect:
     - For CASE_INSENSITIVE_DIALECTS: case-insensitive string comparison.
     - For all others: resolves expected_type to a SQLAlchemy type class and uses isinstance().
+      A name the dialect module does not export resolves against the generic sqlalchemy
+      namespace instead, and then matches only a column of that same type name.
 
     With ``strict``, a name the dialect can conclusively not resolve raises
     InvalidExpectationConfigurationError. Without it, the name is a plain mismatch, which
@@ -124,10 +126,9 @@ def compare_column_type(
         resolution = _resolve_type_name(
             execution_engine=execution_engine, expected_type=expected_type
         )
-        if strict and not resolution.types and resolution.conclusive:
+        if strict and not resolution.resolves and resolution.conclusive:
             raise _unresolvable_type_error(execution_engine, [expected_type])
-        success = isinstance(actual_column_type, tuple(resolution.types))
-        return success, type(actual_column_type).__name__
+        return resolution.matches(actual_column_type), type(actual_column_type).__name__
 
 
 def compare_column_type_list(
@@ -139,7 +140,8 @@ def compare_column_type_list(
 
     Dispatches based on dialect:
     - For CASE_INSENSITIVE_DIALECTS: case-insensitive string comparison against each type.
-    - For all others: resolves each type to a SQLAlchemy type class and uses isinstance().
+    - For all others: resolves each type to a SQLAlchemy type class and uses isinstance(),
+      resolving a name the dialect module lacks as compare_column_type does.
 
     Returns:
         (success, observed_value) where observed_value is the type string representation.
@@ -163,19 +165,19 @@ def compare_column_type_list(
             )
             return success, ret_type
     else:
-        types: list = []
-        conclusive = True
-        for type_ in expected_types_list:
-            resolution = _resolve_type_name(execution_engine=execution_engine, expected_type=type_)
-            types.extend(resolution.types)
-            conclusive = conclusive and resolution.conclusive
+        resolutions = [
+            _resolve_type_name(execution_engine=execution_engine, expected_type=type_)
+            for type_ in expected_types_list
+        ]
         # A type list is routinely written to span backends, so one name this dialect
         # cannot resolve is normal. Only a list that resolves to nothing at all, and
         # whose every name the dialect could speak to, is a configuration error. An
         # empty list names nothing to report, and keeps reporting a failed match.
-        if expected_types_list and not types and conclusive:
+        if resolutions and all(
+            not resolution.resolves and resolution.conclusive for resolution in resolutions
+        ):
             raise _unresolvable_type_error(execution_engine, expected_types_list)
-        success = isinstance(actual_column_type, tuple(types))
+        success = any(resolution.matches(actual_column_type) for resolution in resolutions)
         return success, type(actual_column_type).__name__
 
 
@@ -223,13 +225,33 @@ def _compare_type_string(actual_column_type: Any, expected_type: str) -> bool:
 class _Resolution(NamedTuple):
     """The outcome of resolving one type name against a dialect.
 
-    ``conclusive`` is False where an empty ``types`` is not evidence of a typo: the name
+    ``types`` match a column by isinstance. ``generic_types`` stand in for a name the
+    dialect module does not export, and match only a column reported under that same
+    name: dialect types subclass generic ones for reasons other than being them (Redshift's
+    SUPER, GEOMETRY and HLLSKETCH are TEXT subclasses, its TIMETZ a TIME subclass), so
+    isinstance alone would accept a column whose observed type is a different one.
+
+    ``conclusive`` is False where an unresolved name is not evidence of a typo: the name
     is a real sqlalchemy type the dialect does not compare against, or support for it
     is missing.
     """
 
     types: list
     conclusive: bool = True
+    generic_types: tuple[type, ...] = ()
+
+    @property
+    def resolves(self) -> bool:
+        return bool(self.types or self.generic_types)
+
+    def matches(self, actual_column_type: Any) -> bool:
+        if isinstance(actual_column_type, tuple(self.types)):
+            return True
+        return any(
+            isinstance(actual_column_type, generic_type)
+            and type(actual_column_type).__name__ == generic_type.__name__
+            for generic_type in self.generic_types
+        )
 
 
 _INCONCLUSIVE = _Resolution(types=[], conclusive=False)
@@ -264,7 +286,9 @@ def _resolve_type_name(
             # A dialect module re-exports only the subset of generic types it chooses to.
             # Oracle exports NUMBER and VARCHAR2 but not INTEGER, yet reflects an INTEGER
             # column as a generic sqlalchemy.INTEGER.
-            types = _generic_candidates(expected_type)
+            generic_types = _generic_candidates(expected_type)
+            if generic_types:
+                return _Resolution(types=[], generic_types=tuple(generic_types))
         if not types and _sqlalchemy_types(expected_type):
             # A real sqlalchemy type this dialect does not compare against, such as the
             # Integer base class or the INT alias, is not a misspelling.

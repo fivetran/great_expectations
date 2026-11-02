@@ -880,6 +880,21 @@ class _PartialDialectModule:
     NUMBER = sa.types.NUMERIC
 
 
+class _TextSubtype(sa.types.TEXT):
+    """Shaped like Redshift's SUPER, GEOMETRY and HLLSKETCH: TEXT subclasses that are not text."""
+
+
+class _TimeSubtype(sa.types.TIME):
+    """Shaped like Redshift's TIMETZ, a TIME subclass reported under its own name."""
+
+
+class _DialectTime(sa.types.TIME):
+    """A dialect's own TIME, as Redshift reflects a TIME column (``postgresql.TIME``)."""
+
+
+_DialectTime.__name__ = "TIME"
+
+
 class TestPartialDialectModuleFallback:
     engine = _StubEngine("oracle", dialect_module=_PartialDialectModule())
 
@@ -931,6 +946,30 @@ class TestPartialDialectModuleFallback:
         """A sqlalchemy class that is not a ``TypeEngine`` is not a candidate."""
         with pytest.raises(InvalidExpectationConfigurationError, match=name):
             compare_column_type(self.engine, sa.types.INTEGER(), name, strict=True)
+
+    @pytest.mark.parametrize(
+        "actual_type, expected_name",
+        [(_TextSubtype(), "TEXT"), (_TimeSubtype(), "TIME")],
+    )
+    def test_generic_fallback_does_not_match_a_differently_named_subtype(
+        self, actual_type, expected_name
+    ):
+        """A column reported as another type does not match a generically resolved name."""
+        success, observed = compare_column_type(
+            self.engine, actual_type, expected_name, strict=True
+        )
+        assert success is False
+        assert observed == type(actual_type).__name__
+
+    def test_generic_fallback_in_a_list_does_not_match_a_differently_named_subtype(self):
+        success, _obs = compare_column_type_list(self.engine, _TextSubtype(), ["TEXT"])
+        assert success is False
+
+    def test_generic_fallback_matches_a_same_named_dialect_subtype(self):
+        """A dialect's own TIME is reported as TIME, so the generic TIME matches it."""
+        success, observed = compare_column_type(self.engine, _DialectTime(), "TIME", strict=True)
+        assert success is True
+        assert observed == "TIME"
 
 
 # ===========================================================================
