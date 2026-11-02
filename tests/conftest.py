@@ -45,9 +45,6 @@ from great_expectations.data_context.data_context.context_factory import (
 from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
 )
-from great_expectations.data_context.store.gx_cloud_store_backend import (
-    GXCloudStoreBackend,
-)
 from great_expectations.data_context.types.base import (
     DataContextConfig,
     GXCloudConfig,
@@ -1498,64 +1495,6 @@ def ge_cloud_config(
         workspace_id=ge_cloud_workspace_id,
         access_token=ge_cloud_access_token,
     )
-
-
-@pytest.fixture(scope="function")
-def empty_ge_cloud_data_context_config(
-    ge_cloud_base_url, ge_cloud_organization_id, ge_cloud_access_token
-):
-    config_yaml_str = f"""
-stores:
-  default_expectations_store:
-    class_name: ExpectationsStore
-    store_backend:
-      class_name: {GXCloudStoreBackend.__name__}
-      ge_cloud_base_url: {ge_cloud_base_url}
-      ge_cloud_resource_type: expectation_suite
-      ge_cloud_credentials:
-        access_token: {ge_cloud_access_token}
-        organization_id: {ge_cloud_organization_id}
-      suppress_store_backend_id: True
-
-  default_validation_results_store:
-    class_name: ValidationResultsStore
-    store_backend:
-      class_name: {GXCloudStoreBackend.__name__}
-      ge_cloud_base_url: {ge_cloud_base_url}
-      ge_cloud_resource_type: validation_result
-      ge_cloud_credentials:
-        access_token: {ge_cloud_access_token}
-        organization_id: {ge_cloud_organization_id}
-      suppress_store_backend_id: True
-
-  validation_definition_store:
-    class_name: ValidationDefinitionStore
-    store_backend:
-      class_name: {GXCloudStoreBackend.__name__}
-      ge_cloud_base_url: {ge_cloud_base_url}
-      ge_cloud_resource_type: validation_definition
-      ge_cloud_credentials:
-        access_token: {ge_cloud_access_token}
-        organization_id: {ge_cloud_organization_id}
-      suppress_store_backend_id: True
-
-  default_checkpoint_store:
-    class_name: CheckpointStore
-    store_backend:
-      class_name: {GXCloudStoreBackend.__name__}
-      ge_cloud_base_url: {ge_cloud_base_url}
-      ge_cloud_resource_type: checkpoint
-      ge_cloud_credentials:
-        access_token: {ge_cloud_access_token}
-        organization_id: {ge_cloud_organization_id}
-      suppress_store_backend_id: True
-
-expectations_store_name: default_expectations_store
-validation_results_store_name: default_validation_results_store
-checkpoint_store_name: default_checkpoint_store
-"""
-    data_context_config_dict = yaml.load(config_yaml_str)
-    return DataContextConfig(**data_context_config_dict)
 
 
 # GX Cloud has been shut down, so cloud contexts can no longer be constructed. The fixtures that

@@ -16,9 +16,6 @@ from great_expectations.core.yaml_handler import YAMLHandler
 from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
 )
-from great_expectations.data_context.store.gx_cloud_store_backend import (
-    GXCloudStoreBackend,
-)
 from great_expectations.data_context.types.base import DataContextConfig
 from great_expectations.data_context.util import file_relative_path
 
@@ -223,73 +220,6 @@ def data_context_config_with_datasources(conn_string_password):
 def data_context_config_dict_with_datasources(data_context_config_with_datasources):
     """Wrapper fixture to transform `data_context_config_with_datasources` to a json dict"""
     return data_context_config_with_datasources.to_json_dict()
-
-
-@pytest.fixture
-def data_context_config_with_cloud_backed_stores(ge_cloud_access_token):
-    org_id = "a34595b2-267e-4469-b18f-774e65dc556f"
-    return DataContextConfig(
-        **{
-            "commented_map": {},
-            "config_version": 2,
-            "plugins_directory": "plugins/",
-            "validation_results_store_name": "does_not_have_to_be_real",
-            "expectations_store_name": "expectations_store",
-            "config_variables_file_path": "uncommitted/config_variables.yml",
-            "stores": {
-                "default_checkpoint_store": {
-                    "class_name": "CheckpointStore",
-                    "store_backend": {
-                        "class_name": GXCloudStoreBackend.__name__,
-                        "ge_cloud_base_url": "http://foo/bar/",
-                        "ge_cloud_credentials": {
-                            "access_token": ge_cloud_access_token,
-                            "organization_id": org_id,
-                        },
-                        "ge_cloud_resource_type": "checkpoint",
-                        "suppress_store_backend_id": True,
-                    },
-                },
-                "default_expectations_store": {
-                    "class_name": "ExpectationsStore",
-                    "store_backend": {
-                        "class_name": GXCloudStoreBackend.__name__,
-                        "ge_cloud_base_url": "http://foo/bar/",
-                        "ge_cloud_credentials": {
-                            "access_token": ge_cloud_access_token,
-                            "organization_id": org_id,
-                        },
-                        "ge_cloud_resource_type": "expectation_suite",
-                        "suppress_store_backend_id": True,
-                    },
-                },
-                "default_validation_results_store": {
-                    "class_name": "ValidationResultsStore",
-                    "store_backend": {
-                        "class_name": GXCloudStoreBackend.__name__,
-                        "ge_cloud_base_url": "http://foo/bar/",
-                        "ge_cloud_credentials": {
-                            "access_token": ge_cloud_access_token,
-                            "organization_id": org_id,
-                        },
-                        "ge_cloud_resource_type": "validation_result",
-                        "suppress_store_backend_id": True,
-                    },
-                },
-            },
-            "data_docs_sites": {},
-            "analytics_enabled": True,
-            "data_context_id": "6a52bdfa-e182-455b-a825-e69f076e67d6",
-        }
-    )
-
-
-@pytest.fixture
-def data_context_config_dict_with_cloud_backed_stores(
-    data_context_config_with_cloud_backed_stores,
-):
-    """Wrapper fixture to transform `data_context_config_with_cloud_backed_stores` to a json dict"""
-    return data_context_config_with_cloud_backed_stores.to_json_dict()
 
 
 @pytest.fixture
