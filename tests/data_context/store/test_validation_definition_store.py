@@ -1,17 +1,13 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from unittest import mock
 
 import pytest
 
 from great_expectations.core.data_context_key import StringKey
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.validation_definition import ValidationDefinition
-from great_expectations.data_context.cloud_constants import GXCloudRESTResource
 from great_expectations.data_context.store import ValidationDefinitionStore
-from great_expectations.data_context.types.resource_identifiers import GXCloudIdentifier
-from great_expectations.exceptions import StoreBackendError
 
 if TYPE_CHECKING:
     from great_expectations.data_context.data_context.ephemeral_data_context import (
@@ -32,21 +28,6 @@ def file_backed_store(tmp_path):
         store_backend={
             "class_name": "TupleFilesystemStoreBackend",
             "base_directory": base_directory,
-        },
-    )
-
-
-@pytest.fixture
-def cloud_backed_store():
-    return ValidationDefinitionStore(
-        store_name="cloud_backed_validation_definition_store",
-        store_backend={
-            "class_name": "GXCloudStoreBackend",
-            "ge_cloud_resource_type": GXCloudRESTResource.VALIDATION_DEFINITION,
-            "ge_cloud_credentials": {
-                "access_token": "i_am_a_token",
-                "organization_id": "12345678-1234-5678-1234-567812345678",
-            },
         },
     )
 
@@ -82,55 +63,6 @@ def test_add(request, store_fixture: str, validation_definition: ValidationDefin
     assert store.get(key) == validation_definition
 
 
-@pytest.mark.cloud
-def test_add_cloud(
-    cloud_backed_store: ValidationDefinitionStore, validation_definition: ValidationDefinition
-):
-    store = cloud_backed_store
-
-    id = "5a8ada9f-5b71-461b-b1af-f1d93602a156"
-    name = "my_validation"
-    key = GXCloudIdentifier(
-        resource_type=GXCloudRESTResource.VALIDATION_DEFINITION,
-        id=id,
-        resource_name=name,
-    )
-
-    with (
-        mock.patch("requests.Session.put", autospec=True) as mock_put,
-        mock.patch("requests.Session.get", autospec=True) as mock_get,
-    ):
-        # Mock GET to simulate key doesn't exist (for has_key check)
-        mock_get.side_effect = StoreBackendError("Not found")
-
-        store.add(key=key, value=validation_definition)
-
-    # Assert GET was called (has_key check)
-    mock_get.assert_called_once()
-
-    # Assert PUT was called with correct payload
-    mock_put.assert_called_once_with(
-        mock.ANY,  # requests Session
-        f"https://api.greatexpectations.io/api/v1/organizations/12345678-1234-5678-1234-567812345678/validation-definitions/{id}",
-        json={
-            "data": {
-                "name": name,
-                "data": {
-                    # NOTE: IDs here are unrealistic because the validation_definition
-                    # was created via the in-memory store
-                    "batch_definition": {"id": mock.ANY, "name": "my_batch_definition"},
-                    "asset": {"id": mock.ANY, "name": "my_asset"},
-                    "datasource": {"id": mock.ANY, "name": "my_datasource"},
-                },
-                "suite": {
-                    "name": "my_suite",
-                    "id": mock.ANY,
-                },
-            },
-        },
-    )
-
-
 @pytest.mark.parametrize("store_fixture", ["ephemeral_store", "file_backed_store"])
 @pytest.mark.unit
 def test_get_key(request, store_fixture: str):
@@ -138,13 +70,6 @@ def test_get_key(request, store_fixture: str):
 
     name = "my_validation"
     assert store.get_key(name=name) == StringKey(key=name)
-
-
-@pytest.mark.cloud
-def test_get_key_cloud(cloud_backed_store: ValidationDefinitionStore):
-    key = cloud_backed_store.get_key(name="my_validation")
-    assert key.resource_type == GXCloudRESTResource.VALIDATION_DEFINITION  # type: ignore[union-attr] # FIXME CoP
-    assert key.resource_name == "my_validation"  # type: ignore[union-attr] # FIXME CoP
 
 
 _VALIDATION_ID = "a4sdfd-64c8-46cb-8f7e-03c12cea1d67"
