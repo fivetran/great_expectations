@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import functools
+import itertools
 import logging
 import re
 import warnings
@@ -1897,6 +1898,72 @@ representation."""  # noqa: E501 # FIXME CoP
         return {"success": success, "result": {"observed_value": metric_value}}
 
 
+# Whether a query names its data asset is decided by splitting on five separators, so the
+# punctuation written around `{batch}` changes the answer: `{batch};` and `FROM\t{batch}` are both
+# substituted by the `str.format` renderer in `QueryMetricProvider`, yet neither survives the split.
+# A placeholder that appears only inside a comment or a string literal, on the other hand, is never
+# the asset being read but does survive it. Blank the non-code regions first, then split on any run
+# of whitespace or SQL punctuation.
+#
+# What counts as a comment or a string literal depends on the dialect, which this check cannot see:
+# it runs on the query text alone, before any datasource is involved. Four rules differ.
+#   - `#` starts a comment in MySQL, BigQuery and ClickHouse, prefixes a temp table in SQL Server
+#     (`#ids`), and is the bitwise XOR operator in PostgreSQL.
+#   - `--` starts a comment in MySQL only when whitespace follows; PostgreSQL, SQLite and Trino need
+#     none. So `a--1` is arithmetic in MySQL, and the text alone cannot tell it from `--x`.
+#   - A backslash escapes the next character in MySQL, BigQuery, Spark SQL and Snowflake strings; in
+#     PostgreSQL, SQL Server and SQLite, `'C:\'` is a complete string.
+#   - `$$...$$` quotes a string in PostgreSQL and Snowflake, and PostgreSQL also takes
+#     `$tag$...$tag$`; in MySQL `$` is an ordinary identifier character.
+# Any one reading blanks real code under some other dialect, and the warning then calls a correctly
+# parameterized query unparameterized. So the query is read under every combination of these four
+# rules and names its data asset if `{batch}` is code under at least one. The warning fires only for
+# a placeholder that is a comment or a string under all of them. The cost is a warning missed where
+# dialects disagree, such as `FROM my_table --x {batch}`; an advisory warning should err toward
+# silence. Syntax outside these four rules is not modeled and can still blank real code: backtick
+# and bracket identifiers, `//` comments, triple-quoted strings and MySQL `/*! ... */`.
+_SQL_TOKEN_SEPARATORS = re.compile(r"[\s(),;/]+")
+
+
+def _quoted_literal(quote: str, *, backslash_escapes: bool) -> str:
+    if backslash_escapes:
+        return rf"{quote}(?:[^{quote}\\]|{quote}{quote}|\\.)*{quote}"
+    return rf"{quote}(?:[^{quote}]|{quote}{quote})*{quote}"
+
+
+@functools.cache
+def _sql_non_code_patterns() -> Tuple[re.Pattern[str], ...]:
+    """One pattern per reading of the dialect-dependent rules above, built once.
+
+    Each pattern is a single left-to-right pass over every non-code token, so whichever token
+    opens first wins: `-- don't` stays a comment and `'a--b'` stays a string.
+    """
+    patterns: List[re.Pattern[str]] = []
+    for hash_comments, dash_needs_space, backslash_escapes, dollar_quotes in itertools.product(
+        (False, True), repeat=4
+    ):
+        alternatives = [
+            r"/\*.*?\*/",
+            _quoted_literal("'", backslash_escapes=backslash_escapes),
+            _quoted_literal('"', backslash_escapes=backslash_escapes),
+            r"--(?=\s|\Z)[^\n]*" if dash_needs_space else r"--[^\n]*",
+        ]
+        if hash_comments:
+            alternatives.append(r"#[^\n]*")
+        if dollar_quotes:
+            alternatives += [r"\$\$.*?\$\$", r"\$([A-Za-z_][A-Za-z0-9_]*)\$.*?\$\1\$"]
+        patterns.append(re.compile("|".join(alternatives), re.DOTALL))
+    return tuple(patterns)
+
+
+def _query_names_a_data_asset(query: str) -> bool:
+    """Whether `{batch}` is code, not a comment or string literal, under any reading of `query`."""
+    return any(
+        "{batch}" in _SQL_TOKEN_SEPARATORS.split(pattern.sub(" ", query))
+        for pattern in _sql_non_code_patterns()
+    )
+
+
 class QueryExpectation(BatchExpectation, ABC):
     """Base class for QueryExpectations.
 
@@ -1959,7 +2026,7 @@ class QueryExpectation(BatchExpectation, ABC):
                 for x in re.split(", |\\(|\n|\\)| |/", query)
                 if x.upper() and x.upper() not in valid_sql_tokens_and_types
             }
-            assert "{batch}" in parsed_query, (
+            assert _query_names_a_data_asset(query), (
                 "Your query appears to not be parameterized for a data asset. "
                 "By not parameterizing your query with `{batch}`, "
                 "you may not be validating against your intended data asset, or the expectation may fail."  # noqa: E501 # FIXME CoP
