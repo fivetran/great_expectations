@@ -340,3 +340,18 @@ def test_strictly_decreasing_large_uint64_passes(batch_for_datasource: Batch) ->
 
     assert result.success
     assert result.result["unexpected_count"] == 0
+
+
+@pytest.mark.integration
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=LARGE_UINT64_ASCENDING,
+)
+def test_decreasing_large_uint64_detects_reversal(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeDecreasing(column=COLUMN, strictly=False),
+        result_format=ResultFormat.COMPLETE,
+    )
+
+    assert not result.success
+    assert result.result["unexpected_count"] == 1

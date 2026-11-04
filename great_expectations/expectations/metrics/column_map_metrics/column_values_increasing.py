@@ -32,7 +32,7 @@ class ColumnValuesIncreasing(ColumnMapMetricProvider):
         **kwargs,
     ):
         # Compare adjacent values instead of subtracting them.  ``Series.diff()``
-        # wraps for unsigned integer dtypes (3 - 2 on uint8 is 255) and can also
+        # wraps for unsigned integer dtypes (2 - 3 on uint8 is 255) and can also
         # overflow at the int64 boundaries, which makes decreasing values look
         # increasing.  A comparison cannot overflow.
         # ``shift`` without a fill value promotes integers to float64 to hold the

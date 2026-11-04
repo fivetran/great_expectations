@@ -2175,7 +2175,7 @@ def test_map_column_values_increasing_pd():
 
 @pytest.mark.big
 def test_map_column_values_increasing_pd_unsigned_integer():
-    # ``Series.diff()`` wraps around for unsigned integer dtypes, so 3 - 2 on
+    # ``Series.diff()`` wraps around for unsigned integer dtypes, so 2 - 3 on
     # uint8 is 255 and a descending column looked strictly increasing.
     engine = build_pandas_engine(pd.DataFrame({"a": pd.Series([3, 2, 1], dtype="uint8")}))
 
