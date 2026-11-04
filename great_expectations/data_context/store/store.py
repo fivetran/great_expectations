@@ -19,9 +19,6 @@ from typing_extensions import TypedDict
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility.pydantic import ValidationError as PydanticValidationError
 from great_expectations.core.data_context_key import DataContextKey
-from great_expectations.data_context.store.gx_cloud_store_backend import (
-    GXCloudStoreBackend,
-)
 from great_expectations.data_context.store.store_backend import StoreBackend
 from great_expectations.data_context.types.resource_identifiers import (
     ConfigurationIdentifier,
@@ -165,7 +162,8 @@ class Store:
 
     @property
     def cloud_mode(self) -> bool:
-        return isinstance(self._store_backend, GXCloudStoreBackend)
+        # GX Cloud has been shut down, so no store backend runs in cloud mode.
+        return False
 
     @property
     def store_backend(self) -> StoreBackend:

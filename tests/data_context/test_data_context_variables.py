@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import copy
 import pathlib
-import urllib.parse
 from typing import TYPE_CHECKING, Any
-from unittest.mock import ANY as MOCK_ANY
 
 import pytest
 
@@ -16,7 +14,6 @@ from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
 )
 from great_expectations.data_context.data_context_variables import (
-    CloudDataContextVariables,
     DataContextVariables,
     DataContextVariableSchema,
     EphemeralDataContextVariables,
@@ -94,24 +91,6 @@ def file_data_context_variables(
 ) -> FileDataContextVariables:
     return FileDataContextVariables(
         data_context=empty_data_context,
-        config=data_context_config,
-        config_provider=StubConfigurationProvider(),
-    )
-
-
-@pytest.fixture
-def cloud_data_context_variables(
-    data_context_config: DataContextConfig,
-    ge_cloud_base_url: str,
-    ge_cloud_organization_id: str,
-    ge_cloud_workspace_id: str,
-    ge_cloud_access_token: str,
-) -> CloudDataContextVariables:
-    return CloudDataContextVariables(
-        ge_cloud_base_url=ge_cloud_base_url,
-        ge_cloud_organization_id=ge_cloud_organization_id,
-        ge_cloud_workspace_id=ge_cloud_workspace_id,
-        ge_cloud_access_token=ge_cloud_access_token,
         config=data_context_config,
         config_provider=StubConfigurationProvider(),
     )
@@ -205,7 +184,6 @@ def progress_bars() -> ProgressBarsConfig:
 def test_data_context_variables_get(
     ephemeral_data_context_variables: EphemeralDataContextVariables,
     file_data_context_variables: FileDataContextVariables,
-    cloud_data_context_variables: CloudDataContextVariables,
     data_context_config: dict,
     target_attr: DataContextVariableSchema,
 ) -> None:
@@ -220,9 +198,6 @@ def test_data_context_variables_get(
 
     # FileDataContextVariables
     _test_variables_get(file_data_context_variables)
-
-    # CloudDataContextVariables
-    _test_variables_get(cloud_data_context_variables)
 
 
 @pytest.mark.unit
@@ -295,7 +270,6 @@ def test_data_context_variables_get_with_substitutions(
 def test_data_context_variables_set(
     ephemeral_data_context_variables: EphemeralDataContextVariables,
     file_data_context_variables: FileDataContextVariables,
-    cloud_data_context_variables: CloudDataContextVariables,
     input_value: Any,
     target_attr: DataContextVariableSchema,
 ) -> None:
@@ -311,9 +285,6 @@ def test_data_context_variables_set(
     # FileDataContextVariables
     _test_variables_set(file_data_context_variables)
 
-    # CloudDataContextVariables
-    _test_variables_set(cloud_data_context_variables)
-
 
 @pytest.mark.unit
 def test_data_context_variables_save(
@@ -321,12 +292,6 @@ def test_data_context_variables_save(
     data_context_config_dict: dict,
     ephemeral_data_context_variables: EphemeralDataContextVariables,
     file_data_context_variables: FileDataContextVariables,
-    cloud_data_context_variables: CloudDataContextVariables,
-    # The below GX Cloud variables were used to instantiate the above CloudDataContextVariables
-    v1_cloud_base_url: str,
-    ge_cloud_organization_id: str,
-    ge_cloud_workspace_id: str,
-    ge_cloud_access_token: str,
 ) -> None:
     # EphemeralDataContextVariables
     ephemeral_data_context_variables.save()
@@ -343,46 +308,6 @@ def test_data_context_variables_save(
     file_data_context_variables.save()
 
     assert mock_save.call_count == 1
-
-    # CloudDataContextVariables
-    mock_put = mocker.patch("requests.Session.put", autospec=True)
-    type(mock_put.return_value).status_code = mocker.PropertyMock(return_value=200)
-
-    cloud_data_context_variables.save()
-
-    expected_config_dict = {
-        "analytics_enabled": True,
-        "data_context_id": "6a52bdfa-e182-455b-a825-e69f076e67d6",
-        "config_variables_file_path": "uncommitted/config_variables.yml",
-        "config_version": 3.0,
-        "data_docs_sites": {},
-        "plugins_directory": "plugins/",
-        "stores": {
-            "expectations_store": {
-                "class_name": "ExpectationsStore",
-                "store_backend": {
-                    "class_name": "TupleFilesystemStoreBackend",
-                    "base_directory": "expectations/",
-                },
-            },
-            "checkpoint_store": {"class_name": "CheckpointStore"},
-            "validation_results_store": {"class_name": "ValidationResultsStore"},
-            "validation_definition_store": {"class_name": "ValidationDefinitionStore"},
-        },
-    }
-
-    assert mock_put.call_count == 1
-    url = urllib.parse.urljoin(
-        v1_cloud_base_url,
-        f"organizations/{ge_cloud_organization_id}/workspaces/{ge_cloud_workspace_id}/data-context-variables",
-    )
-    mock_put.assert_called_with(
-        MOCK_ANY,  # requests.Session object
-        url,
-        json={
-            "data": expected_config_dict,
-        },
-    )
 
 
 @pytest.mark.unit
