@@ -2,6 +2,7 @@ import datetime as dt
 from typing import Sequence
 
 import pandas as pd
+import pytest
 
 import great_expectations.expectations as gxe
 from great_expectations.core.result_format import ResultFormat
@@ -299,11 +300,15 @@ def test_strictly_increasing_large_int64_passes(batch_for_datasource: Batch) -> 
     data_source_configs=DATA_SOURCES,
     data=LARGE_INT64_DESCENDING,
 )
-def test_strictly_increasing_large_int64_detects_reversal(
+# Non-strict comparison is the regression: an unseeded shift rounds both
+# values to equality, which incorrectly passes >= but still fails >.
+@pytest.mark.parametrize("strictly", [True, False])
+def test_increasing_large_int64_detects_reversal(
     batch_for_datasource: Batch,
+    strictly: bool,
 ) -> None:
     result = batch_for_datasource.validate(
-        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN, strictly=True),
+        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN, strictly=strictly),
         result_format=ResultFormat.COMPLETE,
     )
 
