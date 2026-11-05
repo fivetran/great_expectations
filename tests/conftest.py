@@ -8,7 +8,6 @@ import pathlib
 import random
 import shutil
 import string
-import urllib.parse
 import uuid
 import warnings
 from dataclasses import dataclass
@@ -44,9 +43,6 @@ from great_expectations.data_context.data_context.context_factory import (
 )
 from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
-)
-from great_expectations.data_context.store.gx_cloud_store_backend import (
-    GXCloudStoreBackend,
 )
 from great_expectations.data_context.types.base import (
     DataContextConfig,
@@ -84,8 +80,8 @@ from great_expectations.validator.validator import Validator
 
 # GX Cloud has been shut down, so the fake-cloud-API helper that previously hosted these
 # placeholder credential values no longer exists. The values are retained here only so the
-# surviving store-backend and config tests (which exercise cloud store/config classes without
-# constructing a cloud context) keep working; nothing here builds a live cloud context.
+# surviving config tests (which exercise cloud config classes without constructing a cloud
+# context) keep working; nothing here builds a live cloud context.
 GX_CLOUD_MOCK_BASE_URL: Final[str] = "https://app.greatexpectations.fake.io/"
 DUMMY_JWT_TOKEN: Final[str] = (
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
@@ -1457,11 +1453,6 @@ def ge_cloud_base_url() -> str:
 
 
 @pytest.fixture
-def v1_cloud_base_url(ge_cloud_base_url: str) -> str:
-    return urllib.parse.urljoin(ge_cloud_base_url, "api/v1/")
-
-
-@pytest.fixture
 def ge_cloud_organization_id() -> str:
     return FAKE_ORG_ID
 
@@ -1498,64 +1489,6 @@ def ge_cloud_config(
         workspace_id=ge_cloud_workspace_id,
         access_token=ge_cloud_access_token,
     )
-
-
-@pytest.fixture(scope="function")
-def empty_ge_cloud_data_context_config(
-    ge_cloud_base_url, ge_cloud_organization_id, ge_cloud_access_token
-):
-    config_yaml_str = f"""
-stores:
-  default_expectations_store:
-    class_name: ExpectationsStore
-    store_backend:
-      class_name: {GXCloudStoreBackend.__name__}
-      ge_cloud_base_url: {ge_cloud_base_url}
-      ge_cloud_resource_type: expectation_suite
-      ge_cloud_credentials:
-        access_token: {ge_cloud_access_token}
-        organization_id: {ge_cloud_organization_id}
-      suppress_store_backend_id: True
-
-  default_validation_results_store:
-    class_name: ValidationResultsStore
-    store_backend:
-      class_name: {GXCloudStoreBackend.__name__}
-      ge_cloud_base_url: {ge_cloud_base_url}
-      ge_cloud_resource_type: validation_result
-      ge_cloud_credentials:
-        access_token: {ge_cloud_access_token}
-        organization_id: {ge_cloud_organization_id}
-      suppress_store_backend_id: True
-
-  validation_definition_store:
-    class_name: ValidationDefinitionStore
-    store_backend:
-      class_name: {GXCloudStoreBackend.__name__}
-      ge_cloud_base_url: {ge_cloud_base_url}
-      ge_cloud_resource_type: validation_definition
-      ge_cloud_credentials:
-        access_token: {ge_cloud_access_token}
-        organization_id: {ge_cloud_organization_id}
-      suppress_store_backend_id: True
-
-  default_checkpoint_store:
-    class_name: CheckpointStore
-    store_backend:
-      class_name: {GXCloudStoreBackend.__name__}
-      ge_cloud_base_url: {ge_cloud_base_url}
-      ge_cloud_resource_type: checkpoint
-      ge_cloud_credentials:
-        access_token: {ge_cloud_access_token}
-        organization_id: {ge_cloud_organization_id}
-      suppress_store_backend_id: True
-
-expectations_store_name: default_expectations_store
-validation_results_store_name: default_validation_results_store
-checkpoint_store_name: default_checkpoint_store
-"""
-    data_context_config_dict = yaml.load(config_yaml_str)
-    return DataContextConfig(**data_context_config_dict)
 
 
 # GX Cloud has been shut down, so cloud contexts can no longer be constructed. The fixtures that
