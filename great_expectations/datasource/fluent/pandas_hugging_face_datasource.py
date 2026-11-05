@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any, ClassVar, List, Literal, Optional, Sequen
 import pandas as pd
 
 import great_expectations.exceptions as gx_exceptions
-from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility import datasets, pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.batch import LegacyBatchDefinition
@@ -34,7 +33,6 @@ class HuggingFaceDatasourceError(Exception):
     """Raised when a Hugging Face dataset cannot be materialized."""
 
 
-@public_api
 class HuggingFaceBatchDefinition(BatchDefinition):
     """A named configuration and split to load from a Hugging Face repository."""
 
@@ -63,13 +61,11 @@ class HuggingFaceBatchDefinition(BatchDefinition):
         options.update(batch_parameters or {})
         return self.data_asset.build_batch_request(options=options)
 
-    @public_api
     @override
     def get_batch(self, batch_parameters: Optional[BatchParameters] = None) -> Batch:
         return self.data_asset.get_batch(self.build_batch_request(batch_parameters))
 
 
-@public_api
 class HuggingFaceDatasetAsset(DataAsset):
     """A tabular dataset from a Hugging Face repository."""
 
@@ -192,7 +188,6 @@ class HuggingFaceDatasetAsset(DataAsset):
             batch_definition=legacy_definition,
         )
 
-    @public_api
     def add_batch_definition_split(
         self, name: str, config: Optional[str], split: str
     ) -> HuggingFaceBatchDefinition:
@@ -210,7 +205,6 @@ class HuggingFaceDatasetAsset(DataAsset):
             name=name, config=config, split=split, whole_config=False
         )
 
-    @public_api
     def add_batch_definition_whole_config(
         self, name: str, config: Optional[str]
     ) -> HuggingFaceBatchDefinition:
@@ -249,7 +243,6 @@ class HuggingFaceDatasetAsset(DataAsset):
         return definition
 
 
-@public_api
 class PandasHuggingFaceDatasource(_PandasDatasource):
     """Pandas backed datasource for datasets hosted on Hugging Face Hub.
 
@@ -280,7 +273,6 @@ class PandasHuggingFaceDatasource(_PandasDatasource):
             for asset in self.assets:
                 asset.test_connection()
 
-    @public_api
     def add_dataset_asset(
         self,
         name: str,
