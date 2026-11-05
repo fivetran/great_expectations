@@ -766,7 +766,12 @@ jobs:
 
   marker-tests-snowflake:
     needs: [unit-tests, static-analysis, check-actor-permissions, python-versions]
-    if: github.event.pull_request.draft == false
+    # TEMPORARILY DISABLED: the Snowflake account these tests run against is unavailable, so every
+    # shard fails and turns `ci-required` red. `ci-required` treats a skipped job as a pass.
+    # Tag pushes (releases) still run it: `build-n-publish` needs this job, and a skipped
+    # dependency would skip the PyPI publish without any error.
+    # To re-enable, restore: if: github.event.pull_request.draft == false
+    if: github.event_name == 'push'
     env:
       GX_PYTHON_EXPERIMENTAL: true # allow for python 3.15+
       # snowflake
