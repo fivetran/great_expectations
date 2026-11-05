@@ -342,7 +342,6 @@ def test_strictly_decreasing_large_uint64_passes(batch_for_datasource: Batch) ->
     assert result.result["unexpected_count"] == 0
 
 
-@pytest.mark.integration
 @parameterize_batch_for_data_sources(
     data_source_configs=DATA_SOURCES,
     data=LARGE_UINT64_ASCENDING,
