@@ -51,9 +51,10 @@ class HuggingFaceBatchDefinition(BatchDefinition):
     ) -> BatchRequest:
         invalid = set(batch_parameters or {}) - {"revision"}
         if invalid:
-            raise ValueError(
+            message = (
                 f"Only 'revision' may be provided as a batch parameter; got {sorted(invalid)}."
             )
+            raise ValueError(message)
         options: BatchParameters = {
             "config": self.config,
             "split": self.split,
@@ -98,20 +99,19 @@ class HuggingFaceDatasetAsset(DataAsset):
         partitioner: None = None,
     ) -> BatchRequest:
         if batch_slice is not None or partitioner is not None:
-            raise gx_exceptions.InvalidBatchRequestError(
-                "Hugging Face dataset assets do not support batch slices or partitioners."
-            )
+            message = "Hugging Face dataset assets do not support batch slices or partitioners."
+            raise gx_exceptions.InvalidBatchRequestError(message)
         options = dict(options or {})
         if not {"config", "split", "whole_config"}.issubset(options):
-            raise gx_exceptions.InvalidBatchRequestError(
-                "Use a HuggingFaceBatchDefinition to select a configuration and split."
-            )
+            message = "Use a HuggingFaceBatchDefinition to select a configuration and split."
+            raise gx_exceptions.InvalidBatchRequestError(message)
         invalid = set(options) - set(self.get_batch_parameters_keys())
         if invalid:
-            raise gx_exceptions.InvalidBatchRequestError(
+            message = (
                 f"Unsupported Hugging Face batch parameter(s): {sorted(invalid)}. "
                 "Supported parameters are config, split, whole_config, and revision."
             )
+            raise gx_exceptions.InvalidBatchRequestError(message)
         return BatchRequest(
             datasource_name=self.datasource.name,
             data_asset_name=self.name,
@@ -125,10 +125,11 @@ class HuggingFaceDatasetAsset(DataAsset):
             or batch_request.data_asset_name != self.name
             or not {"config", "split", "whole_config"}.issubset(batch_request.options)
         ):
-            raise gx_exceptions.InvalidBatchRequestError(
+            message = (
                 "Batch request must identify this Hugging Face asset and include its "
                 "configuration and split selection."
             )
+            raise gx_exceptions.InvalidBatchRequestError(message)
 
     @override
     def get_batch(self, batch_request: BatchRequest) -> Batch:
@@ -144,17 +145,19 @@ class HuggingFaceDatasetAsset(DataAsset):
         try:
             dataframe = dataset if isinstance(dataset, pd.DataFrame) else dataset.to_pandas()
         except Exception:
-            raise HuggingFaceDatasourceError(
+            message = (
                 "The selected Hugging Face dataset could not be converted to a Pandas "
                 "DataFrame. Use a map-style dataset with scalar tabular features."
-            ) from None
+            )
+            raise HuggingFaceDatasourceError(message) from None
         if self.columns is not None:
             missing = [column for column in self.columns if column not in dataframe.columns]
             if missing:
-                raise HuggingFaceDatasourceError(
+                message = (
                     f"Requested Hugging Face column(s) are missing: {missing}. "
                     f"Available columns: {list(dataframe.columns)}."
                 )
+                raise HuggingFaceDatasourceError(message)
             dataframe = dataframe.loc[:, self.columns]
         complex_columns = [
             column
@@ -162,10 +165,11 @@ class HuggingFaceDatasetAsset(DataAsset):
             if dataframe[column].map(lambda value: not pd.api.types.is_scalar(value)).any()
         ]
         if complex_columns:
-            raise HuggingFaceDatasourceError(
+            message = (
                 "Hugging Face features containing nested or non-scalar values are not supported "
                 f"by this datasource. Unsupported columns: {complex_columns}."
             )
+            raise HuggingFaceDatasourceError(message)
 
         spec = RuntimeDataBatchSpec(batch_data=dataframe)
         data, markers = source.get_execution_engine().get_batch_data_and_markers(spec)
@@ -227,7 +231,8 @@ class HuggingFaceDatasetAsset(DataAsset):
         self, name: str, config: Optional[str], split: Optional[str], whole_config: bool
     ) -> HuggingFaceBatchDefinition:
         if any(definition.name == name for definition in self.batch_definitions):
-            raise ValueError(f'BatchDefinition "{name}" already exists on asset "{self.name}".')
+            message = f'BatchDefinition "{name}" already exists on asset "{self.name}".'
+            raise ValueError(message)
         definition = HuggingFaceBatchDefinition(
             name=name, config=config, split=split, whole_config=whole_config
         )
@@ -315,6 +320,34 @@ class PandasHuggingFaceDatasource(_PandasDatasource):
                 UserWarning,
                 stacklevel=2,
             )
+        try:
+            package = datasets.get_datasets_module()
+            result = self._request_dataset(package, config, split, whole_config, revision)
+        except ModuleNotFoundError as err:
+            if "optional 'datasets' package" in str(err):
+                raise
+            message = (
+                f"Could not load Hugging Face repository '{self.repository}'. Check that the "
+                "repository, configuration, split, revision, and credentials are valid."
+            )
+            raise HuggingFaceDatasourceError(message) from None
+        except Exception:
+            # Do not include exception text: library errors can contain request URLs or tokens.
+            message = (
+                f"Could not load Hugging Face repository '{self.repository}'. Check access, "
+                "the configuration, split, revision, and Hub endpoint."
+            )
+            raise HuggingFaceDatasourceError(message) from None
+        return self._materialize_dataset(package, result, whole_config)
+
+    def _request_dataset(
+        self,
+        package: Any,
+        config: Optional[str],
+        split: Optional[str],
+        whole_config: bool,
+        revision: Optional[str],
+    ) -> Any:
         kwargs: dict[str, Any] = {
             "split": None if whole_config else split,
             "revision": revision,
@@ -322,54 +355,38 @@ class PandasHuggingFaceDatasource(_PandasDatasource):
         }
         if config is not None:
             kwargs["name"] = config
-        try:
-            # datasets reads the Hub endpoint from its module configuration. Serialize the
-            # temporary endpoint override to avoid cross-thread contamination during loading.
-            package = datasets.get_datasets_module()
-            if not package:
+        if not package:
+            return datasets.load_dataset(self.repository, **kwargs)
+        # Serialize the temporary endpoint override to avoid cross-thread contamination.
+        with _ENDPOINT_LOCK:
+            old_endpoint = package.config.HF_ENDPOINT
+            package.config.HF_ENDPOINT = self.hf_endpoint.rstrip("/")
+            try:
                 return datasets.load_dataset(self.repository, **kwargs)
-            with _ENDPOINT_LOCK:
-                old_endpoint = package.config.HF_ENDPOINT
-                package.config.HF_ENDPOINT = self.hf_endpoint.rstrip("/")
-                try:
-                    result = datasets.load_dataset(self.repository, **kwargs)
-                finally:
-                    package.config.HF_ENDPOINT = old_endpoint
-            if whole_config:
-                if not hasattr(result, "values"):
-                    raise HuggingFaceDatasourceError(
-                        "Loading the whole configuration did not return a DatasetDict."
-                    )
-                pieces = list(result.values())
-                if not pieces:
-                    return pd.DataFrame()
-                concatenate = getattr(package, "concatenate_datasets", None)
-                if concatenate is None:
-                    raise HuggingFaceDatasourceError(
-                        "The installed datasets package cannot combine configuration splits."
-                    )
-                result = concatenate(pieces)
-            if not hasattr(result, "to_pandas"):
-                raise HuggingFaceDatasourceError(
-                    "Streaming Hugging Face datasets are not supported. Disable streaming and "
-                    "use a map-style Dataset."
-                )
-            return result
-        except ModuleNotFoundError as err:
-            if "optional 'datasets' package" in str(err):
-                raise
-            raise HuggingFaceDatasourceError(
-                f"Could not load Hugging Face repository '{self.repository}'. Check that the "
-                "repository, configuration, split, revision, and credentials are valid."
-            ) from None
-        except HuggingFaceDatasourceError:
-            raise
-        except Exception:
-            # Do not include exception text: library errors can contain request URLs or tokens.
-            raise HuggingFaceDatasourceError(
-                f"Could not load Hugging Face repository '{self.repository}'. Check access, "
-                "the configuration, split, revision, and Hub endpoint."
-            ) from None
+            finally:
+                package.config.HF_ENDPOINT = old_endpoint
+
+    @staticmethod
+    def _materialize_dataset(package: Any, result: Any, whole_config: bool) -> Any:
+        if whole_config:
+            if not hasattr(result, "values"):
+                message = "Loading the whole configuration did not return a DatasetDict."
+                raise HuggingFaceDatasourceError(message)
+            pieces = list(result.values())
+            if not pieces:
+                return pd.DataFrame()
+            concatenate = getattr(package, "concatenate_datasets", None)
+            if concatenate is None:
+                message = "The installed datasets package cannot combine configuration splits."
+                raise HuggingFaceDatasourceError(message)
+            result = concatenate(pieces)
+        if not hasattr(result, "to_pandas"):
+            message = (
+                "Streaming Hugging Face datasets are not supported. Disable streaming and "
+                "use a map-style Dataset."
+            )
+            raise HuggingFaceDatasourceError(message)
+        return result
 
     def _resolved_token(self) -> Optional[str]:
         if self.token is None:
