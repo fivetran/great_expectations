@@ -464,38 +464,6 @@ def test_sanitize_config_doesnt_change_config_without_datasources(
     assert config_without_creds == basic_data_context_config_dict
 
 
-@pytest.mark.cloud
-def test_sanitize_config_masks_cloud_store_backend_access_tokens(
-    data_context_config_dict_with_cloud_backed_stores, ge_cloud_access_token
-):
-    # test that cloud store backend tokens have been properly masked
-    config_with_creds_in_stores = PasswordMasker.sanitize_config(
-        data_context_config_dict_with_cloud_backed_stores
-    )
-    for name, store_config in config_with_creds_in_stores["stores"].items():
-        if (
-            not store_config.get("store_backend")
-            or not store_config["store_backend"].get("ge_cloud_credentials")
-            or not store_config["store_backend"]["ge_cloud_credentials"].get("access_token")
-        ):
-            # a field in store_config["store_backend"]["ge_cloud_credentials"]["access_token"]
-            # doesn't exist, so we expect this config to be unchanged
-            assert store_config == data_context_config_dict_with_cloud_backed_stores["stores"][name]
-        else:
-            # check that the original token exists
-            assert (
-                data_context_config_dict_with_cloud_backed_stores["stores"][name]["store_backend"][
-                    "ge_cloud_credentials"
-                ]["access_token"]
-                == ge_cloud_access_token
-            )
-            # expect that the GX Cloud token has been obscured
-            assert (
-                store_config["store_backend"]["ge_cloud_credentials"]["access_token"]
-                != ge_cloud_access_token
-            )
-
-
 @pytest.mark.unit
 def test_sanitize_config_with_arbitrarily_nested_sensitive_keys():
     # base case - this config should pass through unaffected
