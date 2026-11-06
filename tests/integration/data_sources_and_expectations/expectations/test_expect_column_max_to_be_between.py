@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 import pandas as pd
 import pytest
@@ -288,7 +288,6 @@ def test_infinite_decimal_max(batch_for_datasource: Batch) -> None:
 
 
 # ── Regression: datetime64 column with datetime.date bounds (GH #12313) ──────
-import datetime as _dt  # noqa: E402
 
 
 @parameterize_batch_for_data_sources(
@@ -313,8 +312,8 @@ def test_datetime64_column_max_with_date_bounds_does_not_raise(batch_for_datasou
     'Cannot compare Timestamp with datetime.date' on pandas 2.3+."""
     expectation = gxe.ExpectColumnMaxToBeBetween(
         column="ts",
-        min_value=_dt.date(2024, 1, 6),
-        max_value=_dt.date(2024, 1, 7),
+        min_value=date(2024, 1, 6),
+        max_value=date(2024, 1, 7),
     )
     result = batch_for_datasource.validate(expectation)
     assert result.success is True

@@ -119,13 +119,17 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
 
             # Coerce plain datetime.date bounds to pd.Timestamp so the vectorised comparison
             # does not raise "Cannot compare Timestamp with datetime.date" on pandas 2.3+.
-            if min_value is not None and isinstance(min_value, datetime.date) and not isinstance(
-                min_value, datetime.datetime
+            if (
+                min_value is not None
+                and isinstance(min_value, datetime.date)
+                and not isinstance(min_value, datetime.datetime)
             ):
                 min_value = pd.Timestamp(min_value)
 
-            if max_value is not None and isinstance(max_value, datetime.date) and not isinstance(
-                max_value, datetime.datetime
+            if (
+                max_value is not None
+                and isinstance(max_value, datetime.date)
+                and not isinstance(max_value, datetime.datetime)
             ):
                 max_value = pd.Timestamp(max_value)
 

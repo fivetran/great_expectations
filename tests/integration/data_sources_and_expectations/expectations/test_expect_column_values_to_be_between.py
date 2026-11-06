@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 from unittest.mock import ANY
 
@@ -434,24 +434,27 @@ _DATETIME_DATA = pd.DataFrame(
 )
 
 
-import datetime as _dt  # noqa: E402
-
-
-@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=_DATETIME_DATA)
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=_DATETIME_DATA
+)
 def test_datetime64_column_with_date_bounds_does_not_raise(batch_for_datasource: Batch) -> None:
     """datetime64 column + datetime.date bounds must not raise TypeError on pandas 2.3+."""
     expectation = gxe.ExpectColumnValuesToBeBetween(
         column=DATETIME_COLUMN,
-        min_value=_dt.date(2024, 1, 2),
-        max_value=_dt.date(2024, 1, 4),
+        min_value=date(2024, 1, 2),
+        max_value=date(2024, 1, 4),
     )
     result = batch_for_datasource.validate(expectation)
     assert result.success is False  # 2024-01-01 and 2024-01-06 are out-of-range
     assert result.exception_info.get("raised_exception") is False
 
 
-@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=_DATETIME_DATA)
-def test_datetime64_column_with_string_date_bounds_does_not_raise(batch_for_datasource: Batch) -> None:
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=_DATETIME_DATA
+)
+def test_datetime64_column_with_string_date_bounds_does_not_raise(
+    batch_for_datasource: Batch,
+) -> None:
     """datetime64 column + ISO string bounds coerced to date must not raise on pandas 2.3+."""
     expectation = gxe.ExpectColumnValuesToBeBetween(
         column=DATETIME_COLUMN,
@@ -463,13 +466,15 @@ def test_datetime64_column_with_string_date_bounds_does_not_raise(batch_for_data
     assert result.exception_info.get("raised_exception") is False
 
 
-@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=_DATETIME_DATA)
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=_DATETIME_DATA
+)
 def test_datetime64_column_with_date_bounds_in_range(batch_for_datasource: Batch) -> None:
     """All non-null values within range should succeed."""
     expectation = gxe.ExpectColumnValuesToBeBetween(
         column=DATETIME_COLUMN,
-        min_value=_dt.date(2024, 1, 1),
-        max_value=_dt.date(2024, 1, 6),
+        min_value=date(2024, 1, 1),
+        max_value=date(2024, 1, 6),
     )
     result = batch_for_datasource.validate(expectation)
     assert result.success is True
