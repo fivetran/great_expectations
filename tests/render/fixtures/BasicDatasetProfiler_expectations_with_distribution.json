@@ -14,7 +14,15 @@
     {
       "type": "expect_table_columns_to_match_ordered_list",
       "kwargs": {
-        "column_list": null
+        "column_list": [
+          "Unnamed: 0",
+          "Name",
+          "PClass",
+          "Age",
+          "Sex",
+          "Survived",
+          "SexCode"
+        ]
       }
     },
     {
@@ -80,7 +88,12 @@
         "mostly": 0.5
       },
       "meta": {
-        "notes": ["This is a list", "of strings", "assigned to the notes", "key."]
+        "notes": [
+          "This is a list",
+          "of strings",
+          "assigned to the notes",
+          "key."
+        ]
       }
     },
     {
@@ -177,7 +190,11 @@
       "type": "expect_column_distinct_values_to_be_in_set",
       "kwargs": {
         "column": "PClass",
-        "value_set": ["a", "b", "c"]
+        "value_set": [
+          "a",
+          "b",
+          "c"
+        ]
       }
     },
     {
@@ -291,8 +308,19 @@
       "kwargs": {
         "column": "Age",
         "partition_object": {
-          "bins": [0,5,10,30,50],
-          "weights": [0.2, 0.3, 0.1, 0.4]
+          "bins": [
+            0,
+            5,
+            10,
+            30,
+            50
+          ],
+          "weights": [
+            0.2,
+            0.3,
+            0.1,
+            0.4
+          ]
         },
         "threshold": 0.1
       }
@@ -345,7 +373,11 @@
       "type": "expect_column_distinct_values_to_be_in_set",
       "kwargs": {
         "column": "Sex",
-        "value_set": ["a", "b", "c"] 
+        "value_set": [
+          "a",
+          "b",
+          "c"
+        ]
       }
     },
     {
@@ -389,7 +421,11 @@
       "type": "expect_column_distinct_values_to_be_in_set",
       "kwargs": {
         "column": "Survived",
-        "value_set": ["a", "b", "c"] 
+        "value_set": [
+          "a",
+          "b",
+          "c"
+        ]
       }
     },
     {
@@ -433,7 +469,11 @@
       "type": "expect_column_distinct_values_to_be_in_set",
       "kwargs": {
         "column": "SexCode",
-        "value_set": ["a", "b", "c"] 
+        "value_set": [
+          "a",
+          "b",
+          "c"
+        ]
       }
     }
   ]
