@@ -125,7 +125,9 @@ def test_missing_optional_dependency_has_install_hint(source, monkeypatch):
     monkeypatch.setattr(
         "great_expectations.datasource.fluent.pandas_hugging_face_datasource.datasets.load_dataset",
         lambda *args, **kwargs: (_ for _ in ()).throw(
-            ModuleNotFoundError("Hugging Face Datasets support requires optional 'datasets' package")
+            ModuleNotFoundError(
+                "Hugging Face Datasets support requires optional 'datasets' package"
+            )
         ),
     )
 
