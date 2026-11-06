@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 import pandas as pd
 import pytest
@@ -219,3 +219,36 @@ def test_expect_column_min_to_be_between__date(batch_for_datasource: Batch) -> N
     )
     result = batch_for_datasource.validate(expectation)
     assert result.success
+
+
+# ── Regression: datetime64 column with datetime.date bounds (GH #12313) ──────
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES,
+    data=pd.DataFrame(
+        {
+            "ts": pd.Series(
+                [
+                    pd.Timestamp("2024-01-01"),
+                    pd.Timestamp("2024-01-02 12:00:00"),
+                    pd.Timestamp("2024-01-03"),
+                    pd.Timestamp("2024-01-04"),
+                    pd.Timestamp("2024-01-06"),
+                    pd.NaT,
+                ]
+            )
+        }
+    ),
+)
+def test_datetime64_column_min_with_date_bounds_does_not_raise(batch_for_datasource: Batch) -> None:
+    """ExpectColumnMinToBeBetween with datetime64 column and datetime.date bounds must not raise
+    'Cannot compare Timestamp with datetime.date' on pandas 2.3+."""
+    expectation = gxe.ExpectColumnMinToBeBetween(
+        column="ts",
+        min_value=date(2024, 1, 1),
+        max_value=date(2024, 1, 2),
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success is True
+    assert result.exception_info.get("raised_exception") is False
