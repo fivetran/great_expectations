@@ -51,7 +51,15 @@
         "meta": {},
         "type": "expect_table_columns_to_match_ordered_list",
         "kwargs": {
-          "column_list": null,
+          "column_list": [
+            "Unnamed: 0",
+            "Name",
+            "PClass",
+            "Age",
+            "Sex",
+            "Survived",
+            "SexCode"
+          ],
           "result_format": "SUMMARY"
         }
       },
@@ -308,7 +316,11 @@
         "type": "expect_column_values_to_be_in_set",
         "kwargs": {
           "column": "Unnamed: 0",
-          "value_set": ["a", "b", "c"],
+          "value_set": [
+            "a",
+            "b",
+            "c"
+          ],
           "result_format": "SUMMARY"
         }
       },
@@ -599,7 +611,11 @@
         "type": "expect_column_values_to_be_in_set",
         "kwargs": {
           "column": "Name",
-          "value_set": ["a", "b", "c"],
+          "value_set": [
+            "a",
+            "b",
+            "c"
+          ],
           "result_format": "SUMMARY"
         }
       },
@@ -848,7 +864,11 @@
         "type": "expect_column_values_to_be_in_set",
         "kwargs": {
           "column": "PClass",
-          "value_set": ["a", "b", "c"],
+          "value_set": [
+            "a",
+            "b",
+            "c"
+          ],
           "result_format": "SUMMARY"
         }
       },
@@ -926,7 +946,11 @@
         "type": "expect_column_distinct_values_to_be_in_set",
         "kwargs": {
           "column": "PClass",
-          "value_set": ["a", "b", "c"],
+          "value_set": [
+            "a",
+            "b",
+            "c"
+          ],
           "result_format": "SUMMARY"
         }
       },
@@ -1182,7 +1206,11 @@
         "type": "expect_column_values_to_be_in_set",
         "kwargs": {
           "column": "Age",
-          "value_set": ["a", "b", "c"],
+          "value_set": [
+            "a",
+            "b",
+            "c"
+          ],
           "result_format": "SUMMARY"
         }
       },
@@ -1672,7 +1700,11 @@
         "type": "expect_column_values_to_be_in_set",
         "kwargs": {
           "column": "Sex",
-          "value_set": ["a", "b", "c"],
+          "value_set": [
+            "a",
+            "b",
+            "c"
+          ],
           "result_format": "SUMMARY"
         }
       },
@@ -1740,7 +1772,11 @@
         "type": "expect_column_distinct_values_to_be_in_set",
         "kwargs": {
           "column": "Sex",
-          "value_set": ["a", "b", "c"],
+          "value_set": [
+            "a",
+            "b",
+            "c"
+          ],
           "result_format": "SUMMARY"
         }
       },
@@ -1925,7 +1961,11 @@
         "type": "expect_column_values_to_be_in_set",
         "kwargs": {
           "column": "Survived",
-          "value_set": ["a", "b", "c"],
+          "value_set": [
+            "a",
+            "b",
+            "c"
+          ],
           "result_format": "SUMMARY"
         }
       },
@@ -1964,7 +2004,11 @@
         "type": "expect_column_distinct_values_to_be_in_set",
         "kwargs": {
           "column": "Survived",
-          "value_set": ["a", "b", "c"],
+          "value_set": [
+            "a",
+            "b",
+            "c"
+          ],
           "result_format": "SUMMARY"
         }
       },
@@ -2149,7 +2193,11 @@
         "type": "expect_column_values_to_be_in_set",
         "kwargs": {
           "column": "SexCode",
-          "value_set": ["a", "b", "c"],
+          "value_set": [
+            "a",
+            "b",
+            "c"
+          ],
           "result_format": "SUMMARY"
         }
       },
@@ -2188,7 +2236,11 @@
         "type": "expect_column_distinct_values_to_be_in_set",
         "kwargs": {
           "column": "SexCode",
-          "value_set": ["a", "b", "c"],
+          "value_set": [
+            "a",
+            "b",
+            "c"
+          ],
           "result_format": "SUMMARY"
         }
       },

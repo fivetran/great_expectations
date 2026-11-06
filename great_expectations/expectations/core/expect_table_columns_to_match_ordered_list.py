@@ -186,7 +186,7 @@ class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    column_list: Union[list, set, SuiteParameterDict, None] = pydantic.Field(
+    column_list: Union[list, set, SuiteParameterDict] = pydantic.Field(
         description=COLUMN_LIST_DESCRIPTION
     )
 
@@ -208,6 +208,14 @@ class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
         "condition_parser",
     )
     args_keys = ("column_list",)
+
+    @pydantic.validator("column_list")
+    def _validate_column_list(
+        cls, column_list: Union[list, set, SuiteParameterDict]
+    ) -> Union[list, set, SuiteParameterDict]:
+        if not column_list:
+            raise ValueError("column_list must be a non-empty list or set.")  # noqa: TRY003 # Error message gets swallowed by Pydantic
+        return column_list
 
     class Config:
         title = "Expect table columns to match ordered list"
