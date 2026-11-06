@@ -68,7 +68,7 @@ def test_covered_fluent_types_matches_the_table_keys() -> None:
 
 @pytest.mark.unit
 def test_covered_fluent_types_has_twenty_six_entries() -> None:
-    assert len(covered_fluent_types()) == 26
+    assert len(covered_fluent_types()) == 27
 
 
 @pytest.mark.unit
@@ -176,7 +176,7 @@ def test_contract_parameters_table_rejects_insertion() -> None:
         CONTRACT_PARAMETERS["injected"] = contract_parameters_for("postgres")  # type: ignore[index]
 
     assert "injected" not in covered_fluent_types()
-    assert len(covered_fluent_types()) == 26
+    assert len(covered_fluent_types()) == 27
 
 
 @pytest.mark.unit
@@ -301,7 +301,7 @@ def test_empty_parameter_list_guard_fails() -> None:
 def test_covered_type_count_matches_the_pinned_literal_and_the_registry() -> None:
     _check_covered_type_count(
         actual_count=len(covered_fluent_types()),
-        pinned_literal=26,
+        pinned_literal=27,
         registry_size=len(_registered_fluent_types()),
     )
 

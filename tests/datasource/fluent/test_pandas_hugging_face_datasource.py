@@ -23,7 +23,9 @@ class FakeDataset:
 @pytest.fixture
 def source() -> PandasHuggingFaceDatasource:
     context = gx.get_context(mode="ephemeral")
-    return context.data_sources.add_pandas_hugging_face(name="hf", repository="org/data")
+    return context.data_sources.add_pandas_hugging_face(
+        name="hf", repository="org/data", token="synthetic-token"
+    )
 
 
 @pytest.fixture
