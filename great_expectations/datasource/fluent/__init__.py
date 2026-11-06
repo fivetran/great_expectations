@@ -56,6 +56,11 @@ from great_expectations.datasource.fluent.pandas_dbfs_datasource import (
 from great_expectations.datasource.fluent.pandas_s3_datasource import (
     PandasS3Datasource,
 )
+from great_expectations.datasource.fluent.pandas_hugging_face_datasource import (
+    HuggingFaceBatchDefinition,
+    HuggingFaceDatasetAsset,
+    PandasHuggingFaceDatasource,
+)
 from great_expectations.datasource.fluent.pandas_google_cloud_storage_datasource import (
     PandasGoogleCloudStorageDatasource,
 )
