@@ -389,10 +389,11 @@ jobs:
           invoke deps --gx-install -m '${{ matrix.doc-step }}'
 
       - name: Set up Java
-        # The docs-spark snippets run the pinned pyspark 3.x against a host JVM, which cannot
-        # start on the JDK 25 that newer runner images default to. Pin one so the leg does
-        # not depend on the runner image's default.
-        if: matrix['doc-step'] == 'docs-spark'
+        # Spark runs against a host JVM in more than the docs-spark leg: the custom-expectation
+        # snippets call run_diagnostics(), which includes a Spark backend, so every leg can
+        # need one. The pinned pyspark 3.x cannot start on the JDK 25 that newer runner images
+        # default to, and a failed Spark backend is reported as an unexpected test case rather
+        # than as a startup error. Pin one so no leg depends on the runner image's default.
         uses: actions/setup-java@v4
         with:
           distribution: temurin
