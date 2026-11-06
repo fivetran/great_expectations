@@ -71,7 +71,7 @@ class HuggingFaceDatasetAsset(DataAsset):
 
     type: Literal["hugging_face_dataset"] = "hugging_face_dataset"
     columns: Optional[List[str]] = None
-    batch_definitions: List[HuggingFaceBatchDefinition] = pydantic.Field(default_factory=list)
+    batch_definitions: List[BatchDefinition] = pydantic.Field(default_factory=list)
 
     @override
     def test_connection(self) -> None:

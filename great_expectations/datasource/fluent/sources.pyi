@@ -286,7 +286,7 @@ class DataSourceManager:
         datasource: Optional[Datasource] = None,
         *,
         repository: str = ...,
-        token: Optional[Union[ConfigStr, pydantic.SecretStr]] = None,
+        token: Optional[Union[str, ConfigStr, pydantic.SecretStr]] = None,
         hf_endpoint: str = ...,
     ) -> PandasHuggingFaceDatasource: ...
     def update_pandas_hugging_face(
@@ -296,7 +296,7 @@ class DataSourceManager:
         datasource: Optional[Datasource] = None,
         *,
         repository: str = ...,
-        token: Optional[Union[ConfigStr, pydantic.SecretStr]] = None,
+        token: Optional[Union[str, ConfigStr, pydantic.SecretStr]] = None,
         hf_endpoint: str = ...,
     ) -> PandasHuggingFaceDatasource: ...
     def add_or_update_pandas_hugging_face(
@@ -306,7 +306,7 @@ class DataSourceManager:
         datasource: Optional[Datasource] = None,
         *,
         repository: str = ...,
-        token: Optional[Union[ConfigStr, pydantic.SecretStr]] = None,
+        token: Optional[Union[str, ConfigStr, pydantic.SecretStr]] = None,
         hf_endpoint: str = ...,
     ) -> PandasHuggingFaceDatasource: ...
     def delete_pandas_hugging_face(self, name: str) -> None: ...
