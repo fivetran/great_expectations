@@ -388,6 +388,16 @@ jobs:
           pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
           invoke deps --gx-install -m '${{ matrix.doc-step }}'
 
+      - name: Set up Java
+        # The docs-spark snippets run the pinned pyspark 3.x against a host JVM, which cannot
+        # start on the JDK 25 that newer runner images default to. Pin one so the leg does
+        # not depend on the runner image's default.
+        if: matrix['doc-step'] == 'docs-spark'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
       - name: Install SQL Server odbc driver
         if: matrix['doc-step'] == 'docs-creds-needed'
         run: ./scripts/install_sql_server_odbc_driver.sh
@@ -677,6 +687,17 @@ jobs:
         run: |
           pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
           invoke deps --gx-install -m '${{ matrix.markers }}' -r test
+
+      - name: Set up Java
+        # The spark lane runs the pinned pyspark 3.x against a host JVM, which cannot start
+        # on the JDK 25 that newer runner images default to (Subject.getSubject is
+        # unsupported there). The default JDK changes with the image, so pin one to keep
+        # this lane deterministic.
+        if: matrix.markers == 'spark'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
 
       - name: Install SQL Server odbc driver
         if: matrix.markers == 'sql_server'
