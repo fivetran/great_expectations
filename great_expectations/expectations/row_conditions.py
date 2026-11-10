@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Iterable, List, Literal, Union
+from typing import TYPE_CHECKING, Any, Iterable, List, Literal, Union, overload
 
 from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility.pydantic import BaseModel, Field, root_validator, validator
@@ -86,6 +86,25 @@ class Operator(str, Enum):
 Parameter = Any
 
 
+def _materialize_set_membership_values(method_name: str, values: Iterable) -> list:
+    """Read the values given to ``is_in``/``is_not_in`` once, rejecting any column among them.
+
+    A column is rejected before the values are read, because iterating one yields its fields, and
+    again after, for a column held inside a collection. The values are read a single time so a
+    one-shot iterable is not consumed twice.
+    """
+    suggestion = (
+        f"{method_name} does not accept a Column: set membership against a column is not "
+        "supported. To compare two columns, use ==, !=, <, <=, > or >=."
+    )
+    if isinstance(values, Column):
+        raise InvalidParameterTypeError(values, suggestion)
+    materialized = list(values)
+    if any(isinstance(value, Column) for value in materialized):
+        raise InvalidParameterTypeError(materialized, suggestion)
+    return materialized
+
+
 @public_api
 class Column(BaseModel):
     """
@@ -101,26 +120,86 @@ class Column(BaseModel):
     def __hash__(self) -> int:
         return hash(self.name)
 
+    @overload  # type: ignore[override]
+    def __eq__(self, other: Column) -> ColumnComparisonCondition: ...
+
+    @overload
+    def __eq__(self, other: Parameter) -> ComparisonCondition: ...
+
     @override
-    def __eq__(self, other: Parameter) -> ComparisonCondition:  # type: ignore[override]
+    def __eq__(self, other: Parameter) -> ColumnComparisonCondition | ComparisonCondition:
+        if isinstance(other, Column):
+            return ColumnComparisonCondition(
+                column=self, operator=Operator.EQUAL, other_column=other
+            )
         return ComparisonCondition(column=self, operator=Operator.EQUAL, parameter=other)
 
+    @overload  # type: ignore[override]
+    def __ne__(self, other: Column) -> ColumnComparisonCondition: ...
+
+    @overload
+    def __ne__(self, other: Parameter) -> ComparisonCondition: ...
+
     @override
-    def __ne__(self, other: Parameter) -> ComparisonCondition:  # type: ignore[override]
+    def __ne__(self, other: Parameter) -> ColumnComparisonCondition | ComparisonCondition:
+        if isinstance(other, Column):
+            return ColumnComparisonCondition(
+                column=self, operator=Operator.NOT_EQUAL, other_column=other
+            )
         return ComparisonCondition(column=self, operator=Operator.NOT_EQUAL, parameter=other)
 
-    def __lt__(self, other: Parameter) -> ComparisonCondition:
+    @overload
+    def __lt__(self, other: Column) -> ColumnComparisonCondition: ...
+
+    @overload
+    def __lt__(self, other: Parameter) -> ComparisonCondition: ...
+
+    def __lt__(self, other: Parameter) -> ColumnComparisonCondition | ComparisonCondition:
+        if isinstance(other, Column):
+            return ColumnComparisonCondition(
+                column=self, operator=Operator.LESS_THAN, other_column=other
+            )
         return ComparisonCondition(column=self, operator=Operator.LESS_THAN, parameter=other)
 
-    def __le__(self, other: Parameter) -> ComparisonCondition:
+    @overload
+    def __le__(self, other: Column) -> ColumnComparisonCondition: ...
+
+    @overload
+    def __le__(self, other: Parameter) -> ComparisonCondition: ...
+
+    def __le__(self, other: Parameter) -> ColumnComparisonCondition | ComparisonCondition:
+        if isinstance(other, Column):
+            return ColumnComparisonCondition(
+                column=self, operator=Operator.LESS_THAN_OR_EQUAL, other_column=other
+            )
         return ComparisonCondition(
             column=self, operator=Operator.LESS_THAN_OR_EQUAL, parameter=other
         )
 
-    def __gt__(self, other: Parameter) -> ComparisonCondition:
+    @overload
+    def __gt__(self, other: Column) -> ColumnComparisonCondition: ...
+
+    @overload
+    def __gt__(self, other: Parameter) -> ComparisonCondition: ...
+
+    def __gt__(self, other: Parameter) -> ColumnComparisonCondition | ComparisonCondition:
+        if isinstance(other, Column):
+            return ColumnComparisonCondition(
+                column=self, operator=Operator.GREATER_THAN, other_column=other
+            )
         return ComparisonCondition(column=self, operator=Operator.GREATER_THAN, parameter=other)
 
-    def __ge__(self, other: Parameter) -> ComparisonCondition:
+    @overload
+    def __ge__(self, other: Column) -> ColumnComparisonCondition: ...
+
+    @overload
+    def __ge__(self, other: Parameter) -> ComparisonCondition: ...
+
+    def __ge__(self, other: Parameter) -> ColumnComparisonCondition | ComparisonCondition:
+        if isinstance(other, Column):
+            return ColumnComparisonCondition(
+                column=self, operator=Operator.GREATER_THAN_OR_EQUAL, other_column=other
+            )
         return ComparisonCondition(
             column=self, operator=Operator.GREATER_THAN_OR_EQUAL, parameter=other
         )
@@ -130,14 +209,22 @@ class Column(BaseModel):
         """
         Operator for a condition statement that a column's value belongs to a set.
         """
-        return ComparisonCondition(column=self, operator=Operator.IN, parameter=list(values))
+        return ComparisonCondition(
+            column=self,
+            operator=Operator.IN,
+            parameter=_materialize_set_membership_values("is_in", values),
+        )
 
     @public_api
     def is_not_in(self, values: Iterable) -> ComparisonCondition:
         """
         Operator for a condition statement that a column's value does not belong to a set.
         """
-        return ComparisonCondition(column=self, operator=Operator.NOT_IN, parameter=list(values))
+        return ComparisonCondition(
+            column=self,
+            operator=Operator.NOT_IN,
+            parameter=_materialize_set_membership_values("is_not_in", values),
+        )
 
     @public_api
     def is_null(self) -> NullityCondition:

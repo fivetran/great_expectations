@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from operator import eq, ge, gt, le, lt, ne
+
 import pytest
 
 from great_expectations.compatibility.pydantic import ValidationError
@@ -11,6 +13,7 @@ from great_expectations.expectations.row_conditions import (
     Condition,
     ConditionParserError,
     InvalidConditionTypeError,
+    InvalidParameterTypeError,
     NullityCondition,
     Operator,
     OrCondition,
@@ -831,3 +834,202 @@ class TestColumnComparisonCondition:
 
         assert "null" in doc
         assert "every operator" in doc
+
+
+@pytest.mark.parametrize(
+    "compare,operator",
+    [
+        pytest.param(eq, Operator.EQUAL, id="equal"),
+        pytest.param(ne, Operator.NOT_EQUAL, id="not_equal"),
+        pytest.param(lt, Operator.LESS_THAN, id="less_than"),
+        pytest.param(le, Operator.LESS_THAN_OR_EQUAL, id="less_than_or_equal"),
+        pytest.param(gt, Operator.GREATER_THAN, id="greater_than"),
+        pytest.param(ge, Operator.GREATER_THAN_OR_EQUAL, id="greater_than_or_equal"),
+    ],
+)
+class TestColumnComparisonOperators:
+    """Tests for how the comparison operators on Column choose the condition they build."""
+
+    def test_a_column_on_the_right_builds_a_column_comparison(self, compare, operator):
+        result = compare(Column("end_date"), Column("start_date"))
+
+        assert isinstance(result, ColumnComparisonCondition)
+        assert result.dict() == {
+            "type": "column_comparison",
+            "column": {"name": "end_date"},
+            "operator": operator.value,
+            "other_column": {"name": "start_date"},
+        }
+
+    def test_a_column_comparison_keeps_the_left_and_right_sides_in_order(self, compare, operator):
+        result = compare(Column("left_side"), Column("right_side"))
+
+        assert isinstance(result, ColumnComparisonCondition)
+        assert result.column.name == "left_side"
+        assert result.other_column.name == "right_side"
+
+    def test_a_column_on_the_right_matches_the_directly_built_condition(self, compare, operator):
+        result = compare(Column("a"), Column("b"))
+        expected = ColumnComparisonCondition(
+            column=Column("a"), operator=operator, other_column=Column("b")
+        )
+
+        assert result == expected
+
+    def test_the_same_column_on_both_sides_is_a_column_comparison(self, compare, operator):
+        result = compare(Column("a"), Column("a"))
+
+        assert isinstance(result, ColumnComparisonCondition)
+        assert result.column.name == "a"
+        assert result.other_column.name == "a"
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            pytest.param(18, id="int"),
+            pytest.param(1.5, id="float"),
+            pytest.param("active", id="str"),
+            pytest.param(True, id="bool"),
+        ],
+    )
+    def test_a_value_on_the_right_builds_the_literal_comparison(self, compare, operator, value):
+        result = compare(Column("status"), value)
+
+        assert type(result) is ComparisonCondition
+        assert result.dict() == {
+            "type": "comparison",
+            "column": {"name": "status"},
+            "operator": operator.value,
+            "parameter": value,
+        }
+
+    def test_a_dict_holding_a_name_on_the_right_stays_a_literal_value(self, compare, operator):
+        result = compare(Column("status"), {"name": "other"})
+
+        assert type(result) is ComparisonCondition
+        assert result.parameter == {"name": "other"}
+
+
+class TestColumnComparisonOperatorTyping:
+    def test_the_result_type_narrows_to_one_condition_class(self) -> None:
+        # The annotations are checked by the type checker (this method is annotated so that it
+        # checks the body): if the operators returned a union, or the wrong class for either
+        # right-hand side, these assignments would not type-check.
+        left, right = Column("a"), Column("b")
+
+        column_pair_eq: ColumnComparisonCondition = left == right
+        column_pair_ne: ColumnComparisonCondition = left != right
+        column_pair_lt: ColumnComparisonCondition = left < right
+        column_pair_le: ColumnComparisonCondition = left <= right
+        column_pair_gt: ColumnComparisonCondition = left > right
+        column_pair_ge: ColumnComparisonCondition = left >= right
+        literal_eq: ComparisonCondition = left == 5
+        literal_ne: ComparisonCondition = left != 5
+        literal_lt: ComparisonCondition = left < 5
+        literal_le: ComparisonCondition = left <= 5
+        literal_gt: ComparisonCondition = left > 5
+        literal_ge: ComparisonCondition = left >= 5
+
+        for column_pair in (
+            column_pair_eq,
+            column_pair_ne,
+            column_pair_lt,
+            column_pair_le,
+            column_pair_gt,
+            column_pair_ge,
+        ):
+            assert type(column_pair) is ColumnComparisonCondition
+        for literal in (literal_eq, literal_ne, literal_lt, literal_le, literal_gt, literal_ge):
+            assert type(literal) is ComparisonCondition
+
+    def test_a_column_comparison_combines_with_other_conditions(self):
+        combined = (Column("a") > Column("b")) & (Column("c") == "x")
+
+        assert isinstance(combined, AndCondition)
+        assert isinstance(combined.conditions[0], ColumnComparisonCondition)
+        assert isinstance(combined.conditions[1], ComparisonCondition)
+
+
+class TestDirectlyBuiltLiteralWithColumnValue:
+    @pytest.mark.parametrize("operator", COMPARISON_OPERATORS)
+    def test_it_stays_a_literal_comparison(self, operator: Operator):
+        # Only the operators on Column route a column on the right to the column comparison.
+        # Building the literal condition directly is unchanged: it stays a literal and keeps its
+        # column value.
+        result = ComparisonCondition(column=Column("a"), operator=operator, parameter=Column("b"))
+
+        assert type(result) is ComparisonCondition
+        assert result.type == "comparison"
+        assert isinstance(result.parameter, Column)
+        assert result.parameter.name == "b"
+        assert result.dict() == {
+            "type": "comparison",
+            "column": {"name": "a"},
+            "operator": operator.value,
+            "parameter": {"name": "b"},
+        }
+
+
+@pytest.mark.parametrize("method_name", ["is_in", "is_not_in"])
+class TestColumnSetMembershipGuard:
+    def test_a_bare_column_is_rejected(self, method_name):
+        method = getattr(Column("status"), method_name)
+
+        with pytest.raises(InvalidParameterTypeError) as exc_info:
+            method(Column("allowed"))
+
+        message = str(exc_info.value)
+        assert message.startswith("Invalid Parameter type: ")
+        assert f"{method_name} does not accept a Column" in message
+        assert "set membership against a column is not supported" in message
+        assert "use ==, !=, <, <=, > or >=" in message
+
+    def test_a_list_holding_a_column_is_rejected(self, method_name):
+        method = getattr(Column("status"), method_name)
+
+        with pytest.raises(InvalidParameterTypeError) as exc_info:
+            method(["active", Column("allowed")])
+
+        message = str(exc_info.value)
+        assert f"{method_name} does not accept a Column" in message
+        assert "set membership against a column is not supported" in message
+        assert "use ==, !=, <, <=, > or >=" in message
+
+    def test_a_column_as_the_first_element_is_rejected(self, method_name):
+        method = getattr(Column("status"), method_name)
+
+        with pytest.raises(InvalidParameterTypeError, match="does not accept a Column"):
+            method([Column("allowed")])
+
+    def test_a_generator_holding_a_column_is_rejected(self, method_name):
+        method = getattr(Column("status"), method_name)
+
+        with pytest.raises(InvalidParameterTypeError, match="does not accept a Column"):
+            method(item for item in ["active", Column("allowed")])
+
+    def test_the_rejection_is_a_type_error_raised_before_validation(self, method_name):
+        method = getattr(Column("status"), method_name)
+
+        with pytest.raises(TypeError) as exc_info:
+            method(Column("allowed"))
+
+        assert not isinstance(exc_info.value, ValidationError)
+
+    def test_a_generator_of_plain_values_is_read_once(self, method_name):
+        method = getattr(Column("status"), method_name)
+        expected_operator = Operator.IN if method_name == "is_in" else Operator.NOT_IN
+        values = (item for item in ["active", "pending"])
+
+        result = method(values)
+
+        assert type(result) is ComparisonCondition
+        assert result.operator == expected_operator.value
+        assert result.parameter == ["active", "pending"]
+
+    def test_a_tuple_of_plain_values_still_builds_a_literal_condition(self, method_name):
+        method = getattr(Column("status"), method_name)
+
+        result = method(("active", "pending"))
+
+        assert type(result) is ComparisonCondition
+        assert result.parameter == ["active", "pending"]
