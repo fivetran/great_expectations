@@ -88,12 +88,7 @@
         "mostly": 0.5
       },
       "meta": {
-        "notes": [
-          "This is a list",
-          "of strings",
-          "assigned to the notes",
-          "key."
-        ]
+        "notes": ["This is a list", "of strings", "assigned to the notes", "key."]
       }
     },
     {
@@ -190,11 +185,7 @@
       "type": "expect_column_distinct_values_to_be_in_set",
       "kwargs": {
         "column": "PClass",
-        "value_set": [
-          "a",
-          "b",
-          "c"
-        ]
+        "value_set": ["a", "b", "c"]
       }
     },
     {
@@ -359,11 +350,7 @@
       "type": "expect_column_distinct_values_to_be_in_set",
       "kwargs": {
         "column": "Sex",
-        "value_set": [
-          "a",
-          "b",
-          "c"
-        ]
+        "value_set": ["a", "b", "c"]
       }
     },
     {
@@ -407,11 +394,7 @@
       "type": "expect_column_distinct_values_to_be_in_set",
       "kwargs": {
         "column": "Survived",
-        "value_set": [
-          "a",
-          "b",
-          "c"
-        ]
+        "value_set": ["a", "b", "c"]
       }
     },
     {
@@ -455,11 +438,7 @@
       "type": "expect_column_distinct_values_to_be_in_set",
       "kwargs": {
         "column": "SexCode",
-        "value_set": [
-          "a",
-          "b",
-          "c"
-        ]
+        "value_set": ["a", "b", "c"]
       }
     }
   ]
