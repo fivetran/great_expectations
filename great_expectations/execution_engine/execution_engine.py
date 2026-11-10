@@ -154,8 +154,18 @@ def _column_comparison_error_context(failed_metrics: Iterable[MetricConfiguratio
     The result is an empty string when no failed metric has a column comparison, so an error
     raised for a suite without one is unchanged. The function never raises, whatever it is given.
 
+    ``ExecutionEngine`` appends this sentence to the message of each ``MetricResolutionError`` it
+    raises for a failed metric computation, passing the metric whose failure the message
+    describes. A directly computed metric that raises is passed as the only metric. When a bundled
+    computation fails and each metric is retried on its own, the error carries the message of the
+    last exception, so only the metric that raised that exception is passed. The sentence then
+    names the comparisons of the failure the message describes, and a failed metric whose
+    exception is not the one shown contributes none, even when its row condition has a column
+    comparison. The error's ``failed_metrics`` still lists every metric that failed.
+
     Args:
-        failed_metrics: The metrics whose computation failed.
+        failed_metrics: The metrics whose failure the error message describes. The comparisons
+            of every metric given are named.
 
     Returns:
         The sentence to append to the error message, or an empty string.
@@ -660,7 +670,10 @@ class ExecutionEngine(ABC, Generic[TFilter]):
                 )
             except Exception as e:
                 raise gx_exceptions.MetricResolutionError(
-                    message=str(e),
+                    message=str(e)
+                    + _column_comparison_error_context(
+                        (metric_computation_configuration.metric_configuration,)
+                    ),
                     failed_metrics=(metric_computation_configuration.metric_configuration,),
                 ) from e
 
@@ -685,8 +698,12 @@ class ExecutionEngine(ABC, Generic[TFilter]):
                     failed_metrics.append(metric_computation_configuration.metric_configuration)
                     last_exception = individual_e
             if failed_metrics:
+                # The message is the last exception's. A metric is appended to failed_metrics in
+                # the same step that sets last_exception, so the last failed metric is the one
+                # that raised it: the context describes the failure the message describes.
                 raise gx_exceptions.MetricResolutionError(
-                    message=str(last_exception),
+                    message=str(last_exception)
+                    + _column_comparison_error_context((failed_metrics[-1],)),
                     failed_metrics=failed_metrics,
                 ) from last_exception
 
