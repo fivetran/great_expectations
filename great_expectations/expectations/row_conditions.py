@@ -416,7 +416,7 @@ class PassThroughCondition(Condition):
         return f"PassThrough({self.pass_through_filter!r})"
 
 
-def deserialize_row_condition(value: Any) -> Union[str, Condition, None]:
+def deserialize_row_condition(value: Any) -> Union[str, Condition, None]:  # noqa: C901, PLR0911
     """Parse a row_condition value into the appropriate Condition type."""
     if value is None or isinstance(value, (str, Condition)):
         return value
@@ -435,6 +435,8 @@ def deserialize_row_condition(value: Any) -> Union[str, Condition, None]:
             return OrCondition.parse_obj(value)
         elif condition_type == "pass_through":
             return PassThroughCondition.parse_obj(value)
+        elif condition_type == "column_comparison":
+            return ColumnComparisonCondition.parse_obj(value)
         else:
             raise ConditionParserError(value)
 
@@ -486,6 +488,7 @@ RowConditionType: TypeAlias = Union[
     AndCondition,
     OrCondition,
     PassThroughCondition,
+    ColumnComparisonCondition,
     None,
 ]
 
@@ -591,7 +594,10 @@ def validate_row_condition(row_condition: RowConditionType) -> RowConditionType:
         return row_condition
 
     # Single condition types are always valid
-    if isinstance(row_condition, (ComparisonCondition, NullityCondition, PassThroughCondition)):
+    if isinstance(
+        row_condition,
+        (ComparisonCondition, NullityCondition, PassThroughCondition, ColumnComparisonCondition),
+    ):
         return row_condition
 
     # Validate total condition count

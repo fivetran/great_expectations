@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import importlib
 from operator import eq, ge, gt, le, lt, ne
 
 import pytest
 
-from great_expectations.compatibility.pydantic import ValidationError
+from great_expectations.compatibility.pydantic import BaseModel, ValidationError
 from great_expectations.expectations.row_conditions import (
     AndCondition,
     Column,
@@ -18,6 +19,7 @@ from great_expectations.expectations.row_conditions import (
     Operator,
     OrCondition,
     PassThroughCondition,
+    RowConditionType,
     UnsupportedColumnComparisonOperatorError,
     deserialize_row_condition,
 )
@@ -1033,3 +1035,347 @@ class TestColumnSetMembershipGuard:
 
         assert type(result) is ComparisonCondition
         assert result.parameter == ["active", "pending"]
+
+
+def _column_comparison(
+    left: str = "end_date", operator: Operator = Operator.GREATER_THAN, right: str = "start_date"
+) -> ColumnComparisonCondition:
+    return ColumnComparisonCondition(
+        column=Column(left), operator=operator, other_column=Column(right)
+    )
+
+
+class TestColumnComparisonDeserialization:
+    """A saved column comparison reloads as a column comparison."""
+
+    @pytest.mark.parametrize("operator", COMPARISON_OPERATORS)
+    def test_a_saved_column_comparison_reloads_as_one(self, operator: Operator):
+        saved = {
+            "type": "column_comparison",
+            "column": {"name": "end_date"},
+            "operator": operator.value,
+            "other_column": {"name": "start_date"},
+        }
+
+        result = deserialize_row_condition(saved)
+
+        assert type(result) is ColumnComparisonCondition
+        assert result.column.name == "end_date"
+        assert result.operator == operator.value
+        assert result.other_column.name == "start_date"
+        assert result.dict() == saved
+
+    @pytest.mark.parametrize("operator", COMPARISON_OPERATORS)
+    def test_round_trip_standalone(self, operator: Operator):
+        original = _column_comparison(operator=operator)
+
+        reloaded = deserialize_row_condition(original.dict())
+
+        assert type(reloaded) is ColumnComparisonCondition
+        assert reloaded == original
+        assert reloaded.dict() == original.dict()
+
+    def test_round_trip_with_defaults_excluded(self):
+        original = _column_comparison()
+
+        reloaded = deserialize_row_condition(original.dict(exclude_defaults=True))
+
+        assert type(reloaded) is ColumnComparisonCondition
+        assert reloaded.dict() == original.dict()
+
+    def test_round_trip_nested_in_and(self):
+        original = AndCondition(
+            conditions=[
+                _column_comparison("end_date", Operator.GREATER_THAN, "start_date"),
+                ComparisonCondition(
+                    column=Column("status"), operator=Operator.EQUAL, parameter="x"
+                ),
+                _column_comparison("price", Operator.LESS_THAN_OR_EQUAL, "cost"),
+            ]
+        )
+
+        reloaded = deserialize_row_condition(original.dict())
+
+        assert type(reloaded) is AndCondition
+        assert [type(child) for child in reloaded.conditions] == [
+            ColumnComparisonCondition,
+            ComparisonCondition,
+            ColumnComparisonCondition,
+        ]
+        assert reloaded.dict() == original.dict()
+        assert reloaded == original
+
+    def test_round_trip_nested_in_or(self):
+        original = OrCondition(
+            conditions=[
+                _column_comparison("a", Operator.EQUAL, "b"),
+                NullityCondition(column=Column("a"), is_null=True),
+                _column_comparison("c", Operator.NOT_EQUAL, "d"),
+            ]
+        )
+
+        reloaded = deserialize_row_condition(original.dict())
+
+        assert type(reloaded) is OrCondition
+        assert [type(child) for child in reloaded.conditions] == [
+            ColumnComparisonCondition,
+            NullityCondition,
+            ColumnComparisonCondition,
+        ]
+        assert reloaded.dict() == original.dict()
+        assert reloaded == original
+
+    def test_round_trip_of_a_group_built_with_operators(self):
+        original = (Column("a") > Column("b")) & (Column("c") == "x")
+
+        reloaded = deserialize_row_condition(original.dict())
+
+        assert type(reloaded) is AndCondition
+        assert type(reloaded.conditions[0]) is ColumnComparisonCondition
+        assert type(reloaded.conditions[1]) is ComparisonCondition
+        assert reloaded.dict() == original.dict()
+
+    @pytest.mark.parametrize(
+        "group,type_tag", [(AndCondition, "and"), (OrCondition, "or")], ids=["and", "or"]
+    )
+    def test_a_group_parsed_from_a_dict_restores_column_comparison_children(
+        self, group: type[AndCondition | OrCondition], type_tag: str
+    ):
+        saved = {
+            "type": type_tag,
+            "conditions": [
+                _column_comparison().dict(),
+                _column_comparison("x", Operator.EQUAL, "y").dict(),
+            ],
+        }
+
+        result = group.parse_obj(saved)
+
+        assert [type(child) for child in result.conditions] == [ColumnComparisonCondition] * 2
+        assert result.dict() == saved
+
+
+class TestSavedLiteralComparisonWithDictValue:
+    """A literal comparison whose value looks like a column stays a literal comparison."""
+
+    SAVED_LITERAL = {
+        "type": "comparison",
+        "column": {"name": "a"},
+        "operator": "==",
+        "parameter": {"name": "b"},
+    }
+
+    def test_it_reloads_as_a_literal_comparison(self):
+        result = deserialize_row_condition(dict(self.SAVED_LITERAL))
+
+        assert type(result) is ComparisonCondition
+        assert type(result) is not ColumnComparisonCondition
+        assert result.parameter == {"name": "b"}
+        assert not isinstance(result.parameter, Column)
+
+    def test_it_round_trips_unchanged(self):
+        reloaded = deserialize_row_condition(dict(self.SAVED_LITERAL))
+
+        assert type(reloaded) is ComparisonCondition
+        assert reloaded.dict() == self.SAVED_LITERAL
+        assert deserialize_row_condition(reloaded.dict()).dict() == self.SAVED_LITERAL
+
+    @pytest.mark.parametrize("type_tag", ["and", "or"])
+    def test_it_stays_a_literal_inside_a_group(self, type_tag: str) -> None:
+        saved = {
+            "type": type_tag,
+            "conditions": [dict(self.SAVED_LITERAL), _column_comparison().dict()],
+        }
+
+        reloaded = deserialize_row_condition(saved)
+
+        assert isinstance(reloaded, (AndCondition, OrCondition))
+        assert type(reloaded.conditions[0]) is ComparisonCondition
+        assert type(reloaded.conditions[1]) is ColumnComparisonCondition
+        assert reloaded.dict() == saved
+
+    def test_a_literal_and_a_column_comparison_of_the_same_columns_stay_distinct(self):
+        literal = deserialize_row_condition(
+            {**self.SAVED_LITERAL, "operator": ">"},
+        )
+        column_pair = deserialize_row_condition(
+            _column_comparison("a", Operator.GREATER_THAN, "b").dict()
+        )
+
+        assert type(literal) is ComparisonCondition
+        assert type(column_pair) is ColumnComparisonCondition
+        assert literal.dict() != column_pair.dict()
+
+
+class TestSetOperatorsRejectedWhenLoadingAColumnComparison:
+    @pytest.mark.parametrize("operator", SET_OPERATORS)
+    def test_loading_a_standalone_column_comparison_is_rejected(self, operator: Operator):
+        saved = {
+            "type": "column_comparison",
+            "column": {"name": "a"},
+            "operator": operator.value,
+            "other_column": {"name": "b"},
+        }
+
+        with pytest.raises(ValidationError) as exc_info:
+            deserialize_row_condition(saved)
+
+        message = str(exc_info.value)
+        assert "Set membership against a column is not supported" in message
+        assert f"not {operator.value}" in message
+
+    @pytest.mark.parametrize("group", ["and", "or"])
+    @pytest.mark.parametrize("operator", SET_OPERATORS)
+    def test_loading_one_nested_in_a_group_is_rejected(self, group: str, operator: Operator):
+        saved = {
+            "type": group,
+            "conditions": [
+                _column_comparison().dict(),
+                {
+                    "type": "column_comparison",
+                    "column": {"name": "a"},
+                    "operator": operator.value,
+                    "other_column": {"name": "b"},
+                },
+            ],
+        }
+
+        with pytest.raises(
+            ValidationError, match="Set membership against a column is not supported"
+        ):
+            deserialize_row_condition(saved)
+
+
+@pytest.mark.parametrize(
+    "module_name",
+    [
+        "great_expectations.expectations.row_conditions",
+        "great_expectations.expectations.conditions",
+    ],
+)
+class TestColumnComparisonConditionIsPublic:
+    def test_it_is_importable_from_the_module(self, module_name: str):
+        module = importlib.import_module(module_name)
+
+        assert hasattr(module, "ColumnComparisonCondition")
+
+    def test_it_is_the_same_class_from_every_module(self, module_name: str):
+        module = importlib.import_module(module_name)
+
+        assert module.ColumnComparisonCondition is ColumnComparisonCondition
+
+    def test_it_has_a_docstring(self, module_name: str):
+        module = importlib.import_module(module_name)
+
+        assert module.ColumnComparisonCondition.__doc__
+        assert module.ColumnComparisonCondition.__doc__.strip()
+
+    def test_the_existing_condition_names_are_still_exported(self, module_name: str):
+        module = importlib.import_module(module_name)
+
+        for name in (
+            "AndCondition",
+            "Column",
+            "ComparisonCondition",
+            "Condition",
+            "NullityCondition",
+            "Operator",
+            "OrCondition",
+            "PassThroughCondition",
+            "RowConditionType",
+            "deserialize_row_condition",
+            "validate_row_condition",
+        ):
+            assert hasattr(module, name), name
+
+
+class _RowConditionHolder(BaseModel):
+    row_condition: RowConditionType = None
+
+
+class TestRowConditionTypeUnion:
+    """Parsing a dict into a ``RowConditionType`` field picks the member the dict is tagged for."""
+
+    def test_a_column_comparison_dict_parses_as_a_column_comparison(self):
+        saved = _column_comparison().dict()
+
+        holder = _RowConditionHolder(row_condition=saved)
+
+        assert type(holder.row_condition) is ColumnComparisonCondition
+        assert holder.row_condition.dict() == saved
+
+    def test_a_comparison_dict_parses_as_a_literal_comparison(self):
+        saved = {
+            "type": "comparison",
+            "column": {"name": "a"},
+            "operator": "==",
+            "parameter": 1,
+        }
+
+        holder = _RowConditionHolder(row_condition=saved)
+
+        assert type(holder.row_condition) is ComparisonCondition
+        assert holder.row_condition.dict() == saved
+
+    def test_a_comparison_dict_with_a_column_shaped_value_stays_a_literal_comparison(self):
+        saved = {
+            "type": "comparison",
+            "column": {"name": "a"},
+            "operator": "==",
+            "parameter": {"name": "b"},
+        }
+
+        holder = _RowConditionHolder(row_condition=saved)
+
+        assert type(holder.row_condition) is ComparisonCondition
+        assert holder.row_condition.dict() == saved
+
+    def test_a_column_comparison_instance_is_kept(self):
+        condition = _column_comparison()
+
+        holder = _RowConditionHolder(row_condition=condition)
+
+        assert type(holder.row_condition) is ColumnComparisonCondition
+        assert holder.row_condition.dict() == condition.dict()
+
+    def test_existing_members_still_parse(self):
+        nullity = {"type": "nullity", "column": {"name": "a"}, "is_null": True}
+        pass_through = {"type": "pass_through", "pass_through_filter": "a > 1"}
+
+        assert type(_RowConditionHolder(row_condition=nullity).row_condition) is NullityCondition
+        assert (
+            type(_RowConditionHolder(row_condition=pass_through).row_condition)
+            is PassThroughCondition
+        )
+        assert _RowConditionHolder(row_condition="a > 1").row_condition == "a > 1"
+        assert _RowConditionHolder(row_condition=None).row_condition is None
+
+    def test_a_column_comparison_with_a_set_operator_is_not_accepted(self):
+        saved = {
+            "type": "column_comparison",
+            "column": {"name": "a"},
+            "operator": Operator.IN.value,
+            "other_column": {"name": "b"},
+        }
+
+        with pytest.raises(
+            ValidationError, match="Set membership against a column is not supported"
+        ):
+            _RowConditionHolder(row_condition=saved)
+
+    def test_the_column_comparison_member_comes_after_the_pass_through_member(self):
+        # Appending the new member keeps the position of every existing member, so the schemas
+        # generated from this union only gain an entry at the end.
+        members = list(RowConditionType.__args__)
+
+        assert members.index(ColumnComparisonCondition) == members.index(PassThroughCondition) + 1
+        assert members[-1] is type(None)
+        assert members[:7] == [
+            str,
+            ComparisonCondition,
+            NullityCondition,
+            AndCondition,
+            OrCondition,
+            PassThroughCondition,
+            ColumnComparisonCondition,
+        ]
