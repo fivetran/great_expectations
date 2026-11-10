@@ -38,7 +38,16 @@ from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
 from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.execution_engine.pandas_batch_data import PandasBatchData
-from great_expectations.expectations.row_conditions import Column
+from great_expectations.expectations.row_conditions import (
+    AndCondition,
+    Column,
+    ColumnComparisonCondition,
+    ComparisonCondition,
+    Condition,
+    NullityCondition,
+    OrCondition,
+    PassThroughCondition,
+)
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     ALL_DATA_SOURCES,
@@ -895,4 +904,230 @@ def test_every_pandas_missing_value_form_is_excluded_by_every_operator(
     )
     assert_operator_selects_oracle_ids(
         batch_for_datasource, MISSING_VALUE_DATA, (form.left, form.right), compare
+    )
+
+
+# A column comparison joined to other conditions. A comparison whose value is missing is unknown
+# rather than false, and a row passes a filter only when the whole condition is true, so a row with
+# a null in `a` or `b` is selected through an OR only if the other branch selects it, and never
+# through an AND. These rows hold the same pair relations as above (two less, two equal, two
+# greater) and mark which of them the other branches select:
+#
+# * `k` is 1 on one row of each relation and of each kind of null row, and 0 on the other, so
+#   `k == 1` splits the null rows and splits the rows of every relation, whatever the operator.
+# * `c` is missing on one row of each relation, so `c IS NOT NULL` removes a row the comparison
+#   selected under every operator that selects that relation. It is present on every null row, so
+#   an AND that kept a null row could not be explained by `c`.
+# * Rows 7 to 12 are the null rows: `a` missing, `b` missing, and both, each with `k` of 0 and 1.
+#   `a IS NULL` selects the first and third kinds but not the second, whose `a` is present.
+#
+# Every operator then selects a different, non-empty proper subset under each form below.
+#
+# The compared columns are float64, so a missing value is NaN. pandas compares NaN as unequal
+# rather than unknown, which is what makes the pandas cases fail if the null rule is not applied;
+# an `Int64` column's `pd.NA` is already false in `df.query` and would not show that. The whole
+# numbers are exactly representable, so no backend's rounding can move a pair across its relation.
+COMBINATOR_DATA = pd.DataFrame(
+    {
+        ID_COLUMN: list(range(1, 13)),
+        "a": [2.0, -4.0, 7.0, 3.0, 9.0, 8.0, None, None, 6.0, 6.0, None, None],
+        "b": [5.0, 1.0, 7.0, 3.0, 4.0, 6.0, 5.0, 5.0, None, None, None, None],
+        "c": [10.0, None, None, 20.0, None, 30.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0],
+        "k": [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    }
+)
+
+
+def _spark_combinator_column_types() -> dict[str, Any]:
+    """The Spark schema for ``COMBINATOR_DATA``, empty where pyspark is not installed.
+
+    A Spark schema is positional and must name every column, in the frame's order.
+    """
+    try:
+        from great_expectations.compatibility.pyspark import types as spark_types
+
+        return {
+            ID_COLUMN: spark_types.IntegerType,
+            "a": spark_types.DoubleType,
+            "b": spark_types.DoubleType,
+            "c": spark_types.DoubleType,
+            "k": spark_types.IntegerType,
+        }
+    except ModuleNotFoundError:
+        return {}
+
+
+COMBINATOR_SOURCES = canonical_sources_with(
+    ALL_DATA_SOURCES,
+    {
+        SparkFilesystemCsvDatasourceTestConfig: SparkFilesystemCsvDatasourceTestConfig(
+            column_types=_spark_combinator_column_types()
+        )
+    },
+)
+
+Row = Mapping[Any, Any]
+
+
+def compare_truth(row: Row, compare: Comparison) -> bool | None:
+    """Whether the row's ``a`` and ``b`` satisfy ``compare``, or ``None`` if either is missing."""
+    left_value, right_value = row["a"], row["b"]
+    if pd.isna(left_value) or pd.isna(right_value):
+        return None
+    return bool(compare(left_value, right_value))
+
+
+def is_missing(row: Row, column: str) -> bool:
+    return bool(pd.isna(row[column]))
+
+
+def and_selects(*branches: bool | None) -> bool:
+    """A row passes an AND only when every branch is true; an unknown branch is not true."""
+    return all(branch is not None and bool(branch) for branch in branches)
+
+
+def or_selects(*branches: bool | None) -> bool:
+    """A row passes an OR when any branch is true; an unknown branch does not make it true."""
+    return any(branch is not None and bool(branch) for branch in branches)
+
+
+def ids_where(frame: pd.DataFrame, selects: Callable[[Row], bool]) -> list[int]:
+    return [int(row[ID_COLUMN]) for row in frame.to_dict("records") if selects(row)]
+
+
+@pytest.mark.unit
+def test_each_kind_of_null_row_is_paired_with_both_values_of_the_key() -> None:
+    kinds = {
+        "a missing": COMBINATOR_DATA["a"].isna() & COMBINATOR_DATA["b"].notna(),
+        "b missing": COMBINATOR_DATA["a"].notna() & COMBINATOR_DATA["b"].isna(),
+        "both missing": COMBINATOR_DATA["a"].isna() & COMBINATOR_DATA["b"].isna(),
+    }
+    for kind, rows in kinds.items():
+        assert set(COMBINATOR_DATA.loc[rows, "k"]) == {0, 1}, kind
+
+
+@parameterize_batch_for_data_sources(data_source_configs=COMBINATOR_SOURCES, data=COMBINATOR_DATA)
+def test_combinator_data_loads_with_its_missing_values_as_nulls(
+    batch_for_datasource: Batch,
+) -> None:
+    assert_missing_values_loaded(batch_for_datasource, COMBINATOR_DATA, ["a", "b", "c"])
+
+
+@parameterize_batch_for_data_sources(data_source_configs=COMBINATOR_SOURCES, data=COMBINATOR_DATA)
+@pytest.mark.parametrize("compare", OPERATORS)
+def test_and_never_selects_a_row_with_a_null_in_the_comparison(
+    batch_for_datasource: Batch, compare: Comparison
+) -> None:
+    expected = ids_where(
+        COMBINATOR_DATA,
+        lambda row: and_selects(compare_truth(row, compare), not is_missing(row, "c")),
+    )
+    assert_oracle_excludes_null_rows(COMBINATOR_DATA, "a", "b", expected)
+    assert_rows_selected(
+        batch_for_datasource,
+        compare(Column("a"), Column("b")) & Column("c").is_not_null(),
+        expected,
+        all_ids(COMBINATOR_DATA),
+    )
+
+
+# The other branch of an OR, as the condition and as the row test the oracle applies to it.
+OTHER_OR_BRANCHES = [
+    pytest.param(Column("k") == 1, lambda row: row["k"] == 1, id="key_is_one"),
+    pytest.param(Column("a").is_null(), lambda row: is_missing(row, "a"), id="a_is_null"),
+]
+
+
+@parameterize_batch_for_data_sources(data_source_configs=COMBINATOR_SOURCES, data=COMBINATOR_DATA)
+@pytest.mark.parametrize(("other_branch", "other_selects"), OTHER_OR_BRANCHES)
+@pytest.mark.parametrize("compare", OPERATORS)
+def test_or_selects_a_row_with_a_null_in_the_comparison_only_if_the_other_branch_does(
+    batch_for_datasource: Batch,
+    compare: Comparison,
+    other_branch: Condition,
+    other_selects: Callable[[Row], bool],
+) -> None:
+    expected = ids_where(
+        COMBINATOR_DATA,
+        lambda row: or_selects(compare_truth(row, compare), other_selects(row)),
+    )
+    assert_rows_selected(
+        batch_for_datasource,
+        compare(Column("a"), Column("b")) | other_branch,
+        expected,
+        all_ids(COMBINATOR_DATA),
+    )
+
+
+@parameterize_batch_for_data_sources(data_source_configs=COMBINATOR_SOURCES, data=COMBINATOR_DATA)
+@pytest.mark.parametrize("compare", OPERATORS)
+def test_or_with_both_columns_is_null_selects_every_null_row_and_the_matching_rows(
+    batch_for_datasource: Batch, compare: Comparison
+) -> None:
+    null_ids = ids_with_a_null(COMBINATOR_DATA, "a", "b")
+    expected = ids_where(
+        COMBINATOR_DATA,
+        lambda row: or_selects(
+            compare_truth(row, compare), is_missing(row, "a"), is_missing(row, "b")
+        ),
+    )
+    assert set(null_ids) <= set(expected)
+    assert_rows_selected(
+        batch_for_datasource,
+        OrCondition(
+            conditions=[
+                compare(Column("a"), Column("b")),
+                Column("a").is_null(),
+                Column("b").is_null(),
+            ]
+        ),
+        expected,
+        all_ids(COMBINATOR_DATA),
+    )
+
+
+def _all_subclasses(base: type) -> set[type]:
+    found: set[type] = set()
+    for subclass in base.__subclasses__():
+        found.add(subclass)
+        found |= _all_subclasses(subclass)
+    return found
+
+
+# The null rule lives in how each engine renders the comparison itself, so AND and OR keep it only
+# because they render the comparison the same way inside them. A new kind of condition that
+# wraps or inverts a comparison, a negation for instance, would turn a null from "not selected"
+# into "selected" on a backend that treats the unknown as false, so it needs a case of its own.
+CONDITION_TYPES_WITH_THE_NULL_RULE_VERIFIED: set[type] = {
+    ComparisonCondition,
+    ColumnComparisonCondition,
+    NullityCondition,
+    AndCondition,
+    OrCondition,
+    PassThroughCondition,
+}
+
+
+@pytest.mark.unit
+def test_every_condition_type_has_had_the_column_comparison_null_rule_verified() -> None:
+    # Only classes defined in great_expectations count: `__subclasses__()` sees every subclass in
+    # the test process, including any a test module defines for its own purposes.
+    defined = {
+        condition_type
+        for condition_type in _all_subclasses(Condition)
+        if condition_type.__module__.startswith("great_expectations.")
+    }
+    added = sorted(
+        condition_type.__name__
+        for condition_type in defined - CONDITION_TYPES_WITH_THE_NULL_RULE_VERIFIED
+    )
+    removed = sorted(
+        condition_type.__name__
+        for condition_type in CONDITION_TYPES_WITH_THE_NULL_RULE_VERIFIED - defined
+    )
+    assert not added and not removed, (
+        f"The row-condition classes changed: added {added}, removed {removed}. Before updating "
+        "CONDITION_TYPES_WITH_THE_NULL_RULE_VERIFIED, verify on every backend that a column "
+        "comparison still excludes a row with a null on either side when it is combined through "
+        "the new condition type, with a case for it beside the AND and OR cases above."
     )
