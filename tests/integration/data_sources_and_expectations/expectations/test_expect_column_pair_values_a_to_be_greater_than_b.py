@@ -257,3 +257,20 @@ def test_row_with_one_null_is_unexpected(batch_for_datasource: Batch, or_equal: 
     result = batch_for_datasource.validate(expectation)
     assert not result.success
     assert result.result["unexpected_count"] == 1
+
+
+BOTH_NULL_DATA = pd.DataFrame({"a": [9.0, None], "b": [1.0, None]})
+
+
+@pytest.mark.parametrize("or_equal,unexpected_count", [(False, 1), (True, 0)])
+@parameterize_batch_for_data_sources(data_source_configs=SQL_DATA_SOURCES, data=BOTH_NULL_DATA)
+def test_row_with_both_nulls_sql(
+    batch_for_datasource: Batch, or_equal: bool, unexpected_count: int
+) -> None:
+    # With or_equal, SQL treats a row where both values are NULL as equal, and so expected.
+    # ignore_row_if="neither" keeps the row, which the default would drop before the comparison.
+    expectation = gxe.ExpectColumnPairValuesAToBeGreaterThanB(
+        column_A="a", column_B="b", or_equal=or_equal, ignore_row_if="neither"
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.result["unexpected_count"] == unexpected_count
