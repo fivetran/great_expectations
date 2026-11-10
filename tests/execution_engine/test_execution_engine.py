@@ -16,15 +16,18 @@ from great_expectations.execution_engine import ExecutionEngine, PandasExecution
 from great_expectations.execution_engine.execution_engine import (
     InvalidConditionError,
     MetricComputationConfiguration,
+    _column_comparison_error_context,
 )
 from great_expectations.expectations.legacy_row_conditions import (
     RowCondition,
     RowConditionParserType,
 )
 from great_expectations.expectations.row_conditions import (
+    AndCondition,
     Column,
     ColumnComparisonCondition,
     ComparisonCondition,
+    OrCondition,
     PassThroughCondition,
 )
 
@@ -37,11 +40,7 @@ from tests.expectations.test_util import get_table_columns_metric
 
 if TYPE_CHECKING:
     from great_expectations.core.batch import BatchData, BatchMarkers
-    from great_expectations.expectations.row_conditions import (
-        AndCondition,
-        NullityCondition,
-        OrCondition,
-    )
+    from great_expectations.expectations.row_conditions import NullityCondition
     from great_expectations.validator.computed_metric import MetricValue
 
 
@@ -533,3 +532,238 @@ def test_engine_without_column_comparison_support_still_instantiates():
             raise NotImplementedError
 
     LegacyEngine()
+
+
+_COLUMN_COMPARISON_FAILURE_NOTE = (
+    "A column comparison fails when a named column does not exist or the backend cannot "
+    "compare the two columns' values."
+)
+
+
+def _failed_metric(**domain_kwargs) -> MetricConfiguration:
+    return MetricConfiguration(
+        metric_name="table.row_count",
+        metric_domain_kwargs=domain_kwargs,
+        metric_value_kwargs=None,
+    )
+
+
+def _context_sentence(comparisons: str) -> str:
+    return f" Row condition column comparisons: {comparisons}. {_COLUMN_COMPARISON_FAILURE_NOTE}"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("as_dict", [False, True], ids=["condition_object", "serialized_dict"])
+def test_column_comparison_error_context_names_a_standalone_comparison(as_dict: bool):
+    """The sentence names both columns, whether the domain holds the object or its dict form."""
+    condition = Column("end_date") > Column("start_date")
+    row_condition = condition.dict() if as_dict else condition
+
+    context = _column_comparison_error_context([_failed_metric(row_condition=row_condition)])
+
+    assert context == _context_sentence("end_date > start_date")
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("as_dict", [False, True], ids=["condition_object", "serialized_dict"])
+@pytest.mark.parametrize(
+    "build_condition",
+    [
+        pytest.param(
+            lambda comparison: AndCondition(conditions=[Column("x") > 1, comparison]),
+            id="and",
+        ),
+        pytest.param(
+            lambda comparison: OrCondition(conditions=[comparison, Column("x").is_null()]),
+            id="or",
+        ),
+        pytest.param(
+            lambda comparison: AndCondition(
+                conditions=[
+                    Column("x") > 1,
+                    OrCondition(conditions=[Column("y").is_null(), comparison]),
+                ]
+            ),
+            id="or_inside_and",
+        ),
+    ],
+)
+def test_column_comparison_error_context_finds_a_comparison_nested_in_a_group(
+    build_condition, as_dict: bool
+):
+    """Only the column comparison is named; literal siblings in the group are not."""
+    condition = build_condition(Column("end_date") > Column("start_date"))
+    row_condition = condition.dict() if as_dict else condition
+
+    context = _column_comparison_error_context([_failed_metric(row_condition=row_condition)])
+
+    assert context == _context_sentence("end_date > start_date")
+
+
+@pytest.mark.unit
+def test_column_comparison_error_context_lists_distinct_comparisons_in_written_order():
+    """Several comparisons in one tree are listed in the order they were written."""
+    condition = AndCondition(
+        conditions=[
+            Column("c") < Column("d"),
+            OrCondition(conditions=[Column("a") != Column("b"), Column("x") > 1]),
+            Column("e") >= Column("f"),
+        ]
+    )
+
+    context = _column_comparison_error_context([_failed_metric(row_condition=condition)])
+
+    assert context == _context_sentence("c < d, a != b, e >= f")
+
+
+@pytest.mark.unit
+def test_column_comparison_error_context_deduplicates_within_a_tree_keeping_first_seen_order():
+    condition = AndCondition(
+        conditions=[
+            Column("a") < Column("b"),
+            Column("c") < Column("d"),
+            Column("a") < Column("b"),
+            OrCondition(conditions=[Column("c") < Column("d"), Column("e") < Column("f")]),
+        ]
+    )
+
+    context = _column_comparison_error_context([_failed_metric(row_condition=condition)])
+
+    assert context == _context_sentence("a < b, c < d, e < f")
+
+
+@pytest.mark.unit
+def test_column_comparison_error_context_deduplicates_across_metrics_keeping_first_seen_order():
+    first = _failed_metric(row_condition=(Column("a") < Column("b")).dict())
+    second = _failed_metric(
+        row_condition=AndCondition(
+            conditions=[Column("c") < Column("d"), Column("a") < Column("b")]
+        )
+    )
+    third = _failed_metric(row_condition=Column("e") < Column("f"))
+    fourth = _failed_metric(row_condition=(Column("c") < Column("d")).dict())
+
+    context = _column_comparison_error_context([first, second, third, fourth])
+
+    assert context == _context_sentence("a < b, c < d, e < f")
+
+
+@pytest.mark.unit
+def test_column_comparison_error_context_keeps_comparisons_that_differ_in_operator_or_order():
+    """De-duplication is by display form: `a < b`, `a > b` and `b > a` are three comparisons."""
+    condition = AndCondition(
+        conditions=[
+            Column("a") < Column("b"),
+            Column("a") > Column("b"),
+            Column("b") > Column("a"),
+        ]
+    )
+
+    context = _column_comparison_error_context([_failed_metric(row_condition=condition)])
+
+    assert context == _context_sentence("a < b, a > b, b > a")
+
+
+@pytest.mark.unit
+def test_column_comparison_error_context_accepts_any_iterable_of_failed_metrics():
+    metric = _failed_metric(row_condition=Column("a") < Column("b"))
+
+    context = _column_comparison_error_context(m for m in (metric,))
+
+    assert context == _context_sentence("a < b")
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "domain_kwargs",
+    [
+        pytest.param({"row_condition": Column("x") > 1}, id="literal_comparison"),
+        pytest.param({"row_condition": (Column("x") > 1).dict()}, id="literal_comparison_dict"),
+        pytest.param({"row_condition": Column("x").is_null()}, id="nullity"),
+        pytest.param(
+            {
+                "row_condition": AndCondition(
+                    conditions=[
+                        Column("x") > 1,
+                        OrCondition(conditions=[Column("y").is_null(), Column("z") <= 3]),
+                    ]
+                ).dict()
+            },
+            id="literal_only_group_dict",
+        ),
+        pytest.param(
+            {"row_condition": PassThroughCondition(pass_through_filter="a < b")},
+            id="pass_through",
+        ),
+        pytest.param(
+            {"row_condition": 'col("a") < col("b")', "condition_parser": "great_expectations"},
+            id="legacy_string_that_reads_like_a_comparison",
+        ),
+        pytest.param({"row_condition": "a < b", "condition_parser": "pandas"}, id="pandas_string"),
+        pytest.param({"row_condition": None}, id="row_condition_none"),
+        pytest.param({"column": "a"}, id="row_condition_absent"),
+        pytest.param({}, id="empty_domain_kwargs"),
+    ],
+)
+def test_column_comparison_error_context_is_empty_without_a_column_comparison(domain_kwargs):
+    """No column comparison means no context, so the original message is left untouched."""
+    assert _column_comparison_error_context([_failed_metric(**domain_kwargs)]) == ""
+
+
+@pytest.mark.unit
+def test_column_comparison_error_context_is_empty_for_no_failed_metrics():
+    assert _column_comparison_error_context([]) == ""
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "row_condition",
+    [
+        pytest.param({"type": "no_such_condition"}, id="unknown_type"),
+        pytest.param({"column": "a"}, id="no_type"),
+        pytest.param({"type": "column_comparison"}, id="column_comparison_missing_fields"),
+        pytest.param(
+            {
+                "type": "column_comparison",
+                "column": {"name": "a"},
+                "operator": "IN",
+                "other_column": {"name": "b"},
+            },
+            id="column_comparison_unsupported_operator",
+        ),
+        pytest.param(
+            {"type": "and", "conditions": [{"type": "column_comparison", "column": {"name": "a"}}]},
+            id="group_with_malformed_child",
+        ),
+        pytest.param(12345, id="not_a_condition_or_string"),
+        pytest.param(["a < b"], id="list"),
+    ],
+)
+def test_column_comparison_error_context_is_empty_for_a_malformed_row_condition(row_condition):
+    """A row condition that cannot be deserialized yields no context and does not raise."""
+    assert _column_comparison_error_context([_failed_metric(row_condition=row_condition)]) == ""
+
+
+@pytest.mark.unit
+def test_column_comparison_error_context_ignores_a_malformed_metric_but_keeps_the_others():
+    malformed = _failed_metric(row_condition={"type": "column_comparison", "column": {"name": "a"}})
+    valid = _failed_metric(row_condition=(Column("a") < Column("b")).dict())
+
+    context = _column_comparison_error_context([malformed, valid, malformed])
+
+    assert context == _context_sentence("a < b")
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "failed_metrics",
+    [
+        pytest.param(None, id="none"),
+        pytest.param(42, id="not_iterable"),
+        pytest.param([object()], id="not_a_metric"),
+        pytest.param([None], id="none_metric"),
+    ],
+)
+def test_column_comparison_error_context_never_raises(failed_metrics):
+    """The context is appended while another error is being raised and must not replace it."""
+    assert _column_comparison_error_context(failed_metrics) == ""

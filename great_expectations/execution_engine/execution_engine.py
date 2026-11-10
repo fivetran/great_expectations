@@ -35,6 +35,8 @@ from great_expectations.expectations.row_conditions import (
     Condition,
     NullityCondition,
     OrCondition,
+    deserialize_row_condition,
+    find_column_comparisons,
 )
 from great_expectations.types import DictDot
 from great_expectations.util import (
@@ -121,6 +123,62 @@ class PartitionDomainKwargs:
 
     compute: dict
     accessor: dict
+
+
+def _row_condition_column_comparisons(row_condition: Any) -> List[ColumnComparisonCondition]:
+    """The column comparisons in one metric's row condition, or [] if it has none.
+
+    A row condition read from metric domain kwargs may be a Condition or its serialized
+    dictionary, and `find_column_comparisons` searches only Conditions, so a dictionary is
+    deserialized first. A row condition that cannot be deserialized has no comparisons to name.
+    """
+    try:
+        deserialized = deserialize_row_condition(row_condition)
+    except Exception:
+        # Broad on purpose: this only enriches an error that is already being raised, so no
+        # failure to parse the row condition, whatever its type, may replace that error.
+        return []
+    return find_column_comparisons(
+        deserialized  # type: ignore[arg-type] # typed as the Condition base; RowConditionType lists its subclasses
+    )
+
+
+def _column_comparison_error_context(failed_metrics: Iterable[MetricConfiguration]) -> str:
+    """A sentence naming the column comparisons in the failed metrics' row conditions, or "".
+
+    Each metric's row condition is read from its domain kwargs. The comparisons are listed by
+    display form (for example ``end_date > start_date``), in the order they are first found, and
+    a comparison that appears more than once is listed once. Comparisons are separated by
+    ``", "``. The sentence begins with a space so that it can be appended to an error message.
+
+    The result is an empty string when no failed metric has a column comparison, so an error
+    raised for a suite without one is unchanged. The function never raises, whatever it is given.
+
+    Args:
+        failed_metrics: The metrics whose computation failed.
+
+    Returns:
+        The sentence to append to the error message, or an empty string.
+    """
+    try:
+        comparisons: List[str] = []
+        for metric in failed_metrics:
+            row_condition = metric.metric_domain_kwargs.get("row_condition")
+            for comparison in _row_condition_column_comparisons(row_condition):
+                display_form = repr(comparison)
+                if display_form not in comparisons:
+                    comparisons.append(display_form)
+    except Exception:
+        # Broad on purpose, as above: an unusable argument must not replace the original error.
+        return ""
+
+    if not comparisons:
+        return ""
+    return (
+        f" Row condition column comparisons: {', '.join(comparisons)}."
+        " A column comparison fails when a named column does not exist or the backend cannot"
+        " compare the two columns' values."
+    )
 
 
 class ExecutionEngine(ABC, Generic[TFilter]):
