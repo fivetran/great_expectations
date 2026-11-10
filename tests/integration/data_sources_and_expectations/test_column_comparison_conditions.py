@@ -20,19 +20,24 @@ verifies.
 
 from __future__ import annotations
 
+import math
 import operator
+from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Mapping, Sequence
 
 import pandas as pd
 import pytest
 
+import great_expectations as gx
 import great_expectations.expectations as gxe
 from great_expectations.compatibility.aws import REDSHIFT_TYPES
 from great_expectations.compatibility.bigquery import BIGQUERY_TYPES
 from great_expectations.compatibility.postgresql import POSTGRESQL_TYPES
 from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
 from great_expectations.compatibility.sqlalchemy import sqltypes
+from great_expectations.compatibility.typing_extensions import override
+from great_expectations.execution_engine.pandas_batch_data import PandasBatchData
 from great_expectations.expectations.row_conditions import Column
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
@@ -46,12 +51,15 @@ from tests.integration.test_utils.data_source_config import (
     RedshiftDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
+    SqlDatasourceTestConfig,
     SqliteDatasourceTestConfig,
     SQLServerDatasourceTestConfig,
 )
+from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 
 if TYPE_CHECKING:
     from great_expectations.datasource.fluent.interfaces import Batch
+    from great_expectations.datasource.fluent.sql_datasource import TableAsset
     from tests.integration.test_utils.data_source_config import DataSourceTestConfig
 
 # The distinct-values metrics on SQL backends pass a row-conditioned selectable to `select_from`
@@ -472,4 +480,419 @@ def test_operator_over_date_and_text_loaded_timestamp_columns(
 ) -> None:
     assert_operator_selects_oracle_ids(
         batch_for_datasource, STRING_TIMESTAMP_DATA, column_pair, compare
+    )
+
+
+# A row with a missing value on either side of a comparison never satisfies it, whatever the
+# operator, so `!=` is the case that can go wrong: a database treats `NULL != 4` as unknown, but
+# pandas evaluates `NaN != 4` as true. Every pair below has non-null rows that are less, equal and
+# greater, and rows missing the left value, the right value and both. Each operator therefore
+# selects a non-empty proper subset, and the null rows are the ones a backend would add if it let
+# a missing value through. The columns of one pair are only missing on rows where the other pair
+# holds values, so a backend that dropped a row for a null in an unrelated column would also fail.
+#
+# The integers are `Int64`, not a plain column: pandas turns an integer column holding a missing
+# value into a float one, and the SQL harness infers a column's type from the values it holds, so
+# without `Int64` the SQL backends would create these as FLOAT rather than INTEGER.
+# `test_nullable_integer_columns_are_created_as_integer_columns_on_every_sql_source` checks, for
+# every SQL source, that they are INTEGER (and the dates DATE). Spark declares IntegerType and
+# DateType below. The in-memory pandas source passes the frame as it is: `Int64` integers, and
+# dates held as objects with `None` for a missing one. Only the pandas CSV source cannot keep
+# integers, because a file written with an empty field has no integer column to read back: it
+# reads `int_left` and `int_right` as float64. The comparison and the oracle are unchanged by that.
+NULL_DATA = pd.DataFrame(
+    {
+        ID_COLUMN: list(range(1, 13)),
+        "int_left": pd.Series([7, 5, -3, 9, 10, 4, None, 6, None, 3, 8, 5], dtype="Int64"),
+        "int_right": pd.Series([3, 5, 2, 10, 9, 4, 4, None, None, 8, 2, 5], dtype="Int64"),
+        "date_left": [
+            date(2021, 1, 30),
+            date(2022, 2, 28),
+            date(2023, 3, 15),
+            date(2000, 1, 1),
+            date(2024, 2, 28),
+            date(2024, 2, 29),
+            date(2024, 12, 1),
+            date(2020, 6, 15),
+            date(2022, 5, 5),
+            None,
+            date(2019, 9, 9),
+            None,
+        ],
+        "date_right": [
+            date(2021, 1, 31),
+            date(2021, 12, 25),
+            date(2023, 3, 15),
+            date(1999, 12, 31),
+            date(2024, 2, 29),
+            date(2024, 2, 29),
+            date(2024, 11, 30),
+            date(2021, 6, 15),
+            date(2022, 5, 5),
+            date(2023, 1, 1),
+            None,
+            None,
+        ],
+    }
+)
+
+NULL_COLUMN_PAIRS = [
+    pytest.param(("int_left", "int_right"), id="int"),
+    pytest.param(("date_left", "date_right"), id="date"),
+]
+
+
+def _spark_null_column_types() -> dict[str, Any]:
+    """The Spark schema for ``NULL_DATA``, empty where pyspark is not installed.
+
+    A Spark schema is positional and must name every column, in the frame's order. The dates need
+    one because a CSV file of dates would otherwise be read back as timestamps.
+    """
+    try:
+        from great_expectations.compatibility.pyspark import types as spark_types
+
+        return {
+            ID_COLUMN: spark_types.IntegerType,
+            "int_left": spark_types.IntegerType,
+            "int_right": spark_types.IntegerType,
+            "date_left": spark_types.DateType,
+            "date_right": spark_types.DateType,
+        }
+    except ModuleNotFoundError:
+        return {}
+
+
+# Only the two file-backed sources need to say how to read these columns back; every SQL source
+# takes the harness defaults (INTEGER and DATE) and the in-memory pandas frame is used as given.
+_NULL_CONFIG_OVERRIDES: dict[type[DataSourceTestConfig], DataSourceTestConfig] = {
+    PandasFilesystemCsvDatasourceTestConfig: PandasFilesystemCsvDatasourceTestConfig(
+        read_options={"parse_dates": ["date_left", "date_right"], "date_format": "mixed"},
+    ),
+    SparkFilesystemCsvDatasourceTestConfig: SparkFilesystemCsvDatasourceTestConfig(
+        column_types=_spark_null_column_types()
+    ),
+}
+
+
+def canonical_sources_with(
+    canonical: Sequence[DataSourceTestConfig],
+    overrides: Mapping[type[DataSourceTestConfig], DataSourceTestConfig],
+) -> list[DataSourceTestConfig]:
+    """The canonical sources, each replaced by its override where it has one, in canonical order.
+
+    An override for a source that is no longer canonical is an error rather than a case that
+    silently stops running, so the list cannot drift from ``ALL_DATA_SOURCES``.
+    """
+    stale = overrides.keys() - {type(config) for config in canonical}
+    if stale:
+        raise ValueError(f"configured but not a canonical data source: {_names(stale)}")
+    return [overrides.get(type(config), config) for config in canonical]
+
+
+NULL_SOURCES = canonical_sources_with(ALL_DATA_SOURCES, _NULL_CONFIG_OVERRIDES)
+
+
+def ids_with_a_null(frame: pd.DataFrame, left: str, right: str) -> list[int]:
+    """The ids of the rows whose ``left`` or ``right`` value is missing."""
+    missing = frame[left].isna() | frame[right].isna()
+    return [int(row_id) for row_id in frame.loc[missing, ID_COLUMN]]
+
+
+def assert_oracle_excludes_null_rows(
+    frame: pd.DataFrame, left: str, right: str, expected: Iterable[int]
+) -> None:
+    """Fail if ``expected`` names a row that has a missing value in the compared pair.
+
+    The id sets the cases compare already differ whenever a null row slips in, but only because the
+    oracle skips those rows. This says it outright, so a change to the oracle that stopped skipping
+    them is caught here rather than agreeing with a backend that let them through.
+    """
+    null_ids = ids_with_a_null(frame, left, right)
+    assert null_ids, f"no row of {left!r}, {right!r} has a missing value, so nothing is checked"
+    included = sorted(set(expected) & set(null_ids))
+    assert not included, f"rows {included} have a missing value in {left!r} or {right!r}"
+
+
+def assert_missing_values_loaded(batch: Batch, frame: pd.DataFrame, columns: Iterable[str]) -> None:
+    """Assert that each column holds the rows of ``frame``, with its missing values as nulls.
+
+    The exclusion cases also pass if a backend drops the null rows, or loads a missing value as a
+    number or as text, so this is what makes them evidence about null handling.
+    """
+    for column in columns:
+        result = batch.validate(gxe.ExpectColumnValuesToNotBeNull(column=column))
+        assert result.result["element_count"] == len(frame), f"{column}: {result.result}"
+        assert result.result["unexpected_count"] == int(frame[column].isna().sum()), (
+            f"{column}: {result.result}"
+        )
+
+
+class _ColumnTypeResolution(SQLBatchTestSetup[SqlDatasourceTestConfig]):
+    """The harness's column-type inference for one SQL source, without connecting to it."""
+
+    @override
+    def build_connection_string(self, schema: str | None = None) -> str:
+        raise NotImplementedError
+
+    @override
+    def make_asset(self) -> TableAsset:
+        raise NotImplementedError
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "config",
+    [
+        pytest.param(config, id=config.label)
+        for config in ALL_DATA_SOURCES
+        if isinstance(config, SqlDatasourceTestConfig)
+    ],
+)
+def test_nullable_integer_columns_are_created_as_integer_columns_on_every_sql_source(
+    config: SqlDatasourceTestConfig,
+) -> None:
+    setup = _ColumnTypeResolution(
+        config=config, data=NULL_DATA, extra_data={}, context=gx.get_context(mode="ephemeral")
+    )
+    column_types = setup._infer_column_types(NULL_DATA)
+    for column, expected_type in [
+        ("int_left", sqltypes.Integer),
+        ("int_right", sqltypes.Integer),
+        ("date_left", sqltypes.Date),
+        ("date_right", sqltypes.Date),
+    ]:
+        resolved = column_types[column]
+        column_type = resolved() if isinstance(resolved, type) else resolved
+        assert isinstance(column_type, expected_type), f"{column} is created as {resolved!r}"
+
+
+@pytest.mark.unit
+def test_a_null_in_one_pair_never_falls_on_a_row_with_a_null_in_the_other() -> None:
+    int_nulls = set(ids_with_a_null(NULL_DATA, "int_left", "int_right"))
+    date_nulls = set(ids_with_a_null(NULL_DATA, "date_left", "date_right"))
+    assert int_nulls
+    assert date_nulls
+    assert not int_nulls & date_nulls
+
+
+@pytest.mark.unit
+def test_a_null_configuration_for_a_source_that_is_not_canonical_is_rejected() -> None:
+    with pytest.raises(ValueError, match="not a canonical data source: MySQLDatasourceTestConfig"):
+        canonical_sources_with(
+            [SqliteDatasourceTestConfig()], {MySQLDatasourceTestConfig: MySQLDatasourceTestConfig()}
+        )
+
+
+@parameterize_batch_for_data_sources(data_source_configs=NULL_SOURCES, data=NULL_DATA)
+@pytest.mark.parametrize("column_pair", NULL_COLUMN_PAIRS)
+def test_missing_values_load_as_nulls_on_every_source(
+    batch_for_datasource: Batch, column_pair: tuple[str, str]
+) -> None:
+    assert_missing_values_loaded(batch_for_datasource, NULL_DATA, column_pair)
+
+
+@parameterize_batch_for_data_sources(data_source_configs=NULL_SOURCES, data=NULL_DATA)
+@pytest.mark.parametrize("column_pair", NULL_COLUMN_PAIRS)
+@pytest.mark.parametrize("compare", OPERATORS)
+def test_rows_with_a_null_on_either_side_are_never_selected(
+    batch_for_datasource: Batch,
+    column_pair: tuple[str, str],
+    compare: Comparison,
+) -> None:
+    left, right = column_pair
+    assert_oracle_excludes_null_rows(
+        NULL_DATA, left, right, expected_ids(NULL_DATA, left, right, compare)
+    )
+    assert_operator_selects_oracle_ids(batch_for_datasource, NULL_DATA, column_pair, compare)
+
+
+@dataclass(frozen=True)
+class MissingValueForm:
+    """One way pandas holds a missing value, and the four ascending values its column compares."""
+
+    name: str
+    dtype: str
+    ladder: tuple[Any, Any, Any, Any]
+    is_missing_value: Callable[[Any], bool]
+    """Whether a scalar read out of the column is this form's own missing-value marker."""
+
+    @property
+    def left(self) -> str:
+        return f"{self.name}_left"
+
+    @property
+    def right(self) -> str:
+        return f"{self.name}_right"
+
+
+# Each form is a different dtype and a different marker: `NaN` in a float column, `None` in an
+# object column, `NaT` in a datetime column, and `pd.NA` in the nullable integer and string dtypes.
+# The names avoid the substrings `AND`, `OR` and `NOT` for the reason given in the module docstring.
+MISSING_VALUE_FORMS = [
+    MissingValueForm(
+        name="float_nan",
+        dtype="float64",
+        ladder=(0.5, 2.5, 4.0, 6.5),
+        is_missing_value=lambda value: isinstance(value, float) and math.isnan(value),
+    ),
+    MissingValueForm(
+        name="object_none",
+        dtype="object",
+        ladder=("apple", "banana", "cherry", "damson"),
+        is_missing_value=lambda value: value is None,
+    ),
+    MissingValueForm(
+        name="datetime_nat",
+        dtype="datetime64[ns]",
+        ladder=(
+            pd.Timestamp("2020-01-01"),
+            pd.Timestamp("2021-06-15 08:30:00"),
+            pd.Timestamp("2021-06-15 08:30:01"),
+            pd.Timestamp("2023-12-31"),
+        ),
+        is_missing_value=lambda value: value is pd.NaT,
+    ),
+    MissingValueForm(
+        name="int64_na",
+        dtype="Int64",
+        ladder=(-3, 5, 9, 10),
+        is_missing_value=lambda value: value is pd.NA,
+    ),
+    MissingValueForm(
+        name="string_na",
+        dtype="string",
+        ladder=("apple", "banana", "cherry", "damson"),
+        is_missing_value=lambda value: value is pd.NA,
+    ),
+]
+
+
+def missing_value_pairs(form: MissingValueForm, rotation: int) -> tuple[list[Any], list[Any]]:
+    """The left and right values of one form: nine rows, three of them with a missing value.
+
+    The rows are two where left < right, two where they are equal, two where left > right, and one
+    each missing the left value, the right value and both. ``rotation`` moves where each kind falls
+    among the ids, so no two forms select the same ids under an operator.
+    """
+    low, middle, high, top = form.ladder
+    missing = None
+    rows = [
+        (middle, middle),
+        (low, high),
+        (high, low),
+        (missing, middle),
+        (middle, missing),
+        (missing, missing),
+        (middle, top),
+        (top, top),
+        (top, low),
+    ]
+    rows = rows[rotation:] + rows[:rotation]
+    return [left for left, _ in rows], [right for _, right in rows]
+
+
+def missing_value_frame(forms: Sequence[MissingValueForm]) -> pd.DataFrame:
+    columns: dict[str, Any] = {ID_COLUMN: list(range(1, 10))}
+    for index, form in enumerate(forms):
+        lefts, rights = missing_value_pairs(form, rotation=2 * index)
+        columns[form.left] = pd.Series(lefts, dtype=form.dtype)
+        columns[form.right] = pd.Series(rights, dtype=form.dtype)
+    return pd.DataFrame(columns)
+
+
+MISSING_VALUE_DATA = missing_value_frame(MISSING_VALUE_FORMS)
+
+# The CSV source cannot keep these forms (a file holds text), and the harness loads each of them
+# into Spark and the SQL sources as a plain null, so only the in-memory pandas source holds them as
+# they are.
+PANDAS_DATA_FRAME_SOURCES = [
+    config for config in ALL_DATA_SOURCES if isinstance(config, PandasDataFrameDatasourceTestConfig)
+]
+
+MISSING_VALUE_FORM_PARAMS = [pytest.param(form, id=form.name) for form in MISSING_VALUE_FORMS]
+
+
+@pytest.mark.unit
+def test_there_is_exactly_one_in_memory_pandas_source() -> None:
+    assert len(PANDAS_DATA_FRAME_SOURCES) == 1
+
+
+@pytest.mark.unit
+def test_every_operator_selects_different_ids_on_each_pair_of_missing_value_forms() -> None:
+    pairs = [(MISSING_VALUE_DATA, form.left, form.right) for form in MISSING_VALUE_FORMS]
+    for param in OPERATORS:
+        compare = param.values[0]
+        assert callable(compare)
+        selected = [
+            tuple(expected_ids(frame, left, right, compare)) for frame, left, right in pairs
+        ]
+        assert len(set(selected)) == len(selected), (
+            f"{param.id}: two forms select the same ids, so a condition that read the wrong "
+            f"form's pair could still pass: {selected}"
+        )
+
+
+NULL_ORACLE_CASES = [
+    pytest.param(NULL_DATA, "int_left", "int_right", id="int"),
+    pytest.param(NULL_DATA, "date_left", "date_right", id="date"),
+    *[
+        pytest.param(MISSING_VALUE_DATA, form.left, form.right, id=form.name)
+        for form in MISSING_VALUE_FORMS
+    ],
+]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(("frame", "left", "right"), NULL_ORACLE_CASES)
+def test_every_pair_has_a_null_on_the_left_the_right_and_both(
+    frame: pd.DataFrame, left: str, right: str
+) -> None:
+    missing_left, missing_right = frame[left].isna(), frame[right].isna()
+    assert (missing_left & ~missing_right).any()
+    assert (~missing_left & missing_right).any()
+    assert (missing_left & missing_right).any()
+    assert (~missing_left & ~missing_right).any()
+
+
+@pytest.mark.unit
+def test_an_expectation_that_selects_a_null_row_is_rejected() -> None:
+    (null_id, *_) = ids_with_a_null(NULL_DATA, "int_left", "int_right")
+    with pytest.raises(AssertionError, match=r"have a missing value in 'int_left' or 'int_right'"):
+        assert_oracle_excludes_null_rows(NULL_DATA, "int_left", "int_right", [null_id])
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=PANDAS_DATA_FRAME_SOURCES, data=MISSING_VALUE_DATA
+)
+@pytest.mark.parametrize("form", MISSING_VALUE_FORM_PARAMS)
+def test_the_pandas_engine_receives_each_missing_value_form_unchanged(
+    batch_for_datasource: Batch, form: MissingValueForm
+) -> None:
+    assert isinstance(batch_for_datasource.data, PandasBatchData)
+    engine_frame = batch_for_datasource.data.dataframe
+    for column in (form.left, form.right):
+        seen = engine_frame[column]
+        assert str(seen.dtype) == form.dtype
+        expected_missing = MISSING_VALUE_DATA[column].isna()
+        assert seen.isna().equals(expected_missing)
+        for value in seen[expected_missing]:
+            assert form.is_missing_value(value), f"{column}: the engine holds {value!r}"
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=PANDAS_DATA_FRAME_SOURCES, data=MISSING_VALUE_DATA
+)
+@pytest.mark.parametrize("form", MISSING_VALUE_FORM_PARAMS)
+@pytest.mark.parametrize("compare", OPERATORS)
+def test_every_pandas_missing_value_form_is_excluded_by_every_operator(
+    batch_for_datasource: Batch, form: MissingValueForm, compare: Comparison
+) -> None:
+    assert_oracle_excludes_null_rows(
+        MISSING_VALUE_DATA,
+        form.left,
+        form.right,
+        expected_ids(MISSING_VALUE_DATA, form.left, form.right, compare),
+    )
+    assert_operator_selects_oracle_ids(
+        batch_for_datasource, MISSING_VALUE_DATA, (form.left, form.right), compare
     )
