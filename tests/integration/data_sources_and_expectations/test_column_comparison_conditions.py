@@ -48,6 +48,7 @@ from great_expectations.expectations.row_conditions import (
     OrCondition,
     PassThroughCondition,
 )
+from tests.integration.conftest import TestConfig as _TestConfig
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     ALL_DATA_SOURCES,
@@ -67,6 +68,8 @@ from tests.integration.test_utils.data_source_config import (
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 
 if TYPE_CHECKING:
+    from _pytest.mark.structures import ParameterSet
+
     from great_expectations.datasource.fluent.interfaces import Batch
     from great_expectations.datasource.fluent.sql_datasource import TableAsset
     from tests.integration.test_utils.data_source_config import DataSourceTestConfig
@@ -1130,4 +1133,356 @@ def test_every_condition_type_has_had_the_column_comparison_null_rule_verified()
         "CONDITION_TYPES_WITH_THE_NULL_RULE_VERIFIED, verify on every backend that a column "
         "comparison still excludes a row with a null on either side when it is combined through "
         "the new condition type, with a case for it beside the AND and OR cases above."
+    )
+
+
+ABSENT_ID = 0
+"""An id no row holds."""
+
+
+def selected_ids(batch: Batch, row_condition: Any) -> list[int]:
+    """The ids the backend itself leaves after filtering by ``row_condition``.
+
+    Where the expected ids come from the backend's own behavior, as they do for a collation, they
+    cannot be written down in advance. The distinct-values Expectation lists every id outside its
+    value set, and no row has the id below, so what it lists is every id that survived the filter.
+    A condition the backend could not evaluate fails here rather than reading as an empty result.
+    """
+    result = batch.validate(
+        gxe.ExpectColumnDistinctValuesToEqualSet(
+            column=ID_COLUMN, value_set=[ABSENT_ID], row_condition=row_condition
+        )
+    )
+    survivors = result.result.get("partial_unexpected_list")
+    assert survivors is not None, (
+        f"{row_condition!r} was not evaluated: exception_info={result.exception_info}"
+    )
+    return sorted(int(row_id) for row_id in survivors)
+
+
+# A column name a backend has to quote: one with a space in it, one that is a reserved word, and
+# one in mixed case, which a backend that folds an unquoted name to one case would otherwise change.
+# The names avoid the substrings `AND`, `OR` and `NOT` for the reason given in the module docstring.
+QUOTED_NAMES = {
+    "space": "user name",
+    "reserved_word": "select",
+    "mixed_case": "UserName",
+}
+
+PLAIN_COLUMN = "plain"
+
+# Each name gets a table of its own, built from the same values, so a backend that cannot store one
+# of the names still runs the others. In rows 1 and 2 the quoted column is below the plain one, in
+# rows 3 and 4 it is equal, and in rows 5 and 6 it is above, so `quoted < plain` and `plain <
+# quoted` each select a different, non-empty proper subset of the ids. `quoted > QUOTED_PIVOT` is
+# the literal comparison on the same name, and selects a third.
+_QUOTED_COLUMN_VALUES = [3, 12, 30, 30, 40, 60]
+_PLAIN_COLUMN_VALUES = [10, 20, 30, 30, 15, 25]
+QUOTED_PIVOT = 12
+
+
+def quoted_name_frame(name: str) -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            ID_COLUMN: [1, 2, 3, 4, 5, 6],
+            PLAIN_COLUMN: _PLAIN_COLUMN_VALUES,
+            name: _QUOTED_COLUMN_VALUES,
+        }
+    )
+
+
+def expected_ids_against_value(
+    frame: pd.DataFrame, column: str, value: Any, compare: Comparison
+) -> list[int]:
+    """The ids whose ``column`` value satisfies ``compare`` against the literal ``value``."""
+    return [int(row[ID_COLUMN]) for row in frame.to_dict("records") if compare(row[column], value)]
+
+
+# The names a source cannot store, by canonical source and then by name, each with the reason. A
+# source listed here still runs every other name; the skip is explicit and recorded where it is
+# collected, not a case that quietly stops running.
+#
+# BigQuery's support for a space in a column name was not verified when this was written. Column
+# names there were limited to letters, digits and underscores until flexible column names were
+# added, and nothing here shows that the CI dataset accepts a space, so that one name is skipped
+# until a run on that dataset shows otherwise. The other canonical sources are not listed: the
+# ones that run locally store all three names, and the rest are confirmed by their own CI run.
+_QUOTED_NAMES_A_SOURCE_CANNOT_STORE: dict[type[DataSourceTestConfig], dict[str, str]] = {
+    BigQueryDatasourceTestConfig: {
+        "user name": (
+            "BigQuery column names were limited to letters, digits and underscores until "
+            "flexible column names, and the CI dataset's support for spaces is not confirmed"
+        ),
+    },
+}
+
+
+def quoted_name_skips(
+    canonical: Sequence[DataSourceTestConfig],
+    names: Mapping[str, str],
+    cannot_store: Mapping[type[DataSourceTestConfig], Mapping[str, str]],
+) -> dict[tuple[str, str], str]:
+    """The reason each (source label, name) pair is skipped, checked against what exists.
+
+    A source that is not canonical, or a name this module does not test, is an error rather than
+    an entry that silently matches nothing, so the table cannot drift from the sources and names
+    it describes.
+    """
+    labels = {type(config): config.label for config in canonical}
+    stale = cannot_store.keys() - labels.keys()
+    if stale:
+        raise ValueError(f"configured but not a canonical data source: {_names(stale)}")
+    skips: dict[tuple[str, str], str] = {}
+    for config_type, reasons in cannot_store.items():
+        unknown = reasons.keys() - set(names.values())
+        if unknown:
+            raise ValueError(f"{config_type.__name__} skips names not tested: {sorted(unknown)}")
+        for name, reason in reasons.items():
+            skips[(labels[config_type], name)] = reason
+    return skips
+
+
+def sources_running_no_quoted_name(
+    canonical: Sequence[DataSourceTestConfig],
+    names: Mapping[str, str],
+    skips: Mapping[tuple[str, str], str],
+) -> list[str]:
+    """The labels of canonical sources that skip every quoted name, which should be none."""
+    return [
+        config.label
+        for config in canonical
+        if all((config.label, name) in skips for name in names.values())
+    ]
+
+
+def quoted_name_params(
+    canonical: Sequence[DataSourceTestConfig],
+    names: Mapping[str, str],
+    skips: Mapping[tuple[str, str], str],
+) -> list[ParameterSet]:
+    """One case per (canonical source, name), skipped with its reason where the source cannot store
+    the name.
+
+    The skip is a mark on the case rather than a call in the test body: pytest skips a marked case
+    before it builds the table, and the table is the thing that cannot be built.
+    """
+    return [
+        pytest.param(
+            _TestConfig(data_source_config=config, data=quoted_name_frame(name), extra_data={}),
+            name,
+            id=f"{config.test_id}-{kind}",
+            marks=[
+                config.pytest_mark,
+                *(
+                    [pytest.mark.skip(reason=skips[(config.label, name)])]
+                    if (config.label, name) in skips
+                    else []
+                ),
+            ],
+        )
+        for config in canonical
+        for kind, name in names.items()
+    ]
+
+
+QUOTED_NAME_SKIPS = quoted_name_skips(
+    ALL_DATA_SOURCES, QUOTED_NAMES, _QUOTED_NAMES_A_SOURCE_CANNOT_STORE
+)
+
+_BATCH_SETUP_FIXTURE_NAME = "_batch_setup_for_datasource"
+
+quoted_name_cases = pytest.mark.parametrize(
+    [_BATCH_SETUP_FIXTURE_NAME, "quoted_name"],
+    quoted_name_params(ALL_DATA_SOURCES, QUOTED_NAMES, QUOTED_NAME_SKIPS),
+    indirect=[_BATCH_SETUP_FIXTURE_NAME],
+)
+
+
+@pytest.mark.unit
+def test_every_canonical_source_runs_at_least_one_quoted_name() -> None:
+    assert sources_running_no_quoted_name(ALL_DATA_SOURCES, QUOTED_NAMES, QUOTED_NAME_SKIPS) == []
+
+
+@pytest.mark.unit
+def test_a_source_that_skips_every_quoted_name_is_reported() -> None:
+    canonical = [SqliteDatasourceTestConfig(), PostgreSQLDatasourceTestConfig()]
+    every_name = dict.fromkeys(QUOTED_NAMES.values(), "cannot store it")
+    skips = quoted_name_skips(canonical, QUOTED_NAMES, {PostgreSQLDatasourceTestConfig: every_name})
+    assert sources_running_no_quoted_name(canonical, QUOTED_NAMES, skips) == ["postgresql"]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("cannot_store", "message"),
+    [
+        pytest.param(
+            {MySQLDatasourceTestConfig: {"user name": "r"}},
+            "not a canonical data source: MySQLDatasourceTestConfig",
+            id="stale-source",
+        ),
+        pytest.param(
+            {SqliteDatasourceTestConfig: {"user_name": "r"}},
+            r"SqliteDatasourceTestConfig skips names not tested: \['user_name'\]",
+            id="unknown-name",
+        ),
+    ],
+)
+def test_a_skip_for_a_source_or_name_that_does_not_exist_is_rejected(
+    cannot_store: dict[type[DataSourceTestConfig], dict[str, str]], message: str
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        quoted_name_skips([SqliteDatasourceTestConfig()], QUOTED_NAMES, cannot_store)
+
+
+@pytest.mark.unit
+def test_a_skipped_name_is_collected_as_a_skip_with_its_reason() -> None:
+    canonical = [SqliteDatasourceTestConfig(), PostgreSQLDatasourceTestConfig()]
+    params = quoted_name_params(
+        canonical, QUOTED_NAMES, {("postgresql", "user name"): "no spaces here"}
+    )
+    skipped = {
+        param.id: [mark.kwargs["reason"] for mark in param.marks if mark.name == "skip"]
+        for param in params
+    }
+    assert skipped == {
+        "sqlite-space": [],
+        "sqlite-reserved_word": [],
+        "sqlite-mixed_case": [],
+        "postgresql-space": ["no spaces here"],
+        "postgresql-reserved_word": [],
+        "postgresql-mixed_case": [],
+    }
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "name", [pytest.param(name, id=kind) for kind, name in QUOTED_NAMES.items()]
+)
+def test_each_side_and_the_literal_select_different_ids_on_every_quoted_name(name: str) -> None:
+    frame = quoted_name_frame(name)
+    on_left = expected_ids(frame, name, PLAIN_COLUMN, operator.lt)
+    on_right = expected_ids(frame, PLAIN_COLUMN, name, operator.lt)
+    against_literal = expected_ids_against_value(frame, name, QUOTED_PIVOT, operator.gt)
+    selected = [on_left, on_right, against_literal]
+    for ids in selected:
+        assert_expectation_discriminates(ids, all_ids(frame))
+    assert len({tuple(ids) for ids in selected}) == len(selected), (
+        f"two forms select the same ids, so a condition that read the wrong side could still "
+        f"pass: {selected}"
+    )
+
+
+@quoted_name_cases
+@pytest.mark.parametrize(
+    "name_on_left", [pytest.param(True, id="name_on_left"), pytest.param(False, id="name_on_right")]
+)
+def test_a_quoted_name_resolves_on_either_side_of_a_column_comparison(
+    batch_for_datasource: Batch, quoted_name: str, name_on_left: bool
+) -> None:
+    pair = (quoted_name, PLAIN_COLUMN) if name_on_left else (PLAIN_COLUMN, quoted_name)
+    assert_operator_selects_oracle_ids(
+        batch_for_datasource, quoted_name_frame(quoted_name), pair, operator.lt
+    )
+
+
+@quoted_name_cases
+def test_a_quoted_name_resolves_in_a_literal_comparison(
+    batch_for_datasource: Batch, quoted_name: str
+) -> None:
+    frame = quoted_name_frame(quoted_name)
+    assert_rows_selected(
+        batch_for_datasource,
+        Column(quoted_name) > QUOTED_PIVOT,
+        expected_ids_against_value(frame, quoted_name, QUOTED_PIVOT, operator.gt),
+        all_ids(frame),
+    )
+
+
+# Strings that differ only in case, to put each backend's own collation on show. `t == "banana"`
+# holds for "banana" under every collation and for "Banana" only under one that ignores case.
+#
+# * Row 1 is selected, and rows 2, 6 and 7 are not, whatever the collation.
+# * Row 4 is selected only where case is ignored: its `t` is "Banana" and "cherry" is above it.
+# * Row 3 compares "Banana" with "banana". A binary order puts the capital first and a
+#   case-insensitive one calls them equal, so neither selects it, but a locale order that puts lower
+#   case first does.
+# * Row 5 compares "Cherry" with "banana". A binary order puts every capital before every lower-case
+#   letter, so it is not selected there; the other two orders select it.
+#
+# A binary collation therefore selects {1}, a case-insensitive one {1, 4, 5} and a lower-case-first
+# locale one {1, 3, 5}: each a non-empty proper subset, and each different.
+COLLATION_PIVOT = "banana"
+COLLATION_DATA = pd.DataFrame(
+    {
+        ID_COLUMN: [1, 2, 3, 4, 5, 6, 7],
+        "s": ["cherry", "apple", "Banana", "cherry", "Cherry", "apple", "Apple"],
+        "t": ["banana", "banana", "banana", "Banana", "banana", "apple", "Banana"],
+    }
+)
+ROWS_EVERY_COLLATION_SELECTS = {1}
+ROWS_NO_COLLATION_SELECTS = {2, 6, 7}
+
+
+def assert_rows_that_ignore_collation(selected: Iterable[int]) -> None:
+    """Fail unless ``selected`` holds the rows every collation selects and none that none does."""
+    chosen = set(selected)
+    assert chosen.issuperset(ROWS_EVERY_COLLATION_SELECTS), sorted(chosen)
+    assert chosen.isdisjoint(ROWS_NO_COLLATION_SELECTS), sorted(chosen)
+
+
+BINARY_ORDER: Callable[[str], str] = str
+CASE_INSENSITIVE_ORDER: Callable[[str], str] = str.casefold
+
+
+def collation_oracle_ids(order: Callable[[str], str], *, against_column: bool) -> list[int]:
+    """The ids of ``(s > <t or the pivot>) & (t == pivot)`` when ``order`` decides both tests."""
+    selected: list[int] = []
+    for row in COLLATION_DATA.to_dict("records"):
+        other = row["t"] if against_column else COLLATION_PIVOT
+        if order(row["s"]) > order(other) and order(row["t"]) == order(COLLATION_PIVOT):
+            selected.append(int(row[ID_COLUMN]))
+    return selected
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "order",
+    [
+        pytest.param(BINARY_ORDER, id="binary"),
+        pytest.param(CASE_INSENSITIVE_ORDER, id="case_insensitive"),
+    ],
+)
+def test_the_collation_data_gives_a_non_trivial_result_under_one_consistent_collation(
+    order: Callable[[str], str],
+) -> None:
+    literal = collation_oracle_ids(order, against_column=False)
+    assert_expectation_discriminates(literal, all_ids(COLLATION_DATA))
+    assert collation_oracle_ids(order, against_column=True) == literal
+    assert_rows_that_ignore_collation(literal)
+
+
+@pytest.mark.unit
+def test_the_collation_data_shows_a_difference_between_collations() -> None:
+    binary = collation_oracle_ids(BINARY_ORDER, against_column=False)
+    insensitive = collation_oracle_ids(CASE_INSENSITIVE_ORDER, against_column=False)
+    assert binary != insensitive
+    # A column comparison that ordered strings by a different rule from the literal one would be
+    # seen: it selects other ids than the literal comparison does.
+    assert collation_oracle_ids(CASE_INSENSITIVE_ORDER, against_column=True) != binary
+    assert collation_oracle_ids(BINARY_ORDER, against_column=True) != insensitive
+
+
+@parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=COLLATION_DATA)
+def test_string_columns_are_compared_under_the_same_collation_as_a_literal(
+    batch_for_datasource: Batch,
+) -> None:
+    literal = (Column("s") > COLLATION_PIVOT) & (Column("t") == COLLATION_PIVOT)
+    between_columns = (Column("s") > Column("t")) & (Column("t") == COLLATION_PIVOT)
+    # The literal comparison says what this backend's collation selects; it cannot be written down
+    # in advance. The ids that do not depend on a collation are still pinned, so the literal form
+    # cannot be wrong in the same way as the column form and agree with it.
+    literal_ids = selected_ids(batch_for_datasource, literal)
+    assert_rows_that_ignore_collation(literal_ids)
+    assert_rows_selected(
+        batch_for_datasource, between_columns, literal_ids, all_ids(COLLATION_DATA)
     )
