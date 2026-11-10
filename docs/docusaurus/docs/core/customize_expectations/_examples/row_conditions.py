@@ -158,6 +158,9 @@ from datetime import datetime, timezone
 statement_1 = Column("count") == 1
 statement_2 = Column("date") > datetime(year=2025, month=1, day=31, tzinfo=timezone.utc)
 
+# Column comparisons: ==, !=, >, <, >=, <= with another column on the right-hand side
+statement_column_comparison = Column("end_date") > Column("start_date")
+
 # Set comparisons: is_in, is_not_in
 statement_3 = Column("department").is_in(["sales", "finance"])
 
@@ -165,3 +168,64 @@ statement_3 = Column("department").is_in(["sales", "finance"])
 statement_4 = Column("name").is_null()
 
 # </snippet>
+
+
+# Compare the values in two columns of the same row.
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - compare two columns">
+from great_expectations.expectations.row_conditions import Column
+
+# Put a `Column` on the right-hand side to compare two columns row by row.
+row_condition = Column("SexCode") == Column("Survived")
+
+expectation_with_column_comparison = gx.expectations.ExpectColumnValuesToBeInSet(
+    column="PClass",
+    value_set=["1st", "2nd", "3rd"],
+    row_condition=row_condition,
+)
+# </snippet>
+
+# Test the Expectation condition. Only the 13 of 20 rows with equal values in both columns
+# are validated.
+column_comparison_result = batch.validate(expectation_with_column_comparison)
+assert column_comparison_result.success
+assert column_comparison_result.result["element_count"] == 13
+
+# A row with a null in either column is left out of a column comparison.
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - include null rows in a column comparison">
+from great_expectations.expectations.row_conditions import OrCondition
+
+# `Age` is the only column in this data set that has nulls.
+age_exceeds_survived = Column("Age") > Column("Survived")
+
+# To validate rows with a null in either column as well, add a null check for each column.
+# Build the OR group with `OrCondition`. Chaining three conditions with `|` creates a
+# nested OR, which is not allowed.
+row_condition = OrCondition(
+    conditions=[
+        age_exceeds_survived,
+        Column("Age").is_null(),
+        Column("Survived").is_null(),
+    ]
+)
+
+expectation_with_null_rows = gx.expectations.ExpectColumnValuesToBeInSet(
+    column="PClass",
+    value_set=["1st", "2nd", "3rd"],
+    row_condition=row_condition,
+)
+# </snippet>
+
+# Test the Expectations. The 3 rows with a null `Age` are validated only with the null checks.
+without_nulls_result = batch.validate(
+    gx.expectations.ExpectColumnValuesToBeInSet(
+        column="PClass",
+        value_set=["1st", "2nd", "3rd"],
+        row_condition=age_exceeds_survived,
+    )
+)
+assert without_nulls_result.success
+assert without_nulls_result.result["element_count"] == 15
+
+with_nulls_result = batch.validate(expectation_with_null_rows)
+assert with_nulls_result.success
+assert with_nulls_result.result["element_count"] == 18
