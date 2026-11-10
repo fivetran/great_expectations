@@ -47,6 +47,7 @@ from great_expectations.expectations.row_conditions import (
     NullityCondition,
     OrCondition,
     PassThroughCondition,
+    RowConditionType,
 )
 from tests.integration.conftest import TestConfig as _TestConfig
 from tests.integration.conftest import parameterize_batch_for_data_sources
@@ -70,6 +71,7 @@ from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetu
 if TYPE_CHECKING:
     from _pytest.mark.structures import ParameterSet
 
+    from great_expectations.core.expectation_validation_result import ExpectationValidationResult
     from great_expectations.datasource.fluent.interfaces import Batch
     from great_expectations.datasource.fluent.sql_datasource import TableAsset
     from tests.integration.test_utils.data_source_config import DataSourceTestConfig
@@ -1486,3 +1488,162 @@ def test_string_columns_are_compared_under_the_same_collation_as_a_literal(
     assert_rows_selected(
         batch_for_datasource, between_columns, literal_ids, all_ids(COLLATION_DATA)
     )
+
+
+def exception_messages(result: ExpectationValidationResult) -> list[str]:
+    """Every exception message the result reports, or an empty list if nothing was raised.
+
+    A metric that cannot be resolved is reported once per failed metric: ``exception_info`` maps
+    each one to its own exception. Any other failure is reported once, in ``exception_info``
+    itself, and a result that raised nothing carries a message of ``None``. A case that expects an
+    error asserts the list is not empty, so a result that merely did not succeed cannot pass.
+    """
+    info = result.exception_info
+    entries = [info] if "exception_message" in info else list(info.values())
+    return [entry["exception_message"] for entry in entries if entry["exception_message"]]
+
+
+def observing_expectation(row_condition: RowConditionType) -> gxe.Expectation:
+    """The Expectation ``selected_ids`` uses: it lists the ids that survive the row condition."""
+    return gxe.ExpectColumnDistinctValuesToEqualSet(
+        column=ID_COLUMN, value_set=[ABSENT_ID], row_condition=row_condition
+    )
+
+
+def assert_fails_naming_the_comparison(
+    batch: Batch, expectation: gxe.Expectation, comparison: str
+) -> None:
+    """Assert that validating ``expectation`` raises, and that every error names ``comparison``.
+
+    Unsuccessful alone is not evidence: the Expectations used here also fail when they are
+    evaluated and their values simply do not match. An exception message is. And the comparison
+    appearing somewhere in the message is not evidence either: a SQL backend quotes the statement
+    it rejected, which already holds ``a > no_such_column``. So this looks for the sentence the
+    engine appends, which names the comparison and nothing else does.
+    """
+    result = batch.validate(expectation)
+    assert result.success is False, f"expected a failure, got result={result.result}"
+    messages = exception_messages(result)
+    assert messages, f"the Expectation did not raise: result={result.result}"
+    named = f"Row condition column comparisons: {comparison}."
+    for message in messages:
+        assert named in message, f"{named!r} is not in the error: {message}"
+
+
+def canonical_sources_of_types(
+    canonical: Sequence[DataSourceTestConfig], config_types: Iterable[type[DataSourceTestConfig]]
+) -> list[DataSourceTestConfig]:
+    """The canonical sources that are of ``config_types``, in canonical order.
+
+    A type that is not canonical is an error rather than a case that silently stops running.
+    """
+    wanted = set(config_types)
+    missing = wanted - {type(config) for config in canonical}
+    if missing:
+        raise ValueError(f"not a canonical data source: {_names(missing)}")
+    return [config for config in canonical if type(config) in wanted]
+
+
+# A column comparison against a column that does not exist is one no backend can evaluate. It is
+# validated through the observation primitive and through a column aggregate, and in each case every
+# error the result reports must carry the sentence the engine appends to name the comparison,
+# whichever metric fails to resolve first and however the backend words its own error. Which engine
+# code raises depends on the backend: pandas computes each metric on its own, the SQL backends fail
+# the bundled row-count aggregate before any other metric runs, and Spark fails some metrics each
+# way, so a single Spark case checks both.
+MISSING_COLUMN = "no_such_column"
+MISSING_COLUMN_DATA = pd.DataFrame({ID_COLUMN: [1, 2, 3], "a": [10, 20, 30]})
+
+EXPECTATIONS_ON_A_COLUMN_COMPARISON = [
+    pytest.param(observing_expectation, id="distinct_values"),
+    pytest.param(
+        lambda row_condition: gxe.ExpectColumnMaxToBeBetween(
+            column=ID_COLUMN, min_value=0, max_value=100, row_condition=row_condition
+        ),
+        id="column_max",
+    ),
+]
+
+
+@parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=MISSING_COLUMN_DATA)
+@pytest.mark.parametrize("expectation_for", EXPECTATIONS_ON_A_COLUMN_COMPARISON)
+def test_a_column_comparison_against_a_missing_column_fails_naming_the_comparison(
+    batch_for_datasource: Batch, expectation_for: Callable[[RowConditionType], gxe.Expectation]
+) -> None:
+    assert_fails_naming_the_comparison(
+        batch_for_datasource,
+        expectation_for(Column("a") > Column(MISSING_COLUMN)),
+        f"a > {MISSING_COLUMN}",
+    )
+
+
+# Text compared with an integer: pandas cannot order them (a string and a number do not compare)
+# and PostgreSQL has no operator for text against integer. Both raise while evaluating the
+# comparison, so the error must name it. The words stay non-numeric because a CSV file would read
+# a numeric-looking value back as an integer, and the column would then compare. `>` is the
+# operator because pandas does not raise on `==` and `!=` between a string and a number.
+UNCOMPARABLE_DATA = pd.DataFrame(
+    {
+        ID_COLUMN: [1, 2, 3],
+        "label": pd.Series(["apple", "banana", "cherry"], dtype=object),
+        "size": [1, 2, 3],
+    }
+)
+
+UNCOMPARABLE_SOURCES = canonical_sources_of_types(
+    ALL_DATA_SOURCES,
+    [
+        PandasDataFrameDatasourceTestConfig,
+        PandasFilesystemCsvDatasourceTestConfig,
+        PostgreSQLDatasourceTestConfig,
+    ],
+)
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=UNCOMPARABLE_SOURCES, data=UNCOMPARABLE_DATA
+)
+def test_a_column_comparison_between_values_that_cannot_be_compared_fails_naming_the_comparison(
+    batch_for_datasource: Batch,
+) -> None:
+    assert_fails_naming_the_comparison(
+        batch_for_datasource,
+        observing_expectation(Column("label") > Column("size")),
+        "label > size",
+    )
+
+
+# SQLite converts between types by affinity instead of raising. A TEXT column compared with an
+# INTEGER column has the integer's numeric affinity applied to the text first, so text that reads
+# as a number is compared as that number. Text that does not is compared by storage class, and
+# every TEXT value sorts above every INTEGER. GX adds no type check of its own, so `label > size`
+# keeps exactly the rows SQLite itself keeps:
+#
+# * Row 1, "10" against 9: converted, and 10 > 9.
+# * Row 2, "9" against 10: converted, and 9 > 10 is false. With no conversion TEXT would sort
+#   above INTEGER and the row would be kept, so this row shows the conversion happened.
+# * Row 3, "abc" against 5: it cannot be converted, so TEXT sorts above INTEGER and the row is kept.
+# * Row 4, "5" against 5: converted, equal, not kept.
+# * Row 5, "-2" against 3: converted, and -2 > 3 is false.
+IMPLICIT_CONVERSION_DATA = pd.DataFrame(
+    {
+        ID_COLUMN: [1, 2, 3, 4, 5],
+        "label": ["10", "9", "abc", "5", "-2"],
+        "size": [9, 10, 5, 5, 3],
+    }
+)
+IDS_SQLITE_KEEPS = [1, 3]
+
+SQLITE_SOURCES = canonical_sources_of_types(ALL_DATA_SOURCES, [SqliteDatasourceTestConfig])
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=SQLITE_SOURCES, data=IMPLICIT_CONVERSION_DATA
+)
+def test_sqlite_returns_its_own_result_for_text_compared_with_an_integer_column(
+    batch_for_datasource: Batch,
+) -> None:
+    assert_expectation_discriminates(IDS_SQLITE_KEEPS, all_ids(IMPLICIT_CONVERSION_DATA))
+    result = batch_for_datasource.validate(observing_expectation(Column("label") > Column("size")))
+    assert exception_messages(result) == [], f"the comparison raised: {result.exception_info}"
+    assert sorted(result.result["partial_unexpected_list"]) == IDS_SQLITE_KEEPS, result.result
