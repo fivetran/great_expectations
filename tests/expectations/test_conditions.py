@@ -22,6 +22,7 @@ from great_expectations.expectations.row_conditions import (
     RowConditionType,
     UnsupportedColumnComparisonOperatorError,
     deserialize_row_condition,
+    find_column_comparisons,
 )
 
 pytestmark = pytest.mark.unit
@@ -1379,3 +1380,157 @@ class TestRowConditionTypeUnion:
             PassThroughCondition,
             ColumnComparisonCondition,
         ]
+
+
+class TestFindColumnComparisons:
+    """``find_column_comparisons`` lists every column comparison in a row condition."""
+
+    @staticmethod
+    def _described(found: list[ColumnComparisonCondition]) -> list[str]:
+        for condition in found:
+            assert type(condition) is ColumnComparisonCondition
+        return [repr(condition) for condition in found]
+
+    def test_a_standalone_column_comparison_is_returned_on_its_own(self):
+        found = find_column_comparisons(_column_comparison("end_date", Operator.GREATER_THAN, "s"))
+
+        assert self._described(found) == ["end_date > s"]
+        assert found[0].column.name == "end_date"
+        assert found[0].operator == Operator.GREATER_THAN.value
+        assert found[0].other_column.name == "s"
+
+    @pytest.mark.parametrize(
+        "row_condition",
+        [
+            pytest.param(None, id="absent"),
+            pytest.param("a > b", id="legacy string"),
+            pytest.param(PassThroughCondition(pass_through_filter="a > b"), id="pass-through"),
+            pytest.param(Column("a") > 1, id="literal comparison"),
+            pytest.param(Column("a") > "b", id="literal comparison against a string"),
+            pytest.param(Column("a").is_null(), id="nullity"),
+            pytest.param((Column("a") > 1) & Column("b").is_not_null(), id="literal-only AND"),
+            pytest.param(
+                OrCondition(conditions=[Column("a") > 1, Column("b").is_null()]),
+                id="literal-only OR",
+            ),
+            pytest.param(
+                OrCondition(
+                    conditions=[
+                        AndCondition(conditions=[Column("a") > 1, Column("b") < 2]),
+                        Column("c").is_null(),
+                    ]
+                ),
+                id="literal-only OR of an AND",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column("a"), operator=Operator.EQUAL, parameter={"name": "b"}
+                ),
+                id="literal comparison whose value looks like a column",
+            ),
+        ],
+    )
+    def test_nothing_is_found_without_a_column_comparison(self, row_condition: RowConditionType):
+        assert find_column_comparisons(row_condition) == []
+
+    @pytest.mark.parametrize("group", [AndCondition, OrCondition])
+    def test_group_members_are_returned_in_order(self, group: type[AndCondition | OrCondition]):
+        row_condition = group(
+            conditions=[
+                _column_comparison("a", Operator.LESS_THAN, "b"),
+                Column("status") == "shipped",
+                _column_comparison("c", Operator.NOT_EQUAL, "d"),
+                Column("e").is_null(),
+                _column_comparison("f", Operator.GREATER_THAN_OR_EQUAL, "g"),
+            ]
+        )
+
+        found = find_column_comparisons(row_condition)
+
+        assert self._described(found) == ["a < b", "c != d", "f >= g"]
+
+    def test_the_search_is_depth_first_and_left_to_right(self):
+        # A breadth-first search would visit the shallow "s < t" first.
+        row_condition = OrCondition(
+            conditions=[
+                AndCondition(
+                    conditions=[
+                        AndCondition(
+                            conditions=[
+                                _column_comparison("a", Operator.EQUAL, "b"),
+                                AndCondition(
+                                    conditions=[_column_comparison("c", Operator.EQUAL, "d")]
+                                ),
+                            ]
+                        ),
+                        _column_comparison("e", Operator.EQUAL, "f"),
+                    ]
+                ),
+                _column_comparison("s", Operator.LESS_THAN, "t"),
+                AndCondition(
+                    conditions=[
+                        Column("x") > 1,
+                        _column_comparison("u", Operator.GREATER_THAN, "v"),
+                    ]
+                ),
+            ]
+        )
+
+        found = find_column_comparisons(row_condition)
+
+        assert self._described(found) == ["a == b", "c == d", "e == f", "s < t", "u > v"]
+
+    def test_a_group_with_an_or_inside_an_and_is_still_searched(self):
+        # The search does not validate: it walks whatever tree it is given.
+        row_condition = AndCondition(
+            conditions=[
+                OrCondition(
+                    conditions=[
+                        _column_comparison("a", Operator.EQUAL, "b"),
+                        _column_comparison("c", Operator.EQUAL, "d"),
+                    ]
+                ),
+                _column_comparison("e", Operator.EQUAL, "f"),
+            ]
+        )
+
+        found = find_column_comparisons(row_condition)
+
+        assert self._described(found) == ["a == b", "c == d", "e == f"]
+
+    def test_the_same_comparison_written_twice_is_returned_twice(self):
+        row_condition = AndCondition(
+            conditions=[_column_comparison("a", Operator.EQUAL, "b")] * 2
+            + [_column_comparison("b", Operator.EQUAL, "a")]
+        )
+
+        found = find_column_comparisons(row_condition)
+
+        assert self._described(found) == ["a == b", "a == b", "b == a"]
+
+    def test_a_column_comparison_that_was_saved_and_reloaded_is_found(self):
+        saved = OrCondition(
+            conditions=[
+                AndCondition(
+                    conditions=[
+                        Column("a") > 1,
+                        _column_comparison("end_date", Operator.GREATER_THAN, "start_date"),
+                    ]
+                ),
+                _column_comparison("x", Operator.LESS_THAN_OR_EQUAL, "y"),
+            ]
+        ).dict()
+
+        found = find_column_comparisons(deserialize_row_condition(saved))
+
+        assert self._described(found) == ["end_date > start_date", "x <= y"]
+
+    def test_the_search_leaves_the_row_condition_unchanged(self):
+        row_condition = AndCondition(
+            conditions=[_column_comparison("a", Operator.EQUAL, "b"), Column("c") > 1]
+        )
+        before = row_condition.dict()
+
+        find_column_comparisons(row_condition)
+
+        assert row_condition.dict() == before

@@ -614,3 +614,32 @@ def validate_row_condition(row_condition: RowConditionType) -> RowConditionType:
         return _validate_or_condition(row_condition)
 
     raise InvalidConditionTypeError(row_condition)
+
+
+def find_column_comparisons(row_condition: RowConditionType) -> List[ColumnComparisonCondition]:
+    """List every column comparison in a row condition.
+
+    The search is depth-first and left to right, so the result follows the order in which the
+    comparisons were written. A comparison that appears twice is returned twice. String, absent
+    and pass-through conditions, and conditions made only of literal comparisons, contain none.
+
+    Args:
+        row_condition: A deserialized row condition. A dictionary is not searched.
+
+    Returns:
+        The column comparisons found, or an empty list if there are none.
+    """
+    if isinstance(row_condition, Condition):
+        return _collect_column_comparisons(row_condition)
+    return []
+
+
+def _collect_column_comparisons(condition: Condition) -> List[ColumnComparisonCondition]:
+    if isinstance(condition, ColumnComparisonCondition):
+        return [condition]
+    if isinstance(condition, (AndCondition, OrCondition)):
+        found: List[ColumnComparisonCondition] = []
+        for child in condition.conditions:
+            found.extend(_collect_column_comparisons(child))
+        return found
+    return []
