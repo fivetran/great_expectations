@@ -12,7 +12,6 @@ from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context.types.resource_identifiers import (
     ConfigurationIdentifier,
-    GXCloudIdentifier,
 )
 
 if TYPE_CHECKING:
@@ -325,77 +324,3 @@ class FileDataContextVariables(DataContextVariables):
                 self.data_context.fluent_config.fluent_datasources = list(
                     config_fluent_datasources_stash.values()
                 )
-
-
-@dataclass(repr=False)
-class CloudDataContextVariables(DataContextVariables):
-    ge_cloud_base_url: str = None  # type: ignore[assignment] # post_init ensures field always set
-    ge_cloud_organization_id: str = None  # type: ignore[assignment] # post_init ensures field always set
-    ge_cloud_access_token: str = None  # type: ignore[assignment] # post_init ensures field always set
-    ge_cloud_workspace_id: str = None  # type: ignore[assignment] # post_init ensures field always set
-
-    def __post_init__(self) -> None:
-        # Chetan - 20220607 - Although the above arguments are not truly optional, we are
-        # required to use default values because the parent class defines arguments with default values  # noqa: E501 # FIXME CoP
-        # ("Fields without default values cannot appear after fields with default values").
-        #
-        # Python 3.10 resolves this issue around dataclass inheritance using `kw_only=True` (https://docs.python.org/3/library/dataclasses.html)
-        # This should be modified once our lowest supported version is 3.10.
-
-        if any(
-            attr is None
-            for attr in (
-                self.ge_cloud_base_url,
-                self.ge_cloud_organization_id,
-                self.ge_cloud_access_token,
-                self.ge_cloud_workspace_id,
-            )
-        ):
-            raise ValueError(  # noqa: TRY003 # FIXME CoP
-                f"All of the following attributes are required for{self.__class__.__name__}:\n"
-                "  ge_cloud_base_url\n"
-                "  ge_cloud_organization_id\n"
-                "  ge_cloud_access_token\n"
-                "  ge_cloud_workspace_id\n"
-            )
-
-    @override
-    def _init_store(self) -> DataContextStore:
-        from great_expectations.data_context.cloud_constants import GXCloudRESTResource
-        from great_expectations.data_context.store.data_context_store import (
-            DataContextStore,
-        )
-        from great_expectations.data_context.store.gx_cloud_store_backend import (
-            GXCloudStoreBackend,
-        )
-
-        # TODO: Investigate if store is ever called on any subclass of DataContextVariables.
-        # I started plumbing workspace_id into store_backend but don't think this is used.
-        # We should remove it everywhere if it is not.
-        store_backend: dict = {
-            "class_name": GXCloudStoreBackend.__name__,
-            "ge_cloud_base_url": self.ge_cloud_base_url,
-            "ge_cloud_resource_type": GXCloudRESTResource.DATA_CONTEXT_VARIABLES,
-            "ge_cloud_credentials": {
-                "access_token": self.ge_cloud_access_token,
-                "organization_id": self.ge_cloud_organization_id,
-                "workspace_id": self.ge_cloud_workspace_id,
-            },
-            "suppress_store_backend_id": True,
-        }
-        store = DataContextStore(
-            store_name="cloud_data_context_store",
-            store_backend=store_backend,
-            runtime_environment=None,
-        )
-        return store
-
-    @override
-    def get_key(self) -> GXCloudIdentifier:
-        """
-        Generates a GX Cloud-specific key for use with Stores. See parent "DataContextVariables.get_key" for more details.
-        """  # noqa: E501 # FIXME CoP
-        from great_expectations.data_context.cloud_constants import GXCloudRESTResource
-
-        key = GXCloudIdentifier(resource_type=GXCloudRESTResource.DATA_CONTEXT_VARIABLES)
-        return key

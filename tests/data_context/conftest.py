@@ -4,9 +4,7 @@ import json
 import os
 import pathlib
 import shutil
-import unittest.mock
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Union, cast
-from unittest.mock import Mock  # noqa: TID251 # FIXME CoP
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Union
 
 import pytest
 import requests
@@ -15,9 +13,6 @@ import great_expectations as gx
 from great_expectations.core.yaml_handler import YAMLHandler
 from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
-)
-from great_expectations.data_context.store.gx_cloud_store_backend import (
-    GXCloudStoreBackend,
 )
 from great_expectations.data_context.types.base import DataContextConfig
 from great_expectations.data_context.util import file_relative_path
@@ -226,73 +221,6 @@ def data_context_config_dict_with_datasources(data_context_config_with_datasourc
 
 
 @pytest.fixture
-def data_context_config_with_cloud_backed_stores(ge_cloud_access_token):
-    org_id = "a34595b2-267e-4469-b18f-774e65dc556f"
-    return DataContextConfig(
-        **{
-            "commented_map": {},
-            "config_version": 2,
-            "plugins_directory": "plugins/",
-            "validation_results_store_name": "does_not_have_to_be_real",
-            "expectations_store_name": "expectations_store",
-            "config_variables_file_path": "uncommitted/config_variables.yml",
-            "stores": {
-                "default_checkpoint_store": {
-                    "class_name": "CheckpointStore",
-                    "store_backend": {
-                        "class_name": GXCloudStoreBackend.__name__,
-                        "ge_cloud_base_url": "http://foo/bar/",
-                        "ge_cloud_credentials": {
-                            "access_token": ge_cloud_access_token,
-                            "organization_id": org_id,
-                        },
-                        "ge_cloud_resource_type": "checkpoint",
-                        "suppress_store_backend_id": True,
-                    },
-                },
-                "default_expectations_store": {
-                    "class_name": "ExpectationsStore",
-                    "store_backend": {
-                        "class_name": GXCloudStoreBackend.__name__,
-                        "ge_cloud_base_url": "http://foo/bar/",
-                        "ge_cloud_credentials": {
-                            "access_token": ge_cloud_access_token,
-                            "organization_id": org_id,
-                        },
-                        "ge_cloud_resource_type": "expectation_suite",
-                        "suppress_store_backend_id": True,
-                    },
-                },
-                "default_validation_results_store": {
-                    "class_name": "ValidationResultsStore",
-                    "store_backend": {
-                        "class_name": GXCloudStoreBackend.__name__,
-                        "ge_cloud_base_url": "http://foo/bar/",
-                        "ge_cloud_credentials": {
-                            "access_token": ge_cloud_access_token,
-                            "organization_id": org_id,
-                        },
-                        "ge_cloud_resource_type": "validation_result",
-                        "suppress_store_backend_id": True,
-                    },
-                },
-            },
-            "data_docs_sites": {},
-            "analytics_enabled": True,
-            "data_context_id": "6a52bdfa-e182-455b-a825-e69f076e67d6",
-        }
-    )
-
-
-@pytest.fixture
-def data_context_config_dict_with_cloud_backed_stores(
-    data_context_config_with_cloud_backed_stores,
-):
-    """Wrapper fixture to transform `data_context_config_with_cloud_backed_stores` to a json dict"""
-    return data_context_config_with_cloud_backed_stores.to_json_dict()
-
-
-@pytest.fixture
 def ge_cloud_runtime_base_url():
     return "https://api.dev.greatexpectations.io/runtime"
 
@@ -305,11 +233,6 @@ def ge_cloud_runtime_organization_id():
 @pytest.fixture
 def datasource_name() -> str:
     return "my_first_datasource"
-
-
-@pytest.fixture
-def datasource_store_name() -> str:
-    return "datasource_store"
 
 
 @pytest.fixture
@@ -394,33 +317,6 @@ def basic_fluent_datasource() -> Datasource:
 @pytest.fixture
 def fluent_datasource_config() -> dict:
     return basic_fluent_datasource_config()
-
-
-@pytest.fixture
-def mock_http_unavailable(mock_response_factory: Callable):
-    """Mock all request http calls to return a 503 Unavailable response."""
-
-    def mocked_response(*args, **kwargs):
-        return MockResponse(
-            {"code": 503, "detail": "API is unavailable"},
-            503,
-        )
-
-    # should have been able to do this by mocking `requests.request` but this didn't work
-    with unittest.mock.patch.multiple(
-        "requests.Session",
-        autospec=True,
-        get=unittest.mock.DEFAULT,
-        post=unittest.mock.DEFAULT,
-        put=unittest.mock.DEFAULT,
-        patch=unittest.mock.DEFAULT,
-        delete=unittest.mock.DEFAULT,
-    ) as mock_requests:
-        for name, mock in cast("Dict[str, Mock]", mock_requests).items():
-            mock.side_effect = mocked_response
-            print(f"Mocking `requests.{name}` with `{mocked_response.__name__}()`")
-
-        yield mock_requests
 
 
 @pytest.fixture
