@@ -630,8 +630,9 @@ class TestColumnComparisonSurvivesSavingAnExpectation:
                 Column("end_0").is_null(),
             ]
         ),
-        "in the groups of an OR": lambda: (_column_comparison(0) & _literal_comparison(1))
-        | _column_comparison(2),
+        "in the groups of an OR": lambda: (
+            (_column_comparison(0) & _literal_comparison(1)) | _column_comparison(2)
+        ),
     }
 
     @pytest.fixture(params=list(ROW_CONDITIONS))

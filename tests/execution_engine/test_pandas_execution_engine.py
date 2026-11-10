@@ -1164,7 +1164,7 @@ _NULL_FORM_CASES = [
     ),
     pytest.param(
         ("apple", "banana", "cherry"),
-        lambda values: pd.Series(values),
+        pd.Series,
         None,
         id="inferred-string-None",
     ),
