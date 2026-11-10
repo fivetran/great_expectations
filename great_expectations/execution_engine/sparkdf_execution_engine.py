@@ -83,6 +83,7 @@ if TYPE_CHECKING:
     from great_expectations.datasource.fluent.spark_datasource import SparkConfig
     from great_expectations.expectations.row_conditions import (
         AndCondition,
+        ColumnComparisonCondition,
         ComparisonCondition,
         NullityCondition,
         OrCondition,
@@ -1065,3 +1066,14 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
     def _or_condition_to_filter_clause(self, condition: OrCondition) -> str:
         parts = [self.condition_to_filter_clause(c) for c in condition.conditions]
         return "(" + " OR ".join(parts) + ")"
+
+    @override
+    def _column_comparison_condition_to_filter_clause(
+        self, condition: ColumnComparisonCondition
+    ) -> str:
+        # Spark SQL comparisons are null-propagating, so a null on either side is excluded under
+        # every operator, including ``!=``. NaN is a value here and follows Spark's NaN ordering.
+        # Dotted names are read as nested paths by the quoting helper, as in a literal comparison.
+        left = _quote_spark_identifier(condition.column.name)
+        right = _quote_spark_identifier(condition.other_column.name)
+        return f"({left} {condition.operator} {right})"
