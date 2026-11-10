@@ -13,10 +13,19 @@ from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
 from great_expectations.execution_engine import ExecutionEngine, PandasExecutionEngine
-from great_expectations.execution_engine.execution_engine import MetricComputationConfiguration
+from great_expectations.execution_engine.execution_engine import (
+    InvalidConditionError,
+    MetricComputationConfiguration,
+)
 from great_expectations.expectations.legacy_row_conditions import (
     RowCondition,
     RowConditionParserType,
+)
+from great_expectations.expectations.row_conditions import (
+    Column,
+    ColumnComparisonCondition,
+    ComparisonCondition,
+    PassThroughCondition,
 )
 
 # Testing ordinary process of adding column row condition
@@ -30,7 +39,6 @@ if TYPE_CHECKING:
     from great_expectations.core.batch import BatchData, BatchMarkers
     from great_expectations.expectations.row_conditions import (
         AndCondition,
-        ComparisonCondition,
         NullityCondition,
         OrCondition,
     )
@@ -417,3 +425,111 @@ def test_bundle_failure_falls_back_to_individual_metric_computation(
     assert list(err.failed_metrics) == [metric_b]
     # resolve_metric_bundle was called once for the bulk attempt and once per metric
     assert call_count == 3
+
+
+@pytest.mark.unit
+def test_condition_to_filter_clause_routes_column_comparison_to_dedicated_method(
+    test_execution_engine,
+):
+    """A column comparison reaches its own rendering method, not the literal comparison one."""
+    sentinel = "rendered column comparison"
+    seen: list[ColumnComparisonCondition] = []
+
+    class ColumnComparisonEngine(type(test_execution_engine)):
+        @override
+        def _column_comparison_condition_to_filter_clause(
+            self, condition: ColumnComparisonCondition
+        ) -> str:
+            seen.append(condition)
+            return sentinel
+
+        @override
+        def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> str:
+            raise AssertionError("a column comparison must not be rendered as a literal comparison")
+
+    engine = ColumnComparisonEngine()
+    condition = Column("a") < Column("b")
+    assert isinstance(condition, ColumnComparisonCondition)
+
+    assert engine.condition_to_filter_clause(condition) == sentinel
+    assert seen == [condition]
+
+
+@pytest.mark.unit
+def test_condition_to_filter_clause_routes_literal_comparison_unchanged(test_execution_engine):
+    """A literal comparison still reaches the literal rendering method, and only that one."""
+    sentinel = "rendered literal comparison"
+
+    class LiteralComparisonEngine(type(test_execution_engine)):
+        @override
+        def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> str:
+            return sentinel
+
+        @override
+        def _column_comparison_condition_to_filter_clause(
+            self, condition: ColumnComparisonCondition
+        ) -> str:
+            raise AssertionError("a literal comparison must not be rendered as a column comparison")
+
+    engine = LiteralComparisonEngine()
+    condition = Column("a") < 1
+    assert isinstance(condition, ComparisonCondition)
+
+    assert engine.condition_to_filter_clause(condition) == sentinel
+
+
+@pytest.mark.unit
+def test_column_comparison_default_rendering_raises_invalid_condition_error(
+    test_execution_engine,
+):
+    """An engine that does not render column comparisons rejects them rather than guessing."""
+    condition = Column("a") != Column("b")
+
+    with pytest.raises(InvalidConditionError) as exc_info:
+        test_execution_engine.condition_to_filter_clause(condition)
+
+    assert str(type(condition)) in str(exc_info.value)
+    with pytest.raises(InvalidConditionError):
+        test_execution_engine._column_comparison_condition_to_filter_clause(condition)
+
+
+@pytest.mark.unit
+def test_column_comparison_default_rendering_does_not_change_other_condition_handling(
+    test_execution_engine,
+):
+    """The safe default is specific to column comparisons; other unsupported types still raise."""
+    condition = PassThroughCondition(pass_through_filter="a < b")
+
+    with pytest.raises(InvalidConditionError):
+        test_execution_engine.condition_to_filter_clause(condition)
+
+
+@pytest.mark.unit
+def test_engine_without_column_comparison_support_still_instantiates():
+    """The column comparison hook is a concrete default, so existing subclasses are unaffected."""
+    assert "_column_comparison_condition_to_filter_clause" not in (
+        ExecutionEngine.__abstractmethods__
+    )
+
+    class LegacyEngine(ExecutionEngine):
+        # Implements only the pre-existing abstract methods.
+        def get_batch_data_and_markers(self, batch_spec) -> Tuple[BatchData, BatchMarkers]:  # type: ignore[explicit-override] # FIXME
+            raise NotImplementedError
+
+        @override
+        def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> str:
+            raise NotImplementedError
+
+        @override
+        def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> str:
+            raise NotImplementedError
+
+        @override
+        def _and_condition_to_filter_clause(self, condition: AndCondition) -> str:
+            raise NotImplementedError
+
+        @override
+        def _or_condition_to_filter_clause(self, condition: OrCondition) -> str:
+            raise NotImplementedError
+
+    LegacyEngine()

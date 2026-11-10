@@ -30,6 +30,7 @@ from great_expectations.expectations.legacy_row_conditions import (
 from great_expectations.expectations.registry import get_metric_provider
 from great_expectations.expectations.row_conditions import (
     AndCondition,
+    ColumnComparisonCondition,
     ComparisonCondition,
     Condition,
     NullityCondition,
@@ -488,6 +489,8 @@ class ExecutionEngine(ABC, Generic[TFilter]):
         """Convert a Condition tree into a dialect-specific filter clause."""
         if isinstance(condition, ComparisonCondition):
             return self._comparison_condition_to_filter_clause(condition)
+        elif isinstance(condition, ColumnComparisonCondition):
+            return self._column_comparison_condition_to_filter_clause(condition)
         elif isinstance(condition, NullityCondition):
             return self._nullity_condition_to_filter_clause(condition)
         elif isinstance(condition, AndCondition):
@@ -500,6 +503,25 @@ class ExecutionEngine(ABC, Generic[TFilter]):
     @abstractmethod
     def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> TFilter:
         raise NotImplementedError
+
+    def _column_comparison_condition_to_filter_clause(
+        self, condition: ColumnComparisonCondition
+    ) -> TFilter:
+        """Render a comparison between two columns of the same row.
+
+        This is a concrete default, not an abstract method, so that engines which predate column
+        comparisons keep working unchanged. Such an engine rejects a column comparison with
+        ``InvalidConditionError`` rather than evaluating it incorrectly. An engine that supports
+        column comparisons overrides this method.
+
+        An override must return a filter that selects a row if and only if both column values are
+        non-null and the comparison is true under the backend's native semantics. Null handling
+        must not depend on the operator: ``!=`` must exclude a row with a null on either side,
+        even where the backend would evaluate that comparison as true. The filter must also be a
+        single self-contained unit, so that it composes under the engine's AND and OR rendering
+        without further parenthesization.
+        """
+        raise InvalidConditionError(condition)
 
     @abstractmethod
     def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> TFilter:
