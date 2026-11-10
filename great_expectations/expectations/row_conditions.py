@@ -58,6 +58,16 @@ class InvalidParameterTypeError(TypeError):
         super().__init__(message)
 
 
+class UnsupportedColumnComparisonOperatorError(ValueError):
+    """Raised when a column comparison is given a set-membership operator."""
+
+    def __init__(self, operator: str):
+        super().__init__(
+            f"Column comparisons support ==, !=, <, <=, > and >=, not {operator}. "
+            "Set membership against a column is not supported."
+        )
+
+
 class Operator(str, Enum):
     EQUAL = "=="
     NOT_EQUAL = "!="
@@ -274,6 +284,34 @@ class ComparisonCondition(Condition):
         if self.operator in (Operator.IN, Operator.NOT_IN):
             return f"{col_name} {self.operator} ({', '.join(map(str, self.parameter))})"
         return f"{col_name} {self.operator} {self.parameter}"
+
+
+@public_api
+class ColumnComparisonCondition(Condition):
+    """Condition representing the comparison of two columns in the same row.
+
+    Both sides are column references. Expressions, functions and casts are not supported, and a
+    column name is passed to each engine as written, under that engine's own quoting rules.
+
+    A row whose value in either column is null is excluded under every operator, including
+    ``!=``. To keep such rows, combine this condition with ``is_null()`` on both columns in an
+    explicit ``OrCondition``.
+    """
+
+    type: Literal["column_comparison"] = Field(default="column_comparison")
+    column: Column
+    operator: Operator
+    other_column: Column
+
+    @validator("operator")
+    def _validate_comparison_operator(cls, v: Operator) -> Operator:
+        if v in (Operator.IN, Operator.NOT_IN):
+            raise UnsupportedColumnComparisonOperatorError(str(v))
+        return v
+
+    @override
+    def __repr__(self) -> str:
+        return f"{self.column.name} {self.operator} {self.other_column.name}"
 
 
 class PassThroughCondition(Condition):

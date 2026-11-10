@@ -6,6 +6,7 @@ from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.expectations.row_conditions import (
     AndCondition,
     Column,
+    ColumnComparisonCondition,
     ComparisonCondition,
     Condition,
     ConditionParserError,
@@ -14,6 +15,7 @@ from great_expectations.expectations.row_conditions import (
     Operator,
     OrCondition,
     PassThroughCondition,
+    UnsupportedColumnComparisonOperatorError,
     deserialize_row_condition,
 )
 
@@ -644,3 +646,188 @@ class TestPassThroughCondition:
         deserialized = deserialize_row_condition(serialized)
 
         assert deserialized == original
+
+
+COMPARISON_OPERATORS = [
+    Operator.EQUAL,
+    Operator.NOT_EQUAL,
+    Operator.LESS_THAN,
+    Operator.LESS_THAN_OR_EQUAL,
+    Operator.GREATER_THAN,
+    Operator.GREATER_THAN_OR_EQUAL,
+]
+SET_OPERATORS = [Operator.IN, Operator.NOT_IN]
+
+
+class TestColumnComparisonCondition:
+    """Tests for the condition that compares the values of two columns in the same row."""
+
+    @pytest.mark.parametrize("operator", COMPARISON_OPERATORS)
+    def test_construction_records_both_columns_and_the_operator(self, operator: Operator):
+        cond = ColumnComparisonCondition(
+            column=Column("end_date"), operator=operator, other_column=Column("start_date")
+        )
+
+        assert cond.type == "column_comparison"
+        assert cond.column.name == "end_date"
+        assert cond.operator == operator.value
+        assert cond.other_column.name == "start_date"
+
+    @pytest.mark.parametrize("operator", COMPARISON_OPERATORS)
+    def test_parsing_accepts_the_operator_as_a_plain_string(self, operator: Operator):
+        cond = ColumnComparisonCondition.parse_obj(
+            {
+                "column": {"name": "a"},
+                "operator": operator.value,
+                "other_column": {"name": "b"},
+            }
+        )
+
+        assert cond.type == "column_comparison"
+        assert cond.operator == operator.value
+
+    def test_is_a_condition(self):
+        cond = ColumnComparisonCondition(
+            column=Column("a"), operator=Operator.EQUAL, other_column=Column("b")
+        )
+
+        assert isinstance(cond, Condition)
+
+    @pytest.mark.parametrize(
+        "operator,expected",
+        [
+            pytest.param(Operator.EQUAL, "end_date == start_date", id="equal"),
+            pytest.param(Operator.NOT_EQUAL, "end_date != start_date", id="not_equal"),
+            pytest.param(Operator.LESS_THAN, "end_date < start_date", id="less_than"),
+            pytest.param(
+                Operator.LESS_THAN_OR_EQUAL, "end_date <= start_date", id="less_than_or_equal"
+            ),
+            pytest.param(Operator.GREATER_THAN, "end_date > start_date", id="greater_than"),
+            pytest.param(
+                Operator.GREATER_THAN_OR_EQUAL,
+                "end_date >= start_date",
+                id="greater_than_or_equal",
+            ),
+        ],
+    )
+    def test_repr_shows_left_operator_right(self, operator: Operator, expected: str):
+        cond = ColumnComparisonCondition(
+            column=Column("end_date"), operator=operator, other_column=Column("start_date")
+        )
+
+        assert repr(cond) == expected
+
+    def test_repr_shows_names_as_written(self):
+        cond = ColumnComparisonCondition(
+            column=Column("End Date"),
+            operator=Operator.GREATER_THAN,
+            other_column=Column("start-date"),
+        )
+
+        assert repr(cond) == "End Date > start-date"
+
+    @pytest.mark.parametrize("operator", COMPARISON_OPERATORS)
+    def test_serialization_has_the_four_documented_keys(self, operator: Operator):
+        cond = ColumnComparisonCondition(
+            column=Column("end_date"), operator=operator, other_column=Column("start_date")
+        )
+
+        expected = {
+            "type": "column_comparison",
+            "column": {"name": "end_date"},
+            "operator": operator.value,
+            "other_column": {"name": "start_date"},
+        }
+        assert cond.dict() == expected
+        assert cond.dict(exclude_defaults=True) == expected
+
+    def test_serialization_is_distinct_from_the_literal_comparison(self):
+        column_cond = ColumnComparisonCondition(
+            column=Column("a"), operator=Operator.EQUAL, other_column=Column("b")
+        )
+        literal_cond = ComparisonCondition(
+            column=Column("a"), operator=Operator.EQUAL, parameter="b"
+        )
+
+        assert column_cond.dict()["type"] != literal_cond.dict()["type"]
+        assert "other_column" not in literal_cond.dict()
+        assert "parameter" not in column_cond.dict()
+
+    def test_the_same_column_on_both_sides_is_allowed(self):
+        cond = ColumnComparisonCondition(
+            column=Column("a"), operator=Operator.EQUAL, other_column=Column("a")
+        )
+
+        assert repr(cond) == "a == a"
+
+    def test_names_are_not_validated(self):
+        cond = ColumnComparisonCondition(
+            column=Column('we"ird `name`'),
+            operator=Operator.LESS_THAN,
+            other_column=Column("other [col]"),
+        )
+
+        assert cond.column.name == 'we"ird `name`'
+        assert cond.other_column.name == "other [col]"
+
+    def test_equality_follows_columns_in_order_and_operator(self):
+        def build(left: str, operator: Operator, right: str) -> ColumnComparisonCondition:
+            return ColumnComparisonCondition(
+                column=Column(left), operator=operator, other_column=Column(right)
+            )
+
+        base = build("a", Operator.GREATER_THAN, "b")
+
+        assert base == build("a", Operator.GREATER_THAN, "b")
+        assert base != build("b", Operator.GREATER_THAN, "a")
+        assert base != build("a", Operator.LESS_THAN, "b")
+        assert base != build("a", Operator.GREATER_THAN, "c")
+
+    @pytest.mark.parametrize("operator", SET_OPERATORS)
+    def test_set_operators_are_rejected_at_construction(self, operator: Operator):
+        with pytest.raises(ValidationError) as exc_info:
+            ColumnComparisonCondition(
+                column=Column("a"), operator=operator, other_column=Column("b")
+            )
+
+        message = str(exc_info.value)
+        assert "Column comparisons support ==, !=, <, <=, > and >=" in message
+        assert f"not {operator.value}" in message
+        assert "Set membership against a column is not supported" in message
+
+    @pytest.mark.parametrize("operator", SET_OPERATORS)
+    def test_set_operators_given_as_plain_strings_are_rejected(self, operator: Operator):
+        with pytest.raises(ValidationError, match="Set membership against a column"):
+            ColumnComparisonCondition.parse_obj(
+                {
+                    "column": {"name": "a"},
+                    "operator": operator.value,
+                    "other_column": {"name": "b"},
+                }
+            )
+
+    def test_unknown_operator_is_rejected(self):
+        with pytest.raises(ValidationError):
+            ColumnComparisonCondition.parse_obj(
+                {
+                    "column": {"name": "a"},
+                    "operator": "LIKE",
+                    "other_column": {"name": "b"},
+                }
+            )
+
+    @pytest.mark.parametrize("operator", SET_OPERATORS)
+    def test_unsupported_operator_error_names_the_operator(self, operator: Operator):
+        error = UnsupportedColumnComparisonOperatorError(operator.value)
+
+        assert isinstance(error, ValueError)
+        assert str(error) == (
+            f"Column comparisons support ==, !=, <, <=, > and >=, not {operator.value}. "
+            "Set membership against a column is not supported."
+        )
+
+    def test_docstring_states_the_null_rule(self):
+        doc = ColumnComparisonCondition.__doc__ or ""
+
+        assert "null" in doc
+        assert "every operator" in doc
