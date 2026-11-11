@@ -1221,12 +1221,6 @@ def expected_ids_against_value(
 # until a run on that dataset shows otherwise. The other canonical sources are not listed: the
 # ones that run locally store all three names, and the rest are confirmed by their own CI run.
 _QUOTED_NAMES_A_SOURCE_CANNOT_STORE: dict[type[DataSourceTestConfig], dict[str, str]] = {
-    BigQueryDatasourceTestConfig: {
-        "user name": (
-            "BigQuery column names were limited to letters, digits and underscores until "
-            "flexible column names, and the CI dataset's support for spaces is not confirmed"
-        ),
-    },
     DatabricksDatasourceTestConfig: {
         "user name": (
             "Delta tables reject a space in a column name unless column mapping is enabled "
