@@ -76,17 +76,6 @@ if TYPE_CHECKING:
     from great_expectations.datasource.fluent.sql_datasource import TableAsset
     from tests.integration.test_utils.data_source_config import DataSourceTestConfig
 
-# The distinct-values metrics on SQL backends pass a row-conditioned selectable to `select_from`
-# without wrapping it in a subquery. SQLAlchemy coerces it and emits this deprecation warning, and
-# this repository's pytest configuration turns warnings into errors, so the observation primitive
-# below fails on every SQL backend once any row condition is present, literal or column
-# comparison. The coercion is correct; only the warning trips the test, so only this message is
-# ignored here.
-pytestmark = pytest.mark.filterwarnings(
-    "ignore:Implicit coercion of SELECT and textual SELECT constructs"
-    ":sqlalchemy.exc.SADeprecationWarning"
-)
-
 ID_COLUMN = "id"
 
 Comparison = Callable[[Any, Any], Any]
