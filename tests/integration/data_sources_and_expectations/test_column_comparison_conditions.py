@@ -24,7 +24,7 @@ import math
 import operator
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Iterator, Mapping, Sequence
 
 import pandas as pd
 import pytest
@@ -77,6 +77,28 @@ if TYPE_CHECKING:
     from tests.integration.test_utils.data_source_config import DataSourceTestConfig
 
 ID_COLUMN = "id"
+
+_BATCH_SETUP_FIXTURE_NAME = "_batch_setup_for_datasource"
+
+
+@pytest.fixture(autouse=True)
+def _close_the_connections_of_each_test(request: pytest.FixtureRequest) -> Iterator[None]:
+    """Close the database connections each test's batch opened once the test ends.
+
+    Every batch the shared fixtures make adds a data source with its own engines, and those keep
+    their pooled connections open until the session ends. At two connections per test, this
+    module's SQL cases alone hold enough to exhaust a server's connection limit for the suites
+    that run after it, so each test closes its own once it is done with them.
+    """
+    batch_setup = (
+        request.getfixturevalue(_BATCH_SETUP_FIXTURE_NAME)
+        if _BATCH_SETUP_FIXTURE_NAME in request.fixturenames
+        else None
+    )
+    yield
+    if isinstance(batch_setup, SQLBatchTestSetup):
+        batch_setup.dispose_data_source_engines()
+
 
 Comparison = Callable[[Any, Any], Any]
 """A binary comparison. The same function builds the condition (applied to two ``Column`` objects,
@@ -1205,6 +1227,12 @@ _QUOTED_NAMES_A_SOURCE_CANNOT_STORE: dict[type[DataSourceTestConfig], dict[str, 
             "flexible column names, and the CI dataset's support for spaces is not confirmed"
         ),
     },
+    DatabricksDatasourceTestConfig: {
+        "user name": (
+            "Delta tables reject a space in a column name unless column mapping is enabled "
+            "(DELTA_INVALID_CHARACTERS_IN_COLUMN_NAMES)"
+        ),
+    },
 }
 
 
@@ -1280,7 +1308,6 @@ QUOTED_NAME_SKIPS = quoted_name_skips(
     ALL_DATA_SOURCES, QUOTED_NAMES, _QUOTED_NAMES_A_SOURCE_CANNOT_STORE
 )
 
-_BATCH_SETUP_FIXTURE_NAME = "_batch_setup_for_datasource"
 
 quoted_name_cases = pytest.mark.parametrize(
     [_BATCH_SETUP_FIXTURE_NAME, "quoted_name"],
