@@ -613,42 +613,12 @@ class DefaultSiteIndexBuilder:
         return index_links_dict
 
     def get_calls_to_action(self):
-        usage_statistics = None
-        # db_driver = None
-        # datasource_classes_by_name = self.data_context.list_datasources()
-        #
-        # if datasource_classes_by_name:
-        #     last_datasource_class_by_name = datasource_classes_by_name[-1]
-        #     last_datasource_class_name = last_datasource_class_by_name["
-        #     class_name"]
-        #     last_datasource_name = last_datasource_class_by_name["name"]
-        #     last_datasource = self.data_context.get_datasource
-        #     (last_datasource_name)
-        #
-        #     if last_datasource_class_name == "SqlAlchemyDatasource":
-        #         try:
-        #                # NOTE: JPC - 20200327 - I do not believe datasource
-        #                will *ever* have a drivername property
-        #                (it's in credentials). Suspect this isn't working.
-        #             db_driver = last_datasource.drivername
-        #         except AttributeError:
-        #             pass
-        #
-        #     datasource_type = DATASOURCE_TYPE_BY_DATASOURCE_CLASS[
-        #     last_datasource_class_name].value
-        #     usage_statistics = "?utm_source={}&utm_medium={}
-        #     &utm_campaign={}".format(
-        #         "ge-init-datadocs-v2",
-        #         datasource_type,
-        #         db_driver,
-        #     )
-
         return {
             "header": "To continue exploring Great Expectations check out one of these tutorials...",  # noqa: E501 # FIXME CoP
-            "buttons": self._get_call_to_action_buttons(usage_statistics),
+            "buttons": self._get_call_to_action_buttons(),
         }
 
-    def _get_call_to_action_buttons(self, usage_statistics):
+    def _get_call_to_action_buttons(self):
         """
         Build project and user specific calls to action buttons.
 
@@ -687,10 +657,6 @@ class DefaultSiteIndexBuilder:
         # Show these no matter what
         results.append(validation_playground)
         results.append(team_site)
-
-        if usage_statistics:
-            for button in results:
-                button.link = button.link + usage_statistics
 
         return results
 

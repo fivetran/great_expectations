@@ -1150,16 +1150,6 @@ def test_add_expectation_fails_validation(empty_suite_with_meta: ExpectationSuit
     assert f"{expectation_type} not found" in str(e)
 
 
-class TestExpectationSuiteAnalytics:
-    @pytest.fixture
-    def empty_suite(self, in_memory_runtime_context) -> ExpectationSuite:
-        return in_memory_runtime_context.suites.add(ExpectationSuite(name="my_suite"))
-
-    @pytest.fixture
-    def expect_column_values_to_be_between(self) -> Expectation:
-        return gxe.ExpectColumnValuesToBeBetween(column="passenger_count", min_value=1, max_value=6)
-
-
 @pytest.mark.unit
 def test_identifier_bundle_with_existing_id(in_memory_runtime_context):
     context = in_memory_runtime_context

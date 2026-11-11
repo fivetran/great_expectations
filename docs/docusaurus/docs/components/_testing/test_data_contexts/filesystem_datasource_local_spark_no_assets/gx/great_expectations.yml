@@ -77,7 +77,6 @@ data_docs_sites:
     site_index_builder:
       class_name: DefaultSiteIndexBuilder
 
-analytics_enabled: true
 fluent_datasources:
   my_filesystem_data_source:
     type: spark_filesystem

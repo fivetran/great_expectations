@@ -84,7 +84,6 @@ data_docs_sites:
     site_index_builder:
       class_name: DefaultSiteIndexBuilder
 
-analytics_enabled: true
 fluent_datasources:
   my_dataframe_data_source:
     type: pandas

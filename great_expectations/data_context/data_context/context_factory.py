@@ -594,7 +594,7 @@ def get_context(  # noqa: PLR0913 # FIXME CoP
             a complete cloud configuration is discoverable; set to False to opt out of
             that auto-detection. GX Cloud is shut down, so a cloud-resolving call raises
             rather than building a context.
-        user_agent_str: Optional string, should be of format <PRODUCT> / <VERSION> <COMMENT>
+        user_agent_str: Deprecated and ignored. GX Core does not collect analytics.
         mode: which mode to use. One of: ephemeral, file, cloud. ``mode="cloud"`` always
             resolves to the (shut-down) cloud branch and raises, regardless of
             ``cloud_mode``; ``mode="ephemeral"`` and ``mode="file"`` always build that
