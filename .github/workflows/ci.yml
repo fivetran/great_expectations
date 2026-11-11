@@ -982,6 +982,7 @@ jobs:
           - bigquery
           - databricks
           - redshift
+          - clickhouse
 
     steps:
       - name: Checkout
