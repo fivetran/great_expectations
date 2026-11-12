@@ -154,6 +154,13 @@ def _column_comparison_error_context(failed_metrics: Iterable[MetricConfiguratio
     The result is an empty string when no failed metric has a column comparison, so an error
     raised for a suite without one is unchanged. The function never raises, whatever it is given.
 
+    The sentence is context, not a diagnosis. It is appended to any failure of a metric whose row
+    condition has a column comparison, including one the comparison did not cause, such as a
+    missing Expectation column or a lost connection, because a backend's error does not reliably
+    say which part of a query it rejected. PostgreSQL's ``operator does not exist: integer > text``,
+    for example, names neither column. So the sentence lists the comparisons and says what to
+    check if the error concerns them, rather than claiming they caused it.
+
     ``ExecutionEngine`` appends this sentence to the message of each ``MetricResolutionError`` it
     raises for a failed metric computation, passing the metric whose failure the message
     describes. A directly computed metric that raises is passed as the only metric. When a bundled
@@ -186,8 +193,8 @@ def _column_comparison_error_context(failed_metrics: Iterable[MetricConfiguratio
         return ""
     return (
         f" Row condition column comparisons: {', '.join(comparisons)}."
-        " A column comparison fails when a named column does not exist or the backend cannot"
-        " compare the two columns' values."
+        " If the error concerns one of these columns, check that both columns exist and that"
+        " the backend can compare their values."
     )
 
 

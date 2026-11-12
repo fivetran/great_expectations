@@ -29,6 +29,11 @@ def set_up_context_for_example(context):
     )
     assert batch_definition.name == batch_definition_name
 
+    invoices_batch_definition = data_asset.add_batch_definition_path(
+        name="invoices", path="invoices.csv"
+    )
+    assert invoices_batch_definition.name == "invoices"
+
 
 # EXAMPLE SCRIPT STARTS HERE:
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - full code example">
@@ -170,62 +175,72 @@ statement_4 = Column("name").is_null()
 # </snippet>
 
 
+# The column comparison examples use a table of invoices.
+invoices_batch = (
+    context.data_sources.get(data_source_name)
+    .get_asset(data_asset_name)
+    .get_batch_definition("invoices")
+    .get_batch()
+)
+
 # Compare the values in two columns of the same row.
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - compare two columns">
 from great_expectations.expectations.row_conditions import Column
 
 # Put a `Column` on the right-hand side to compare two columns row by row.
-row_condition = Column("SexCode") == Column("Survived")
+# An invoice that was paid less than it was billed for must not be marked as paid.
+row_condition = Column("amount_paid") < Column("amount_due")
 
 expectation_with_column_comparison = gx.expectations.ExpectColumnValuesToBeInSet(
-    column="PClass",
-    value_set=["1st", "2nd", "3rd"],
+    column="status",
+    value_set=["unpaid", "partially_paid"],
     row_condition=row_condition,
 )
 # </snippet>
 
-# Test the Expectation condition. Only the 13 of 20 rows with equal values in both columns
-# are validated.
-column_comparison_result = batch.validate(expectation_with_column_comparison)
+# Test the Expectation condition. Only the 4 of 10 invoices that were paid less than the
+# amount due are validated.
+column_comparison_result = invoices_batch.validate(expectation_with_column_comparison)
 assert column_comparison_result.success
-assert column_comparison_result.result["element_count"] == 13
+assert column_comparison_result.result["element_count"] == 4
 
 # A row with a null in either column is left out of a column comparison.
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - include null rows in a column comparison">
 from great_expectations.expectations.row_conditions import OrCondition
 
-# `Age` is the only column in this data set that has nulls.
-age_exceeds_survived = Column("Age") > Column("Survived")
+underpaid = Column("amount_paid") < Column("amount_due")
 
-# To validate rows with a null in either column as well, add a null check for each column.
+# An invoice with no payment recorded has a null `amount_paid`. To validate rows with a null
+# in either column as well, add a null check for each column.
 # Build the OR group with `OrCondition`. Chaining three conditions with `|` creates a
 # nested OR, which is not allowed.
 row_condition = OrCondition(
     conditions=[
-        age_exceeds_survived,
-        Column("Age").is_null(),
-        Column("Survived").is_null(),
+        underpaid,
+        Column("amount_paid").is_null(),
+        Column("amount_due").is_null(),
     ]
 )
 
 expectation_with_null_rows = gx.expectations.ExpectColumnValuesToBeInSet(
-    column="PClass",
-    value_set=["1st", "2nd", "3rd"],
+    column="status",
+    value_set=["unpaid", "partially_paid"],
     row_condition=row_condition,
 )
 # </snippet>
 
-# Test the Expectations. The 3 rows with a null `Age` are validated only with the null checks.
-without_nulls_result = batch.validate(
+# Test the Expectations. The 2 invoices with a null `amount_paid` are validated only with the
+# null checks.
+without_nulls_result = invoices_batch.validate(
     gx.expectations.ExpectColumnValuesToBeInSet(
-        column="PClass",
-        value_set=["1st", "2nd", "3rd"],
-        row_condition=age_exceeds_survived,
+        column="status",
+        value_set=["unpaid", "partially_paid"],
+        row_condition=underpaid,
     )
 )
 assert without_nulls_result.success
-assert without_nulls_result.result["element_count"] == 15
+assert without_nulls_result.result["element_count"] == 4
 
-with_nulls_result = batch.validate(expectation_with_null_rows)
+with_nulls_result = invoices_batch.validate(expectation_with_null_rows)
 assert with_nulls_result.success
-assert with_nulls_result.result["element_count"] == 18
+assert with_nulls_result.result["element_count"] == 6

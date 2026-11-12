@@ -535,8 +535,8 @@ def test_engine_without_column_comparison_support_still_instantiates():
 
 
 _COLUMN_COMPARISON_FAILURE_NOTE = (
-    "A column comparison fails when a named column does not exist or the backend cannot "
-    "compare the two columns' values."
+    "If the error concerns one of these columns, check that both columns exist and that the "
+    "backend can compare their values."
 )
 
 
