@@ -387,6 +387,47 @@ class TestCRUDMethods:
         context.expectations_store.update.assert_not_called()
 
     @pytest.mark.unit
+    def test_add_returns_the_equivalent_expectation_already_in_the_suite(self, expectation):
+        context = Mock(spec=AbstractDataContext)
+        context.expectations_store.has_key.return_value = True
+        set_context(project=context)
+        suite = ExpectationSuite(
+            name=self.expectation_suite_name,
+            expectations=[expectation],
+        )
+
+        dup_expectation = deepcopy(expectation)
+        dup_expectation.notes = "These are my notes!"
+
+        returned_expectation = suite.add_expectation(expectation=dup_expectation)
+
+        assert returned_expectation is suite.expectations[0]
+        assert returned_expectation is not dup_expectation
+        assert len(suite.expectations) == 1
+        context.expectations_store.add_expectation.assert_not_called()
+
+    @pytest.mark.filesystem
+    def test_filesystem_expectation_returned_for_a_duplicate_can_be_saved(
+        self, empty_data_context, expectation
+    ):
+        context = empty_data_context
+        suite_name = "test-suite"
+        suite = context.suites.add(ExpectationSuite(suite_name))
+        original_expectation = suite.add_expectation(expectation)
+
+        returned_expectation = suite.add_expectation(
+            deepcopy(expectation).copy(update={"id": None})
+        )
+        assert returned_expectation is original_expectation
+        updated_column_name = "foo"
+        returned_expectation.column = updated_column_name
+        returned_expectation.save()
+
+        suite = context.suites.get(suite_name)
+        assert len(suite.expectations) == 1
+        assert suite.expectations[0].column == updated_column_name
+
+    @pytest.mark.unit
     def test_add_doesnt_mutate_suite_when_save_fails(self, expectation):
         context = Mock(spec=AbstractDataContext)
         context.expectations_store.add_expectation.side_effect = (
