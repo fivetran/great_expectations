@@ -123,6 +123,9 @@
                 },
                 {
                     "$ref": "#/definitions/PassThroughCondition"
+                },
+                {
+                    "$ref": "#/definitions/ColumnComparisonCondition"
                 }
             ]
         },
@@ -485,6 +488,35 @@
             },
             "required": [
                 "pass_through_filter"
+            ]
+        },
+        "ColumnComparisonCondition": {
+            "title": "ColumnComparisonCondition",
+            "description": "--Public API--Condition representing the comparison of two columns in the same row.\n\nBoth sides are column references. Expressions, functions and casts are not supported, and a\ncolumn name is passed to each engine as written, under that engine's own quoting rules.\n\nA row whose value in either column is null is excluded under every operator, including\n``!=``. To keep such rows, combine this condition with ``is_null()`` on both columns in an\nexplicit ``OrCondition``.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "column_comparison",
+                    "enum": [
+                        "column_comparison"
+                    ],
+                    "type": "string"
+                },
+                "column": {
+                    "$ref": "#/definitions/Column"
+                },
+                "operator": {
+                    "$ref": "#/definitions/Operator"
+                },
+                "other_column": {
+                    "$ref": "#/definitions/Column"
+                }
+            },
+            "required": [
+                "column",
+                "operator",
+                "other_column"
             ]
         }
     }

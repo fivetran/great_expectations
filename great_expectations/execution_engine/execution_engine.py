@@ -30,10 +30,13 @@ from great_expectations.expectations.legacy_row_conditions import (
 from great_expectations.expectations.registry import get_metric_provider
 from great_expectations.expectations.row_conditions import (
     AndCondition,
+    ColumnComparisonCondition,
     ComparisonCondition,
     Condition,
     NullityCondition,
     OrCondition,
+    deserialize_row_condition,
+    find_column_comparisons,
 )
 from great_expectations.types import DictDot
 from great_expectations.util import (
@@ -120,6 +123,63 @@ class PartitionDomainKwargs:
 
     compute: dict
     accessor: dict
+
+
+def _row_condition_column_comparisons(row_condition: Any) -> List[ColumnComparisonCondition]:
+    """The column comparisons in one metric's row condition, or [] if it has none.
+
+    A row condition read from metric domain kwargs may be a Condition or its serialized
+    dictionary, and `find_column_comparisons` searches only Conditions, so a dictionary is
+    deserialized first. A row condition that cannot be deserialized has no comparisons to name.
+    """
+    try:
+        deserialized = deserialize_row_condition(row_condition)
+    except Exception:
+        # Broad on purpose: this only enriches an error that is already being raised, so no
+        # failure to parse the row condition, whatever its type, may replace that error.
+        return []
+    return find_column_comparisons(
+        deserialized  # type: ignore[arg-type] # typed as the Condition base; RowConditionType lists its subclasses
+    )
+
+
+def _column_comparison_error_context(failed_metrics: Iterable[MetricConfiguration]) -> str:
+    """A sentence naming the column comparisons in the failed metrics' row conditions, or "".
+
+    Each metric's row condition is read from its domain kwargs. The comparisons are listed by
+    display form (for example ``end_date > start_date``), in the order they are first found, and
+    a comparison that appears more than once is listed once. Comparisons are separated by
+    ``", "``. The sentence begins with a space so that it can be appended to an error message.
+
+    The result is an empty string when no failed metric has a column comparison, so an error
+    raised for a suite without one is unchanged. The function never raises, whatever it is given.
+
+    Args:
+        failed_metrics: The metrics whose failure the error message describes. The comparisons
+            of every metric given are named.
+
+    Returns:
+        The sentence to append to the error message, or an empty string.
+    """
+    try:
+        comparisons: List[str] = []
+        for metric in failed_metrics:
+            row_condition = metric.metric_domain_kwargs.get("row_condition")
+            for comparison in _row_condition_column_comparisons(row_condition):
+                display_form = repr(comparison)
+                if display_form not in comparisons:
+                    comparisons.append(display_form)
+    except Exception:
+        # Broad on purpose, as above: an unusable argument must not replace the original error.
+        return ""
+
+    if not comparisons:
+        return ""
+    return (
+        f" Row condition column comparisons: {', '.join(comparisons)}."
+        " If the error concerns one of these columns, check that both columns exist and that"
+        " the backend can compare their values."
+    )
 
 
 class ExecutionEngine(ABC, Generic[TFilter]):
@@ -488,6 +548,8 @@ class ExecutionEngine(ABC, Generic[TFilter]):
         """Convert a Condition tree into a dialect-specific filter clause."""
         if isinstance(condition, ComparisonCondition):
             return self._comparison_condition_to_filter_clause(condition)
+        elif isinstance(condition, ColumnComparisonCondition):
+            return self._column_comparison_condition_to_filter_clause(condition)
         elif isinstance(condition, NullityCondition):
             return self._nullity_condition_to_filter_clause(condition)
         elif isinstance(condition, AndCondition):
@@ -500,6 +562,25 @@ class ExecutionEngine(ABC, Generic[TFilter]):
     @abstractmethod
     def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> TFilter:
         raise NotImplementedError
+
+    def _column_comparison_condition_to_filter_clause(
+        self, condition: ColumnComparisonCondition
+    ) -> TFilter:
+        """Render a comparison between two columns of the same row.
+
+        This is a concrete default, not an abstract method, so that engines which predate column
+        comparisons keep working unchanged. Such an engine rejects a column comparison with
+        ``InvalidConditionError`` rather than evaluating it incorrectly. An engine that supports
+        column comparisons overrides this method.
+
+        An override must return a filter that selects a row if and only if both column values are
+        non-null and the comparison is true under the backend's native semantics. Null handling
+        must not depend on the operator: ``!=`` must exclude a row with a null on either side,
+        even where the backend would evaluate that comparison as true. The filter must also be a
+        single self-contained unit, so that it composes under the engine's AND and OR rendering
+        without further parenthesization.
+        """
+        raise InvalidConditionError(condition)
 
     @abstractmethod
     def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> TFilter:
@@ -580,7 +661,10 @@ class ExecutionEngine(ABC, Generic[TFilter]):
                 )
             except Exception as e:
                 raise gx_exceptions.MetricResolutionError(
-                    message=str(e),
+                    message=str(e)
+                    + _column_comparison_error_context(
+                        (metric_computation_configuration.metric_configuration,)
+                    ),
                     failed_metrics=(metric_computation_configuration.metric_configuration,),
                 ) from e
 
@@ -605,8 +689,12 @@ class ExecutionEngine(ABC, Generic[TFilter]):
                     failed_metrics.append(metric_computation_configuration.metric_configuration)
                     last_exception = individual_e
             if failed_metrics:
+                # The message is the last exception's. A metric is appended to failed_metrics in
+                # the same step that sets last_exception, so the last failed metric is the one
+                # that raised it: the context describes the failure the message describes.
                 raise gx_exceptions.MetricResolutionError(
-                    message=str(last_exception),
+                    message=str(last_exception)
+                    + _column_comparison_error_context((failed_metrics[-1],)),
                     failed_metrics=failed_metrics,
                 ) from last_exception
 
