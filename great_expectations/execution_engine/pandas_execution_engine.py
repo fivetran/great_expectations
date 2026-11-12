@@ -59,6 +59,7 @@ from great_expectations.execution_engine.partition_and_sample.pandas_data_sample
 from great_expectations.expectations.model_field_types import CONDITION_PARSER_PANDAS
 from great_expectations.expectations.row_conditions import (
     AndCondition,
+    ColumnComparisonCondition,
     ComparisonCondition,
     Condition,
     NullityCondition,
@@ -737,6 +738,17 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
     def _or_condition_to_filter_clause(self, condition: OrCondition) -> str:
         parts = [self.condition_to_filter_clause(c) for c in condition.conditions]
         return "(" + " or ".join(parts) + ")"
+
+    @override
+    def _column_comparison_condition_to_filter_clause(
+        self, condition: ColumnComparisonCondition
+    ) -> str:
+        # pandas evaluates ``!=`` as true for a null on numpy-backed dtypes (NaN, None, NaT), so the
+        # comparison is guarded for every operator. Extension dtypes (pd.NA) are covered too: the
+        # guard is false for a null, and false ``and`` NA is false, so the mask never holds NA.
+        left = query_column_reference(condition.column.name)
+        right = query_column_reference(condition.other_column.name)
+        return f"({left} {condition.operator} {right} and ~{left}.isnull() and ~{right}.isnull())"
 
 
 def hash_pandas_dataframe(df):
