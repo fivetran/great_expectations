@@ -1,5 +1,6 @@
 import os
-from typing import TYPE_CHECKING, Dict
+from operator import eq, ge, gt, le, lt, ne
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 from unittest import mock
 
 import pandas as pd
@@ -17,6 +18,7 @@ from great_expectations.execution_engine.pandas_execution_engine import (
 from great_expectations.expectations.row_conditions import (
     AndCondition,
     Column,
+    ColumnComparisonCondition,
     ComparisonCondition,
     NullityCondition,
     Operator,
@@ -1080,3 +1082,332 @@ class TestConditionToFilterClause:
 
         assert len(result_df) == 4
         assert list(result_df["id"]) == [2, 3, 4, 5]
+
+
+_COLUMN_COMPARISON_OPERATORS = [
+    pytest.param(Operator.EQUAL, eq, id="equal"),
+    pytest.param(Operator.NOT_EQUAL, ne, id="not_equal"),
+    pytest.param(Operator.LESS_THAN, lt, id="less_than"),
+    pytest.param(Operator.LESS_THAN_OR_EQUAL, le, id="less_or_equal"),
+    pytest.param(Operator.GREATER_THAN, gt, id="greater_than"),
+    pytest.param(Operator.GREATER_THAN_OR_EQUAL, ge, id="greater_or_equal"),
+]
+
+
+def _column_pair_rows(
+    low: Any, middle: Any, high: Any
+) -> tuple[list[Optional[Any]], list[Optional[Any]]]:
+    """Return the two columns of a comparison table: every pairing of three ordered values, then
+    rows with a null on the left, on the right, and on both sides."""
+    values = [low, middle, high]
+    pairs: list[tuple[Optional[Any], Optional[Any]]] = [(x, y) for x in values for y in values]
+    pairs += [(None, low), (None, high), (low, None), (high, None), (None, None)]
+    return [left for left, _ in pairs], [right for _, right in pairs]
+
+
+def _ids_where_both_sides_are_non_null_and(
+    compare: Callable[[Any, Any], bool],
+    left_values: list[Optional[Any]],
+    right_values: list[Optional[Any]],
+) -> list[int]:
+    """Oracle: drop every pair with a null on either side, then apply the operator."""
+    return [
+        row_id
+        for row_id, (left, right) in enumerate(zip(left_values, right_values, strict=True))
+        if left is not None and right is not None and compare(left, right)
+    ]
+
+
+# Each case: (ordered low/middle/high values, builder turning a list with None into a Series
+# holding that backend-native missing value, the dtype the builder must produce, or None when it
+# varies by pandas version).
+_NULL_FORM_CASES = [
+    pytest.param(
+        (1.0, 2.0, 3.0),
+        lambda values: pd.Series(values, dtype="float64"),
+        "float64",
+        id="float-NaN",
+    ),
+    pytest.param(
+        ("apple", "banana", "cherry"),
+        lambda values: pd.Series(values, dtype=object),
+        "object",
+        id="object-None-str",
+    ),
+    pytest.param(
+        (1, 2, 3),
+        lambda values: pd.Series(values, dtype=object),
+        "object",
+        id="object-None-int",
+    ),
+    pytest.param(
+        (
+            pd.Timestamp("2020-01-01"),
+            pd.Timestamp("2021-01-01"),
+            pd.Timestamp("2022-01-01"),
+        ),
+        lambda values: pd.Series(values, dtype="datetime64[ns]"),
+        "datetime64[ns]",
+        id="datetime-NaT",
+    ),
+    pytest.param(
+        (1, 2, 3),
+        lambda values: pd.Series(values, dtype="Int64"),
+        "Int64",
+        id="nullable-int-NA",
+    ),
+    pytest.param(
+        ("apple", "banana", "cherry"),
+        lambda values: pd.Series(values, dtype="string"),
+        "string",
+        id="nullable-string-NA",
+    ),
+    pytest.param(
+        ("apple", "banana", "cherry"),
+        pd.Series,
+        None,
+        id="inferred-string-None",
+    ),
+]
+
+
+def _null_form_frame(
+    values: tuple[Any, Any, Any],
+    build: Callable[[list[Optional[Any]]], "pd.Series[Any]"],
+    expected_dtype: Optional[str],
+    left_name: str = "a",
+    right_name: str = "b",
+) -> tuple[pd.DataFrame, list[Optional[Any]], list[Optional[Any]]]:
+    left_values, right_values = _column_pair_rows(*values)
+    df = pd.DataFrame(
+        {
+            left_name: build(left_values),
+            right_name: build(right_values),
+            "id": list(range(len(left_values))),
+        }
+    )
+    # The table must hold the missing-value form under test, not a silently coerced one.
+    if expected_dtype is not None:
+        assert str(df[left_name].dtype) == expected_dtype
+        assert str(df[right_name].dtype) == expected_dtype
+    assert df[left_name].isna().sum() == sum(v is None for v in left_values) > 0
+    assert df[right_name].isna().sum() == sum(v is None for v in right_values) > 0
+    return df, left_values, right_values
+
+
+class TestColumnComparisonConditionToFilterClause:
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "operator,expected_output",
+        [
+            pytest.param(Operator.EQUAL, "(a == b and ~a.isnull() and ~b.isnull())", id="equal"),
+            pytest.param(
+                Operator.NOT_EQUAL, "(a != b and ~a.isnull() and ~b.isnull())", id="not_equal"
+            ),
+            pytest.param(
+                Operator.LESS_THAN, "(a < b and ~a.isnull() and ~b.isnull())", id="less_than"
+            ),
+            pytest.param(
+                Operator.LESS_THAN_OR_EQUAL,
+                "(a <= b and ~a.isnull() and ~b.isnull())",
+                id="less_or_equal",
+            ),
+            pytest.param(
+                Operator.GREATER_THAN,
+                "(a > b and ~a.isnull() and ~b.isnull())",
+                id="greater_than",
+            ),
+            pytest.param(
+                Operator.GREATER_THAN_OR_EQUAL,
+                "(a >= b and ~a.isnull() and ~b.isnull())",
+                id="greater_or_equal",
+            ),
+        ],
+    )
+    def test_column_comparison_renders_a_null_guarded_clause_for_every_operator(
+        self, operator: Operator, expected_output: str
+    ) -> None:
+        engine = PandasExecutionEngine()
+        condition = ColumnComparisonCondition(
+            column=Column("a"), operator=operator, other_column=Column("b")
+        )
+
+        assert engine.condition_to_filter_clause(condition) == expected_output
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "left_name,right_name,left_reference,right_reference",
+        [
+            pytest.param("Total Amount", "b", "`Total Amount`", "b", id="left-space"),
+            pytest.param("a", "Total Amount", "a", "`Total Amount`", id="right-space"),
+            pytest.param("class", "b", "`class`", "b", id="left-reserved-word"),
+            pytest.param("a", "if", "a", "`if`", id="right-reserved-word"),
+            pytest.param("MixedCase", "b", "MixedCase", "b", id="left-mixed-case"),
+            pytest.param("a", "MixedCase", "a", "MixedCase", id="right-mixed-case"),
+            pytest.param("Sale Price", "Net Cost", "`Sale Price`", "`Net Cost`", id="both-space"),
+            pytest.param("class", "if", "`class`", "`if`", id="both-reserved-word"),
+            pytest.param(
+                "Mixed Case", "class", "`Mixed Case`", "`class`", id="mixed-case-with-space"
+            ),
+        ],
+    )
+    def test_column_comparison_quotes_each_side_like_a_literal_comparison(
+        self, left_name: str, right_name: str, left_reference: str, right_reference: str
+    ) -> None:
+        engine = PandasExecutionEngine()
+        condition = ColumnComparisonCondition(
+            column=Column(left_name), operator=Operator.LESS_THAN, other_column=Column(right_name)
+        )
+        literal = ComparisonCondition(
+            column=Column(left_name), operator=Operator.LESS_THAN, parameter=1
+        )
+
+        assert engine.condition_to_filter_clause(condition) == (
+            f"({left_reference} < {right_reference} "
+            f"and ~{left_reference}.isnull() and ~{right_reference}.isnull())"
+        )
+        # The left side is quoted exactly as a literal comparison on the same name quotes it.
+        assert engine.condition_to_filter_clause(literal).startswith(f"{left_reference} < ")
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "left_name,right_name",
+        [
+            pytest.param("Total Amount", "b", id="left-space"),
+            pytest.param("a", "Total Amount", id="right-space"),
+            pytest.param("class", "b", id="left-reserved-word"),
+            pytest.param("a", "if", id="right-reserved-word"),
+            pytest.param("MixedCase", "b", id="left-mixed-case"),
+            pytest.param("a", "MixedCase", id="right-mixed-case"),
+            pytest.param("Sale Price", "Net Cost", id="both-space"),
+            pytest.param("class", "if", id="both-reserved-word"),
+        ],
+    )
+    @pytest.mark.parametrize("operator,compare", _COLUMN_COMPARISON_OPERATORS)
+    def test_column_comparison_with_quoted_names_filters_a_dataframe(
+        self,
+        left_name: str,
+        right_name: str,
+        operator: Operator,
+        compare: Callable[[Any, Any], bool],
+    ) -> None:
+        """What is rendered has to be what pandas can execute, for each name on either side."""
+        engine = PandasExecutionEngine()
+        df, left_values, right_values = _null_form_frame(
+            (1.0, 2.0, 3.0),
+            lambda values: pd.Series(values, dtype="float64"),
+            "float64",
+            left_name=left_name,
+            right_name=right_name,
+        )
+        condition = ColumnComparisonCondition(
+            column=Column(left_name), operator=operator, other_column=Column(right_name)
+        )
+
+        result_df = df.query(engine.condition_to_filter_clause(condition))
+
+        expected_ids = _ids_where_both_sides_are_non_null_and(compare, left_values, right_values)
+        assert expected_ids
+        assert len(expected_ids) < len(df)
+        assert list(result_df["id"]) == expected_ids
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize("operator,compare", _COLUMN_COMPARISON_OPERATORS)
+    @pytest.mark.parametrize("values,build,expected_dtype", _NULL_FORM_CASES)
+    def test_column_comparison_excludes_every_null_form_for_every_operator(
+        self,
+        values: tuple[Any, Any, Any],
+        build: Callable[[list[Optional[Any]]], "pd.Series[Any]"],
+        expected_dtype: Optional[str],
+        operator: Operator,
+        compare: Callable[[Any, Any], bool],
+    ) -> None:
+        engine = PandasExecutionEngine()
+        df, left_values, right_values = _null_form_frame(values, build, expected_dtype)
+        condition = ColumnComparisonCondition(
+            column=Column("a"), operator=operator, other_column=Column("b")
+        )
+
+        result_df = df.query(engine.condition_to_filter_clause(condition))
+
+        expected_ids = _ids_where_both_sides_are_non_null_and(compare, left_values, right_values)
+        # A proper, non-empty subset: the operator and the null rule each shape the result.
+        assert expected_ids
+        assert len(expected_ids) < len(df)
+        assert list(result_df["id"]) == expected_ids
+        # No row with a null on either side is selected, under any operator.
+        assert not result_df[["a", "b"]].isna().any(axis=None)
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize("values,build,expected_dtype", _NULL_FORM_CASES)
+    def test_column_comparison_not_equal_selects_only_rows_with_two_present_values(
+        self,
+        values: tuple[Any, Any, Any],
+        build: Callable[[list[Optional[Any]]], "pd.Series[Any]"],
+        expected_dtype: Optional[str],
+    ) -> None:
+        """`!=` is the operator pandas evaluates as true for a null on numpy-backed dtypes."""
+        engine = PandasExecutionEngine()
+        df, left_values, right_values = _null_form_frame(values, build, expected_dtype)
+        condition = Column("a") != Column("b")
+
+        result_df = df.query(engine.condition_to_filter_clause(condition))
+
+        low, middle, high = values
+        # Six ordered pairs differ; the five rows with a null on either side are left out.
+        assert len(result_df) == 6
+        assert list(result_df["id"]) == [
+            row_id
+            for row_id, (left, right) in enumerate(zip(left_values, right_values, strict=True))
+            if left is not None and right is not None and left != right
+        ]
+        assert set(zip(result_df["a"], result_df["b"], strict=True)) == {
+            (x, y) for x in (low, middle, high) for y in (low, middle, high) if x != y
+        }
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize("operator,compare", _COLUMN_COMPARISON_OPERATORS)
+    @pytest.mark.parametrize("values,build,expected_dtype", _NULL_FORM_CASES)
+    def test_column_comparison_null_rule_stays_inside_its_leaf_under_and_and_or(
+        self,
+        values: tuple[Any, Any, Any],
+        build: Callable[[list[Optional[Any]]], "pd.Series[Any]"],
+        expected_dtype: Optional[str],
+        operator: Operator,
+        compare: Callable[[Any, Any], bool],
+    ) -> None:
+        engine = PandasExecutionEngine()
+        df, left_values, right_values = _null_form_frame(values, build, expected_dtype)
+        comparison = ColumnComparisonCondition(
+            column=Column("a"), operator=operator, other_column=Column("b")
+        )
+        compared_ids = _ids_where_both_sides_are_non_null_and(compare, left_values, right_values)
+        row_count = len(df)
+
+        # AND: a null on either side is excluded, whatever the other branch says.
+        and_condition = AndCondition(
+            conditions=[
+                comparison,
+                ComparisonCondition(
+                    column=Column("id"), operator=Operator.LESS_THAN, parameter=row_count - 1
+                ),
+            ]
+        )
+        and_result = df.query(engine.condition_to_filter_clause(and_condition))
+        assert list(and_result["id"]) == [i for i in compared_ids if i < row_count - 1]
+
+        # OR: a row with a null is selected exactly when the other branch selects it, and a
+        # null on the side the other branch does not look at does not leak in.
+        for nullity_column, values_in_column in (("a", left_values), ("b", right_values)):
+            or_condition = OrCondition(
+                conditions=[
+                    comparison,
+                    NullityCondition(column=Column(nullity_column), is_null=True),
+                ]
+            )
+            or_result = df.query(engine.condition_to_filter_clause(or_condition))
+            assert list(or_result["id"]) == [
+                row_id
+                for row_id in range(row_count)
+                if row_id in compared_ids or values_in_column[row_id] is None
+            ], nullity_column

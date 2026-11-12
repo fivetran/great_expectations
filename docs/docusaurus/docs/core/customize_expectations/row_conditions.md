@@ -58,7 +58,7 @@ To restrict an Expectation to a subset of the data retrieved in a Batch, use the
          ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a and b or c"
          ```
 
-      The following comparison operators are supported: `==`, `!=`, `>`, `<`, `>=`, `<=`, `is_in`, `is_not_in`, `is_null`, `is_not_null`. Here are some examples of using different kinds of operators:
+      The following comparison operators are supported: `==`, `!=`, `>`, `<`, `>=`, `<=`, `is_in`, `is_not_in`, `is_null`, `is_not_null`. The `==`, `!=`, `>`, `<`, `>=`, and `<=` operators compare a column either to a value or to another column. To learn more, see [Compare two columns](#compare-two-columns). Here are some examples of using different kinds of operators:
 
       ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - operators"
       ```
@@ -95,6 +95,14 @@ To restrict an Expectation to a subset of the data retrieved in a Batch, use the
 
    </Tabs>
 
+### Compare two columns
+
+A row condition can compare the values in two columns of the same row. Put a `Column` on the right-hand side of the comparison instead of a value. A row is validated when the comparison evaluates to `True` for that row.
+
+```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - compare two columns"
+```
+
+A column comparison can be combined with other condition statements using `&` and `|`, the same as any other condition. For the rules that apply when the columns hold null values, NaN values, strings, or values of different types, see [Column comparisons](#column-comparisons).
 
 ## Row conditions in Data Docs
 
@@ -116,3 +124,16 @@ Keep the following in mind when working with row conditions:
    - `expect_table_column_count_to_be_between`
    - `expect_table_column_count_to_equal`
    - `unexpected_rows_expectation` 
+
+### Column comparisons
+
+Keep the following in mind when comparing two columns:
+- **Null values.** A row with a null in either column is never validated, whichever operator you use and whichever Data Source evaluates the condition. This includes `!=`, because a null is neither equal to nor different from another value. To validate those rows as well, add a null check for each column to an OR group.
+   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - include null rows in a column comparison"
+   ```
+
+   Build the OR group with `OrCondition`, as shown. Chaining three conditions with `|`, as in `a | b | c`, creates an OR group nested inside another OR group, and row conditions do not allow nested OR groups, so GX rejects the condition.
+- **NaN values.** How NaN is compared depends on the backend that evaluates the comparison. Pandas treats NaN as a missing value, so the null rule above applies: a row with a NaN in either column is never validated, for every operator. Spark and PostgreSQL store NaN as a value and compare it the same way as when a column holding NaN is compared with a value: NaN is equal to itself and greater than every number, so a row where the left column is NaN and the right column is `2.0` satisfies `>`, `>=`, and `!=`, but not `==`, `<`, or `<=`.
+- **Strings.** Strings are compared using the collation of the backend that evaluates the comparison, the same as when a column is compared with a literal string. For example, whether `"a"` and `"A"` are equal depends on the backend.
+- **Comparable values.** You are responsible for making sure that the two columns hold values that can be compared. GX does not check the types of the two columns. A backend may convert one side to match the other, as SQLite does based on column type affinity, or it may raise an error, as PostgreSQL does. If a backend cannot evaluate the comparison, the Expectation is unsuccessful. When an Expectation whose row condition compares columns fails with an error, GX adds the column comparisons to the error message. This happens for any error, not only one the comparison caused, so read the original error first to see whether it concerns the compared columns.
+- **Sets.** The `is_in` and `is_not_in` operators do not accept a `Column`. They only compare a column to a list of values.
