@@ -294,7 +294,7 @@ class ExpectColumnToExist(BatchExpectation):
         expected_column_name = self._get_success_kwarg("column")
         expected_column_index = self._get_success_kwarg("column_index")
 
-        if expected_column_index:
+        if expected_column_index is not None:
             try:
                 success = actual_columns[expected_column_index] == expected_column_name
             except IndexError:

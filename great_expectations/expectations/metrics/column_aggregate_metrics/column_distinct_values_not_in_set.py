@@ -26,6 +26,7 @@ from great_expectations.expectations.metrics.column_aggregate_metrics.column_dis
     _coerce_value_set_to_column_type,
 )
 from great_expectations.expectations.metrics.metric_provider import metric_value
+from great_expectations.util import get_sqlalchemy_selectable
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -72,6 +73,8 @@ class ColumnDistinctValuesNotInSetCount(ColumnAggregateMetricProvider):
             _,
             accessor_domain_kwargs,
         ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        # A row condition makes the domain a SELECT, and a FROM clause requires a subquery.
+        selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type] # FIXME CoP
         column_name: str = accessor_domain_kwargs["column"]
         column: sqlalchemy.ColumnClause = sa.column(column_name)
 
@@ -184,6 +187,8 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
             _,
             accessor_domain_kwargs,
         ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        # A row condition makes the domain a SELECT, and a FROM clause requires a subquery.
+        selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type] # FIXME CoP
         column_name: str = accessor_domain_kwargs["column"]
         column: sqlalchemy.ColumnClause = sa.column(column_name)
 

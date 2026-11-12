@@ -80,6 +80,13 @@ def test_success(
             ),
             id="wrong_column_index",
         ),
+        pytest.param(
+            gxe.ExpectColumnToExist(
+                column=ANOTHER_EXISTING_COLUMN,
+                column_index=0,
+            ),
+            id="wrong_column_index_zero",
+        ),
     ],
 )
 @parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
