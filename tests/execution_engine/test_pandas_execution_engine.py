@@ -706,7 +706,7 @@ class TestConditionToFilterClause:
                 ComparisonCondition(
                     column=Column("age"), operator=Operator.NOT_EQUAL, parameter=10
                 ),
-                "age != 10",
+                "(age != 10 and ~age.isnull())",
                 id="not_equal",
             ),
             pytest.param(
@@ -748,7 +748,7 @@ class TestConditionToFilterClause:
                 ComparisonCondition(
                     column=Column("name"), operator=Operator.NOT_EQUAL, parameter="Jane"
                 ),
-                "name != 'Jane'",
+                "(name != 'Jane' and ~name.isnull())",
                 id="not_equal_string",
             ),
         ],
@@ -785,8 +785,15 @@ class TestConditionToFilterClause:
                 ComparisonCondition(
                     column=Column("status"), operator=Operator.NOT_IN, parameter=[1, 2, 3]
                 ),
-                "status not in [1, 2, 3]",
+                "(status not in [1, 2, 3] and ~status.isnull())",
                 id="not_in",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column("status"), operator=Operator.NOT_IN, parameter=[]
+                ),
+                "status not in []",
+                id="not_in_empty",
             ),
         ],
     )
@@ -904,6 +911,28 @@ class TestConditionToFilterClause:
         assert len(result_df) == 3
         assert list(result_df["age"]) == [35, 45, 55]
         assert list(result_df["name"]) == ["C", "D", "E"]
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "operator,parameter",
+        [
+            pytest.param(Operator.NOT_EQUAL, "Jane", id="not_equal"),
+            pytest.param(Operator.NOT_IN, ["Jane"], id="not_in"),
+        ],
+    )
+    def test_negated_comparison_filter_clause_drops_null_rows(
+        self, operator: Operator, parameter: object
+    ) -> None:
+        engine = PandasExecutionEngine()
+        df = pd.DataFrame({"name": ["Jane", "John", None, "Mary", float("nan")]})
+        condition = ComparisonCondition(
+            column=Column("name"), operator=operator, parameter=parameter
+        )
+
+        filter_clause = engine.condition_to_filter_clause(condition)
+        result_df = df.query(filter_clause)
+
+        assert list(result_df["name"]) == ["John", "Mary"]
 
     @pytest.mark.unit
     @pytest.mark.parametrize(
