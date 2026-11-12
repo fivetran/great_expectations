@@ -45,6 +45,73 @@ This table lists every deprecated item, the version that deprecated it, and the 
 | `gx-redshift` install extra (alias of `redshift`) | 1.21.0 | 2.0.0 | `great_expectations[redshift]` |
 | `CloudDataContext` and cloud mode of `get_context(...)` | 1.18.0 | 2.0.0 | `gx.get_context(mode="file")` or `mode="ephemeral"` |
 
+### 1.25.0 (2026-11-12)
+
+Compatibility: `zstandard` minimum 0.25.0 removed (extra `spark-connect`)
+
+#### Highlights
+
+- **Compare two columns in a row condition** — Row conditions can now compare two columns of the same row on pandas, Spark and SQL backends. `Column`'s comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`) build a column-to-column condition when the right-hand side is another `Column`; it joins AND/OR groups, saves and reloads with a suite, and renders in Data Docs as written. Rows with a null in either column are excluded under every operator, and `is_in`/`is_not_in` reject a `Column` with a message pointing to the comparison operators. ([#12363](https://github.com/fivetran/great_expectations/pull/12363))
+
+  ```python
+  import great_expectations.expectations as gxe
+  from great_expectations.expectations.row_conditions import Column
+
+  gxe.ExpectColumnValuesToNotBeNull(
+      column="shipped_at",
+      row_condition=Column("end_date") > Column("start_date"),
+  )
+  ```
+
+- **SQL metrics and Expectations work with a row condition** — Distinct-values, median, quantile, value-counts, histogram, sample-values, regex-values, table head and column-pair Expectations and metrics no longer fail on SQL backends when a row condition is set. They previously emitted a SQLAlchemy 2.0 deprecation warning and raised an `ArgumentError` under SQLAlchemy 2.1. Results without a row condition are unchanged. ([#12364](https://github.com/fivetran/great_expectations/pull/12364), [#12368](https://github.com/fivetran/great_expectations/pull/12368))
+
+- **Rows containing NULLs are counted as unexpected on SQL** — On SQL backends, `ExpectColumnPairValuesAToBeGreaterThanB`, `ExpectColumnPairValuesToBeInSet`, `ExpectMulticolumnSumToEqual` and `ExpectCompoundColumnsToBeUnique` now count rows with a NULL in a compared column as unexpected, matching pandas. `unexpected_index_query` for `ExpectMulticolumnSumToEqual` now returns those rows too. ([#12255](https://github.com/fivetran/great_expectations/pull/12255))
+
+- **`spark-connect` extra installs alongside older zstandard pins** — The `zstandard>=0.25.0` floor is removed from the `spark-connect` extra, so `great-expectations[spark,spark-connect]` resolves under pins such as Apache Airflow 3.0.x constraints (pyspark 4.0.0 with zstandard 0.24.0). Users of `pyspark[connect]` 4.1+ still get zstandard 0.25.0 or newer through pyspark itself. ([#12352](https://github.com/fivetran/great_expectations/pull/12352))
+
+#### Changes
+
+##### Features
+
+- Row conditions can now compare two columns of the same row using `Column`'s comparison operators on pandas, Spark and SQL backends, with the comparison serialized in suites, rendered in Data Docs, and named in metric error messages. ([#12363](https://github.com/fivetran/great_expectations/pull/12363))
+
+##### Bug fixes
+
+- Median, quantile, value-counts, histogram, distinct-values, sample-values, regex-values, table head, column-pair and compound-columns-unique metrics now work on SQL backends when the Expectation or metric has a row condition, instead of emitting a SQLAlchemy 2.0 deprecation warning or failing under SQLAlchemy 2.1. ([#12368](https://github.com/fivetran/great_expectations/pull/12368))
+- `ExpectColumnToExist` now honors `column_index=0`, so a column at a different position correctly fails instead of passing. ([#12360](https://github.com/fivetran/great_expectations/pull/12360))
+- `ExpectColumnDistinctValuesToEqualSet`, `ExpectColumnDistinctValuesToContainSet` and `ExpectColumnDistinctValuesToBeInSet` now work on SQL backends when given a row condition, instead of warning on SQLAlchemy 2.0 and failing on 2.1. ([#12364](https://github.com/fivetran/great_expectations/pull/12364))
+- `import great_expectations` no longer imports the deprecated `sre_constants` and `sre_parse` modules, so it succeeds on Python 3.15 and raises no deprecation warning on Python 3.11 through 3.14. ([#12346](https://github.com/fivetran/great_expectations/pull/12346))
+- `ExpectTableColumnsToMatchSet(column_set=None)` now returns a failed result on SQL backends instead of raising `TypeError`, matching the pandas behavior. ([#12311](https://github.com/fivetran/great_expectations/pull/12311))
+- On SQL backends, `ExpectColumnPairValuesAToBeGreaterThanB`, `ExpectColumnPairValuesToBeInSet`, `ExpectMulticolumnSumToEqual` and `ExpectCompoundColumnsToBeUnique` now count rows containing NULLs as unexpected, matching pandas, and `ExpectMulticolumnSumToEqual`'s `unexpected_index_query` returns those rows. ([#12255](https://github.com/fivetran/great_expectations/pull/12255))
+- `ExpectColumnValuesToBeIncreasing` and `ExpectColumnValuesToBeDecreasing` on pandas no longer mis-evaluate unsigned or very large integer columns, where integer wraparound previously let a descending `uint8` column pass a strictly-increasing check. ([#12340](https://github.com/fivetran/great_expectations/pull/12340))
+- `ExpectColumnQuantileValuesToBeBetween` now returns a plain `bool` for `success`, so printing the result, dumping it to JSON, and running it through a ValidationDefinition or Checkpoint no longer raise `TypeError: Object of type bool is not JSON serializable`. ([#12339](https://github.com/fivetran/great_expectations/pull/12339))
+- `ExpectationSuite.delete_expectation` now deletes the suite's own matching Expectation on a saved suite (so deleting with an equivalent Expectation that has no id works), and leaves the suite exactly as it was if persisting the deletion fails. ([#12320](https://github.com/fivetran/great_expectations/pull/12320))
+- On Spark, Expectations on a column whose name contains a dot now return a full result when `unexpected_index_column_names` is set, instead of an empty failing result; column-pair Expectations on such columns are fixed too. ([#12286](https://github.com/fivetran/great_expectations/pull/12286))
+- The empty-string error raised by `Metric.config` now names the offending parameter instead of printing the literal `{param_name}` placeholder. ([#12332](https://github.com/fivetran/great_expectations/pull/12332))
+- The `spark-connect` extra no longer pins a minimum `zstandard` version, so `great-expectations[spark,spark-connect]` installs alongside older zstandard pins such as those in Apache Airflow 3.0.x constraints. ([#12352](https://github.com/fivetran/great_expectations/pull/12352))
+- `QueryExpectation` now recognizes a `{batch}` placeholder whatever punctuation surrounds it, so queries like `SELECT COUNT(*) FROM {batch};` and tab- or CRLF-formatted queries no longer warn that they are not parameterized for a data asset, while a `{batch}` that appears only inside a comment or string literal now does warn. ([#12244](https://github.com/fivetran/great_expectations/pull/12244))
+- `ExpectColumnValuesToBeOfType` and `ExpectColumnValuesToBeInTypeList` on class-comparing SQL backends now resolve an uppercase SQL type name against SQLAlchemy's generic types when the dialect does not export it (so, for example, `type_="INTEGER"` passes on Oracle), raise a clear error naming the type and dialect for a name that resolves nowhere instead of reporting a silent mismatch, and no longer pass falsely on ClickHouse columns the driver reflects as `NullType`. ([#12228](https://github.com/fivetran/great_expectations/pull/12228))
+
+<details>
+<summary>Maintenance</summary>
+
+- Bumped the docs site's follow-redirects dependency from 1.16.1 to 1.16.2. ([#12355](https://github.com/fivetran/great_expectations/pull/12355))
+- Bumped the docs site's joi dependency from 17.13.8 to 17.13.9. ([#12353](https://github.com/fivetran/great_expectations/pull/12353))
+- Bumped the docs site's zod dependency from 4.3.5 to 4.6.7. ([#12349](https://github.com/fivetran/great_expectations/pull/12349))
+- Bumped the docs site's git-diff dependency from 2.0.6 to 2.0.7. ([#12348](https://github.com/fivetran/great_expectations/pull/12348))
+- Bumped the docs site's postcss-selector-parser dependency from 6.1.2 to 6.1.5, picking up its security fixes. ([#12347](https://github.com/fivetran/great_expectations/pull/12347))
+- Bumped the docs site's fast-uri dependency from 3.1.8 to 3.1.9, picking up its URI parsing security fixes. ([#12345](https://github.com/fivetran/great_expectations/pull/12345))
+- CI now passes on the Ubuntu 26.04 runner image: the SQL Server ODBC driver installs, Spark lanes pin Temurin 17, and the minimum-versions lane pins a numpy release with Python 3.11 wheels. ([#12358](https://github.com/fivetran/great_expectations/pull/12358))
+- Re-enabled the Snowflake marker tests in CI. ([#12357](https://github.com/fivetran/great_expectations/pull/12357))
+- Temporarily disabled the Snowflake marker tests in CI while the Snowflake account was unavailable. ([#12356](https://github.com/fivetran/great_expectations/pull/12356))
+- Removed the unreachable GX Cloud store backend and the cloud-only data-context variables that supported it; a store configuration naming `GXCloudStoreBackend` now fails with `PluginClassNotFoundError` when the store is built. ([#12350](https://github.com/fivetran/great_expectations/pull/12350))
+
+</details>
+
+#### Contributors
+
+Thanks to @anubhavlal07 (first contribution), @luc-pimentel (first contribution), @zerafachris (first contribution), @adimalkar, @feiiiiii5, @Aleksey-Movchanyuk (first contribution), @manojgosavi (first contribution), @alleyxd (first contribution), @MannXo.
+
 ### 1.24.1 (2026-10-22)
 
 #### Highlights
