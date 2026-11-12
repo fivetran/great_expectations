@@ -1680,6 +1680,11 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
     ) -> sa.ColumnElement:
         col: sa.ColumnClause = sa.column(condition.column.name)
         val = sa.literal(condition.parameter)
+        if self.dialect_name == GXSqlDialect.TRINO and isinstance(
+            condition.parameter, datetime.datetime
+        ):
+            # Trino binds python datetimes as VARCHAR, which fails against TIMESTAMP columns
+            val = sa.cast(val, sa.TIMESTAMP)
         op = condition.operator
         if op == Operator.LESS_THAN:
             return col < val
