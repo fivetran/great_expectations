@@ -1,6 +1,6 @@
 ---
 title: "Configure project settings"
-description: Learn how to configure advanced project settings such as the locations where GX saves metadata, secure credentials, access to secrets managers, the content and location of Data Docs sites, and internal analytics event triggering.
+description: Learn how to configure advanced project settings such as the locations where GX saves metadata, secure credentials, access to secrets managers, and the content and location of Data Docs sites.
 hide_feedback_survey: true
 hide_title: true
 ---
@@ -45,7 +45,7 @@ import OverviewCard from '@site/src/components/OverviewCard';
   <LinkCard 
       topIcon 
       label="Analytics Events"
-      description="Toggle the GX's collection of analytics events."
+      description="GX Core does not collect analytics events."
       to="/core/configure_project_settings/toggle_analytics_events" 
       icon="/img/expectation_icon.svg" 
   />

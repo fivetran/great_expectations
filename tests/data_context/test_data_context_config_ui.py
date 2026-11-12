@@ -248,7 +248,6 @@ def test_DataContextConfig_with_InMemoryStoreBackendDefaults(
 def test_data_context_config_defaults():
     config = DataContextConfig()
     assert config.to_json_dict() == {
-        "analytics_enabled": None,
         "data_context_id": None,
         "checkpoint_store_name": None,
         "config_variables_file_path": None,

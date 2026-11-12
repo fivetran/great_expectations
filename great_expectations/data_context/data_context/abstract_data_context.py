@@ -199,13 +199,20 @@ class AbstractDataContext(ConfigPeer, ABC):
         Args:
             runtime_environment (dict): a dictionary of config variables that
                 override those set in config_variables.yml and the environment
-            user_agent_str (str | None): UserAgent string to be used in analytics events
+            user_agent_str (str | None): deprecated and ignored. GX Core does not collect analytics.
         """  # noqa: E501 # FIXME CoP
 
         if runtime_environment is None:
             runtime_environment = {}
         self.runtime_environment = runtime_environment
-        self._user_agent_str = user_agent_str
+        if user_agent_str is not None:
+            # deprecated-v1.25.0
+            warnings.warn(
+                "The `user_agent_str` argument is deprecated and has no effect: GX Core does not "
+                "collect analytics. It will be removed in a future major version of GX.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
 
         self._config_provider = self._init_config_provider()
         self._config_variables = self._load_config_variables()
@@ -220,8 +227,7 @@ class AbstractDataContext(ConfigPeer, ABC):
         ):
             sys.path.append(self.plugins_directory)
 
-        # We want to have directories set up before initializing usage statistics so
-        # that we can obtain a context instance id
+        # Directories are set up before this point so that a context instance id can be obtained
         self._in_memory_instance_id: str | None = (
             None  # This variable *may* be used in case we cannot save an instance id
         )
@@ -319,23 +325,24 @@ class AbstractDataContext(ConfigPeer, ABC):
         return self.variables.save()
 
     @public_api
+    @deprecated_method_or_class(
+        version="1.25.0",
+        message="GX Core does not collect analytics, so this method has no effect.",
+    )
     def enable_analytics(self, enable: Optional[bool]) -> None:
         """
-        Enable or disable analytics for this DataContext.
-        With non-ephemeral contexts, this can be preserved via context.variables.save().
+        Has no effect: GX Core does not collect analytics.
 
-        If set to None, the `GX_ANALYTICS_ENABLED` environment variable will be used.
+        Args:
+            enable: ignored.
         """
-        self.config.analytics_enabled = enable
-        self.variables.save()
-
-    def set_user_agent_str(self, user_agent_str: Optional[str]) -> None:
-        """
-        Set the user agent string for this DataContext.
-
-        This method is used by GX internally for analytics tracking.
-        """
-        self._user_agent_str = user_agent_str
+        # deprecated-v1.25.0
+        warnings.warn(
+            "enable_analytics() is deprecated and has no effect: GX Core does not collect "
+            "analytics. It will be removed in a future major version of GX.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
 
     @public_api
     def update_project_config(
