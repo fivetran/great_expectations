@@ -24,6 +24,7 @@ from great_expectations.expectations.metrics.map_metric_provider.multicolumn_con
 from great_expectations.expectations.metrics.map_metric_provider.multicolumn_function_partial import (  # noqa: E501 # FIXME CoP
     multicolumn_function_partial,
 )
+from great_expectations.util import get_sqlalchemy_selectable
 from great_expectations.validator.validation_graph import MetricConfiguration
 
 if TYPE_CHECKING:
@@ -93,9 +94,10 @@ class CompoundColumnsUnique(MulticolumnMapMetricProvider):
         # Need all columns of the table for the purposes of reporting entire rows satisfying unexpected condition logic.  # noqa: E501 # FIXME CoP
         table_columns = kwargs.get("_table_columns")
 
-        table = kwargs.get(
-            "_table"
-        )  # Note that here, "table" is of the "sqlalchemy.sql.selectable.Subquery" type.
+        # With a row condition and no rows ignored, "_table" is a SELECT rather than a table or
+        # subquery, and a FROM clause requires a subquery. Note that after this, "table" is of the
+        # "sqlalchemy.sql.selectable.Subquery" type.
+        table = get_sqlalchemy_selectable(kwargs.get("_table"))
 
         table_columns_selector = [sa.column(column_name) for column_name in table_columns]
 

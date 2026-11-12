@@ -16,6 +16,13 @@ DATA_FRAME = pd.DataFrame(
 )
 
 
+FILTER_COLUMN_NAME = "filter_col"
+# A row condition of `filter_col > 0` drops the first row, the only one holding "decoy".
+ROW_CONDITION_DATA_FRAME = pd.DataFrame(
+    {COLUMN_NAME: ["decoy", "a", "b", "b"], FILTER_COLUMN_NAME: [0, 1, 1, 1]}
+)
+
+
 def get_pandas_data_sources():
     return PANDAS_DATA_SOURCES
 
@@ -53,3 +60,19 @@ class TestColumnDistinctValues:
         assert isinstance(metric_result, ColumnDistinctValuesResult)
         # For SQL and Spark, we expect only the non-null values
         assert metric_result.value == {"a", "b", "c"}
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=SQL_DATA_SOURCES,
+        data=ROW_CONDITION_DATA_FRAME,
+    )
+    def test_distinct_values_sql_row_condition(self, batch_for_datasource: Batch) -> None:
+        """A row condition makes the SQL domain a SELECT, which must be wrapped to be a FROM."""
+        metric = ColumnDistinctValues(
+            column=COLUMN_NAME,
+            row_condition=f'col("{FILTER_COLUMN_NAME}") > 0',
+            condition_parser="great_expectations",
+        )
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert isinstance(metric_result, ColumnDistinctValuesResult), metric_result
+        assert metric_result.value == {"a", "b"}
