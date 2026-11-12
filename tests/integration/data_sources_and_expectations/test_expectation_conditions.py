@@ -455,6 +455,35 @@ def test_negated_row_condition_excludes_null_rows(
     assert result.success, result.result
 
 
+@pytest.mark.parametrize(
+    "row_condition,expected_row_count",
+    [
+        pytest.param(Column("name").is_not_in([]), 6, id="text-not-in-empty"),
+        pytest.param(Column("amount").is_not_in([]), 6, id="number-not-in-empty"),
+    ],
+)
+@parameterize_batch_for_data_sources(
+    # Spark is left out: its SQL parser rejects "NOT IN ()".
+    data_source_configs=[
+        PandasDataFrameDatasourceTestConfig(),
+        PandasFilesystemCsvDatasourceTestConfig(),
+        PostgreSQLDatasourceTestConfig(),
+        SqliteDatasourceTestConfig(),
+    ],
+    data=NULLABLE_CONDITION_DATA,
+)
+def test_empty_not_in_row_condition_keeps_null_rows(
+    batch_for_datasource: Batch, row_condition: RowConditionType, expected_row_count: int
+) -> None:
+    """An empty "not in" list compares nothing, so SQL keeps every row, nulls included."""
+    expectation = gxe.ExpectTableRowCountToEqual(
+        value=expected_row_count,
+        row_condition=row_condition,
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success, result.result
+
+
 class TestPandasConditionClassAcrossExpectationTypes:
     """Simple tests to ensure that pandas properly utilizes row condition from each
     type of expectation (ColumnMapExpectation, ColumnPairMapExpectation, etc)

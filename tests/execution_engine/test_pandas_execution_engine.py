@@ -786,6 +786,13 @@ class TestConditionToFilterClause:
                 "(status not in [1, 2, 3] and ~status.isnull())",
                 id="not_in",
             ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column("status"), operator=Operator.NOT_IN, parameter=[]
+                ),
+                "status not in []",
+                id="not_in_empty",
+            ),
         ],
     )
     def test_comparison_condition_to_filter_clause_in_not_in_operators(
