@@ -168,6 +168,15 @@ class BatchTestSetup(ABC, Generic[_ConfigT, _AssetT]):
     @abstractmethod
     def teardown(self) -> None: ...
 
+    def dispose_data_source_engines(self) -> None:
+        """Release the connections held by the data sources a test added to this setup's context.
+
+        Called after each test, because a setup is cached and its context shared for the whole
+        session: every test adds data sources to that context, so their connections would
+        otherwise accumulate until the session ends. A setup with no connections to release
+        inherits this no-op.
+        """
+
     @contextmanager
     def data_context_test_context(self) -> Generator[AbstractDataContext, None, None]:
         """Receive a DataContext and ensure proper setup and teardown regardless of errors."""

@@ -360,6 +360,7 @@ class SQLBatchTestSetup(BatchTestSetup[_SqlConfigT, TableAsset], ABC, Generic[_S
             self._safe_commit(conn)
         cleanup()
 
+    @override
     def dispose_data_source_engines(self) -> None:
         """Close the connections GX opened for the data sources added to this setup's context.
 

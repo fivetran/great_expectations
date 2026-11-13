@@ -218,7 +218,14 @@ def _batch_setup_for_datasource(
             _cached_secondary_test_configs[batch_setup.id] = secondary_batch_setup
             secondary_batch_setup.setup()
 
-    yield _cached_test_configs[config]
+    cached_setup = _cached_test_configs[config]
+    yield cached_setup
+    # The setup, and the context it owns, outlive this test, but the data sources the test
+    # added to that context do not need to: each one holds its own engine and an execution
+    # engine, each pinning a pooled connection. Left until session teardown they pile up at
+    # about two per test and can exhaust the server's connection limit on a large lane. The
+    # secondary setup shares this context, so disposing through the primary covers both.
+    cached_setup.dispose_data_source_engines()
 
 
 @pytest.fixture
