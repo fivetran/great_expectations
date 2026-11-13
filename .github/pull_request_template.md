@@ -30,7 +30,7 @@ in prose won't be recognized, so use the line form.
 -->
 
 - [ ] Description of PR changes above includes a link to [an existing GitHub issue](https://github.com/fivetran/great_expectations/issues)
-- [ ] PR title is prefixed with one of: [BUGFIX], [FEATURE], [DOCS], [MAINTENANCE], [CONTRIB], [MINORBUMP]
+- [ ] PR title is prefixed with one of: [BUGFIX], [FEATURE], [DOCS], [MAINTENANCE]
 - [ ] This change is below the [RFC threshold](https://github.com/fivetran/great_expectations/blob/develop/CONTRIBUTING.md#requesting-comment-on-larger-changes), or the description above carries an `RFC: <link>` line pointing at an accepted RFC
 - [ ] Code is linted - run `invoke lint` (uses `ruff format` + `ruff check`)
 - [ ] Appropriate tests and docs have been updated

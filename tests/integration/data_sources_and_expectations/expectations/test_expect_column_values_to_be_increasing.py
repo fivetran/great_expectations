@@ -1,0 +1,356 @@
+import datetime as dt
+from typing import Sequence
+
+import pandas as pd
+import pytest
+
+import great_expectations.expectations as gxe
+from great_expectations.core.result_format import ResultFormat
+from great_expectations.datasource.fluent.interfaces import Batch
+from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.integration.test_utils.data_source_config import (
+    PandasDataFrameDatasourceTestConfig,
+)
+from tests.integration.test_utils.data_source_config.base import DataSourceTestConfig
+
+COLUMN = "event_at"
+
+# column_values.increasing and column_values.decreasing register a pandas and a Spark
+# provider only, and Spark's parallel read gives these row-order-dependent metrics no
+# ordering guarantee, so pandas is the engine these cases can assert against.
+DATA_SOURCES: Sequence[DataSourceTestConfig] = [PandasDataFrameDatasourceTestConfig()]
+
+ASCENDING_DATETIMES = pd.DataFrame(
+    {COLUMN: pd.to_datetime(["2024-01-01", "2024-01-02", "2024-01-03"])}
+)
+DESCENDING_DATETIMES = pd.DataFrame(
+    {COLUMN: pd.to_datetime(["2024-01-03", "2024-01-02", "2024-01-01"])}
+)
+# The middle row goes backwards, so it is the one value that breaks the order.
+ASCENDING_DATETIMES_WITH_ONE_STEP_BACK = pd.DataFrame(
+    {COLUMN: pd.to_datetime(["2024-01-01", "2024-01-03", "2024-01-02"])}
+)
+# A repeated timestamp is in order for the default comparison and out of order for
+# strictly=True.
+ASCENDING_DATETIMES_WITH_A_TIE = pd.DataFrame(
+    {COLUMN: pd.to_datetime(["2024-01-01", "2024-01-01", "2024-01-02"])}
+)
+DESCENDING_DATETIMES_WITH_A_TIE = pd.DataFrame(
+    {COLUMN: pd.to_datetime(["2024-01-02", "2024-01-02", "2024-01-01"])}
+)
+# Sub-day steps in a timezone-aware column, so the comparison sees hours, not just dates.
+ASCENDING_TZ_AWARE_DATETIMES = pd.DataFrame(
+    {
+        COLUMN: pd.to_datetime(
+            ["2024-01-01 09:00", "2024-01-01 10:00", "2024-01-01 11:00"]
+        ).tz_localize("America/New_York")
+    }
+)
+# datetime.date values, as read from a DATE column, are held in an object column. pandas
+# infers that column's diff as a timedelta64 series, which these cases depend on.
+ASCENDING_DATES = pd.DataFrame(
+    {COLUMN: pd.Series([dt.date(2024, 1, 1), dt.date(2024, 1, 2), dt.date(2024, 1, 3)])}
+)
+ASCENDING_DATES_WITH_ONE_STEP_BACK = pd.DataFrame(
+    {COLUMN: pd.Series([dt.date(2024, 1, 1), dt.date(2024, 1, 3), dt.date(2024, 1, 2)])}
+)
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=ASCENDING_DATETIMES,
+)
+def test_increasing_datetime_column_passes(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN))
+
+    assert result.success
+    assert result.result["unexpected_count"] == 0
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=ASCENDING_DATETIMES,
+)
+def test_strictly_increasing_datetime_column_passes(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN, strictly=True)
+    )
+
+    assert result.success
+    assert result.result["unexpected_count"] == 0
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=ASCENDING_DATETIMES_WITH_ONE_STEP_BACK,
+)
+def test_datetime_column_that_goes_backwards_fails(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN),
+        result_format=ResultFormat.COMPLETE,
+    )
+
+    assert not result.success
+    assert result.result["unexpected_count"] == 1
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=ASCENDING_DATETIMES_WITH_A_TIE,
+)
+def test_repeated_datetime_fails_only_when_strictly_increasing(
+    batch_for_datasource: Batch,
+) -> None:
+    assert batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN)
+    ).success
+
+    strict_result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN, strictly=True),
+        result_format=ResultFormat.COMPLETE,
+    )
+
+    assert not strict_result.success
+    assert strict_result.result["unexpected_count"] == 1
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=DESCENDING_DATETIMES,
+)
+def test_decreasing_datetime_column_passes(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(gxe.ExpectColumnValuesToBeDecreasing(column=COLUMN))
+
+    assert result.success
+    assert result.result["unexpected_count"] == 0
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=DESCENDING_DATETIMES,
+)
+def test_strictly_decreasing_datetime_column_passes(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeDecreasing(column=COLUMN, strictly=True)
+    )
+
+    assert result.success
+    assert result.result["unexpected_count"] == 0
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=ASCENDING_DATETIMES,
+)
+def test_ascending_datetime_column_is_not_decreasing(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeDecreasing(column=COLUMN),
+        result_format=ResultFormat.COMPLETE,
+    )
+
+    assert not result.success
+    assert result.result["unexpected_count"] == 2
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=DESCENDING_DATETIMES_WITH_A_TIE,
+)
+def test_repeated_datetime_fails_only_when_strictly_decreasing(
+    batch_for_datasource: Batch,
+) -> None:
+    assert batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeDecreasing(column=COLUMN)
+    ).success
+
+    strict_result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeDecreasing(column=COLUMN, strictly=True),
+        result_format=ResultFormat.COMPLETE,
+    )
+
+    assert not strict_result.success
+    assert strict_result.result["unexpected_count"] == 1
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=ASCENDING_TZ_AWARE_DATETIMES,
+)
+def test_strictly_increasing_tz_aware_datetime_column_passes(
+    batch_for_datasource: Batch,
+) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN, strictly=True)
+    )
+
+    assert result.success
+    assert result.result["unexpected_count"] == 0
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=ASCENDING_TZ_AWARE_DATETIMES,
+)
+def test_ascending_tz_aware_datetime_column_is_not_decreasing(
+    batch_for_datasource: Batch,
+) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeDecreasing(column=COLUMN),
+        result_format=ResultFormat.COMPLETE,
+    )
+
+    assert not result.success
+    assert result.result["unexpected_count"] == 2
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=ASCENDING_DATES,
+)
+def test_increasing_date_column_passes(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN))
+
+    assert result.success
+    assert result.result["unexpected_count"] == 0
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=ASCENDING_DATES_WITH_ONE_STEP_BACK,
+)
+def test_date_column_that_goes_backwards_fails(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN),
+        result_format=ResultFormat.COMPLETE,
+    )
+
+    assert not result.success
+    assert result.result["unexpected_count"] == 1
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=ASCENDING_DATES,
+)
+def test_ascending_date_column_is_not_decreasing(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeDecreasing(column=COLUMN),
+        result_format=ResultFormat.COMPLETE,
+    )
+
+    assert not result.success
+    assert result.result["unexpected_count"] == 2
+
+
+# Adjacent unsigned integers wrap when subtracted: 2 - 3 on uint8 is 255, so a
+# diff-based implementation accepted a descending column as strictly increasing.
+ASCENDING_UINT8 = pd.DataFrame({COLUMN: pd.Series([1, 2, 3], dtype="uint8")})
+DESCENDING_UINT8 = pd.DataFrame({COLUMN: pd.Series([3, 2, 1], dtype="uint8")})
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=ASCENDING_UINT8,
+)
+def test_strictly_increasing_unsigned_integer_passes(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN, strictly=True)
+    )
+
+    assert result.success
+    assert result.result["unexpected_count"] == 0
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=DESCENDING_UINT8,
+)
+def test_descending_unsigned_integer_fails(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN, strictly=True),
+        result_format=ResultFormat.COMPLETE,
+    )
+
+    assert not result.success
+    assert result.result["unexpected_count"] == 2
+
+
+# ``Series.shift(1)`` promotes integer columns to float64 to hold the leading NaN,
+# which rounds values above 2**53 before the comparison.
+LARGE_INT64_ASCENDING = pd.DataFrame({COLUMN: pd.Series([2**53, 2**53 + 1], dtype="int64")})
+LARGE_INT64_DESCENDING = pd.DataFrame({COLUMN: pd.Series([2**53 + 1, 2**53], dtype="int64")})
+LARGE_UINT64_ASCENDING = pd.DataFrame({COLUMN: pd.Series([2**63, 2**63 + 1], dtype="uint64")})
+LARGE_UINT64_DESCENDING = pd.DataFrame({COLUMN: pd.Series([2**63 + 1, 2**63], dtype="uint64")})
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=LARGE_INT64_ASCENDING,
+)
+def test_strictly_increasing_large_int64_passes(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN, strictly=True)
+    )
+
+    assert result.success
+    assert result.result["unexpected_count"] == 0
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=LARGE_INT64_DESCENDING,
+)
+# Non-strict comparison is the regression: an unseeded shift rounds both
+# values to equality, which incorrectly passes >= but still fails >.
+@pytest.mark.parametrize("strictly", [True, False])
+def test_increasing_large_int64_detects_reversal(
+    batch_for_datasource: Batch,
+    strictly: bool,
+) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN, strictly=strictly),
+        result_format=ResultFormat.COMPLETE,
+    )
+
+    assert not result.success
+    assert result.result["unexpected_count"] == 1
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=LARGE_UINT64_ASCENDING,
+)
+def test_strictly_increasing_large_uint64_passes(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN, strictly=True)
+    )
+
+    assert result.success
+    assert result.result["unexpected_count"] == 0
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=LARGE_UINT64_DESCENDING,
+)
+def test_strictly_decreasing_large_uint64_passes(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeDecreasing(column=COLUMN, strictly=True)
+    )
+
+    assert result.success
+    assert result.result["unexpected_count"] == 0
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=LARGE_UINT64_ASCENDING,
+)
+def test_decreasing_large_uint64_detects_reversal(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeDecreasing(column=COLUMN, strictly=False),
+        result_format=ResultFormat.COMPLETE,
+    )
+
+    assert not result.success
+    assert result.result["unexpected_count"] == 1

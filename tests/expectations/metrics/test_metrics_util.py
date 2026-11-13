@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import contextlib
+import importlib
 import random
 from types import ModuleType, SimpleNamespace
-from typing import TYPE_CHECKING, Callable, Final, List, Union
+from typing import TYPE_CHECKING, Any, Callable, Final, List, Union
+from unittest import mock
 from unittest.mock import create_autospec, patch
 
 import pytest
-import sqlalchemy.dialects.mysql
+import sqlalchemy.dialects.mysql  # ensure the submodule is importable for _MySQLSub
 import sqlalchemy.dialects.oracle
 from _pytest import monkeypatch
 
@@ -15,7 +17,7 @@ if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 import great_expectations.exceptions as gx_exceptions
-from great_expectations.compatibility import sqlalchemy
+from great_expectations.compatibility import sqlalchemy  # type: ignore[no-redef] # Shim alias.
 from great_expectations.compatibility.sqlalchemy import (
     Dialect,
     Engine,
@@ -34,6 +36,7 @@ from great_expectations.expectations.metrics.util import (
     get_dbms_compatible_metric_domain_kwargs,
     get_dialect_like_pattern_expression,
     get_dialect_regex_expression,
+    get_sqlalchemy_source_table_and_schema,
     get_unexpected_indices_for_multiple_pandas_named_indices,
     get_unexpected_indices_for_single_pandas_named_index,
     sqlalchemy_select_to_sql_string,
@@ -55,7 +58,7 @@ if TYPE_CHECKING:
 # The following class allows for declarative instantiation of base class for SqlAlchemy. Adopted from  # noqa: E501 # FIXME CoP
 # https://docs.sqlalchemy.org/en/14/faq/sqlexpressions.html#rendering-postcompile-parameters-as-bound-parameters
 
-Base = sqlalchemy.declarative_base()
+Base: Any = sqlalchemy.declarative_base()  # type: ignore[attr-defined]  # compat re-exports it from sqlalchemy.orm
 
 
 class A(Base):
@@ -640,6 +643,30 @@ class TestCaseInsensitiveString:
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize(
+    "other", [None, 5, 1.5, object(), b"a"], ids=["none", "int", "float", "object", "bytes"]
+)
+def test_case_insensitive_string_is_not_equal_to_a_non_string(other: object) -> None:
+    """Comparing with a non-string is a plain inequality on every supported Python.
+
+    `NotImplemented` from the other operand's reflected `__eq__` must not be read as a truth
+    value: through Python 3.13 that made the string equal to anything, and Python 3.14 raises.
+    """
+    name = CaseInsensitiveString("a")
+
+    assert (name == other) is False
+    assert name != other
+    assert name not in [other]
+    assert name in [other, "A"]
+
+
+@pytest.mark.unit
+def test_case_insensitive_string_is_equal_to_an_object_that_claims_equality_with_anything() -> None:
+    assert CaseInsensitiveString("a") == mock.ANY
+    assert CaseInsensitiveString('"a"') == mock.ANY
+
+
+@pytest.mark.unit
 def test_get_sqlalchemy_column_metadata_includes_primary_key_field(
     sql_data_connector_test_db_execution_engine,
 ):
@@ -796,6 +823,179 @@ def test_get_dialect_like_pattern_expression_is_resilient_to_missing_dialects(mo
 
     # assert
     assert expression is None
+
+
+def _like_column() -> sa.Column:
+    return sa.Column("col")
+
+
+def _dialect_stub(dialect_attribute: str) -> ModuleType:
+    """A dialect module carrying only the attribute the helper detects the dialect by."""
+    dialect = ModuleType(f"stub_{dialect_attribute}")
+    setattr(dialect, dialect_attribute, object)
+    return dialect
+
+
+def _compiled_like_expression(**kwargs: Any) -> str:
+    """Render a LIKE expression against a real dialect so the SQL text can be asserted on."""
+    expression = get_dialect_like_pattern_expression(
+        column=_like_column(), dialect=sqlalchemy.dialects.postgresql, **kwargs
+    )
+    assert expression is not None
+    return str(
+        expression.compile(
+            dialect=sqlalchemy.dialects.postgresql.dialect(),
+            compile_kwargs={"literal_binds": True},
+        )
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "positive,expected",
+    [
+        pytest.param(True, "col LIKE 'a!_b' ESCAPE '!'", id="positive"),
+        pytest.param(False, "col NOT LIKE 'a!_b' ESCAPE '!'", id="negative"),
+    ],
+)
+def test_get_dialect_like_pattern_expression_emits_escape_clause(positive: bool, expected: str):
+    """An escape character must reach the SQL as an ESCAPE clause.
+
+    Without it there is no way to match a literal '_' or '%', because both are wildcards.
+    """
+    assert _compiled_like_expression(like_pattern="a!_b", positive=positive, escape="!") == expected
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("positive", [True, False])
+def test_get_dialect_like_pattern_expression_omits_escape_clause_by_default(positive: bool):
+    """Callers that do not ask for an escape must get exactly the SQL they got before."""
+    assert "ESCAPE" not in _compiled_like_expression(like_pattern="a_b", positive=positive)
+
+
+# The supported dialects with no SQL ESCAPE clause on LIKE, by the attribute that selects
+# each one's branch in get_dialect_like_pattern_expression. Both escape wildcards with a
+# backslash inside the pattern instead: GoogleSQL
+# (https://cloud.google.com/bigquery/docs/reference/standard-sql/operators#like_operator) and
+# ClickHouse, whose server rejects `LIKE 'a!_c' ESCAPE '!'` as a syntax error even though its
+# documentation describes the clause.
+ESCAPE_UNSUPPORTING_DIALECTS = [
+    pytest.param("BigQueryDialect", "BigQuery", id="bigquery"),
+    pytest.param("ClickHouseDialect", "ClickHouse", id="clickhouse"),
+]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("dialect_attribute,dialect_name", ESCAPE_UNSUPPORTING_DIALECTS)
+@pytest.mark.parametrize("positive", [True, False], ids=["positive", "negative"])
+@pytest.mark.parametrize(
+    "like_pattern,escape,expected_pattern",
+    [
+        pytest.param(
+            r"a!_b!%c!!d\e", "!", r"a\_b\%c!d\\e", id="escaped-wildcards-escape-and-backslash"
+        ),
+        pytest.param("a_b%c", "!", "a_b%c", id="unescaped-wildcards-stay-wildcards"),
+        pytest.param("a!bc", "!", "abc", id="escaped-ordinary-character"),
+        pytest.param(r"a\_b\\c", "\\", r"a\_b\\c", id="backslash-as-escape"),
+    ],
+)
+def test_get_dialect_like_pattern_expression_translates_escape_without_escape_clause(
+    dialect_attribute: str,
+    dialect_name: str,
+    positive: bool,
+    like_pattern: str,
+    escape: str,
+    expected_pattern: str,
+):
+    """A dialect with no ESCAPE clause must get the pattern rewritten to backslash escapes.
+
+    Both escape '_', '%' and the backslash with a backslash inside the pattern, so the
+    rewritten pattern matches the same rows the ESCAPE clause would elsewhere, and no clause
+    is emitted for the database to reject.
+    """
+    expression = get_dialect_like_pattern_expression(
+        column=_like_column(),
+        dialect=_dialect_stub(dialect_attribute),
+        like_pattern=like_pattern,
+        positive=positive,
+        escape=escape,
+    )
+
+    assert expression is not None
+    assert expression.modifiers.get("escape") is None
+    assert expression.right.value == expected_pattern
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("dialect_attribute,dialect_name", ESCAPE_UNSUPPORTING_DIALECTS)
+def test_get_dialect_like_pattern_expression_rejects_unpaired_escape_without_escape_clause(
+    dialect_attribute: str, dialect_name: str
+):
+    """A trailing escape with nothing to escape must fail before any SQL is sent."""
+    with pytest.raises(ValueError, match=f"unpaired escape character '!'.*{dialect_name}"):
+        get_dialect_like_pattern_expression(
+            column=_like_column(),
+            dialect=_dialect_stub(dialect_attribute),
+            like_pattern="a_b!",
+            escape="!",
+        )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("dialect_attribute,dialect_name", ESCAPE_UNSUPPORTING_DIALECTS)
+def test_get_dialect_like_pattern_expression_allows_no_escape_without_escape_clause(
+    dialect_attribute: str, dialect_name: str
+):
+    """The guard must only fire when an escape was actually requested."""
+    expression = get_dialect_like_pattern_expression(
+        column=_like_column(), dialect=_dialect_stub(dialect_attribute), like_pattern=r"a\_b"
+    )
+
+    assert expression is not None
+    assert "ESCAPE" not in str(expression.compile(compile_kwargs={"literal_binds": True}))
+    # Without an escape, the pattern reaches the database verbatim, backslashes and all.
+    assert expression.right.value == r"a\_b"
+
+
+# The dialects whose branch in get_dialect_like_pattern_expression is selected by a plain
+# hasattr check, so a stub is enough to reach it. Teradata is left out because its branch
+# tests issubclass against the real teradatasqlalchemy dialect, which is not installed here.
+#
+# Every one of these documents a SQL ESCAPE clause on LIKE: Trino
+# (https://trino.io/docs/current/functions/comparison.html), Dremio
+# (https://docs.dremio.com/cloud/reference/sql/sql-functions/functions/LIKE/) and Snowflake.
+ESCAPE_SUPPORTING_DIALECT_ATTRIBUTES = [
+    "TrinoDialect",
+    "DremioDialect",
+    "SnowflakeDialect",
+]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("dialect_attribute", ESCAPE_SUPPORTING_DIALECT_ATTRIBUTES)
+@pytest.mark.parametrize("positive", [True, False], ids=["positive", "negative"])
+def test_get_dialect_like_pattern_expression_emits_escape_for_supported_dialects(
+    dialect_attribute: str, positive: bool
+):
+    """Every dialect the helper lets through must receive the ESCAPE clause it asked for.
+
+    These three reach the same `column.like(..., escape=escape)` call as the dialects the
+    integration suite covers, but none of them appears in any data-source list there --
+    Dremio and Teradata have no test config at all, and Trino's is unused -- so this is
+    why these tests pin ESCAPE support on the less-covered dialects.
+    """
+    expression = get_dialect_like_pattern_expression(
+        column=_like_column(),
+        dialect=_dialect_stub(dialect_attribute),
+        like_pattern="a!_b",
+        positive=positive,
+        escape="!",
+    )
+
+    assert expression is not None
+    compiled = str(expression.compile(compile_kwargs={"literal_binds": True}))
+    assert compiled.endswith("LIKE 'a!_b' ESCAPE '!'")
+    assert ("NOT LIKE" in compiled) is not positive
 
 
 @pytest.mark.unit
@@ -1111,7 +1311,7 @@ def test_column_reflection_fallback_redshift_schema_qualified(
 
     # Call the function
     result = column_reflection_fallback(
-        selectable="my_table",  # type: ignore[arg-type]
+        selectable="my_table",  # type: ignore[arg-type] # Exercise string-to-TextClause conversion.
         dialect=mock_dialect,
         sqlalchemy_engine=mock_engine,
         schema_name=schema_name,
@@ -1207,7 +1407,7 @@ class _FakeDatabricksDialect:
     """
 
 
-class _OracleSub(sa.dialects.oracle.dialect):
+class _OracleSub(sa.dialects.oracle.dialect):  # type: ignore[misc,valid-type] # Dynamic dialect alias.
     """A concrete subclass of SQLAlchemy's bundled Oracle dialect.
 
     The chain detects Oracle with ``issubclass`` against the bundled
@@ -1219,7 +1419,7 @@ class _OracleSub(sa.dialects.oracle.dialect):
     """
 
 
-class _PGSub(sa.dialects.postgresql.dialect):
+class _PGSub(sa.dialects.postgresql.dialect):  # type: ignore[misc,valid-type] # Dynamic dialect alias.
     pass
 
 
@@ -1227,7 +1427,7 @@ class _MySQLSub(sqlalchemy.dialects.mysql.base.MySQLDialect):
     pass
 
 
-class _SQLiteSub(sa.dialects.sqlite.dialect):
+class _SQLiteSub(sa.dialects.sqlite.dialect):  # type: ignore[misc,valid-type] # Dynamic dialect alias.
     pass
 
 
@@ -1314,12 +1514,14 @@ _REGEX_DIALECT_CASES: Final = {
 
 
 def _render_regex_expression(case_id: str, positive: bool) -> str | None:
+    stub: Any
     stub, patches = _REGEX_DIALECT_CASES[case_id]
-    column = sa.column("a")
+    column: Any = sa.column("a")
     with contextlib.ExitStack() as stack:
         for name, value in patches.items():
             stack.enter_context(patch.object(metrics_util, name, value))
-        expr = get_dialect_regex_expression(
+        # SQLColumnExpression alias doesn't expose .compile(); the runtime ColumnElement does
+        expr: Any = get_dialect_regex_expression(
             column=column, regex="test", dialect=stub, positive=positive
         )
     if expr is None:
@@ -1369,14 +1571,14 @@ def test_get_dialect_regex_expression_stubs_are_mutually_exclusive() -> None:
         pytest.param("redshift", False, "a !~ 'test'", id="redshift-negative"),
         pytest.param("mysql", True, "a REGEXP 'test'", id="mysql-positive"),
         pytest.param("mysql", False, "a NOT REGEXP 'test'", id="mysql-negative"),
-        pytest.param("snowflake", True, "a REGEXP 'test'", id="snowflake-positive"),
-        pytest.param("snowflake", False, "a NOT REGEXP 'test'", id="snowflake-negative"),
+        pytest.param("snowflake", True, "REGEXP_COUNT(a, 'test') > 0", id="snowflake-positive"),
+        pytest.param("snowflake", False, "REGEXP_COUNT(a, 'test') = 0", id="snowflake-negative"),
         pytest.param("bigquery", True, "REGEXP_CONTAINS(a, 'test')", id="bigquery-positive"),
         pytest.param("bigquery", False, "NOT REGEXP_CONTAINS(a, 'test')", id="bigquery-negative"),
         pytest.param("trino", True, "regexp_like(a, 'test')", id="trino-positive"),
         pytest.param("trino", False, "NOT regexp_like(a, 'test')", id="trino-negative"),
-        pytest.param("clickhouse", True, "regexp_like(a, 'test')", id="clickhouse-positive"),
-        pytest.param("clickhouse", False, "NOT regexp_like(a, 'test')", id="clickhouse-negative"),
+        pytest.param("clickhouse", True, "match(a, 'test')", id="clickhouse-positive"),
+        pytest.param("clickhouse", False, "NOT match(a, 'test')", id="clickhouse-negative"),
         pytest.param("dremio", True, "REGEXP_MATCHES(a, 'test')", id="dremio-positive"),
         pytest.param("dremio", False, "NOT REGEXP_MATCHES(a, 'test')", id="dremio-negative"),
         pytest.param(
@@ -1434,10 +1636,10 @@ def test_get_dialect_regex_expression_renders_oracle_native_predicate(
     value survives both direct use as a predicate and the one caller that
     wraps it in `sa.not_()` itself.
     """
-    stub = _DialectDetectionStub(dialect=_OracleSub)
-    column = sa.column("a")
+    stub: Any = _DialectDetectionStub(dialect=_OracleSub)
+    column: Any = sa.column("a")
 
-    result = get_dialect_regex_expression(
+    result: Any = get_dialect_regex_expression(
         column=column, regex="test", dialect=stub, positive=positive
     )
 
@@ -1472,8 +1674,8 @@ def test_get_dialect_regex_expression_resolves_oracle_aggregate_family() -> None
     the branch is reached (a `None` return would raise `NotImplementedError` in production
     before a query is ever built).
     """
-    stub = _DialectDetectionStub(dialect=_OracleSub)
-    column = sa.column("a")
+    stub: Any = _DialectDetectionStub(dialect=_OracleSub)
+    column: Any = sa.column("a")
 
     regex_expression = get_dialect_regex_expression(column=column, regex="test", dialect=stub)
     assert regex_expression is not None, (
@@ -1503,11 +1705,11 @@ def test_get_dialect_regex_expression_resolves_oracle_regex_list_match_family() 
     reproduces that exact resolution shape against an Oracle dialect and pins both combined
     forms, proving the branch is reached for every call in the list -- not just the first.
     """
-    stub = _DialectDetectionStub(dialect=_OracleSub)
-    column = sa.column("a")
+    stub: Any = _DialectDetectionStub(dialect=_OracleSub)
+    column: Any = sa.column("a")
     regex_list = ["foo", "bar"]
 
-    conditions = [
+    conditions: List[Any] = [
         get_dialect_regex_expression(column=column, regex=regex, dialect=stub)
         for regex in regex_list
     ]
@@ -1538,11 +1740,11 @@ def test_get_dialect_regex_expression_resolves_oracle_regex_list_not_match_famil
     resolution shape against an Oracle dialect and pins the combined SQL, proving the negative
     branch is reached for every call in the list.
     """
-    stub = _DialectDetectionStub(dialect=_OracleSub)
-    column = sa.column("a")
+    stub: Any = _DialectDetectionStub(dialect=_OracleSub)
+    column: Any = sa.column("a")
     regex_list = ["foo", "bar"]
 
-    conditions = [
+    conditions: List[Any] = [
         get_dialect_regex_expression(column=column, regex=regex, dialect=stub, positive=False)
         for regex in regex_list
     ]
@@ -1623,10 +1825,10 @@ def test_get_dialect_regex_expression_renders_exasol_native_predicate(
     `tests/integration/data_sources_and_expectations/test_curated_backend_suite.py`. All
     are red against a live Exasol under the wrong wrapping and green under the right one.
     """
-    stub = _DialectDetectionStub(name="exasol")
-    column = sa.column("a")
+    stub: Any = _DialectDetectionStub(name="exasol")
+    column: Any = sa.column("a")
 
-    result = get_dialect_regex_expression(
+    result: Any = get_dialect_regex_expression(
         column=column, regex="test", dialect=stub, positive=positive
     )
 
@@ -1669,10 +1871,10 @@ def test_get_dialect_regex_expression_resolves_exasol_aggregate_family() -> None
     `test_module_less_exasol_dialect_reaches_the_regex_branch` in
     `tests/expectations/metrics/test_regex_unsupported_dialect.py`.
     """
-    stub = _DialectDetectionStub(name="exasol")
-    column = sa.column("a")
+    stub: Any = _DialectDetectionStub(name="exasol")
+    column: Any = sa.column("a")
 
-    regex_expression = get_dialect_regex_expression(column=column, regex="test", dialect=stub)
+    regex_expression =get_dialect_regex_expression(column=column, regex="test", dialect=stub)
     assert regex_expression is not None, (
         "get_dialect_regex_expression returned None for Exasol -- the branch is gone or is "
         "no longer detected by dialect name, and the sa.not_() rendering below cannot be pinned"
@@ -1687,3 +1889,71 @@ def test_get_dialect_regex_expression_resolves_exasol_aggregate_family() -> None
     assert str(not_match_query.compile(compile_kwargs={"literal_binds": True})) == (
         "SELECT a \nWHERE NOT (a REGEXP_LIKE '(*LF)(?s:.*)(?:test)(?s:.*)')"
     )
+
+
+@pytest.fixture
+def sqlite_engine_with_two_loaded_batches(sa) -> SqlAlchemyExecutionEngine:
+    """An execution engine holding two Batches' data, `second` loaded last.
+
+    The datasource's cached execution engine is shared by every Batch it serves, so its
+    "most recently loaded" Batch is whichever one any caller touched last.
+    """
+    from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
+
+    engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+    with engine.get_connection() as connection:
+        connection.execute(sa.text("CREATE TABLE first_table (x INTEGER)"))
+        connection.execute(sa.text("CREATE TABLE second_table (x INTEGER)"))
+    for batch_id, table_name in (("first", "first_table"), ("second", "second_table")):
+        engine.load_batch_data(
+            batch_id=batch_id,
+            batch_data=SqlAlchemyBatchData(
+                execution_engine=engine,
+                selectable=sa.table(table_name),
+                create_temp_table=False,
+                source_table_name=table_name,
+            ),
+        )
+    return engine
+
+
+@pytest.mark.unit
+def test_get_sqlalchemy_source_table_and_schema_returns_the_named_batch_table(
+    sqlite_engine_with_two_loaded_batches: SqlAlchemyExecutionEngine,
+):
+    engine = sqlite_engine_with_two_loaded_batches
+    assert engine.batch_manager.active_batch_data_id == "second"
+
+    assert get_sqlalchemy_source_table_and_schema(engine, batch_id="first").name == "first_table"
+    assert get_sqlalchemy_source_table_and_schema(engine, batch_id="second").name == "second_table"
+
+
+@pytest.mark.unit
+def test_get_sqlalchemy_source_table_and_schema_falls_back_to_the_last_loaded_batch(
+    sqlite_engine_with_two_loaded_batches: SqlAlchemyExecutionEngine,
+):
+    engine = sqlite_engine_with_two_loaded_batches
+
+    assert get_sqlalchemy_source_table_and_schema(engine).name == "second_table"
+    assert get_sqlalchemy_source_table_and_schema(engine, batch_id="never_loaded").name == (
+        "second_table"
+    )
+
+
+# Marked `postgresql`, not `unit`: recognising psycopg2 needs psycopg2 installed, which only the
+# postgresql lane does. psycopg (3) is recognised from SQLAlchemy's dialect module alone.
+@pytest.mark.postgresql
+@pytest.mark.parametrize("driver", ["psycopg2", "psycopg"])
+def test_attempt_allowing_relative_error_recognises_both_postgres_drivers(driver: str) -> None:
+    """A driverless postgresql:// URL selects psycopg2 before SQLAlchemy 2.1 and psycopg after,
+    so the approximate-quantile fallback has to accept either for that URL to behave the same."""
+    dialect_module = importlib.import_module(f"sqlalchemy.dialects.postgresql.{driver}")
+
+    assert metrics_util.attempt_allowing_relative_error(dialect_module.dialect())
+
+
+@pytest.mark.unit
+def test_attempt_allowing_relative_error_rejects_other_dialects() -> None:
+    import sqlalchemy.dialects.sqlite
+
+    assert not metrics_util.attempt_allowing_relative_error(sqlalchemy.dialects.sqlite.dialect())

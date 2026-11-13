@@ -14,13 +14,13 @@ This article assumes basic familiarity with GX components and workflows. If you'
 
 ## Prerequisites
 
-- [Python version 3.10 to 3.13](https://www.python.org/downloads/)
+- [Python version 3.10 to 3.14](https://www.python.org/downloads/)
 
 ## Install dependencies
 
 1. Open a terminal window and navigate to the folder you want to use for this tutorial.
 
-2. Install [poppler](https://poppler.freedesktop.org/) and [tesseract](https://github.com/tesseract-ocr/tesseract). Poppler is a PDF rendering library that this tutorial uses to read the PDFs. Tesseract is an open source OCR engine that this tutorial uses to perfrom OCR on the PDFs.
+2. Install [poppler](https://poppler.freedesktop.org/) and [tesseract](https://github.com/tesseract-ocr/tesseract). Poppler is a PDF rendering library that this tutorial uses to read the PDFs. Tesseract is an open source OCR engine that this tutorial uses to perform OCR on the PDFs.
 
    ```bash title="Terminal input"
    brew install poppler

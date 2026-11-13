@@ -17,12 +17,12 @@ from tests.integration.test_utils.data_source_config.base import BatchTestSetup
 from tests.integration.test_utils.data_source_config.data_source_spec import (
     CiLaneRef,
     DataSourceProvisioning,
-    ExecutionEngineKind,
     SupportTier,
 )
 from tests.integration.test_utils.data_source_config.registry import register_sql_config
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
+from tests.integration.test_utils.execution_engine_kind import ExecutionEngineKind
 from tests.test_utils import (
     SQL_SERVER_DATABASE,
     SQL_SERVER_DRIVER,
@@ -106,13 +106,7 @@ class SQLServerBatchTestSetup(SQLBatchTestSetup[SQLServerDatasourceTestConfig]):
 
     def dispose_connections_for_teardown(self) -> None:
         """Close/dispose SQL Server engines before schema teardown."""
-        for datasource in self.context.data_sources.all().values():
-            execution_engine = datasource.execution_engine
-            if execution_engine:
-                execution_engine.close()
-            if datasource._engine:
-                datasource._engine.dispose()
-                datasource._engine = None
+        self.dispose_data_source_engines()
 
         if self.engine_manager:
             self.engine_manager.dispose_engine(

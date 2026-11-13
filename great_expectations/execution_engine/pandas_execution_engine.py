@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import hashlib
+import keyword
 import logging
 import pickle
 from functools import partial
@@ -58,6 +59,7 @@ from great_expectations.execution_engine.partition_and_sample.pandas_data_sample
 from great_expectations.expectations.model_field_types import CONDITION_PARSER_PANDAS
 from great_expectations.expectations.row_conditions import (
     AndCondition,
+    ColumnComparisonCondition,
     ComparisonCondition,
     Condition,
     NullityCondition,
@@ -79,6 +81,19 @@ logger = logging.getLogger(__name__)
 HASH_THRESHOLD = 1e9
 
 DataFrameFactoryFn: TypeAlias = Callable[..., pd.DataFrame]
+
+
+def query_column_reference(name: str) -> str:
+    """Render *name* so ``DataFrame.query`` reads it as one column rather than as an expression.
+
+    pandas parses the expression it is given, so a column that is not a plain Python identifier
+    (``"Total Amount"``, ``"a.b"``) or that collides with a Python keyword (``"from"``) has to be
+    wrapped in backticks, pandas' own escape for this. Names that already parse as themselves are
+    left untouched.
+    """
+    if name.isidentifier() and not keyword.iskeyword(name):
+        return name
+    return f"`{name}`"
 
 
 class PandasExecutionEngine(ExecutionEngine[str]):
@@ -701,7 +716,8 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
 
     @override
     def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> str:
-        col, op, val = condition.column.name, condition.operator, condition.parameter
+        col = query_column_reference(condition.column.name)
+        op, val = condition.operator, condition.parameter
         if op in (Operator.IN, Operator.NOT_IN):
             values = ", ".join(map(repr, val))
             connector = "in" if op == Operator.IN else "not in"
@@ -710,7 +726,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
 
     @override
     def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> str:
-        col = condition.column.name
+        col = query_column_reference(condition.column.name)
         return f"{col}.isnull()" if condition.is_null else f"~{col}.isnull()"
 
     @override
@@ -722,6 +738,17 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
     def _or_condition_to_filter_clause(self, condition: OrCondition) -> str:
         parts = [self.condition_to_filter_clause(c) for c in condition.conditions]
         return "(" + " or ".join(parts) + ")"
+
+    @override
+    def _column_comparison_condition_to_filter_clause(
+        self, condition: ColumnComparisonCondition
+    ) -> str:
+        # pandas evaluates ``!=`` as true for a null on numpy-backed dtypes (NaN, None, NaT), so the
+        # comparison is guarded for every operator. Extension dtypes (pd.NA) are covered too: the
+        # guard is false for a null, and false ``and`` NA is false, so the mask never holds NA.
+        left = query_column_reference(condition.column.name)
+        right = query_column_reference(condition.other_column.name)
+        return f"({left} {condition.operator} {right} and ~{left}.isnull() and ~{right}.isnull())"
 
 
 def hash_pandas_dataframe(df):

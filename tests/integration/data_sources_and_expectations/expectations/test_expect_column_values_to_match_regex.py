@@ -13,11 +13,13 @@ from tests.integration.data_sources_and_expectations.data_source_lists import (
 )
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
+    ClickHouseDatasourceTestConfig,
     ExasolDatasourceTestConfig,
     GenericSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     RedshiftDatasourceTestConfig,
+    SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
     SQLServerDatasourceTestConfig,
 )
@@ -26,6 +28,7 @@ from tests.integration.test_utils.data_source_config.sqlite import SqliteDatasou
 
 SUPPORTED_SQL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
+    ClickHouseDatasourceTestConfig(),
     ExasolDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
@@ -61,6 +64,17 @@ DATA = pd.DataFrame(
 NEWLINE_STRINGS = "newline_strings"
 
 NEWLINE_DATA = pd.DataFrame({NEWLINE_STRINGS: ["a\nb", "a\rb", "axb"]})
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[SnowflakeDatasourceTestConfig()], data=DATA
+)
+def test_unanchored_regex_matches_substring_snowflake(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToMatchRegex(column=BASIC_STRINGS, regex="b")
+    )
+    assert result.result["unexpected_count"] == 2
+    assert not result.success
 
 
 @parameterize_batch_for_data_sources(data_source_configs=SUPPORTED_SQL_DATA_SOURCES, data=DATA)

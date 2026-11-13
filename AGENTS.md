@@ -178,9 +178,8 @@ either `RFC: <link>` or `No RFC needed: <reason>`.
 
 ### Title prefix
 
-The pull-request title must be prefixed with one of `[BUGFIX]`, `[FEATURE]`, `[DOCS]`,
-`[MAINTENANCE]`, `[CONTRIB]`, or `[MINORBUMP]`. The release process reads these prefixes when
-generating the changelog.
+The pull-request title must be prefixed with one of `[BUGFIX]`, `[FEATURE]`, `[DOCS]`, or
+`[MAINTENANCE]`. The release process reads these prefixes when generating the changelog.
 
 ### Don't edit the changelog
 

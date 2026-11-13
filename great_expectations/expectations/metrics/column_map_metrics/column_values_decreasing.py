@@ -31,15 +31,23 @@ class ColumnValuesDecreasing(ColumnMapMetricProvider):
         column,
         **kwargs,
     ):
-        temp_column = column
-
-        series_diff = temp_column.diff()
-        series_diff[series_diff.isnull()] = -1
+        # Compare adjacent values instead of subtracting them.  ``Series.diff()``
+        # can lose precision on large integers and is not needed to decide order.
+        # Seed the shift so the integer dtype is preserved above 2**53.
+        previous = column.shift(1, fill_value=column.iloc[0]) if len(column) else column
 
         strictly: bool = kwargs.get("strictly") or False
         if strictly:
-            return series_diff < 0
-        return series_diff <= 0
+            in_order = column < previous
+        else:
+            in_order = column <= previous
+
+        # The first element has no predecessor, so it gets a bye and is always
+        # treated as True.
+        in_order = in_order | previous.isnull()
+        if len(in_order):
+            in_order.iloc[0] = True
+        return in_order
 
     @metric_partial(
         engine=SparkDFExecutionEngine,

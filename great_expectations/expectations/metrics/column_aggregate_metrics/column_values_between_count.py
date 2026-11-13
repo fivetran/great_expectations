@@ -24,6 +24,7 @@ from great_expectations.expectations.metrics.metric_provider import (
     MetricProvider,
     metric_value,
 )
+from great_expectations.util import get_sqlalchemy_selectable
 from great_expectations.validator.metric_configuration import MetricConfiguration
 
 if TYPE_CHECKING:
@@ -197,6 +198,8 @@ class ColumnValuesBetweenCount(MetricProvider):
         ) = execution_engine.get_compute_domain(
             domain_kwargs=metric_domain_kwargs, domain_type=MetricDomainTypes.COLUMN
         )
+        # A row condition makes the domain a SELECT, and a FROM clause requires a subquery.
+        selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type] # FIXME CoP
         column = sa.column(accessor_domain_kwargs["column"])  # type: ignore[var-annotated] # FIXME CoP
 
         if min_value is None:

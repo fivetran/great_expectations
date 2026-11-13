@@ -31,16 +31,27 @@ class ColumnValuesIncreasing(ColumnMapMetricProvider):
         column,
         **kwargs,
     ):
-        temp_column = column
-
-        series_diff = temp_column.diff()
-        # The first element is null, so it gets a bye and is always treated as True
-        series_diff[series_diff.isnull()] = 1
+        # Compare adjacent values instead of subtracting them.  ``Series.diff()``
+        # wraps for unsigned integer dtypes (2 - 3 on uint8 is 255) and can also
+        # overflow at the int64 boundaries, which makes decreasing values look
+        # increasing.  A comparison cannot overflow.
+        # ``shift`` without a fill value promotes integers to float64 to hold the
+        # leading NaN, which rounds int64/uint64 values above 2**53 before the
+        # comparison; seed the shift with the first value to keep the dtype.
+        previous = column.shift(1, fill_value=column.iloc[0]) if len(column) else column
 
         strictly: bool = kwargs.get("strictly") or False
         if strictly:
-            return series_diff > 0
-        return series_diff >= 0
+            in_order = column > previous
+        else:
+            in_order = column >= previous
+
+        # The first element has no predecessor, so it gets a bye and is always
+        # treated as True.
+        in_order = in_order | previous.isnull()
+        if len(in_order):
+            in_order.iloc[0] = True
+        return in_order
 
     @metric_partial(
         engine=SparkDFExecutionEngine,

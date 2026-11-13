@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Literal
 
 import pytest
 
+from great_expectations.compatibility import pydantic
 from great_expectations.constants import MAX_RESULT_RECORDS
 from great_expectations.data_context.util import file_relative_path
 from great_expectations.expectations import UnexpectedRowsExpectation
@@ -58,6 +59,24 @@ def test_unexpected_rows_expectation_invalid_query_info_message(query: str, capl
     # stdout is printed to console
     out, _ = capfd.readouterr()
     assert "{batch}" in out
+
+
+@pytest.mark.unit
+def test_unexpected_rows_expectation_unbalanced_brace_is_rejected_with_the_escaping_rule():
+    """A query's own braces must be doubled to survive `{batch}` substitution; one that never
+    pairs is rejected at construction, and the message must say how to fix it.
+    """
+    query = "SELECT * FROM {batch} WHERE name LIKE '{%'"
+
+    with pytest.raises(pydantic.ValidationError) as exc_info:
+        UnexpectedRowsExpectation(unexpected_rows_query=query)
+
+    message = str(exc_info.value)
+    assert "unpaired or malformed brace" in message
+    assert "double it: `{{` and `}}`" in message
+    assert query in message
+    # Still the plain validator error pydantic reported before the message was reworded.
+    assert [error["type"] for error in exc_info.value.errors()] == ["value_error"]
 
 
 @pytest.mark.sqlite
@@ -182,17 +201,15 @@ def test_unexpected_rows_expectation_render(
         unexpected_rows_query=unexpected_rows_query,
     )
     expectation.render()
-    assert (
-        expectation.rendered_content[0].value.params.get("unexpected_rows_query").get("value")
-        == unexpected_rows_query
-    )
+    assert expectation.rendered_content is not None
+    value = expectation.rendered_content[0].value
+    assert value.params is not None
+    assert value.code_block is not None
 
-    assert expectation.rendered_content[0].value.template == description
-    assert (
-        expectation.rendered_content[0].value.code_block.get("code_template_str")
-        == "$unexpected_rows_query"
-    )
-    assert expectation.rendered_content[0].value.code_block.get("language") == "sql"
+    assert value.params["unexpected_rows_query"].get("value") == unexpected_rows_query
+    assert value.template == description
+    assert value.code_block.get("code_template_str") == "$unexpected_rows_query"
+    assert value.code_block.get("language") == "sql"
 
 
 @pytest.mark.unit

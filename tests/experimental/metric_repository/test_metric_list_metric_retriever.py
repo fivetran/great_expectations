@@ -1,6 +1,8 @@
-from typing import Dict, List
+import logging
+from typing import TYPE_CHECKING, Dict, List
 
 import pytest
+from pytest_mock import MockerFixture
 
 from great_expectations.data_context import CloudDataContext
 from great_expectations.datasource.fluent import BatchRequest
@@ -17,38 +19,41 @@ from great_expectations.experimental.metric_repository.metrics import (
 from great_expectations.validator.exception_info import ExceptionInfo
 from great_expectations.validator.validator import Validator
 
+if TYPE_CHECKING:
+    from great_expectations.validator.computed_metric import MetricValue
+    from great_expectations.validator.metric_configuration import MetricConfigurationID
+    from great_expectations.validator.validation_graph import (
+        MetricsCalculatorErrorResultValue,
+    )
+
 pytestmark = pytest.mark.unit
-
-import logging
-
-from pytest_mock import MockerFixture
 
 LOGGER = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="function")
-def mock_data_asset(mocker):
+def mock_data_asset(mocker: MockerFixture):
     data_asset = mocker.Mock(spec=DataAsset)
     data_asset.name = "some_data_asset_name"
     return data_asset
 
 
 @pytest.fixture(scope="function")
-def mock_validator(mocker, mock_batch):
+def mock_validator(mocker: MockerFixture, mock_batch):
     validator = mocker.Mock(spec=Validator)
     validator.active_batch = mock_batch
     return validator
 
 
 @pytest.fixture(scope="function")
-def mock_context(mocker, mock_validator):
+def mock_context(mocker: MockerFixture, mock_validator):
     context = mocker.Mock(spec=CloudDataContext)
     context.get_validator.return_value = mock_validator
     return context
 
 
 @pytest.fixture(scope="function")
-def mock_batch(mocker, mock_data_asset):
+def mock_batch(mocker: MockerFixture, mock_data_asset):
     batch = mocker.Mock(spec=Batch)
     batch.id = "batch_id"
     batch.data_asset = mock_data_asset
@@ -56,19 +61,19 @@ def mock_batch(mocker, mock_data_asset):
 
 
 @pytest.fixture(scope="function")
-def metric_retriever(mock_context):
+def metric_retriever(mock_context) -> MetricListMetricRetriever:
     return MetricListMetricRetriever(context=mock_context)
 
 
 @pytest.fixture(scope="function")
-def mock_batch_request(mocker):
+def mock_batch_request(mocker: MockerFixture):
     batch_request = mocker.Mock(spec=BatchRequest)
     batch_request.data_asset_name = "some_data_asset_name"
     return batch_request
 
 
 @pytest.fixture(scope="function")
-def mock_batch_request_variant(mocker):
+def mock_batch_request_variant(mocker: MockerFixture):
     batch_request = mocker.Mock(spec=BatchRequest)
     batch_request.data_asset_name = "other_data_asset_name"
     return batch_request
@@ -298,7 +303,7 @@ def test_column_metrics_not_returned_if_column_types_missing(
         MetricTypes.COLUMN_MAX,
         MetricTypes.COLUMN_NON_NULL_COUNT,
     ]
-    aborted_metrics = {}
+    aborted_metrics: Dict[MetricConfigurationID, MetricsCalculatorErrorResultValue] = {}
     mock_validator.compute_metrics.return_value = (
         computed_metrics,
         aborted_metrics,
@@ -327,7 +332,7 @@ def test_column_metrics_not_returned_if_column_types_missing(
     assert "TABLE_COLUMN_TYPES metric is required to compute column metrics." in caplog.text
 
 
-def patch_get_numeric_column_names_with(mocker, return_value):
+def patch_get_numeric_column_names_with(mocker: MockerFixture, return_value: List[str]) -> None:
     mocker.patch(
         f"{MetricListMetricRetriever.__module__}.{MetricListMetricRetriever.__name__}._get_numeric_column_names",
         return_value=return_value,
@@ -355,7 +360,7 @@ def test_get_metrics_metrics_missing(
         MetricTypes.TABLE_COLUMN_TYPES,
         MetricTypes.COLUMN_MIN,
     ]
-    mock_aborted_metrics = {}
+    mock_aborted_metrics: Dict[MetricConfigurationID, MetricsCalculatorErrorResultValue] = {}
     mock_validator.compute_metrics.return_value = (
         mock_computed_metrics,
         mock_aborted_metrics,
@@ -410,7 +415,7 @@ def test_get_metrics_metrics_missing(
     ]
 
 
-def patch_get_timestamp_column_names_with(mocker, return_value):
+def patch_get_timestamp_column_names_with(mocker: MockerFixture, return_value: List[str]) -> None:
     mocker.patch(
         f"{MetricListMetricRetriever.__module__}.{MetricListMetricRetriever.__name__}._get_timestamp_column_names",
         return_value=return_value,
@@ -602,7 +607,7 @@ def test_get_metrics_with_timestamp_columns(
         MetricTypes.COLUMN_MAX,
         MetricTypes.COLUMN_NON_NULL_COUNT,
     ]
-    aborted_metrics = {}
+    aborted_metrics: Dict[MetricConfigurationID, MetricsCalculatorErrorResultValue] = {}
     mock_validator.compute_metrics.return_value = (
         computed_metrics,
         aborted_metrics,
@@ -660,7 +665,7 @@ def test_get_metrics_with_timestamp_columns(
 def test_get_metrics_only_gets_a_validator_once(
     mocker: MockerFixture, mock_context, mock_validator, mock_batch_request, metric_retriever
 ):
-    aborted_metrics = {}
+    aborted_metrics: Dict[MetricConfigurationID, MetricsCalculatorErrorResultValue] = {}
 
     computed_metrics = {
         ("table.row_count", (), ()): 2,
@@ -692,7 +697,7 @@ def test_get_metrics_only_gets_new_validator_on_asset_change(
     mock_batch_request_variant,
     metric_retriever,
 ):
-    aborted_metrics = {}
+    aborted_metrics: Dict[MetricConfigurationID, MetricsCalculatorErrorResultValue] = {}
 
     computed_metrics = {
         ("table.row_count", (), ()): 2,
@@ -720,10 +725,10 @@ def test_get_metrics_only_gets_new_validator_on_asset_change(
 
 def test_get_metrics_with_no_metrics(
     mock_context, mock_validator, mock_batch_request, metric_retriever
-):
-    computed_metrics = {}
+) -> None:
+    computed_metrics: Dict[MetricConfigurationID, MetricValue] = {}
     metrics_list: List[MetricTypes] = []
-    aborted_metrics = {}
+    aborted_metrics: Dict[MetricConfigurationID, MetricsCalculatorErrorResultValue] = {}
     mock_validator.compute_metrics.return_value = (
         computed_metrics,
         aborted_metrics,
@@ -732,7 +737,7 @@ def test_get_metrics_with_no_metrics(
         metric_retriever.get_metrics(batch_request=mock_batch_request, metric_list=metrics_list)
 
 
-def test_valid_metric_types_true(mock_context, metric_retriever):
+def test_valid_metric_types_true(mock_context, metric_retriever) -> None:
     valid_metric_types = [
         MetricTypes.TABLE_ROW_COUNT,
         MetricTypes.TABLE_COLUMNS,
@@ -784,7 +789,7 @@ def test_get_table_column_types(
             {"name": "col2", "type": "float"},
         ],
     }
-    aborted_metrics = {}
+    aborted_metrics: Dict[MetricConfigurationID, MetricsCalculatorErrorResultValue] = {}
     mock_validator.compute_metrics.return_value = (
         computed_metrics,
         aborted_metrics,
@@ -799,7 +804,7 @@ def test_get_table_columns(
     computed_metrics = {
         ("table.columns", (), ()): ["col1", "col2"],
     }
-    aborted_metrics = {}
+    aborted_metrics: Dict[MetricConfigurationID, MetricsCalculatorErrorResultValue] = {}
     mock_validator.compute_metrics.return_value = (computed_metrics, aborted_metrics)
 
     ret = metric_retriever._get_table_columns(mock_batch_request)
@@ -815,7 +820,7 @@ def test_get_table_row_count(
     mocker: MockerFixture, mock_context, mock_validator, mock_batch_request, metric_retriever
 ):
     computed_metrics = {("table.row_count", (), ()): 2}
-    aborted_metrics = {}
+    aborted_metrics: Dict[MetricConfigurationID, MetricsCalculatorErrorResultValue] = {}
     mock_validator.compute_metrics.return_value = (computed_metrics, aborted_metrics)
 
     ret = metric_retriever._get_table_row_count(mock_batch_request)
@@ -850,7 +855,7 @@ def test_get_metrics_with_timestamp_columns_exclude_time(
         MetricTypes.COLUMN_MAX,
         MetricTypes.COLUMN_NON_NULL_COUNT,
     ]
-    aborted_metrics = {}
+    aborted_metrics: Dict[MetricConfigurationID, MetricsCalculatorErrorResultValue] = {}
     mock_validator.compute_metrics.return_value = (
         computed_metrics,
         aborted_metrics,

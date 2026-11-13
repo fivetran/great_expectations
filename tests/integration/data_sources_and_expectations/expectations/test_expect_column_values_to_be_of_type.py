@@ -10,9 +10,11 @@ from tests.integration.data_sources_and_expectations.data_source_lists import (
 )
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
+    ClickHouseDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
     GenericSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
+    OracleDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
@@ -82,6 +84,20 @@ def test_success_for_type__INTEGER(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="INTEGER")
     result = batch_for_datasource.validate(expectation)
     assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[ClickHouseDatasourceTestConfig()],
+    # Avoid the shared all-NULL column, which the SQL harness types as a
+    # non-nullable INTEGER before ClickHouse's type overrides are applied.
+    data=pd.DataFrame({INTEGER_COLUMN: [1, 2, 3]}),
+)
+def test_clickhouse_nullable_type(batch_for_datasource: Batch) -> None:
+    expectation = gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="Int64")
+    result = batch_for_datasource.validate(expectation)
+
+    assert result.success
+    assert result.result["observed_value"] == "Int64"
 
 
 @parameterize_batch_for_data_sources(
@@ -229,3 +245,56 @@ def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
     # The unexpected rows should contain all the string values
     unexpected_values = sorted(unexpected_rows_df[STRING_COLUMN].tolist())
     assert unexpected_values == ["a", "b", "c", "d", "e"]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[SqliteDatasourceTestConfig()],
+    data=DATA,
+)
+def test_unresolvable_type_name_raises_rather_than_reporting_a_mismatch(
+    batch_for_datasource: Batch,
+) -> None:
+    """An unresolvable type name is a configuration error, not a data mismatch.
+
+    The dialect-module lookup used to return an empty list, so the comparison became
+    ``isinstance(value, ())`` and a typo was indistinguishable from a real mismatch.
+    """
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="INTGER")
+    )
+    assert result.exception_info["raised_exception"] is True
+    assert "INTGER" in result.exception_info["exception_message"]
+    assert "sqlite" in result.exception_info["exception_message"]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[OracleDatasourceTestConfig()],
+    data=DATA,
+)
+def test_success_for_type__INTEGER_oracle(batch_for_datasource: Batch) -> None:
+    """Oracle reflects this column as a generic ``sqlalchemy.INTEGER`` and reports it as such.
+
+    ``sqlalchemy.dialects.oracle`` does not export ``INTEGER``, so the expected-type lookup on
+    the dialect module comes back empty and ``isinstance(value, ())`` is unconditionally False:
+    the expectation rejects the very type name it reports as ``observed_value``.
+    """
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="INTEGER")
+    )
+    assert result.result["observed_value"] == "INTEGER"
+    assert result.success, result.result
+
+
+@pytest.mark.filterwarnings("ignore:Did not recognize type:sqlalchemy.exc.SAWarning")
+@parameterize_batch_for_data_sources(
+    data_source_configs=[ClickHouseDatasourceTestConfig()],
+    data=pd.DataFrame({INTEGER_COLUMN: [1, 2, 3]}),
+)
+def test_unresolvable_type_name_raises_on_clickhouse(batch_for_datasource: Batch) -> None:
+    """ClickHouse answers an unrecognized spec with ``NullType`` instead of failing the lookup."""
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="INTGER")
+    )
+    assert result.exception_info["raised_exception"] is True
+    assert "INTGER" in result.exception_info["exception_message"]
+    assert "clickhouse" in result.exception_info["exception_message"]

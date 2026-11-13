@@ -8,7 +8,6 @@ import pathlib
 import random
 import shutil
 import string
-import urllib.parse
 import uuid
 import warnings
 from dataclasses import dataclass
@@ -45,9 +44,6 @@ from great_expectations.data_context.data_context.context_factory import (
 from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
 )
-from great_expectations.data_context.store.gx_cloud_store_backend import (
-    GXCloudStoreBackend,
-)
 from great_expectations.data_context.types.base import (
     DataContextConfig,
     GXCloudConfig,
@@ -64,6 +60,9 @@ from great_expectations.datasource.fluent.batch_parameter_normalization import (
     _reset_warned_call_sites_for_tests,
 )
 from great_expectations.execution_engine import SparkDFExecutionEngine
+from great_expectations.execution_engine.sqlalchemy_engine_lifecycle import (
+    close_connections_when_collected,
+)
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
@@ -81,8 +80,8 @@ from great_expectations.validator.validator import Validator
 
 # GX Cloud has been shut down, so the fake-cloud-API helper that previously hosted these
 # placeholder credential values no longer exists. The values are retained here only so the
-# surviving store-backend and config tests (which exercise cloud store/config classes without
-# constructing a cloud context) keep working; nothing here builds a live cloud context.
+# surviving config tests (which exercise cloud config classes without constructing a cloud
+# context) keep working; nothing here builds a live cloud context.
 GX_CLOUD_MOCK_BASE_URL: Final[str] = "https://app.greatexpectations.fake.io/"
 DUMMY_JWT_TOKEN: Final[str] = (
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
@@ -292,6 +291,16 @@ def pytest_addoption(parser):
         "--performance-tests",
         action="store_true",
         help="If set, run performance tests (which might also require additional arguments like --bigquery)",  # noqa: E501 # FIXME CoP
+    )
+    parser.addoption(
+        "--gallery-measurement",
+        action="store_true",
+        help=(
+            "If set, the gallery-tier expectation suite runs against every registered data source "
+            "that has a configuration and an execution engine, instead of only declared "
+            "gallery-tier members. Off by default; a measurement run does not edit any data "
+            "source's declaration."
+        ),
     )
 
 
@@ -1159,7 +1168,9 @@ def empty_sqlite_db(sa):
         import sqlalchemy as sa
         from sqlalchemy import create_engine
 
-        engine = create_engine("sqlite://")
+        # Tests hand this engine to execution engines that can keep a connection checked out
+        # past teardown, so it is closed once collected rather than disposed from under them.
+        engine = close_connections_when_collected(create_engine("sqlite://"))
         with engine.begin() as connection:
             assert connection.execute(sa.text("select 1")).fetchall()[0] == (1,)
         return engine
@@ -1271,7 +1282,8 @@ def sqlite_view_engine(test_backends) -> Engine:  # type: ignore[return] # FIXME
         try:
             import sqlalchemy as sa
 
-            sqlite_engine = sa.create_engine("sqlite://")
+            # Closed once collected, not disposed: see empty_sqlite_db.
+            sqlite_engine = close_connections_when_collected(sa.create_engine("sqlite://"))
             df = pd.DataFrame({"a": [1, 2, 3, 4, 5]})
             add_dataframe_to_db(
                 df=df,
@@ -1323,6 +1335,7 @@ def test_db_connection_string(tmp_path_factory, test_backends):
         engine = sa.create_engine("sqlite:///" + str(path))
         add_dataframe_to_db(df=df1, name="table_1", con=engine, index=True)
         add_dataframe_to_db(df=df2, name="table_2", con=engine, index=True, schema="main")
+        engine.dispose()
 
         # Return a connection string to this newly-created db
         return "sqlite:///" + str(path)
@@ -1441,11 +1454,6 @@ def ge_cloud_base_url() -> str:
 
 
 @pytest.fixture
-def v1_cloud_base_url(ge_cloud_base_url: str) -> str:
-    return urllib.parse.urljoin(ge_cloud_base_url, "api/v1/")
-
-
-@pytest.fixture
 def ge_cloud_organization_id() -> str:
     return FAKE_ORG_ID
 
@@ -1482,64 +1490,6 @@ def ge_cloud_config(
         workspace_id=ge_cloud_workspace_id,
         access_token=ge_cloud_access_token,
     )
-
-
-@pytest.fixture(scope="function")
-def empty_ge_cloud_data_context_config(
-    ge_cloud_base_url, ge_cloud_organization_id, ge_cloud_access_token
-):
-    config_yaml_str = f"""
-stores:
-  default_expectations_store:
-    class_name: ExpectationsStore
-    store_backend:
-      class_name: {GXCloudStoreBackend.__name__}
-      ge_cloud_base_url: {ge_cloud_base_url}
-      ge_cloud_resource_type: expectation_suite
-      ge_cloud_credentials:
-        access_token: {ge_cloud_access_token}
-        organization_id: {ge_cloud_organization_id}
-      suppress_store_backend_id: True
-
-  default_validation_results_store:
-    class_name: ValidationResultsStore
-    store_backend:
-      class_name: {GXCloudStoreBackend.__name__}
-      ge_cloud_base_url: {ge_cloud_base_url}
-      ge_cloud_resource_type: validation_result
-      ge_cloud_credentials:
-        access_token: {ge_cloud_access_token}
-        organization_id: {ge_cloud_organization_id}
-      suppress_store_backend_id: True
-
-  validation_definition_store:
-    class_name: ValidationDefinitionStore
-    store_backend:
-      class_name: {GXCloudStoreBackend.__name__}
-      ge_cloud_base_url: {ge_cloud_base_url}
-      ge_cloud_resource_type: validation_definition
-      ge_cloud_credentials:
-        access_token: {ge_cloud_access_token}
-        organization_id: {ge_cloud_organization_id}
-      suppress_store_backend_id: True
-
-  default_checkpoint_store:
-    class_name: CheckpointStore
-    store_backend:
-      class_name: {GXCloudStoreBackend.__name__}
-      ge_cloud_base_url: {ge_cloud_base_url}
-      ge_cloud_resource_type: checkpoint
-      ge_cloud_credentials:
-        access_token: {ge_cloud_access_token}
-        organization_id: {ge_cloud_organization_id}
-      suppress_store_backend_id: True
-
-expectations_store_name: default_expectations_store
-validation_results_store_name: default_validation_results_store
-checkpoint_store_name: default_checkpoint_store
-"""
-    data_context_config_dict = yaml.load(config_yaml_str)
-    return DataContextConfig(**data_context_config_dict)
 
 
 # GX Cloud has been shut down, so cloud contexts can no longer be constructed. The fixtures that
@@ -1871,7 +1821,10 @@ def arbitrary_validation_definition(
 @pytest.fixture
 def validator_with_mock_execution_engine(mocker: MockerFixture) -> Validator:
     execution_engine = mocker.MagicMock()
-    validator = Validator(execution_engine=execution_engine)
+    # A Validator without a Batch refuses attribute access (see Validator.__getattr__), so
+    # give it one; the engine is a mock, so nothing is loaded anywhere.
+    batch = mocker.MagicMock(id="mock_batch_id")
+    validator = Validator(execution_engine=execution_engine, batches=[batch])
     return validator
 
 

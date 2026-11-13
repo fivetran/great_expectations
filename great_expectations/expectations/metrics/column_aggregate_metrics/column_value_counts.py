@@ -16,6 +16,7 @@ from great_expectations.expectations.metrics.column_aggregate_metric_provider im
     ColumnAggregateMetricProvider,
 )
 from great_expectations.expectations.metrics.metric_provider import metric_value
+from great_expectations.util import get_sqlalchemy_selectable
 
 if TYPE_CHECKING:
     from great_expectations.compatibility import pyspark, sqlalchemy
@@ -55,16 +56,16 @@ class ColumnValueCounts(ColumnAggregateMetricProvider):
         counts: pd.Series = df[column].value_counts()
         if sort == "value":
             try:
-                counts.sort_index(inplace=True)
+                counts = counts.sort_index()
             except TypeError:
                 # Having values of multiple types in a object dtype column (e.g., strings and floats)  # noqa: E501 # FIXME CoP
                 # raises a TypeError when the sorting method performs comparisons.
                 # Related to the noqa E721 below: numpy / pandas implements equality, see https://github.com/astral-sh/ruff/issues/9570
                 if df[column].dtype == object:
                     counts.index = counts.index.astype(str)
-                    counts.sort_index(inplace=True)
+                    counts = counts.sort_index()
         elif sort == "counts":
-            counts.sort_values(inplace=True)
+            counts = counts.sort_values()
         counts.name = "count"
         counts.index.name = "value"
         return counts
@@ -92,6 +93,8 @@ class ColumnValueCounts(ColumnAggregateMetricProvider):
         selectable, _, accessor_domain_kwargs = execution_engine.get_compute_domain(
             metric_domain_kwargs, MetricDomainTypes.COLUMN
         )
+        # A row condition makes the domain a SELECT, and a FROM clause requires a subquery.
+        selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type] # FIXME CoP
         column: str = accessor_domain_kwargs["column"]
 
         query: sqlalchemy.Select
@@ -160,12 +163,16 @@ class ColumnValueCounts(ColumnAggregateMetricProvider):
         )
         column: str = accessor_domain_kwargs["column"]
 
+        value_column = "value"
         value_counts_df: pyspark.DataFrame = (
-            df.select(column).where(F.col(column).isNotNull()).groupBy(column).count()
+            df.select(F.col(column).alias(value_column))
+            .where(F.col(value_column).isNotNull())
+            .groupBy(value_column)
+            .count()
         )
 
         if sort == "value":
-            value_counts_df = value_counts_df.orderBy(column)
+            value_counts_df = value_counts_df.orderBy(value_column)
         elif sort == "count":
             value_counts_df = value_counts_df.orderBy(F.desc("count"))
 

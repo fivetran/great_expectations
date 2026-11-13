@@ -24,6 +24,9 @@ from great_expectations.execution_engine import (
     PandasExecutionEngine,
     SparkDFExecutionEngine,
 )
+from great_expectations.execution_engine.sqlalchemy_engine_lifecycle import (
+    close_connections_when_collected,
+)
 from great_expectations.execution_engine.sqlalchemy_execution_engine import (
     SqlAlchemyBatchData,
     SqlAlchemyExecutionEngine,
@@ -454,7 +457,8 @@ def test_column_quoted_name_type_sa(sa):
         column_names=column_name,
         batch_columns_list=quoted_batch_column_list,
     )
-    assert sqlalchemy.quoted_name and isinstance(quoted_column_name, sqlalchemy.quoted_name)
+    assert sqlalchemy.quoted_name is not sqlalchemy.SQLALCHEMY_NOT_IMPORTED
+    assert isinstance(quoted_column_name, sqlalchemy.quoted_name)
     assert quoted_column_name.quote is True
 
     for column_name in [
@@ -1927,7 +1931,7 @@ def test_map_value_set_sa(sa):
 
 @pytest.mark.sqlite
 def test_map_of_type_sa(sa):
-    eng = sa.create_engine("sqlite://")
+    eng = close_connections_when_collected(sa.create_engine("sqlite://"))
     df = pd.DataFrame({"a": [1, 2, 3, 3, None]})
     add_dataframe_to_db(df=df, name="test", con=eng, index=False)
     batch_data = SqlAlchemyBatchData(
@@ -2167,6 +2171,40 @@ def test_map_column_values_increasing_pd():
     metrics.update(results)
 
     assert metrics[unexpected_rows_metric.id]["a"].index == pd.Index([4], dtype="int64")
+
+
+@pytest.mark.big
+def test_map_column_values_increasing_pd_unsigned_integer():
+    # ``Series.diff()`` wraps around for unsigned integer dtypes, so 2 - 3 on
+    # uint8 is 255 and a descending column looked strictly increasing.
+    engine = build_pandas_engine(pd.DataFrame({"a": pd.Series([3, 2, 1], dtype="uint8")}))
+
+    metrics: Dict[MetricConfigurationID, MetricValue] = {}
+    table_columns_metric, results = get_table_columns_metric(execution_engine=engine)
+    metrics.update(results)
+
+    condition_metric = MetricConfiguration(
+        metric_name=f"column_values.increasing.{MetricPartialFunctionTypeSuffixes.CONDITION.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs={"strictly": True},
+    )
+    condition_metric.metric_dependencies = {"table.columns": table_columns_metric}
+    metrics.update(engine.resolve_metrics(metrics_to_resolve=(condition_metric,), metrics=metrics))
+
+    unexpected_count_metric = MetricConfiguration(
+        metric_name=f"column_values.increasing.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    unexpected_count_metric.metric_dependencies = {
+        "unexpected_condition": condition_metric,
+        "table.columns": table_columns_metric,
+    }
+    metrics.update(
+        engine.resolve_metrics(metrics_to_resolve=(unexpected_count_metric,), metrics=metrics)
+    )
+
+    assert metrics[unexpected_count_metric.id] == 2
 
 
 @pytest.mark.spark
@@ -3613,7 +3651,9 @@ def test_map_column_pairs_equal_metric_pd():  # noqa: PLR0915 # FIXME CoP
         )
     )
     assert len(metrics[unexpected_rows_metric.id].columns) == 4
-    pd.testing.assert_index_equal(metrics[unexpected_rows_metric.id].index, pd.Index([0, 1, 3]))
+    pd.testing.assert_index_equal(
+        metrics[unexpected_rows_metric.id].index, pd.Index([0, 1, 3]), exact="equiv"
+    )
 
     unexpected_values_metric = MetricConfiguration(
         metric_name=unexpected_values_metric_name,
@@ -4919,7 +4959,8 @@ def test_distinct_metric_spark(
         metrics=metrics,
     )
     metrics.update(results)
-    assert pyspark.Column and isinstance(
+    assert pyspark.Column is not pyspark.SPARK_NOT_IMPORTED
+    assert isinstance(
         metrics[column_distinct_values_count_metric_partial_fn.id][0],
         pyspark.Column,
     )
@@ -5613,7 +5654,9 @@ def test_map_multicolumn_sum_equal_pd():  # noqa: PLR0915 # FIXME CoP
         pd.DataFrame(data={"a": [2], "b": [3], "c": [1], "d": [9]}, index=[2])
     )
     assert len(metrics[unexpected_rows_metric.id].columns) == 4
-    pd.testing.assert_index_equal(metrics[unexpected_rows_metric.id].index, pd.Index([2]))
+    pd.testing.assert_index_equal(
+        metrics[unexpected_rows_metric.id].index, pd.Index([2]), exact="equiv"
+    )
 
     unexpected_values_metric = MetricConfiguration(
         metric_name=unexpected_values_metric_name,
@@ -6275,7 +6318,9 @@ def test_map_compound_columns_unique_pd():  # noqa: PLR0915 # FIXME CoP
         pd.DataFrame(data={"a": [1, 1], "b": [2, 3], "c": [2, 2]}, index=[1, 2])
     )
     assert len(metrics[unexpected_rows_metric.id].columns) == 3
-    pd.testing.assert_index_equal(metrics[unexpected_rows_metric.id].index, pd.Index([1, 2]))
+    pd.testing.assert_index_equal(
+        metrics[unexpected_rows_metric.id].index, pd.Index([1, 2]), exact="equiv"
+    )
 
     unexpected_values_metric = MetricConfiguration(
         metric_name=unexpected_values_metric_name,
@@ -6828,7 +6873,9 @@ def test_map_select_column_values_unique_within_record_pd():  # noqa: PLR0915 # 
         )
     )
     assert len(metrics[unexpected_rows_metric.id].columns) == 3
-    pd.testing.assert_index_equal(metrics[unexpected_rows_metric.id].index, pd.Index([0, 4, 6]))
+    pd.testing.assert_index_equal(
+        metrics[unexpected_rows_metric.id].index, pd.Index([0, 4, 6]), exact="equiv"
+    )
 
     unexpected_values_metric = MetricConfiguration(
         metric_name=unexpected_values_metric_name,
@@ -6932,7 +6979,9 @@ def test_map_select_column_values_unique_within_record_pd():  # noqa: PLR0915 # 
         pd.DataFrame(data={"a": [1.0, 4.0], "b": [1.0, 4.0], "c": [2.0, 4.0]}, index=[0, 4])
     )
     assert len(metrics[unexpected_rows_metric.id].columns) == 3
-    pd.testing.assert_index_equal(metrics[unexpected_rows_metric.id].index, pd.Index([0, 4]))
+    pd.testing.assert_index_equal(
+        metrics[unexpected_rows_metric.id].index, pd.Index([0, 4]), exact="equiv"
+    )
 
     unexpected_values_metric = MetricConfiguration(
         metric_name=unexpected_values_metric_name,
@@ -7386,3 +7435,133 @@ def test_map_select_column_values_unique_within_record_spark(  # noqa: PLR0915 #
         {"a": 1.0, "b": 1.0, "c": 2.0},
         {"a": 4.0, "b": 4.0, "c": 4.0},
     ]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "dataframe,expected_result",
+    [
+        # ordinary sample standard deviation (ddof=1)
+        [pd.DataFrame({"a": [1.0, 2.0, 3.0, 4.0]}), pytest.approx(1.2909944487358056)],
+        # single non-null value: the sample standard deviation is undefined
+        [pd.DataFrame({"a": [1.0, None]}), None],
+        # all values null: undefined
+        [pd.DataFrame({"a": [None, None]}), None],
+    ],
+)
+def test_column_standard_deviation_metric_sa_engine_over_sqlite(
+    dataframe: pd.DataFrame, expected_result
+):
+    """Regression test for the plain SqlAlchemyExecutionEngine over a sqlite connection.
+
+    A sqlite database added through ``context.data_sources.add_sql(...)`` produces a plain
+    ``SqlAlchemyExecutionEngine`` (not a ``SqliteExecutionEngine``), so the two-pass standard
+    deviation implementation must be selected by dialect inside the base sqlalchemy provider.
+    Before that fix, this engine emitted ``stddev_samp`` and failed with
+    ``OperationalError: no such function: stddev_samp``.
+    """
+    engine = build_sa_execution_engine(dataframe, sqlalchemy)
+
+    metrics: Dict[MetricConfigurationID, MetricValue] = {}
+
+    table_columns_metric: MetricConfiguration
+    results: Dict[MetricConfigurationID, MetricValue]
+
+    table_columns_metric, results = get_table_columns_metric(execution_engine=engine)
+    metrics.update(results)
+
+    column_values_null_condition_metric = MetricConfiguration(
+        metric_name=f"column_values.null.{MetricPartialFunctionTypeSuffixes.CONDITION.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    column_values_null_condition_metric.metric_dependencies = {
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(
+        metrics_to_resolve=(column_values_null_condition_metric,), metrics=metrics
+    )
+    metrics.update(results)
+
+    null_unexpected_count_aggregate_fn_metric = MetricConfiguration(
+        metric_name=f"column_values.null.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}.{MetricPartialFunctionTypes.AGGREGATE_FN.metric_suffix}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    null_unexpected_count_aggregate_fn_metric.metric_dependencies = {
+        "unexpected_condition": column_values_null_condition_metric,
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(
+        metrics_to_resolve=(null_unexpected_count_aggregate_fn_metric,), metrics=metrics
+    )
+    metrics.update(results)
+
+    null_unexpected_count_metric = MetricConfiguration(
+        metric_name=f"column_values.null.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    null_unexpected_count_metric.metric_dependencies = {
+        "metric_partial_fn": null_unexpected_count_aggregate_fn_metric,
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(
+        metrics_to_resolve=(null_unexpected_count_metric,), metrics=metrics
+    )
+    metrics.update(results)
+
+    mean_aggregate_fn_metric = MetricConfiguration(
+        metric_name=f"column.mean.{MetricPartialFunctionTypes.AGGREGATE_FN.metric_suffix}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    mean_aggregate_fn_metric.metric_dependencies = {
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(
+        metrics_to_resolve=(mean_aggregate_fn_metric,), metrics=metrics
+    )
+    metrics.update(results)
+
+    mean_metric = MetricConfiguration(
+        metric_name="column.mean",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    mean_metric.metric_dependencies = {
+        "metric_partial_fn": mean_aggregate_fn_metric,
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(metrics_to_resolve=(mean_metric,), metrics=metrics)
+    metrics.update(results)
+
+    aggregate_fn_metric = MetricConfiguration(
+        metric_name=f"column.standard_deviation.{MetricPartialFunctionTypes.AGGREGATE_FN.metric_suffix}",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    aggregate_fn_metric.metric_dependencies = {
+        "column.mean": mean_metric,
+        f"column_values.null.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}": null_unexpected_count_metric,  # noqa: E501
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(metrics_to_resolve=(aggregate_fn_metric,), metrics=metrics)
+    metrics.update(results)
+
+    desired_metric = MetricConfiguration(
+        metric_name="column.standard_deviation",
+        metric_domain_kwargs={"column": "a"},
+        metric_value_kwargs=None,
+    )
+    desired_metric.metric_dependencies = {
+        "metric_partial_fn": aggregate_fn_metric,
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(metrics_to_resolve=(desired_metric,), metrics=metrics)
+    metrics.update(results)
+
+    if expected_result is None:
+        assert metrics[desired_metric.id] is None
+    else:
+        assert metrics[desired_metric.id] == expected_result

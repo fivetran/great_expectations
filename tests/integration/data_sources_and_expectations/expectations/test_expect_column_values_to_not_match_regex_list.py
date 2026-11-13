@@ -11,6 +11,7 @@ from tests.integration.data_sources_and_expectations.data_source_lists import (
     JUST_PANDAS_DATA_SOURCES,
 )
 from tests.integration.test_utils.data_source_config import (
+    ClickHouseDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
     DataSourceTestConfig,
     GenericSQLDatasourceTestConfig,
@@ -39,6 +40,7 @@ SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     PandasDataFrameDatasourceTestConfig(),
     PandasFilesystemCsvDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
+    ClickHouseDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     RedshiftDatasourceTestConfig(),
@@ -47,6 +49,17 @@ SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     SparkFilesystemCsvDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
 ]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[SnowflakeDatasourceTestConfig()], data=DATA
+)
+def test_unanchored_regex_matches_substring_snowflake(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToNotMatchRegexList(column=COL_B, regex_list=["a"])
+    )
+    assert result.result["unexpected_count"] == 1
+    assert not result.success
 
 
 @parameterize_batch_for_data_sources(data_source_configs=SUPPORTED_DATA_SOURCES, data=DATA)

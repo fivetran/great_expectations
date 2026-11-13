@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Sequence, Union
 
 from typing_extensions import NotRequired, TypedDict
@@ -20,6 +21,10 @@ logger = logging.getLogger(__name__)
 
 _ORDER_BY_TOKEN = "ORDER BY"
 _OFFSET_TOKEN = "OFFSET"
+
+# The SQL boolean literal this module rewrites on the grammars that lack it. Bounded on both
+# sides so it cannot be found inside a longer word.
+_WHERE_TRUE_LITERAL = re.compile(r"\bWHERE true\b")
 
 
 def has_top_level_token(query: str, token: str) -> bool:
@@ -117,11 +122,39 @@ class InvalidParameterTypeError(TypeError):
         super().__init__(f"`{parameter_name}` must be provided as type `{expected_type}`.")
 
 
+LITERAL_BRACE_HINT = "To include a literal brace in the query, double it: `{{` and `}}`."
+
+
+class UnsubstitutableQueryBraceError(ValueError):
+    def __init__(self, query: str, reason: str):
+        super().__init__(f"{reason} {LITERAL_BRACE_HINT} Query: {query}")
+
+
 class QueryParameters(TypedDict):
     column: NotRequired[str]
     column_A: NotRequired[str]
     column_B: NotRequired[str]
     columns: NotRequired[list[str]]
+
+
+_QUOTED_IDENTIFIER_OR_COMMENT_SQL = (
+    r'|"(?:[^"]|"")*"'
+    r"|`[^`]*`"
+    r"|\[[^\]]*\]"
+    r"|--[^\n]*"
+    r"|/\*.*?\*/"
+)
+# Whether a backslash escapes the next character depends on the dialect (it does on MySQL, it does
+# not on SQL Server or PostgreSQL), so a query only has a JOIN if it does under both readings.
+_QUOTED_OR_COMMENT_SQL = (
+    re.compile(r"'(?:[^']|'')*'" + _QUOTED_IDENTIFIER_OR_COMMENT_SQL, re.DOTALL),
+    re.compile(r"'(?:[^'\\]|\\.|'')*'" + _QUOTED_IDENTIFIER_OR_COMMENT_SQL, re.DOTALL),
+)
+_JOIN_KEYWORD = re.compile(r"\bJOIN\b", re.IGNORECASE)
+
+
+def _query_has_join_clause(query: str) -> bool:
+    return all(_JOIN_KEYWORD.search(masking.sub(" ", query)) for masking in _QUOTED_OR_COMMENT_SQL)
 
 
 class QueryMetricProvider(MetricProvider):
@@ -179,6 +212,37 @@ class QueryMetricProvider(MetricProvider):
             return {**query_parameters}
 
     @classmethod
+    def _format_query(cls, query: str, /, **kwargs: Any) -> str:
+        """Substitute `{batch}` and the declared query parameters into a user-authored query.
+
+        `str.format` reads every brace in the query as a field name, so SQL that carries braces
+        for its own reasons -- a Postgres array or JSON literal, a `LIKE '{%'` pattern -- raises
+        here. The stdlib error names neither the query nor the doubling rule that escapes it, so
+        it is replaced with one that does; a query that formatted before still formats the same.
+
+        `query` is positional-only so a substitution keyword named `query` (a `template_dict` key,
+        for instance) reaches `str.format` instead of colliding with this parameter.
+        """
+        try:
+            return query.format(**kwargs)
+        except KeyError as exc:
+            raise UnsubstitutableQueryBraceError(
+                query, f"`{exc.args[0]}` is not a placeholder this metric accepts."
+            ) from exc
+        except IndexError as exc:
+            # `{}` and `{3}` are positional fields; this metric only fills named ones. The braces
+            # close, so the usual cause is a regex quantifier such as `x{3}`, not a typo.
+            raise UnsubstitutableQueryBraceError(
+                query,
+                "The query contains a positional placeholder such as `{}` or `{3}` that this "
+                "metric does not fill; a regex quantifier like `x{3}` is the usual cause.",
+            ) from exc
+        except ValueError as exc:
+            raise UnsubstitutableQueryBraceError(
+                query, f"The query contains an unpaired or malformed brace: {exc}."
+            ) from exc
+
+    @classmethod
     def _get_substituted_batch_subquery_from_query_and_batch_selectable(
         cls,
         query: str,
@@ -189,7 +253,7 @@ class QueryMetricProvider(MetricProvider):
         parameters = cls._get_parameters_dict_from_query_parameters(query_parameters)
 
         if isinstance(batch_selectable, sa.Table):
-            query = query.format(batch=batch_selectable, **parameters)
+            query = cls._format_query(query, batch=batch_selectable, **parameters)
         elif isinstance(
             batch_selectable, (sa.sql.Select, get_sqlalchemy_subquery_type())
         ):  # specifying a row_condition returns the active batch as a Select
@@ -199,10 +263,11 @@ class QueryMetricProvider(MetricProvider):
                 dialect=execution_engine.engine.dialect, compile_kwargs={"literal_binds": True}
             )
             # all join queries require the user to have taken care of aliasing themselves
-            if "JOIN" in query.upper():
-                query = query.format(batch=f"({batch})", **parameters)
+            if _query_has_join_clause(query):
+                query = cls._format_query(query, batch=f"({batch})", **parameters)
             else:
-                query = query.format(
+                query = cls._format_query(
+                    query,
                     batch=render_derived_table_alias(
                         subquery=str(batch),
                         alias="subselect",
@@ -211,14 +276,17 @@ class QueryMetricProvider(MetricProvider):
                     **parameters,
                 )
         else:
-            query = query.format(batch=f"({batch_selectable})", **parameters)
+            query = cls._format_query(query, batch=f"({batch_selectable})", **parameters)
 
         # SQL Server has no boolean literal, and Oracle rejects a bare `true` as a
         # WHERE-clause predicate with ORA-00920 before it gained a SQL boolean type in 23ai.
         # A user-authored query carrying that literal is rewritten to `1=1`, which every one
-        # of these grammars accepts.
+        # of these grammars accepts. The match is anchored on word boundaries so an identifier
+        # that merely starts with the literal (`WHERE true_positive = 1`) is left alone: a
+        # plain substring rewrite there emits `WHERE 1=1_positive = 1`, which no server accepts
+        # and which the user's own query text does not explain.
         if getattr(execution_engine, "dialect_name", None) in ("mssql", "oracle"):
-            query = query.replace("WHERE true", "WHERE 1=1")
+            query = _WHERE_TRUE_LITERAL.sub("WHERE 1=1", query)
 
         return query
 

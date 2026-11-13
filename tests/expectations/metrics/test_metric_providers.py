@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Type
 from unittest import mock
 
 import pytest
@@ -63,14 +63,11 @@ def mock_registry(monkeypatch: pytest.MonkeyPatch):
     yield registry
 
 
-def test__base_metric_provider__registration(mock_registry):
-    """This tests whether the MetricProvider class registers the correct metrics."""
-    registered_metric_keys = list(mock_registry._registered_metrics.keys())
-    for key in registered_metric_keys:
-        assert "custom_metric" not in key
-
-    prev_registered_metric_key_count = len(registered_metric_keys)
-
+def _make_custom_metric_provider() -> Type[MetricProvider]:
+    # A module-level, fully-typed factory rather than a class nested directly in the test:
+    # mypy's disallow-untyped-decorators can't resolve `metric_value`'s ParamSpec for a class
+    # defined inside an (intentionally unannotated) test function, and reports the decorated
+    # methods below as untyped even though `metric_value` itself is fully typed.
     class CustomMetricProvider(MetricProvider):
         metric_name = "custom_metric"
         value_keys = ()
@@ -108,20 +105,27 @@ def test__base_metric_provider__registration(mock_registry):
         ):
             raise NotImplementedError
 
+    return CustomMetricProvider
+
+
+def test__base_metric_provider__registration(mock_registry):
+    """This tests whether the MetricProvider class registers the correct metrics."""
+    registered_metric_keys = list(mock_registry._registered_metrics.keys())
+    for key in registered_metric_keys:
+        assert "custom_metric" not in key
+
+    prev_registered_metric_key_count = len(registered_metric_keys)
+
+    CustomMetricProvider = _make_custom_metric_provider()
     CustomMetricProvider()
 
     assert len(mock_registry._registered_metrics.keys()) == prev_registered_metric_key_count + 1
     assert "custom_metric" in mock_registry._registered_metrics
 
 
-def test__table_metric_provider__registration(mock_registry):
-    """This tests whether the TableMetricProvider class registers the correct metrics."""
-    registered_metric_keys = list(mock_registry._registered_metrics.keys())
-    for key in registered_metric_keys:
-        assert "table.custom_metric" not in key
-
-    prev_registered_metric_key_count = len(registered_metric_keys)
-
+def _make_custom_table_metric_provider() -> Type[TableMetricProvider]:
+    # See _make_custom_metric_provider's comment: kept out of the test function's body so
+    # mypy can resolve metric_value's ParamSpec against the decorated methods below.
     class CustomTableMetricProvider(TableMetricProvider):
         metric_name = "table.custom_metric"
 
@@ -158,6 +162,18 @@ def test__table_metric_provider__registration(mock_registry):
         ):
             raise NotImplementedError
 
+    return CustomTableMetricProvider
+
+
+def test__table_metric_provider__registration(mock_registry):
+    """This tests whether the TableMetricProvider class registers the correct metrics."""
+    registered_metric_keys = list(mock_registry._registered_metrics.keys())
+    for key in registered_metric_keys:
+        assert "table.custom_metric" not in key
+
+    prev_registered_metric_key_count = len(registered_metric_keys)
+
+    CustomTableMetricProvider = _make_custom_table_metric_provider()
     CustomTableMetricProvider()
 
     assert len(mock_registry._registered_metrics.keys()) == prev_registered_metric_key_count + 1
@@ -389,14 +405,9 @@ def test__multicolumn_map_metric__registration(mock_registry):
         assert key in mock_registry._registered_metrics
 
 
-def test__query_metric_provider__registration(mock_registry):
-    """This tests whether the QueryMetricProvider class registers the correct metrics."""
-    registered_metric_keys = list(mock_registry._registered_metrics.keys())
-    for key in registered_metric_keys:
-        assert "query.custom_metric" not in key
-
-    prev_registered_metric_key_count = len(registered_metric_keys)
-
+def _make_custom_query_metric_provider() -> Type[QueryMetricProvider]:
+    # See _make_custom_metric_provider's comment: kept out of the test function's body so
+    # mypy can resolve metric_value's ParamSpec against the decorated methods below.
     class CustomQueryMetricProvider(QueryMetricProvider):
         metric_name = "query.custom_metric"
 
@@ -422,6 +433,18 @@ def test__query_metric_provider__registration(mock_registry):
         ) -> List[dict]:
             raise NotImplementedError
 
+    return CustomQueryMetricProvider
+
+
+def test__query_metric_provider__registration(mock_registry):
+    """This tests whether the QueryMetricProvider class registers the correct metrics."""
+    registered_metric_keys = list(mock_registry._registered_metrics.keys())
+    for key in registered_metric_keys:
+        assert "query.custom_metric" not in key
+
+    prev_registered_metric_key_count = len(registered_metric_keys)
+
+    CustomQueryMetricProvider = _make_custom_query_metric_provider()
     CustomQueryMetricProvider()
 
     assert len(mock_registry._registered_metrics.keys()) == prev_registered_metric_key_count + 1
@@ -504,6 +527,59 @@ def test_get_sqlalchemy_records_from_query_and_batch_selectable__query(
         )
     assert substituted_batch_subquery == expected_query
     mock_sqlalchemy_text.assert_called_with(expected_query)
+
+
+def _substitute_batch_into_query(query: str) -> str:
+    provider = QueryMetricProvider
+    return provider._get_substituted_batch_subquery_from_query_and_batch_selectable(
+        query=query,
+        batch_selectable=sa.select("*").select_from(sa.text("my_table")).subquery(),
+        execution_engine=MockSqlAlchemyExecutionEngine(),
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "query",
+    [
+        "SELECT * FROM {batch} WHERE status = 'joined'",
+        "SELECT join_date FROM {batch}",
+        "SELECT rejoined_at FROM {batch}",
+        "SELECT * FROM {batch} WHERE note = 'a JOIN b'",
+        "SELECT * FROM {batch} WHERE note = 'it''s a join'",
+        "SELECT * FROM {batch} WHERE note = 'it\\'s a join'",
+        "SELECT * FROM {batch} WHERE note = 'say \\'join\\' twice'",
+        "SELECT * FROM {batch} WHERE path = 'C:\\' AND note = 'join'",
+        'SELECT "join" FROM {batch}',
+        "SELECT `join` FROM {batch}",
+        "SELECT [join] FROM {batch}",
+        "SELECT * FROM {batch} -- join later",
+        "/* join */ SELECT * FROM {batch}",
+    ],
+)
+def test_get_substituted_batch_subquery__no_join_clause_is_aliased(query: str):
+    substituted = _substitute_batch_into_query(query)
+    assert "(SELECT * \nFROM my_table) AS subselect" in substituted
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "query",
+    [
+        "SELECT * FROM {batch} t1 JOIN t2 ON t1.a = t2.a",
+        "SELECT * FROM {batch} t1 join t2 ON t1.a = t2.a",
+        "SELECT * FROM {batch} t1 LEFT   JOIN t2 ON t1.a = t2.a",
+        "SELECT * FROM {batch} t1\nJOIN\n(SELECT a FROM t2) AS t2 ON t1.a = t2.a",
+        "SELECT 'joined' AS c FROM {batch} t1 JOIN t2 ON t1.a = t2.a",
+        "SELECT * FROM {batch} t1 JOIN t2 ON t1.a = 'x' -- join",
+        "SELECT * FROM {batch} t1 JOIN t2 ON t1.p = 'C:\\'",
+        "SELECT * FROM {batch} t1 JOIN t2 ON t1.a = 'it\\'s'",
+    ],
+)
+def test_get_substituted_batch_subquery__join_clause_is_left_for_user_to_alias(query: str):
+    substituted = _substitute_batch_into_query(query)
+    assert "(SELECT * \nFROM my_table)" in substituted
+    assert "AS subselect" not in substituted
 
 
 @pytest.mark.unit

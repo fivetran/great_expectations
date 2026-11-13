@@ -487,7 +487,9 @@ def _sqlalchemy_map_condition_query(  # noqa: C901 #  too complex
     unexpected_condition_query_with_selected_columns: sa.select = sa.select(*column_selector).where(  # type: ignore[valid-type] # FIXME CoP
         unexpected_condition
     )
-    source_table_and_schema: sa.Table = get_sqlalchemy_source_table_and_schema(execution_engine)
+    source_table_and_schema: sa.Table = get_sqlalchemy_source_table_and_schema(
+        execution_engine, batch_id=metric_domain_kwargs.get("batch_id")
+    )
 
     source_table_and_schema_as_selectable: Union[sa.Table, sa.Select] = get_sqlalchemy_selectable(
         source_table_and_schema
@@ -704,6 +706,26 @@ def _collect_spark_nested_column_paths(schema: Any) -> set:
     return paths
 
 
+def _unquote_spark_top_level_column_name(column_name: str, top_level_columns: set[str]) -> str:
+    """Return the plain name for a backtick-quoted top-level Spark column.
+
+    Domain kwargs carry a dotted column name in its backtick-quoted form
+    (e.g. ``"`Data.Entrega`"``) so Spark does not parse the dot as nested
+    field access. Strip the quoting only when the unquoted name is a literal
+    top-level column; any other name is returned unchanged.
+    """
+    if column_name in top_level_columns:
+        return column_name
+    if (
+        len(column_name) >= 2  # noqa: PLR2004
+        and column_name.startswith("`")
+        and column_name.endswith("`")
+        and column_name[1:-1] in top_level_columns
+    ):
+        return column_name[1:-1]
+    return column_name
+
+
 def _spark_map_condition_index(  # noqa: C901 #  too complex
     cls,
     execution_engine: SparkDFExecutionEngine,
@@ -755,6 +777,14 @@ def _spark_map_condition_index(  # noqa: C901 #  too complex
     df: pyspark.sql.dataframe.DataFrame = execution_engine.get_domain_records(
         domain_kwargs=domain_kwargs
     )
+    # A dotted domain column arrives backtick-quoted (see
+    # ``get_dbms_compatible_metric_domain_kwargs``). The checks, selection and
+    # result keys below all expect the plain column name.
+    df_columns = set(df.columns)
+    domain_column_name_list = [
+        _unquote_spark_top_level_column_name(column_name, df_columns)
+        for column_name in domain_column_name_list
+    ]
     result_format = metric_value_kwargs["result_format"]
     if not result_format.get("unexpected_index_column_names"):
         raise gx_exceptions.MetricResolutionError(
@@ -822,11 +852,13 @@ def _spark_map_condition_query(
     Returns query that will return all rows which do not meet an expected Expectation condition for instances
     of ColumnMapExpectation.
 
-    Converts unexpected_condition into a string that can be rendered in DataDocs
+    Converts unexpected_condition into a string that can be rendered in DataDocs and is valid
+    Python. The condition is rendered as Spark SQL where Spark can resolve it, so the query
+    evaluates; otherwise it falls back to the Column's display string.
 
     Output will look like:
 
-        df.filter(F.expr( [unexpected_condition] ))
+        df.filter(F.expr('[unexpected_condition]'))
 
     """  # noqa: E501 # FIXME CoP
     result_format: dict = metric_value_kwargs["result_format"]
@@ -839,8 +871,8 @@ def _spark_map_condition_query(
 
     (
         unexpected_condition,
-        _,
-        _,
+        compute_domain_kwargs,
+        accessor_domain_kwargs,
     ) = metrics.get("unexpected_condition", (None, None, None))
 
     # unexpected_condition is a Column object whose str representation is wrapped in
@@ -855,6 +887,13 @@ def _spark_map_condition_query(
         unexpected_condition_filtered = unexpected_condition_filtered[len("Column<'") :]
     if unexpected_condition_filtered.endswith("'>"):
         unexpected_condition_filtered = unexpected_condition_filtered[:-2]
+    condition_sql = _spark_condition_as_sql(
+        execution_engine=execution_engine,
+        unexpected_condition=unexpected_condition,
+        domain_kwargs=dict(**(compute_domain_kwargs or {}), **(accessor_domain_kwargs or {})),
+    )
+    if condition_sql is not None:
+        unexpected_condition_filtered = condition_sql
     # Spark 3 wraps the whole condition in one extra outer paren pair; strip it so the
     # rendered query matches the historical output. The Spark 4 prefix grammar starts
     # with a function name (never "("), so this leaves it untouched. This assumes the
@@ -864,7 +903,27 @@ def _spark_map_condition_query(
         ")"
     ):
         unexpected_condition_filtered = unexpected_condition_filtered[1:-1]
-    return f"df.filter(F.expr({unexpected_condition_filtered}))"
+    return f"df.filter(F.expr({unexpected_condition_filtered!r}))"
+
+
+def _spark_condition_as_sql(
+    execution_engine: SparkDFExecutionEngine,
+    unexpected_condition: Any,
+    domain_kwargs: dict,
+) -> Optional[str]:
+    """Render the condition as Spark SQL via Catalyst, which F.expr can parse on Spark 3 and 4.
+
+    Returns None where Spark can't resolve it (Spark Connect, window functions).
+    """
+    try:
+        df = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
+        # Private API on purpose: no public Column-to-SQL exists, and str() fails F.expr on Spark 4.
+        plan = df.filter(unexpected_condition)._jdf.queryExecution().analyzed()
+        if plan.getClass().getSimpleName() != "Filter":
+            return None
+        return plan.condition().sql()
+    except Exception:
+        return None
 
 
 def _generate_temp_table(

@@ -19,10 +19,14 @@ logger = logging.getLogger(__name__)
 
 class ColumnValuesMatchLikePatternList(ColumnMapMetricProvider):
     condition_metric_name = "column_values.match_like_pattern_list"
-    condition_value_keys = ("like_pattern_list", "match_on")
+    condition_value_keys = (
+        "like_pattern_list",
+        "match_on",
+        "escape",
+    )
 
     @column_condition_partial(engine=SqlAlchemyExecutionEngine)
-    def _sqlalchemy(cls, column, like_pattern_list, match_on, _dialect, **kwargs):
+    def _sqlalchemy(cls, column, like_pattern_list, match_on, _dialect, escape=None, **kwargs):
         if not match_on:
             match_on = "any"
 
@@ -33,23 +37,29 @@ class ColumnValuesMatchLikePatternList(ColumnMapMetricProvider):
             raise ValueError("At least one like_pattern must be supplied in the like_pattern_list.")  # noqa: TRY003 # FIXME CoP
 
         like_pattern_expression = get_dialect_like_pattern_expression(
-            column, _dialect, like_pattern_list[0]
+            column, _dialect, like_pattern_list[0], escape=escape
         )
         if like_pattern_expression is None:
-            logger.warning(f"Like patterns are not supported for dialect {_dialect.dialect.name!s}")
-            raise NotImplementedError
+            dialect = getattr(_dialect, "dialect", _dialect)
+            message = f"Like patterns are not supported for dialect {dialect.name!s}"
+            logger.warning(message)
+            raise NotImplementedError(message)
 
         if match_on == "any":
             condition = sa.or_(
                 *(
-                    get_dialect_like_pattern_expression(column, _dialect, like_pattern)
+                    get_dialect_like_pattern_expression(
+                        column, _dialect, like_pattern, escape=escape
+                    )
                     for like_pattern in like_pattern_list
                 )
             )
         else:
             condition = sa.and_(
                 *(
-                    get_dialect_like_pattern_expression(column, _dialect, like_pattern)
+                    get_dialect_like_pattern_expression(
+                        column, _dialect, like_pattern, escape=escape
+                    )
                     for like_pattern in like_pattern_list
                 )
             )

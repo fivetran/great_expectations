@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 import pandas as pd
 import pytest
@@ -6,12 +7,15 @@ import pytest
 import great_expectations.expectations as gxe
 from great_expectations.compatibility import pydantic
 from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.expectations.row_conditions import Column
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.data_source_lists import (
     JUST_PANDAS_DATA_SOURCES,
 )
 from tests.integration.test_utils.data_source_config import (
     ALL_DATA_SOURCES,
+    PANDAS_DATA_SOURCES,
+    SQL_DATA_SOURCES,
     PostgreSQLDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
 )
@@ -104,6 +108,38 @@ def test_failure(
 ) -> None:
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+
+
+PARTIAL_NULL_DATA = pd.DataFrame(
+    {"a": [1, 1, 5, None, None, None, None], "b": [1, 1, 3, 5, 5, None, None]}
+)
+
+
+@pytest.mark.parametrize(
+    "ignore_row_if,unexpected_count",
+    [
+        pytest.param("all_values_are_missing", 4, id="all_values_are_missing"),
+        pytest.param("any_value_is_missing", 2, id="any_value_is_missing"),
+        pytest.param("never", 6, id="never"),
+    ],
+)
+@parameterize_batch_for_data_sources(
+    data_source_configs=[*PANDAS_DATA_SOURCES, *SQL_DATA_SOURCES], data=PARTIAL_NULL_DATA
+)
+def test_keys_with_nulls_are_duplicates(
+    batch_for_datasource: Batch,
+    ignore_row_if: Literal["all_values_are_missing", "any_value_is_missing", "never"],
+    unexpected_count: int,
+) -> None:
+    # Keys with NULLs in the same columns duplicate each other, as in pandas' duplicated(). On SQL,
+    # NULL = NULL is never true, so matching keys by equality would miss the (None, 5) and
+    # (None, None) pairs. Rows dropped by ignore_row_if must stay out of the count.
+    expectation = gxe.ExpectCompoundColumnsToBeUnique(
+        column_list=["a", "b"], ignore_row_if=ignore_row_if
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert not result.success
+    assert result.result["unexpected_count"] == unexpected_count
 
 
 @parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
@@ -289,3 +325,23 @@ def test_partial_unexpected_list_spark_with_timestamp_columns(batch_for_datasour
         # assertion is independent of which Python type the metric returns.
         assert row[EVENT_TS] == expected_ts
         assert row[CATEGORY] == "A"
+
+
+FILTER_COL = "filter_col"
+# A row condition of `filter_col > 0` drops the first two rows, which duplicate each other.
+ROW_CONDITION_DATA = pd.DataFrame(
+    {INT_COL: [1, 1, 2, 3], INT_COL_2: [1, 1, 2, 3], FILTER_COL: [0, 0, 1, 1]}
+)
+
+
+@parameterize_batch_for_data_sources(data_source_configs=SQL_DATA_SOURCES, data=ROW_CONDITION_DATA)
+def test_sql_row_condition_with_no_rows_ignored(batch_for_datasource: Batch) -> None:
+    """Ignoring no rows leaves the SQL domain a bare SELECT, which must be wrapped to be used as a
+    FROM."""
+    expectation = gxe.ExpectCompoundColumnsToBeUnique(
+        column_list=[INT_COL, INT_COL_2],
+        ignore_row_if="never",
+        row_condition=Column(FILTER_COL) > 0,
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success, result.exception_info

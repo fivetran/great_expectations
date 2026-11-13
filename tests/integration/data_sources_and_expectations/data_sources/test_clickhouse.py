@@ -132,13 +132,6 @@ class TestClickHouseRegexAndLikePatterns:
             context=get_context(mode="ephemeral"),
         )
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="ClickHouse has no `regexp_like` SQL function; the dialect's regex-matching path "
-        "(`get_dialect_regex_expression`'s ClickHouse branch) calls it anyway, and the server "
-        "rejects the query with `DB::Exception: Function with name 'regexp_like' does not "
-        "exist`. ClickHouse's actual regex-matching function is `match(haystack, pattern)`.",
-    )
     def test_match_regex(self) -> None:
         with self._batch_setup().batch_test_context() as batch:
             result = batch.validate(
@@ -146,13 +139,6 @@ class TestClickHouseRegexAndLikePatterns:
             )
         assert result.success
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="ClickHouse has no `regexp_like` SQL function; the dialect's regex-matching path "
-        "(`get_dialect_regex_expression`'s ClickHouse branch) calls it anyway, and the server "
-        "rejects the query with `DB::Exception: Function with name 'regexp_like' does not "
-        "exist`. ClickHouse's actual regex-matching function is `match(haystack, pattern)`.",
-    )
     def test_not_match_regex(self) -> None:
         with self._batch_setup().batch_test_context() as batch:
             result = batch.validate(
@@ -166,6 +152,50 @@ class TestClickHouseRegexAndLikePatterns:
                 gxe.ExpectColumnValuesToMatchLikePattern(column=self.COL, like_pattern="___")
             )
         assert result.success
+
+    def _wildcard_literal_batch_setup(self) -> ClickHouseBatchTestSetup:
+        """Only `a_c` contains a literal underscore, unlike `DATA`, which holds none and so
+        cannot tell a literally matched `_` from a wildcard one."""
+        return ClickHouseBatchTestSetup(
+            config=ClickHouseDatasourceTestConfig(
+                column_types={self.COL: clickhouse_types.Nullable(clickhouse_types.String)}
+            ),
+            data=pd.DataFrame({self.COL: ["a_c", "abc"]}),
+            extra_data={},
+            context=get_context(mode="ephemeral"),
+        )
+
+    def test_match_like_pattern_with_escape(self) -> None:
+        """An escaped `_` matches only itself, even though ClickHouse has no ESCAPE clause.
+
+        The server rejects `LIKE 'a!_c' ESCAPE '!'` as a syntax error, so the pattern is
+        rewritten to backslash escapes instead of emitting the clause. Were the escape dropped,
+        `_` would stay a wildcard and both values would match.
+        """
+        with self._wildcard_literal_batch_setup().batch_test_context() as batch:
+            result = batch.validate(
+                gxe.ExpectColumnValuesToMatchLikePattern(
+                    column=self.COL, like_pattern="a!_c", escape="!"
+                ),
+                result_format=ResultFormat.COMPLETE,
+            )
+        assert result.exception_info.get("raised_exception") is False, result.exception_info
+        assert result.result["unexpected_list"] == ["abc"]
+
+    def test_match_like_pattern_with_backslash_in_pattern(self) -> None:
+        """A backslash inside the pattern escapes a wildcard, which is the form `escape` is
+        translated to on ClickHouse.
+
+        With the backslash honored `abc` is the one unexpected value; were it taken as an
+        ordinary character neither value would match, and both would be unexpected.
+        """
+        with self._wildcard_literal_batch_setup().batch_test_context() as batch:
+            result = batch.validate(
+                gxe.ExpectColumnValuesToMatchLikePattern(column=self.COL, like_pattern="a\\_c"),
+                result_format=ResultFormat.COMPLETE,
+            )
+        assert result.exception_info.get("raised_exception") is False, result.exception_info
+        assert result.result["unexpected_list"] == ["abc"]
 
 
 class TestClickHouseNullBearingData:

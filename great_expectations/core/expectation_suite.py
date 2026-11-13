@@ -26,6 +26,11 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.freshness_diagnostics import (
     ExpectationSuiteFreshnessDiagnostics,
 )
+from great_expectations.core.owner_resolution import (
+    ResolvedContext,
+    resolve_context,
+    unbound_resolution_note,
+)
 from great_expectations.core.serdes import _IdentifierBundle
 from great_expectations.data_context.data_context.context_factory import project_manager
 from great_expectations.exceptions import (
@@ -44,6 +49,9 @@ from great_expectations.util import (
 
 if TYPE_CHECKING:
     from great_expectations.alias_types import JSONValues
+    from great_expectations.data_context.data_context.abstract_data_context import (
+        AbstractDataContext,
+    )
     from great_expectations.data_context.store.expectations_store import ExpectationsStore
     from great_expectations.expectations.expectation import Expectation
     from great_expectations.expectations.expectation_configuration import (
@@ -66,6 +74,10 @@ class ExpectationSuite(SerializableDictDot):
         meta: Metadata related to the suite.
         id: Great Expectations Cloud id for this Expectation Suite.
     """
+
+    # The owner lives in a slot, outside the instance __dict__, so the suite's mapping surface
+    # (keys(), len(), items(), ``ExpectationSuite(**suite)``) and serialized form never see it.
+    __slots__ = ("_owner",)
 
     def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
@@ -104,10 +116,16 @@ class ExpectationSuite(SerializableDictDot):
         ensure_json_serializable(meta)
         self.meta = meta
         self.notes = notes
+        # The Data Context this suite belongs to; None means it belongs to no context and
+        # resolves through the current one (GX issue #12209).
+        self._owner: AbstractDataContext | None = None
+
+    def _resolve_context(self) -> ResolvedContext:
+        return resolve_context(self._owner)
 
     @property
     def _store(self) -> ExpectationsStore:
-        return project_manager.get_expectations_store()
+        return self._resolve_context().context.expectations_store
 
     @property
     def _include_rendered_content(self) -> bool:
@@ -210,12 +228,18 @@ class ExpectationSuite(SerializableDictDot):
         Raises:
             KeyError: Expectation not found in suite.
         """
+        original_expectations = self.expectations
+        matching_expectations = [
+            exp
+            for exp in original_expectations
+            if self._expectations_are_equalish(exp, expectation)
+        ]
         remaining_expectations = [
             exp
-            for exp in self.expectations
+            for exp in original_expectations
             if not self._expectations_are_equalish(exp, expectation)
         ]
-        if len(remaining_expectations) != len(self.expectations) - 1:
+        if len(remaining_expectations) != len(original_expectations) - 1:
             raise KeyError("No matching expectation was found.")  # noqa: TRY003 # FIXME CoP
 
         self.expectations = remaining_expectations
@@ -223,11 +247,12 @@ class ExpectationSuite(SerializableDictDot):
         if self._has_been_saved():
             # only persist on delete if the suite has already been saved
             try:
-                self._store.delete_expectation(suite=self, expectation=expectation)
+                # The store matches on id, and the argument may be an equivalent Expectation
+                # without one, so hand it the Expectation that actually belongs to this suite.
+                self._store.delete_expectation(suite=self, expectation=matching_expectations[0])
             except Exception as exc:
-                # rollback this change
-                # expectation suite is set-like so order of expectations doesn't matter
-                self.expectations.append(expectation)
+                # rollback this change by restoring exactly what was in the suite before
+                self.expectations = original_expectations
                 raise exc  # noqa: TRY201 # FIXME CoP
 
         return expectation
@@ -263,8 +288,10 @@ class ExpectationSuite(SerializableDictDot):
         ):
             suite_dict = None
         if not suite_dict:
+            resolved = self._resolve_context()
+            note = None if resolved.bound else unbound_resolution_note(resolved.context)
             return ExpectationSuiteFreshnessDiagnostics(
-                errors=[ExpectationSuiteNotFoundError(name=self.name)]
+                errors=[ExpectationSuiteNotFoundError(name=self.name, note=note)]
             )
 
         suite: ExpectationSuite | None
@@ -348,8 +375,19 @@ class ExpectationSuite(SerializableDictDot):
         attributes_to_copy = set(ExpectationSuiteSchema().fields.keys())
         for key in attributes_to_copy:
             setattr(result, key, deepcopy(getattr(self, key), memo))
+        # A copy belongs to no Data Context.
+        result._owner = None
 
         return result
+
+    def __getstate__(self) -> dict:
+        # Pickle and copy.copy: a copy belongs to no Data Context, and a context is not
+        # picklable. Returning only __dict__ leaves the owner slot out of the state.
+        return dict(self.__dict__)
+
+    def __setstate__(self, state: dict) -> None:
+        self.__dict__.update(state)
+        self._owner = None
 
     @public_api
     @override

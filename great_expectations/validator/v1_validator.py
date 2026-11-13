@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import threading
 from copy import copy
-from functools import cached_property
 from typing import TYPE_CHECKING, Optional
 
 from great_expectations import __version__ as ge_version
@@ -9,6 +9,7 @@ from great_expectations.core.expectation_validation_result import (
     ExpectationSuiteValidationResult,
     ExpectationValidationResult,
 )
+from great_expectations.core.owner_resolution import owner_from_batch_definition
 from great_expectations.core.result_format import (
     DEFAULT_RESULT_FORMAT,
     ResultFormat,
@@ -46,7 +47,15 @@ class Validator:
         self._batch_parameters = batch_parameters
         self.result_format = result_format
 
-        self._get_validator = project_manager.get_validator
+        # A batch definition that belongs to a Data Context builds its validator through that
+        # context, so its data source is looked up among that context's own data sources.
+        # One that belongs to no context builds it through the current one (GX issue #12209).
+        owner = owner_from_batch_definition(batch_definition)
+        self._get_validator = (
+            owner.get_validator if owner is not None else project_manager.get_validator
+        )
+        self._wrapped_validator_cache: Optional[OldValidator] = None
+        self._wrapped_validator_lock = threading.RLock()
 
     def validate_expectation(
         self,
@@ -107,12 +116,24 @@ class Validator:
     def _include_rendered_content(self) -> bool:
         return project_manager.is_using_cloud()
 
-    @cached_property
+    @property
     def _wrapped_validator(self) -> OldValidator:
-        batch_request = self._batch_definition.build_batch_request(
-            batch_parameters=self._batch_parameters
-        )
-        return self._get_validator(batch_request=batch_request)
+        """Build the wrapped Validator on first access and reuse it afterwards.
+
+        This is deliberately not a `functools.cached_property`. On Python 3.10 and 3.11 that
+        descriptor holds one `RLock` per property per class and computes inside it, so building
+        two Validators on two threads serializes even when the two share nothing, and a thread
+        that blocks inside the build holds the lock every other Validator needs to start its
+        own. CPython removed the lock in 3.12 (python/cpython#87634). Locking per instance
+        keeps concurrent builds independent while still computing once per instance.
+        """
+        with self._wrapped_validator_lock:
+            if self._wrapped_validator_cache is None:
+                batch_request = self._batch_definition.build_batch_request(
+                    batch_parameters=self._batch_parameters
+                )
+                self._wrapped_validator_cache = self._get_validator(batch_request=batch_request)
+            return self._wrapped_validator_cache
 
     def _validate_expectation_configs(
         self,
