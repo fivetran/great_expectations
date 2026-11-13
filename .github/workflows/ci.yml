@@ -628,6 +628,7 @@ jobs:
           - clickhouse
           - singlestore
           - oracle
+          - exasol
         python-version: ${{ fromJSON(needs.python-versions.outputs.reduced) }}
         # ---- Exclusion register ----------------------------------------------------
         # A lane is held on an older Python when its driver has no release for the
