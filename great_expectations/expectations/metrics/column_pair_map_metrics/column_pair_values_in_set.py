@@ -41,19 +41,10 @@ class ColumnPairValuesInSet(ColumnPairMapMetricProvider):
         temp_df = pd.DataFrame({"A": column_A, "B": column_B})
         value_pairs_set = {(x, y) for x, y in value_pairs_set}
 
-        results = []
-        for i, t in temp_df.iterrows():
-            if pd.isnull(t["A"]):
-                a = None
-            else:
-                a = t["A"]
-
-            if pd.isnull(t["B"]):
-                b = None
-            else:
-                b = t["B"]
-
-            results.append((a, b) in value_pairs_set)
+        # Missing values are compared as None.
+        values_A = temp_df["A"].astype(object).where(temp_df["A"].notna(), None)
+        values_B = temp_df["B"].astype(object).where(temp_df["B"].notna(), None)
+        results = [(a, b) in value_pairs_set for a, b in zip(values_A, values_B, strict=True)]
 
         return pd.Series(results, index=temp_df.index)
 
