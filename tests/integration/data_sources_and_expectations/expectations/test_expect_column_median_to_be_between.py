@@ -4,18 +4,25 @@ import pytest
 import great_expectations.expectations as gxe
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.expectations.row_conditions import Column
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.data_source_lists import (
     JUST_PANDAS_DATA_SOURCES,
 )
 from tests.integration.test_utils.data_source_config import (
     ALL_DATA_SOURCES,
+    SQL_DATA_SOURCES,
 )
 
 COL_NAME = "my_col"
 
 ODD_COUNT = pd.DataFrame({COL_NAME: [1, 10, 11, None]}, dtype="object")
 EVEN_COUNT = pd.DataFrame({COL_NAME: [1, 10, 11, 12, None]}, dtype="object")
+
+FILTER_COL_NAME = "filter_col"
+# A row condition of `filter_col > 0` drops the first row, whose outlier value would otherwise move
+# the median from 2.5 to 3.
+ROW_CONDITION_DATA = pd.DataFrame({COL_NAME: [100, 1, 2, 3, 4], FILTER_COL_NAME: [0, 1, 1, 1, 1]})
 
 
 @parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=EVEN_COUNT)
@@ -157,3 +164,17 @@ def test_success_with_suite_param_strict_max_(
         expectation, expectation_parameters={suite_param_key: suite_param_value}
     )
     assert result.success == expected_result
+
+
+@parameterize_batch_for_data_sources(data_source_configs=SQL_DATA_SOURCES, data=ROW_CONDITION_DATA)
+def test_sql_row_condition_filters_domain(batch_for_datasource: Batch) -> None:
+    """A row condition makes the SQL domain a SELECT, which must be wrapped to be used as a FROM."""
+    expectation = gxe.ExpectColumnMedianToBeBetween(
+        column=COL_NAME,
+        min_value=2.5,
+        max_value=2.5,
+        row_condition=Column(FILTER_COL_NAME) > 0,
+    )
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    assert result.success, result.exception_info
+    assert result.to_json_dict()["result"] == {"observed_value": 2.5}

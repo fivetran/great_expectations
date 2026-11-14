@@ -9,6 +9,7 @@ from great_expectations.expectations.row_conditions import (  # noqa: F401
     MAX_CONDITIONS,
     AndCondition,
     Column,
+    ColumnComparisonCondition,
     ComparisonCondition,
     Condition,
     NullityCondition,

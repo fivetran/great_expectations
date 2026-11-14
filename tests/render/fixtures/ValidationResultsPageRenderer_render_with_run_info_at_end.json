@@ -263,10 +263,25 @@
               {
                 "content_block_type": "string_template",
                 "string_template": {
-                  "template": "Must have a list of columns in a specific order, but that order is not specified.",
+                  "template": "Must have these columns in this order: $column_list_0, $column_list_1, $column_list_2, $column_list_3, $column_list_4, $column_list_5, $column_list_6",
                   "params": {
-                    "column_list": null,
-                    "result_format": "SUMMARY"
+                    "column_list": [
+                      "Unnamed: 0",
+                      "Name",
+                      "PClass",
+                      "Age",
+                      "Sex",
+                      "Survived",
+                      "SexCode"
+                    ],
+                    "result_format": "SUMMARY",
+                    "column_list_0": "Unnamed: 0",
+                    "column_list_1": "Name",
+                    "column_list_2": "PClass",
+                    "column_list_3": "Age",
+                    "column_list_4": "Sex",
+                    "column_list_5": "Survived",
+                    "column_list_6": "SexCode"
                   },
                   "styling": {
                     "default": {

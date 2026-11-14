@@ -197,7 +197,7 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    column_set: Union[list, set, SuiteParameterDict, None] = pydantic.Field(
+    column_set: Union[list, set, SuiteParameterDict] = pydantic.Field(
         description=COLUMN_SET_DESCRIPTION
     )
     exact_match: Union[bool, SuiteParameterDict, None] = pydantic.Field(
@@ -225,6 +225,14 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
         "column_set",
         "exact_match",
     )
+
+    @pydantic.validator("column_set")
+    def _validate_column_set(
+        cls, column_set: Union[list, set, SuiteParameterDict]
+    ) -> Union[list, set, SuiteParameterDict]:
+        if not column_set:
+            raise ValueError("column_set must be a non-empty list or set.")  # noqa: TRY003 # Error message gets swallowed by Pydantic
+        return column_set
 
     class Config:
         title = "Expect table columns to match set"
@@ -457,10 +465,7 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
             return self._validate_sqlalchemy(metrics)
 
         # Retrieve expected and observed column names
-        expected_column_list = self._get_success_kwargs().get("column_set")
-        expected_column_set = (
-            set(expected_column_list) if expected_column_list is not None else set()
-        )
+        expected_column_set = set(self._get_success_kwargs()["column_set"])
         actual_column_list = metrics["table.columns"]
         actual_column_set = set(actual_column_list)
 

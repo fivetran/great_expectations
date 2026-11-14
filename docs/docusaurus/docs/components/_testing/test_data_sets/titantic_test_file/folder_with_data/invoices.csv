@@ -1,0 +1,11 @@
+invoice_id,amount_due,amount_paid,status
+1,100.00,100.00,paid
+2,250.00,250.00,paid
+3,80.00,40.00,partially_paid
+4,500.00,,unpaid
+5,120.00,0.00,unpaid
+6,60.00,60.00,paid
+7,300.00,150.00,partially_paid
+8,45.00,,unpaid
+9,90.00,90.00,paid
+10,200.00,50.00,partially_paid

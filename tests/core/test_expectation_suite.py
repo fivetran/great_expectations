@@ -28,6 +28,14 @@ from great_expectations.expectations import (
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
+from great_expectations.expectations.row_conditions import (
+    AndCondition,
+    Column,
+    ColumnComparisonCondition,
+    ComparisonCondition,
+    Operator,
+    OrCondition,
+)
 from great_expectations.render import RenderedAtomicContent, RenderedAtomicValue
 
 if TYPE_CHECKING:
@@ -509,6 +517,49 @@ class TestCRUDMethods:
         assert len(suite.expectations) == 1, "Expectation must still be in Suite."
 
     @pytest.mark.unit
+    def test_delete_restores_original_expectations_when_save_fails(self):
+        context = Mock(spec=AbstractDataContext)
+        context.expectations_store.has_key.return_value = True
+        context.expectations_store.delete_expectation.side_effect = KeyError()
+        set_context(project=context)
+        saved_expectation = gxe.ExpectColumnValuesToBeInSet(column="a", value_set=[1, 2, 3])
+        other_expectation = gxe.ExpectColumnValuesToBeUnique(column="b")
+        suite = ExpectationSuite(
+            name="test-suite",
+            expectations=[saved_expectation, other_expectation],
+        )
+        # the store assigns ids when a suite is saved; mimic that here
+        saved_expectation.id = str(uuid.uuid4())
+        other_expectation.id = str(uuid.uuid4())
+        equivalent_expectation = gxe.ExpectColumnValuesToBeInSet(column="a", value_set=[1, 2, 3])
+
+        with pytest.raises(KeyError):
+            suite.delete_expectation(expectation=equivalent_expectation)
+
+        # the suite must be unchanged: same objects, same order, ids intact
+        assert suite.expectations == [saved_expectation, other_expectation]
+        assert all(exp.id for exp in suite.expectations)
+
+    @pytest.mark.unit
+    def test_delete_passes_the_suites_own_expectation_to_the_store(self):
+        context = Mock(spec=AbstractDataContext)
+        context.expectations_store.has_key.return_value = True
+        set_context(project=context)
+        saved_expectation = gxe.ExpectColumnValuesToBeInSet(column="a", value_set=[1, 2, 3])
+        suite = ExpectationSuite(name="test-suite", expectations=[saved_expectation])
+        saved_expectation.id = str(uuid.uuid4())  # the store assigns ids when a suite is saved
+
+        # an equivalent Expectation that has no id, i.e. it was never added to the suite
+        suite.delete_expectation(
+            expectation=gxe.ExpectColumnValuesToBeInSet(column="a", value_set=[1, 2, 3])
+        )
+
+        assert suite.expectations == []
+        context.expectations_store.delete_expectation.assert_called_once_with(
+            suite=suite, expectation=saved_expectation
+        )
+
+    @pytest.mark.unit
     def test_save_success(self):
         context = Mock(spec=AbstractDataContext)
         context.expectations_store.has_key.return_value = True
@@ -656,6 +707,116 @@ class TestCRUDMethods:
         new_name = "updated name"
         suite.name = "updated name"
         assert suite.name == new_name
+
+
+COLUMN_COMPARISON_OPERATORS = [
+    Operator.EQUAL,
+    Operator.NOT_EQUAL,
+    Operator.LESS_THAN,
+    Operator.LESS_THAN_OR_EQUAL,
+    Operator.GREATER_THAN,
+    Operator.GREATER_THAN_OR_EQUAL,
+]
+
+
+@pytest.mark.unit
+class TestAddExpectationDeduplicatesByColumnComparison:
+    """Two Expectations are one only if their column comparisons are the same too."""
+
+    @pytest.fixture
+    def suite(self) -> ExpectationSuite:
+        context = Mock(spec=AbstractDataContext)
+        context.expectations_store.has_key.return_value = False
+        set_context(project=context)
+        return ExpectationSuite(name="test-suite")
+
+    @staticmethod
+    def _not_null(row_condition) -> ExpectColumnValuesToNotBeNull:
+        return ExpectColumnValuesToNotBeNull(column="x", row_condition=row_condition)
+
+    @staticmethod
+    def _column_comparison(
+        left: str = "end_date",
+        operator: Operator = Operator.GREATER_THAN,
+        right: str = "start_date",
+    ) -> ColumnComparisonCondition:
+        return ColumnComparisonCondition(
+            column=Column(left), operator=operator, other_column=Column(right)
+        )
+
+    def test_identical_column_comparisons_collapse_to_one_expectation(self, suite):
+        suite.add_expectation(self._not_null(self._column_comparison()))
+        suite.add_expectation(self._not_null(self._column_comparison()))
+
+        assert len(suite.expectations) == 1
+
+    def test_swapping_the_two_columns_makes_a_distinct_expectation(self, suite):
+        suite.add_expectation(self._not_null(self._column_comparison("a", Operator.LESS_THAN, "b")))
+        suite.add_expectation(self._not_null(self._column_comparison("b", Operator.LESS_THAN, "a")))
+
+        assert len(suite.expectations) == 2
+
+    def test_changing_only_the_other_column_makes_a_distinct_expectation(self, suite):
+        suite.add_expectation(self._not_null(self._column_comparison("a", Operator.EQUAL, "b")))
+        suite.add_expectation(self._not_null(self._column_comparison("a", Operator.EQUAL, "c")))
+
+        assert len(suite.expectations) == 2
+
+    @pytest.mark.parametrize("index", range(len(COLUMN_COMPARISON_OPERATORS)))
+    def test_changing_only_the_operator_makes_a_distinct_expectation(self, suite, index: int):
+        first = COLUMN_COMPARISON_OPERATORS[index]
+        second = COLUMN_COMPARISON_OPERATORS[(index + 1) % len(COLUMN_COMPARISON_OPERATORS)]
+        suite.add_expectation(self._not_null(self._column_comparison("a", first, "b")))
+        suite.add_expectation(self._not_null(self._column_comparison("a", second, "b")))
+
+        assert len(suite.expectations) == 2
+
+    def test_a_column_comparison_and_a_literal_comparison_are_distinct_expectations(self, suite):
+        suite.add_expectation(self._not_null(self._column_comparison("a", Operator.EQUAL, "b")))
+        suite.add_expectation(
+            self._not_null(
+                ComparisonCondition(column=Column("a"), operator=Operator.EQUAL, parameter="b")
+            )
+        )
+
+        assert len(suite.expectations) == 2
+
+    def test_a_column_comparison_and_no_row_condition_are_distinct_expectations(self, suite):
+        suite.add_expectation(self._not_null(self._column_comparison()))
+        suite.add_expectation(self._not_null(None))
+
+        assert len(suite.expectations) == 2
+
+    @pytest.mark.parametrize("group", [AndCondition, OrCondition])
+    def test_column_comparisons_inside_a_group_are_told_apart(self, suite, group):
+        literal = ComparisonCondition(
+            column=Column("status"), operator=Operator.EQUAL, parameter="shipped"
+        )
+        suite.add_expectation(
+            self._not_null(
+                group(conditions=[literal, self._column_comparison("a", Operator.LESS_THAN, "b")])
+            )
+        )
+        suite.add_expectation(
+            self._not_null(
+                group(conditions=[literal, self._column_comparison("b", Operator.LESS_THAN, "a")])
+            )
+        )
+        suite.add_expectation(
+            self._not_null(
+                group(conditions=[literal, self._column_comparison("a", Operator.LESS_THAN, "b")])
+            )
+        )
+
+        assert len(suite.expectations) == 2
+
+    def test_a_different_expectation_with_the_same_column_comparison_stays_distinct(self, suite):
+        suite.add_expectation(self._not_null(self._column_comparison()))
+        suite.add_expectation(
+            ExpectColumnValuesToBeUnique(column="x", row_condition=self._column_comparison())
+        )
+
+        assert len(suite.expectations) == 2
 
 
 class TestSuiteParameterOptions:
