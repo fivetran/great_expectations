@@ -156,13 +156,20 @@ class ExpectationsStore(Store):
         # we need to find which ID has been added by the backend
         old_ids = {exp.id for exp in fetched_suite.expectations}
 
+        previous_id = expectation.id
         if self.cloud_mode:
             expectation.id = None  # flag this expectation as new for the backend
         else:
             expectation.id = str(uuid.uuid4())
         fetched_suite.expectations.append(expectation)
 
-        self.update(key=suite_identifier, value=fetched_suite)
+        try:
+            self.update(key=suite_identifier, value=fetched_suite)
+        except Exception:
+            # Nothing was stored, so leave the caller's Expectation as it was. Keeping the id
+            # would make ExpectationSuite.add_expectation reject a retry of the same Expectation.
+            expectation.id = previous_id
+            raise
         if self.cloud_mode:
             # since update doesn't return the object we need (here), we refetch the suite
             suite_identifier, fetched_suite = self._refresh_suite(suite)

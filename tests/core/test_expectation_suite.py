@@ -403,6 +403,27 @@ class TestCRUDMethods:
 
         assert len(suite.expectations) == 0, "Expectation must not be added to Suite."
 
+    @pytest.mark.filesystem
+    def test_filesystem_expectation_can_be_added_again_after_the_store_fails(
+        self, empty_data_context, expectation
+    ):
+        context = empty_data_context
+        suite = context.suites.add(ExpectationSuite("test-suite"))
+
+        with (
+            mock.patch.object(context.expectations_store, "update", side_effect=ConnectionError),
+            pytest.raises(ConnectionError),
+        ):
+            suite.add_expectation(expectation)
+        assert expectation.id is None
+        assert suite.expectations == []
+
+        suite.add_expectation(expectation)
+
+        assert len(suite.expectations) == 1
+        assert expectation.id
+        assert len(context.suites.get("test-suite").expectations) == 1
+
     @pytest.mark.unit
     def test_add_success_when_attributes_are_identical(self):
         context = Mock(spec=AbstractDataContext)
