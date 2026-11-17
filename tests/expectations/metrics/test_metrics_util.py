@@ -1874,7 +1874,7 @@ def test_get_dialect_regex_expression_resolves_exasol_aggregate_family() -> None
     stub: Any = _DialectDetectionStub(name="exasol")
     column: Any = sa.column("a")
 
-    regex_expression =get_dialect_regex_expression(column=column, regex="test", dialect=stub)
+    regex_expression = get_dialect_regex_expression(column=column, regex="test", dialect=stub)
     assert regex_expression is not None, (
         "get_dialect_regex_expression returned None for Exasol -- the branch is gone or is "
         "no longer detected by dialect name, and the sa.not_() rendering below cannot be pinned"
