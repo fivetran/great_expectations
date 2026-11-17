@@ -4375,6 +4375,50 @@ def test_map_column_pairs_in_set_metric_pd():
     )
 
 
+@pytest.mark.unit
+def test_map_column_pairs_in_set_metric_pd_datetimes_and_missing_values():
+    day_1 = pd.Timestamp("2024-01-01")
+    day_2 = pd.Timestamp("2024-01-02")
+    df = pd.DataFrame(
+        {
+            "a": [day_1, day_2, pd.NaT, day_1, pd.NaT],
+            "b": ["x", None, "y", "y", None],
+        }
+    )
+    engine = PandasExecutionEngine(batch_data_dict={"my_id": df})
+
+    metrics: Dict[MetricConfigurationID, MetricValue] = {}
+
+    table_columns_metric, results = get_table_columns_metric(execution_engine=engine)
+    metrics.update(results)
+
+    condition_metric = MetricConfiguration(
+        metric_name=f"column_pair_values.in_set.{MetricPartialFunctionTypeSuffixes.CONDITION.value}",
+        metric_domain_kwargs={
+            "column_A": "a",
+            "column_B": "b",
+            "ignore_row_if": "neither",
+        },
+        metric_value_kwargs={
+            "value_pairs_set": [(day_1, "x"), (day_2, None), (None, "y")],
+        },
+    )
+    condition_metric.metric_dependencies = {
+        "table.columns": table_columns_metric,
+    }
+    results = engine.resolve_metrics(
+        metrics_to_resolve=(condition_metric,),
+        metrics=metrics,
+    )
+
+    # Missing values are matched as None; True marks an unexpected row.
+    assert (
+        results[condition_metric.id][0]
+        .reset_index(drop=True)
+        .equals(pd.Series([False, False, False, True, True]))
+    )
+
+
 @pytest.mark.sqlite
 def test_map_column_pairs_in_set_metric_sa(sa):
     engine = build_sa_execution_engine(
