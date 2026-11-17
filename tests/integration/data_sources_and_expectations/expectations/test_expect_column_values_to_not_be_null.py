@@ -6,6 +6,7 @@ import pytest
 import great_expectations.expectations as gxe
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.expectations.row_conditions import Column
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.data_source_lists import (
     JUST_PANDAS_DATA_SOURCES,
@@ -267,3 +268,24 @@ def test_unexpected_index_column_names(batch_for_datasource: Batch) -> None:
     result_dict = result["result"]
     assert "unexpected_index_column_names" in result_dict
     assert result_dict["unexpected_index_column_names"] == ["customer_id"]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        PandasDataFrameDatasourceTestConfig(),
+        *SQL_DATA_SOURCES,
+        SparkFilesystemCsvDatasourceTestConfig(column_types=SPARK_COLUMN_TYPES),
+    ],
+    data=DATA,
+)
+def test_row_condition_matching_no_rows_reports_zero_unexpected(
+    batch_for_datasource: Batch,
+) -> None:
+    """A batch with no rows left reports an unexpected_count of 0 on every backend, not None."""
+    expectation = gxe.ExpectColumnValuesToNotBeNull(
+        column=ALL_NULL_COLUMN, row_condition=Column(NON_NULL_COLUMN) > 100
+    )
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.SUMMARY)
+    assert result.success
+    assert result["result"]["element_count"] == 0
+    assert result["result"]["unexpected_count"] == 0

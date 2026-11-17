@@ -262,12 +262,17 @@ def _sqlalchemy_map_condition_unexpected_count_aggregate_fn(
         "unexpected_condition"
     ]
 
+    # SUM over zero rows is NULL, so default it to zero. This matches the pandas count and the
+    # value-metric variant below, for an empty table or a row condition that matches no rows.
     return (
-        sa.func.sum(
-            sa.case(
-                (unexpected_condition, 1),
-                else_=0,
-            )
+        sa.func.coalesce(
+            sa.func.sum(
+                sa.case(
+                    (unexpected_condition, 1),
+                    else_=0,
+                )
+            ),
+            0,
         ),
         compute_domain_kwargs,
         accessor_domain_kwargs,
@@ -607,7 +612,7 @@ def _spark_map_condition_unexpected_count_aggregate_fn(
         "unexpected_condition"
     ]
     return (
-        F.sum(F.when(unexpected_condition, 1).otherwise(0)),
+        F.coalesce(F.sum(F.when(unexpected_condition, 1).otherwise(0)), F.lit(0)),
         compute_domain_kwargs,
         accessor_domain_kwargs,
     )
