@@ -177,6 +177,36 @@ def test_regex_match(batch_for_datasource: Batch) -> None:
     assert result.success
 
 
+@parameterize_batch_for_data_sources(data_source_configs=_sources(REGEX_MATCH), data=DATA)
+def test_regex_match_is_a_substring_search_not_a_whole_string_match(
+    batch_for_datasource: Batch,
+) -> None:
+    """`column_values.match_regex` looks for the pattern anywhere in the value.
+
+    Its reference implementation is `column.astype(str).str.contains(regex)`
+    (`column_values_match_regex.py`), and pandas' `str.contains` is `re.search`. So the
+    pattern below -- "every name begins with a capital letter" -- must pass, exactly as
+    `test_regex_match` above does with the trailing `.*` present.
+
+    The *missing* trailing `.*` is the whole point of this case. With it -- as in
+    `test_regex_match` -- the pattern matches each fixture value in full, so the case
+    passes even on a backend whose regex predicate is a whole-string match. Without it,
+    only a real substring search passes. That is what makes this case able to distinguish
+    the two readings and `test_regex_match` unable to.
+
+    Registered under the same `REGEX_MATCH` key, so the tier's key count and the
+    `CURATED_CASE_KEYS` guards below are unmoved, and a backend excluding regex coverage
+    still excludes both cases with one declaration.
+    """
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToMatchRegex(
+            column="name",
+            regex="^[A-Z]",
+        )
+    )
+    assert result.success
+
+
 @parameterize_batch_for_data_sources(data_source_configs=_sources(UNIQUENESS), data=DATA)
 def test_uniqueness(batch_for_datasource: Batch) -> None:
     result = batch_for_datasource.validate(
@@ -309,15 +339,15 @@ def test_case_accessor_results_match_the_pinned_pre_attribution_values() -> None
     from the same declarations it is meant to guard would stay green through the same defect.
     """
     expected_labels_by_case_key = {
-        BATCH_DEFINITION: ["clickhouse", "oracle", "singlestore", "trino"],
-        NUMERIC_AGGREGATION: ["clickhouse", "oracle", "singlestore", "trino"],
-        QUOTED_IDENTIFIERS: ["oracle", "singlestore", "trino"],
-        REGEX_MATCH: ["clickhouse", "oracle", "singlestore", "trino"],
-        ROW_CONDITION: ["clickhouse", "oracle", "singlestore", "trino"],
-        ROW_COUNT: ["clickhouse", "oracle", "singlestore", "trino"],
-        UNEXPECTED_ROWS_QUERY: ["clickhouse", "oracle", "singlestore", "trino"],
-        UNIQUENESS: ["clickhouse", "oracle", "singlestore", "trino"],
-        VALUE_SET_VALIDATION: ["clickhouse", "oracle", "singlestore", "trino"],
+        BATCH_DEFINITION: ["clickhouse", "exasol", "oracle", "singlestore", "trino"],
+        NUMERIC_AGGREGATION: ["clickhouse", "exasol", "oracle", "singlestore", "trino"],
+        QUOTED_IDENTIFIERS: ["exasol", "oracle", "singlestore", "trino"],
+        REGEX_MATCH: ["clickhouse", "exasol", "oracle", "singlestore", "trino"],
+        ROW_CONDITION: ["clickhouse", "exasol", "oracle", "singlestore", "trino"],
+        ROW_COUNT: ["clickhouse", "exasol", "oracle", "singlestore", "trino"],
+        UNEXPECTED_ROWS_QUERY: ["clickhouse", "exasol", "oracle", "singlestore", "trino"],
+        UNIQUENESS: ["clickhouse", "exasol", "oracle", "singlestore", "trino"],
+        VALUE_SET_VALIDATION: ["clickhouse", "exasol", "oracle", "singlestore", "trino"],
     }
     assert set(expected_labels_by_case_key) == CURATED_CASE_KEYS, (
         "this pin must cover exactly the suite's published case keys"
