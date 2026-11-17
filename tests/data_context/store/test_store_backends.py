@@ -464,7 +464,6 @@ def test_InlineStoreBackend(empty_data_context) -> None:
         resource_type=DataContextVariableSchema.ALL_VARIABLES,
     )
     assert sorted(inline_store_backend.list_keys()) == [
-        ("analytics_enabled",),
         ("checkpoint_store_name",),
         ("config_variables_file_path",),
         ("config_version",),

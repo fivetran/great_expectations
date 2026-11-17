@@ -21,7 +21,7 @@ from great_expectations.data_context.data_context.abstract_data_context import (
 )
 from great_expectations.data_context.templates import (
     CONFIG_VARIABLES_TEMPLATE,
-    PROJECT_TEMPLATE_USAGE_STATISTICS_ENABLED,
+    PROJECT_TEMPLATE,
 )
 from great_expectations.data_context.types.base import (
     DataContextConfigDefaults,
@@ -123,7 +123,6 @@ class SerializableDataContext(AbstractDataContext):
 
         Args:
             project_root_dir: path to the root directory in which to create a new gx directory
-            usage_statistics_enabled: boolean directive specifying whether or not to gather usage statistics
             runtime_environment: a dictionary of config variables that override both those set in
                 config_variables.yml and the environment
 
@@ -211,7 +210,7 @@ class SerializableDataContext(AbstractDataContext):
         gx_dir = pathlib.Path(gx_dir)
         file_path = gx_dir / cls.GX_YML
         with file_path.open("w") as template:
-            template.write(PROJECT_TEMPLATE_USAGE_STATISTICS_ENABLED)
+            template.write(PROJECT_TEMPLATE)
 
     @classmethod
     def _scaffold_directories(cls, base_dir: pathlib.Path) -> None:

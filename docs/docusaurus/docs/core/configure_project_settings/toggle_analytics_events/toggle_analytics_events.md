@@ -1,43 +1,17 @@
 ---
-title: Toggle analytics events
-description: Enable or disable the collection of analytics events within GX.
+title: Analytics events
+description: GX Core does not collect or send analytics events.
 hide_feedback_survey: false
 hide_title: false
 hide_table_of_contents: true
 ---
 
+GX Core does not collect or send analytics events. Usage analytics were removed from the library in version 1.7.0, and the library no longer installs the `posthog` dependency. Nothing in GX Core reports how, where, or by whom it is used.
 
-import TabItem from '@theme/TabItem';
-import Tabs from '@theme/Tabs';
+## Existing analytics settings
 
-import TabEnvironmentVaribale from './_tab_environment_variable.md';
-import TabContextVariable from './_tab_context_variable.md';
+The `analytics_enabled` key in `great_expectations.yml`, the `context.variables.analytics_enabled` Data Context variable, the `context.enable_analytics()` method, the `user_agent_str` argument to `gx.get_context()`, and the `GX_ANALYTICS_ENABLED` environment variable are still accepted so that existing configuration files and code keep working. None of them has any effect, and you can remove them. The Python method, variable, and argument emit a `DeprecationWarning` when used, and will be removed in a future major version of GX.
 
-To help us improve Great Expectations, we track analytics events by default. The data includes things like which GX features are used with what OS and Python version. While we hope you'll leave them on, you can disable analytics events tracking for a Data Context.
+## Earlier versions
 
-In order to determine if analytics should be enabled, GX Core checks two sources:
-
-- The environment variable `GX_ANALYTICS_ENABLED`
-- The Data Context variable `analytics_enabled`
-
-If either variable is set to False, analytics collection will be disabled.  If the variables are not explicitly set to False, they are assumed to be True.
-
-## Methods for toggling analytics collection
-
-Select one of the following methods for toggling analytics collection:
-
-<Tabs queryString="config_method" groupId="config_method" defaultValue='environment_variable'>
-
-   <TabItem value="environment_variable" label="Environment Variable">
-   
-   <TabEnvironmentVaribale/>
-   
-   </TabItem>
-
-   <TabItem value="context_variable" label="Data Context Variable">
-
-   <TabContextVariable/>
-
-   </TabItem>
-
-</Tabs>
+GX Core 1.0 through 1.6 sent analytics events by default. If you use one of those versions, set the environment variable `GX_ANALYTICS_ENABLED=False` or the Data Context variable `analytics_enabled: false` to turn them off, or upgrade to GX Core 1.7.0 or later.

@@ -8,6 +8,7 @@ import logging
 import pathlib
 import tempfile
 import uuid
+import warnings
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -30,6 +31,7 @@ from marshmallow import (
     post_dump,
     post_load,
     pre_dump,
+    pre_load,
     validates_schema,
 )
 from ruamel.yaml import YAML
@@ -1115,7 +1117,6 @@ class DataContextConfigSchema(Schema):
     stores = fields.Dict(keys=fields.Str(), values=fields.Dict())
     data_docs_sites = fields.Dict(keys=fields.Str(), values=fields.Dict(), allow_none=True)
     config_variables_file_path = fields.Str(allow_none=True)
-    analytics_enabled = fields.Boolean(allow_none=True)
     data_context_id = fields.UUID(allow_none=True)
     progress_bars = fields.Nested(ProgressBarsConfigSchema, required=False, allow_none=True)
 
@@ -1125,6 +1126,23 @@ class DataContextConfigSchema(Schema):
         "progress_bars",  # 0.13.49
         "fluent_datasources",
     ]
+
+    # Keys that configurations written by earlier versions of GX may still contain, but that
+    # no longer configure anything. They are dropped on load rather than rejected, so that an
+    # existing great_expectations.yml keeps loading.
+    REMOVED_KEYS = [
+        "analytics_enabled",  # 1.7.0 removed usage analytics
+    ]
+
+    # noinspection PyUnusedLocal
+    @pre_load
+    def drop_removed_keys(self, data: dict, **kwargs) -> dict:
+        if not any(key in data for key in self.REMOVED_KEYS):
+            return data
+        data = dict(data)
+        for key in self.REMOVED_KEYS:
+            data.pop(key, None)
+        return data
 
     # noinspection PyUnusedLocal
     @post_dump
@@ -1407,6 +1425,19 @@ class InMemoryStoreBackendDefaults(BaseStoreBackendDefaults):
             self.data_docs_sites = {}
 
 
+def _warn_if_analytics_enabled_passed(analytics_enabled: Optional[bool]) -> None:
+    if analytics_enabled is None:
+        return
+    # deprecated-v1.25.0
+    warnings.warn(
+        "The `analytics_enabled` argument to DataContextConfig is deprecated and has no "
+        "effect: GX Core does not collect analytics. It will be removed in a future "
+        "major version of GX.",
+        category=DeprecationWarning,
+        stacklevel=3,
+    )
+
+
 @public_api
 class DataContextConfig(BaseYamlConfig):
     """Config class for DataContext.
@@ -1429,7 +1460,7 @@ class DataContextConfig(BaseYamlConfig):
         stores (Optional[dict]): single holder for all Stores associated with this DataContext.
         data_docs_sites (Optional[dict]): DataDocs sites associated with DataContext.
         config_variables_file_path (Optional[str]): path for config_variables file, if used.
-        analytics_enabled (Optional[bool]): whether or not to send usage statistics to the Great Expectations team.
+        analytics_enabled (Optional[bool]): deprecated and ignored. GX Core does not collect analytics.
         data_context_id (Optional[UUID]): unique identifier for the DataContext.
         store_backend_defaults (Optional[BaseStoreBackendDefaults]):  define base defaults for platform specific StoreBackendDefaults.
             For example, if you plan to store expectations, validations, and data_docs in s3 use the S3StoreBackendDefaults
@@ -1483,11 +1514,18 @@ class DataContextConfig(BaseYamlConfig):
         self.stores = self._init_stores(stores)
         self.data_docs_sites = data_docs_sites
         self.config_variables_file_path = config_variables_file_path
-        self.analytics_enabled = analytics_enabled
+        _warn_if_analytics_enabled_passed(analytics_enabled)
         self.data_context_id = data_context_id
         self.progress_bars = progress_bars
 
         super().__init__(commented_map=commented_map)
+        self._drop_removed_keys_from_commented_map()
+
+    def _drop_removed_keys_from_commented_map(self) -> None:
+        # A configuration file written by an earlier version may still carry removed keys; drop
+        # them so they are not written back out when the configuration is saved.
+        for key in DataContextConfigSchema.REMOVED_KEYS:
+            self._commented_map.pop(key, None)
 
     def _init_stores(self, store_configs: dict | None) -> dict:
         # If missing all, use all defaults

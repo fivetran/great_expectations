@@ -22,11 +22,6 @@ if TYPE_CHECKING:
 
 yaml = YAMLHandler()
 
-# No longer used but keeping around for tests
-USAGE_STATISTICS_QA_URL = (
-    "https://qa.stats.greatexpectations.io/great_expectations/v1/usage_statistics"
-)
-
 
 @pytest.fixture()
 def data_context_without_config_variables_filepath_configured(tmp_path_factory):
@@ -148,7 +143,6 @@ def basic_data_context_config():
                 },
             },
             "data_docs_sites": {},
-            "analytics_enabled": True,
             "data_context_id": "6a52bdfa-e182-455b-a825-e69f076e67d6",
         }
     )
@@ -208,7 +202,6 @@ def data_context_config_with_datasources(conn_string_password):
                 },
             },
             "data_docs_sites": {},
-            "analytics_enabled": True,
             "data_context_id": "6a52bdfa-e182-455b-a825-e69f076e67d6",
         }
     )

@@ -62,7 +62,5 @@ Requirements
 Any time you update any of the requirements files in this `reqs` directory or the root of the repo, your're going to want to run the tests in these 2 files and make adjustments.
 
 ```
-pytest -vv tests/core/usage_statistics/test_package_dependencies.py tests/test_packaging.py
+pytest -vv tests/test_packaging.py
 ```
-
-Might need to update `great_expectations/core/usage_statistics/package_dependencies.py`.

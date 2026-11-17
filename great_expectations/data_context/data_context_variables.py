@@ -4,6 +4,7 @@ import contextlib
 import enum
 import logging
 import uuid
+import warnings
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Dict, Generator, Optional
@@ -46,7 +47,6 @@ class DataContextVariableSchema(str, enum.Enum):
     STORES = "stores"
     DATA_DOCS_SITES = "data_docs_sites"
     CONFIG_VARIABLES_FILE_PATH = "config_variables_file_path"
-    ANALYTICS_ENABLED = "analytics_enabled"
     DATA_CONTEXT_ID = "data_context_id"
     PROGRESS_BARS = "progress_bars"
 
@@ -189,13 +189,24 @@ class DataContextVariables(ABC):
     def analytics_enabled(
         self,
     ) -> Optional[bool]:
-        return self._get(DataContextVariableSchema.ANALYTICS_ENABLED)
+        """Deprecated and always None: GX Core does not collect analytics."""
+        # deprecated-v1.25.0
+        warnings.warn(
+            "`analytics_enabled` is deprecated and has no effect: GX Core does not collect "
+            "analytics. It will be removed in a future major version of GX.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return None
 
     @analytics_enabled.setter
-    def analytics_enabled(self, analytics_enabled: bool) -> None:
-        self._set(
-            DataContextVariableSchema.ANALYTICS_ENABLED,
-            analytics_enabled,
+    def analytics_enabled(self, analytics_enabled: Optional[bool]) -> None:
+        # deprecated-v1.25.0
+        warnings.warn(
+            "`analytics_enabled` is deprecated and has no effect: GX Core does not collect "
+            "analytics. It will be removed in a future major version of GX.",
+            category=DeprecationWarning,
+            stacklevel=2,
         )
 
     @property

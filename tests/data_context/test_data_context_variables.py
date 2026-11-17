@@ -53,7 +53,6 @@ def data_context_config_dict() -> dict:
             },
         },
         "data_docs_sites": {},
-        "analytics_enabled": True,
         "data_context_id": "6a52bdfa-e182-455b-a825-e69f076e67d6",
         "progress_bars": None,
     }
