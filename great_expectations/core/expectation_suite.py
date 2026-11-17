@@ -12,6 +12,7 @@ from typing import (
     Sequence,
     TypeVar,
     Union,
+    cast,
 )
 
 from marshmallow import Schema, fields, post_dump, post_load, pre_dump
@@ -145,7 +146,11 @@ class ExpectationSuite(SerializableDictDot):
 
     @public_api
     def add_expectation(self, expectation: _TExpectation) -> _TExpectation:
-        """Add an Expectation to the collection."""
+        """Add an Expectation to the collection.
+
+        If an equivalent Expectation is already in the suite nothing is added, and the Expectation
+        that is in the suite is returned.
+        """
         if expectation.id:
             raise RuntimeError(  # noqa: TRY003 # FIXME CoP
                 "Cannot add Expectation because it already belongs to an ExpectationSuite. "
@@ -156,14 +161,16 @@ class ExpectationSuite(SerializableDictDot):
             )
         should_save_expectation = self._has_been_saved()
 
-        already_added = any(
-            self._expectations_are_equalish(expectation, exp) for exp in self.expectations
-        )
-        if not already_added:
-            # suite is a set-like collection, so don't add if it not unique
-            if should_save_expectation:
-                expectation = self._store.add_expectation(suite=self, expectation=expectation)
-            self.expectations.append(expectation)
+        # suite is a set-like collection, so don't add if it not unique. Hand back the equivalent
+        # Expectation that is already in the suite, since that is the one that can be saved.
+        for existing_expectation in self.expectations:
+            if self._expectations_are_equalish(expectation, existing_expectation):
+                # the equivalent Expectation is of the same type as the one that was passed in
+                return cast("_TExpectation", existing_expectation)
+
+        if should_save_expectation:
+            expectation = self._store.add_expectation(suite=self, expectation=expectation)
+        self.expectations.append(expectation)
 
         expectation.register_save_callback(save_callback=self._save_expectation)
 
