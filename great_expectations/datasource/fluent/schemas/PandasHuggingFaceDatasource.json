@@ -1,0 +1,176 @@
+{
+    "title": "PandasHuggingFaceDatasource",
+    "description": "--Public API--Pandas backed datasource for datasets hosted on Hugging Face Hub.\n\nArgs:\n    name: Name of this datasource.\n    repository: Hugging Face dataset repository identifier.\n    token: Optional Hub token, either a secret value or a GX config-variable template.\n    hf_endpoint: Hugging Face Hub endpoint URL.\n    assets: Optional dataset assets to attach to this datasource.",
+    "type": "object",
+    "properties": {
+        "type": {
+            "title": "Type",
+            "default": "pandas_hugging_face",
+            "enum": [
+                "pandas_hugging_face"
+            ],
+            "type": "string"
+        },
+        "name": {
+            "title": "Name",
+            "type": "string"
+        },
+        "id": {
+            "title": "Id",
+            "description": "Datasource id",
+            "type": "string",
+            "format": "uuid"
+        },
+        "assets": {
+            "title": "Assets",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/HuggingFaceDatasetAsset"
+            }
+        },
+        "repository": {
+            "title": "Repository",
+            "type": "string"
+        },
+        "token": {
+            "title": "Token",
+            "anyOf": [
+                {
+                    "type": "string",
+                    "writeOnly": true,
+                    "format": "password",
+                    "description": "Contains config templates to be substituted at runtime. Runtime values will never be serialized.",
+                    "pattern": ".*(?<!\\\\)\\$\\{(.*?)\\}|(?<!\\\\)\\$([_a-zA-Z][_a-zA-Z0-9]*).*",
+                    "examples": [
+                        "hello_${NAME}",
+                        "${MY_CFG_VAR}"
+                    ]
+                },
+                {
+                    "type": "string",
+                    "writeOnly": true,
+                    "format": "password"
+                }
+            ]
+        },
+        "hf_endpoint": {
+            "title": "Hf Endpoint",
+            "default": "https://huggingface.co",
+            "type": "string"
+        }
+    },
+    "required": [
+        "name",
+        "repository"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "Sorter": {
+            "title": "Sorter",
+            "type": "object",
+            "properties": {
+                "key": {
+                    "title": "Key",
+                    "type": "string"
+                },
+                "reverse": {
+                    "title": "Reverse",
+                    "default": false,
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "key"
+            ]
+        },
+        "HuggingFaceBatchDefinition": {
+            "title": "HuggingFaceBatchDefinition",
+            "description": "--Public API--A named configuration and split to load from a Hugging Face repository.",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "Id",
+                    "type": "string"
+                },
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "partitioner": {
+                    "title": "Partitioner",
+                    "type": "null"
+                },
+                "config": {
+                    "title": "Config",
+                    "type": "string"
+                },
+                "split": {
+                    "title": "Split",
+                    "type": "string"
+                },
+                "whole_config": {
+                    "title": "Whole Config",
+                    "default": false,
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "name"
+            ]
+        },
+        "HuggingFaceDatasetAsset": {
+            "title": "HuggingFaceDatasetAsset",
+            "description": "--Public API--A tabular dataset from a Hugging Face repository.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "type": {
+                    "title": "Type",
+                    "default": "hugging_face_dataset",
+                    "enum": [
+                        "hugging_face_dataset"
+                    ],
+                    "type": "string"
+                },
+                "id": {
+                    "title": "Id",
+                    "description": "DataAsset id",
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "order_by": {
+                    "title": "Order By",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Sorter"
+                    }
+                },
+                "batch_metadata": {
+                    "title": "Batch Metadata",
+                    "type": "object"
+                },
+                "batch_definitions": {
+                    "title": "Batch Definitions",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/HuggingFaceBatchDefinition"
+                    }
+                },
+                "columns": {
+                    "title": "Columns",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

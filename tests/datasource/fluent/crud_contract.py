@@ -232,6 +232,13 @@ def _bucket(*, key: str, name: str) -> CreationArguments:
     return _build
 
 
+def _hugging_face_repository(repository: str) -> CreationArguments:
+    def _build(_scratch_directory: pathlib.Path) -> Mapping[str, object]:
+        return {"repository": repository}
+
+    return _build
+
+
 def _azure_options(account_url: str) -> CreationArguments:
     def _build(_scratch_directory: pathlib.Path) -> Mapping[str, object]:
         return {"azure_options": {"account_url": account_url}}
@@ -411,6 +418,11 @@ CONTRACT_PARAMETERS: Mapping[str, FluentTypeContractParameters] = {
             CREATE_OR_UPDATE_REPLACES_WHEN_PRESENT: _PANDAS_EXCLUSION_REASON,
             CREATE_OR_UPDATE_PERSISTS_ONE_ENTRY: _PANDAS_EXCLUSION_REASON,
         },
+    ),
+    # Hugging Face repository. A different repository identifier on overlay.
+    "pandas_hugging_face": FluentTypeContractParameters(
+        creation_arguments=_hugging_face_repository("contract-suite/dataset"),
+        update_overlay=_hugging_face_repository("contract-suite/dataset-overlay"),
     ),
 }
 CONTRACT_PARAMETERS = types.MappingProxyType(CONTRACT_PARAMETERS)

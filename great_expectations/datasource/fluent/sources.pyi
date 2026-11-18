@@ -36,6 +36,7 @@ from great_expectations.datasource.fluent import (
     PandasDBFSDatasource,
     PandasFilesystemDatasource,
     PandasGoogleCloudStorageDatasource,
+    PandasHuggingFaceDatasource,
     PandasS3Datasource,
     PostgresDatasource,
     SnowflakeDatasource,
@@ -278,6 +279,37 @@ class DataSourceManager:
         self,
         name: str,
     ) -> None: ...
+    def add_pandas_hugging_face(
+        self,
+        name_or_datasource: Optional[Union[str, Datasource]] = None,
+        name: Optional[str] = None,
+        datasource: Optional[Datasource] = None,
+        *,
+        repository: str = ...,
+        token: Optional[Union[str, ConfigStr, pydantic.SecretStr]] = None,
+        hf_endpoint: str = ...,
+    ) -> PandasHuggingFaceDatasource: ...
+    def update_pandas_hugging_face(
+        self,
+        name_or_datasource: Optional[Union[str, Datasource]] = None,
+        name: Optional[str] = None,
+        datasource: Optional[Datasource] = None,
+        *,
+        repository: str = ...,
+        token: Optional[Union[str, ConfigStr, pydantic.SecretStr]] = None,
+        hf_endpoint: str = ...,
+    ) -> PandasHuggingFaceDatasource: ...
+    def add_or_update_pandas_hugging_face(
+        self,
+        name_or_datasource: Optional[Union[str, Datasource]] = None,
+        name: Optional[str] = None,
+        datasource: Optional[Datasource] = None,
+        *,
+        repository: str = ...,
+        token: Optional[Union[str, ConfigStr, pydantic.SecretStr]] = None,
+        hf_endpoint: str = ...,
+    ) -> PandasHuggingFaceDatasource: ...
+    def delete_pandas_hugging_face(self, name: str) -> None: ...
     def add_sql(
         self,
         name_or_datasource: Optional[Union[str, Datasource]] = None,
