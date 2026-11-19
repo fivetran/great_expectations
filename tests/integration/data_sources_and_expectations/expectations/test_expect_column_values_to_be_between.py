@@ -458,8 +458,8 @@ def test_datetime64_column_with_string_date_bounds_does_not_raise(
     """datetime64 column + ISO string bounds coerced to date must not raise on pandas 2.3+."""
     expectation = gxe.ExpectColumnValuesToBeBetween(
         column=DATETIME_COLUMN,
-        min_value="2024-01-02",
-        max_value="2024-01-04",
+        min_value="2024-01-02",  # type: ignore[arg-type] # string input deliberately exercises pydantic coercion to date
+        max_value="2024-01-04",  # type: ignore[arg-type] # string input deliberately exercises pydantic coercion to date
     )
     result = batch_for_datasource.validate(expectation)
     assert result.success is False
