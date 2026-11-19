@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-import pandas as pd
-
 from great_expectations.compatibility import pyspark
 from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.compatibility.pyspark import functions as F
@@ -33,21 +31,27 @@ class ColumnValuesIncreasing(ColumnMapMetricProvider):
         column,
         **kwargs,
     ):
-        temp_column = column
-
-        series_diff = temp_column.diff()
-        # A datetime column's diff is a timedelta, which compares against a zero timedelta
-        # rather than the int 0, so take the zero from the diff's own dtype.
-        zero = pd.Timedelta(0) if pd.api.types.is_timedelta64_dtype(series_diff.dtype) else 0
+        # Compare adjacent values instead of subtracting them.  ``Series.diff()``
+        # wraps for unsigned integer dtypes (2 - 3 on uint8 is 255) and can also
+        # overflow at the int64 boundaries, which makes decreasing values look
+        # increasing.  A comparison cannot overflow.
+        # ``shift`` without a fill value promotes integers to float64 to hold the
+        # leading NaN, which rounds int64/uint64 values above 2**53 before the
+        # comparison; seed the shift with the first value to keep the dtype.
+        previous = column.shift(1, fill_value=column.iloc[0]) if len(column) else column
 
         strictly: bool = kwargs.get("strictly") or False
         if strictly:
-            in_order = series_diff > zero
+            in_order = column > previous
         else:
-            in_order = series_diff >= zero
+            in_order = column >= previous
 
-        # The first element's diff is null, so it gets a bye and is always treated as True
-        return in_order | series_diff.isnull()
+        # The first element has no predecessor, so it gets a bye and is always
+        # treated as True.
+        in_order = in_order | previous.isnull()
+        if len(in_order):
+            in_order.iloc[0] = True
+        return in_order
 
     @metric_partial(
         engine=SparkDFExecutionEngine,

@@ -206,6 +206,9 @@ def _sqlalchemy_column_pair_map_condition_filtered_row_count(
     """  # noqa: E501 # FIXME CoP
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     selectable = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
+    # With no rows ignored, a row condition leaves the domain a SELECT, and a FROM clause requires
+    # a subquery.
+    selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type] # FIXME CoP
 
     return execution_engine.execute_query(
         sa.select(sa.func.count()).select_from(selectable)  # type: ignore[arg-type] # FIXME CoP

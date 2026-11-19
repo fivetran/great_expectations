@@ -33,6 +33,13 @@ REGEX_CAPABLE_SQL_DATA_SOURCES_EXCEPT_SNOWFLAKE = [
 ]
 
 
+FILTER_COLUMN_NAME = "filter_col"
+# A row condition of `filter_col > 0` drops the first row, a match that would otherwise be returned.
+ROW_CONDITION_DATA_FRAME = pd.DataFrame(
+    {COLUMN_NAME: ["abx", "abc", "abd", "xyz"], FILTER_COLUMN_NAME: [0, 1, 1, 1]}
+)
+
+
 class TestColumnValuesMatchRegexValues:
     @parameterize_batch_for_data_sources(
         data_source_configs=REGEX_CAPABLE_SQL_DATA_SOURCES_EXCEPT_SNOWFLAKE,
@@ -80,3 +87,20 @@ class TestColumnValuesMatchRegexValues:
 
         assert isinstance(metric_result, ColumnValuesMatchRegexValuesResult)
         assert len(metric_result.value) == limit
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=REGEX_CAPABLE_SQL_DATA_SOURCES,
+        data=ROW_CONDITION_DATA_FRAME,
+    )
+    def test_sql_row_condition(self, batch_for_datasource: Batch) -> None:
+        """A row condition makes the SQL domain a SELECT, which must be wrapped to be a FROM."""
+        metric = ColumnValuesMatchRegexValues(
+            column=COLUMN_NAME,
+            regex="^ab.*",
+            row_condition=f'col("{FILTER_COLUMN_NAME}") > 0',
+            condition_parser="great_expectations",
+        )
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert isinstance(metric_result, ColumnValuesMatchRegexValuesResult), metric_result
+        assert sorted(metric_result.value) == ["abc", "abd"]

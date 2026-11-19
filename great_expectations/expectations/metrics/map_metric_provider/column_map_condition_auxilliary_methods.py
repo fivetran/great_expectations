@@ -15,6 +15,7 @@ from great_expectations.constants import MAX_RESULT_RECORDS
 from great_expectations.expectations.metrics.util import (
     get_dbms_compatible_metric_domain_kwargs,
 )
+from great_expectations.util import get_sqlalchemy_selectable
 
 if TYPE_CHECKING:
     from great_expectations.execution_engine import (
@@ -256,6 +257,8 @@ def _sqlalchemy_column_map_condition_value_counts(
 
     query = sa.select(column, sa.func.count(column)).where(unexpected_condition).group_by(column)
     if not _is_sqlalchemy_metric_selectable(map_metric_provider=cls):
+        # A row condition makes the domain a SELECT, and a FROM clause requires a subquery.
+        selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type] # FIXME CoP
         query = query.select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
 
     return execution_engine.execute_query(query).fetchall()

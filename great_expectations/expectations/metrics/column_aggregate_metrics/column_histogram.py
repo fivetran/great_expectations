@@ -22,7 +22,10 @@ from great_expectations.expectations.metrics.column_aggregate_metric_provider im
     ColumnAggregateMetricProvider,
 )
 from great_expectations.expectations.metrics.metric_provider import metric_value
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
+from great_expectations.util import (
+    convert_to_json_serializable,  # noqa: TID251 # FIXME CoP
+    get_sqlalchemy_selectable,
+)
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -72,6 +75,8 @@ class ColumnHistogram(ColumnAggregateMetricProvider):
         selectable, _, accessor_domain_kwargs = execution_engine.get_compute_domain(
             domain_kwargs=metric_domain_kwargs, domain_type=MetricDomainTypes.COLUMN
         )
+        # A row condition makes the domain a SELECT, and a FROM clause requires a subquery.
+        selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type] # FIXME CoP
         column = accessor_domain_kwargs["column"]
         bins = metric_value_kwargs["bins"]
 

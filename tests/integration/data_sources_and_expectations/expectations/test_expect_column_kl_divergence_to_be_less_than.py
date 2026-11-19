@@ -6,12 +6,14 @@ import pytest
 import great_expectations.expectations as gxe
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.expectations.row_conditions import Column
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.data_source_lists import (
     JUST_PANDAS_DATA_SOURCES,
 )
 from tests.integration.test_utils.data_source_config import (
     ALL_DATA_SOURCES,
+    SQL_DATA_SOURCES,
 )
 
 # TODO: Full coverage to replace test_expect_column_kl_divergence_to_be_less_than.py
@@ -21,6 +23,24 @@ COL_NAME = "my_col"
 DATA = pd.DataFrame(
     {
         COL_NAME: ["A"] * 5 + ["B"] * 3 + ["C"] * 2,
+    }
+)
+
+FILTER_COL_NAME = "filter_col"
+# A row condition of `filter_col > 0` drops the five leading rows. Left in, they would add a value
+# that is not in the expected partition and change every observed weight.
+CATEGORICAL_ROW_CONDITION_DATA = pd.DataFrame(
+    {
+        COL_NAME: ["D"] * 5 + ["A"] * 5 + ["B"] * 3 + ["C"] * 2,
+        FILTER_COL_NAME: [0] * 5 + [1] * 10,
+    }
+)
+# The same filtering for a continuous column: the 100 lies above the last bin, so it would be
+# counted as a tail value and change every observed weight.
+CONTINUOUS_ROW_CONDITION_DATA = pd.DataFrame(
+    {
+        COL_NAME: [100, 0, 1, 2, 3, 4, 5, 6, 7],
+        FILTER_COL_NAME: [0, 1, 1, 1, 1, 1, 1, 1, 1],
     }
 )
 
@@ -222,3 +242,42 @@ def test_success_is_a_plain_json_serializable_bool_continuous(
     result = batch_for_datasource.validate(expectation)
     assert type(result.success) is bool
     json.dumps(result.to_json_dict())
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=SQL_DATA_SOURCES, data=CATEGORICAL_ROW_CONDITION_DATA
+)
+def test_sql_row_condition_filters_domain_categorical(batch_for_datasource: Batch) -> None:
+    """A row condition makes the SQL domain a SELECT, which must be wrapped to be used as a FROM."""
+    expectation = gxe.ExpectColumnKLDivergenceToBeLessThan(
+        column=COL_NAME,
+        partition_object={"weights": [0.5, 0.3, 0.2], "values": ["A", "B", "C"]},
+        threshold=0.01,
+        row_condition=Column(FILTER_COL_NAME) > 0,
+    )
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    assert result.success, result.exception_info
+    assert result.to_json_dict()["result"] == {
+        "observed_value": 0.0,
+        "details": {
+            "observed_partition": {"values": ["A", "B", "C"], "weights": [0.5, 0.3, 0.2]},
+            "expected_partition": {"values": ["A", "B", "C"], "weights": [0.5, 0.3, 0.2]},
+        },
+    }
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=SQL_DATA_SOURCES, data=CONTINUOUS_ROW_CONDITION_DATA
+)
+def test_sql_row_condition_filters_domain_continuous(batch_for_datasource: Batch) -> None:
+    """A continuous partition is counted by a histogram and by below/above-partition counts, all
+    of which are built on the row-conditioned SELECT."""
+    expectation = gxe.ExpectColumnKLDivergenceToBeLessThan(
+        column=COL_NAME,
+        partition_object={"bins": [0, 2, 4, 6, 8], "weights": [0.25, 0.25, 0.25, 0.25]},
+        threshold=0.01,
+        row_condition=Column(FILTER_COL_NAME) > 0,
+    )
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    assert result.success, result.exception_info
+    assert result.result["observed_value"] == 0.0

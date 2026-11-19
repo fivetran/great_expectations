@@ -13,6 +13,7 @@ from great_expectations.expectations.metrics.column_aggregate_metric_provider im
 )
 from great_expectations.expectations.metrics.metric_provider import metric_value
 from great_expectations.expectations.metrics.util import get_dialect_regex_expression
+from great_expectations.util import get_sqlalchemy_selectable
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,8 @@ class ColumnValuesNotMatchRegexValues(ColumnAggregateMetricProvider):
             _,
             accessor_domain_kwargs,
         ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        # A row condition makes the domain a SELECT, and a FROM clause requires a subquery.
+        selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type] # FIXME CoP
         column_name: str = accessor_domain_kwargs["column"]
         column: sa.ColumnClause = sa.column(column_name)
         regex = metric_value_kwargs["regex"]

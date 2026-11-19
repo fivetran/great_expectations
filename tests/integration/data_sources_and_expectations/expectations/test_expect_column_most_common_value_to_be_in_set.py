@@ -4,17 +4,29 @@ import pytest
 import great_expectations.expectations as gxe
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.expectations.row_conditions import Column
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.data_source_lists import (
     JUST_PANDAS_DATA_SOURCES,
 )
 from tests.integration.test_utils.data_source_config import (
     ALL_DATA_SOURCES,
+    SQL_DATA_SOURCES,
 )
 
 COL_WITHOUT_TIE = "without_tie"
 COL_WITH_TIE = "with_tie"
 STRING_COL = "string_col"
+
+FILTER_COL = "filter_col"
+# A row condition of `filter_col > 0` drops the three "zzz" rows, which would otherwise be the most
+# common value.
+ROW_CONDITION_DATA = pd.DataFrame(
+    {
+        STRING_COL: ["zzz", "zzz", "zzz", "foo", "foo", "bar"],
+        FILTER_COL: [0, 0, 0, 1, 1, 1],
+    }
+)
 
 A_LOT_OF_NONES = [None] * 10
 DATA = pd.DataFrame(
@@ -125,3 +137,16 @@ def test_success_with_suite_param_ties_okay_(
         expectation, expectation_parameters={suite_param_key: suite_param_value}
     )
     assert result.success == expected_result
+
+
+@parameterize_batch_for_data_sources(data_source_configs=SQL_DATA_SOURCES, data=ROW_CONDITION_DATA)
+def test_sql_row_condition_filters_domain(batch_for_datasource: Batch) -> None:
+    """A row condition makes the SQL domain a SELECT, which must be wrapped to be used as a FROM."""
+    expectation = gxe.ExpectColumnMostCommonValueToBeInSet(
+        column=STRING_COL,
+        value_set=["foo"],
+        row_condition=Column(FILTER_COL) > 0,
+    )
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    assert result.success, result.exception_info
+    assert result.to_json_dict()["result"] == {"observed_value": ["foo"]}

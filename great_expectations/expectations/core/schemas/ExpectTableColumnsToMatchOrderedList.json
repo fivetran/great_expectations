@@ -164,6 +164,9 @@
             }
         }
     },
+    "required": [
+        "column_list"
+    ],
     "additionalProperties": false,
     "definitions": {
         "ResultFormat": {

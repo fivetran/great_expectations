@@ -161,3 +161,85 @@ def test_expectation_catalog_index_and_documented_absent_are_disjoint():
         f"documented-absence list: {sorted(overlap)}. An expectation with real catalog "
         "metadata is not absent - drop it from the documented-absence list."
     )
+
+
+_NOT_NULL_SCHEMA_PATH = Path(schemas.__file__).parent / "ExpectColumnValuesToNotBeNull.json"
+_COLUMN_COMPARISON_REF = "#/definitions/ColumnComparisonCondition"
+
+
+def _column_comparison() -> dict:
+    return {
+        "type": "column_comparison",
+        "column": {"name": "end_date"},
+        "operator": ">",
+        "other_column": {"name": "start_date"},
+    }
+
+
+def _suite_config(row_condition: dict) -> dict:
+    return {"column": "id", "row_condition": row_condition}
+
+
+def _matching_row_condition_branches(schema: dict, config: dict) -> list[str | None]:
+    """Return the `$ref` of every `row_condition` `anyOf` branch the config's condition satisfies.
+
+    `anyOf` passes if any one branch matches, so a pass or a failure of the whole schema does
+    not say which branch decided it. Checking each branch on its own does.
+    """
+    row_condition = config["row_condition"]
+    branches = schema["properties"]["row_condition"]["anyOf"]
+    return [
+        branch.get("$ref")
+        for branch in branches
+        if Draft7Validator({**branch, "definitions": schema["definitions"]}).is_valid(row_condition)
+    ]
+
+
+@pytest.fixture
+def not_null_schema() -> dict:
+    return json.loads(_NOT_NULL_SCHEMA_PATH.read_text())
+
+
+@pytest.mark.unit
+def test_schema_accepts_standalone_column_comparison(not_null_schema: dict):
+    config = _suite_config(_column_comparison())
+
+    Draft7Validator(not_null_schema).validate(config)
+
+    # The condition must satisfy the new definition and no other branch.
+    assert _matching_row_condition_branches(not_null_schema, config) == [_COLUMN_COMPARISON_REF]
+
+
+@pytest.mark.unit
+def test_schema_rejects_column_comparison_missing_other_column(not_null_schema: dict):
+    condition = _column_comparison()
+    del condition["other_column"]
+    config = _suite_config(condition)
+
+    with pytest.raises(jsonschema.ValidationError):
+        Draft7Validator(not_null_schema).validate(config)
+
+    # Paired with the acceptance test above, which shows the column comparison definition is the
+    # only branch that accepts the valid condition: this guards that the definition requires
+    # `other_column`, so dropping the field leaves no branch that accepts it.
+    assert _matching_row_condition_branches(not_null_schema, config) == []
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("group_type", ["and", "or"])
+def test_schema_accepts_group_containing_column_comparison(not_null_schema: dict, group_type: str):
+    # Regression check only. A group's children validate against the schema of the base
+    # condition, which places no constraint on a child's fields, so these configs pass whether or
+    # not the schema describes column comparisons. The new definition is what the standalone tests
+    # above exercise.
+    config = _suite_config(
+        {
+            "type": group_type,
+            "conditions": [
+                _column_comparison(),
+                {"type": "nullity", "column": {"name": "start_date"}, "is_null": True},
+            ],
+        }
+    )
+
+    Draft7Validator(not_null_schema).validate(config)

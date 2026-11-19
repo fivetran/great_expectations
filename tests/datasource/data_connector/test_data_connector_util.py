@@ -1,3 +1,5 @@
+import subprocess
+import sys
 from unittest import mock
 
 import pytest
@@ -120,6 +122,30 @@ def test_convert_batch_identifiers_to_data_reference_string_using_regex():
         )
         == "*_20200809_1000.csv"
     )
+
+
+@pytest.mark.timeout(30)  # the subprocess pays full library import cost
+@pytest.mark.unit
+def test_import_does_not_use_deprecated_sre_modules():
+    """Importing great_expectations must not import sre_constants or sre_parse.
+
+    Both are deprecated aliases since Python 3.11 and are gone in 3.15, where the import
+    fails outright. A fresh interpreter is needed: the test session has already imported
+    the package by the time its warning filters apply.
+    """
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-W",
+            "error:module 'sre_:DeprecationWarning",
+            "-c",
+            "import great_expectations",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stderr
 
 
 # TODO: <Alex>Why does this method name have 2 underscores?</Alex>

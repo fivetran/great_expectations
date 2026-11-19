@@ -1,6 +1,7 @@
 import logging
 import os
-from typing import TYPE_CHECKING, Dict, cast
+from operator import eq, ge, gt, le, lt, ne
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, cast
 
 import pandas as pd
 import pytest
@@ -35,7 +36,9 @@ from great_expectations.expectations.legacy_row_conditions import (
 from great_expectations.expectations.row_conditions import (
     AndCondition,
     Column,
+    ColumnComparisonCondition,
     ComparisonCondition,
+    Condition,
     NullityCondition,
     Operator,
     OrCondition,
@@ -1618,3 +1621,206 @@ class TestConditionToFilterClauseSqlAlchemy:
         assert isinstance(result, ColumnElement)
         compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
         assert compiled == "my_condition_column IN (1, 2)"
+
+
+_COLUMN_COMPARISON_OPERATORS = [
+    pytest.param(Operator.EQUAL, eq, "=", id="equal"),
+    pytest.param(Operator.NOT_EQUAL, ne, "!=", id="not_equal"),
+    pytest.param(Operator.LESS_THAN, lt, "<", id="less_than"),
+    pytest.param(Operator.LESS_THAN_OR_EQUAL, le, "<=", id="less_or_equal"),
+    pytest.param(Operator.GREATER_THAN, gt, ">", id="greater_than"),
+    pytest.param(Operator.GREATER_THAN_OR_EQUAL, ge, ">=", id="greater_or_equal"),
+]
+
+# Each pairing of three ordered values, then a null on the left, on the right, and on both sides.
+_COLUMN_PAIRS: list[tuple[Optional[int], Optional[int]]] = [
+    (x, y) for x in (1, 2, 3) for y in (1, 2, 3)
+] + [(None, 1), (None, 3), (1, None), (3, None), (None, None)]
+
+
+def _compile_for(sa, dialect_name: str, clause: ColumnElement) -> str:
+    dialect = sa.dialects.registry.load(dialect_name)()
+    return str(clause.compile(dialect=dialect, compile_kwargs={"literal_binds": True}))
+
+
+def _selected_ids(
+    sa, engine: SqlAlchemyExecutionEngine, table_name: str, filter_clause: ColumnElement
+) -> list[int]:
+    query = (
+        sa.select(sa.column("id"))
+        .select_from(sa.table(table_name))
+        .where(filter_clause)
+        .order_by(sa.column("id"))
+    )
+    with engine.get_connection() as conn:
+        return [row[0] for row in conn.execute(query)]
+
+
+def _add_column_pairs_table(
+    engine: SqlAlchemyExecutionEngine, table_name: str, left_name: str, right_name: str
+) -> None:
+    df = pd.DataFrame(
+        {
+            "id": list(range(len(_COLUMN_PAIRS))),
+            left_name: pd.array([left for left, _ in _COLUMN_PAIRS], dtype="Int64"),
+            right_name: pd.array([right for _, right in _COLUMN_PAIRS], dtype="Int64"),
+        }
+    )
+    with engine.get_connection() as conn:
+        add_dataframe_to_db(df=df, name=table_name, con=conn, index=False)
+
+
+class TestColumnComparisonConditionToFilterClauseSqlAlchemy:
+    @pytest.mark.sqlite
+    @pytest.mark.parametrize("dialect_name", ["postgresql", "sqlite"])
+    @pytest.mark.parametrize("operator,_compare,sql_operator", _COLUMN_COMPARISON_OPERATORS)
+    def test_column_comparison_compiles_to_a_column_to_column_clause(
+        self, sa, dialect_name: str, operator: Operator, _compare, sql_operator: str
+    ) -> None:
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+        condition = ColumnComparisonCondition(
+            column=Column("a"), operator=operator, other_column=Column("b")
+        )
+
+        result = engine.condition_to_filter_clause(condition)
+
+        assert isinstance(result, ColumnElement)
+        assert _compile_for(sa, dialect_name, result) == f"a {sql_operator} b"
+
+    @pytest.mark.sqlite
+    @pytest.mark.parametrize(
+        "left_name,right_name,left_reference,right_reference",
+        [
+            pytest.param("Total Amount", "b", '"Total Amount"', "b", id="left-space"),
+            pytest.param("a", "Total Amount", "a", '"Total Amount"', id="right-space"),
+            pytest.param("select", "b", '"select"', "b", id="left-reserved-word"),
+            pytest.param("a", "from", "a", '"from"', id="right-reserved-word"),
+            pytest.param("MixedCase", "b", '"MixedCase"', "b", id="left-mixed-case"),
+            pytest.param("a", "MixedCase", "a", '"MixedCase"', id="right-mixed-case"),
+            pytest.param("Sale Price", "select", '"Sale Price"', '"select"', id="both-sides"),
+        ],
+    )
+    def test_column_comparison_quotes_each_side_like_a_literal_comparison(
+        self, sa, left_name: str, right_name: str, left_reference: str, right_reference: str
+    ) -> None:
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+        condition = ColumnComparisonCondition(
+            column=Column(left_name), operator=Operator.LESS_THAN, other_column=Column(right_name)
+        )
+        left_literal = ComparisonCondition(
+            column=Column(left_name), operator=Operator.LESS_THAN, parameter=1
+        )
+        right_literal = ComparisonCondition(
+            column=Column(right_name), operator=Operator.LESS_THAN, parameter=1
+        )
+
+        for dialect_name in ("postgresql", "sqlite"):
+
+            def compile_(c, dialect_name=dialect_name) -> str:
+                return _compile_for(sa, dialect_name, engine.condition_to_filter_clause(c))
+
+            assert compile_(condition) == f"{left_reference} < {right_reference}", dialect_name
+            # Each side is quoted exactly as a literal comparison on the same name quotes it.
+            assert compile_(left_literal) == f"{left_reference} < 1", dialect_name
+            assert compile_(right_literal) == f"{right_reference} < 1", dialect_name
+
+    @pytest.mark.sqlite
+    def test_column_comparison_is_one_unit_under_and_and_or(self, sa) -> None:
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+        comparison = ColumnComparisonCondition(
+            column=Column("a"), operator=Operator.NOT_EQUAL, other_column=Column("b")
+        )
+        literal = ComparisonCondition(
+            column=Column("id"), operator=Operator.LESS_THAN, parameter=10
+        )
+        nullity = NullityCondition(column=Column("a"), is_null=True)
+
+        def compile_(condition: Condition) -> str:
+            return _compile_for(sa, "sqlite", engine.condition_to_filter_clause(condition))
+
+        assert compile_(AndCondition(conditions=[comparison, literal])) == "a != b AND id < 10"
+        assert compile_(OrCondition(conditions=[comparison, nullity])) == "a != b OR a IS NULL"
+        assert (
+            compile_(
+                AndCondition(conditions=[OrCondition(conditions=[comparison, nullity]), literal])
+            )
+            == "(a != b OR a IS NULL) AND id < 10"
+        )
+
+    @pytest.mark.sqlite
+    @pytest.mark.parametrize("operator,compare,_sql_operator", _COLUMN_COMPARISON_OPERATORS)
+    def test_column_comparison_excludes_a_null_on_either_side_for_every_operator(
+        self, sa, operator: Operator, compare: Callable[[Any, Any], bool], _sql_operator: str
+    ) -> None:
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+        _add_column_pairs_table(engine, "pairs", "a", "b")
+        condition = ColumnComparisonCondition(
+            column=Column("a"), operator=operator, other_column=Column("b")
+        )
+
+        selected = _selected_ids(sa, engine, "pairs", engine.condition_to_filter_clause(condition))
+
+        # Oracle: drop every pair with a null on either side, then apply the operator.
+        expected_ids = [
+            row_id
+            for row_id, (left, right) in enumerate(_COLUMN_PAIRS)
+            if left is not None and right is not None and compare(left, right)
+        ]
+        # A proper, non-empty subset: the operator and the null rule each shape the result.
+        assert expected_ids
+        assert len(expected_ids) < len(_COLUMN_PAIRS)
+        assert selected == expected_ids
+
+    @pytest.mark.sqlite
+    @pytest.mark.parametrize(
+        "left_name,right_name",
+        [
+            pytest.param("Total Amount", "b", id="left-space"),
+            pytest.param("a", "Total Amount", id="right-space"),
+            pytest.param("select", "b", id="left-reserved-word"),
+            pytest.param("a", "from", id="right-reserved-word"),
+            pytest.param("MixedCase", "b", id="left-mixed-case"),
+            pytest.param("a", "MixedCase", id="right-mixed-case"),
+        ],
+    )
+    def test_column_comparison_with_quoted_names_filters_a_table(
+        self, sa, left_name: str, right_name: str
+    ) -> None:
+        """What is rendered has to be what the database can execute, for either side."""
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+        _add_column_pairs_table(engine, "quoted_pairs", left_name, right_name)
+        condition = ColumnComparisonCondition(
+            column=Column(left_name), operator=Operator.LESS_THAN, other_column=Column(right_name)
+        )
+
+        selected = _selected_ids(
+            sa, engine, "quoted_pairs", engine.condition_to_filter_clause(condition)
+        )
+
+        expected_ids = [
+            row_id
+            for row_id, (left, right) in enumerate(_COLUMN_PAIRS)
+            if left is not None and right is not None and left < right
+        ]
+        assert expected_ids
+        assert selected == expected_ids
+
+    @pytest.mark.sqlite
+    def test_column_comparison_returns_the_backends_result_for_columns_of_different_types(
+        self, sa
+    ) -> None:
+        """No type check is added: SQLite converts the text column to a number before comparing,
+        so 2 < '10' is true here, where a text comparison ('2' < '10') would be false."""
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+        df = pd.DataFrame({"id": [0, 1, 2], "n": [2, 5, 10], "s": ["10", "9", "10"]})
+        with engine.get_connection() as conn:
+            add_dataframe_to_db(df=df, name="mixed_types", con=conn, index=False)
+        condition = ColumnComparisonCondition(
+            column=Column("n"), operator=Operator.LESS_THAN, other_column=Column("s")
+        )
+
+        selected = _selected_ids(
+            sa, engine, "mixed_types", engine.condition_to_filter_clause(condition)
+        )
+
+        assert selected == [0, 1]

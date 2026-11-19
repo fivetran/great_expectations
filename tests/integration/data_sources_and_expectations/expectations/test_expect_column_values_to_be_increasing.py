@@ -2,6 +2,7 @@ import datetime as dt
 from typing import Sequence
 
 import pandas as pd
+import pytest
 
 import great_expectations.expectations as gxe
 from great_expectations.core.result_format import ResultFormat
@@ -239,3 +240,117 @@ def test_ascending_date_column_is_not_decreasing(batch_for_datasource: Batch) ->
 
     assert not result.success
     assert result.result["unexpected_count"] == 2
+
+
+# Adjacent unsigned integers wrap when subtracted: 2 - 3 on uint8 is 255, so a
+# diff-based implementation accepted a descending column as strictly increasing.
+ASCENDING_UINT8 = pd.DataFrame({COLUMN: pd.Series([1, 2, 3], dtype="uint8")})
+DESCENDING_UINT8 = pd.DataFrame({COLUMN: pd.Series([3, 2, 1], dtype="uint8")})
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=ASCENDING_UINT8,
+)
+def test_strictly_increasing_unsigned_integer_passes(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN, strictly=True)
+    )
+
+    assert result.success
+    assert result.result["unexpected_count"] == 0
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=DESCENDING_UINT8,
+)
+def test_descending_unsigned_integer_fails(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN, strictly=True),
+        result_format=ResultFormat.COMPLETE,
+    )
+
+    assert not result.success
+    assert result.result["unexpected_count"] == 2
+
+
+# ``Series.shift(1)`` promotes integer columns to float64 to hold the leading NaN,
+# which rounds values above 2**53 before the comparison.
+LARGE_INT64_ASCENDING = pd.DataFrame({COLUMN: pd.Series([2**53, 2**53 + 1], dtype="int64")})
+LARGE_INT64_DESCENDING = pd.DataFrame({COLUMN: pd.Series([2**53 + 1, 2**53], dtype="int64")})
+LARGE_UINT64_ASCENDING = pd.DataFrame({COLUMN: pd.Series([2**63, 2**63 + 1], dtype="uint64")})
+LARGE_UINT64_DESCENDING = pd.DataFrame({COLUMN: pd.Series([2**63 + 1, 2**63], dtype="uint64")})
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=LARGE_INT64_ASCENDING,
+)
+def test_strictly_increasing_large_int64_passes(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN, strictly=True)
+    )
+
+    assert result.success
+    assert result.result["unexpected_count"] == 0
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=LARGE_INT64_DESCENDING,
+)
+# Non-strict comparison is the regression: an unseeded shift rounds both
+# values to equality, which incorrectly passes >= but still fails >.
+@pytest.mark.parametrize("strictly", [True, False])
+def test_increasing_large_int64_detects_reversal(
+    batch_for_datasource: Batch,
+    strictly: bool,
+) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN, strictly=strictly),
+        result_format=ResultFormat.COMPLETE,
+    )
+
+    assert not result.success
+    assert result.result["unexpected_count"] == 1
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=LARGE_UINT64_ASCENDING,
+)
+def test_strictly_increasing_large_uint64_passes(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeIncreasing(column=COLUMN, strictly=True)
+    )
+
+    assert result.success
+    assert result.result["unexpected_count"] == 0
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=LARGE_UINT64_DESCENDING,
+)
+def test_strictly_decreasing_large_uint64_passes(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeDecreasing(column=COLUMN, strictly=True)
+    )
+
+    assert result.success
+    assert result.result["unexpected_count"] == 0
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES,
+    data=LARGE_UINT64_ASCENDING,
+)
+def test_decreasing_large_uint64_detects_reversal(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeDecreasing(column=COLUMN, strictly=False),
+        result_format=ResultFormat.COMPLETE,
+    )
+
+    assert not result.success
+    assert result.result["unexpected_count"] == 1

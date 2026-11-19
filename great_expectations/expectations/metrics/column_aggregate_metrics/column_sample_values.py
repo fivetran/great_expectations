@@ -9,6 +9,7 @@ from great_expectations.expectations.metrics.column_aggregate_metric_provider im
     ColumnAggregateMetricProvider,
 )
 from great_expectations.expectations.metrics.metric_provider import metric_value
+from great_expectations.util import get_sqlalchemy_selectable
 
 
 class ColumnSampleValues(ColumnAggregateMetricProvider):
@@ -25,6 +26,8 @@ class ColumnSampleValues(ColumnAggregateMetricProvider):
         selectable, _, _ = execution_engine.get_compute_domain(
             domain_kwargs=metric_domain_kwargs, domain_type=MetricDomainTypes.COLUMN
         )
+        # A row condition makes the domain a SELECT, and a FROM clause requires a subquery.
+        selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type] # FIXME CoP
         column = metric_domain_kwargs["column"]
         count = metric_value_kwargs["count"]
         query: sa.Select = sa.select(sa.column(column)).select_from(selectable).limit(count)  # type: ignore[arg-type] # FIXME CoP

@@ -40,7 +40,15 @@
       "expectation_config": {
         "type": "expect_table_columns_to_match_ordered_list",
         "kwargs": {
-          "column_list": null,
+          "column_list": [
+            "Unnamed: 0",
+            "Name",
+            "PClass",
+            "Age",
+            "Sex",
+            "Survived",
+            "SexCode"
+          ],
           "result_format": "SUMMARY"
         }
       }

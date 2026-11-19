@@ -9,6 +9,7 @@ import pytest
 import great_expectations.expectations as gxe
 from great_expectations.compatibility import pydantic
 from great_expectations.core.result_format import ResultFormat
+from great_expectations.expectations.row_conditions import Column
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.data_source_lists import (
     DATA_SOURCES_THAT_SUPPORT_DATE_COMPARISONS,
@@ -16,6 +17,7 @@ from tests.integration.data_sources_and_expectations.data_source_lists import (
 )
 from tests.integration.test_utils.data_source_config import (
     ALL_DATA_SOURCES,
+    SQL_DATA_SOURCES,
 )
 
 if TYPE_CHECKING:
@@ -24,6 +26,10 @@ if TYPE_CHECKING:
 COL_NAME = "my_col"
 
 ONES_AND_TWOS = pd.DataFrame({COL_NAME: [1, 2, 2, 2]})
+
+FILTER_COL_NAME = "filter_col"
+# A row condition of `filter_col > 0` keeps only the rows where `my_col` is 2 or 3.
+ROW_CONDITION_DATA = pd.DataFrame({COL_NAME: [1, 2, 3, 3], FILTER_COL_NAME: [0, 1, 1, 1]})
 
 
 @parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=ONES_AND_TWOS)
@@ -159,3 +165,31 @@ def test_partial_unexpected_count_zero_excludes_partial_lists(batch_for_datasour
     assert not result.success
     assert "unexpected_count" in result.result
     assert "partial_unexpected_list" not in result.result
+
+
+@parameterize_batch_for_data_sources(data_source_configs=SQL_DATA_SOURCES, data=ROW_CONDITION_DATA)
+def test_sql_row_condition_filters_domain(batch_for_datasource: Batch) -> None:
+    """A row condition makes the SQL domain a SELECT, which must be wrapped to be used as a FROM."""
+    expectation = gxe.ExpectColumnDistinctValuesToBeInSet(
+        column=COL_NAME,
+        value_set=[2, 3],
+        row_condition=Column(FILTER_COL_NAME) > 0,
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success, result.exception_info
+
+
+@parameterize_batch_for_data_sources(data_source_configs=SQL_DATA_SOURCES, data=ROW_CONDITION_DATA)
+def test_sql_row_condition_reports_unexpected_values(batch_for_datasource: Batch) -> None:
+    expectation = gxe.ExpectColumnDistinctValuesToBeInSet(
+        column=COL_NAME,
+        value_set=[2],
+        row_condition=Column(FILTER_COL_NAME) > 0,
+    )
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    assert not result.success
+    assert result.to_json_dict()["result"] == {
+        "observed_value": None,
+        "unexpected_count": 1,
+        "partial_unexpected_list": [3],
+    }

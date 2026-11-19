@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Iterable, List, Literal, Union
+from typing import TYPE_CHECKING, Any, Iterable, List, Literal, Union, overload
 
 from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility.pydantic import BaseModel, Field, root_validator, validator
@@ -58,6 +58,16 @@ class InvalidParameterTypeError(TypeError):
         super().__init__(message)
 
 
+class UnsupportedColumnComparisonOperatorError(ValueError):
+    """Raised when a column comparison is given a set-membership operator."""
+
+    def __init__(self, operator: str):
+        super().__init__(
+            f"Column comparisons support ==, !=, <, <=, > and >=, not {operator}. "
+            "Set membership against a column is not supported."
+        )
+
+
 class Operator(str, Enum):
     EQUAL = "=="
     NOT_EQUAL = "!="
@@ -76,6 +86,25 @@ class Operator(str, Enum):
 Parameter = Any
 
 
+def _materialize_set_membership_values(method_name: str, values: Iterable) -> list:
+    """Read the values given to ``is_in``/``is_not_in`` once, rejecting any column among them.
+
+    A column is rejected before the values are read, because iterating one yields its fields, and
+    again after, for a column held inside a collection. The values are read a single time so a
+    one-shot iterable is not consumed twice.
+    """
+    suggestion = (
+        f"{method_name} does not accept a Column: set membership against a column is not "
+        "supported. To compare two columns, use ==, !=, <, <=, > or >=."
+    )
+    if isinstance(values, Column):
+        raise InvalidParameterTypeError(values, suggestion)
+    materialized = list(values)
+    if any(isinstance(value, Column) for value in materialized):
+        raise InvalidParameterTypeError(materialized, suggestion)
+    return materialized
+
+
 @public_api
 class Column(BaseModel):
     """
@@ -91,26 +120,86 @@ class Column(BaseModel):
     def __hash__(self) -> int:
         return hash(self.name)
 
+    @overload  # type: ignore[override]
+    def __eq__(self, other: Column) -> ColumnComparisonCondition: ...
+
+    @overload
+    def __eq__(self, other: Parameter) -> ComparisonCondition: ...
+
     @override
-    def __eq__(self, other: Parameter) -> ComparisonCondition:  # type: ignore[override]
+    def __eq__(self, other: Parameter) -> ColumnComparisonCondition | ComparisonCondition:
+        if isinstance(other, Column):
+            return ColumnComparisonCondition(
+                column=self, operator=Operator.EQUAL, other_column=other
+            )
         return ComparisonCondition(column=self, operator=Operator.EQUAL, parameter=other)
 
+    @overload  # type: ignore[override]
+    def __ne__(self, other: Column) -> ColumnComparisonCondition: ...
+
+    @overload
+    def __ne__(self, other: Parameter) -> ComparisonCondition: ...
+
     @override
-    def __ne__(self, other: Parameter) -> ComparisonCondition:  # type: ignore[override]
+    def __ne__(self, other: Parameter) -> ColumnComparisonCondition | ComparisonCondition:
+        if isinstance(other, Column):
+            return ColumnComparisonCondition(
+                column=self, operator=Operator.NOT_EQUAL, other_column=other
+            )
         return ComparisonCondition(column=self, operator=Operator.NOT_EQUAL, parameter=other)
 
-    def __lt__(self, other: Parameter) -> ComparisonCondition:
+    @overload
+    def __lt__(self, other: Column) -> ColumnComparisonCondition: ...
+
+    @overload
+    def __lt__(self, other: Parameter) -> ComparisonCondition: ...
+
+    def __lt__(self, other: Parameter) -> ColumnComparisonCondition | ComparisonCondition:
+        if isinstance(other, Column):
+            return ColumnComparisonCondition(
+                column=self, operator=Operator.LESS_THAN, other_column=other
+            )
         return ComparisonCondition(column=self, operator=Operator.LESS_THAN, parameter=other)
 
-    def __le__(self, other: Parameter) -> ComparisonCondition:
+    @overload
+    def __le__(self, other: Column) -> ColumnComparisonCondition: ...
+
+    @overload
+    def __le__(self, other: Parameter) -> ComparisonCondition: ...
+
+    def __le__(self, other: Parameter) -> ColumnComparisonCondition | ComparisonCondition:
+        if isinstance(other, Column):
+            return ColumnComparisonCondition(
+                column=self, operator=Operator.LESS_THAN_OR_EQUAL, other_column=other
+            )
         return ComparisonCondition(
             column=self, operator=Operator.LESS_THAN_OR_EQUAL, parameter=other
         )
 
-    def __gt__(self, other: Parameter) -> ComparisonCondition:
+    @overload
+    def __gt__(self, other: Column) -> ColumnComparisonCondition: ...
+
+    @overload
+    def __gt__(self, other: Parameter) -> ComparisonCondition: ...
+
+    def __gt__(self, other: Parameter) -> ColumnComparisonCondition | ComparisonCondition:
+        if isinstance(other, Column):
+            return ColumnComparisonCondition(
+                column=self, operator=Operator.GREATER_THAN, other_column=other
+            )
         return ComparisonCondition(column=self, operator=Operator.GREATER_THAN, parameter=other)
 
-    def __ge__(self, other: Parameter) -> ComparisonCondition:
+    @overload
+    def __ge__(self, other: Column) -> ColumnComparisonCondition: ...
+
+    @overload
+    def __ge__(self, other: Parameter) -> ComparisonCondition: ...
+
+    def __ge__(self, other: Parameter) -> ColumnComparisonCondition | ComparisonCondition:
+        if isinstance(other, Column):
+            return ColumnComparisonCondition(
+                column=self, operator=Operator.GREATER_THAN_OR_EQUAL, other_column=other
+            )
         return ComparisonCondition(
             column=self, operator=Operator.GREATER_THAN_OR_EQUAL, parameter=other
         )
@@ -120,14 +209,22 @@ class Column(BaseModel):
         """
         Operator for a condition statement that a column's value belongs to a set.
         """
-        return ComparisonCondition(column=self, operator=Operator.IN, parameter=list(values))
+        return ComparisonCondition(
+            column=self,
+            operator=Operator.IN,
+            parameter=_materialize_set_membership_values("is_in", values),
+        )
 
     @public_api
     def is_not_in(self, values: Iterable) -> ComparisonCondition:
         """
         Operator for a condition statement that a column's value does not belong to a set.
         """
-        return ComparisonCondition(column=self, operator=Operator.NOT_IN, parameter=list(values))
+        return ComparisonCondition(
+            column=self,
+            operator=Operator.NOT_IN,
+            parameter=_materialize_set_membership_values("is_not_in", values),
+        )
 
     @public_api
     def is_null(self) -> NullityCondition:
@@ -276,6 +373,34 @@ class ComparisonCondition(Condition):
         return f"{col_name} {self.operator} {self.parameter}"
 
 
+@public_api
+class ColumnComparisonCondition(Condition):
+    """Condition representing the comparison of two columns in the same row.
+
+    Both sides are column references. Expressions, functions and casts are not supported, and a
+    column name is passed to each engine as written, under that engine's own quoting rules.
+
+    A row whose value in either column is null is excluded under every operator, including
+    ``!=``. To keep such rows, combine this condition with ``is_null()`` on both columns in an
+    explicit ``OrCondition``.
+    """
+
+    type: Literal["column_comparison"] = Field(default="column_comparison")
+    column: Column
+    operator: Operator
+    other_column: Column
+
+    @validator("operator")
+    def _validate_comparison_operator(cls, v: Operator) -> Operator:
+        if v in (Operator.IN, Operator.NOT_IN):
+            raise UnsupportedColumnComparisonOperatorError(str(v))
+        return v
+
+    @override
+    def __repr__(self) -> str:
+        return f"{self.column.name} {self.operator} {self.other_column.name}"
+
+
 class PassThroughCondition(Condition):
     """Condition that passes a filter string directly to the execution engine.
 
@@ -291,7 +416,7 @@ class PassThroughCondition(Condition):
         return f"PassThrough({self.pass_through_filter!r})"
 
 
-def deserialize_row_condition(value: Any) -> Union[str, Condition, None]:
+def deserialize_row_condition(value: Any) -> Union[str, Condition, None]:  # noqa: C901, PLR0911
     """Parse a row_condition value into the appropriate Condition type."""
     if value is None or isinstance(value, (str, Condition)):
         return value
@@ -310,6 +435,8 @@ def deserialize_row_condition(value: Any) -> Union[str, Condition, None]:
             return OrCondition.parse_obj(value)
         elif condition_type == "pass_through":
             return PassThroughCondition.parse_obj(value)
+        elif condition_type == "column_comparison":
+            return ColumnComparisonCondition.parse_obj(value)
         else:
             raise ConditionParserError(value)
 
@@ -361,6 +488,7 @@ RowConditionType: TypeAlias = Union[
     AndCondition,
     OrCondition,
     PassThroughCondition,
+    ColumnComparisonCondition,
     None,
 ]
 
@@ -466,7 +594,10 @@ def validate_row_condition(row_condition: RowConditionType) -> RowConditionType:
         return row_condition
 
     # Single condition types are always valid
-    if isinstance(row_condition, (ComparisonCondition, NullityCondition, PassThroughCondition)):
+    if isinstance(
+        row_condition,
+        (ComparisonCondition, NullityCondition, PassThroughCondition, ColumnComparisonCondition),
+    ):
         return row_condition
 
     # Validate total condition count
@@ -483,3 +614,32 @@ def validate_row_condition(row_condition: RowConditionType) -> RowConditionType:
         return _validate_or_condition(row_condition)
 
     raise InvalidConditionTypeError(row_condition)
+
+
+def find_column_comparisons(row_condition: RowConditionType) -> List[ColumnComparisonCondition]:
+    """List every column comparison in a row condition.
+
+    The search is depth-first and left to right, so the result follows the order in which the
+    comparisons were written. A comparison that appears twice is returned twice. String, absent
+    and pass-through conditions, and conditions made only of literal comparisons, contain none.
+
+    Args:
+        row_condition: A deserialized row condition. A dictionary is not searched.
+
+    Returns:
+        The column comparisons found, or an empty list if there are none.
+    """
+    if isinstance(row_condition, Condition):
+        return _collect_column_comparisons(row_condition)
+    return []
+
+
+def _collect_column_comparisons(condition: Condition) -> List[ColumnComparisonCondition]:
+    if isinstance(condition, ColumnComparisonCondition):
+        return [condition]
+    if isinstance(condition, (AndCondition, OrCondition)):
+        found: List[ColumnComparisonCondition] = []
+        for child in condition.conditions:
+            found.extend(_collect_column_comparisons(child))
+        return found
+    return []

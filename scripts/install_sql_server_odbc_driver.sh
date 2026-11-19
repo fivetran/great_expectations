@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if ! [[ "18.04 20.04 22.04 24.04" == *"$(grep VERSION_ID /etc/os-release | cut -d '"' -f 2)"* ]];
+if ! [[ "18.04 20.04 22.04 24.04 26.04" == *"$(grep VERSION_ID /etc/os-release | cut -d '"' -f 2)"* ]];
 then
     echo "Ubuntu $(grep VERSION_ID /etc/os-release | cut -d '"' -f 2) is not currently supported.";
     exit 1;

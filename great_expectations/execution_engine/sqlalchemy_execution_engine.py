@@ -8,13 +8,15 @@ import math
 import os
 import re
 import traceback
-from collections.abc import Generator
+from collections.abc import Generator, Mapping
 from contextlib import contextmanager
+from operator import eq, ge, gt, le, lt, ne
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    Final,
     Iterable,
     List,
     MutableMapping,
@@ -114,6 +116,7 @@ if TYPE_CHECKING:
 
     from great_expectations.expectations.row_conditions import (
         AndCondition,
+        ColumnComparisonCondition,
         ComparisonCondition,
         NullityCondition,
         OrCondition,
@@ -184,6 +187,19 @@ _PERSISTED_CONNECTION_DIALECTS = (
     GXSqlDialect.BIGQUERY,
     GXSqlDialect.DATABRICKS,
 )
+
+# Column-to-column comparisons support exactly these operators. ``IN`` and ``NOT_IN`` take a
+# collection of literal values, so they have no meaning between two columns.
+_COLUMN_COMPARISON_OPERATORS: Final[
+    Mapping[Operator, Callable[[ColumnElement, ColumnElement], ColumnElement]]
+] = {
+    Operator.EQUAL: eq,
+    Operator.NOT_EQUAL: ne,
+    Operator.LESS_THAN: lt,
+    Operator.LESS_THAN_OR_EQUAL: le,
+    Operator.GREATER_THAN: gt,
+    Operator.GREATER_THAN_OR_EQUAL: ge,
+}
 
 
 class InvalidOperatorError(ValueError):
@@ -1683,6 +1699,18 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             return ~col.in_(condition.parameter)
         else:
             raise InvalidOperatorError(op)
+
+    @override
+    def _column_comparison_condition_to_filter_clause(
+        self, condition: ColumnComparisonCondition
+    ) -> sa.ColumnElement:
+        # SQL comparisons are null-propagating, so a null on either side is excluded under every
+        # operator, including ``!=``. NaN follows the database's own comparison rules, as it does
+        # in a literal comparison, and each name is quoted as a literal comparison quotes it.
+        # ``use_enum_values`` stores the operator as its raw string, so it is normalized first.
+        left: sa.ColumnClause = sa.column(condition.column.name)
+        right: sa.ColumnClause = sa.column(condition.other_column.name)
+        return _COLUMN_COMPARISON_OPERATORS[Operator(condition.operator)](left, right)
 
     @override
     def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> sa.ColumnElement:

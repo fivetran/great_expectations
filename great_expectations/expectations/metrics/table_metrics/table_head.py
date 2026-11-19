@@ -18,6 +18,7 @@ from great_expectations.expectations.metrics.metric_provider import metric_value
 from great_expectations.expectations.metrics.table_metric_provider import (
     TableMetricProvider,
 )
+from great_expectations.util import get_sqlalchemy_selectable
 from great_expectations.validator.metric_configuration import MetricConfiguration
 from great_expectations.validator.validator import Validator
 
@@ -63,6 +64,8 @@ class TableHead(TableMetricProvider):
         selectable, _, _ = execution_engine.get_compute_domain(
             metric_domain_kwargs, domain_type=MetricDomainTypes.TABLE
         )
+        # A row condition makes the domain a SELECT, and a FROM clause requires a subquery.
+        selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type] # FIXME CoP
 
         n_rows: int = (
             metric_value_kwargs.get("n_rows")  # type: ignore[assignment] # FIXME expected 'int', got 'Any | None'

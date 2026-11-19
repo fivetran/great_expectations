@@ -1,3 +1,5 @@
+import json
+
 import pandas as pd
 import pytest
 from sqlalchemy import types as sqlatypes
@@ -8,12 +10,14 @@ from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.expectations.core.expect_column_quantile_values_to_be_between import (
     QuantileRange,
 )
+from great_expectations.expectations.row_conditions import Column
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.data_source_lists import (
     JUST_PANDAS_DATA_SOURCES,
 )
 from tests.integration.test_utils.data_source_config import (
     ALL_DATA_SOURCES,
+    SQL_DATA_SOURCES,
     GenericSQLDatasourceTestConfig,
     RedshiftDatasourceTestConfig,
 )
@@ -298,3 +302,62 @@ def test_success_with_suite_param_allow_relative_error_(
         expectation, expectation_parameters={suite_param_key: suite_param_value}
     )
     assert result.success == expected_result
+
+
+PLAIN_BOOL_DATA_SOURCES = [PandasDataFrameDatasourceTestConfig(), SqliteDatasourceTestConfig()]
+
+IN_RANGE_DATA = pd.DataFrame({COL_NAME: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]})
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=PLAIN_BOOL_DATA_SOURCES, data=IN_RANGE_DATA
+)
+def test_success_is_a_plain_json_serializable_bool(batch_for_datasource: Batch) -> None:
+    """`success` must be a plain Python bool, as for every other Expectation."""
+    expectation = gxe.ExpectColumnQuantileValuesToBeBetween(
+        column=COL_NAME,
+        quantile_ranges={"quantiles": [0.25, 0.5, 0.75], "value_ranges": [[0, 5], [3, 8], [6, 11]]},
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success is True
+    assert type(result.success) is bool
+    json.dumps(result.to_json_dict())
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=PLAIN_BOOL_DATA_SOURCES, data=IN_RANGE_DATA
+)
+def test_failure_is_a_plain_json_serializable_bool(batch_for_datasource: Batch) -> None:
+    """Same guarantee when the Expectation fails."""
+    expectation = gxe.ExpectColumnQuantileValuesToBeBetween(
+        column=COL_NAME,
+        quantile_ranges={
+            "quantiles": [0.25, 0.5, 0.75],
+            "value_ranges": [[0, 5], [3, 8], [20, 30]],
+        },
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success is False
+    assert type(result.success) is bool
+    json.dumps(result.to_json_dict())
+
+
+FILTER_COL_NAME = "filter_col"
+# A row condition of `filter_col > 0` drops the first row, whose outlier value would otherwise make
+# the maximum 100 rather than 4.
+ROW_CONDITION_DATA = pd.DataFrame({COL_NAME: [100, 1, 2, 3, 4], FILTER_COL_NAME: [0, 1, 1, 1, 1]})
+
+
+@parameterize_batch_for_data_sources(data_source_configs=SQL_DATA_SOURCES, data=ROW_CONDITION_DATA)
+def test_sql_row_condition_filters_domain(batch_for_datasource: Batch) -> None:
+    """A row condition makes the SQL domain a SELECT, which must be wrapped to be used as a FROM.
+
+    Only the extremes are asserted: they are the quantiles every backend's algorithm agrees on.
+    """
+    expectation = gxe.ExpectColumnQuantileValuesToBeBetween(
+        column=COL_NAME,
+        quantile_ranges=QuantileRange(quantiles=[0, 1], value_ranges=[[1, 1], [4, 4]]),
+        row_condition=Column(FILTER_COL_NAME) > 0,
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success, result.exception_info

@@ -1,6 +1,7 @@
 import datetime
 import logging
-from typing import TYPE_CHECKING, Dict
+from operator import eq, ge, gt, le, lt, ne
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 
 import numpy as np
 import pandas as pd
@@ -23,6 +24,7 @@ from great_expectations.expectations.legacy_row_conditions import (
 from great_expectations.expectations.row_conditions import (
     AndCondition,
     Column,
+    ColumnComparisonCondition,
     ComparisonCondition,
     NullityCondition,
     Operator,
@@ -1466,3 +1468,280 @@ class TestConditionToFilterClause:
         assert result_df.count() == 4
         result_rows = result_df.select("id").collect()
         assert [row.id for row in result_rows] == [2, 3, 4, 5]
+
+
+_COLUMN_COMPARISON_OPERATORS = [
+    pytest.param(Operator.EQUAL, eq, id="equal"),
+    pytest.param(Operator.NOT_EQUAL, ne, id="not_equal"),
+    pytest.param(Operator.LESS_THAN, lt, id="less_than"),
+    pytest.param(Operator.LESS_THAN_OR_EQUAL, le, id="less_or_equal"),
+    pytest.param(Operator.GREATER_THAN, gt, id="greater_than"),
+    pytest.param(Operator.GREATER_THAN_OR_EQUAL, ge, id="greater_or_equal"),
+]
+
+
+def _column_pair_rows(
+    low: Any, middle: Any, high: Any
+) -> tuple[list[Optional[Any]], list[Optional[Any]]]:
+    """Return the two columns of a comparison table: every pairing of three ordered values, then
+    rows with a null on the left, on the right, and on both sides."""
+    values = [low, middle, high]
+    pairs: list[tuple[Optional[Any], Optional[Any]]] = [(x, y) for x in values for y in values]
+    pairs += [(None, low), (None, high), (low, None), (high, None), (None, None)]
+    return [left for left, _ in pairs], [right for _, right in pairs]
+
+
+def _ids_where_both_sides_are_non_null_and(
+    compare: Callable[[Any, Any], bool],
+    left_values: list[Optional[Any]],
+    right_values: list[Optional[Any]],
+) -> list[int]:
+    """Oracle: drop every pair with a null on either side, then apply the operator."""
+    return [
+        row_id
+        for row_id, (left, right) in enumerate(zip(left_values, right_values, strict=True))
+        if left is not None and right is not None and compare(left, right)
+    ]
+
+
+def _column_pair_dataframe(
+    spark_session: Any,
+    values: tuple[Any, Any, Any],
+    spark_type: str,
+    left_name: str = "a",
+    right_name: str = "b",
+) -> tuple[Any, list[Optional[Any]], list[Optional[Any]]]:
+    left_values, right_values = _column_pair_rows(*values)
+    rows = [
+        (row_id, left, right)
+        for row_id, (left, right) in enumerate(zip(left_values, right_values, strict=True))
+    ]
+    df = spark_session.createDataFrame(
+        rows, f"id long, `{left_name}` {spark_type}, `{right_name}` {spark_type}"
+    )
+    return df, left_values, right_values
+
+
+def _selected_ids(df: Any, filter_clause: str) -> list[int]:
+    return [row.id for row in df.filter(filter_clause).orderBy("id").select("id").collect()]
+
+
+class TestColumnComparisonConditionToFilterClause:
+    @pytest.mark.parametrize(
+        "operator,expected_output",
+        [
+            pytest.param(Operator.EQUAL, "(`a` == `b`)", id="equal"),
+            pytest.param(Operator.NOT_EQUAL, "(`a` != `b`)", id="not_equal"),
+            pytest.param(Operator.LESS_THAN, "(`a` < `b`)", id="less_than"),
+            pytest.param(Operator.LESS_THAN_OR_EQUAL, "(`a` <= `b`)", id="less_or_equal"),
+            pytest.param(Operator.GREATER_THAN, "(`a` > `b`)", id="greater_than"),
+            pytest.param(Operator.GREATER_THAN_OR_EQUAL, "(`a` >= `b`)", id="greater_or_equal"),
+        ],
+    )
+    def test_column_comparison_renders_a_parenthesized_clause_for_every_operator(
+        self, operator: Operator, expected_output: str
+    ) -> None:
+        engine = SparkDFExecutionEngine()
+        condition = ColumnComparisonCondition(
+            column=Column("a"), operator=operator, other_column=Column("b")
+        )
+
+        assert engine.condition_to_filter_clause(condition) == expected_output
+
+    @pytest.mark.parametrize(
+        "left_name,right_name,left_reference,right_reference",
+        [
+            pytest.param("Total Amount", "b", "`Total Amount`", "`b`", id="left-space"),
+            pytest.param("a", "Total Amount", "`a`", "`Total Amount`", id="right-space"),
+            pytest.param("select", "b", "`select`", "`b`", id="left-reserved-word"),
+            pytest.param("a", "from", "`a`", "`from`", id="right-reserved-word"),
+            pytest.param("MixedCase", "b", "`MixedCase`", "`b`", id="left-mixed-case"),
+            pytest.param("a", "MixedCase", "`a`", "`MixedCase`", id="right-mixed-case"),
+            pytest.param("Sale Price", "Net Cost", "`Sale Price`", "`Net Cost`", id="both-space"),
+            pytest.param("select", "from", "`select`", "`from`", id="both-reserved-word"),
+            pytest.param("id-n", "b", "`id-n`", "`b`", id="left-hyphen"),
+        ],
+    )
+    def test_column_comparison_quotes_each_side_like_a_literal_comparison(
+        self, left_name: str, right_name: str, left_reference: str, right_reference: str
+    ) -> None:
+        engine = SparkDFExecutionEngine()
+        condition = ColumnComparisonCondition(
+            column=Column(left_name), operator=Operator.LESS_THAN, other_column=Column(right_name)
+        )
+        left_literal = ComparisonCondition(
+            column=Column(left_name), operator=Operator.LESS_THAN, parameter=1
+        )
+        right_literal = ComparisonCondition(
+            column=Column(right_name), operator=Operator.LESS_THAN, parameter=1
+        )
+
+        assert engine.condition_to_filter_clause(condition) == (
+            f"({left_reference} < {right_reference})"
+        )
+        # Each side is quoted exactly as a literal comparison on the same name quotes it.
+        assert engine.condition_to_filter_clause(left_literal) == f"{left_reference} < 1"
+        assert engine.condition_to_filter_clause(right_literal) == f"{right_reference} < 1"
+
+    @pytest.mark.parametrize(
+        "left_name,right_name,left_reference,right_reference",
+        [
+            pytest.param(
+                "address.city", "billing.city", "`address`.`city`", "`billing`.`city`", id="both"
+            ),
+            pytest.param("address.city", "other", "`address`.`city`", "`other`", id="left"),
+            pytest.param("other", "address.city", "`other`", "`address`.`city`", id="right"),
+            pytest.param(
+                "home address.zip-code",
+                "work address.zip-code",
+                "`home address`.`zip-code`",
+                "`work address`.`zip-code`",
+                id="odd-characters",
+            ),
+        ],
+    )
+    def test_column_comparison_resolves_a_dotted_name_as_a_nested_path(
+        self, left_name: str, right_name: str, left_reference: str, right_reference: str
+    ) -> None:
+        engine = SparkDFExecutionEngine()
+        condition = ColumnComparisonCondition(
+            column=Column(left_name), operator=Operator.EQUAL, other_column=Column(right_name)
+        )
+        left_literal = ComparisonCondition(
+            column=Column(left_name), operator=Operator.EQUAL, parameter="x"
+        )
+
+        assert engine.condition_to_filter_clause(condition) == (
+            f"({left_reference} == {right_reference})"
+        )
+        assert engine.condition_to_filter_clause(left_literal) == f"{left_reference} == 'x'"
+
+    def test_column_comparison_is_one_unit_under_and_and_or(self) -> None:
+        engine = SparkDFExecutionEngine()
+        comparison = ColumnComparisonCondition(
+            column=Column("a"), operator=Operator.NOT_EQUAL, other_column=Column("b")
+        )
+        literal = ComparisonCondition(
+            column=Column("id"), operator=Operator.LESS_THAN, parameter=10
+        )
+        nullity = NullityCondition(column=Column("a"), is_null=True)
+
+        assert (
+            engine.condition_to_filter_clause(AndCondition(conditions=[comparison, literal]))
+            == "((`a` != `b`) AND `id` < 10)"
+        )
+        assert (
+            engine.condition_to_filter_clause(OrCondition(conditions=[comparison, nullity]))
+            == "((`a` != `b`) OR `a` IS NULL)"
+        )
+
+    @pytest.mark.parametrize("operator,compare", _COLUMN_COMPARISON_OPERATORS)
+    def test_column_comparison_excludes_a_null_on_either_side_for_every_operator(
+        self, spark_session, operator: Operator, compare: Callable[[Any, Any], bool]
+    ) -> None:
+        engine = SparkDFExecutionEngine()
+        df, left_values, right_values = _column_pair_dataframe(spark_session, (1, 2, 3), "long")
+        condition = ColumnComparisonCondition(
+            column=Column("a"), operator=operator, other_column=Column("b")
+        )
+
+        selected = _selected_ids(df, engine.condition_to_filter_clause(condition))
+
+        expected_ids = _ids_where_both_sides_are_non_null_and(compare, left_values, right_values)
+        # A proper, non-empty subset: the operator and the null rule each shape the result.
+        assert expected_ids
+        assert len(expected_ids) < df.count()
+        assert selected == expected_ids
+
+    @pytest.mark.parametrize(
+        "left_name,right_name",
+        [
+            pytest.param("Total Amount", "b", id="left-space"),
+            pytest.param("a", "Total Amount", id="right-space"),
+            pytest.param("select", "b", id="left-reserved-word"),
+            pytest.param("a", "from", id="right-reserved-word"),
+            pytest.param("MixedCase", "b", id="left-mixed-case"),
+            pytest.param("a", "MixedCase", id="right-mixed-case"),
+            pytest.param("Sale Price", "Net Cost", id="both-space"),
+            pytest.param("select", "from", id="both-reserved-word"),
+        ],
+    )
+    def test_column_comparison_with_quoted_names_filters_a_dataframe(
+        self, spark_session, left_name: str, right_name: str
+    ) -> None:
+        """What is rendered has to be what Spark can execute, for each name on either side."""
+        engine = SparkDFExecutionEngine()
+        df, left_values, right_values = _column_pair_dataframe(
+            spark_session, (1, 2, 3), "long", left_name=left_name, right_name=right_name
+        )
+        condition = ColumnComparisonCondition(
+            column=Column(left_name), operator=Operator.LESS_THAN, other_column=Column(right_name)
+        )
+
+        selected = _selected_ids(df, engine.condition_to_filter_clause(condition))
+
+        expected_ids = _ids_where_both_sides_are_non_null_and(lt, left_values, right_values)
+        assert expected_ids
+        assert len(expected_ids) < df.count()
+        assert selected == expected_ids
+
+    @pytest.mark.parametrize("operator,compare", _COLUMN_COMPARISON_OPERATORS)
+    def test_column_comparison_between_nested_struct_fields_filters_a_dataframe(
+        self, spark_session, operator: Operator, compare: Callable[[Any, Any], bool]
+    ) -> None:
+        engine = SparkDFExecutionEngine()
+        left_values, right_values = _column_pair_rows("a", "b", "c")
+        rows = [
+            pyspark.Row(id=row_id, address=pyspark.Row(city=left), billing=pyspark.Row(city=right))
+            for row_id, (left, right) in enumerate(zip(left_values, right_values, strict=True))
+        ]
+        df = spark_session.createDataFrame(rows)
+        condition = ColumnComparisonCondition(
+            column=Column("address.city"), operator=operator, other_column=Column("billing.city")
+        )
+
+        selected = _selected_ids(df, engine.condition_to_filter_clause(condition))
+
+        expected_ids = _ids_where_both_sides_are_non_null_and(compare, left_values, right_values)
+        assert expected_ids
+        assert len(expected_ids) < df.count()
+        assert selected == expected_ids
+
+    def test_column_comparison_null_rule_stays_inside_its_leaf_under_and_and_or(
+        self, spark_session
+    ) -> None:
+        engine = SparkDFExecutionEngine()
+        df, left_values, right_values = _column_pair_dataframe(spark_session, (1, 2, 3), "long")
+        comparison = ColumnComparisonCondition(
+            column=Column("a"), operator=Operator.NOT_EQUAL, other_column=Column("b")
+        )
+        compared_ids = _ids_where_both_sides_are_non_null_and(ne, left_values, right_values)
+        row_count = df.count()
+
+        # AND: a null on either side is excluded, whatever the other branch says.
+        and_condition = AndCondition(
+            conditions=[
+                comparison,
+                ComparisonCondition(
+                    column=Column("id"), operator=Operator.LESS_THAN, parameter=row_count - 1
+                ),
+            ]
+        )
+        assert _selected_ids(df, engine.condition_to_filter_clause(and_condition)) == [
+            row_id for row_id in compared_ids if row_id < row_count - 1
+        ]
+
+        # OR: a row with a null is selected exactly when the other branch selects it, and a
+        # null on the side the other branch does not look at does not leak in.
+        for nullity_column, values_in_column in (("a", left_values), ("b", right_values)):
+            or_condition = OrCondition(
+                conditions=[
+                    comparison,
+                    NullityCondition(column=Column(nullity_column), is_null=True),
+                ]
+            )
+            assert _selected_ids(df, engine.condition_to_filter_clause(or_condition)) == [
+                row_id
+                for row_id in range(row_count)
+                if row_id in compared_ids or values_in_column[row_id] is None
+            ], nullity_column
