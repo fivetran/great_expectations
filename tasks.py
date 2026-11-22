@@ -514,6 +514,7 @@ EXPECTATIONS_WITHOUT_SCHEMAS: Final[frozenset[str]] = frozenset(
 SUPPORTED_EXPECTATIONS: Final[tuple[str, ...]] = (
     "ExpectColumnValuesToBeNull",
     "ExpectColumnValuesToNotBeNull",
+    "ExpectColumnValuesToNotBeBlank",
     "ExpectColumnValuesToBeUnique",
     "ExpectColumnValuesToBeInSet",
     "ExpectColumnMaxToBeBetween",
