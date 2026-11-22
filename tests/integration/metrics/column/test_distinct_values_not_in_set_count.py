@@ -68,3 +68,34 @@ class TestColumnDistinctValuesNotInSetCount:
         assert isinstance(metric_result, ColumnDistinctValuesNotInSetCountResult)
         # Normalize type for Spark compatibility (may return numpy.int64 or Java long)
         assert int(metric_result.value) == 3  # a, b, c
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=ALL_DATA_SOURCES,
+        data=DATA_FRAME,
+    )
+    def test_none_in_value_set(self, batch_for_datasource: Batch) -> None:
+        """A None in value_set must not stop SQL engines from counting values outside the set."""
+        metric = ColumnDistinctValuesNotInSetCount(
+            column=COLUMN_NAME,
+            value_set=["a", "b", None],  # type: ignore[list-item] # testing None in value_set
+        )
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert isinstance(metric_result, ColumnDistinctValuesNotInSetCountResult)
+        assert int(metric_result.value) == 1  # "c" is not in set
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=ALL_DATA_SOURCES,
+        data=DATA_FRAME,
+    )
+    def test_none_only_value_set(self, batch_for_datasource: Batch) -> None:
+        """When value_set contains only None, all non-null values are violations."""
+        metric = ColumnDistinctValuesNotInSetCount(
+            column=COLUMN_NAME,
+            value_set=[None],  # type: ignore[list-item] # testing None in value_set
+        )
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert isinstance(metric_result, ColumnDistinctValuesNotInSetCountResult)
+        assert int(metric_result.value) == 3  # a, b, c
+
