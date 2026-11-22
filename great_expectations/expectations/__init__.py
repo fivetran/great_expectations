@@ -41,6 +41,7 @@ from .core import (
     ExpectColumnValuesToMatchStrftimeFormat,
     ExpectColumnValuesToNotBeInSet,
     ExpectColumnValuesToNotBeNull,
+    ExpectColumnValuesToNotBeBlank,
     ExpectColumnValuesToNotBeOutliers,
     ExpectColumnValuesToNotMatchLikePattern,
     ExpectColumnValuesToNotMatchLikePatternList,

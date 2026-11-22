@@ -13,6 +13,7 @@ from .column_values_match_regex import ColumnValuesMatchRegex, ColumnValuesMatch
 from .column_values_match_regex_list import ColumnValuesMatchRegexList
 from .column_values_match_strftime_format import ColumnValuesMatchStrftimeFormat
 from .column_values_non_null import ColumnValuesNonNull
+from .column_values_not_blank import ColumnValuesNotBlank
 from .column_values_not_in_set import ColumnValuesNotInSet
 from .column_values_not_match_like_pattern import ColumnValuesNotMatchLikePattern
 from .column_values_not_match_like_pattern_list import (
