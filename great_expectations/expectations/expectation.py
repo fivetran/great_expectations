@@ -236,19 +236,14 @@ def param_method(param_name: str) -> Callable:
                     f"type, but method {method_name} does not."
                 )
 
-            if hasattr(renderer_configuration.params, param_name):
-                if getattr(renderer_configuration.params, param_name, None):
-                    return_obj = param_func(renderer_configuration=renderer_configuration)
-                else:  # noqa: PLR5501 # FIXME CoP
-                    if return_type is RendererConfiguration:
-                        return_obj = renderer_configuration
-                    else:
-                        return_obj = None
+            if hasattr(renderer_configuration.params, param_name) and getattr(
+                renderer_configuration.params, param_name, None
+            ):
+                return_obj = param_func(renderer_configuration=renderer_configuration)
+            elif return_type is RendererConfiguration:
+                return_obj = renderer_configuration
             else:
-                raise RendererConfigurationError(  # noqa: TRY003 # FIXME CoP
-                    f"RendererConfiguration.param does not have a param called {param_name}. "
-                    f'Use RendererConfiguration.add_param() with name="{param_name}" to add it.'
-                )
+                return_obj = None
             return return_obj
 
         return wrapper

@@ -11,7 +11,7 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core import (
     ExpectationValidationResult,
 )
-from great_expectations.expectations.expectation import Expectation
+from great_expectations.expectations.expectation import Expectation, param_method
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
@@ -324,3 +324,74 @@ def test_add_array_params():
 @pytest.mark.unit
 def test_from_value(value: Any, type: RendererValueType) -> None:
     assert RendererValueType.from_value(value) == type
+
+
+def _renderer_configuration_without_params() -> RendererConfiguration:
+    return RendererConfiguration(
+        configuration=ExpectationConfiguration(
+            type="expect_column_values_to_be_in_set",
+            kwargs={"column": "foo"},
+        )
+    )
+
+
+@pytest.mark.unit
+def test_param_method_missing_param_returns_input_for_renderer_configuration_return_type() -> None:
+    """Missing param returns the input config for a RendererConfiguration-returning helper."""
+    renderer_configuration = _renderer_configuration_without_params()
+    body_calls: list[bool] = []
+
+    @param_method(param_name="mostly")
+    def _add_mostly_pct(
+        renderer_configuration: RendererConfiguration,
+    ) -> RendererConfiguration:
+        body_calls.append(True)
+        return renderer_configuration
+
+    result = _add_mostly_pct(renderer_configuration=renderer_configuration)
+
+    assert result is renderer_configuration
+    assert body_calls == []
+
+
+@pytest.mark.unit
+def test_param_method_missing_param_returns_none_for_none_return_type() -> None:
+    """Missing param returns None for helpers that do not return RendererConfiguration."""
+    renderer_configuration = _renderer_configuration_without_params()
+    body_calls: list[bool] = []
+
+    @param_method(param_name="mostly")
+    def _get_mostly_label(renderer_configuration: RendererConfiguration) -> None:
+        body_calls.append(renderer_configuration is not None)
+
+    result = _get_mostly_label(renderer_configuration=renderer_configuration)
+
+    assert result is None
+    assert body_calls == []
+
+
+@pytest.mark.unit
+def test_param_method_existing_param_executes_body() -> None:
+    """When the param exists, the decorated body still runs and its result is returned."""
+    renderer_configuration = _renderer_configuration_without_params()
+    renderer_configuration.add_param(
+        name="mostly",
+        param_type=RendererValueType.NUMBER,
+        value=0.9,
+    )
+
+    @param_method(param_name="mostly")
+    def _add_mostly_pct(
+        renderer_configuration: RendererConfiguration,
+    ) -> RendererConfiguration:
+        renderer_configuration.add_param(
+            name="mostly_pct",
+            param_type=RendererValueType.STRING,
+            value="90",
+        )
+        return renderer_configuration
+
+    result = _add_mostly_pct(renderer_configuration=renderer_configuration)
+
+    assert result is renderer_configuration
+    assert renderer_configuration.params.mostly_pct.value == "90"
