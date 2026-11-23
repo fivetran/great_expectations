@@ -63,6 +63,8 @@ To restrict an Expectation to a subset of the data retrieved in a Batch, use the
       ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - operators"
       ```
 
+      A null value is neither equal nor unequal to another value, so `!=` and `is_not_in` don't select rows where the column is null. The exception is `is_not_in` with an empty list, which compares nothing and selects every row. Rows that aren't selected aren't evaluated, so they don't count toward `element_count`, `unexpected_count`, or `unexpected_percent`, and a `mostly` result can change with them. On Spark, a floating-point `NaN` is not a null: `!=` still selects a row where the column is `NaN`.
+
    2. Configure the Expectation.
 
       ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - add Expectation"
