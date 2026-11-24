@@ -579,10 +579,15 @@ def _sqlalchemy_map_condition_index(  # noqa: C901 #  too complex
     if not _is_sqlalchemy_metric_selectable(map_metric_provider=cls):
         domain_records_as_selectable = get_sqlalchemy_selectable(domain_records_as_selectable)  # type: ignore[arg-type] # FIXME CoP
 
-    # since SQL tables can be **very** large, truncate query_result values at 20, or at `partial_unexpected_count`  # noqa: E501 # FIXME CoP
+    # since SQL tables can be **very** large, truncate query_result values at MAX_RESULT_RECORDS for COMPLETE, else at `partial_unexpected_count`  # noqa: E501 # FIXME CoP
+    limit = (
+        MAX_RESULT_RECORDS
+        if result_format["result_format"] == "COMPLETE"
+        else result_format["partial_unexpected_count"]
+    )
     final_query: sa.select = unexpected_condition_query_with_selected_columns.select_from(  # type: ignore[valid-type,attr-defined] # FIXME CoP
         domain_records_as_selectable
-    ).limit(result_format["partial_unexpected_count"])
+    ).limit(limit)
     query_result: List[sqlalchemy.Row] = execution_engine.execute_query(final_query).fetchall()  # type: ignore[assignment] # FIXME CoP
 
     exclude_unexpected_values: bool = result_format.get("exclude_unexpected_values", False)
