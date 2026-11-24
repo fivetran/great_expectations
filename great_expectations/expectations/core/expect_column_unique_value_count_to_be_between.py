@@ -401,7 +401,7 @@ class ExpectColumnUniqueValueCountToBeBetween(ColumnAggregateExpectation):
                 "tooltip": {"content": "expect_column_unique_value_count_to_be_between"},
             },
         )
-        if not observed_value:
+        if observed_value is None:
             return [template_string_object, "--"]
         else:
             return [template_string_object, observed_value]

@@ -412,7 +412,7 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
                 "tooltip": {"content": "expect_column_proportion_of_unique_values_to_be_between"},
             },
         )
-        if not observed_value:
+        if observed_value is None:
             return [template_string_object, "--"]
         else:
             return [template_string_object, f"{100 * observed_value:.1f}%"]
