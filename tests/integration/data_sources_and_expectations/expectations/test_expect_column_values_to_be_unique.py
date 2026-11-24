@@ -610,3 +610,35 @@ def test_import_does_not_emit_metric_reregistration_warnings() -> None:
     )
     assert "overwriting metric_provider" not in completed.stderr
     assert "is being registered with different metric_provider" not in completed.stderr
+
+
+@pytest.mark.parametrize("partial_unexpected_count", [None, 0, 3])
+@parameterize_batch_for_data_sources(
+    data_source_configs=RESULT_FORMAT_GUARD_DATA_SOURCES,
+    data=pd.DataFrame(
+        {
+            ROW_ID: list(range(30)),  # more than the default partial_unexpected_count of 20
+            DUPLICATE_VALUES: [1] * 30,
+        }
+    ),
+)
+def test_complete_unexpected_index_list_ignores_partial_unexpected_count_sql(
+    batch_for_datasource: Batch, partial_unexpected_count: int | None
+) -> None:
+    result_format: dict = {
+        "result_format": "COMPLETE",
+        "unexpected_index_column_names": [ROW_ID],
+    }
+    if partial_unexpected_count is not None:
+        result_format["partial_unexpected_count"] = partial_unexpected_count
+
+    result = batch_for_datasource.validate(
+        gxe.ExpectColumnValuesToBeUnique(column=DUPLICATE_VALUES), result_format=result_format
+    )
+
+    _assert_no_metric_exceptions(result)
+    assert not result.success
+    assert result.result["unexpected_count"] == 30
+    assert sorted(entry[ROW_ID] for entry in result.result["unexpected_index_list"]) == list(
+        range(30)
+    )

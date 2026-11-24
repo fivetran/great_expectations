@@ -265,7 +265,12 @@ def _sqlalchemy_unique_unexpected_index_list(
     query = sa.select(*column_selector).select_from(duplicates.from_clause)
     if duplicates.whereclause is not None:
         query = query.where(duplicates.whereclause)
-    query = query.limit(result_format["partial_unexpected_count"])
+    limit = (
+        MAX_RESULT_RECORDS
+        if result_format["result_format"] == "COMPLETE"
+        else result_format["partial_unexpected_count"]
+    )
+    query = query.limit(limit)
     exclude_unexpected_values: bool = result_format.get("exclude_unexpected_values", False)
     try:
         query_result: List[sqlalchemy.Row] = execution_engine.execute_query(query).fetchall()  # type: ignore[assignment] # FIXME CoP

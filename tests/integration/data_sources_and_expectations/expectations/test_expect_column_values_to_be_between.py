@@ -408,3 +408,40 @@ def test_infinite_decimal_is_unexpected_and_serializes(batch_for_datasource: Bat
     json_result = result.to_json_dict()["result"]
     assert isinstance(json_result, dict)
     assert json_result["unexpected_list"] == [float("inf")]
+
+
+MANY_UNEXPECTED_ROW_COUNT = 30  # more than the default partial_unexpected_count of 20
+MANY_UNEXPECTED_DATA = pd.DataFrame(
+    {
+        "row_id": list(range(MANY_UNEXPECTED_ROW_COUNT)),
+        NUMERIC_COLUMN: [-1] * MANY_UNEXPECTED_ROW_COUNT,
+    }
+)
+
+
+@pytest.mark.parametrize("partial_unexpected_count", [None, 0, 3])
+@parameterize_batch_for_data_sources(
+    data_source_configs=[*JUST_PANDAS_DATA_SOURCES, *SQL_DATA_SOURCES],
+    data=MANY_UNEXPECTED_DATA,
+)
+def test_complete_unexpected_index_list_ignores_partial_unexpected_count(
+    batch_for_datasource: Batch, partial_unexpected_count: int | None
+) -> None:
+    result_format: dict[str, Any] = {
+        "result_format": "COMPLETE",
+        "unexpected_index_column_names": ["row_id"],
+    }
+    if partial_unexpected_count is not None:
+        result_format["partial_unexpected_count"] = partial_unexpected_count
+    expectation = gxe.ExpectColumnValuesToBeBetween(
+        column=NUMERIC_COLUMN, min_value=0, max_value=10
+    )
+
+    result = batch_for_datasource.validate(expectation, result_format=result_format)
+
+    assert not result.success
+    assert result.result["unexpected_count"] == MANY_UNEXPECTED_ROW_COUNT
+    assert len(result.result["unexpected_list"]) == MANY_UNEXPECTED_ROW_COUNT
+    assert sorted(entry["row_id"] for entry in result.result["unexpected_index_list"]) == list(
+        range(MANY_UNEXPECTED_ROW_COUNT)
+    )
