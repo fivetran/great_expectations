@@ -13,6 +13,7 @@ from tests.integration.data_sources_and_expectations.data_source_lists import (
     NON_SQL_DATA_SOURCES,
 )
 from tests.integration.test_utils.data_source_config import (
+    SPARK_DATA_SOURCES,
     SQL_DATA_SOURCES,
     PostgreSQLDatasourceTestConfig,
     SqliteDatasourceTestConfig,
@@ -234,3 +235,30 @@ def test_none_only_value_set_flags_all_non_null_values(
 
     assert not result.success
     assert result.result["unexpected_list"] == ["a", "b"]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=SPARK_DATA_SOURCES,
+    data=pd.DataFrame({STRINGS_COLUMN: ["a", "b", "c", "a"]}),
+)
+def test_spark_none_in_value_set_still_flags_outside_values(
+    batch_for_datasource: Batch,
+) -> None:
+    """A None in value_set must not stop Spark from flagging out-of-set values (GH #12382)."""
+    expectation = gxe.ExpectColumnValuesToBeInSet(column=STRINGS_COLUMN, value_set=["a", None])
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    assert sorted(result.result["unexpected_list"]) == ["b", "c"]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=SPARK_DATA_SOURCES,
+    data=pd.DataFrame({STRINGS_COLUMN: ["a", "b", None]}),
+)
+def test_spark_none_only_value_set_flags_non_null_values(
+    batch_for_datasource: Batch,
+) -> None:
+    """A value_set of only None must flag every non-NULL Spark value, matching pandas (GH #12382)."""
+    expectation = gxe.ExpectColumnValuesToBeInSet(column=STRINGS_COLUMN, value_set=[None])
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    assert not result.success
+    assert sorted(result.result["unexpected_list"]) == ["a", "b"]

@@ -94,4 +94,13 @@ class ColumnValuesInSet(ColumnMapMetricProvider):
             # vacuously true
             return F.lit(True)
 
+        # `column.isin(..., None)` evaluates to NULL for a non-matching row, and
+        # so does its negation, so a None in value_set would make every
+        # non-matching row count as expected. Spark NULL rows are already
+        # excluded from this condition, so dropping None matches pandas and the
+        # SQLAlchemy engine (GH #12273 / #12382).
+        if None in value_set:
+            value_set = [value for value in value_set if value is not None]
+            if len(value_set) == 0:
+                return column.isin([])
         return column.isin(value_set)
