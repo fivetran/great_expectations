@@ -39,6 +39,7 @@ import PrereqSparkFilesystemDataSource from '../../../../_core_components/prereq
    - `asset_name`: A name by which you can reference the Data Asset in the future.  This should be unique within the Data Source.
    - `s3_prefix`: The path to the data files for the Data Asset, relative to the root of the S3 bucket.
    - `data_directory`: The path of the folder containing data files for the Data asset, relative to the root of the S3 bucket.
+   - `s3_recursive_file_discovery`: (Optional) A boolean (True/False) indicating if files should be searched recursively from subfolders.  The default is False, unless the Data Asset is added to a Spark Data Source with `recursive_file_lookup=True`.
 
    This example uses taxi trip data stored in `.csv` files in the `data/taxi_yellow_tripdata_samples/` folder within the Data Sources S3 bucket:
 
