@@ -67,6 +67,10 @@ class ColumnPairValuesInSet(ColumnPairMapMetricProvider):
 
         value_pairs_set = [(x, y) for x, y in value_pairs_set]
 
+        if not value_pairs_set:
+            # No pair can match, so every row is unexpected, as on pandas.
+            return sa.false()
+
         def _equals(column, value):
             # `column == None` compiles to IS NULL, which is never NULL itself. Any other
             # comparison is NULL on a NULL row, so the row would count as neither expected nor
@@ -93,6 +97,11 @@ class ColumnPairValuesInSet(ColumnPairMapMetricProvider):
             return column_A == column_B
 
         value_pairs_set = [(x, y) for x, y in value_pairs_set]
+
+        if not value_pairs_set:
+            # No pair can match, so every row is unexpected, as on pandas.
+            return F.lit(False)
+
         conditions = [
             (column_A.eqNullSafe(F.lit(x)) & column_B.eqNullSafe(F.lit(y)))
             for x, y in value_pairs_set
