@@ -193,3 +193,20 @@ def test_row_with_one_null(
     result = batch_for_datasource.validate(expectation)
     assert result.success is (unexpected_count == 0)
     assert result.result["unexpected_count"] == unexpected_count
+
+
+@parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=DATA)
+def test_empty_value_pairs_set_marks_every_row_unexpected(batch_for_datasource: Batch) -> None:
+    # No pair can match an empty set, so every row is unexpected rather than the validation
+    # raising a SQL syntax error or a Spark reduce() error.
+    expectation = gxe.ExpectColumnPairValuesToBeInSet(
+        column_A="foo", column_B="bar", value_pairs_set=[]
+    )
+
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+
+    assert not result.exception_info["raised_exception"]
+    assert not result.success
+    assert result.result["element_count"] == 3
+    assert result.result["unexpected_count"] == 3
+    assert result.result["missing_count"] == 0
