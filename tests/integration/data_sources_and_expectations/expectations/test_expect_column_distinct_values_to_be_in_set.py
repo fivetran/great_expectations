@@ -193,3 +193,37 @@ def test_sql_row_condition_reports_unexpected_values(batch_for_datasource: Batch
         "unexpected_count": 1,
         "partial_unexpected_list": [3],
     }
+
+
+@parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=ONES_AND_TWOS)
+def test_none_in_value_set_still_flags_values_outside_the_set(
+    batch_for_datasource: Batch,
+) -> None:
+    """A None in value_set must not stop SQL engines from flagging values outside the set."""
+    expectation = gxe.ExpectColumnDistinctValuesToBeInSet(
+        column=COL_NAME,
+        value_set=[1, None],  # type: ignore[list-item] # testing None in value_set
+    )
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    assert not result.success
+    assert result.to_json_dict()["result"] == {
+        "observed_value": None,
+        "unexpected_count": 1,
+        "partial_unexpected_list": [2],
+    }
+
+
+@parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=ONES_AND_TWOS)
+def test_none_only_value_set_flags_all_non_null_values(
+    batch_for_datasource: Batch,
+) -> None:
+    """A value_set of only None must flag every non-NULL distinct value, matching pandas."""
+    expectation = gxe.ExpectColumnDistinctValuesToBeInSet(
+        column=COL_NAME,
+        value_set=[None],  # type: ignore[list-item] # testing None in value_set
+    )
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    assert not result.success
+    assert result.result["unexpected_count"] == 2
+    assert set(result.result["partial_unexpected_list"]) == {1, 2}
+

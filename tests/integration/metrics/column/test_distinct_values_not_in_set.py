@@ -67,3 +67,34 @@ class TestColumnDistinctValuesNotInSet:
 
         assert isinstance(metric_result, ColumnDistinctValuesNotInSetResult)
         assert len(metric_result.value) == 2
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=ALL_DATA_SOURCES,
+        data=DATA_FRAME,
+    )
+    def test_none_in_value_set(self, batch_for_datasource: Batch) -> None:
+        """A None in value_set must not stop SQL engines from returning values outside the set."""
+        metric = ColumnDistinctValuesNotInSet(
+            column=COLUMN_NAME,
+            value_set=["a", "b", None],  # type: ignore[list-item] # testing None in value_set
+        )
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert isinstance(metric_result, ColumnDistinctValuesNotInSetResult)
+        assert metric_result.value == ["c"]
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=ALL_DATA_SOURCES,
+        data=DATA_FRAME,
+    )
+    def test_none_only_value_set(self, batch_for_datasource: Batch) -> None:
+        """When value_set contains only None, all non-null values are violations."""
+        metric = ColumnDistinctValuesNotInSet(
+            column=COLUMN_NAME,
+            value_set=[None],  # type: ignore[list-item] # testing None in value_set
+        )
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert isinstance(metric_result, ColumnDistinctValuesNotInSetResult)
+        assert set(metric_result.value) == {"a", "b", "c"}
+

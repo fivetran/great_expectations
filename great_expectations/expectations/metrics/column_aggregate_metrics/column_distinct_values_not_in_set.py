@@ -64,7 +64,11 @@ class ColumnDistinctValuesNotInSetCount(ColumnAggregateMetricProvider):
         **kwargs,
     ) -> int:
         """Count distinct values in column that are NOT in the expected set."""
-        value_set = _coerce_value_set_for_sql(metric_value_kwargs.get("value_set", []))
+        value_set = [
+            v
+            for v in _coerce_value_set_for_sql(metric_value_kwargs.get("value_set", []))
+            if v is not None
+        ]
 
         selectable: sqlalchemy.Selectable
         accessor_domain_kwargs: Dict[str, str]
@@ -120,7 +124,7 @@ class ColumnDistinctValuesNotInSetCount(ColumnAggregateMetricProvider):
         **kwargs,
     ) -> int:
         """Count distinct values in column that are NOT in the expected set."""
-        value_set = metric_value_kwargs.get("value_set", [])
+        value_set = [v for v in metric_value_kwargs.get("value_set", []) if v is not None]
 
         df: pyspark.DataFrame
         accessor_domain_kwargs: Dict[str, str]
@@ -177,7 +181,11 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
         **kwargs,
     ) -> List[Any]:
         """Return sample of distinct values in column that are NOT in the expected set."""
-        value_set = _coerce_value_set_for_sql(metric_value_kwargs.get("value_set", []))
+        value_set = [
+            v
+            for v in _coerce_value_set_for_sql(metric_value_kwargs.get("value_set", []))
+            if v is not None
+        ]
         limit = metric_value_kwargs.get("limit") or MAX_DISTINCT_VALUES
 
         selectable: sqlalchemy.Selectable
@@ -242,7 +250,7 @@ class ColumnDistinctValuesNotInSet(ColumnAggregateMetricProvider):
         **kwargs,
     ) -> List[Any]:
         """Return sample of distinct values in column that are NOT in the expected set."""
-        value_set = metric_value_kwargs.get("value_set", [])
+        value_set = [v for v in metric_value_kwargs.get("value_set", []) if v is not None]
         limit = metric_value_kwargs.get("limit") or MAX_DISTINCT_VALUES
 
         df: pyspark.DataFrame
